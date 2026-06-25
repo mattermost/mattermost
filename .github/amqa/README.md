@@ -7,7 +7,7 @@ Burden-reduction QA program: CodeRabbit signals → structured QA plan → scope
 | Workflow | Trigger | Purpose |
 |----------|---------|---------|
 | [pr-manual-qa-plan.yml](../workflows/pr-manual-qa-plan.yml) | PR, CodeRabbit comment, `/qa-verify`, `QA/Run`/`QA/Skip` labels | Plan + automation + dispatch |
-| [pr-manual-qa-execute.yml](../workflows/pr-manual-qa-execute.yml) | Called from plan workflow | Agent verification |
+| [pr-manual-qa-execute.yml](../workflows/pr-manual-qa-execute.yml) | Called from plan workflow | Queue Cloud Agent verification (orchestration only; no LLM in GHA) |
 | [pr-manual-qa-override.yml](../workflows/pr-manual-qa-override.yml) | `/qa-override` | Maintainer waiver |
 | [release-manual-qa.yml](../workflows/release-manual-qa.yml) | Release cut / manual | Release Confidence Report |
 | [agentic-qa-merge.yml](../workflows/agentic-qa-merge.yml) | PR merged | Store qa-result for rollup |

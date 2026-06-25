@@ -16,6 +16,12 @@
 
 Enable via repo variable `AMQA_SOFT_GATE=true` (future).
 
+## Security
+
+- **GHA orchestrates only** — `pr-manual-qa-execute.yml` sets `QA/execution` pending and uploads artifacts. No LLM runs in CI.
+- **Manual verification** — Cursor Cloud Agent `computerUse` reads the structured `qa-plan.json` and playbook; it does not ingest raw PR body text as an LLM prompt inside GitHub Actions.
+- **User-controlled input** — CodeRabbit blocks are parsed by deterministic Python (`parse_coderabbit.py`), not passed to an in-CI agent.
+
 ## RACI
 
 | Activity | Dev | Agent | QA/SDET | Release Mgr |

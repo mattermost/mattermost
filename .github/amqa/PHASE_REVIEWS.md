@@ -18,7 +18,7 @@
 
 ## Phase 3 — Agent execution ✅
 
-**Shipped:** `pr-manual-qa-execute.yml`, `/qa-verify`, `QA/Run`/`QA/Skip` labels, CIS ≥ 70 auto-dispatch, Claude verification, defect filing script, `QA/execution` status, playbook + cursor.md.
+**Shipped:** `pr-manual-qa-execute.yml`, `/qa-verify`, `QA/Run`/`QA/Skip` labels, CIS ≥ 70 auto-dispatch, Cloud Agent queue step (GHA orchestration only — `computerUse` runs outside CI), defect filing script, `QA/execution` status, playbook + cursor.md.
 
 ## Phase 4 — Release orchestrator ✅
 

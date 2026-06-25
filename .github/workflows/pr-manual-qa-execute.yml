@@ -13,8 +13,6 @@ on:
     secrets:
       GH_TOKEN:
         required: true
-      ANTHROPIC_API_KEY:
-        required: false
       WEBHOOK_URL:
         required: false
   workflow_dispatch:
@@ -34,7 +32,6 @@ jobs:
       contents: read
       pull-requests: write
       statuses: write
-      issues: write
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -67,38 +64,16 @@ jobs:
       - name: Install Python dependencies
         run: pip install requests pyyaml
 
-      - name: Agent verification plan (Claude)
-        id: claude
-        if: vars.AMQA_DRY_RUN != 'true'
-        continue-on-error: true
-        uses: anthropics/claude-code-action@26ec041249acb0a944c0a47b6c0c13f05dbc5b44 # v1.0.70
-        with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          allowed_bots: "cursor,claude,coderabbitai"
-          prompt: |
-            REPO: ${{ github.repository }}
-            PR NUMBER: ${{ inputs.pr_number }}
-
-            Execute Agentic QA verification for this PR.
-
-            1. Run `gh pr view ${{ inputs.pr_number }}` and read CodeRabbit Change Impact + QA Recommendation.
-            2. Read `.cursor/qa-playbook.md` for execution protocol.
-            3. For each scenario in qa-plan.json (if present at /tmp/amqa/qa-plan.json), document pass/fail.
-            4. Write structured results to ${RUNNER_TEMP}/amqa-execution.md.
-            5. Do NOT modify production code.
-
-            Cloud Agents should use computerUse for browser steps and upload evidence to S3 per playbook.
-
-      - name: Update execution status
-        id: success
-        if: always()
+      # Orchestration only — no LLM in GHA. Manual verification runs in Cursor Cloud
+      # Agent via computerUse per .cursor/qa-playbook.md (avoids prompt injection from
+      # user-controlled PR/CodeRabbit content in CI).
+      - name: Queue Cloud Agent verification
         working-directory: .github/scripts/amqa
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           REPO: ${{ github.repository }}
           PR_NUMBER: ${{ inputs.pr_number }}
           HEAD_SHA: ${{ steps.meta.outputs.head_sha }}
-          CLAUDE_OUTCOME: ${{ steps.claude.outcome }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           python3 <<'PY'
@@ -109,7 +84,6 @@ jobs:
 
           pr = int(os.environ["PR_NUMBER"])
           sha = os.environ["HEAD_SHA"]
-          failed = os.environ.get("CLAUDE_OUTCOME") == "failure"
           result_path = Path("/tmp/amqa/qa-result.json")
           result_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -124,54 +98,24 @@ jobs:
                   "verified_at_pr": False,
               }
 
-          if failed:
-              data["overall"] = "fail"
-              data["verified_at_pr"] = False
-              data["executor"] = "github-actions-claude"
-              status_state = "failure"
-              status_description = "Agent verification failed — see workflow logs"
-              overall = "fail"
-          else:
-              data["overall"] = "pending"
-              data["verified_at_pr"] = False
-              data["executor"] = "github-actions-orchestrator"
-              data["next_step"] = "cursor-cloud-agent-computerUse"
-              status_state = "pending"
-              status_description = "Complete verification via Cloud Agent computerUse — see plan comment"
-              overall = "pending"
-
+          data["overall"] = "pending"
+          data["verified_at_pr"] = False
+          data["executor"] = "github-actions-orchestrator"
+          data["next_step"] = "cursor-cloud-agent-computerUse"
           result_path.write_text(json.dumps(data, indent=2) + "\n")
 
           env = os.environ.copy()
           env.update({
               "STATUS_CONTEXT": "QA/execution",
-              "STATUS_STATE": status_state,
-              "STATUS_DESCRIPTION": status_description,
-              "OVERALL": overall,
+              "STATUS_STATE": "pending",
+              "STATUS_DESCRIPTION": "Complete verification via Cloud Agent computerUse — see plan comment",
+              "OVERALL": "pending",
               "STAGE": "execution",
               "AMQA_RESULT_PATH": str(result_path),
               "EVIDENCE_URLS": os.environ.get("RUN_URL", ""),
           })
           subprocess.run(["python3", "amqa_update_result.py"], check=True, env=env)
           PY
-          if [ "${{ steps.claude.outcome }}" = "failure" ]; then
-            echo "failed=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "failed=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: File defect on failure
-        if: steps.success.outputs.failed == 'true'
-        working-directory: .github/scripts/amqa
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          REPO: ${{ github.repository }}
-          PR_NUMBER: ${{ inputs.pr_number }}
-          HEAD_SHA: ${{ steps.meta.outputs.head_sha }}
-          SEVERITY: "2"
-          FAILURE_DESCRIPTION: Agent verification failed — see workflow logs
-          AMQA_RESULT_PATH: /tmp/amqa/qa-result.json
-        run: python3 amqa_file_defect.py
 
       - name: Upload qa-result
         uses: actions/upload-artifact@6f51ac45b3396a0f6a4a2a1863cafe909e1483c6 # v4.5.0
