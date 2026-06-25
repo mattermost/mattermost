@@ -754,7 +754,8 @@ func (a *App) protectedCPAFieldNamesForCaller(rctx request.CTX) (map[string]stru
 	}
 
 	propertyFields, appErr := a.SearchPropertyFields(rctx, group.ID, model.PropertyFieldSearchOpts{
-		PerPage: model.AccessControlGroupFieldLimit + 5,
+		ObjectTypes: []string{model.PropertyFieldObjectTypeUser},
+		PerPage:     model.AccessControlGroupFieldLimit + 5,
 	})
 	if appErr != nil {
 		return nil, appErr
@@ -1658,7 +1659,7 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, channelID strin
 	for fieldName := range attributes {
 		// Read directly from the store so this security filter sees the raw
 		// access_mode, unaffected by property read hooks for the request caller.
-		field, fieldErr := a.Srv().Store().PropertyField().GetFieldByName(rctx.Context(), cpaGroup.ID, "", fieldName)
+		field, fieldErr := a.Srv().Store().PropertyField().GetFieldByNameForObjectType(rctx.Context(), cpaGroup.ID, "", model.PropertyFieldObjectTypeUser, fieldName)
 		if fieldErr != nil {
 			delete(attributes, fieldName)
 			continue
