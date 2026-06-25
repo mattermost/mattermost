@@ -16,13 +16,16 @@ DEFAULT_SPEC_MAP = Path("e2e-tests/.qa/spec-map.yml")
 MAX_SPECS = 20
 
 
-def load_spec_map(path: Path = DEFAULT_SPEC_MAP) -> list[dict]:
+def load_spec_map(path: Path = DEFAULT_SPEC_MAP) -> dict:
     if not path.is_file():
-        return []
+        return {"mappings": [], "sev1_smoke": [], "tag_specs": {}}
     if yaml is None:
-        return _parse_minimal_yaml(path.read_text())
+        return {"mappings": _parse_minimal_yaml(path.read_text()), "sev1_smoke": [], "tag_specs": {}}
     data = yaml.safe_load(path.read_text()) or {}
-    return data.get("mappings", [])
+    data.setdefault("mappings", [])
+    data.setdefault("sev1_smoke", [])
+    data.setdefault("tag_specs", {})
+    return data
 
 
 def _parse_minimal_yaml(text: str) -> list[dict]:
@@ -43,8 +46,11 @@ def _parse_minimal_yaml(text: str) -> list[dict]:
 
 
 def map_changed_files(changed_files: Iterable[str], spec_map_path: Path = DEFAULT_SPEC_MAP) -> list[str]:
-    mappings = load_spec_map(spec_map_path)
+    data = load_spec_map(spec_map_path)
+    mappings = data.get("mappings", [])
+    tag_specs = data.get("tag_specs", {})
     specs: list[str] = []
+
     for filepath in changed_files:
         for entry in mappings:
             prefix = entry.get("prefix", "")
@@ -52,4 +58,16 @@ def map_changed_files(changed_files: Iterable[str], spec_map_path: Path = DEFAUL
                 for spec in entry.get("specs", []):
                     if spec not in specs:
                         specs.append(spec)
+        lower = filepath.lower()
+        for tag, tag_spec_list in tag_specs.items():
+            if tag in lower:
+                for spec in tag_spec_list:
+                    if spec not in specs:
+                        specs.append(spec)
+
     return specs[:MAX_SPECS]
+
+
+def smoke_specs(spec_map_path: Path = DEFAULT_SPEC_MAP) -> list[str]:
+    data = load_spec_map(spec_map_path)
+    return list(data.get("sev1_smoke", []))[:5]

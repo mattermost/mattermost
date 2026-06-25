@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""AMQA PR orchestrator: parse CodeRabbit, decide skip/automation/execute, post statuses."""
+"""AMQA PR orchestrator: parse CodeRabbit, build QA plan, decide skip/automation/execute."""
 
 from __future__ import annotations
 
@@ -9,7 +9,9 @@ import sys
 from pathlib import Path
 
 from parse_coderabbit import ChangeImpactLevel, merge_signals, to_dict
-from spec_mapper import map_changed_files
+from spec_mapper import map_changed_files, smoke_specs
+from qa_plan_builder import build_qa_plan, format_plan_comment, pr_summary_has_qa_steps
+from cis_scorer import load_config
 from github_api import (
     env_token,
     get_coderabbit_walkthrough,
@@ -20,73 +22,55 @@ from github_api import (
     upsert_pr_comment,
 )
 
+PLAN_MARKER = "<!-- agentic-qa-plan -->"
 RESULT_MARKER = "<!-- agentic-qa-result -->"
 DRY_RUN = os.environ.get("AMQA_DRY_RUN", "").lower() in ("1", "true", "yes")
+STATUS_PLAN = "QA/plan"
 STATUS_SKIPPED = "QA/skipped"
 STATUS_AUTOMATION = "QA/automation"
 STATUS_EXECUTION = "QA/execution"
+STATUS_QUEUED = "QA/Queued"
 
 
-def decide_action(signals, tpa_status: str) -> str:
-    if signals.should_skip(tpa_status):
-        return "skip"
-    if signals.change_impact == ChangeImpactLevel.HIGH:
+def decide_action(plan: dict, signals, tpa_status: str, force_execute: bool) -> str:
+    if force_execute:
         return "execute"
-    if signals.change_impact == ChangeImpactLevel.MEDIUM:
-        return "automation"
-    if signals.parsed_scenarios:
+    cis = plan["cis_score"]
+    cfg = load_config()
+    auto_min = cfg.get("dispatch", {}).get("auto_execute_cis_min", 70)
+
+    if signals.should_skip(tpa_status) and cis < 30:
+        return "skip"
+    if cis >= auto_min or signals.change_impact == ChangeImpactLevel.HIGH:
+        return "execute"
+    if cis >= 30 or signals.parsed_scenarios or plan.get("scenarios"):
         return "automation"
     return "skip"
 
 
-def build_qa_result(
-    pr_number: int,
-    head_sha: str,
-    signals,
-    action: str,
-    mapped_specs: list[str],
-    tpa_status: str,
-) -> dict:
+def build_qa_result(plan: dict, action: str, mapped_specs: list[str]) -> dict:
     return {
         "schema_version": "1.0",
-        "pr_number": pr_number,
-        "head_sha": head_sha,
-        "coderabbit": to_dict(signals, pr_number),
+        "plan_id": plan["plan_id"],
+        "pr_number": plan["pr_number"],
+        "head_sha": plan["head_sha"],
+        "cis_score": plan["cis_score"],
+        "coderabbit": plan.get("coderabbit", {}),
         "action": action,
         "mapped_specs": mapped_specs,
-        "tpa_status": tpa_status,
+        "tpa_status": plan.get("tpa_status", ""),
         "scenario_results": [],
         "overall": "pending" if action == "execute" else "skipped" if action == "skip" else "automation_only",
-        "human_review_required": signals.change_impact == ChangeImpactLevel.HIGH,
+        "human_review_required": plan["cis_score"] >= 90,
+        "verified_at_pr": False,
     }
 
 
-def format_result_comment(signals, action: str, mapped_specs: list[str], qa_result: dict) -> str:
-    impact = signals.change_impact.value
-    lines = [
-        "## Agentic QA",
-        "",
-        f"**Change Impact:** {impact} (via CodeRabbit)",
-        f"**Action:** `{action}`",
-        "",
-    ]
-    if action == "skip":
-        lines.append("No manual QA required per CodeRabbit + test analysis. Zero human touch.")
-        return "\n".join(lines)
-    if mapped_specs:
-        lines.append("**Scoped specs:**")
-        for spec in mapped_specs:
-            lines.append(f"- `{spec}`")
-        lines.append("")
-    if signals.parsed_scenarios:
-        lines.append("**Scenarios (from CodeRabbit QA Recommendation):**")
-        for i, scenario in enumerate(signals.parsed_scenarios, 1):
-            lines.append(f"{i}. {scenario['title']}")
-        lines.append("")
-    if action == "execute":
-        lines.append("Agent execution queued for 🔴 High impact. Evidence will be attached here.")
-    lines.append(f"<details><summary>qa-result.json</summary>\n\n```json\n{json.dumps(qa_result, indent=2)}\n```\n</details>")
-    return "\n".join(lines)
+def post_webhook(webhook_url: str, payload: dict) -> None:
+    if not webhook_url:
+        return
+    import requests
+    requests.post(webhook_url, json=payload, timeout=30)
 
 
 def main() -> int:
@@ -94,6 +78,8 @@ def main() -> int:
     repo = os.environ.get("REPO", "mattermost/mattermost")
     pr_number = int(os.environ["PR_NUMBER"])
     head_sha = os.environ.get("HEAD_SHA", "")
+    force_execute = os.environ.get("AMQA_FORCE_EXECUTE", "").lower() in ("1", "true", "yes")
+    force_skip = os.environ.get("AMQA_FORCE_SKIP", "").lower() in ("1", "true", "yes")
 
     if not token:
         print("Missing GITHUB_TOKEN", file=sys.stderr)
@@ -107,48 +93,73 @@ def main() -> int:
     signals = merge_signals(pr.get("body", ""), walkthrough)
     tpa_status = get_commit_status(token, repo, head_sha, "Tests/analysis")
     changed_files = get_pr_files(token, repo, pr_number)
-    mapped_specs = map_changed_files(changed_files)
-    action = decide_action(signals, tpa_status)
-    qa_result = build_qa_result(pr_number, head_sha, signals, action, mapped_specs, tpa_status)
+    mapped_specs = list(dict.fromkeys(map_changed_files(changed_files) + smoke_specs()))
+
+    cr_dict = to_dict(signals, pr_number)
+    plan = build_qa_plan(pr_number, head_sha, signals, changed_files, mapped_specs, tpa_status, cr_dict)
+
+    if force_skip:
+        action = "skip"
+    else:
+        action = decide_action(plan, signals, tpa_status, force_execute)
+
+    qa_result = build_qa_result(plan, action, mapped_specs)
 
     out_dir = Path(os.environ.get("AMQA_OUTPUT_DIR", "/tmp/amqa"))
     out_dir.mkdir(parents=True, exist_ok=True)
-    result_path = out_dir / "qa-result.json"
-    signals_path = out_dir / "coderabbit-signals.json"
-    result_path.write_text(json.dumps(qa_result, indent=2) + "\n")
-    signals_path.write_text(json.dumps(to_dict(signals, pr_number), indent=2) + "\n")
+    (out_dir / "qa-plan.json").write_text(json.dumps(plan, indent=2) + "\n")
+    (out_dir / "qa-result.json").write_text(json.dumps(qa_result, indent=2) + "\n")
+    (out_dir / "coderabbit-signals.json").write_text(json.dumps(cr_dict, indent=2) + "\n")
 
     github_output = os.environ.get("GITHUB_OUTPUT")
     if github_output:
         with open(github_output, "a", encoding="utf-8") as fh:
             fh.write(f"action={action}\n")
+            fh.write(f"cis_score={plan['cis_score']}\n")
             fh.write(f"change_impact={signals.change_impact.value}\n")
             fh.write(f"should_skip={'true' if action == 'skip' else 'false'}\n")
             fh.write(f"needs_execution={'true' if action == 'execute' else 'false'}\n")
             fh.write(f"mapped_specs={','.join(mapped_specs)}\n")
 
     if DRY_RUN:
-        print(json.dumps({"dry_run": True, "action": action, "qa_result": qa_result}, indent=2))
+        print(json.dumps({"dry_run": True, "action": action, "plan": plan}, indent=2))
         return 0
 
-    run_url = os.environ.get("GITHUB_SERVER_URL", "https://github.com") + f"/{repo}/actions/runs/{os.environ.get('GITHUB_RUN_ID', '')}"
+    run_url = (
+        os.environ.get("GITHUB_SERVER_URL", "https://github.com")
+        + f"/{repo}/actions/runs/{os.environ.get('GITHUB_RUN_ID', '')}"
+    )
+    plan_comment = format_plan_comment(plan, mapped_specs, pr_summary_has_qa_steps(pr.get("body", "")))
+
+    set_commit_status(token, repo, head_sha, STATUS_PLAN, "success", f"Plan ready — CIS {plan['cis_score']}")
+
+    cfg = load_config()
+    webhook_min = cfg.get("dispatch", {}).get("webhook_notify_cis_min", 70)
+    webhook_url = os.environ.get("WEBHOOK_URL", "")
+    if plan["cis_score"] >= webhook_min and webhook_url:
+        post_webhook(webhook_url, {
+            "text": f"#agentic-qa PR #{pr_number} CIS {plan['cis_score']} ({plan['risk_tier']}) — action `{action}`",
+            "pr_number": pr_number,
+            "cis_score": plan["cis_score"],
+            "action": action,
+        })
 
     if action == "skip":
         set_commit_status(token, repo, head_sha, STATUS_SKIPPED, "success", "Low risk — no manual QA needed")
         set_commit_status(token, repo, head_sha, STATUS_AUTOMATION, "success", "Skipped — low impact")
         set_commit_status(token, repo, head_sha, STATUS_EXECUTION, "success", "Skipped — low impact")
     elif action == "automation":
-        set_commit_status(token, repo, head_sha, STATUS_SKIPPED, "success", "Not skipped — scoped checks apply")
+        set_commit_status(token, repo, head_sha, STATUS_SKIPPED, "success", "Scoped checks apply")
         set_commit_status(token, repo, head_sha, STATUS_AUTOMATION, "pending", "Scoped automation pending")
-        set_commit_status(token, repo, head_sha, STATUS_EXECUTION, "success", "Not required for this impact level")
-        upsert_pr_comment(token, repo, pr_number, RESULT_MARKER, format_result_comment(signals, action, mapped_specs, qa_result))
+        set_commit_status(token, repo, head_sha, STATUS_EXECUTION, "success", "Not required at this CIS")
+        upsert_pr_comment(token, repo, pr_number, PLAN_MARKER, plan_comment)
     else:
-        set_commit_status(token, repo, head_sha, STATUS_SKIPPED, "success", "High impact — verification required")
+        set_commit_status(token, repo, head_sha, STATUS_SKIPPED, "success", "Verification required")
         set_commit_status(token, repo, head_sha, STATUS_AUTOMATION, "pending", "Scoped automation pending")
         set_commit_status(token, repo, head_sha, STATUS_EXECUTION, "pending", "Agent execution pending", run_url)
-        upsert_pr_comment(token, repo, pr_number, RESULT_MARKER, format_result_comment(signals, action, mapped_specs, qa_result))
+        upsert_pr_comment(token, repo, pr_number, PLAN_MARKER, plan_comment)
 
-    print(json.dumps({"action": action, "change_impact": signals.change_impact.value}, indent=2))
+    print(json.dumps({"action": action, "cis_score": plan["cis_score"]}, indent=2))
     return 0
 
 

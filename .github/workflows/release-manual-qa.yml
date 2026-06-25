@@ -1,11 +1,11 @@
 ---
-name: Agentic QA (Release confidence)
+name: Release Manual QA
 
 on:
   workflow_dispatch:
     inputs:
       base_ref:
-        description: Previous release tag or branch (e.g. v10.11.0)
+        description: Previous release tag or branch
         required: true
         type: string
       head_sha:
@@ -14,6 +14,10 @@ on:
         type: string
       rc_tag:
         description: RC image tag label
+        required: false
+        type: string
+      server_image_tag:
+        description: Docker image tag tested
         required: false
         type: string
   workflow_call:
@@ -25,6 +29,9 @@ on:
         required: true
         type: string
       rc_tag:
+        required: false
+        type: string
+      server_image_tag:
         required: false
         type: string
 
@@ -61,10 +68,12 @@ jobs:
           REPO: ${{ github.repository }}
           BASE_REF: ${{ inputs.base_ref }}
           HEAD_SHA: ${{ inputs.head_sha }}
-          RC_TAG: ${{ inputs.rc_tag || inputs.head_sha }}
+          RC_TAG: ${{ inputs.rc_tag || inputs.server_image_tag || inputs.head_sha }}
+          SERVER_IMAGE_TAG: ${{ inputs.server_image_tag || '' }}
           AMQA_ARTIFACT_DIR: /tmp/amqa/release-artifacts
           AMQA_OUTPUT_DIR: /tmp/amqa
           E2E_STATUS: parallel — see e2e-tests-on-release.yml
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL_TEST_PR_ANALYSIS_HUB }}
         run: python3 amqa_release.py
 
       - name: Publish job summary

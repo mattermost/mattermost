@@ -63,6 +63,19 @@ jobs:
 
           echo "ref_branch=${BRANCH}" >> $GITHUB_OUTPUT
 
+  amqa-release:
+    needs: validate
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+    uses: ./.github/workflows/release-manual-qa.yml
+    with:
+      base_ref: ${{ needs.validate.outputs.ref_branch }}
+      head_sha: ${{ inputs.commit_sha }}
+      rc_tag: ${{ inputs.server_image_tag }}
+      server_image_tag: ${{ inputs.server_image_tag }}
+
   # Enterprise Edition
   e2e-cypress:
     needs: validate

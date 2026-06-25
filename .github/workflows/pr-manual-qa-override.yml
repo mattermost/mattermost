@@ -1,5 +1,5 @@
 ---
-name: Agentic QA (Override)
+name: PR Manual QA Override
 
 on:
   issue_comment:
@@ -26,7 +26,7 @@ jobs:
           PR="${{ github.event.issue.number }}"
           SHA=$(gh pr view "$PR" --repo "${{ github.repository }}" --json headRefOid -q .headRefOid)
           REASON="${{ github.event.comment.body }}"
-          for CTX in QA/skipped QA/automation QA/execution; do
+          for CTX in QA/plan QA/skipped QA/automation QA/execution; do
             gh api "repos/${{ github.repository }}/statuses/${SHA}" \
               -f state=success \
               -f context="$CTX" \

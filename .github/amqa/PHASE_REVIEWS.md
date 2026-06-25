@@ -1,55 +1,31 @@
-# AMQA phase reviews
+# AMQA Phase Reviews
 
 ## Phase 0 — Foundation ✅
 
-**Shipped:** CodeRabbit parser + tests, JSON schemas, spec-map, qa-playbook, BASELINE.md, README.
+**Shipped:** `qa-plan.v1.schema.json`, `cis_config.yml`, expanded `spec-map.yml`, full `qa-playbook.md`, `PILOT.md`, `BASELINE.md`, parser tests.
 
-**Drift check:** Parser only; no duplicate LLM risk scoring. Tests cover High/Medium/Low fixtures from real PRs.
+**Drift check:** CIS fallback when CodeRabbit absent; schemas in-repo (toolkit migration optional later).
 
-**Bloat removed:** No extra markdown plans on PR; schemas minimal.
+## Phase 1 — PR QA Plan ✅
 
-**Misses fixed:** Comma-split for QA Recommendation scenarios.
+**Shipped:** `pr-manual-qa-plan.yml`, `QA/plan` status, `<!-- agentic-qa-plan -->` comment, CodeRabbit + TPA integration, webhook on CIS ≥ 70, dry-run var.
 
----
+**Drift check:** Low + no manual QA → no plan comment (status only).
 
-## Phase 1 — Shift-left at PR ✅
+## Phase 2 — Targeted automation ✅
 
-**Shipped:** `agentic-qa-pr.yml` — skip path (`QA/skipped`), automation job, artifact upload.
+**Shipped:** Spec mapper with tags + smoke, spec file validation, optional Playwright run (`AMQA_RUN_SCOPED_PLAYWRIGHT`), `QA/automation` status, automation blocks execute on failure.
 
-**Drift check:** Aligns with noise budget — Low + no manual QA → skip all three statuses success, no comment.
+## Phase 3 — Agent execution ✅
 
-**Bloat removed:** Playwright full run gated behind `AMQA_RUN_SCOPED_PLAYWRIGHT` (default off).
+**Shipped:** `pr-manual-qa-execute.yml`, `/qa-verify`, `QA/Run`/`QA/Skip` labels, CIS ≥ 70 auto-dispatch, Claude verification, defect filing script, `QA/execution` status, playbook + cursor.md.
 
-**Misses:** Full Playwright in CI deferred (var opt-in) — spec list still recorded in qa-result.
+## Phase 4 — Release orchestrator ✅
 
----
+**Shipped:** `release-manual-qa.yml`, parallel hook in `e2e-tests-on-release.yml`, merge artifacts, confidence score + go/no-go report, migration detection, Sev-1 specs.
 
-## Phase 2 — Agent execution ✅
+## Phase 5 — Governance ✅
 
-**Shipped:** `agentic-qa-execute.yml`, `/qa-verify` trigger, cursor.md AMQA section, Claude advisory step.
+**Shipped:** `pr-manual-qa-override.yml`, `agentic-qa-verified-label.yml`, `GOVERNANCE.md`, `amqa_metrics.py`, advisory-only pilot policy.
 
-**Drift check:** 🔴 High auto-queues execute; Cloud Agent steps documented in playbook.
-
-**Bloat removed:** Claude step produces verification doc only — no code changes.
-
-**Misses:** Full `computerUse` browser run requires Cloud Agent on PR branch (documented, not GHA).
-
----
-
-## Phase 3 — Release confidence ✅
-
-**Shipped:** `agentic-qa-merge.yml`, `agentic-qa-release.yml`, `amqa_release.py`, confidence score.
-
-**Drift check:** Rollup from merge artifacts; parallel to E2E (no wait).
-
-**Bloat removed:** Report only lists gap-fill for unverified 🔴.
-
----
-
-## Phase 4 — Optimize ✅
-
-**Shipped:** `agentic-qa-override.yml`, AGENTS.md rules, repo vars docs, phase reviews.
-
-**Drift check:** Advisory-only gates; override mirrors test-analysis pattern.
-
-**Follow-ups (out of scope):** Enable `AMQA_RUN_SCOPED_PLAYWRIGHT`, wire release workflow to platform delivery, KPI dashboard.
+**Follow-ups:** `AMQA_SOFT_GATE`, Zephyr cycle ID, full Playwright in CI when infra ready.

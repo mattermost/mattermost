@@ -1,9 +1,9 @@
 ---
-name: Agentic QA (PR)
+name: PR Manual QA Plan
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened, ready_for_review, labeled]
     branches:
       - master
       - 'release-*'
@@ -36,11 +36,15 @@ jobs:
       should_skip: ${{ steps.amqa.outputs.should_skip }}
       needs_execution: ${{ steps.amqa.outputs.needs_execution }}
       mapped_specs: ${{ steps.amqa.outputs.mapped_specs }}
+      cis_score: ${{ steps.amqa.outputs.cis_score }}
     if: >-
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'pull_request' &&
        github.event.pull_request.draft == false &&
-       github.event.pull_request.head.repo.full_name == 'mattermost/mattermost') ||
+       github.event.pull_request.head.repo.full_name == 'mattermost/mattermost' &&
+       (github.event.action != 'labeled' ||
+        github.event.label.name == 'QA/Run' ||
+        github.event.label.name == 'QA/Skip')) ||
       (github.event_name == 'issue_comment' &&
        github.event.issue.pull_request &&
        (startsWith(github.event.comment.body, '/qa-verify') ||
@@ -66,6 +70,21 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Resolve force flags
+        id: forces
+        run: |
+          FORCE_EXECUTE=false
+          FORCE_SKIP=false
+          if [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.event.action }}" = "labeled" ]; then
+            [ "${{ github.event.label.name }}" = "QA/Run" ] && FORCE_EXECUTE=true
+            [ "${{ github.event.label.name }}" = "QA/Skip" ] && FORCE_SKIP=true
+          fi
+          if [ "${{ github.event_name }}" = "issue_comment" ]; then
+            echo "${{ github.event.comment.body }}" | grep -q '^/qa-verify' && FORCE_EXECUTE=true
+          fi
+          echo "force_execute=$FORCE_EXECUTE" >> "$GITHUB_OUTPUT"
+          echo "force_skip=$FORCE_SKIP" >> "$GITHUB_OUTPUT"
+
       - name: Install Python dependencies
         run: pip install requests pyyaml
 
@@ -78,16 +97,29 @@ jobs:
           PR_NUMBER: ${{ steps.meta.outputs.pr_number }}
           HEAD_SHA: ${{ steps.meta.outputs.head_sha }}
           AMQA_DRY_RUN: ${{ vars.AMQA_DRY_RUN || 'false' }}
+          AMQA_FORCE_EXECUTE: ${{ steps.forces.outputs.force_execute }}
+          AMQA_FORCE_SKIP: ${{ steps.forces.outputs.force_skip }}
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL_TEST_PR_ANALYSIS_HUB }}
           AMQA_OUTPUT_DIR: ${{ runner.temp }}/amqa
           GITHUB_RUN_ID: ${{ github.run_id }}
           GITHUB_SERVER_URL: ${{ github.server_url }}
         run: python3 amqa_pr.py
 
-      - name: Upload qa-result artifact
+      - name: AMQA metrics summary
+        working-directory: .github/scripts/amqa
+        env:
+          AMQA_PLAN_PATH: ${{ runner.temp }}/amqa/qa-plan.json
+          AMQA_RESULT_PATH: ${{ runner.temp }}/amqa/qa-result.json
+        run: python3 amqa_metrics.py
+
+      - name: Upload AMQA artifacts
         uses: actions/upload-artifact@6f51ac45b3396a0f6a4a2a1863cafe909e1483c6 # v4.5.0
         with:
           name: qa-result-pr-${{ steps.meta.outputs.pr_number }}
-          path: ${{ runner.temp }}/amqa/qa-result.json
+          path: |
+            ${{ runner.temp }}/amqa/qa-plan.json
+            ${{ runner.temp }}/amqa/qa-result.json
+            ${{ runner.temp }}/amqa/coderabbit-signals.json
           retention-days: 90
 
   automation:
@@ -98,12 +130,14 @@ jobs:
       pull-requests: read
       statuses: write
     runs-on: ubuntu-24.04
+    outputs:
+      automation_passed: ${{ steps.result.outputs.passed }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
 
-      - name: Download qa-result
+      - name: Download qa artifacts
         uses: actions/download-artifact@6f51ac45b3396a0f6a4a2a1863cafe909e1483c6 # v4.5.0
         with:
           name: qa-result-pr-${{ needs.resolve.outputs.pr_number }}
@@ -117,30 +151,37 @@ jobs:
         run: |
           SPECS=$(python3 -c "import json; print(','.join(json.load(open('/tmp/amqa/qa-result.json')).get('mapped_specs',[])))")
           echo "specs=$SPECS" >> "$GITHUB_OUTPUT"
-          if [ -z "$SPECS" ]; then
-            echo "empty=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "empty=false" >> "$GITHUB_OUTPUT"
-          fi
+          if [ -z "$SPECS" ]; then echo "empty=true" >> "$GITHUB_OUTPUT"; else echo "empty=false" >> "$GITHUB_OUTPUT"; fi
 
-      - name: Mark automation success (no mapped specs)
-        if: steps.specs.outputs.empty == 'true' || vars.AMQA_RUN_SCOPED_PLAYWRIGHT != 'true'
-        working-directory: .github/scripts/amqa
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          PR_NUMBER: ${{ needs.resolve.outputs.pr_number }}
-          HEAD_SHA: ${{ needs.resolve.outputs.head_sha }}
-          STATUS_CONTEXT: QA/automation
-          STATUS_STATE: success
-          STATUS_DESCRIPTION: No scoped specs or Playwright disabled — see spec-map
-          OVERALL: automation_only
-          STAGE: automation
-          AMQA_RESULT_PATH: /tmp/amqa/qa-result.json
-        run: python3 amqa_update_result.py
+      - name: Validate mapped spec files exist
+        id: validate
+        if: steps.specs.outputs.empty != 'true'
+        run: |
+          IFS=',' read -ra SPECS <<< "${{ steps.specs.outputs.specs }}"
+          missing=0
+          for spec in "${SPECS[@]}"; do
+            if [ ! -f "$spec" ]; then
+              echo "Missing spec: $spec"
+              missing=1
+            fi
+          done
+          [ "$missing" -eq 0 ]
 
-      - name: Mark automation pending (specs listed)
+      - name: Run scoped Playwright (optional)
+        id: playwright
         if: steps.specs.outputs.empty != 'true' && vars.AMQA_RUN_SCOPED_PLAYWRIGHT == 'true'
+        working-directory: e2e-tests/playwright
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          IFS=',' read -ra SPECS <<< "${{ steps.specs.outputs.specs }}"
+          for spec in "${SPECS[@]}"; do
+            echo "Running $spec"
+            npx playwright test "$spec" --project=chrome
+          done
+
+      - name: Update automation status
+        id: result
         working-directory: .github/scripts/amqa
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
@@ -148,35 +189,38 @@ jobs:
           PR_NUMBER: ${{ needs.resolve.outputs.pr_number }}
           HEAD_SHA: ${{ needs.resolve.outputs.head_sha }}
           STATUS_CONTEXT: QA/automation
-          STATUS_STATE: success
-          STATUS_DESCRIPTION: Scoped specs identified — enable full Playwright in AMQA_RUN_SCOPED_PLAYWRIGHT
+          STATUS_STATE: ${{ steps.specs.outputs.empty == 'true' && 'success' || 'success' }}
+          STATUS_DESCRIPTION: ${{ steps.specs.outputs.empty == 'true' && 'No mapped specs — smoke only' || 'Scoped specs validated' }}
           OVERALL: automation_only
           STAGE: automation
           AMQA_RESULT_PATH: /tmp/amqa/qa-result.json
           SPECS_RUN: ${{ steps.specs.outputs.specs }}
-        run: python3 amqa_update_result.py
+        run: |
+          python3 amqa_update_result.py
+          echo "passed=true" >> "$GITHUB_OUTPUT"
 
       - name: Upload updated qa-result
         uses: actions/upload-artifact@6f51ac45b3396a0f6a4a2a1863cafe909e1483c6 # v4.5.0
         with:
           name: qa-result-pr-${{ needs.resolve.outputs.pr_number }}
-          path: /tmp/amqa/qa-result.json
+          path: /tmp/amqa/
           overwrite: true
           retention-days: 90
 
   execute:
     needs: [resolve, automation]
     if: >-
-      needs.resolve.outputs.needs_execution == 'true' ||
-      (github.event_name == 'issue_comment' && startsWith(github.event.comment.body, '/qa-verify'))
+      needs.automation.outputs.automation_passed == 'true' &&
+      needs.resolve.outputs.needs_execution == 'true'
     permissions:
       contents: read
       pull-requests: write
       statuses: write
-    uses: ./.github/workflows/agentic-qa-execute.yml
+    uses: ./.github/workflows/pr-manual-qa-execute.yml
     with:
       pr_number: ${{ needs.resolve.outputs.pr_number }}
       head_sha: ${{ needs.resolve.outputs.head_sha }}
     secrets:
       GH_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      WEBHOOK_URL: ${{ secrets.WEBHOOK_URL_TEST_PR_ANALYSIS_HUB }}

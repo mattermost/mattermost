@@ -87,7 +87,9 @@ Use the `computerUse` subagent's desktop (Chrome is preinstalled) for browser au
 
 ## Agentic QA (AMQA)
 
-When a PR has CodeRabbit **Change Impact** and **QA Recommendation**, execute those steps — do not rewrite the plan. See [`.cursor/qa-playbook.md`](qa-playbook.md).
+When a PR has CodeRabbit **Change Impact** and **QA Recommendation**, execute those steps — do not rewrite the plan.
+
+@.cursor/qa-playbook.md
 
 1. Read CodeRabbit block in PR body (`## Change Impact`, `**QA Recommendation:**`)
 2. Start Mattermost (known-good Cloud flow above)

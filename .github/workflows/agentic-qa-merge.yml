@@ -24,7 +24,7 @@ jobs:
         run: |
           PR="${{ github.event.pull_request.number }}"
           mkdir -p /tmp/amqa/release-artifacts
-          RUNS=$(gh run list --repo "${{ github.repository }}" --workflow agentic-qa-pr.yml --json databaseId -q '.[].databaseId' | head -5)
+          RUNS=$(gh run list --repo "${{ github.repository }}" --workflow pr-manual-qa-plan.yml --json databaseId -q '.[].databaseId' | head -5)
           for RUN in $RUNS; do
             gh run download "$RUN" --repo "${{ github.repository }}" --name "qa-result-pr-${PR}" -D /tmp/amqa/dl 2>/dev/null && break || true
           done
