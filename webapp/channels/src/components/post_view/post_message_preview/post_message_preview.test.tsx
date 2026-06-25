@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {screen} from '@testing-library/react';
 import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
@@ -10,9 +11,12 @@ import type {UserProfile} from '@mattermost/types/users';
 import {General} from 'mattermost-redux/constants';
 
 import {renderWithContext} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
 
 import PostMessagePreview from './post_message_preview';
 import type {Props} from './post_message_preview';
+
+import ConnectedPostMessagePreview from './index';
 
 jest.mock('components/properties_card_view/propertyValueRenderer/post_preview_property_renderer/post_preview_property_renderer', () => {
     return jest.fn(() => <div data-testid='post-preview-property-renderer-mock'>{'PostPreviewPropertyRenderer Mock'}</div>);
@@ -336,6 +340,43 @@ describe('PostMessagePreview', () => {
             );
 
             expect(container).toMatchSnapshot();
+        });
+
+        test('should fall back to "Someone" as the channel display name when the DM teammate is not loaded', () => {
+            const teammateId = 'teammate_id';
+            const dmChannelId = 'dm_channel_id';
+
+            const state = {
+                ...baseState,
+                entities: {
+                    ...baseState.entities,
+                    channels: {
+                        channels: {
+                            [dmChannelId]: TestHelper.getChannelMock({
+                                id: dmChannelId,
+                                type: General.DM_CHANNEL,
+                                name: `${user.id}__${teammateId}`,
+                                display_name: '',
+                            }),
+                        },
+                    },
+                },
+            };
+
+            renderWithContext(
+                <ConnectedPostMessagePreview
+                    metadata={{
+                        post_id: previewPost.id,
+                        channel_display_name: '',
+                        team_name: '',
+                        channel_type: General.DM_CHANNEL,
+                        channel_id: dmChannelId,
+                    }}
+                />,
+                state,
+            );
+
+            expect(screen.getByText('Only visible to users in', {exact: false})).toHaveTextContent('Only visible to users in ~Someone');
         });
     });
 });
