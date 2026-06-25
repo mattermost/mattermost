@@ -4117,7 +4117,7 @@ func TestUpdateChannelRoles(t *testing.T) {
 
 func TestUpdateChannelMemberRolesRejectsNonChannelScopedRoles(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 	client := th.Client
 
 	const channelAdmin = "channel_user channel_admin"

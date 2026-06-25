@@ -28,7 +28,7 @@ import (
 
 func TestPermanentDeleteChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableIncomingWebhooks = true
@@ -85,7 +85,7 @@ func TestPermanentDeleteChannel(t *testing.T) {
 
 func TestRemoveAllDeactivatedMembersFromChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	var appErr *model.AppError
 
@@ -123,7 +123,7 @@ func TestRemoveAllDeactivatedMembersFromChannel(t *testing.T) {
 func TestMoveChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should move channels between teams", func(t *testing.T) {
-		th := Setup(t).InitBasic(t)
+		th := Setup(t).InitBasic()
 
 		var appErr *model.AppError
 
@@ -209,7 +209,7 @@ func TestMoveChannel(t *testing.T) {
 	})
 
 	t.Run("should remove sidebar entries when moving channels from one team to another", func(t *testing.T) {
-		th := Setup(t).InitBasic(t)
+		th := Setup(t).InitBasic()
 
 		sourceTeam := th.CreateTeam(t)
 		targetTeam := th.CreateTeam(t)
@@ -249,7 +249,7 @@ func TestMoveChannel(t *testing.T) {
 	})
 
 	t.Run("should update threads when moving channels between teams", func(t *testing.T) {
-		th := Setup(t).InitBasic(t)
+		th := Setup(t).InitBasic()
 
 		sourceTeam := th.CreateTeam(t)
 		targetTeam := th.CreateTeam(t)
@@ -303,7 +303,7 @@ func TestMoveChannel(t *testing.T) {
 
 func TestRemoveUsersFromChannelNotMemberOfTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	team := th.CreateTeam(t)
 	team2 := th.CreateTeam(t)
@@ -344,7 +344,7 @@ func TestRemoveUsersFromChannelNotMemberOfTeam(t *testing.T) {
 
 func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordTownSquare(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	// figure out the initial number of users in town square
 	channel, err := th.App.Srv().Store().Channel().GetByName(th.BasicTeam.Id, "town-square", true)
@@ -376,7 +376,7 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordTownSquare(t *testi
 
 func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordOffTopic(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	// figure out the initial number of users in off-topic
 	channel, err := th.App.Srv().Store().Channel().GetByName(th.BasicTeam.Id, "off-topic", true)
@@ -408,7 +408,7 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordOffTopic(t *testing
 
 func TestJoinDefaultChannelsExperimentalDefaultChannels(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	basicChannel2 := th.CreateChannel(t, th.BasicTeam)
 	defer func() {
@@ -434,7 +434,7 @@ func TestJoinDefaultChannelsExperimentalDefaultChannels(t *testing.T) {
 
 func TestJoinDefaultChannelsExperimentalDefaultChannelsMissing(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	basicChannel2 := th.CreateChannel(t, th.BasicTeam)
 	defer func() {
@@ -464,7 +464,7 @@ func TestJoinDefaultChannelsExperimentalDefaultChannelsMissing(t *testing.T) {
 
 func TestCreateChannelPublicCreatesChannelMemberHistoryRecord(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	// creates a public channel and adds basic user to it
 	publicChannel := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
@@ -479,7 +479,7 @@ func TestCreateChannelPublicCreatesChannelMemberHistoryRecord(t *testing.T) {
 
 func TestCreateChannelPrivateCreatesChannelMemberHistoryRecord(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	// creates a private channel and adds basic user to it
 	privateChannel := th.createChannel(t, th.BasicTeam, model.ChannelTypePrivate)
@@ -494,7 +494,7 @@ func TestCreateChannelPrivateCreatesChannelMemberHistoryRecord(t *testing.T) {
 
 func TestCreateChannelDisplayNameTrimsWhitespace(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	channel, appErr := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "  Public 1  ", Name: "public1", Type: model.ChannelTypeOpen, TeamId: th.BasicTeam.Id}, false)
 	defer func() {
@@ -507,7 +507,7 @@ func TestCreateChannelDisplayNameTrimsWhitespace(t *testing.T) {
 
 func TestUpdateChannelPrivacy(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	privateChannel := th.createChannel(t, th.BasicTeam, model.ChannelTypePrivate)
 	privateChannel.Type = model.ChannelTypeOpen
@@ -520,7 +520,7 @@ func TestUpdateChannelPrivacy(t *testing.T) {
 
 func TestUpdateChannelPrivacyWebSocketEvent(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	t.Run("private to public includes channel_type O in WS event", func(t *testing.T) {
 		privateChannel := th.createChannel(t, th.BasicTeam, model.ChannelTypePrivate)
@@ -565,7 +565,7 @@ func TestUpdateChannelPrivacyWebSocketEvent(t *testing.T) {
 
 func TestGetOrCreateDirectChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	team1 := th.CreateTeam(t)
 	team2 := th.CreateTeam(t)
@@ -654,7 +654,7 @@ func TestGetOrCreateDirectChannel(t *testing.T) {
 
 func TestCreateGroupChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	user1 := th.CreateUser(t)
 	user2 := th.CreateUser(t)
@@ -675,7 +675,7 @@ func TestCreateGroupChannel(t *testing.T) {
 
 func TestCreateGroupChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	user1 := th.CreateUser(t)
 	user2 := th.CreateUser(t)
@@ -757,7 +757,7 @@ func TestGetDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 
 func TestAddUserToChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t).DeleteBots(t)
+	th := Setup(t).InitBasic().DeleteBots(t)
 
 	// create a user and add it to a channel
 	user := th.CreateUser(t)
@@ -789,7 +789,7 @@ func TestAddUserToChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 
 func TestUsersAndPostsCreateActivityInChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t).DeleteBots(t)
+	th := Setup(t).InitBasic().DeleteBots(t)
 
 	user := th.CreateUser(t)
 	_, err := th.App.AddTeamMember(th.Context, th.BasicTeam.Id, user.Id)
@@ -871,7 +871,7 @@ func TestUsersAndPostsCreateActivityInChannel(t *testing.T) {
 
 func TestLeaveDefaultChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	guest := th.CreateGuest(t)
 	th.LinkUserToTeam(t, guest, th.BasicTeam)
@@ -930,7 +930,7 @@ func TestLeaveDefaultChannel(t *testing.T) {
 
 func TestLeaveChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	createThread := func(channel *model.Channel) (rpost *model.Post) {
 		t.Helper()
@@ -989,7 +989,7 @@ func TestLeaveChannel(t *testing.T) {
 
 func TestLeaveLastChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	guest := th.CreateGuest(t)
 	th.LinkUserToTeam(t, guest, th.BasicTeam)
@@ -1018,7 +1018,7 @@ func TestLeaveLastChannel(t *testing.T) {
 
 func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	// create a user and add it to a channel
 	user := th.CreateUser(t)
@@ -1061,7 +1061,7 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 
 func TestAddChannelMemberDeletedUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	user := th.CreateUser(t)
 	_, appErr := th.App.AddTeamMember(th.Context, th.BasicTeam.Id, user.Id)
@@ -1077,7 +1077,7 @@ func TestAddChannelMemberDeletedUser(t *testing.T) {
 
 func TestAppUpdateChannelScheme(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	channel := th.BasicChannel
 	mockID := new("x")
@@ -1094,7 +1094,7 @@ func TestAppUpdateChannelScheme(t *testing.T) {
 func TestSetChannelsMuted(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should mute and unmute the given channels", func(t *testing.T) {
-		th := Setup(t).InitBasic(t)
+		th := Setup(t).InitBasic()
 
 		channel1 := th.BasicChannel
 
@@ -1144,7 +1144,7 @@ func TestSetChannelsMuted(t *testing.T) {
 
 func TestFillInChannelProps(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	channelPublic1, appErr := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "Public 1", Name: "public1", Type: model.ChannelTypeOpen, TeamId: th.BasicTeam.Id}, false)
 	require.Nil(t, appErr)
@@ -1364,7 +1364,7 @@ func TestFillInChannelProps(t *testing.T) {
 
 func TestRenameChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	testCases := []struct {
 		Name                string
@@ -1431,7 +1431,7 @@ func TestRenameChannel(t *testing.T) {
 
 func TestGetChannelMembersTimezones(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	_, appErr := th.App.AddChannelMember(th.Context, th.BasicUser2.Id, th.BasicChannel, ChannelMemberOpts{})
 	require.Nil(t, appErr, "Failed to add user to channel.")
@@ -1474,7 +1474,7 @@ func TestGetChannelMembersTimezones(t *testing.T) {
 
 func TestGetChannelsForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 	channel := &model.Channel{
 		DisplayName: "Public",
 		Name:        "public",
@@ -1601,7 +1601,7 @@ func TestGetPrivateChannelsForTeam(t *testing.T) {
 
 func TestUpdateChannelMemberRolesChangingGuest(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	t.Run("from guest to user", func(t *testing.T) {
 		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
@@ -1679,7 +1679,7 @@ func TestUpdateChannelMemberRolesChangingGuest(t *testing.T) {
 
 func TestUpdateChannelMemberRolesRejectsOutOfScopeBuiltInRoles(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Tester", Username: "tester" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 	ruser, _ := th.App.CreateUser(th.Context, &user)
@@ -1703,7 +1703,7 @@ func TestUpdateChannelMemberRolesRejectsOutOfScopeBuiltInRoles(t *testing.T) {
 
 func TestUpdateChannelMemberRolesRequireUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	t.Run("empty roles string requires user or guest scheme role", func(t *testing.T) {
 		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Tester", Username: "tester" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
@@ -1779,7 +1779,7 @@ func TestUpdateChannelMemberRolesRequireUser(t *testing.T) {
 
 func TestUpdateChannelMemberAutotranslation(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	t.Run("disable autotranslation", func(t *testing.T) {
 		updatedMember, appErr := th.App.UpdateChannelMemberAutotranslation(th.Context, th.BasicChannel.Id, th.BasicUser.Id, true)
@@ -1836,7 +1836,7 @@ func TestDefaultChannelNames(t *testing.T) {
 
 func TestSearchChannelsForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	c1, appErr := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "test-dev-1", Name: "test-dev-1", Type: model.ChannelTypeOpen, TeamId: th.BasicTeam.Id}, false)
 	require.Nil(t, appErr)
@@ -1893,7 +1893,7 @@ func TestSearchChannelsForUser(t *testing.T) {
 
 func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	u1 := th.BasicUser
 	u2 := th.BasicUser2
@@ -2049,7 +2049,7 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 
 func TestAddUserToChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	user1 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 	ruser1, _ := th.App.CreateUser(th.Context, &user1)
@@ -2143,7 +2143,7 @@ func TestAddUserToChannel(t *testing.T) {
 
 func TestRemoveUserFromChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 	ruser, _ := th.App.CreateUser(th.Context, &user)
@@ -2202,7 +2202,7 @@ func TestRemoveUserFromChannel(t *testing.T) {
 
 func TestPatchChannelModerationsForChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	err := th.App.SetPhase2PermissionsMigrationStatus(true)
 	require.NoError(t, err)
@@ -2756,7 +2756,7 @@ func TestGetChannelsMemberCount(t *testing.T) {
 
 func TestViewChannelCollapsedThreadsTurnedOff(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	u1 := th.BasicUser
 	u2 := th.BasicUser2
@@ -2836,7 +2836,7 @@ func TestMarkChannelAsUnreadFromPostCollapsedThreadsTurnedOff(t *testing.T) {
 	mainHelper.Parallel(t)
 	// Enable CRT
 
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -2922,7 +2922,7 @@ func TestMarkChannelAsUnreadFromPostCollapsedThreadsTurnedOff(t *testing.T) {
 
 func TestMarkUnreadCRTOffUpdatesThreads(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -3042,7 +3042,7 @@ func TestIsCRTEnabledForUser(t *testing.T) {
 
 func TestGetDirectOrGroupMessageMembersCommonTeams(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	team1 := th.CreateTeam(t)
 	team2 := th.CreateTeam(t)
@@ -3412,7 +3412,7 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 
 func TestPatchChannelMembersNotifyProps(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	t.Run("should update multiple users' notify props", func(t *testing.T) {
 		user1 := th.CreateUser(t)
@@ -3540,7 +3540,7 @@ func TestPatchChannelMembersNotifyProps(t *testing.T) {
 }
 
 func TestGetChannelFileCount(t *testing.T) {
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	channel := th.BasicChannel
 
@@ -3592,7 +3592,7 @@ func TestGetChannelFileCount(t *testing.T) {
 }
 
 func TestCheckIfChannelIsRestrictedDM(t *testing.T) {
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	channel := th.CreateDmChannel(t, th.BasicUser2)
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -3663,7 +3663,7 @@ func TestCheckIfChannelIsRestrictedDM(t *testing.T) {
 }
 
 func TestUpdateChannel(t *testing.T) {
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	t.Run("returns 404 for non-existent channel id", func(t *testing.T) {
 		_, appErr := th.App.UpdateChannel(th.Context, &model.Channel{Id: model.NewId()})
@@ -3696,7 +3696,7 @@ func TestUpdateChannel(t *testing.T) {
 }
 
 func TestPatchChannel(t *testing.T) {
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	t.Run("should be able to patch banner info", func(t *testing.T) {
 		channel := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
@@ -3886,7 +3886,7 @@ func TestPatchChannel(t *testing.T) {
 }
 
 func TestCreateChannelWithCategorySorting(t *testing.T) {
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	// Enable channel category sorting (default category names)
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -3979,7 +3979,7 @@ func TestCreateChannelWithCategorySorting(t *testing.T) {
 }
 
 func TestPatchChannelWithCategorySorting(t *testing.T) {
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	// Enable channel category sorting
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -4022,7 +4022,7 @@ func TestPatchChannelWithCategorySorting(t *testing.T) {
 }
 
 func TestPatchChannelDefaultCategoryMovesOutOfChannels(t *testing.T) {
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.EnableChannelCategorySorting = true
@@ -4084,7 +4084,7 @@ func TestPatchChannelDefaultCategoryMovesOutOfChannels(t *testing.T) {
 }
 
 func TestPatchChannelDefaultCategoryReapplyIsIdempotent(t *testing.T) {
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.EnableChannelCategorySorting = true
