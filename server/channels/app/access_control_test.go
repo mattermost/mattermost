@@ -2231,6 +2231,46 @@ func TestBuildAccessControlSubjectScopedRoles(t *testing.T) {
 	})
 }
 
+func TestBuildAccessControlSubjectNativeAttributes(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	t.Run("populates native attributes from the user", func(t *testing.T) {
+		subject, appErr := th.App.BuildAccessControlSubject(th.Context, th.BasicUser.Id, th.BasicUser.Roles, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, subject)
+		assert.Equal(t, th.BasicUser.Email, subject.Email)
+		assert.Equal(t, th.BasicUser.EmailVerified, subject.EmailVerified)
+		assert.Equal(t, th.BasicUser.CreateAt, subject.CreateAt)
+		assert.False(t, subject.IsBot)
+	})
+
+	t.Run("IsBot true for a bot user", func(t *testing.T) {
+		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    "nativeattrbot",
+			Description: "phase2 native attr bot",
+			OwnerId:     th.BasicUser.Id,
+		})
+		require.Nil(t, appErr)
+		t.Cleanup(func() { _ = th.App.PermanentDeleteBot(th.Context, bot.UserId) })
+
+		subject, appErr := th.App.BuildAccessControlSubject(th.Context, bot.UserId, model.SystemUserRoleId, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, subject)
+		assert.True(t, subject.IsBot)
+		assert.Equal(t, bot.UserId, subject.ID)
+	})
+
+	t.Run("fails closed when the user read fails", func(t *testing.T) {
+		// A non-existent user ID takes the GetSubject not-found fallback and
+		// then fails the a.GetUser native-attribute read. The build must fail
+		// closed: return a nil subject and the AppError so callers treat it as
+		// a denial rather than evaluating against zero-valued native attributes.
+		subject, appErr := th.App.BuildAccessControlSubject(th.Context, model.NewId(), model.SystemUserRoleId, "")
+		require.NotNil(t, appErr)
+		require.Nil(t, subject)
+	})
+}
+
 func TestGetRecommendedPublicChannelsForUser(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 

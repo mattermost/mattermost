@@ -2348,6 +2348,26 @@ func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles s
 		}
 	}
 
+	// Populate Mattermost-native user attributes (user.email / user.verified /
+	// user.isbot / user.createat) for runtime PDP evaluation. a.GetUser is the
+	// cached user read and already resolves IsBot via the Bots join, so this is
+	// a single (usually cache-hit) lookup per subject build.
+	user, appErr := a.GetUser(userID)
+	if appErr != nil {
+		// Fail closed: a native-attribute policy must not silently evaluate
+		// against zero-valued natives if the user read fails. The caller
+		// treats a build error as a denial (mirrors the channel-role path).
+		rctx.Logger().Warn("Failed to load user for ABAC native attributes; aborting subject build",
+			mlog.String("user_id", userID),
+			mlog.Err(appErr),
+		)
+		return nil, appErr
+	}
+	subject.Email = user.Email
+	subject.EmailVerified = user.EmailVerified
+	subject.IsBot = user.IsBot
+	subject.CreateAt = user.CreateAt
+
 	subject.Role = roles
 	subject.SetScopedRole(model.AccessControlSubjectScopeSystem, ResolveSystemRole(roles))
 	if channelID != "" {

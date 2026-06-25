@@ -70,6 +70,16 @@ type Subject struct {
 	// in the enterprise repo) so authors cannot ship a control whose
 	// production behaviour silently diverges from the simulator preview.
 	Session map[string]any `json:"session,omitempty"`
+	// Email is the subject's email address (model.User.Email), exposed to
+	// CEL policies as user.email. Populated by BuildAccessControlSubject.
+	Email string `json:"email,omitempty"`
+	// EmailVerified mirrors model.User.EmailVerified, exposed as user.verified.
+	EmailVerified bool `json:"email_verified,omitempty"`
+	// IsBot mirrors model.User.IsBot (derived from the Bots table on the
+	// cached user read), exposed as user.isbot.
+	IsBot bool `json:"is_bot,omitempty"`
+	// CreateAt mirrors model.User.CreateAt (epoch ms), exposed as user.createat.
+	CreateAt int64 `json:"create_at,omitempty"`
 }
 
 // RoleForScope returns the role assigned to this subject within the given
