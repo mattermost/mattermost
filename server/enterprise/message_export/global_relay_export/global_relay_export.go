@@ -6,6 +6,7 @@ package global_relay_export
 import (
 	"archive/zip"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime"
@@ -32,6 +33,17 @@ const (
 	GlobalRelayChannelIDHeader   = "X-Mattermost-ChannelID"
 	GlobalRelayChannelTypeHeader = "X-Mattermost-ChannelType"
 	MaxEmailsPerConnection       = 400
+
+	// maxAttachmentReadAttempts bounds how many consecutive read attempts that make no
+	// forward progress we tolerate before giving up. Attempts that do make progress reset
+	// this budget (and the backoff), so a large attachment can still complete over a flaky
+	// connection. If the budget is exhausted, the batch is failed and the job is retried.
+	maxAttachmentReadAttempts = 3
+
+	// attachmentReadBackoff is the initial delay before retrying a stalled attachment read;
+	// it doubles after each stalled attempt (exponential backoff) and resets once a retry
+	// makes progress.
+	attachmentReadBackoff = 1 * time.Second
 )
 
 // MaxEmailBytes is a var because it needs to be set in tests. Otherwise it shouldn't be touched.
@@ -264,7 +276,7 @@ func generateEmail(rctx request.CTX, fileAttachmentBackend filestore.FileBackend
 
 	htmlBody, err := channelExportToHTML(rctx, channelExport, templates)
 	if err != nil {
-		return warningCount, fmt.Errorf("unable to generate eml file data: %w", err)
+		return warningCount, fmt.Errorf("unable to render the channel export to HTML: %w", err)
 	}
 
 	subject := fmt.Sprintf("Mattermost Compliance Export: %s", channelExport.ChannelDisplayName)
@@ -295,32 +307,175 @@ func generateEmail(rctx request.CTX, fileAttachmentBackend filestore.FileBackend
 	m.SetBody("text/plain", txtBody)
 	m.AddAlternative("text/html", htmlMessage)
 
+	// attachmentReadErr captures a genuine attachment read/write failure that we must
+	// NOT surface to gomail. gomail v2.3.1 stores any error returned by a copy closure
+	// and then nil-derefs while writing the *next* attachment, which panics and
+	// (because workers don't recover) crashes the whole server (MM-69242). So the
+	// closure always returns nil and we fail the batch here, after WriteTo.
+	var attachmentReadErr error
+
 	for _, fileInfo := range channelExport.uploadedFiles {
 		path := fileInfo.Path
 
 		m.Attach(fileInfo.Name, gomail.SetCopyFunc(func(writer io.Writer) error {
-			var reader filestore.ReadCloseSeeker
-			reader, err = fileAttachmentBackend.Reader(path)
-			if err != nil {
+			missing, readErr := streamAttachmentForExport(rctx, fileAttachmentBackend, path, writer)
+			switch {
+			case missing:
+				// The attachment no longer exists in the store (confirmed via FileExists).
+				// Warn and skip so a single deleted file can't block the export (MM-62493).
 				rctx.Logger().Warn("File not found for export", mlog.String("filename", path))
 				warningCount += 1
-				return nil
+			case readErr != nil:
+				// A read/write failure that persisted across retries. Record it and fail the
+				// batch after WriteTo so the job retries instead of shipping an incomplete export.
+				rctx.Logger().Error("Failed to read attachment for Global Relay export after retries",
+					mlog.String("filename", path), mlog.Err(readErr))
+				attachmentReadErr = errors.Join(attachmentReadErr, fmt.Errorf("attachment %q: %w", path, readErr))
 			}
-			defer reader.Close()
-
-			_, err = io.Copy(writer, reader)
-			if err != nil {
-				return fmt.Errorf("unable to add attachment to the Global Relay export: %w", err)
-			}
+			// Always return nil: an error here poisons gomail's writer and panics on the
+			// next attachment (MM-69242). We fail the batch after WriteTo instead.
 			return nil
 		}))
 	}
 
-	_, err = m.WriteTo(w)
-	if err != nil {
-		return warningCount, fmt.Errorf("unable to generate eml file data: %w", err)
+	if _, err = m.WriteTo(w); err != nil {
+		return warningCount, fmt.Errorf("unable to write the eml message: %w", err)
+	}
+	if attachmentReadErr != nil {
+		return warningCount, fmt.Errorf("unable to read one or more attachments for the eml message: %w", attachmentReadErr)
 	}
 	return warningCount, nil
+}
+
+// errAttachmentStreamFatal wraps a streaming failure that retrying cannot fix — a failure
+// writing to the output (gomail) stream, or a failed resume Seek. The caller fails the batch
+// rather than retrying or skipping.
+var errAttachmentStreamFatal = errors.New("attachment stream cannot be retried")
+
+// streamAttachmentForExport streams the attachment at path directly into dst (the gomail
+// writer), retrying transient failures (e.g. an S3 timeout, whether it surfaces when opening
+// the reader or mid-read). Each retry re-opens the backend reader and Seeks past the bytes
+// already written, so a retry resumes rather than re-downloads: memory stays constant (an S3
+// Seek is a ranged GET, not a fresh download) instead of buffering a whole, up to
+// ~MaxEmailBytes, attachment. Only attempts that make NO forward progress count against the
+// retry budget, so a large attachment can still complete over a flaky connection as long as
+// each retry advances; a cancelled job aborts promptly via the context.
+//
+// An open or read failure is classified, not assumed missing: it returns missing=true only
+// when FileExists confirms the object is genuinely gone (the caller skips it, preserving
+// MM-62493). A failure on a file that still exists — a transient infrastructure hiccup at open
+// or read time, indistinguishable from a deletion by error alone — is retried and, if it
+// persists, returned as an error so the batch fails rather than silently dropping an
+// attachment from a compliance export (MM-69338).
+//
+// NOTE: a failed stream may have already written a partial attachment to dst. That is safe
+// only because the caller fails the whole batch on a non-nil error, so the incomplete output
+// is discarded and the job retries; the closure must NOT return this error to gomail (MM-69242).
+func streamAttachmentForExport(rctx request.CTX, backend filestore.FileBackend, path string, dst io.Writer) (missing bool, err error) {
+	var written int64
+	backoff := attachmentReadBackoff
+	for stalled := 0; stalled < maxAttachmentReadAttempts; {
+		var n int64
+		n, err = streamAttachmentOnce(backend, path, dst, written)
+		written += n
+
+		if err == nil {
+			return false, nil
+		}
+		if errors.Is(err, errAttachmentStreamFatal) {
+			// Output-stream write failure or a failed resume Seek: retrying can't help, so
+			// fail the batch.
+			return false, err
+		}
+
+		// An open or read failure — both retryable, but first tell a genuinely-missing file
+		// apart from a transient hiccup. If the object is gone (and we've emitted nothing yet),
+		// skip it so a single deleted file can't block the export forever (preserves MM-62493).
+		// Anything else — it still exists, or the existence check itself failed — is treated as
+		// transient: retried, then failed, so a transient open/read error can't silently drop an
+		// attachment from a compliance export (MM-69338). On S3/MinIO a deleted object isn't even
+		// detected on open (minio-go's GetObject is lazy), so this read-time check is what makes
+		// the skip work there at all.
+		if written == 0 {
+			if exists, existsErr := backend.FileExists(path); existsErr == nil && !exists {
+				return true, nil
+			}
+		}
+
+		if n > 0 {
+			// Made forward progress: the next attempt resumes further along. Reset the
+			// stall budget and backoff so a flaky connection can still finish a large file.
+			stalled = 0
+			backoff = attachmentReadBackoff
+		} else {
+			stalled++
+			if stalled >= maxAttachmentReadAttempts {
+				break
+			}
+		}
+
+		// Transient failure: back off (exponentially) before retrying, but bail out promptly
+		// if the job is being cancelled rather than sleeping through it.
+		rctx.Logger().Warn("Transient error streaming attachment for Global Relay export; backing off before retry",
+			mlog.String("filename", path), mlog.Int("bytesRead", written),
+			mlog.Duration("backoff", backoff), mlog.Err(err))
+
+		select {
+		case <-time.After(backoff):
+		case <-rctx.Context().Done():
+			return false, rctx.Context().Err()
+		}
+
+		backoff *= 2
+	}
+
+	return false, err
+}
+
+// streamAttachmentOnce makes a single open+copy attempt, resuming past resumeFrom bytes so a
+// retry continues rather than re-downloads. It returns the bytes copied in this attempt. A nil
+// error means the attachment streamed fully. An error wrapping errAttachmentStreamFatal is not
+// retryable (output-stream write failure or a failed resume Seek); any other error is a
+// retryable open/read failure that the caller classifies as missing-vs-transient.
+func streamAttachmentOnce(backend filestore.FileBackend, path string, dst io.Writer, resumeFrom int64) (int64, error) {
+	reader, err := backend.Reader(path)
+	if err != nil {
+		// Open failure: retryable. The caller checks FileExists to tell a deleted file
+		// (skip) from a transient hiccup (retry, then fail the batch).
+		return 0, err
+	}
+	defer reader.Close()
+
+	if resumeFrom > 0 {
+		// Resume where the previous attempt left off instead of re-reading from the start.
+		if _, err = reader.Seek(resumeFrom, io.SeekStart); err != nil {
+			return 0, fmt.Errorf("%w: seeking to resume offset %d: %w", errAttachmentStreamFatal, resumeFrom, err)
+		}
+	}
+
+	rd := &readErrorReader{Reader: reader}
+	n, err := io.Copy(dst, rd)
+	if err != nil && rd.readErr == nil {
+		// io.Copy failed writing to the output stream, not reading the attachment.
+		return n, fmt.Errorf("%w: %w", errAttachmentStreamFatal, err)
+	}
+	return n, err
+}
+
+// readErrorReader wraps a reader and remembers the last non-EOF read error. It lets the
+// caller of io.Copy tell a failed attachment read (retryable) apart from a failed write to
+// the output stream (not retryable), which io.Copy collapses into a single error.
+type readErrorReader struct {
+	io.Reader
+	readErr error
+}
+
+func (r *readErrorReader) Read(p []byte) (int, error) {
+	n, err := r.Reader.Read(p)
+	if err != nil && err != io.EOF {
+		r.readErr = err
+	}
+	return n, err
 }
 
 func getParticipantEmails(channelExport *ChannelExport) []string {
