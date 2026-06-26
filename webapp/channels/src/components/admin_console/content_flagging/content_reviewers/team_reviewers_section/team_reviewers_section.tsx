@@ -153,7 +153,7 @@ export default function TeamReviewers({teamReviewersSetting, onChange, disabled}
                 enabled: (
                     <Toggle
                         id={`team_content_reviewer_toggle_${team.id}`}
-                        ariaLabel={intl.formatMessage({id: 'admin.dataSpillage.reviewerSettings.toggle', defaultMessage: 'Enable or disable content reviewers for this team'})}
+                        ariaLabel={intl.formatMessage({id: 'admin.dataSpillage.reviewerSettings.toggle', defaultMessage: 'Enable or disable content reviewers for team {teamName}'}, {teamName: team.display_name})}
                         size='btn-md'
                         onToggle={getHandleToggle(team.id)}
                         toggled={teamReviewersSetting[team.id]?.Enabled || false}
