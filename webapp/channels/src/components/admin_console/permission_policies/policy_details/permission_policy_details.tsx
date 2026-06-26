@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useMemo, useCallback} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -29,7 +29,7 @@ import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActio
 import {getHistory} from 'utils/browser_history';
 
 import CELEditor from '../../access_control/editors/cel_editor/editor';
-import {hasUsableAttributes} from '../../access_control/editors/shared';
+import {hasUsableAttributes, toCELEditorAttributes} from '../../access_control/editors/shared';
 import TableEditor from '../../access_control/editors/table_editor/table_editor';
 
 import './permission_policy_details.scss';
@@ -306,18 +306,6 @@ function PermissionPolicyDetails({
         (p) => !selectedPermissions.includes(p.value),
     );
 
-    const filteredAttributes = useMemo(() => {
-        return autocompleteResult.filter((attr) => {
-            if (accessControlSettings.EnableUserManagedAttributes) {
-                return true;
-            }
-            const isSynced = attr.attrs?.ldap || attr.attrs?.saml;
-            const isAdminManaged = attr.attrs?.managed === 'admin';
-            const isProtected = attr.attrs?.protected;
-            return isSynced || isAdminManaged || isProtected;
-        });
-    }, [autocompleteResult, accessControlSettings.EnableUserManagedAttributes]);
-
     return (
         <div className='wrapper--fixed PermissionPolicySettings'>
             <AdminHeader withBackButton={true}>
@@ -554,10 +542,7 @@ function PermissionPolicyDetails({
                                             }}
                                             onValidate={() => {}}
                                             disabled={noUsableAttributes}
-                                            userAttributes={filteredAttributes.map((attr) => ({
-                                                attribute: attr.name,
-                                                values: [],
-                                            }))}
+                                            userAttributes={toCELEditorAttributes(autocompleteResult, accessControlSettings.EnableUserManagedAttributes)}
 
                                             // Both editor modes route the test
                                             // button through SimulateAccessModal:

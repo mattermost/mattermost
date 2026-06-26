@@ -7,7 +7,28 @@ import type {UserPropertyField} from '@mattermost/types/properties';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
-import {TestButton, hasUsableAttributes} from './shared';
+import {TestButton, hasUsableAttributes, toCELEditorAttributes, allowedOperatorLabelsForField, defaultOperatorForField, isNativeBooleanField} from './shared';
+
+const makeField = (name: string, attrs: Partial<UserPropertyField['attrs']>, type: UserPropertyField['type'] = 'text'): UserPropertyField => ({
+    id: `id-${name}`,
+    name,
+    type,
+    group_id: 'custom_profile_attributes',
+    target_id: '',
+    target_type: '',
+    object_type: '',
+    attrs: {
+        sort_order: 0,
+        visibility: 'always',
+        value_type: '',
+        ...attrs,
+    },
+    create_at: 0,
+    update_at: 0,
+    delete_at: 0,
+    created_by: '',
+    updated_by: '',
+});
 
 describe('TestButton', () => {
     const baseProps = {
@@ -383,6 +404,14 @@ describe('hasUsableAttributes', () => {
         expect(hasUsableAttributes(userAttributes, false)).toBe(false);
     });
 
+    test('should return true for native attributes regardless of sync/managed flags', () => {
+        const userAttributes: UserPropertyField[] = [
+            makeField('email', {native: true, operators: ['==', '!=']}),
+        ];
+
+        expect(hasUsableAttributes(userAttributes, false)).toBe(true);
+    });
+
     test('should return true when at least one attribute is usable (mixed attributes)', () => {
         const userAttributes: UserPropertyField[] = [
             {
@@ -427,5 +456,69 @@ describe('hasUsableAttributes', () => {
         ];
 
         expect(hasUsableAttributes(userAttributes, false)).toBe(true);
+    });
+});
+
+describe('toCELEditorAttributes', () => {
+    test('keeps native attributes (flagged) and drops unsafe CPA when user-managed is off', () => {
+        const fields = [
+            makeField('email', {native: true, operators: ['==']}),
+            makeField('unsafe', {}),
+            makeField('synced', {ldap: 'ldap_field'}),
+        ];
+
+        expect(toCELEditorAttributes(fields, false)).toEqual([
+            {attribute: 'email', values: [], isNative: true},
+            {attribute: 'synced', values: [], isNative: false},
+        ]);
+    });
+
+    test('keeps all CPA when user-managed attributes are enabled', () => {
+        const fields = [
+            makeField('email', {native: true, operators: ['==']}),
+            makeField('unsafe', {}),
+        ];
+
+        expect(toCELEditorAttributes(fields, true)).toEqual([
+            {attribute: 'email', values: [], isNative: true},
+            {attribute: 'unsafe', values: [], isNative: false},
+        ]);
+    });
+});
+
+describe('allowedOperatorLabelsForField / defaultOperatorForField', () => {
+    test('maps native operator tokens to UI labels', () => {
+        const field = makeField('email', {native: true, operators: ['==', '!=', 'contains']});
+        expect(allowedOperatorLabelsForField(field)).toEqual(['is', 'is not', 'contains']);
+        expect(defaultOperatorForField(field)).toBe('is');
+    });
+
+    test('maps youngerThanDays token', () => {
+        const field = makeField('createat', {native: true, operators: ['youngerThanDays']});
+        expect(allowedOperatorLabelsForField(field)).toEqual(['younger than']);
+        expect(defaultOperatorForField(field)).toBe('younger than');
+    });
+
+    test('returns undefined for non-native fields and falls back to is/has any of', () => {
+        expect(allowedOperatorLabelsForField(makeField('dept', {}))).toBeUndefined();
+        expect(defaultOperatorForField(makeField('dept', {}))).toBe('is');
+        expect(defaultOperatorForField(makeField('skills', {}, 'multiselect'))).toBe('has any of');
+    });
+});
+
+describe('isNativeBooleanField', () => {
+    test('true for a native select with true/false options', () => {
+        const field = makeField('verified', {native: true, options: [{id: '1', name: 'true'}, {id: '2', name: 'false'}]}, 'select');
+        expect(isNativeBooleanField(field)).toBe(true);
+    });
+
+    test('false for a native select with non-boolean options', () => {
+        const field = makeField('color', {native: true, options: [{id: '1', name: 'red'}]}, 'select');
+        expect(isNativeBooleanField(field)).toBe(false);
+    });
+
+    test('false for a non-native select with true/false options', () => {
+        const field = makeField('flag', {options: [{id: '1', name: 'true'}, {id: '2', name: 'false'}]}, 'select');
+        expect(isNativeBooleanField(field)).toBe(false);
     });
 });
