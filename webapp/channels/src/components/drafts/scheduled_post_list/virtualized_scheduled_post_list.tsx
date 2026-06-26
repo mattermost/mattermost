@@ -36,7 +36,7 @@ function getInitialScrollOffset(targetIndex: number, viewportHeight: number) {
         return 0;
     }
 
-    return Math.max(0, (targetIndex * ESTIMATED_ROW_HEIGHT) - (viewportHeight / 2) + (ESTIMATED_ROW_HEIGHT / 2));
+    return Math.max(0, ((targetIndex * ESTIMATED_ROW_HEIGHT) - (viewportHeight / 2)) + (ESTIMATED_ROW_HEIGHT / 2));
 }
 
 type Props = {
