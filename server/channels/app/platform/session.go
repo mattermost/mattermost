@@ -321,25 +321,24 @@ func (ps *PlatformService) UpdateSessionsIsGuest(rctx request.CTX, user *model.U
 	return nil
 }
 
-func (ps *PlatformService) RevokeAllSessions(rctx request.CTX, userID string) error {
+func (ps *PlatformService) RevokeAllSessions(rctx request.CTX, userID string) ([]*model.Session, error) {
 	sessions, err := ps.Store.Session().GetSessions(rctx, userID)
 	if err != nil {
-		return fmt.Errorf("%s: %w", err.Error(), GetSessionError)
+		return nil, fmt.Errorf("%s: %w", err.Error(), GetSessionError)
 	}
 	for _, session := range sessions {
 		if session.IsOAuth {
 			if err := ps.RevokeAccessToken(rctx, session.Token); err != nil {
-				return err
+				return nil, err
 			}
 		} else {
 			if err := ps.Store.Session().Remove(session.Id); err != nil {
-				return fmt.Errorf("%s: %w", err.Error(), DeleteSessionError)
+				return nil, fmt.Errorf("%s: %w", err.Error(), DeleteSessionError)
 			}
 			ps.invalidateSessionAttributes(session.Id)
 		}
 	}
 
 	ps.ClearUserSessionCache(userID)
-
-	return nil
+	return sessions, nil
 }
