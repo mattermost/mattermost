@@ -270,6 +270,17 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
                 }
             }
 
+            // Collect file IDs from file-type elements for server-side validation
+            const fileIds: string[] = [];
+            if (this.currentDialogElements) {
+                this.currentDialogElements.forEach((elem) => {
+                    if (elem.type === 'file' && finalSubmission[elem.name]) {
+                        const ids = String(finalSubmission[elem.name]).split(',').filter(Boolean);
+                        fileIds.push(...ids);
+                    }
+                });
+            }
+
             const legacySubmission: DialogSubmission = {
                 url: this.props.url || '',
                 callback_id: this.props.callbackId || '',
@@ -279,6 +290,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
                 channel_id: '', // Populated by submitInteractiveDialog action
                 team_id: '', // Populated by submitInteractiveDialog action
                 cancelled: false,
+                ...(fileIds.length > 0 && {file_ids: fileIds}),
             };
 
             const result = await this.props.actions.submitInteractiveDialog(legacySubmission);
