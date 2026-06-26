@@ -213,6 +213,18 @@ jobs:
             git diff
             exit 1
           fi
+      - name: Check for renumbered or renamed migrations
+        # Only backports (PRs targeting a release branch) need this guard: the
+        # migrations they add must keep the exact version+name they have on
+        # master. New migrations on master-targeted PRs are normal and skipped.
+        if: startsWith(github.base_ref, 'release-')
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git fetch --no-tags --depth=1 origin master "$GITHUB_BASE_REF"
+          make check-migration-changes
+        env:
+          MM_MIGRATION_CHECK_BASE_REF: origin/${{ github.base_ref }}
+          MM_MIGRATION_CHECK_CANONICAL_REF: origin/master
   check-email-templates:
     name: Generate email templates
     needs: go
