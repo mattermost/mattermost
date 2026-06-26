@@ -152,6 +152,24 @@ func (_m *PreferenceStore) DeleteOrphanedRows(limit int) (int64, error) {
 	return r0, r1
 }
 
+// DeletePreferenceDeletionsBefore provides a mock function with given fields: cutoff
+func (_m *PreferenceStore) DeletePreferenceDeletionsBefore(cutoff int64) error {
+	ret := _m.Called(cutoff)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeletePreferenceDeletionsBefore")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(int64) error); ok {
+		r0 = rf(cutoff)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Get provides a mock function with given fields: userID, category, name
 func (_m *PreferenceStore) Get(userID string, category string, name string) (*model.Preference, error) {
 	ret := _m.Called(userID, category, name)
@@ -272,6 +290,36 @@ func (_m *PreferenceStore) GetCategoryAndName(category string, name string) (mod
 	return r0, r1
 }
 
+// GetDeletedSince provides a mock function with given fields: userID, since
+func (_m *PreferenceStore) GetDeletedSince(userID string, since int64) ([]model.PreferenceTombstone, error) {
+	ret := _m.Called(userID, since)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetDeletedSince")
+	}
+
+	var r0 []model.PreferenceTombstone
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, int64) ([]model.PreferenceTombstone, error)); ok {
+		return rf(userID, since)
+	}
+	if rf, ok := ret.Get(0).(func(string, int64) []model.PreferenceTombstone); ok {
+		r0 = rf(userID, since)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]model.PreferenceTombstone)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
+		r1 = rf(userID, since)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // PermanentDeleteByUser provides a mock function with given fields: userID
 func (_m *PreferenceStore) PermanentDeleteByUser(userID string) error {
 	ret := _m.Called(userID)
@@ -283,6 +331,24 @@ func (_m *PreferenceStore) PermanentDeleteByUser(userID string) error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// RecordDeletions provides a mock function with given fields: preferences, deleteAt
+func (_m *PreferenceStore) RecordDeletions(preferences model.Preferences, deleteAt int64) error {
+	ret := _m.Called(preferences, deleteAt)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RecordDeletions")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(model.Preferences, int64) error); ok {
+		r0 = rf(preferences, deleteAt)
 	} else {
 		r0 = ret.Error(0)
 	}

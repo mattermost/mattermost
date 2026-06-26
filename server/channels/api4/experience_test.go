@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -764,6 +765,83 @@ func TestGetInitialLoad(t *testing.T) {
 		}
 		assert.Equal(t, anyJoinable, r.CanJoinOtherTeams,
 			"can_join_other_teams must reflect whether any visible team is not yet joined")
+	})
+}
+
+func TestGetInitialLoadPreferenceTombstones(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	initialLoadURL := func(params ...string) string {
+		u := "/users/me/initial_load"
+		if len(params) > 0 {
+			u += "?" + strings.Join(params, "&")
+		}
+		return u
+	}
+
+	decodeResponse := func(t *testing.T, data []byte) *model.InitialLoadResponse {
+		t.Helper()
+		var r model.InitialLoadResponse
+		require.NoError(t, json.Unmarshal(data, &r))
+		return &r
+	}
+
+	t.Run("cold start returns no tombstones (since=0)", func(t *testing.T) {
+		// Delete a preference so a tombstone row exists.
+		pref := model.Preference{UserId: th.BasicUser.Id, Category: "test_tombstone", Name: "cold_start_key", Value: "1"}
+		_, err := th.Client.UpdatePreferences(context.Background(), th.BasicUser.Id, model.Preferences{pref})
+		require.NoError(t, err)
+		_, err = th.Client.DeletePreferences(context.Background(), th.BasicUser.Id, model.Preferences{pref})
+		require.NoError(t, err)
+
+		resp, appErr := th.Client.DoAPIGet(context.Background(), initialLoadURL(), "")
+		require.NoError(t, appErr)
+		data, readErr := io.ReadAll(resp.Body)
+		require.NoError(t, readErr)
+		r := decodeResponse(t, data)
+
+		// since=0 (cold start) must never return tombstones.
+		assert.Empty(t, r.PreferenceTombstones, "cold start must not include preference tombstones")
+	})
+
+	t.Run("delta returns tombstones for preferences deleted since cursor", func(t *testing.T) {
+		cursor := model.GetMillis()
+
+		pref := model.Preference{UserId: th.BasicUser.Id, Category: "test_tombstone", Name: "delta_key", Value: "1"}
+		_, err := th.Client.UpdatePreferences(context.Background(), th.BasicUser.Id, model.Preferences{pref})
+		require.NoError(t, err)
+		_, err = th.Client.DeletePreferences(context.Background(), th.BasicUser.Id, model.Preferences{pref})
+		require.NoError(t, err)
+
+		resp, appErr := th.Client.DoAPIGet(context.Background(), initialLoadURL(fmt.Sprintf("since=%d", cursor)), "")
+		require.NoError(t, appErr)
+		data, readErr := io.ReadAll(resp.Body)
+		require.NoError(t, readErr)
+		r := decodeResponse(t, data)
+
+		found := false
+		for _, tb := range r.PreferenceTombstones {
+			if tb.Category == "test_tombstone" && tb.Name == "delta_key" {
+				found = true
+				assert.Equal(t, th.BasicUser.Id, tb.UserId)
+				assert.Greater(t, tb.DeleteAt, cursor)
+			}
+		}
+		assert.True(t, found, "expected preference tombstone not found in delta response")
+	})
+
+	t.Run("delta returns no tombstones when nothing was deleted since cursor", func(t *testing.T) {
+		// Use a cursor in the future so nothing qualifies.
+		future := model.GetMillis() + 60000
+
+		resp, appErr := th.Client.DoAPIGet(context.Background(), initialLoadURL(fmt.Sprintf("since=%d", future)), "")
+		require.NoError(t, appErr)
+		data, readErr := io.ReadAll(resp.Body)
+		require.NoError(t, readErr)
+		r := decodeResponse(t, data)
+
+		assert.Empty(t, r.PreferenceTombstones)
 	})
 }
 

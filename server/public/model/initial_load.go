@@ -75,6 +75,27 @@ type InitialLoadResponse struct {
 	// client needing to paginate GET /teams. Always sent (also in delta) since it's
 	// cheap to compute and may change between requests as teams are created/joined.
 	CanJoinOtherTeams bool `json:"can_join_other_teams"`
+
+	// Group memberships for the requesting user.
+	// In delta mode: Members contains memberships where CreateAt > since (new);
+	// RemovedGroupIds lists groups the user was removed from since the cursor.
+	// nil when there are no active memberships and no removals (common case for non-LDAP users).
+	GroupMemberships *InitialLoadGroupMembershipList `json:"group_memberships,omitempty"`
+}
+
+// InitialLoadGroupMembershipList pairs active group memberships with IDs of groups
+// the user was removed from since the cursor.
+type InitialLoadGroupMembershipList struct {
+	Members []*InitialLoadGroupMembership `json:"members"`
+	// RemovedGroupIds: group IDs the user was removed from since the cursor.
+	RemovedGroupIds []string `json:"removed_group_ids,omitempty"`
+}
+
+// InitialLoadGroupMembership is the compact group membership representation.
+type InitialLoadGroupMembership struct {
+	GroupId  string `json:"group_id"`
+	UserId   string `json:"user_id"`
+	CreateAt int64  `json:"create_at"`
 }
 
 // InitialLoadUser is the compact user representation for the logged-in user.

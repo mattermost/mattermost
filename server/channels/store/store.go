@@ -715,6 +715,9 @@ type PreferenceStore interface {
 	Get(userID string, category string, name string) (*model.Preference, error)
 	GetAll(userID string) (model.Preferences, error)
 	Delete(userID, category, name string) error
+	RecordDeletions(preferences model.Preferences, deleteAt int64) error
+	GetDeletedSince(userID string, since int64) ([]model.PreferenceTombstone, error)
+	DeletePreferenceDeletionsBefore(cutoff int64) error
 	DeleteCategory(userID string, category string) error
 	DeleteCategoryAndName(category string, name string) error
 	PermanentDeleteByUser(userID string) error
@@ -939,6 +942,7 @@ type GroupStore interface {
 	GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, error)
 	GetAllBySource(groupSource model.GroupSource) ([]*model.Group, error)
 	GetByUser(userID string, opts model.GroupSearchOpts) ([]*model.Group, error)
+	GetMembershipsByUser(userID string, since int64) (*model.InitialLoadGroupMembershipList, error)
 	Update(group *model.Group) (*model.Group, error)
 	Delete(groupID string) (*model.Group, error)
 	Restore(groupID string) (*model.Group, error)

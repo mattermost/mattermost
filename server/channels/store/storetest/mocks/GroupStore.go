@@ -1138,6 +1138,36 @@ func (_m *GroupStore) GetMemberUsersSortedPage(groupID string, page int, perPage
 	return r0, r1
 }
 
+// GetMembershipsByUser provides a mock function with given fields: userID, since
+func (_m *GroupStore) GetMembershipsByUser(userID string, since int64) (*model.InitialLoadGroupMembershipList, error) {
+	ret := _m.Called(userID, since)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetMembershipsByUser")
+	}
+
+	var r0 *model.InitialLoadGroupMembershipList
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, int64) (*model.InitialLoadGroupMembershipList, error)); ok {
+		return rf(userID, since)
+	}
+	if rf, ok := ret.Get(0).(func(string, int64) *model.InitialLoadGroupMembershipList); ok {
+		r0 = rf(userID, since)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.InitialLoadGroupMembershipList)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
+		r1 = rf(userID, since)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetNonMemberUsersPage provides a mock function with given fields: groupID, page, perPage, viewRestrictions
 func (_m *GroupStore) GetNonMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 	ret := _m.Called(groupID, page, perPage, viewRestrictions)

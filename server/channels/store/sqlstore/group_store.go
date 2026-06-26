@@ -383,6 +383,56 @@ func (s *SqlGroupStore) GetByUser(userID string, opts model.GroupSearchOpts) ([]
 	return groups, nil
 }
 
+func (s *SqlGroupStore) GetMembershipsByUser(userID string, since int64) (*model.InitialLoadGroupMembershipList, error) {
+	type membershipRow struct {
+		GroupId  string
+		UserId   string
+		CreateAt int64
+		DeleteAt int64
+	}
+
+	builder := s.getQueryBuilder().
+		Select(
+			"GroupMembers.GroupId AS GroupId",
+			"GroupMembers.UserId AS UserId",
+			"GroupMembers.CreateAt AS CreateAt",
+			"GroupMembers.DeleteAt AS DeleteAt",
+		).
+		From("GroupMembers").
+		Where(sq.Eq{"GroupMembers.UserId": userID})
+
+	if since > 0 {
+		// Delta: new active memberships created since the cursor + tombstones deleted since the cursor.
+		builder = builder.Where(sq.Or{
+			sq.And{sq.Eq{"GroupMembers.DeleteAt": 0}, sq.Gt{"GroupMembers.CreateAt": since}},
+			sq.Gt{"GroupMembers.DeleteAt": since},
+		})
+	} else {
+		// Cold start: all active memberships.
+		builder = builder.Where(sq.Eq{"GroupMembers.DeleteAt": 0})
+	}
+
+	var rows []membershipRow
+	if err := s.GetReplica().SelectBuilder(&rows, builder); err != nil {
+		return nil, errors.Wrapf(err, "failed to get group memberships for userId=%s", userID)
+	}
+
+	result := &model.InitialLoadGroupMembershipList{}
+	for _, r := range rows {
+		if r.DeleteAt > 0 {
+			result.RemovedGroupIds = append(result.RemovedGroupIds, r.GroupId)
+		} else {
+			result.Members = append(result.Members, &model.InitialLoadGroupMembership{
+				GroupId:  r.GroupId,
+				UserId:   r.UserId,
+				CreateAt: r.CreateAt,
+			})
+		}
+	}
+
+	return result, nil
+}
+
 func (s *SqlGroupStore) Update(group *model.Group) (*model.Group, error) {
 	var retrievedGroup model.Group
 	builder := s.userGroupsSelectQuery.Where(sq.Eq{"Id": group.Id})

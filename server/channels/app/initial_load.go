@@ -66,7 +66,9 @@ func (a *App) GetInitialLoad(rctx request.CTX, userID string, activeTeamID strin
 		deletedTeams      []*model.Team // archived teams (Team.DeleteAt > since); delta only
 		teamMembers       []*model.TeamMember
 		prefs             model.Preferences
+		prefTombstones    []model.PreferenceTombstone
 		canJoinOtherTeams bool
+		groupMemberships  *model.InitialLoadGroupMembershipList
 	)
 
 	var egA errgroup.Group
@@ -140,6 +142,26 @@ func (a *App) GetInitialLoad(rctx request.CTX, userID string, activeTeamID strin
 		canJoinOtherTeams = canJoin
 		return nil
 	})
+
+	egA.Go(func() error {
+		var err error
+		groupMemberships, err = a.Srv().Store().Group().GetMembershipsByUser(userID, since)
+		if err != nil {
+			return model.NewAppError("GetInitialLoad", "app.initial_load.get_group_memberships.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		return nil
+	})
+
+	if since > 0 {
+		egA.Go(func() error {
+			var err error
+			prefTombstones, err = a.Srv().Store().Preference().GetDeletedSince(userID, since)
+			if err != nil {
+				return model.NewAppError("GetInitialLoad", "app.initial_load.get_preference_tombstones.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		})
+	}
 
 	if err := egA.Wait(); err != nil {
 		if appErr, ok := err.(*model.AppError); ok {
@@ -563,20 +585,31 @@ func (a *App) GetInitialLoad(rctx request.CTX, userID string, activeTeamID strin
 	// Assemble response
 	// -----------------------------------------------------------------------
 	resp := &model.InitialLoadResponse{
-		Me:                  toInitialLoadUser(me),
-		Teams:               toInitialLoadTeams(changedTeams, teamsUnread, isCRT),
-		TeamMembers:         toInitialLoadTeamMemberList(scopedTeamMembers, tombstonedTeamIDs),
-		ActiveTeam:          toInitialLoadActiveTeam(resolvedTeamID, teams, allChannels, changedChannels, channelMembers, changedChannelMembers, sidebarCats, removedChIDs, prefs, gmMemberCounts),
-		Roles:               toRoleLoadItems(roles),
-		Preferences:         prefs,
-		DirectChannelCounts: buildDirectChannelCounts(userID, channelMembers, dmGMProfilesByChannel, prefs, isCRT, dmThreadHasUnreads, dmThreadMentions, dmThreadUrgent),
-		DirectProfiles:      directProfiles,
-		Timestamp:           model.GetMillis(),
-		PriorityHints:       buildPriorityHints(resolvedTeamID, activeChannelID, allChannels, channelMembers),
-		CanJoinOtherTeams:   canJoinOtherTeams,
+		Me:                   toInitialLoadUser(me),
+		Teams:                toInitialLoadTeams(changedTeams, teamsUnread, isCRT),
+		TeamMembers:          toInitialLoadTeamMemberList(scopedTeamMembers, tombstonedTeamIDs),
+		ActiveTeam:           toInitialLoadActiveTeam(resolvedTeamID, teams, allChannels, changedChannels, channelMembers, changedChannelMembers, sidebarCats, removedChIDs, prefs, gmMemberCounts),
+		Roles:                toRoleLoadItems(roles),
+		Preferences:          prefs,
+		DirectChannelCounts:  buildDirectChannelCounts(userID, channelMembers, dmGMProfilesByChannel, prefs, isCRT, dmThreadHasUnreads, dmThreadMentions, dmThreadUrgent),
+		DirectProfiles:       directProfiles,
+		Timestamp:            model.GetMillis(),
+		PriorityHints:        buildPriorityHints(resolvedTeamID, activeChannelID, allChannels, channelMembers),
+		CanJoinOtherTeams:    canJoinOtherTeams,
+		GroupMemberships:     toInitialLoadGroupMembershipList(groupMemberships),
+		PreferenceTombstones: prefTombstones,
 	}
 
 	return resp, nil
+}
+
+// toInitialLoadGroupMembershipList returns nil when there is nothing to send
+// (no members and no tombstones), avoiding an empty object in the JSON response.
+func toInitialLoadGroupMembershipList(list *model.InitialLoadGroupMembershipList) *model.InitialLoadGroupMembershipList {
+	if list == nil || (len(list.Members) == 0 && len(list.RemovedGroupIds) == 0) {
+		return nil
+	}
+	return list
 }
 
 // resolveActiveTeam picks the active team ID from:

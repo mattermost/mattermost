@@ -49,6 +49,7 @@ const (
 	JobTypeDeleteExpiredPosts            = "delete_expired_posts"
 	JobTypeAutoTranslationRecovery       = "autotranslation_recovery"
 	JobTypeCleanupExpiredAccessTokens    = "cleanup_expired_access_tokens"
+	JobTypeCleanupPreferenceDeletions    = "cleanup_preference_deletions"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"
@@ -80,6 +81,7 @@ var AllJobTypes = [...]string{
 	JobTypeLastAccessibleFile,
 	JobTypeCleanupDesktopTokens,
 	JobTypeCleanupExpiredAccessTokens,
+	JobTypeCleanupPreferenceDeletions,
 	JobTypeRefreshMaterializedViews,
 	JobTypeMobileSessionMetadata,
 }

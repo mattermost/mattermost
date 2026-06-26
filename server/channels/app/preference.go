@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
@@ -99,6 +100,10 @@ func (a *App) DeletePreferences(rctx request.CTX, userID string, preferences mod
 		if err := a.Srv().Store().Preference().Delete(userID, preference.Category, preference.Name); err != nil {
 			return model.NewAppError("DeletePreferences", "app.preference.delete.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
+	}
+
+	if err := a.Srv().Store().Preference().RecordDeletions(preferences, model.GetMillis()); err != nil {
+		a.Log().Warn("Failed to record preference deletions for tombstone tracking", mlog.Err(err), mlog.String("user_id", userID))
 	}
 
 	if err := a.Srv().Store().Channel().DeleteSidebarChannelsByPreferences(preferences); err != nil {

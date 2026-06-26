@@ -189,6 +189,68 @@ func (s SqlPreferenceStore) Delete(userId, category, name string) error {
 	return nil
 }
 
+func (s SqlPreferenceStore) RecordDeletions(preferences model.Preferences, deleteAt int64) error {
+	if len(preferences) == 0 {
+		return nil
+	}
+
+	builder := s.getQueryBuilder().
+		Insert("PreferenceDeletions").
+		Columns("UserId", "Category", "Name", "DeleteAt")
+
+	for _, p := range preferences {
+		builder = builder.Values(p.UserId, p.Category, p.Name, deleteAt)
+	}
+
+	// ON CONFLICT DO UPDATE so that re-deleting an already-tombstoned preference refreshes the timestamp.
+	query, args, err := builder.Suffix("ON CONFLICT (UserId, Category, Name) DO UPDATE SET DeleteAt = EXCLUDED.DeleteAt").ToSql()
+	if err != nil {
+		return errors.Wrap(err, "could not build sql query for RecordDeletions")
+	}
+
+	if _, err = s.GetMaster().Exec(query, args...); err != nil {
+		return errors.Wrap(err, "failed to record preference deletions")
+	}
+
+	return nil
+}
+
+func (s SqlPreferenceStore) GetDeletedSince(userID string, since int64) ([]model.PreferenceTombstone, error) {
+	query, args, err := s.getQueryBuilder().
+		Select("UserId", "Category", "Name", "DeleteAt").
+		From("PreferenceDeletions").
+		Where(sq.Eq{"UserId": userID}).
+		Where(sq.Gt{"DeleteAt": since}).
+		OrderBy("DeleteAt ASC").
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "could not build sql query for GetDeletedSince")
+	}
+
+	var tombstones []model.PreferenceTombstone
+	if err = s.GetReplica().Select(&tombstones, query, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to get deleted preferences for userId=%s since=%d", userID, since)
+	}
+
+	return tombstones, nil
+}
+
+func (s SqlPreferenceStore) DeletePreferenceDeletionsBefore(cutoff int64) error {
+	query, args, err := s.getQueryBuilder().
+		Delete("PreferenceDeletions").
+		Where(sq.Lt{"DeleteAt": cutoff}).
+		ToSql()
+	if err != nil {
+		return errors.Wrap(err, "could not build sql query for DeletePreferenceDeletionsBefore")
+	}
+
+	if _, err = s.GetMaster().Exec(query, args...); err != nil {
+		return errors.Wrap(err, "failed to delete old preference deletions")
+	}
+
+	return nil
+}
+
 func (s SqlPreferenceStore) DeleteCategory(userId string, category string) error {
 	sql, args, err := s.getQueryBuilder().
 		Delete("Preferences").
