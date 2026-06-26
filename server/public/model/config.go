@@ -4215,6 +4215,7 @@ type Config struct {
 	AccessControlSettings       AccessControlSettings
 	ContentFlaggingSettings     ContentFlaggingSettings
 	AutoTranslationSettings     AutoTranslationSettings
+	AIRecapSettings             AIRecapSettings
 }
 
 func (o *Config) Auditable() map[string]any {
@@ -4335,6 +4336,7 @@ func (o *Config) SetDefaults() {
 	o.ConnectedWorkspacesSettings.SetDefaults(isUpdate, o.ExperimentalSettings)
 	o.AccessControlSettings.SetDefaults()
 	o.ContentFlaggingSettings.SetDefaults()
+	o.AIRecapSettings.SetDefaults()
 }
 
 func (o *Config) IsValid() *AppError {
@@ -4492,6 +4494,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if appErr := o.ContentFlaggingSettings.IsValid(); appErr != nil {
+		return appErr
+	}
+
+	if appErr := o.AIRecapSettings.IsValid(); appErr != nil {
 		return appErr
 	}
 
