@@ -13,6 +13,11 @@ import SchemaAdminSettings, {SchemaAdminSettings as SchemaAdminSettingsClass} fr
 import type {ConsoleAccess, AdminDefinitionSubSectionSchema, AdminDefinitionSettingInput} from './types';
 import ValidationResult from './validation';
 
+jest.mock('actions/user_actions', () => ({
+    ...jest.requireActual('actions/user_actions'),
+    autocompleteUsers: jest.fn(() => () => Promise.resolve({users: []})),
+}));
+
 const DefaultProps = {
     cloud: {} as CloudState,
     consoleAccess: {} as ConsoleAccess,

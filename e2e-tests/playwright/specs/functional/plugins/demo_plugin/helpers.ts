@@ -9,7 +9,7 @@ import {mergeWithOnPremServerConfig} from '@mattermost/playwright-lib';
 
 const DEMO_PLUGIN_ID = 'com.mattermost.demo-plugin';
 const DEMO_PLUGIN_URL =
-    'https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.11.0/mattermost-plugin-demo-v0.11.0.tar.gz';
+    'https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.11.1/mattermost-plugin-demo-v0.11.1.tar.gz';
 
 export {DEMO_PLUGIN_ID, DEMO_PLUGIN_URL};
 

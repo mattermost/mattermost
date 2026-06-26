@@ -33,7 +33,7 @@ test('should install and enable demo plugin from URL', async ({pw}) => {
     // Install and enable
     await pw.installAndEnablePlugin(
         adminClient,
-        'https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.11.0/mattermost-plugin-demo-v0.11.0.tar.gz',
+        'https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.11.1/mattermost-plugin-demo-v0.11.1.tar.gz',
         'com.mattermost.demo-plugin',
     );
 
