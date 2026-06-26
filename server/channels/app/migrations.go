@@ -746,7 +746,7 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 			// Another server may have won the race and created this field
 			// concurrently (e.g. parallel tests sharing a database pool).
 			// Tolerate that but propagate any other error.
-			if _, retryErr := s.propertyService.GetPropertyFieldByName(nil, group.ID, "", property.Name); retryErr != nil {
+			if _, retryErr := s.propertyService.GetPropertyFieldByNameForObjectType(nil, group.ID, "", property.ObjectType, property.Name); retryErr != nil {
 				return fmt.Errorf("failed to create content flagging property: %q, error: %w", property.Name, err)
 			}
 		}
@@ -847,7 +847,7 @@ func (s *Server) doSetupBoardsProperties() error {
 			// Another server may have won the race and created this field
 			// concurrently (e.g. parallel tests sharing a database pool).
 			// Tolerate that but propagate any other error.
-			if _, retryErr := s.propertyService.GetPropertyFieldByName(nil, group.ID, "", property.Name); retryErr != nil {
+			if _, retryErr := s.propertyService.GetPropertyFieldByNameForObjectType(nil, group.ID, "", property.ObjectType, property.Name); retryErr != nil {
 				return fmt.Errorf("failed to create boards property: %q, error: %w", property.Name, err)
 			}
 		}
@@ -907,7 +907,7 @@ func (s *Server) seedSessionAttributeFields(groupID string) error {
 
 	for _, field := range fieldsToCreate {
 		if _, err := s.propertyService.CreatePropertyField(nil, field); err != nil {
-			if _, retryErr := s.propertyService.GetPropertyFieldByName(nil, groupID, "", field.Name); retryErr != nil {
+			if _, retryErr := s.propertyService.GetPropertyFieldByNameForObjectType(nil, groupID, "", field.ObjectType, field.Name); retryErr != nil {
 				return fmt.Errorf("failed to create session attribute field: %q, error: %w", field.Name, err)
 			}
 		}
@@ -966,7 +966,7 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 		return fmt.Errorf("failed to register managed category group: %w", err)
 	}
 
-	_, err = s.propertyService.GetPropertyFieldByName(nil, group.ID, "", model.ManagedCategoryPropertyFieldName)
+	_, err = s.propertyService.GetPropertyFieldByNameForObjectType(nil, group.ID, "", model.PropertyValueTargetTypeChannel, model.ManagedCategoryPropertyFieldName)
 	if err != nil {
 		field := &model.PropertyField{
 			GroupID:           group.ID,
@@ -982,7 +982,7 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 		}
 
 		if _, err := s.propertyService.CreatePropertyField(nil, field); err != nil {
-			if _, retryErr := s.propertyService.GetPropertyFieldByName(nil, group.ID, "", model.ManagedCategoryPropertyFieldName); retryErr != nil {
+			if _, retryErr := s.propertyService.GetPropertyFieldByNameForObjectType(nil, group.ID, "", field.ObjectType, model.ManagedCategoryPropertyFieldName); retryErr != nil {
 				return fmt.Errorf("failed to create managed category field: %w", err)
 			}
 		}
@@ -1038,7 +1038,7 @@ func (s *Server) cacheManagedCategoryIDs() error {
 		return fmt.Errorf("failed to get managed category group: %w", err)
 	}
 
-	field, err := s.propertyService.GetPropertyFieldByName(nil, group.ID, "", model.ManagedCategoryPropertyFieldName)
+	field, err := s.propertyService.GetPropertyFieldByNameForObjectType(nil, group.ID, "", model.PropertyValueTargetTypeChannel, model.ManagedCategoryPropertyFieldName)
 	if err != nil {
 		return fmt.Errorf("failed to get managed category field: %w", err)
 	}
