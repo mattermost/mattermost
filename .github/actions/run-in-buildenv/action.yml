@@ -14,6 +14,10 @@ inputs:
     description: "Set to 'true' to use the FIPS build image"
     required: false
     default: "false"
+  network:
+    description: "Docker network to attach the container to (e.g. 'host')"
+    required: false
+    default: ""
 
 runs:
   using: composite
@@ -35,8 +39,12 @@ runs:
     - shell: bash
       env:
         CMD: ${{ inputs.run }}
+        NETWORK: ${{ inputs.network }}
       run: |
+        NETWORK_ARGS=()
+        [[ -n "${NETWORK}" ]] && NETWORK_ARGS=(--network "${NETWORK}")
         docker run --rm \
+          "${NETWORK_ARGS[@]}" \
           -v "$PWD:/mattermost" \
           -w /mattermost/server \
           "${IMAGE}" \
