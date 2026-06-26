@@ -4,8 +4,7 @@ description: >
   container image is pulled from Docker Hub on demand. During an in-flight Go
   version bump, load-buildenv ensures the locally-built image is available
   first. The repository is mounted at /mattermost with the working directory
-  set to /mattermost/server, and all GITHUB_* environment variables are
-  forwarded into the container.
+  set to /mattermost/server.
 
 inputs:
   image:
@@ -24,12 +23,8 @@ runs:
         IMAGE: ${{ inputs.image }}
         CMD: ${{ inputs.run }}
       run: |
-        GITHUB_ENV_FILE=$(mktemp)
-        env | grep '^GITHUB_' > "${GITHUB_ENV_FILE}" || true
         docker run --rm \
           -v "$PWD:/mattermost" \
           -w /mattermost/server \
-          --env-file "${GITHUB_ENV_FILE}" \
           "${IMAGE}" \
           bash -c "${CMD}"
-        rm -f "${GITHUB_ENV_FILE}"

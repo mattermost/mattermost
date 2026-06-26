@@ -478,7 +478,7 @@ jobs:
           image: ${{ needs.go.outputs.image }}
           artifact-name: ${{ needs.go.outputs.image-artifact }}
           run: |
-            export BUILD_NUMBER="${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}"
+            export BUILD_NUMBER="${{ github.head_ref }}-${{ github.run_id }}"
             export FIPS_ENABLED=false
             make config-reset && make build-cmd && make package
       - name: Persist dist artifacts
