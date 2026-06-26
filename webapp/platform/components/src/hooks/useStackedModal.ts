@@ -125,10 +125,27 @@ export function useStackedModal(
                 }
 
                 if (originalBackdropOpacityRef.current) {
-                    // Restore original opacity if it was stored
-                    // Keep the transition for a smooth fade-in
-                    backdropRef.current.style.transition = 'opacity 150ms ease-in-out';
-                    backdropRef.current.style.opacity = originalBackdropOpacityRef.current;
+                    const backdrop = backdropRef.current;
+
+                    // Snap the parent backdrop back to its original opacity
+                    // WITHOUT a fade-in. The stacked modal's own backdrop is
+                    // removed instantly when it closes, so animating the
+                    // parent backdrop up from 0 over 150ms leaves a window
+                    // with no opaque overlay — the whole screen flashes
+                    // bright for that fraction of a second. Restoring the
+                    // opacity synchronously keeps the visible dimming
+                    // continuous as the stacked backdrop disappears.
+                    backdrop.style.transition = 'none';
+                    backdrop.style.opacity = originalBackdropOpacityRef.current;
+
+                    // Reading a layout property forces the snap above to
+                    // commit before transitions are re-enabled; otherwise the
+                    // browser batches both writes and animates the opacity
+                    // change, bringing the flash back. offsetHeight is always
+                    // non-negative, so this also consumes the forced read.
+                    if (backdrop.offsetHeight >= 0) {
+                        backdrop.style.transition = 'opacity 150ms ease-in-out';
+                    }
                 }
 
                 // Clear refs

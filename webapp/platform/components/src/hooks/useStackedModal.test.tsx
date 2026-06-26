@@ -190,8 +190,78 @@ describe('useStackedModal', () => {
             // Original opacity should be restored
             expect(mockBackdrop2.style.opacity).toBe('0.5');
 
-            // Transition property should still be set for smooth fade-in
+            // The standard transition is re-enabled after the restore so any
+            // LATER opacity change (e.g. the parent modal's own close) still
+            // animates. It is not used for the restore itself — that snaps
+            // instantly; see the "snaps the parent backdrop opacity" test.
             expect(mockBackdrop2.style.transition).toBe('opacity 150ms ease-in-out');
+        });
+
+        test('cleanup snaps the parent backdrop opacity back without animating (no close-time flash)', () => {
+            // Regression guard for the stacked-modal close flash: when a
+            // stacked modal closes, its own backdrop is removed instantly.
+            // If the parent backdrop opacity is animated back up from 0 over
+            // 150ms, there is a window with no opaque overlay and the whole
+            // screen flashes bright. The restore must therefore be a snap
+            // (transition disabled) so the dimming stays continuous.
+            //
+            // Use a non-default original opacity so the assertions also prove
+            // the restore reuses the STORED value rather than a hardcoded one.
+            const style = mockBackdrop2.style;
+            style.opacity = '0.7';
+
+            // Record every style write in order, tagging each opacity write
+            // with the transition value in effect at that instant. A correct
+            // fix restores the original opacity while transitions are
+            // disabled; the buggy version restored it while a 150ms opacity
+            // transition was live.
+            let opacityVal = style.opacity;
+            let transitionVal = style.transition;
+            const writes: Array<{prop: 'opacity' | 'transition'; value: string; transitionInEffect?: string}> = [];
+
+            Object.defineProperty(style, 'opacity', {
+                configurable: true,
+                get: () => opacityVal,
+                set: (v: string) => {
+                    writes.push({prop: 'opacity', value: v, transitionInEffect: transitionVal});
+                    opacityVal = v;
+                },
+            });
+            Object.defineProperty(style, 'transition', {
+                configurable: true,
+                get: () => transitionVal,
+                set: (v: string) => {
+                    writes.push({prop: 'transition', value: v});
+                    transitionVal = v;
+                },
+            });
+
+            const {unmount} = render(<TestComponent isStacked={true}/>);
+            unmount();
+
+            // The final restore writes the stored original opacity back (0.7),
+            // proving the hook reuses the captured value, not a default.
+            const restoreWrite = [...writes].reverse().find((w) => w.prop === 'opacity' && w.value === '0.7');
+            expect(restoreWrite).toBeDefined();
+
+            // Critically, that restore happens with transitions disabled so it
+            // snaps instead of fading in (the fade-in is what caused the flash).
+            expect(restoreWrite?.transitionInEffect).toBe('none');
+
+            // Lock in the cleanup ordering: transitions are disabled, THEN the
+            // opacity is snapped back, THEN the standard transition is
+            // re-enabled for future changes. (The forced reflow between the
+            // snap and the re-enable is a no-op in jsdom, so this ordering
+            // assertion is the closest available proxy for "no fade-in".)
+            const cleanupWrites = writes.slice(writes.findIndex((w) => w.prop === 'transition' && w.value === 'none'));
+            expect(cleanupWrites.map((w) => `${w.prop}:${w.value}`)).toEqual([
+                'transition:none',
+                'opacity:0.7',
+                'transition:opacity 150ms ease-in-out',
+            ]);
+
+            expect(style.opacity).toBe('0.7');
+            expect(style.transition).toBe('opacity 150ms ease-in-out');
         });
     });
 });
