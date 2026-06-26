@@ -34,7 +34,7 @@ import (
 var assets embed.FS
 
 // We use the something different from the default migration table name of morph
-const MigrationsTableName = "db_config_migrations"
+const migrationsTableName = "db_config_migrations"
 
 // The timeout value for each migration file to run.
 const migrationsTimeoutInSeconds = 100000
@@ -118,7 +118,7 @@ func (ds *DatabaseStore) initializeConfigurationsTable() error {
 
 	opts := []morph.EngineOption{
 		morph.WithLock("mm-config-lock-key"),
-		morph.SetMigrationTableName(MigrationsTableName),
+		morph.SetMigrationTableName(migrationsTableName),
 		morph.SetStatementTimeoutInSeconds(migrationsTimeoutInSeconds),
 	}
 	engine, err := morph.New(context.Background(), driver, src, opts...)
