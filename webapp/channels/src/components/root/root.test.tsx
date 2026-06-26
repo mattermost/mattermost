@@ -71,7 +71,6 @@ describe('components/Root', () => {
                 });
             }),
             loadRecentlyUsedCustomEmojis: jest.fn(),
-            logIfConcurrentReactEnabled: jest.fn(),
             migrateRecentEmojis: jest.fn(),
             initializeProducts: jest.fn(),
             ...bindActionCreators({
