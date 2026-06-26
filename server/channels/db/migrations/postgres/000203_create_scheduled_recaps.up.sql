@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS ScheduledRecaps (
 
     -- Channel configuration
     ChannelMode VARCHAR(32) NOT NULL,
-    ChannelIds TEXT,
+    ChannelIds jsonb NOT NULL DEFAULT '[]'::jsonb,
 
     -- AI configuration
     CustomInstructions TEXT,

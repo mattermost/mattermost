@@ -386,7 +386,7 @@ func TestScheduledRecapStore(t *testing.T) {
 
 			retrievedSR, err := ss.ScheduledRecap().Get(sr.Id)
 			require.NoError(t, err)
-			assert.Equal(t, []string{"ch1", "ch2", "ch3"}, retrievedSR.ChannelIds)
+			assert.Equal(t, model.StringArray{"ch1", "ch2", "ch3"}, retrievedSR.ChannelIds)
 		})
 
 		t.Run("EmptyChannelIds", func(t *testing.T) {

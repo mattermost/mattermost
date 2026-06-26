@@ -431,9 +431,9 @@ func TestScheduledRecapPreSave(t *testing.T) {
 	t.Run("deduplicates channel ids while preserving order", func(t *testing.T) {
 		channelA := NewId()
 		channelB := NewId()
-		sr := &ScheduledRecap{ChannelIds: []string{channelA, channelB, channelA, channelB}}
+		sr := &ScheduledRecap{ChannelIds: StringArray{channelA, channelB, channelA, channelB}}
 		sr.PreSave()
-		assert.Equal(t, []string{channelA, channelB}, sr.ChannelIds)
+		assert.Equal(t, StringArray{channelA, channelB}, sr.ChannelIds)
 	})
 }
 
@@ -450,10 +450,10 @@ func TestScheduledRecapPreUpdate(t *testing.T) {
 		channelA := NewId()
 		channelB := NewId()
 		sr := &ScheduledRecap{
-			ChannelIds: []string{channelA, channelB, channelA},
+			ChannelIds: StringArray{channelA, channelB, channelA},
 		}
 		sr.PreUpdate()
-		assert.Equal(t, []string{channelA, channelB}, sr.ChannelIds)
+		assert.Equal(t, StringArray{channelA, channelB}, sr.ChannelIds)
 	})
 }
 

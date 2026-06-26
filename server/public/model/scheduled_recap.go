@@ -68,8 +68,8 @@ type ScheduledRecap struct {
 	RunCount  int   `json:"run_count"`   // Number of times this schedule has executed
 
 	// Channel configuration
-	ChannelMode string   `json:"channel_mode"`          // "specific" or "all_unreads"
-	ChannelIds  []string `json:"channel_ids,omitempty"` // JSON array of channel IDs (when mode = "specific")
+	ChannelMode string      `json:"channel_mode"`          // "specific" or "all_unreads"
+	ChannelIds  StringArray `json:"channel_ids,omitempty"` // channel IDs (when mode = "specific"); persisted as jsonb via StringArray
 
 	// AI configuration
 	CustomInstructions string `json:"custom_instructions,omitempty"` // Custom AI instructions

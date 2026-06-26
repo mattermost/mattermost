@@ -566,6 +566,6 @@ func TestScheduledRecapChannelValidationAndDeduplication(t *testing.T) {
 		createdRecap, createErr := th.App.CreateScheduledRecap(ctx, recap)
 		require.Nil(t, createErr)
 		require.NotNil(t, createdRecap)
-		assert.Equal(t, []string{th.BasicChannel.Id}, createdRecap.ChannelIds)
+		assert.Equal(t, model.StringArray{th.BasicChannel.Id}, createdRecap.ChannelIds)
 	})
 }
