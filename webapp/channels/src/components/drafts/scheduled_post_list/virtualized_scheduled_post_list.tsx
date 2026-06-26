@@ -110,21 +110,23 @@ export default function ScheduledPostList(props: Props) {
     }), [props.scheduledPosts, props.userDisplayName, props.currentUser, props.userStatus, setRowHeight, scheduledPostTargetId]);
 
     return (
-        <AutoSizer>
-            {({height, width}) => (
-                <VariableSizeList
-                    ref={listRef}
-                    height={height}
-                    width={width}
-                    itemCount={props.scheduledPosts.length}
-                    itemSize={getItemSize}
-                    itemData={itemData}
-                    overscanCount={OVERSCAN_ROW_COUNT}
-                >
-                    {Row}
-                </VariableSizeList>
-            )}
-        </AutoSizer>
+        <div className='ScheduledPostList__main'>
+            <AutoSizer>
+                {({height, width}) => (
+                    <VariableSizeList
+                        ref={listRef}
+                        height={height}
+                        width={width}
+                        itemCount={props.scheduledPosts.length}
+                        itemSize={getItemSize}
+                        itemData={itemData}
+                        overscanCount={OVERSCAN_ROW_COUNT}
+                    >
+                        {Row}
+                    </VariableSizeList>
+                )}
+            </AutoSizer>
+        </div>
     );
 }
 
