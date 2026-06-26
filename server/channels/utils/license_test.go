@@ -98,7 +98,7 @@ func TestValidateLicense(t *testing.T) {
 
 		str, err := LicenseValidator.ValidateLicense(validTestLicense)
 		require.Error(t, err)
-		require.ErrorIs(t, err, ErrLicenseWrongEnvironment)
+		require.ErrorIs(t, err, ErrLicenseTestInProductionEnvironment)
 		require.Empty(t, str)
 	})
 
@@ -127,7 +127,7 @@ func TestLicenseFromBytesEnvironmentMismatch(t *testing.T) {
 		license, appErr := LicenseValidator.LicenseFromBytes(validTestLicense)
 		require.Nil(t, license)
 		require.NotNil(t, appErr)
-		require.Equal(t, model.WrongEnvironmentLicenseError, appErr.Id)
+		require.Equal(t, model.WrongEnvironmentTestLicenseError, appErr.Id)
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
 
@@ -149,7 +149,7 @@ func TestLicenseFromBytesEnvironmentMismatch(t *testing.T) {
 		license, appErr := LicenseValidator.LicenseFromBytes(signed)
 		require.Nil(t, license)
 		require.NotNil(t, appErr)
-		require.Equal(t, model.WrongEnvironmentLicenseError, appErr.Id)
+		require.Equal(t, model.WrongEnvironmentProductionLicenseError, appErr.Id)
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
 
@@ -170,18 +170,26 @@ func TestLicenseFromBytesEnvironmentMismatch(t *testing.T) {
 }
 
 func TestNewLicenseValidationAppError(t *testing.T) {
-	t.Run("maps the wrong-environment sentinel to WrongEnvironmentLicenseError", func(t *testing.T) {
-		appErr := NewLicenseValidationAppError("Test", fmt.Errorf("wrap: %w", ErrLicenseWrongEnvironment))
-		require.Equal(t, model.WrongEnvironmentLicenseError, appErr.Id)
+	t.Run("maps the production-in-test sentinel to WrongEnvironmentProductionLicenseError", func(t *testing.T) {
+		appErr := NewLicenseValidationAppError("Test", fmt.Errorf("wrap: %w", ErrLicenseProductionInTestEnvironment))
+		require.Equal(t, model.WrongEnvironmentProductionLicenseError, appErr.Id)
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
-		require.ErrorIs(t, appErr, ErrLicenseWrongEnvironment)
+		require.ErrorIs(t, appErr, ErrLicenseProductionInTestEnvironment)
+	})
+
+	t.Run("maps the test-in-production sentinel to WrongEnvironmentTestLicenseError", func(t *testing.T) {
+		appErr := NewLicenseValidationAppError("Test", fmt.Errorf("wrap: %w", ErrLicenseTestInProductionEnvironment))
+		require.Equal(t, model.WrongEnvironmentTestLicenseError, appErr.Id)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		require.ErrorIs(t, appErr, ErrLicenseTestInProductionEnvironment)
 	})
 
 	t.Run("maps any other error to InvalidLicenseError", func(t *testing.T) {
 		appErr := NewLicenseValidationAppError("Test", fmt.Errorf("Invalid signature"))
 		require.Equal(t, model.InvalidLicenseError, appErr.Id)
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
-		require.NotErrorIs(t, appErr, ErrLicenseWrongEnvironment)
+		require.NotErrorIs(t, appErr, ErrLicenseProductionInTestEnvironment)
+		require.NotErrorIs(t, appErr, ErrLicenseTestInProductionEnvironment)
 	})
 }
 

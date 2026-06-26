@@ -47,7 +47,7 @@ func TestSaveLicenseWrongEnvironment(t *testing.T) {
 	// than the generic invalid-license error.
 	_, appErr := th.Service.SaveLicense(validTestLicense)
 	require.NotNil(t, appErr, "shouldn't have saved a license signed for another environment")
-	require.Equal(t, model.WrongEnvironmentLicenseError, appErr.Id)
+	require.Equal(t, model.WrongEnvironmentTestLicenseError, appErr.Id)
 	require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 }
 

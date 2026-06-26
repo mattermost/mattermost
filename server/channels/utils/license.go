@@ -25,10 +25,15 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
-// ErrLicenseWrongEnvironment indicates the license signature is valid, but was signed
-// for a different service environment than the one this server is running in (e.g. a
-// production license uploaded to a test/dev server, or vice versa).
-var ErrLicenseWrongEnvironment = errors.New("license is signed for a different service environment")
+// ErrLicenseProductionInTestEnvironment indicates the license signature is valid against
+// the production key, but this server is running in a test or development service
+// environment (i.e. a production license uploaded to a test/dev server).
+var ErrLicenseProductionInTestEnvironment = errors.New("license is a production license but the server is running in a test or development service environment")
+
+// ErrLicenseTestInProductionEnvironment indicates the license signature is valid against
+// the test key, but this server is running in a production service environment (i.e. a
+// test/dev license uploaded to a production server).
+var ErrLicenseTestInProductionEnvironment = errors.New("license is a test or development license but the server is running in a production service environment")
 
 var LicenseValidator LicenseValidatorIface
 
@@ -89,14 +94,25 @@ func (l *LicenseValidatorImpl) ValidateLicense(signed []byte) (string, error) {
 	if err := verifyLicenseSignature(primaryKey, d, signature); err != nil {
 		// The license did not verify against this environment's key. If it verifies
 		// against the other environment's key, the license is genuine but was signed
-		// for a different service environment, so report that distinctly.
+		// for a different service environment, so report which way the mismatch goes.
 		if altErr := verifyLicenseSignature(alternateKey, d, signature); altErr == nil {
-			return "", ErrLicenseWrongEnvironment
+			return "", wrongEnvironmentError(model.GetServiceEnvironment())
 		}
 		return "", fmt.Errorf("Invalid signature: %w", err)
 	}
 
 	return string(plaintext), nil
+}
+
+// wrongEnvironmentError returns the sentinel describing a license that is genuine but
+// signed for the opposite service environment from the one this server runs in.
+func wrongEnvironmentError(environment string) error {
+	if environment == model.ServiceEnvironmentProduction {
+		// Running production, but the license verified against the test key.
+		return ErrLicenseTestInProductionEnvironment
+	}
+	// Running test/dev, but the license verified against the production key.
+	return ErrLicenseProductionInTestEnvironment
 }
 
 // licenseKeysForEnvironment returns the public key for the given service environment
@@ -137,8 +153,11 @@ func verifyLicenseSignature(publicKey, digest, signature []byte) error {
 // ValidateLicense into a user-facing AppError, distinguishing a license signed for the
 // wrong service environment from a generally invalid license.
 func NewLicenseValidationAppError(where string, err error) *model.AppError {
-	if errors.Is(err, ErrLicenseWrongEnvironment) {
-		return model.NewAppError(where, model.WrongEnvironmentLicenseError, nil, "", http.StatusBadRequest).Wrap(err)
+	switch {
+	case errors.Is(err, ErrLicenseProductionInTestEnvironment):
+		return model.NewAppError(where, model.WrongEnvironmentProductionLicenseError, nil, "", http.StatusBadRequest).Wrap(err)
+	case errors.Is(err, ErrLicenseTestInProductionEnvironment):
+		return model.NewAppError(where, model.WrongEnvironmentTestLicenseError, nil, "", http.StatusBadRequest).Wrap(err)
 	}
 	return model.NewAppError(where, model.InvalidLicenseError, nil, "", http.StatusBadRequest).Wrap(err)
 }
