@@ -2,6 +2,7 @@
     user-select: none;
 
     &__image {
+        display: block;
         max-height: calc(100vh - 168px);
         border-radius: 8px;
         cursor: default;

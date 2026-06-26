@@ -269,4 +269,80 @@ describe('components/SizeAwareImage', () => {
         const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
         expect(container.querySelector('button.size-aware-image__copy_link')).toBeNull();
     });
+
+    describe('SVG previews', () => {
+        const svgProps = {
+            ...baseProps,
+            handleSmallImageContainer: true,
+            fileInfo: TestHelper.getFileInfoMock({
+                name: 'diagram',
+                extension: 'svg',
+            }),
+        };
+
+        test('fills the available width when the SVG has no known dimensions', () => {
+            const props = {...svgProps};
+            Reflect.deleteProperty(props, 'dimensions');
+
+            const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
+
+            const img = container.querySelector('img')!;
+            expect(img.style.width).toEqual('100%');
+            expect(img.style.height).toEqual('auto');
+        });
+
+        test('does not collapse a dimensionless SVG into the small-image container when it reports a tiny natural size', () => {
+            const props = {...svgProps};
+            Reflect.deleteProperty(props, 'dimensions');
+
+            const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
+
+            const img = container.querySelector('img')!;
+            simulateImageLoad(img, 0, 0);
+
+            expect(container.querySelector('div.small-image__container')).toBeNull();
+            expect(img.className).not.toContain('small-image--inside-container');
+            expect(img.style.width).toEqual('100%');
+        });
+
+        test('uses the explicit pixel width when the SVG has known dimensions', () => {
+            const props = {
+                ...svgProps,
+                dimensions: {width: 800, height: 500},
+            };
+
+            const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
+
+            const img = container.querySelector('img')!;
+            expect(img.style.width).toEqual('800px');
+            expect(img.style.height).toEqual('auto');
+        });
+
+        test('still collapses a small SVG that has known dimensions into the small-image container', () => {
+            const props = {
+                ...svgProps,
+                dimensions: {width: 24, height: 24},
+            };
+
+            const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
+            const img = container.querySelector('img')!;
+            simulateImageLoad(img, 24, 24);
+
+            expect(container.querySelector('div.small-image__container')).not.toBeNull();
+        });
+
+        test('does not apply the SVG width fallback to non-SVG files without dimensions', () => {
+            const props = {
+                ...baseProps,
+                handleSmallImageContainer: true,
+                fileInfo: TestHelper.getFileInfoMock({name: 'photo', extension: 'png'}),
+            };
+            Reflect.deleteProperty(props, 'dimensions');
+
+            const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
+
+            const img = container.querySelector('img')!;
+            expect(img.style.width).toEqual('');
+        });
+    });
 });

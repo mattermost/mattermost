@@ -20,6 +20,7 @@ import {getFileMiniPreviewUrl} from 'mattermost-redux/utils/file_utils';
 import LoadingImagePreview from 'components/loading_image_preview';
 
 import {FileTypes} from 'utils/constants';
+import {resolveSvgWithViewBox} from 'utils/svg_preview';
 import {copyToClipboard, getFileType} from 'utils/utils';
 
 const MIN_IMAGE_SIZE = 48;
@@ -107,6 +108,7 @@ type State = {
     linkCopyInProgress: boolean;
     error: boolean;
     imageWidth: number;
+    svgObjectUrl: string | null;
 };
 
 // SizeAwareImage is a component used for rendering images where the dimensions of the image are important for
@@ -128,6 +130,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             linkCopyInProgress: false,
             error: false,
             imageWidth: 0,
+            svgObjectUrl: null,
         };
 
         this.heightTimeout = 0;
@@ -135,11 +138,55 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
 
     componentDidMount() {
         this.mounted = true;
+        this.maybeResolveSvgPreview();
+    }
+
+    componentDidUpdate(prevProps: Props) {
+        if (prevProps.src !== this.props.src ||
+            prevProps.fileInfo?.extension !== this.props.fileInfo?.extension ||
+            this.dimensionsAvailable(prevProps.dimensions) !== this.dimensionsAvailable(this.props.dimensions)) {
+            this.maybeResolveSvgPreview();
+        }
     }
 
     componentWillUnmount() {
         this.mounted = false;
+        this.revokeSvgObjectUrl();
     }
+
+    isSvgWithoutDimensions = () => {
+        return getFileType(this.props.fileInfo?.extension ?? '') === FileTypes.SVG && !this.dimensionsAvailable(this.props.dimensions);
+    };
+
+    revokeSvgObjectUrl = () => {
+        if (this.state.svgObjectUrl) {
+            URL.revokeObjectURL(this.state.svgObjectUrl);
+        }
+    };
+
+    // maybeResolveSvgPreview injects a viewBox into SVGs that lack usable sizing
+    // information so they scale to fill the preview instead of being clipped.
+    maybeResolveSvgPreview = () => {
+        if (!this.isSvgWithoutDimensions()) {
+            if (this.state.svgObjectUrl) {
+                this.revokeSvgObjectUrl();
+                this.setState({svgObjectUrl: null});
+            }
+            return;
+        }
+
+        const requestedSrc = this.props.src;
+        resolveSvgWithViewBox(requestedSrc).then((url) => {
+            if (!this.mounted || this.props.src !== requestedSrc) {
+                if (url) {
+                    URL.revokeObjectURL(url);
+                }
+                return;
+            }
+            this.revokeSvgObjectUrl();
+            this.setState({svgObjectUrl: url});
+        });
+    };
 
     dimensionsAvailable = (dimensions?: Partial<PostImage>) => {
         return dimensions && dimensions.width && dimensions.height;
@@ -227,13 +274,17 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
 
         const fileType = getFileType(fileInfo?.extension ?? '');
 
+        const svgWithoutDimensions = fileType === FileTypes.SVG && !this.dimensionsAvailable(dimensions);
+
         let conditionalSVGStyleAttribute;
         if (fileType === FileTypes.SVG) {
             conditionalSVGStyleAttribute = {
-                width: dimensions?.width || MIN_IMAGE_SIZE,
+                width: dimensions?.width || '100%',
                 height: 'auto',
             };
         }
+
+        const imageSrc = (svgWithoutDimensions && this.state.svgObjectUrl) ? this.state.svgObjectUrl : src;
 
         const image = (
             <img
@@ -245,8 +296,8 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                 className={
                     this.props.className +
                     (this.props.handleSmallImageContainer &&
-                        this.state.isSmallImage ? ' small-image--inside-container' : '')}
-                src={src}
+                        this.state.isSmallImage && !svgWithoutDimensions ? ' small-image--inside-container' : '')}
+                src={imageSrc}
                 onError={this.handleError}
                 onLoad={this.handleLoad}
                 style={conditionalSVGStyleAttribute}
@@ -321,7 +372,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             </WithTooltip>
         );
 
-        if (this.props.handleSmallImageContainer && this.state.isSmallImage) {
+        if (this.props.handleSmallImageContainer && this.state.isSmallImage && !svgWithoutDimensions) {
             let className = 'small-image__container cursor--pointer a11y--active';
             if (this.state.imageWidth < MIN_IMAGE_SIZE) {
                 className += ' small-image__container--min-width';

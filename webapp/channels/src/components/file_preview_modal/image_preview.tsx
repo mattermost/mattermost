@@ -2,13 +2,14 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import type {FileInfo} from '@mattermost/types/files';
 
 import {getFilePreviewUrl, getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
 import {FileTypes} from 'utils/constants';
+import {resolveSvgWithViewBox} from 'utils/svg_preview';
 import {getFileType} from 'utils/utils';
 
 import './image_preview.scss';
@@ -40,6 +41,44 @@ function buildTransform(scale?: number, translate?: {x: number; y: number}): str
     return parts.join(' ');
 }
 
+// useResolvedSvgUrl returns an object URL for an SVG that has no usable sizing
+// information once a viewBox has been injected, so the modal can scale it instead
+// of clipping it. Until that resolves (or if it cannot be resolved) it returns null
+// and the caller falls back to the original preview URL.
+function useResolvedSvgUrl(previewUrl: string | undefined, enabled: boolean): string | null {
+    const [objectUrl, setObjectUrl] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!enabled || !previewUrl) {
+            setObjectUrl(null);
+            return undefined;
+        }
+
+        let cancelled = false;
+        let created: string | null = null;
+
+        resolveSvgWithViewBox(previewUrl).then((url) => {
+            if (cancelled) {
+                if (url) {
+                    URL.revokeObjectURL(url);
+                }
+                return;
+            }
+            created = url;
+            setObjectUrl(url);
+        });
+
+        return () => {
+            cancelled = true;
+            if (created) {
+                URL.revokeObjectURL(created);
+            }
+        };
+    }, [previewUrl, enabled]);
+
+    return objectUrl;
+}
+
 export default function ImagePreview({fileInfo, canDownloadFiles, scale, translate, isZoomed, isDragging, onWheel, onMouseDown}: Props) {
     const isExternalFile = !fileInfo.id;
 
@@ -66,6 +105,11 @@ export default function ImagePreview({fileInfo, canDownloadFiles, scale, transla
         previewUrl = fileInfo.has_preview_image ? getFilePreviewUrl(fileInfo.id) : fileUrl;
     }
 
+    const isSvg = getFileType(fileInfo.extension) === FileTypes.SVG;
+    const svgWithoutDimensions = isSvg && !fileInfo.width;
+    const resolvedSvgUrl = useResolvedSvgUrl(previewUrl, svgWithoutDimensions);
+    const imageUrl = resolvedSvgUrl ?? previewUrl;
+
     const transform = buildTransform(scale, translate);
     const imgStyle: React.CSSProperties = {};
     if (transform) {
@@ -73,6 +117,20 @@ export default function ImagePreview({fileInfo, canDownloadFiles, scale, transla
     }
     if (isZoomed) {
         imgStyle.cursor = 'grab';
+    }
+    if (isSvg) {
+        if (fileInfo.width) {
+            imgStyle.width = fileInfo.width;
+            imgStyle.height = 'auto';
+        } else if (resolvedSvgUrl) {
+            // The resolved SVG carries an intrinsic size and viewBox, so let it
+            // scale within the modal bounds while preserving its aspect ratio.
+            imgStyle.maxWidth = 'calc(100vw - 96px)';
+            imgStyle.maxHeight = 'calc(100vh - 168px)';
+        } else {
+            imgStyle.width = 'calc(100vw - 96px)';
+            imgStyle.height = 'calc(100vh - 168px)';
+        }
     }
     const imgClassName = classNames('image_preview__image', {
         'image_preview__image--zoomed': isZoomed,
@@ -90,18 +148,12 @@ export default function ImagePreview({fileInfo, canDownloadFiles, scale, transla
             >
                 <img
                     className={imgClassName}
-                    src={previewUrl}
+                    src={imageUrl}
                     style={imgStyle}
                     draggable={false}
                 />
             </span>
         );
-    }
-
-    const finalImgStyle: React.CSSProperties = {...imgStyle};
-    if (getFileType(fileInfo.extension) === FileTypes.SVG) {
-        finalImgStyle.width = fileInfo.width;
-        finalImgStyle.height = 'auto';
     }
 
     const preventLinkNav = (e: React.SyntheticEvent) => e.preventDefault();
@@ -120,8 +172,8 @@ export default function ImagePreview({fileInfo, canDownloadFiles, scale, transla
                 loading='lazy'
                 data-testid='imagePreview'
                 alt={'preview url image'}
-                src={previewUrl}
-                style={finalImgStyle}
+                src={imageUrl}
+                style={imgStyle}
                 draggable={false}
             />
         </a>
