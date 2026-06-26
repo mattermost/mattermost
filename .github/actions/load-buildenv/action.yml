@@ -1,4 +1,4 @@
-name: Use build environment
+name: Load build environment
 description: >
   Makes the build-server Docker image available for docker run. Loads it from
   a workflow artifact when one was built during this run (in-flight Go version

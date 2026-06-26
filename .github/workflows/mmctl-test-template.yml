@@ -70,7 +70,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Use build environment
-        uses: ./.github/actions/use-buildenv
+        uses: ./.github/actions/load-buildenv
         with:
           artifact-name: ${{ inputs.build-image-artifact }}
       - name: Setup BUILD_IMAGE

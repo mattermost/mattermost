@@ -21,7 +21,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: ./.github/actions/use-buildenv
+    - uses: ./.github/actions/load-buildenv
       with:
         artifact-name: ${{ inputs.artifact-name }}
     - shell: bash

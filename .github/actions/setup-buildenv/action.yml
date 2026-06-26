@@ -2,23 +2,22 @@ name: Setup build environment
 description: >
   Resolves the build-server Docker image for this workflow run. If the
   canonical version-tagged image already exists on Docker Hub, it is used
-  as-is. If not (in-flight Go version bump), the image is built from the
+  as-is. If not (e.g. in-flight Go version bump), the image is built from the
   Dockerfile, saved as a workflow artifact, and the artifact name is returned
-  so downstream jobs can load it via use-buildenv.
-
+  so downstream jobs can load it via load-buildenv.
 
 inputs:
   go-version:
     description: "Go version (e.g. 1.26.3)"
     required: true
   fips-enabled:
-    description: "Set to 'true' to use the FIPS build image"
+    description: "Set to 'true' to use the FIPS_ENABLED build image"
     required: false
     default: "false"
 
 outputs:
   artifact-name:
-    description: "Artifact name for use-buildenv in downstream jobs; empty if canonical image was used"
+    description: "Artifact name for load-buildenv in downstream jobs; empty if canonical image was used"
     value: ${{ steps.resolve.outputs.artifact-name }}
 
 runs:
@@ -40,9 +39,9 @@ runs:
       shell: bash
       env:
         GO_VERSION: ${{ inputs.go-version }}
-        FIPS: ${{ inputs.fips-enabled }}
+        FIPS_ENABLED: ${{ inputs.fips-enabled }}
       run: |
-        if [[ "${FIPS}" == 'true' ]]; then
+        if [[ "${FIPS_ENABLED}" == 'true' ]]; then
           CANONICAL="mattermost/mattermost-build-server-fips:${GO_VERSION}"
           ARTIFACT_NAME="buildenv-fips-image"
           DOCKERFILE="server/build/Dockerfile.buildenv-fips"
