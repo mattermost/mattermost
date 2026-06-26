@@ -1435,6 +1435,8 @@ func (h *testPushNotificationHandler) handleReq(w http.ResponseWriter, r *http.R
 		switch h.behavior {
 		case "simple":
 			resp = model.NewOkPushResponse()
+		case "fail":
+			resp = model.NewErrorPushResponse("device error")
 		case "always_remove":
 			resp = model.NewRemovePushResponse()
 		default:

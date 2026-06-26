@@ -550,6 +550,7 @@ type SessionStore interface {
 	GetLRUSessions(rctx request.CTX, userID string, limit uint64, offset uint64) ([]*model.Session, error)
 	GetMobileSessionMetadata() ([]*model.MobileSessionMetadata, error)
 	GetSessionsWithActiveDeviceIds(userID string) ([]*model.Session, error)
+	GetAllSessionsWithActiveDeviceIds() ([]*model.Session, error)
 	GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, error)
 	UpdateExpiredNotify(sessionid string, notified bool) error
 	Remove(sessionIDOrToken string) error
