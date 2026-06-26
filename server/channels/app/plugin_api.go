@@ -793,9 +793,20 @@ func (api *PluginAPI) DeleteGroupSyncable(groupID string, syncableID string, syn
 }
 
 func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
-	post.AddProp(model.PostPropsFromPlugin, "true")
+	channel, appErr := api.app.GetChannel(api.ctx, post.ChannelId)
+	if appErr != nil {
+		return nil, appErr
+	}
 
-	post, _, appErr := api.app.CreatePostMissingChannel(api.ctx, post, true, true)
+	silent := post.HasSilentNotification()
+	post.SanitizeProps()
+
+	post, _, appErr = api.app.CreatePost(api.ctx, post, channel, model.CreatePostFlags{
+		TriggerWebhooks:    true,
+		SetOnline:          true,
+		FromPlugin:         true,
+		SilentNotification: silent,
+	})
 	if post != nil {
 		post = post.ForPlugin()
 	}

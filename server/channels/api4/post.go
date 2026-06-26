@@ -127,7 +127,20 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	rp, isMemberForPreviews, err := c.App.CreatePostAsUser(c.AppContext, c.App.PostWithProxyRemovedFromImageURLs(&post), c.AppContext.Session().Id, setOnlineBool)
+	silentBool := false
+	if silent := r.URL.Query().Get("silent"); silent != "" {
+		silentBool, err2 = strconv.ParseBool(silent)
+		if err2 != nil {
+			c.SetInvalidParam("silent")
+			return
+		}
+	}
+	createFlags := model.CreatePostFlags{
+		SetOnline:          setOnlineBool,
+		SilentNotification: silentBool,
+	}
+
+	rp, isMemberForPreviews, err := c.App.CreatePostAsUserWithFlags(c.AppContext, c.App.PostWithProxyRemovedFromImageURLs(&post), c.AppContext.Session().Id, createFlags)
 	if err != nil {
 		c.Err = err
 		return

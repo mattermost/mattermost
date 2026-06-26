@@ -1706,6 +1706,27 @@ func TestPluginCreatePostAddsFromPluginProp(t *testing.T) {
 	assert.Equal(t, "true", actualPost.GetProp(model.PostPropsFromPlugin))
 }
 
+func TestPluginCreatePostSilentNotification(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	api := th.SetupPluginAPI()
+
+	post, err := api.CreatePost(&model.Post{
+		Message:   "silent plugin post",
+		ChannelId: th.BasicChannel.Id,
+		UserId:    th.BasicUser.Id,
+		Props: model.StringInterface{
+			model.PostPropsSilentNotification: true,
+		},
+	})
+	require.Nil(t, err)
+
+	actualPost, err := api.GetPost(post.Id)
+	require.Nil(t, err)
+	require.True(t, actualPost.HasSilentNotification())
+}
+
 func TestPluginAPIGetConfig(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
