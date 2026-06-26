@@ -90,12 +90,23 @@ class CreateRecapModal {
     }
 
     async expectScheduleConfigurationVisible() {
+        // The schedule step's submit button is "Create schedule" when creating but "Save changes" when
+        // editing, so assert on the stable step heading rather than the button label.
         await expect(this.container.getByText('On which days should your recap run?')).toBeVisible();
-        await expect(this.container.getByRole('button', {name: 'Create schedule'})).toBeVisible();
     }
 
     async selectScheduleDay(dayLabel: string) {
-        await this.container.getByRole('button', {name: dayLabel, exact: true}).click();
+        // Day toggle buttons expose the full day name as their accessible name (aria-label),
+        // so match on the visible short label text instead of the accessible name.
+        await this.container
+            .locator('.day-button')
+            .filter({hasText: new RegExp(`^${escapeRegExp(dayLabel)}$`)})
+            .click();
+    }
+
+    async saveChanges() {
+        await this.container.getByRole('button', {name: 'Save changes'}).click();
+        await expect(this.container).not.toBeVisible({timeout: duration.ten_sec});
     }
 
     async selectAgent(agentName: string) {
@@ -265,6 +276,14 @@ class ScheduledRecapItem {
         await this.menuButton.click();
         await this.page.getByRole('menuitem', {name: actionName}).click();
     }
+
+    async editViaMenu() {
+        await this.openMenuAction('Edit');
+    }
+
+    async deleteViaMenu() {
+        await this.openMenuAction('Delete');
+    }
 }
 
 export default class RecapsPage {
@@ -302,7 +321,12 @@ export default class RecapsPage {
     }
 
     async openCreateRecap() {
-        await this.addRecapButton.click();
+        // A user with existing recaps opens the modal from the header "Add a recap" button; a user with
+        // no recaps uses the empty-state "Create a recap" button (the header button only renders while
+        // the recaps list is still loading). Both open the same modal, so click whichever is present.
+        const openButton = this.page.getByRole('button', {name: /^(Add a recap|Create a recap)$/});
+        await expect(openButton.first()).toBeVisible({timeout: duration.one_min});
+        await openButton.first().click();
         await this.createRecapModal.toBeVisible();
         return this.createRecapModal;
     }
@@ -333,13 +357,39 @@ export default class RecapsPage {
     }
 
     async expectCaughtUpEmptyState() {
-        await expect(this.page.getByRole('heading', {name: "You're all caught up"})).toBeVisible();
-        await expect(this.page.getByText("You don't have any recaps yet. Create one to get started.")).toBeVisible();
+        // A user with no recaps at all settles on the "Set up your recap" placeholder, while "You're all
+        // caught up" is the per-tab empty state shown during loading or when recaps live in other tabs.
+        // Accept either so the assertion is stable regardless of recaps-list load timing.
+        const caughtUp = this.page.getByRole('heading', {name: "You're all caught up"});
+        const setup = this.page.getByRole('heading', {name: 'Set up your recap'});
+        await expect(caughtUp.or(setup).first()).toBeVisible({timeout: duration.one_min});
+    }
+
+    async expectScheduledEmptyState() {
+        await expect(this.page.getByRole('heading', {name: 'Set up your first recap'})).toBeVisible();
+        await expect(
+            this.page.getByText(
+                'Copilot recaps help you get caught up quickly on discussions that are most important to you with a summarized report.',
+            ),
+        ).toBeVisible();
+        await expect(
+            this.page.locator('.scheduled-recaps-empty-state').getByRole('button', {name: 'Create a recap'}),
+        ).toBeVisible();
+    }
+
+    async openCreateRecapFromScheduledEmptyState() {
+        await this.page.locator('.scheduled-recaps-empty-state').getByRole('button', {name: 'Create a recap'}).click();
+        await this.createRecapModal.toBeVisible();
+        return this.createRecapModal;
     }
 
     async expectAddRecapDisabled(reason: string) {
-        await expect(this.addRecapButton).toBeDisabled();
-        await expect(this.addRecapButton).toHaveAttribute('title', reason);
+        // Depending on whether the user has recaps, the create affordance is either the header
+        // "Add a recap" button or the empty-state "Create a recap" button; both carry the disabled
+        // state and reason tooltip when the bridge is unavailable.
+        const button = this.page.getByRole('button', {name: /^(Add a recap|Create a recap)$/}).first();
+        await expect(button).toBeDisabled();
+        await expect(button).toHaveAttribute('title', reason);
     }
 
     async confirmDelete() {

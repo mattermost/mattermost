@@ -88,6 +88,50 @@ export async function createUnreadChannelFixture(
     return channel;
 }
 
+// createChannelWithManyPosts seeds a channel (with the user added as a member) and posts `postCount`
+// admin messages, each padded to roughly `messageLength` characters and tagged with a unique marker so
+// tests can detect exactly which posts reached the recap. Posts are returned in creation order
+// (oldest first); markers[i] corresponds to posts[i].
+export async function createChannelWithManyPosts(
+    pw: PlaywrightExtended,
+    adminClient: Client4,
+    adminUserId: string,
+    userId: string,
+    teamId: string,
+    displayName: string,
+    postCount: number,
+    messageLength: number,
+) {
+    const channel = await adminClient.createChannel(
+        pw.random.channel({
+            teamId,
+            name: `recap${pw.random.id()}`,
+            displayName,
+            unique: false,
+        }),
+    );
+
+    await adminClient.addToChannel(userId, channel.id);
+
+    const runId = pw.random.id();
+    const posts = [];
+    const markers: string[] = [];
+    for (let index = 0; index < postCount; index++) {
+        const marker = `RTM-${runId}-${index}`;
+        const padding = 'x'.repeat(Math.max(0, messageLength - marker.length - 1));
+        const message = `${marker} ${padding}`;
+        const post = await adminClient.createPost({
+            channel_id: channel.id,
+            user_id: adminUserId,
+            message,
+        });
+        posts.push(post);
+        markers.push(marker);
+    }
+
+    return {channel, posts, markers};
+}
+
 export async function createRecapAndWaitForStatus(
     pw: PlaywrightExtended,
     userClient: Client4,
