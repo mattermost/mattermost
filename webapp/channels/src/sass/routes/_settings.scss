@@ -56,6 +56,7 @@
 
         .modal-back {
             position: absolute;
+            z-index: 1;
             top: 18px;
             left: 12px;
             display: flex;
@@ -63,6 +64,10 @@
             height: 40px;
             align-items: center;
             justify-content: center;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: inherit;
             cursor: pointer;
             font-size: 27px;
             font-weight: normal;

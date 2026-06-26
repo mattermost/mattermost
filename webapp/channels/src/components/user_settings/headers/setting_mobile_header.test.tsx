@@ -26,7 +26,12 @@ describe('plugin tab', () => {
 
     it('calls collapseModal on hitting back', async () => {
         renderWithContext(<SettingMobileHeader {...baseProps}/>);
-        await userEvent.click(screen.getByLabelText('Collapse Icon'));
+        const backButton = screen.getByRole('button', {name: 'Collapse Icon'});
+        expect(backButton).toHaveClass('modal-back');
+        expect(backButton).toHaveAttribute('type', 'button');
+        expect(backButton.querySelector('i')).toHaveAttribute('aria-hidden', 'true');
+
+        await userEvent.click(backButton);
         expect(baseProps.collapseModal).toHaveBeenCalled();
     });
 

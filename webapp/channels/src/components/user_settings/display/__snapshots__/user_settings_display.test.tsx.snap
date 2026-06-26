@@ -25,14 +25,16 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <h4
         class="modal-title"
       >
-        <div
+        <button
+          aria-label="Collapse Icon"
           class="modal-back"
+          type="button"
         >
           <i
-            aria-label="Collapse Icon"
+            aria-hidden="true"
             class="fa fa-angle-left"
           />
-        </div>
+        </button>
         Display Settings
       </h4>
     </div>
@@ -612,14 +614,16 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <h4
         class="modal-title"
       >
-        <div
+        <button
+          aria-label="Collapse Icon"
           class="modal-back"
+          type="button"
         >
           <i
-            aria-label="Collapse Icon"
+            aria-hidden="true"
             class="fa fa-angle-left"
           />
-        </div>
+        </button>
         Display Settings
       </h4>
     </div>
@@ -1199,14 +1203,16 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <h4
         class="modal-title"
       >
-        <div
+        <button
+          aria-label="Collapse Icon"
           class="modal-back"
+          type="button"
         >
           <i
-            aria-label="Collapse Icon"
+            aria-hidden="true"
             class="fa fa-angle-left"
           />
-        </div>
+        </button>
         Display Settings
       </h4>
     </div>
@@ -1786,14 +1792,16 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <h4
         class="modal-title"
       >
-        <div
+        <button
+          aria-label="Collapse Icon"
           class="modal-back"
+          type="button"
         >
           <i
-            aria-label="Collapse Icon"
+            aria-hidden="true"
             class="fa fa-angle-left"
           />
-        </div>
+        </button>
         Display Settings
       </h4>
     </div>
@@ -2373,14 +2381,16 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <h4
         class="modal-title"
       >
-        <div
+        <button
+          aria-label="Collapse Icon"
           class="modal-back"
+          type="button"
         >
           <i
-            aria-label="Collapse Icon"
+            aria-hidden="true"
             class="fa fa-angle-left"
           />
-        </div>
+        </button>
         Display Settings
       </h4>
     </div>
@@ -2876,14 +2886,16 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <h4
         class="modal-title"
       >
-        <div
+        <button
+          aria-label="Collapse Icon"
           class="modal-back"
+          type="button"
         >
           <i
-            aria-label="Collapse Icon"
+            aria-hidden="true"
             class="fa fa-angle-left"
           />
-        </div>
+        </button>
         Display Settings
       </h4>
     </div>
@@ -3373,14 +3385,16 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <h4
         class="modal-title"
       >
-        <div
+        <button
+          aria-label="Collapse Icon"
           class="modal-back"
+          type="button"
         >
           <i
-            aria-label="Collapse Icon"
+            aria-hidden="true"
             class="fa fa-angle-left"
           />
-        </div>
+        </button>
         Display Settings
       </h4>
     </div>
@@ -3960,14 +3974,16 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <h4
         class="modal-title"
       >
-        <div
+        <button
+          aria-label="Collapse Icon"
           class="modal-back"
+          type="button"
         >
           <i
-            aria-label="Collapse Icon"
+            aria-hidden="true"
             class="fa fa-angle-left"
           />
-        </div>
+        </button>
         Display Settings
       </h4>
     </div>
@@ -4559,14 +4575,16 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <h4
         class="modal-title"
       >
-        <div
+        <button
+          aria-label="Collapse Icon"
           class="modal-back"
+          type="button"
         >
           <i
-            aria-label="Collapse Icon"
+            aria-hidden="true"
             class="fa fa-angle-left"
           />
-        </div>
+        </button>
         Display Settings
       </h4>
     </div>
@@ -5092,14 +5110,16 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <h4
         class="modal-title"
       >
-        <div
+        <button
+          aria-label="Collapse Icon"
           class="modal-back"
+          type="button"
         >
           <i
-            aria-label="Collapse Icon"
+            aria-hidden="true"
             class="fa fa-angle-left"
           />
-        </div>
+        </button>
         Display Settings
       </h4>
     </div>
@@ -5625,14 +5645,16 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <h4
         class="modal-title"
       >
-        <div
+        <button
+          aria-label="Collapse Icon"
           class="modal-back"
+          type="button"
         >
           <i
-            aria-label="Collapse Icon"
+            aria-hidden="true"
             class="fa fa-angle-left"
           />
-        </div>
+        </button>
         Display Settings
       </h4>
     </div>
@@ -6158,14 +6180,16 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <h4
         class="modal-title"
       >
-        <div
+        <button
+          aria-label="Collapse Icon"
           class="modal-back"
+          type="button"
         >
           <i
-            aria-label="Collapse Icon"
+            aria-hidden="true"
             class="fa fa-angle-left"
           />
-        </div>
+        </button>
         Display Settings
       </h4>
     </div>
@@ -6699,14 +6723,16 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <h4
         class="modal-title"
       >
-        <div
+        <button
+          aria-label="Collapse Icon"
           class="modal-back"
+          type="button"
         >
           <i
-            aria-label="Collapse Icon"
+            aria-hidden="true"
             class="fa fa-angle-left"
           />
-        </div>
+        </button>
         Display Settings
       </h4>
     </div>
@@ -7232,14 +7258,16 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       <h4
         class="modal-title"
       >
-        <div
+        <button
+          aria-label="Collapse Icon"
           class="modal-back"
+          type="button"
         >
           <i
-            aria-label="Collapse Icon"
+            aria-hidden="true"
             class="fa fa-angle-left"
           />
-        </div>
+        </button>
         Display Settings
       </h4>
     </div>

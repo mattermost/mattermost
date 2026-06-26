@@ -161,15 +161,16 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
             if (visiblePluginTabs.length) {
                 pluginTabList = (
                     <>
-                        <hr/>
+                        <hr className='settings-sidebar__plugin-divider'/>
                         <div
+                            className='settings-sidebar__plugin-group'
                             role='group'
                             aria-labelledby='userSettingsModal.pluginPreferences.header'
                         >
                             <div
                                 key={'plugin preferences heading'}
                                 role='heading'
-                                className={'header'}
+                                className='header settings-sidebar__plugin-header'
                                 aria-level={3}
                                 id='userSettingsModal_pluginPreferences_header'
                             >

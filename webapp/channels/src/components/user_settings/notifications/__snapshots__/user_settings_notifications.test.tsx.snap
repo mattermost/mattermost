@@ -28,14 +28,16 @@ Object {
           <h4
             class="modal-title"
           >
-            <div
+            <button
+              aria-label="Collapse Icon"
               class="modal-back"
+              type="button"
             >
               <i
-                aria-label="Collapse Icon"
+                aria-hidden="true"
                 class="fa fa-angle-left"
               />
-            </div>
+            </button>
             Notification settings
           </h4>
         </div>
@@ -375,14 +377,16 @@ Object {
         <h4
           class="modal-title"
         >
-          <div
+          <button
+            aria-label="Collapse Icon"
             class="modal-back"
+            type="button"
           >
             <i
-              aria-label="Collapse Icon"
+              aria-hidden="true"
               class="fa fa-angle-left"
             />
-          </div>
+          </button>
           Notification settings
         </h4>
       </div>
@@ -788,14 +792,16 @@ Object {
           <h4
             class="modal-title"
           >
-            <div
+            <button
+              aria-label="Collapse Icon"
               class="modal-back"
+              type="button"
             >
               <i
-                aria-label="Collapse Icon"
+                aria-hidden="true"
                 class="fa fa-angle-left"
               />
-            </div>
+            </button>
             Notification settings
           </h4>
         </div>
@@ -1137,14 +1143,16 @@ Object {
         <h4
           class="modal-title"
         >
-          <div
+          <button
+            aria-label="Collapse Icon"
             class="modal-back"
+            type="button"
           >
             <i
-              aria-label="Collapse Icon"
+              aria-hidden="true"
               class="fa fa-angle-left"
             />
-          </div>
+          </button>
           Notification settings
         </h4>
       </div>
@@ -1552,14 +1560,16 @@ Object {
           <h4
             class="modal-title"
           >
-            <div
+            <button
+              aria-label="Collapse Icon"
               class="modal-back"
+              type="button"
             >
               <i
-                aria-label="Collapse Icon"
+                aria-hidden="true"
                 class="fa fa-angle-left"
               />
-            </div>
+            </button>
             Notification settings
           </h4>
         </div>
@@ -1863,14 +1873,16 @@ Object {
         <h4
           class="modal-title"
         >
-          <div
+          <button
+            aria-label="Collapse Icon"
             class="modal-back"
+            type="button"
           >
             <i
-              aria-label="Collapse Icon"
+              aria-hidden="true"
               class="fa fa-angle-left"
             />
-          </div>
+          </button>
           Notification settings
         </h4>
       </div>

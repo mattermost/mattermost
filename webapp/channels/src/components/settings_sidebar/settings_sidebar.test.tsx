@@ -88,7 +88,10 @@ describe('show PLUGIN PREFERENCES only when plugin tabs are added', () => {
         };
         renderWithContext(<SettingsSidebar {...props}/>);
 
-        expect(screen.queryByText('PLUGIN PREFERENCES')).toBeInTheDocument();
+        const pluginHeading = screen.queryByText('PLUGIN PREFERENCES');
+        expect(pluginHeading).toBeInTheDocument();
+        expect(pluginHeading).toHaveClass('settings-sidebar__plugin-header');
+        expect(pluginHeading?.parentElement?.previousSibling).toHaveClass('settings-sidebar__plugin-divider');
     });
 });
 
