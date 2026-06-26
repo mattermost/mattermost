@@ -1,6 +1,6 @@
 module github.com/mattermost/mattermost/tools/sharedchannel-test
 
-go 1.26.3
+go 1.26.4
 
 require github.com/mattermost/mattermost/server/public v0.4.0
 
