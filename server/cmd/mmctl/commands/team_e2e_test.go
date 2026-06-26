@@ -20,29 +20,122 @@ import (
 func (s *MmctlE2ETestSuite) TestRenameTeamCmdF() {
 	s.SetupTestHelper().InitBasic(s.T())
 
+	createTeam := func(displayName string) string {
+		teamName := model.NewId()
+		cmd := &cobra.Command{}
+		cmd.Flags().String("name", teamName, "")
+		cmd.Flags().String("display-name", displayName, "")
+		s.Require().Nil(createTeamCmdF(s.th.LocalClient, cmd, []string{}))
+		printer.Clean()
+		return teamName
+	}
+
 	s.RunForAllClients("Error renaming team which does not exist", func(c client.Client) {
 		printer.Clean()
 		nonExistentTeamName := "existingName"
 		cmd := &cobra.Command{}
 		args := []string{nonExistentTeamName}
+		cmd.Flags().String("name", "newname", "Team Name")
 		cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
 
 		err := renameTeamCmdF(c, cmd, args)
 		s.Require().EqualError(err, "Unable to find team 'existingName', to see the all teams try 'team list' command")
 	})
 
-	s.RunForSystemAdminAndLocal("Rename an existing team", func(c client.Client) {
+	s.RunForAllClients("Error renaming team without any flag", func(c client.Client) {
 		printer.Clean()
-
 		cmd := &cobra.Command{}
 		args := []string{s.th.BasicTeam.Name}
-		cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
+		cmd.Flags().String("name", "", "Team Name")
+		cmd.Flags().String("display-name", "", "Team Display Name")
 
 		err := renameTeamCmdF(c, cmd, args)
+		s.Require().EqualError(err, "at least one of --name or --display-name is required")
+	})
+
+	s.RunForSystemAdminAndLocal("Rename the name (slug) of an existing team", func(c client.Client) {
+		printer.Clean()
+		teamName := createTeam("Original Display Name")
+		newName := model.NewId()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("name", newName, "Team Name")
+		cmd.Flags().String("display-name", "", "Team Display Name")
+
+		err := renameTeamCmdF(c, cmd, []string{teamName})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
-		s.Equal("'"+s.th.BasicTeam.Name+"' team renamed", printer.GetLines()[0])
+		s.Equal("'"+teamName+"' team renamed", printer.GetLines()[0])
 		s.Len(printer.GetErrorLines(), 0)
+
+		renamedTeam, appErr := s.th.App.GetTeamByName(newName)
+		s.Require().Nil(appErr)
+		s.Equal(newName, renamedTeam.Name)
+		s.Equal("Original Display Name", renamedTeam.DisplayName, "display name should be unchanged")
+
+		_, appErr = s.th.App.GetTeamByName(teamName)
+		s.Require().NotNil(appErr, "old team name should no longer resolve")
+	})
+
+	s.RunForSystemAdminAndLocal("Change the display name of an existing team", func(c client.Client) {
+		printer.Clean()
+		teamName := createTeam("Original Display Name")
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("name", "", "Team Name")
+		cmd.Flags().String("display-name", "Updated Display Name", "Team Display Name")
+
+		err := renameTeamCmdF(c, cmd, []string{teamName})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Equal("'"+teamName+"' team renamed", printer.GetLines()[0])
+		s.Len(printer.GetErrorLines(), 0)
+
+		team, appErr := s.th.App.GetTeamByName(teamName)
+		s.Require().Nil(appErr)
+		s.Equal(teamName, team.Name, "team name (slug) should be unchanged")
+		s.Equal("Updated Display Name", team.DisplayName)
+	})
+
+	s.RunForSystemAdminAndLocal("Rename both the name and the display name of an existing team", func(c client.Client) {
+		printer.Clean()
+		teamName := createTeam("Original Display Name")
+		newName := model.NewId()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("name", newName, "Team Name")
+		cmd.Flags().String("display-name", "Updated Display Name", "Team Display Name")
+
+		err := renameTeamCmdF(c, cmd, []string{teamName})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Equal("'"+teamName+"' team renamed", printer.GetLines()[0])
+		s.Len(printer.GetErrorLines(), 0)
+
+		renamedTeam, appErr := s.th.App.GetTeamByName(newName)
+		s.Require().Nil(appErr)
+		s.Equal(newName, renamedTeam.Name)
+		s.Equal("Updated Display Name", renamedTeam.DisplayName)
+	})
+
+	s.RunForSystemAdminAndLocal("Error renaming a team to a name that is already taken", func(c client.Client) {
+		printer.Clean()
+		existingName := createTeam("Existing Team")
+		teamName := createTeam("Team To Rename")
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("name", existingName, "Team Name")
+		cmd.Flags().String("display-name", "", "Team Display Name")
+
+		err := renameTeamCmdF(c, cmd, []string{teamName})
+		s.Require().Error(err)
+		s.Len(printer.GetLines(), 0)
+		s.ErrorContains(err, "Cannot rename team '"+teamName+"'")
+
+		// The team should keep its original name.
+		team, appErr := s.th.App.GetTeamByName(teamName)
+		s.Require().Nil(appErr)
+		s.Equal(teamName, team.Name)
 	})
 
 	s.Run("Permission error renaming an existing team", func() {
@@ -50,6 +143,7 @@ func (s *MmctlE2ETestSuite) TestRenameTeamCmdF() {
 
 		cmd := &cobra.Command{}
 		args := []string{s.th.BasicTeam.Name}
+		cmd.Flags().String("name", model.NewId(), "Team Name")
 		cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
 
 		err := renameTeamCmdF(s.th.Client, cmd, args)

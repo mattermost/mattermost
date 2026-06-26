@@ -163,11 +163,12 @@ func (a *App) CreateTeamWithUser(rctx request.CTX, team *model.Team, userID stri
 }
 
 func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
-	oldTeam, err := a.ch.srv.teamService.UpdateTeam(team, teams.UpdateOptions{Sanitized: true})
+	updatedTeam, err := a.ch.srv.teamService.UpdateTeam(team, teams.UpdateOptions{Sanitized: true})
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		var appErr *model.AppError
 		var domErr *teams.DomainError
+		var nameErr *teams.NameOccupiedError
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
@@ -178,58 +179,19 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 			return nil, appErr
 		case errors.As(err, &domErr):
 			return nil, model.NewAppError("UpdateTeam", "api.team.update_restricted_domains.mismatch.app_error", map[string]any{"Domain": domErr.Domain}, "", http.StatusBadRequest).Wrap(err)
+		case errors.As(err, &nameErr):
+			errbody := fmt.Sprintf("team with name %s already exists", nameErr.Name)
+			return nil, model.NewAppError("UpdateTeam", "app.team.rename_team.name_occupied", nil, errbody, http.StatusBadRequest).Wrap(err)
 		default:
 			return nil, model.NewAppError("UpdateTeam", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
-	if appErr := a.sendTeamEvent(oldTeam, model.WebsocketEventUpdateTeam); appErr != nil {
+	if appErr := a.sendTeamEvent(updatedTeam, model.WebsocketEventUpdateTeam); appErr != nil {
 		return nil, appErr
 	}
 
-	return oldTeam, nil
-}
-
-// RenameTeam is used to rename the team Name and the DisplayName fields
-func (a *App) RenameTeam(team *model.Team, newTeamName string, newDisplayName string) (*model.Team, *model.AppError) {
-	// check if name is occupied
-	_, errnf := a.GetTeamByName(newTeamName)
-
-	// "-" can be used as a newTeamName if only DisplayName change is wanted
-	if errnf == nil && newTeamName != "-" {
-		errbody := fmt.Sprintf("team with name %s already exists", newTeamName)
-		return nil, model.NewAppError("RenameTeam", "app.team.rename_team.name_occupied", nil, errbody, http.StatusBadRequest)
-	}
-
-	if newTeamName != "-" {
-		team.Name = newTeamName
-	}
-
-	if newDisplayName != "" {
-		team.DisplayName = newDisplayName
-	}
-
-	newTeam, err := a.ch.srv.teamService.UpdateTeam(team, teams.UpdateOptions{})
-	if err != nil {
-		var invErr *store.ErrInvalidInput
-		var appErr *model.AppError
-		var domErr *teams.DomainError
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("RenameTeam", "app.team.get.find.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		case errors.As(err, &invErr):
-			return nil, model.NewAppError("RenameTeam", "app.team.update.find.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		case errors.As(err, &appErr):
-			return nil, appErr
-		case errors.As(err, &domErr):
-			return nil, model.NewAppError("RenameTeam", "api.team.update_restricted_domains.mismatch.app_error", map[string]any{"Domain": domErr.Domain}, "", http.StatusBadRequest).Wrap(err)
-		default:
-			return nil, model.NewAppError("RenameTeam", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
-	}
-
-	return newTeam, nil
+	return updatedTeam, nil
 }
 
 func (a *App) UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError) {
