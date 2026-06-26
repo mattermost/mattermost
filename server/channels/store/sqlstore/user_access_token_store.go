@@ -270,6 +270,65 @@ func (s SqlUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*m
 	return tokens, nil
 }
 
+// CountNonCompliantExpiry returns the number of active, non-bot tokens that
+// violate the maximum lifetime policy implied by maxExpiresAt. It is used to
+// preview the blast radius before revoking.
+func (s SqlUserAccessTokenStore) CountNonCompliantExpiry(maxExpiresAt int64) (int64, error) {
+	query := s.getQueryBuilder().
+		Select("COUNT(*)").
+		From("UserAccessTokens").
+		Where(sq.Or{
+			sq.Eq{"UserAccessTokens.ExpiresAt": 0},
+			sq.Gt{"UserAccessTokens.ExpiresAt": maxExpiresAt},
+		}).
+		Where(sq.Eq{"UserAccessTokens.IsActive": true}).
+		Where(sq.Expr("UserAccessTokens.UserId NOT IN (SELECT UserId FROM Bots)"))
+
+	var count int64
+	if err := s.GetReplica().GetBuilder(&count, query); err != nil {
+		return 0, errors.Wrap(err, "failed to count non-compliant UserAccessTokens")
+	}
+
+	return count, nil
+}
+
+// DeleteNonCompliantExpiry hard-deletes up to limit non-compliant tokens and
+// their associated sessions in a single transaction, returning one UserId per
+// deleted token row so the caller can count deletions and clear per-user
+// session caches. A non-positive limit returns nil without hitting the DB.
+func (s SqlUserAccessTokenStore) DeleteNonCompliantExpiry(maxExpiresAt int64, limit int) ([]string, error) {
+	if limit <= 0 {
+		return nil, nil
+	}
+
+	sql := `
+WITH to_delete AS (
+    SELECT Id, Token, UserId
+    FROM UserAccessTokens
+    WHERE (ExpiresAt = 0 OR ExpiresAt > $1)
+      AND IsActive = true
+      AND UserId NOT IN (SELECT UserId FROM Bots)
+    LIMIT $2
+),
+deleted_sessions AS (
+    DELETE FROM Sessions
+    WHERE Token IN (SELECT Token FROM to_delete)
+),
+deleted_tokens AS (
+    DELETE FROM UserAccessTokens
+    WHERE Id IN (SELECT Id FROM to_delete)
+    RETURNING UserId
+)
+SELECT UserId FROM deleted_tokens`
+
+	var userIDs []string
+	if err := s.GetMaster().Select(&userIDs, sql, maxExpiresAt, limit); err != nil {
+		return nil, errors.Wrap(err, "failed to delete non-compliant UserAccessTokens")
+	}
+
+	return userIDs, nil
+}
+
 // DeleteByIds deletes the tokens identified by tokenIDs along with any sessions
 // minted from those tokens, all within a single transaction. It returns the
 // number of UserAccessTokens rows actually deleted.

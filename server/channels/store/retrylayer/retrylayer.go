@@ -18021,6 +18021,27 @@ func (s *RetryLayerUserStore) VerifyEmail(userID string, email string) (string, 
 
 }
 
+func (s *RetryLayerUserAccessTokenStore) CountNonCompliantExpiry(maxExpiresAt int64) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.UserAccessTokenStore.CountNonCompliantExpiry(maxExpiresAt)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerUserAccessTokenStore) Delete(tokenID string) error {
 
 	tries := 0
@@ -18068,6 +18089,27 @@ func (s *RetryLayerUserAccessTokenStore) DeleteByIds(tokenIDs []string) (int64, 
 	tries := 0
 	for {
 		result, err := s.UserAccessTokenStore.DeleteByIds(tokenIDs)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerUserAccessTokenStore) DeleteNonCompliantExpiry(maxExpiresAt int64, limit int) ([]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.UserAccessTokenStore.DeleteNonCompliantExpiry(maxExpiresAt, limit)
 		if err == nil {
 			return result, nil
 		}

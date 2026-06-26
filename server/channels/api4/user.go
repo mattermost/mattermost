@@ -90,6 +90,8 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/tokens", api.APISessionRequired(getUserAccessTokensForUser)).Methods(http.MethodGet)
 	api.BaseRoutes.Users.Handle("/tokens", api.APISessionRequired(getUserAccessTokens)).Methods(http.MethodGet)
 	api.BaseRoutes.Users.Handle("/tokens/search", api.APISessionRequired(searchUserAccessTokens)).Methods(http.MethodPost)
+	api.BaseRoutes.Users.Handle("/tokens/non_compliant/count", api.APISessionRequired(countNonCompliantUserAccessTokens)).Methods(http.MethodGet)
+	api.BaseRoutes.Users.Handle("/tokens/non_compliant/revoke", api.APISessionRequired(revokeNonCompliantUserAccessTokens)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/tokens/{token_id:[A-Za-z0-9]+}", api.APISessionRequired(getUserAccessToken)).Methods(http.MethodGet)
 	api.BaseRoutes.Users.Handle("/tokens/revoke", api.APISessionRequired(revokeUserAccessToken)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/tokens/disable", api.APISessionRequired(disableUserAccessToken)).Methods(http.MethodPost)
@@ -3054,6 +3056,58 @@ func getUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) {
 	js, err := json.Marshal(accessTokens)
 	if err != nil {
 		c.Err = model.NewAppError("searchUserAccessTokens", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func countNonCompliantUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	count, appErr := c.App.CountNonCompliantUserAccessTokens()
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	js, err := json.Marshal(model.NonCompliantUserAccessTokenResult{Count: count})
+	if err != nil {
+		c.Err = model.NewAppError("countNonCompliantUserAccessTokens", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func revokeNonCompliantUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord(model.AuditEventRevokeNonCompliantUserAccessTokens, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	count, appErr := c.App.RevokeNonCompliantUserAccessTokens(c.AppContext)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	model.AddEventParameterToAuditRec(auditRec, "revoked_count", count)
+	auditRec.Success()
+
+	js, err := json.Marshal(model.NonCompliantUserAccessTokenResult{Count: count})
+	if err != nil {
+		c.Err = model.NewAppError("revokeNonCompliantUserAccessTokens", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
