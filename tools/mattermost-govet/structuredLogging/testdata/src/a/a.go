@@ -7,12 +7,12 @@ import "fmt"
 
 type mlog struct{}
 
-func (m *mlog) Debug(msg string, fields ...interface{}) {}
-func (m *mlog) Info(msg string, fields ...interface{})  {}
-func (m *mlog) Warn(msg string, fields ...interface{})  {}
-func (m *mlog) Error(msg string, fields ...interface{}) {}
+func (m *mlog) Debug(msg string, fields ...interface{})    {}
+func (m *mlog) Info(msg string, fields ...interface{})     {}
+func (m *mlog) Warn(msg string, fields ...interface{})     {}
+func (m *mlog) Error(msg string, fields ...interface{})    {}
 func (m *mlog) Critical(msg string, fields ...interface{}) {}
-func (m *mlog) String(key, val string) interface{} { return nil }
+func (m *mlog) String(key, val string) interface{}         { return nil }
 
 var Mlog = &mlog{}
 
@@ -54,7 +54,7 @@ func invalidStructuredLogging() {
 
 	// Invalid: using fmt.Sprint inside mlog calls
 	mlog.Debug(fmt.Sprint("User logged in")) // want "Using fmt inside mlog function, use structured logging instead"
-	mlog.Info(fmt.Sprint("Server started")) // want "Using fmt inside mlog function, use structured logging instead"
+	mlog.Info(fmt.Sprint("Server started"))  // want "Using fmt inside mlog function, use structured logging instead"
 }
 
 func edgeCases() {
