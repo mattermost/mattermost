@@ -1,10 +1,11 @@
 name: Run in build environment
 description: >
-  Loads the build-server image (from a workflow artifact or Docker Hub) then
-  runs the given bash script inside it, with the repository mounted at
-  /mattermost and the working directory set to /mattermost/server.
-  All GITHUB_* environment variables from the runner are forwarded into the
-  container so scripts can reference GITHUB_HEAD_REF, GITHUB_RUN_ID, etc.
+  Runs a bash script inside the build-server Docker container. Normally the
+  container image is pulled from Docker Hub on demand. During an in-flight Go
+  version bump, load-buildenv ensures the locally-built image is available
+  first. The repository is mounted at /mattermost with the working directory
+  set to /mattermost/server, and all GITHUB_* environment variables are
+  forwarded into the container.
 
 inputs:
   image:
