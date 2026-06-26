@@ -1,9 +1,12 @@
 name: Load build environment
 description: >
-  Loads whichever build-server image artifacts were created by setup-buildenv
-  in this workflow run. If no artifacts exist (the canonical images were already
-  on Docker Hub), this is a no-op and images will be pulled from the registry
-  on demand when docker run executes.
+  Makes the build-server images available for docker run. Normally the
+  canonical version-tagged images (mattermost-build-server and
+  mattermost-build-server-fips) are already on Docker Hub and will be pulled
+  on demand — in which case this action is a no-op. During an in-flight Go
+  version bump, setup-buildenv will have built and uploaded the images as
+  workflow artifacts; this action detects and loads whichever artifacts are
+  present so downstream jobs use the locally-built images instead.
 
 runs:
   using: composite
