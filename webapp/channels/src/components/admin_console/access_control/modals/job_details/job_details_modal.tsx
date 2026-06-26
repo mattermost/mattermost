@@ -241,7 +241,7 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
                     />
                 </div>
             )}
-            {job.status !== 'error' && !(job.status === 'canceled' && job.type.includes('access_control_sync')) && job.type.includes('access_control_sync') && syncResults && (
+            {job.status !== 'error' && !(job.status === 'canceled' && job.type.includes('access_control_sync')) && job.type.includes('access_control_sync') && (
                 <SearchableSyncJobChannelList
                     channels={filteredChannels}
                     teams={teamLookup}
@@ -251,7 +251,7 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
                     search={setSearchTerm}
                     onViewDetails={handleViewDetails}
                     noResultsText={noResultsText}
-                    syncResults={syncResults}
+                    syncResults={syncResults ?? {}}
                 />
             )}
 

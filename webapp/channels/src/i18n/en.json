@@ -1661,6 +1661,7 @@
   "admin.jobTable.statusWarning": "Warning",
   "admin.jobTable.syncResults.added": "Added ({count, number})",
   "admin.jobTable.syncResults.error": "An error occurred while syncing the channels.",
+  "admin.jobTable.syncResults.noChanges": "No channels were affected by this job.",
   "admin.jobTable.syncResults.noResultsSearchable": "No channels match your search or filter.",
   "admin.jobTable.syncResults.removed": "Removed ({count, number})",
   "admin.jobTable.syncResults.userListTitle": "Channel Membership Changes",
