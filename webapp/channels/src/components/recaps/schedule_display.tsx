@@ -3,24 +3,10 @@
 
 import {useIntl} from 'react-intl';
 
-import {DaysOfWeek, Weekdays, Weekend, EveryDay} from '@mattermost/types/recaps';
+import {Weekdays, Weekend, EveryDay} from '@mattermost/types/recaps';
 
-const {Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday} = DaysOfWeek;
-
-type DayInfo = {
-    bit: number;
-    key: string;
-};
-
-const DAYS: DayInfo[] = [
-    {bit: Sunday, key: 'sun'},
-    {bit: Monday, key: 'mon'},
-    {bit: Tuesday, key: 'tue'},
-    {bit: Wednesday, key: 'wed'},
-    {bit: Thursday, key: 'thu'},
-    {bit: Friday, key: 'fri'},
-    {bit: Saturday, key: 'sat'},
-];
+import {DAY_DESCRIPTORS} from './day_descriptors';
+import {formatRelativeScheduleTime} from './schedule_time_format';
 
 export function useScheduleDisplay() {
     const {formatMessage, formatDate, formatTime} = useIntl();
@@ -37,10 +23,10 @@ export function useScheduleDisplay() {
             return formatMessage({id: 'recaps.scheduled.days.weekend', defaultMessage: 'Weekends'});
         }
 
-        // Build abbreviated day list
-        const selectedDays = DAYS.
+        // Build abbreviated day list from the shared static descriptors
+        const selectedDays = DAY_DESCRIPTORS.
             filter((day) => (daysOfWeek & day.bit) !== 0).
-            map((day) => formatMessage({id: `recaps.scheduled.days.${day.key}`, defaultMessage: day.key.charAt(0).toUpperCase() + day.key.slice(1)}));
+            map((day) => formatMessage(day.abbrev));
 
         return selectedDays.join(', ');
     };
@@ -64,42 +50,25 @@ export function useScheduleDisplay() {
         );
     };
 
-    const formatNextRun = (nextRunAt: number, enabled: boolean): string | null => {
+    const formatNextRun = (nextRunAt: number, enabled: boolean, timezone?: string): string | null => {
         // Paused schedules hide next run
         if (!enabled || nextRunAt === 0) {
             return null;
         }
 
-        const nextDate = new Date(nextRunAt);
-        const now = new Date();
-        if (nextDate.getTime() <= now.getTime()) {
+        const now = Date.now();
+        if (nextRunAt <= now) {
             return null;
         }
 
-        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const startOfNextRun = new Date(nextDate.getFullYear(), nextDate.getMonth(), nextDate.getDate());
-        const diffDays = Math.round((startOfNextRun.getTime() - startOfToday.getTime()) / (1000 * 60 * 60 * 24));
-
-        const timeStr = formatTime(nextDate, {hour: 'numeric', minute: '2-digit'});
-        let dateStr: string;
-        if (diffDays === 0) {
-            dateStr = timeStr;
-        } else if (diffDays === 1) {
-            dateStr = formatMessage(
-                {id: 'recaps.nextRun.tomorrow', defaultMessage: 'Tomorrow at {time}'},
-                {time: timeStr},
-            );
-        } else if (diffDays <= 7) {
-            dateStr = formatMessage(
-                {id: 'recaps.nextRun.dayAt', defaultMessage: '{day} at {time}'},
-                {day: formatDate(nextDate, {weekday: 'long'}), time: timeStr},
-            );
-        } else {
-            dateStr = formatMessage(
-                {id: 'recaps.nextRun.dateAt', defaultMessage: '{date} at {time}'},
-                {date: formatDate(nextDate, {month: 'short', day: 'numeric'}), time: timeStr},
-            );
-        }
+        // Format in the schedule's timezone so the list matches the time the user configured.
+        const dateStr = formatRelativeScheduleTime(
+            {formatMessage, formatDate, formatTime},
+            nextRunAt,
+            now,
+            timezone,
+            {includeTimezoneAbbreviation: true},
+        );
 
         return formatMessage(
             {id: 'recaps.scheduled.nextRun', defaultMessage: 'Next: {date}'},

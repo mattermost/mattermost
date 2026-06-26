@@ -34,7 +34,7 @@ const ScheduledRecapItem = ({scheduledRecap, onEdit}: Props) => {
     const {formatSchedule, formatNextRun, formatLastRun, formatRunCount} = useScheduleDisplay();
 
     const scheduleText = formatSchedule(scheduledRecap.days_of_week, scheduledRecap.time_of_day);
-    const nextRunText = formatNextRun(scheduledRecap.next_run_at, scheduledRecap.enabled);
+    const nextRunText = formatNextRun(scheduledRecap.next_run_at, scheduledRecap.enabled, scheduledRecap.timezone);
     const lastRunText = formatLastRun(scheduledRecap.last_run_at);
     const runCountText = formatRunCount(scheduledRecap.run_count);
 

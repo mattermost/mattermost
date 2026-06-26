@@ -5,6 +5,7 @@ import React from 'react';
 import {useIntl} from 'react-intl';
 
 import {PlusIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/shared/components/button';
 
 type Props = {
     onCreateClick: () => void;
@@ -32,14 +33,15 @@ const ScheduledRecapsEmptyState = ({onCreateClick, disabled}: Props) => {
                     defaultMessage: 'Copilot recaps help you get caught up quickly on discussions that are most important to you with a summarized report.',
                 })}
             </p>
-            <button
-                className='btn btn-primary empty-state-cta'
+            <Button
+                emphasis='primary'
+                className='empty-state-cta'
                 onClick={onCreateClick}
                 disabled={disabled}
             >
                 <PlusIcon size={16}/>
                 {formatMessage({id: 'recaps.scheduled.emptyState.cta', defaultMessage: 'Create a recap'})}
-            </button>
+            </Button>
         </div>
     );
 };

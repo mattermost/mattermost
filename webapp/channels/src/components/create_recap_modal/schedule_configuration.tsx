@@ -6,9 +6,13 @@ import React, {useMemo} from 'react';
 import {useIntl, FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {ScheduledRecapTimePeriods} from '@mattermost/types/recaps';
+import type {ScheduledRecapTimePeriod} from '@mattermost/types/recaps';
+
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
 import DropdownInput from 'components/dropdown_input';
+import {formatRelativeScheduleTime} from 'components/recaps/schedule_time_format';
 import Input from 'components/widgets/inputs/input/input';
 
 import DayOfWeekSelector from './day_of_week_selector';
@@ -18,8 +22,8 @@ type Props = {
     setDaysOfWeek: (days: number) => void;
     timeOfDay: string;
     setTimeOfDay: (time: string) => void;
-    timePeriod: string;
-    setTimePeriod: (period: string) => void;
+    timePeriod: ScheduledRecapTimePeriod;
+    setTimePeriod: (period: ScheduledRecapTimePeriod) => void;
     customInstructions: string;
     setCustomInstructions: (instructions: string) => void;
     daysError?: boolean;
@@ -59,10 +63,10 @@ const ScheduleConfiguration = ({
     const userTimezone = useSelector(getCurrentTimezone);
 
     // Time period options - must match server model constants
-    const timePeriodOptions = useMemo(() => [
-        {value: 'last_24h', label: formatMessage({id: 'recaps.timePeriod.last24h', defaultMessage: 'Last 24 hours'})},
-        {value: 'last_week', label: formatMessage({id: 'recaps.timePeriod.lastWeek', defaultMessage: 'Last 7 days'})},
-        {value: 'since_last_read', label: formatMessage({id: 'recaps.timePeriod.sinceLastRead', defaultMessage: 'Since last read'})},
+    const timePeriodOptions = useMemo<Array<{value: ScheduledRecapTimePeriod; label: string}>>(() => [
+        {value: ScheduledRecapTimePeriods.Last24h, label: formatMessage({id: 'recaps.timePeriod.last24h', defaultMessage: 'Last 24 hours'})},
+        {value: ScheduledRecapTimePeriods.LastWeek, label: formatMessage({id: 'recaps.timePeriod.lastWeek', defaultMessage: 'Last 7 days'})},
+        {value: ScheduledRecapTimePeriods.SinceLastRead, label: formatMessage({id: 'recaps.timePeriod.sinceLastRead', defaultMessage: 'Since last read'})},
     ], [formatMessage]);
 
     // Time dropdown options with locale-aware labels
@@ -107,62 +111,13 @@ const ScheduleConfiguration = ({
             if ((daysOfWeek & dayBit) !== 0) {
                 // Check if the time hasn't passed yet (or it's a future day)
                 if (daysAhead > 0 || checkMoment.isAfter(now)) {
-                    // Format the preview
-                    const checkDate = checkMoment.toDate();
-                    const formattedTime = previewTimeZone ?
-                        formatTime(checkDate, {hour: 'numeric', minute: '2-digit', timeZone: previewTimeZone}) :
-                        formatTime(checkDate, {hour: 'numeric', minute: '2-digit'});
-                    let dateStr: string;
-
-                    if (daysAhead === 0) {
-                        dateStr = formatMessage(
-                            {id: 'recaps.nextRun.today', defaultMessage: 'Today at {time}'},
-                            {time: formattedTime},
-                        );
-                    } else if (daysAhead === 1) {
-                        dateStr = formatMessage(
-                            {id: 'recaps.nextRun.tomorrow', defaultMessage: 'Tomorrow at {time}'},
-                            {time: formattedTime},
-                        );
-                    } else if (daysAhead <= 7) {
-                        dateStr = formatMessage(
-                            {id: 'recaps.nextRun.dayAt', defaultMessage: '{day} at {time}'},
-                            {
-                                day: previewTimeZone ?
-                                    formatDate(checkDate, {weekday: 'long', timeZone: previewTimeZone}) :
-                                    formatDate(checkDate, {weekday: 'long'}),
-                                time: formattedTime,
-                            },
-                        );
-                    } else {
-                        dateStr = formatMessage(
-                            {id: 'recaps.nextRun.dateAt', defaultMessage: '{date} at {time}'},
-                            {
-                                date: previewTimeZone ?
-                                    formatDate(checkDate, {month: 'short', day: 'numeric', timeZone: previewTimeZone}) :
-                                    formatDate(checkDate, {month: 'short', day: 'numeric'}),
-                                time: formattedTime,
-                            },
-                        );
-                    }
-
-                    // Add timezone abbreviation (e.g., EST, PST, EDT)
-                    if (previewTimeZone) {
-                        try {
-                            // Get the short timezone abbreviation using Intl.DateTimeFormat
-                            const tzAbbrev = new Intl.DateTimeFormat('en-US', {
-                                timeZone: previewTimeZone,
-                                timeZoneName: 'short',
-                            }).formatToParts(checkDate).find((part) => part.type === 'timeZoneName')?.value || '';
-
-                            if (tzAbbrev) {
-                                return `${dateStr} (${tzAbbrev})`;
-                            }
-                        } catch {
-                            // Fall back to showing timezone identifier if Intl fails
-                        }
-                    }
-                    return dateStr;
+                    return formatRelativeScheduleTime(
+                        {formatMessage, formatDate, formatTime},
+                        checkMoment.valueOf(),
+                        now.valueOf(),
+                        previewTimeZone,
+                        {includeTimezoneAbbreviation: true},
+                    );
                 }
             }
         }

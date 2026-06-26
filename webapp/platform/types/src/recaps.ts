@@ -55,6 +55,22 @@ export const Weekdays = DaysOfWeek.Monday | DaysOfWeek.Tuesday | DaysOfWeek.Wedn
 export const Weekend = DaysOfWeek.Saturday | DaysOfWeek.Sunday; // 65
 export const EveryDay = Weekdays | Weekend; // 127
 
+// Values must match the server constants in model.ScheduledRecap (server/public/model/scheduled_recap.go).
+export const ScheduledRecapTimePeriods = {
+    Last24h: 'last_24h',
+    LastWeek: 'last_week',
+    SinceLastRead: 'since_last_read',
+} as const;
+
+export type ScheduledRecapTimePeriod = typeof ScheduledRecapTimePeriods[keyof typeof ScheduledRecapTimePeriods];
+
+export const ScheduledRecapChannelModes = {
+    Specific: 'specific',
+    AllUnreads: 'all_unreads',
+} as const;
+
+export type ScheduledRecapChannelMode = typeof ScheduledRecapChannelModes[keyof typeof ScheduledRecapChannelModes];
+
 export type ScheduledRecap = {
     id: string;
     user_id: string;
@@ -64,7 +80,7 @@ export type ScheduledRecap = {
     days_of_week: number; // Bitmask: Sun=1, Mon=2, Tue=4, Wed=8, Thu=16, Fri=32, Sat=64
     time_of_day: string; // HH:MM format
     timezone: string; // IANA timezone
-    time_period: string; // "last_24h" | "last_week" | "since_last_read"
+    time_period: ScheduledRecapTimePeriod;
 
     // Schedule state
     next_run_at: number; // UTC milliseconds
@@ -72,7 +88,7 @@ export type ScheduledRecap = {
     run_count: number;
 
     // Channel configuration
-    channel_mode: string; // "specific" | "all_unreads"
+    channel_mode: ScheduledRecapChannelMode;
     channel_ids?: string[]; // Present when mode = "specific"
 
     // AI configuration
@@ -94,8 +110,8 @@ export type ScheduledRecapInput = {
     days_of_week: number;
     time_of_day: string;
     timezone: string;
-    time_period: string;
-    channel_mode: string;
+    time_period: ScheduledRecapTimePeriod;
+    channel_mode: ScheduledRecapChannelMode;
     channel_ids?: string[];
     custom_instructions?: string;
     agent_id: string;

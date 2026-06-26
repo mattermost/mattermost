@@ -5,26 +5,7 @@ import classNames from 'classnames';
 import React from 'react';
 import {useIntl} from 'react-intl';
 
-import {DaysOfWeek} from '@mattermost/types/recaps';
-
-const {Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday} = DaysOfWeek;
-
-type DayInfo = {
-    bit: number;
-    labelKey: string;
-    defaultShortLabel: string;
-};
-
-// Order: Monday first (more intuitive for work schedules)
-const DAYS: DayInfo[] = [
-    {bit: Monday, labelKey: 'recaps.days.monday', defaultShortLabel: 'M'},
-    {bit: Tuesday, labelKey: 'recaps.days.tuesday', defaultShortLabel: 'T'},
-    {bit: Wednesday, labelKey: 'recaps.days.wednesday', defaultShortLabel: 'W'},
-    {bit: Thursday, labelKey: 'recaps.days.thursday', defaultShortLabel: 'Th'},
-    {bit: Friday, labelKey: 'recaps.days.friday', defaultShortLabel: 'F'},
-    {bit: Saturday, labelKey: 'recaps.days.saturday', defaultShortLabel: 'Sa'},
-    {bit: Sunday, labelKey: 'recaps.days.sunday', defaultShortLabel: 'Su'},
-];
+import {SELECTOR_DAY_DESCRIPTORS} from 'components/recaps/day_descriptors';
 
 type Props = {
     value: number; // Bitmask of selected days
@@ -51,7 +32,7 @@ const DayOfWeekSelector = ({value, onChange, disabled, error}: Props) => {
 
     return (
         <div className={classNames('day-of-week-selector', {error})}>
-            {DAYS.map((day) => (
+            {SELECTOR_DAY_DESCRIPTORS.map((day) => (
                 <button
                     key={day.bit}
                     type='button'
@@ -62,9 +43,9 @@ const DayOfWeekSelector = ({value, onChange, disabled, error}: Props) => {
                     onClick={() => toggleDay(day.bit)}
                     disabled={disabled}
                     aria-pressed={isDaySelected(day.bit)}
-                    aria-label={formatMessage({id: day.labelKey, defaultMessage: day.defaultShortLabel})}
+                    aria-label={formatMessage(day.fullName)}
                 >
-                    {formatMessage({id: day.labelKey, defaultMessage: day.defaultShortLabel})}
+                    {formatMessage(day.shortLabel)}
                 </button>
             ))}
         </div>

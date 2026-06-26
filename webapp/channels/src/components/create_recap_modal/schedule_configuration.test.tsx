@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {DaysOfWeek} from '@mattermost/types/recaps';
+import {DaysOfWeek, ScheduledRecapTimePeriods} from '@mattermost/types/recaps';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
@@ -15,7 +15,7 @@ describe('ScheduleConfiguration', () => {
         setDaysOfWeek: jest.fn(),
         timeOfDay: '09:00',
         setTimeOfDay: jest.fn(),
-        timePeriod: 'last_24h',
+        timePeriod: ScheduledRecapTimePeriods.Last24h,
         setTimePeriod: jest.fn(),
         customInstructions: '',
         setCustomInstructions: jest.fn(),

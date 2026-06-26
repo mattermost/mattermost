@@ -10,7 +10,8 @@ import {ChevronLeftIcon, ChevronRightIcon} from '@mattermost/compass-icons/compo
 import {GenericModal} from '@mattermost/components';
 import {Button} from '@mattermost/shared/components/button';
 import type {Channel} from '@mattermost/types/channels';
-import type {ScheduledRecap, ScheduledRecapInput} from '@mattermost/types/recaps';
+import type {ScheduledRecap, ScheduledRecapInput, ScheduledRecapTimePeriod} from '@mattermost/types/recaps';
+import {ScheduledRecapChannelModes, ScheduledRecapTimePeriods} from '@mattermost/types/recaps';
 
 import {getAgents} from 'mattermost-redux/actions/agents';
 import {createRecap, createScheduledRecap, updateScheduledRecap, getRecapLimitStatus as fetchRecapLimitStatus} from 'mattermost-redux/actions/recaps';
@@ -64,7 +65,7 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
     const [runOnce, setRunOnce] = useState(false);
     const [daysOfWeek, setDaysOfWeek] = useState<number>(0);
     const [timeOfDay, setTimeOfDay] = useState<string>('09:00');
-    const [timePeriod, setTimePeriod] = useState<string>('last_24h');
+    const [timePeriod, setTimePeriod] = useState<ScheduledRecapTimePeriod>(ScheduledRecapTimePeriods.Last24h);
     const [customInstructions, setCustomInstructions] = useState<string>('');
 
     // Validation state
@@ -236,7 +237,7 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
             time_of_day: timeOfDay,
             timezone: userTimezone || 'UTC',
             time_period: timePeriod,
-            channel_mode: recapType === 'all_unreads' ? 'all_unreads' : 'specific',
+            channel_mode: recapType === 'all_unreads' ? ScheduledRecapChannelModes.AllUnreads : ScheduledRecapChannelModes.Specific,
             channel_ids: recapType === 'selected' ? selectedChannelIds : undefined,
             custom_instructions: customInstructions || undefined,
             agent_id: selectedBotId,
