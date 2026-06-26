@@ -170,6 +170,7 @@ docker-compose.override.yaml
 .cursor/*
 !.cursor/README.md
 !.cursor/cursor.md
+!.cursor/qa-playbook.md
 !.cursor/Dockerfile
 !.cursor/environment.json
 !.cursor/scripts/

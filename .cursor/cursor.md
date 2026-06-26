@@ -85,6 +85,20 @@ The Mattermost server is expected at `http://localhost:8065`. The webapp dev ser
 
 Use the `computerUse` subagent's desktop (Chrome is preinstalled) for browser automation and screenshots. Prefer verifying UI changes against the running local Mattermost instance before opening or updating a PR.
 
+## Agentic QA (AMQA)
+
+When a PR has CodeRabbit **Change Impact** and **QA Recommendation**, execute those steps — do not rewrite the plan.
+
+@.cursor/qa-playbook.md
+
+1. Read CodeRabbit block in PR body (`## Change Impact`, `**QA Recommendation:**`)
+2. Start Mattermost (known-good Cloud flow above)
+3. Run each QA Recommendation scenario; capture screenshots per playbook
+4. Upload evidence to S3; post links on the PR
+5. For 🔴 High impact, file defects with label `agentic-qa` on failure
+
+Trigger via `/qa-verify` on the PR or when `QA/execution` is pending.
+
 ## AWS And PR Artifacts
 
 AWS CLI v2 is installed for uploading screenshots or reports. Cloud Agents should receive `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_S3_BUCKET_NAME` as environment variables.

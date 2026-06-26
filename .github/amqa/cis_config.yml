@@ -1,0 +1,57 @@
+# Change Impact Score (CIS) fallback weights when CodeRabbit block is absent.
+# Tunable without prompt changes.
+
+weights:
+  user_visible_ui: 30
+  auth_security: 25
+  data_migration: 20
+  api_websocket: 15
+  config_surface: 10
+  pure_refactor_tests_docs: -20
+
+path_patterns:
+  user_visible_ui:
+    - "^webapp/channels/src/"
+    - "^webapp/platform/"
+  auth_security:
+    - "login"
+    - "saml"
+    - "oauth"
+    - "permission"
+    - "session"
+    - "ldap"
+  data_migration:
+    - "\\.up\\.sql$"
+    - "migrations/"
+  api_websocket:
+    - "server/channels/api4/"
+    - "websocket"
+  config_surface:
+    - "server/public/model/config.go"
+    - "feature_flags.go"
+  pure_refactor_tests_docs:
+    - "_test\\.go$"
+    - "_test\\.tsx$"
+    - "^e2e-tests/"
+    - "^\\.github/"
+    - "\\.md$"
+
+execution_tiers:
+  - cis_max: 29
+    plan_depth: brief
+    agent_auto: false
+  - cis_max: 69
+    plan_depth: standard
+    agent_auto: false
+  - cis_max: 89
+    plan_depth: full
+    agent_auto: true
+  - cis_max: 100
+    plan_depth: full_security
+    agent_auto: true
+    human_review_required: true
+
+dispatch:
+  auto_execute_cis_min: 70
+  webhook_notify_cis_min: 70
+  daily_agent_budget: 25
