@@ -26,9 +26,9 @@ const THRESHOLDS_CENTER: Threshold[] = [
 ];
 
 const THRESHOLDS_RHS: Threshold[] = [
-    [521, LayoutModes.Wide],
-    [380, LayoutModes.Normal],
-    [280, LayoutModes.Narrow],
+    [620, LayoutModes.Wide],
+    [460, LayoutModes.Normal],
+    [340, LayoutModes.Narrow],
 ];
 
 const DEBOUNCE_DELAY = 10;

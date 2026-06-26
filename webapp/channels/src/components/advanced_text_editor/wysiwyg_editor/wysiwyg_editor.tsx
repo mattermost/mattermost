@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Extension} from '@tiptap/core';
 import {CodeBlockLowlight} from '@tiptap/extension-code-block-lowlight';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -9,10 +10,14 @@ import {TableCell} from '@tiptap/extension-table-cell';
 import {TableHeader} from '@tiptap/extension-table-header';
 import {TableRow} from '@tiptap/extension-table-row';
 import {Markdown} from '@tiptap/markdown';
+import type {Node as PMNode} from '@tiptap/pm/model';
 import {splitListItem} from '@tiptap/pm/schema-list';
+import {Plugin, PluginKey} from '@tiptap/pm/state';
+import {Decoration, DecorationSet} from '@tiptap/pm/view';
 import {EditorContent, useEditor} from '@tiptap/react';
 import type {Editor} from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import emojiRegex from 'emoji-regex';
 import {common, createLowlight} from 'lowlight';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef} from 'react';
 import {useDispatch} from 'react-redux';
@@ -29,6 +34,51 @@ import './wysiwyg_editor.scss';
 const lowlight = createLowlight(common);
 
 const MARKDOWN_PASTE_PATTERNS = /(?:^#{1,6}\s|^[*-]\s|^\d+\.\s|^>\s|\*\*\S.*?\S\*\*|\b__\S.*?\S__\b|~~\S.*?\S~~|`[^`\n]+`|^\|.*\|$|\[[^\]]+\]\([^)]+\))/m;
+
+function buildEmojiDecorations(doc: PMNode): DecorationSet {
+    const decorations: Decoration[] = [];
+    const allEmojiMatcher = emojiRegex();
+    const docText = doc.textContent;
+    const isAllEmoji = docText.trim().length > 0 &&
+        docText.replace(allEmojiMatcher, '').trim().length === 0;
+    const className = isAllEmoji ? 'WysiwygEditor__emoji WysiwygEditor__emoji--jumbo' : 'WysiwygEditor__emoji';
+
+    doc.descendants((node, pos) => {
+        if (!node.isText || !node.text) {
+            return;
+        }
+        const matcher = emojiRegex();
+        let match;
+        // eslint-disable-next-line no-cond-assign
+        while ((match = matcher.exec(node.text)) !== null) {
+            const from = pos + match.index;
+            const to = from + match[0].length;
+            decorations.push(Decoration.inline(from, to, {class: className}));
+        }
+    });
+    return DecorationSet.create(doc, decorations);
+}
+
+const EmojiDecorations = Extension.create({
+    name: 'emojiDecorations',
+    addProseMirrorPlugins() {
+        const key = new PluginKey('emojiDecorations');
+        return [
+            new Plugin({
+                key,
+                state: {
+                    init: (_, {doc}) => buildEmojiDecorations(doc),
+                    apply: (tr, old) => (tr.docChanged ? buildEmojiDecorations(tr.doc) : old),
+                },
+                props: {
+                    decorations(state) {
+                        return key.getState(state);
+                    },
+                },
+            }),
+        ];
+    },
+});
 
 const SERIALIZE_DEBOUNCE_MS = 100;
 
@@ -129,6 +179,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
             Markdown.configure({
                 markedOptions: {gfm: true},
             }),
+            EmojiDecorations,
         ],
         content: value,
         contentType: 'markdown',
@@ -284,7 +335,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
 
                 if (useCtrlSendRef.current) {
                     if (ctrlOrMeta && !event.shiftKey && !event.altKey) {
-                        if (insideList || insideBlockquote || insideCodeBlock || insideTable || insideHeading) {
+                        if (insideCodeBlock || insideTable) {
                             return false;
                         }
                         event.preventDefault();
