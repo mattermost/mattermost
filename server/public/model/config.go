@@ -1603,10 +1603,10 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 }
 
 // DeliveryTrackingSettings configures the independent PostgreSQL pool used by
-// the post-delivery-tracking sub-store. The pool,
-// credentials, and migration set are all separate from SqlSettings so a failure
-// in this DB cannot affect the main DB. Disabled by default. When Enable is true
-// but DataSource is empty, the sub-store falls back to the primary DB.
+// the post-delivery-tracking sub-store. The pool and credentials are separate
+// from SqlSettings so a failure in a dedicated DB cannot affect the main DB.
+// Disabled by default. DataSource defaults to empty: when Enable is true but
+// DataSource is left unset, the sub-store falls back to the primary DB.
 type DeliveryTrackingSettings struct {
 	Enable                      *bool    `access:"environment_database,write_restrictable,cloud_restrictable"`
 	DriverName                  *string  `access:"environment_database,write_restrictable,cloud_restrictable"`
@@ -1621,8 +1621,6 @@ type DeliveryTrackingSettings struct {
 	QueryTimeout                *int     `access:"environment_database,write_restrictable,cloud_restrictable"`
 }
 
-const DeliveryTrackingSettingsDefaultDataSource = "postgres://mmuser:mostest@localhost:5433/mattermost_userpostdelivery?sslmode=disable&connect_timeout=10"
-
 func (s *DeliveryTrackingSettings) SetDefaults() {
 	if s.Enable == nil {
 		s.Enable = new(false)
@@ -1633,7 +1631,9 @@ func (s *DeliveryTrackingSettings) SetDefaults() {
 	}
 
 	if s.DataSource == nil {
-		s.DataSource = new(DeliveryTrackingSettingsDefaultDataSource)
+		// Empty selects the primary-DB fallback. A dedicated second DB is opt-in
+		// by setting DataSource explicitly.
+		s.DataSource = new("")
 	}
 
 	if s.DataSourceReplicas == nil {

@@ -14,11 +14,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 )
 
-// TestUserPostDeliveryStore exercises the real SQL store end to end. It builds a
-// dedicated store with delivery tracking enabled in primary-DB fallback mode
-// (empty DataSource), which both proves the fallback path migrates the
-// UserPostDelivery table onto the primary pool and gives us a real (non-no-op)
-// store to test against.
 func TestUserPostDeliveryStore(t *testing.T) {
 	if testing.Short() {
 		t.Skip("requires live database")

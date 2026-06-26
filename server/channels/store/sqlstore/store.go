@@ -266,10 +266,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 			return nil, errors.Wrap(err, "failed to apply database migrations")
 		}
 
-		// Migrate the post-delivery-tracking schema on its own pool (dedicated DB
-		// or the primary DB on fallback). It uses an independent version table and
-		// advisory lock, so it never collides with the main migration set.
-		if store.userPostDeliveryX != nil {
+		if store.userPostDeliveryDedicated {
 			err = store.migrateUserPostDelivery(migrationsDirectionUp, !store.disableMorphLogging)
 			if err != nil {
 				return nil, errors.Wrap(err, "failed to apply post-delivery-tracking database migrations")

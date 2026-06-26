@@ -16,7 +16,7 @@ func TestDeliveryTrackingSettingsSetDefaults(t *testing.T) {
 
 		require.False(t, *s.Enable)
 		require.Equal(t, DatabaseDriverPostgres, *s.DriverName)
-		require.Equal(t, DeliveryTrackingSettingsDefaultDataSource, *s.DataSource)
+		require.Empty(t, *s.DataSource) // defaults to empty → primary-DB fallback
 		require.NotNil(t, s.DataSourceReplicas)
 		require.NotNil(t, s.DataSourceSearchReplicas)
 		require.Positive(t, *s.MaxIdleConns)
