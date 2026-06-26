@@ -7,20 +7,33 @@ description: >
   set to /mattermost/server.
 
 inputs:
-  image:
-    description: "Docker image reference"
-    required: true
   run:
     description: "Bash script to execute inside the container"
     required: true
+  fips-enabled:
+    description: "Set to 'true' to use the FIPS build image"
+    required: false
+    default: "false"
 
 runs:
   using: composite
   steps:
     - uses: ./.github/actions/load-buildenv
+    - name: Read Go version
+      shell: bash
+      run: echo "GO_VERSION=$(cat server/.go-version)" >> "${GITHUB_ENV}"
+    - name: Resolve image
+      shell: bash
+      env:
+        FIPS: ${{ inputs.fips-enabled }}
+      run: |
+        if [[ "${FIPS}" == 'true' ]]; then
+          echo "IMAGE=mattermost/mattermost-build-server-fips:${GO_VERSION}" >> "${GITHUB_ENV}"
+        else
+          echo "IMAGE=mattermost/mattermost-build-server:${GO_VERSION}" >> "${GITHUB_ENV}"
+        fi
     - shell: bash
       env:
-        IMAGE: ${{ inputs.image }}
         CMD: ${{ inputs.run }}
       run: |
         docker run --rm \

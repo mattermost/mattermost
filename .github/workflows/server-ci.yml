@@ -87,8 +87,6 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/run-in-buildenv
         with:
-          image: ${{ needs.go.outputs.image }}
-          artifact-name: ${{ needs.go.outputs.image-artifact }}
           run: make mocks
       - name: Check mocks
         run: |
@@ -108,8 +106,6 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/run-in-buildenv
         with:
-          image: ${{ needs.go.outputs.image }}
-          artifact-name: ${{ needs.go.outputs.image-artifact }}
           run: make modules-tidy
       - name: Check modules
         run: |
@@ -129,8 +125,6 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/run-in-buildenv
         with:
-          image: ${{ needs.go.outputs.image }}
-          artifact-name: ${{ needs.go.outputs.image-artifact }}
           run: make check-style
   check-gen-serialized:
     name: Check serialization methods for hot structs
@@ -143,8 +137,6 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/run-in-buildenv
         with:
-          image: ${{ needs.go.outputs.image }}
-          artifact-name: ${{ needs.go.outputs.image-artifact }}
           run: make gen-serialized
       - name: Check serialized
         run: |
@@ -164,8 +156,6 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/run-in-buildenv
         with:
-          image: ${{ needs.go.outputs.image }}
-          artifact-name: ${{ needs.go.outputs.image-artifact }}
           run: make vet-api
   check-migrations:
     name: Check migration files
@@ -178,8 +168,6 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/run-in-buildenv
         with:
-          image: ${{ needs.go.outputs.image }}
-          artifact-name: ${{ needs.go.outputs.image-artifact }}
           run: make migrations-extract
       - name: Check migration files
         run: |
@@ -199,8 +187,6 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/run-in-buildenv
         with:
-          image: ${{ needs.go.outputs.image }}
-          artifact-name: ${{ needs.go.outputs.image-artifact }}
           run: npm install -g mjml@4.9.0 && make build-templates
       - name: Check generated email templates
         run: |
@@ -220,8 +206,6 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/run-in-buildenv
         with:
-          image: ${{ needs.go.outputs.image }}
-          artifact-name: ${{ needs.go.outputs.image-artifact }}
           run: make store-layers
       - name: Check generated code
         run: |
@@ -286,8 +270,6 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/run-in-buildenv
         with:
-          image: ${{ needs.go.outputs.image }}
-          artifact-name: ${{ needs.go.outputs.image-artifact }}
           run: make mmctl-docs
       - name: Check docs
         run: |
@@ -475,8 +457,6 @@ jobs:
       - name: Build
         uses: ./.github/actions/run-in-buildenv
         with:
-          image: ${{ needs.go.outputs.image }}
-          artifact-name: ${{ needs.go.outputs.image-artifact }}
           run: |
             export BUILD_NUMBER="${{ github.head_ref }}-${{ github.run_id }}"
             export FIPS_ENABLED=false
