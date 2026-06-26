@@ -17,7 +17,6 @@ inputs:
 runs:
   using: composite
   steps:
-    # ── Regular ────────────────────────────────────────────────────────
     - name: Resolve regular image
       id: resolve
       shell: bash
@@ -51,7 +50,6 @@ runs:
         name: buildenv-image
         path: /tmp/buildenv-save/image.tar.gz
         retention-days: 1
-    # ── FIPS (skipped on fork PRs) ─────────────────────────────────────
     - name: Docker Hub login
       if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
       uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
