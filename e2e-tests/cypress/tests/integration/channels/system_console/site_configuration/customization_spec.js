@@ -7,11 +7,10 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @system_console
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-import {getRandomId} from '../../../../utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getRandomId} from '@/utils';
 
 describe('Customization', () => {
     beforeEach(() => {
@@ -202,7 +201,7 @@ describe('Customization', () => {
 ~~This has been strikethrough~~
 *This has been italicized*
 [This is a link to mattermost.com](https://mattermost.com)
-` + '`This is inline code`';
+\`This is inline code\``;
 
         // # Update custom brand text
         cy.findByTestId('TeamSettings.CustomBrandTextinput').clear().type(customBrandText);

@@ -23,10 +23,10 @@ import './user_grid.scss';
 type Props = {
     users: UserProfile[];
     scope: 'team' | 'channel';
-    memberships: { [userId: string]: BaseMembership | TeamMembership | ChannelMembership };
+    memberships: {[userId: string]: BaseMembership | TeamMembership | ChannelMembership};
 
-    excludeUsers: { [userId: string]: UserProfile };
-    includeUsers: { [userId: string]: UserProfile };
+    excludeUsers: {[userId: string]: UserProfile};
+    includeUsers: {[userId: string]: UserProfile};
 
     loadPage: (page: number) => void;
     onSearch: (term: string) => void;
@@ -48,7 +48,7 @@ type Props = {
 type State = {
     loading: boolean;
     page: number;
-    membershipsToUpdate: { [userId: string]: BaseMembership | TeamMembership | ChannelMembership };
+    membershipsToUpdate: {[userId: string]: BaseMembership | TeamMembership | ChannelMembership};
 };
 
 const USERS_PER_PAGE = 10;
@@ -292,7 +292,6 @@ export default class UserGrid extends React.PureComponent<Props, State> {
                 columns={columns}
                 rows={rows}
                 loading={this.state.loading || this.props.loading}
-                page={this.state.page}
                 nextPage={this.nextPage}
                 previousPage={this.previousPage}
                 startCount={startCount}

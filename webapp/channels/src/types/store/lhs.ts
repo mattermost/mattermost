@@ -10,7 +10,7 @@ export type LhsViewState = {
 
     // Static pages (e.g. Threads, Insights, etc.)
     currentStaticPageId: string;
-}
+};
 
 export enum LhsItemType {
     None = 'none',
@@ -20,11 +20,12 @@ export enum LhsItemType {
 
 export enum LhsPage {
     Drafts = 'drafts',
+    Recaps = 'recaps',
     Threads = 'threads',
 }
 
 export type StaticPage = {
     id: string;
     isVisible: boolean;
-}
+};
 

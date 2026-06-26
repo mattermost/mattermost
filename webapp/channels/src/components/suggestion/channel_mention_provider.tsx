@@ -12,6 +12,7 @@ import {sortChannelsByTypeAndDisplayName} from 'mattermost-redux/utils/channel_u
 
 import store from 'stores/redux_store';
 
+import ChannelTypeIcon from 'components/channel_type_icon';
 import usePrefixedIds from 'components/common/hooks/usePrefixedIds';
 
 import {Constants} from 'utils/constants';
@@ -35,50 +36,27 @@ export const ChannelMentionSuggestion = React.forwardRef<HTMLLIElement, Suggesti
         name: null,
     });
 
-    let channelIcon;
+    let ariaLabel: string;
     if (channelIsArchived) {
-        channelIcon = (
-            <span
-                id={ids.channelType}
-                className='suggestion-list__icon suggestion-list__icon--large'
-                aria-label={formatMessage({
-                    id: 'suggestion.archived_channel',
-                    defaultMessage: 'Archived channel',
-                })}
-            >
-                <i
-                    className='icon icon-archive-outline'
-                    role='presentation'
-                />
-            </span>
-        );
+        ariaLabel = formatMessage({id: 'suggestion.archived_channel', defaultMessage: 'Archived channel'});
+    } else if (channel?.type === Constants.OPEN_CHANNEL) {
+        ariaLabel = formatMessage({id: 'suggestion.public_channel', defaultMessage: 'Public channel'});
     } else {
-        let iconClass;
-        let iconLabel;
-        if (channel?.type === Constants.OPEN_CHANNEL) {
-            iconClass = 'icon-globe';
-            iconLabel = formatMessage({
-                id: 'suggestion.public_channel',
-                defaultMessage: 'Public channel',
-            });
-        } else {
-            iconClass = 'icon-lock-outline';
-            iconLabel = formatMessage({
-                id: 'suggestion.private_channel',
-                defaultMessage: 'Private channel',
-            });
-        }
-
-        channelIcon = (
-            <span
-                id={ids.channelType}
-                className='suggestion-list__icon suggestion-list__icon--large'
-                aria-label={iconLabel}
-            >
-                <i className={`icon icon--no-spacing ${iconClass}`}/>
-            </span>
-        );
+        ariaLabel = formatMessage({id: 'suggestion.private_channel', defaultMessage: 'Private channel'});
     }
+
+    const channelIcon = (
+        <span
+            id={ids.channelType}
+            className='suggestion-list__icon suggestion-list__icon--large'
+            aria-label={ariaLabel}
+        >
+            <ChannelTypeIcon
+                channel={channel}
+                className='icon--no-spacing'
+            />
+        </span>
+    );
 
     const description = '~' + channel?.name;
 

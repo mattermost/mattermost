@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
@@ -9,6 +8,8 @@ import type {Post, PostEmbed} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {General} from 'mattermost-redux/constants';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import PostMessagePreview from './post_message_preview';
 import type {Props} from './post_message_preview';
@@ -22,11 +23,14 @@ describe('PostMessagePreview', () => {
         id: 'post_id',
         message: 'post message',
         metadata: {},
+        channel_id: 'channel_id',
+        create_at: new Date('2020-01-15T12:00:00Z').getTime(),
     } as Post;
 
     const user = {
         id: 'user_1',
         username: 'username1',
+        roles: 'system_admin',
     } as UserProfile;
 
     const baseProps: Props = {
@@ -50,49 +54,101 @@ describe('PostMessagePreview', () => {
             toggleEmbedVisibility: jest.fn(),
         },
         isPostPriorityEnabled: false,
+        isChannelAutotranslated: false,
+    };
+
+    const baseState = {
+        entities: {
+            users: {
+                currentUserId: user.id,
+                profiles: {
+                    [user.id]: user,
+                },
+            },
+            teams: {
+                currentTeamId: 'team_id',
+                teams: {
+                    team_id: {
+                        id: 'team_id',
+                        name: 'team1',
+                    },
+                },
+            },
+            channels: {
+                channels: {
+                    channel_id: {
+                        id: 'channel_id',
+                        team_id: 'team_id',
+                        type: 'O' as ChannelType,
+                        name: 'channel-name',
+                        display_name: 'Channel Name',
+                    },
+                },
+            },
+            posts: {
+                posts: {
+                    [previewPost.id]: previewPost,
+                },
+            },
+            preferences: {
+                myPreferences: {},
+            },
+            general: {
+                config: {},
+            },
+            roles: {
+                roles: {
+                    system_admin: {
+                        permissions: [],
+                    },
+                },
+            },
+        },
     };
 
     test('should render correctly', () => {
-        const wrapper = shallow(<PostMessagePreview {...baseProps}/>);
-
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<PostMessagePreview {...baseProps}/>, baseState);
+        expect(container).toMatchSnapshot();
     });
 
     test('should render without preview', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <PostMessagePreview
                 {...baseProps}
                 previewPost={undefined}
             />,
+            baseState,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('show render without preview when preview posts becomes undefined after being defined', () => {
         const props = {...baseProps};
-        let wrapper = shallow(
+        let renderResult = renderWithContext(
             <PostMessagePreview
                 {...props}
             />,
+            baseState,
         );
 
-        expect(wrapper).toMatchSnapshot();
-        let permalink = wrapper.find('.permalink');
-        expect(permalink.length).toBe(1);
+        expect(renderResult.container).toMatchSnapshot();
+        let permalink = renderResult.container.querySelector('.attachment--permalink');
+        expect(permalink).toBeInTheDocument();
 
         // now we'll set the preview post to undefined. This happens when the
         // previewed post is deleted.
         props.previewPost = undefined;
 
-        wrapper = shallow(
+        renderResult = renderWithContext(
             <PostMessagePreview
                 {...props}
             />,
+            baseState,
         );
-        expect(wrapper).toMatchSnapshot();
-        permalink = wrapper.find('.permalink');
-        expect(permalink.length).toBe(0);
+        expect(renderResult.container).toMatchSnapshot();
+        permalink = renderResult.container.querySelector('.attachment--permalink');
+        expect(permalink).not.toBeInTheDocument();
     });
 
     test('should not render bot icon', () => {
@@ -111,13 +167,14 @@ describe('PostMessagePreview', () => {
             ...baseProps,
             previewPost: postPreview,
         };
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <PostMessagePreview
                 {...props}
             />,
+            baseState,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should render bot icon', () => {
@@ -137,13 +194,76 @@ describe('PostMessagePreview', () => {
             previewPost: postPreview,
             enablePostIconOverride: true,
         };
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <PostMessagePreview
                 {...props}
             />,
+            baseState,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
+    });
+
+    describe('redacted files placeholder', () => {
+        test('should render placeholder when permissionPoliciesEnabled and redacted_file_count > 0', () => {
+            const postPreview = {
+                ...previewPost,
+                metadata: {
+                    redacted_file_count: 2,
+                },
+            } as Post;
+
+            const props = {
+                ...baseProps,
+                previewPost: postPreview,
+                permissionPoliciesEnabled: true,
+            };
+
+            const {getByTestId, queryByTestId} = renderWithContext(<PostMessagePreview {...props}/>, baseState);
+
+            expect(getByTestId('redactedFilesPlaceholder')).toBeInTheDocument();
+            expect(queryByTestId('fileAttachmentList')).not.toBeInTheDocument();
+        });
+
+        test('should not render placeholder when permissionPoliciesEnabled is false even if redacted_file_count > 0', () => {
+            const postPreview = {
+                ...previewPost,
+                file_ids: ['file_1'],
+                metadata: {
+                    redacted_file_count: 1,
+                },
+            } as Post;
+
+            const props = {
+                ...baseProps,
+                previewPost: postPreview,
+                permissionPoliciesEnabled: false,
+            };
+
+            const {queryByTestId} = renderWithContext(<PostMessagePreview {...props}/>, baseState);
+
+            expect(queryByTestId('redactedFilesPlaceholder')).not.toBeInTheDocument();
+        });
+
+        test('should render regular file list when permissionPoliciesEnabled is true but redacted_file_count is 0', () => {
+            const postPreview = {
+                ...previewPost,
+                file_ids: ['file_1'],
+                metadata: {
+                    redacted_file_count: 0,
+                },
+            } as Post;
+
+            const props = {
+                ...baseProps,
+                previewPost: postPreview,
+                permissionPoliciesEnabled: true,
+            };
+
+            const {queryByTestId} = renderWithContext(<PostMessagePreview {...props}/>, baseState);
+
+            expect(queryByTestId('redactedFilesPlaceholder')).not.toBeInTheDocument();
+        });
     });
 
     describe('nested previews', () => {
@@ -172,9 +292,8 @@ describe('PostMessagePreview', () => {
                 previewPost: postPreview,
             };
 
-            const wrapper = shallow(<PostMessagePreview {...props}/>);
-
-            expect(wrapper).toMatchSnapshot();
+            const {container} = renderWithContext(<PostMessagePreview {...props}/>, baseState);
+            expect(container).toMatchSnapshot();
         });
 
         test('should render file preview', () => {
@@ -188,9 +307,8 @@ describe('PostMessagePreview', () => {
                 previewPost: postPreview,
             };
 
-            const wrapper = shallow(<PostMessagePreview {...props}/>);
-
-            expect(wrapper).toMatchSnapshot();
+            const {container} = renderWithContext(<PostMessagePreview {...props}/>, baseState);
+            expect(container).toMatchSnapshot();
         });
     });
 
@@ -210,13 +328,14 @@ describe('PostMessagePreview', () => {
                 metadata,
             };
 
-            const wrapper = shallow(
+            const {container} = renderWithContext(
                 <PostMessagePreview
                     {...props}
                 />,
+                baseState,
             );
 
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
     });
 });

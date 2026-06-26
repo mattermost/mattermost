@@ -4,8 +4,7 @@
 import semver from 'semver';
 
 import type {DesktopAPI, PopoutViewProps, Theme} from '@mattermost/desktop-api';
-
-import {isDesktopApp} from 'utils/user_agent';
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 
 declare global {
     interface Window {
@@ -63,17 +62,17 @@ export class DesktopAppAPI {
             throw new Error('Failed to open popout: Desktop App returned an invalid popout ID');
         }
         return {
-            send: (channel: string, ...args: unknown[]) => {
+            sendToPopout: (channel: string, ...args: unknown[]) => {
                 this.sendToPopoutWindow(popoutId, channel, ...args);
             },
-            message: (listener: (channel: string, ...args: unknown[]) => void) => {
+            onMessageFromPopout: (listener: (channel: string, ...args: unknown[]) => void) => {
                 return this.onMessageFromPopoutWindow((id, channel, ...args) => {
                     if (id === popoutId) {
                         listener(channel, ...args);
                     }
                 });
             },
-            closed: (listener: () => void) => {
+            onClosePopout: (listener: () => void) => {
                 return this.onPopoutWindowClosed((id) => {
                     if (id === popoutId) {
                         listener();
@@ -281,11 +280,14 @@ export class DesktopAppAPI {
     setSessionExpired = (expired: boolean) => window.desktopAPI?.setSessionExpired && window.desktopAPI.setSessionExpired(expired);
     signalLogin = () => window.desktopAPI?.onLogin?.();
     signalLogout = () => window.desktopAPI?.onLogout?.();
+    invalidateSessionAttributeManifest = () => window.desktopAPI?.invalidateSessionAttributeManifest?.();
+    resendSessionAttributes = () => window.desktopAPI?.resendSessionAttributes?.();
     reactAppInitialized = () => window.desktopAPI?.reactAppInitialized?.();
     updateTheme = (theme: Theme) => window.desktopAPI?.updateTheme?.(theme);
 
     sendToParentWindow = (channel: string, ...args: unknown[]) => window.desktopAPI?.sendToParent?.(channel, ...args);
     sendToPopoutWindow = (id: string, channel: string, ...args: unknown[]) => window.desktopAPI?.sendToPopout?.(id, channel, ...args);
+    updatePopoutTitleTemplate = (template: string) => window.desktopAPI?.updatePopoutTitleTemplate?.(template);
 
     /*********************************************************************
      * Helper functions for legacy code

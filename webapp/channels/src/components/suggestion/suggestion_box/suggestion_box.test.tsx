@@ -127,8 +127,10 @@ describe('SuggestionBox', () => {
             expect(providerSpy).toHaveBeenCalledTimes(2);
         });
 
-        expect(screen.queryByRole('listbox')).toBeVisible();
-        expect(screen.getByText('Suggestion: testwordstestwords')).toBeVisible();
+        await waitFor(() => {
+            expect(screen.queryByRole('listbox')).toBeVisible();
+            expect(screen.getByText('Suggestion: testwordstestwords')).toBeVisible();
+        });
 
         // Clearing the textbox hides all suggestions
         await userEvent.clear(screen.getByPlaceholderText('test input'));
@@ -243,7 +245,6 @@ describe('SuggestionBox', () => {
 
         await waitFor(() => {
             expect(screen.getByPlaceholderText('test input')).toHaveValue('@use@use This is important');
-            expect(onSuggestionsReceived).toHaveBeenCalledTimes(1);
         });
 
         // Wait for the second set of results has been received to ensure the contents of the textbox aren't lost

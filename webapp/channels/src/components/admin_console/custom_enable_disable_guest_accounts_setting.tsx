@@ -12,12 +12,12 @@ import BooleanSetting from './boolean_setting';
 type Props = {
     id: string;
     value: boolean;
-    onChange: (id: string, value: boolean, confirm?: boolean, doSubmit?: boolean, warning?: React.ReactNode | string) => void;
+    onChange: (id: string, value: boolean, confirm?: boolean, doSubmit?: boolean, warning?: React.ReactNode) => void;
     cancelSubmit: () => void;
     disabled?: boolean;
     setByEnv: boolean;
     showConfirm: boolean;
-}
+};
 
 const CustomEnableDisableGuestAccountsSetting = ({
     id,

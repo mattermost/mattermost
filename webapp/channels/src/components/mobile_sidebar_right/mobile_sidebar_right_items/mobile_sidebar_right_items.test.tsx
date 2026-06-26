@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
+
 import {Permissions} from 'mattermost-redux/constants';
 
 import type {MockIntl} from 'tests/helpers/intl-test-helper';
@@ -10,6 +12,12 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import {MobileSidebarRightItems} from './mobile_sidebar_right_items';
 import type {Props} from './mobile_sidebar_right_items';
+
+const isDesktopAppMock = jest.mocked(UserAgent.isDesktopApp);
+
+jest.mock('@mattermost/shared/utils/user_agent', () => ({
+    isDesktopApp: jest.fn(() => false),
+}));
 
 describe('MobileSidebarRightItems', () => {
     const defaultProps: Props = {
@@ -31,10 +39,19 @@ describe('MobileSidebarRightItems', () => {
             showFlaggedPosts: jest.fn(),
             closeRightHandSide: jest.fn(),
             closeRhsMenu: jest.fn(),
+            openModal: jest.fn(),
         },
         teamIsGroupConstrained: false,
         isStarterFree: false,
         isFreeTrial: false,
+        userId: 'test-user-id',
+        profilePicture: 'http://localhost/api/v4/users/test-user-id/image',
+        autoResetPref: '',
+        status: 'online',
+        customStatus: undefined,
+        isCustomStatusExpired: false,
+        isCustomStatusEnabled: false,
+        timezone: '',
         intl: {
             formatMessage: ({defaultMessage}) => defaultMessage,
         } as MockIntl,
@@ -151,14 +168,28 @@ describe('MobileSidebarRightItems', () => {
         expect(screen.getByText('Help')).toBeInTheDocument();
     });
 
-    test('should show report link when provided', () => {
+    test('should show Download Apps link when appDownloadLink is set and not in desktop app', () => {
+        isDesktopAppMock.mockReturnValue(false);
         renderWithContext(
             <MobileSidebarRightItems
                 {...defaultProps}
-                reportAProblemLink='https://report.example.com'
+                appDownloadLink='https://downloads.example.com'
             />,
             defaultState,
         );
-        expect(screen.getByText('Report a Problem')).toBeInTheDocument();
+        expect(screen.getByText('Download Apps')).toBeInTheDocument();
+    });
+
+    test('should hide Download Apps link when in desktop app', () => {
+        isDesktopAppMock.mockReturnValue(true);
+        renderWithContext(
+            <MobileSidebarRightItems
+                {...defaultProps}
+                appDownloadLink='https://downloads.example.com'
+            />,
+            defaultState,
+        );
+        expect(screen.queryByText('Download Apps')).not.toBeInTheDocument();
+        isDesktopAppMock.mockReturnValue(false);
     });
 });

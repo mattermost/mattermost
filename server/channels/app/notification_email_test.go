@@ -6,7 +6,9 @@ package app
 import (
 	"bytes"
 	"fmt"
+	"html"
 	"html/template"
+	"net/url"
 	"regexp"
 	"testing"
 	"time"
@@ -117,7 +119,6 @@ func TestGetNotificationEmailSubject(t *testing.T) {
 func TestGetNotificationEmailBodyFullNotificationPublicChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	post := &model.Post{
@@ -152,7 +153,6 @@ func TestGetNotificationEmailBodyFullNotificationPublicChannel(t *testing.T) {
 func TestGetNotificationEmailBodyFullNotificationGroupChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	post := &model.Post{
@@ -187,7 +187,6 @@ func TestGetNotificationEmailBodyFullNotificationGroupChannel(t *testing.T) {
 func TestGetNotificationEmailBodyFullNotificationPrivateChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	post := &model.Post{
@@ -222,7 +221,6 @@ func TestGetNotificationEmailBodyFullNotificationPrivateChannel(t *testing.T) {
 func TestGetNotificationEmailBodyFullNotificationDirectChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	post := &model.Post{
@@ -257,7 +255,6 @@ func TestGetNotificationEmailBodyFullNotificationDirectChannel(t *testing.T) {
 func TestGetNotificationEmailBodyFullNotificationLocaleTimeWithTimezone(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	recipient := &model.User{
 		Id:       "test-recipient-id",
@@ -300,7 +297,6 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTimeWithTimezone(t *testi
 func TestGetNotificationEmailBodyFullNotificationLocaleTimeNoTimezone(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	recipient := &model.User{
 		Id:       "test-recipient-id",
@@ -356,7 +352,6 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTimeNoTimezone(t *testing
 func TestGetNotificationEmailBodyFullNotificationLocaleTime12Hour(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	recipient := &model.User{
 		Id:       "test-recipient-id",
@@ -397,7 +392,6 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTime12Hour(t *testing.T) 
 func TestGetNotificationEmailBodyFullNotificationLocaleTime24Hour(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	recipient := &model.User{
 		Id:       "test-recipient-id",
@@ -438,7 +432,6 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTime24Hour(t *testing.T) 
 func TestGetNotificationEmailBodyWithUserPreference(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	recipient := &model.User{
 		Id:       "test-recipient-id",
@@ -487,10 +480,9 @@ func TestGetNotificationEmailBodyWithUserPreference(t *testing.T) {
 	require.Contains(t, body, expectedTimeFormat, fmt.Sprintf("Expected email text '%s'. Got %s", expectedTimeFormat, body))
 }
 
-func TestGetNotificationEmailBodyFullNotificationWithSlackAttachments(t *testing.T) {
+func TestGetNotificationEmailBodyFullNotificationWithMessageAttachments(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	post := &model.Post{
@@ -498,7 +490,7 @@ func TestGetNotificationEmailBodyFullNotificationWithSlackAttachments(t *testing
 		Message: "This is the message",
 	}
 
-	messageAttachments := []*model.SlackAttachment{
+	messageAttachments := []*model.MessageAttachment{
 		{
 			Color:      "#FF0000",
 			Pretext:    "message attachment 1 pretext",
@@ -510,7 +502,7 @@ func TestGetNotificationEmailBodyFullNotificationWithSlackAttachments(t *testing
 			Text:       "message attachment 1 text",
 			ImageURL:   "https://example.com/slack_attachment_1/image",
 			ThumbURL:   "https://example.com/slack_attachment_1/thumb",
-			Fields: []*model.SlackAttachmentField{
+			Fields: []*model.MessageAttachmentField{
 				{
 					Short: true,
 					Title: "message attachment 1 field 1 title",
@@ -541,7 +533,7 @@ func TestGetNotificationEmailBodyFullNotificationWithSlackAttachments(t *testing
 		},
 	}
 
-	model.ParseSlackAttachment(post, messageAttachments)
+	model.ParseMessageAttachment(post, messageAttachments)
 
 	channel := &model.Channel{
 		Id:          "test-channel-id",
@@ -592,7 +584,6 @@ func TestGetNotificationEmailBodyFullNotificationWithSlackAttachments(t *testing
 func TestGetNotificationEmailBodyGenericNotificationPublicChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	post := &model.Post{
@@ -626,7 +617,6 @@ func TestGetNotificationEmailBodyGenericNotificationPublicChannel(t *testing.T) 
 func TestGetNotificationEmailBodyGenericNotificationGroupChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	post := &model.Post{
@@ -660,7 +650,6 @@ func TestGetNotificationEmailBodyGenericNotificationGroupChannel(t *testing.T) {
 func TestGetNotificationEmailBodyGenericNotificationPrivateChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	post := &model.Post{
@@ -694,7 +683,6 @@ func TestGetNotificationEmailBodyGenericNotificationPrivateChannel(t *testing.T)
 func TestGetNotificationEmailBodyGenericNotificationDirectChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	post := &model.Post{
@@ -728,7 +716,6 @@ func TestGetNotificationEmailBodyGenericNotificationDirectChannel(t *testing.T) 
 func TestGetNotificationEmailEscapingChars(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	message := "<b>Bold Test</b>"
@@ -761,10 +748,109 @@ func TestGetNotificationEmailEscapingChars(t *testing.T) {
 	assert.NotContains(t, body, message)
 }
 
+func TestGetNotificationEmailBodyFullNotificationFileOnlyPostEscapesFilenameHTML(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupWithStoreMock(t)
+
+	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
+	dangerousFilename := "<b>owned</b>.txt"
+	post := &model.Post{
+		Id:      "test-post-id",
+		Message: "",
+		FileIds: []string{"test-file-id"},
+	}
+	channel := &model.Channel{
+		Id:          "test-channel-id",
+		Name:        "testchannel",
+		DisplayName: "ChannelName",
+		Type:        model.ChannelTypeOpen,
+	}
+	sender := buildTestUser("test-sender-id", "sender", "sender", true)
+	team := buildTestTeam("test-team-id", "testteam", "testteam")
+
+	storeMock := th.App.Srv().Store().(*mocks.Store)
+	fileInfoStoreMock := mocks.FileInfoStore{}
+	fileInfoStoreMock.On("GetForPost", post.Id, true, false, true).Return([]*model.FileInfo{{
+		Id:        "test-file-id",
+		PostId:    post.Id,
+		Name:      dangerousFilename,
+		Extension: "txt",
+		MimeType:  "text/plain",
+	}}, nil)
+	storeMock.On("FileInfo").Return(&fileInfoStoreMock)
+
+	setupPreferenceMocks(th, recipient.Id, true)
+	th.App.Srv().EmailService.SetStore(storeMock)
+
+	notification := buildTestPostNotification(post, channel, sender)
+	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "")
+	require.NoError(t, err)
+
+	require.Contains(t, body, html.EscapeString(dangerousFilename))
+	require.NotContains(t, body, dangerousFilename)
+}
+
+func TestGetNotificationEmailBodyFullNotificationImageOnlyPostNormalizesAndEscapesFilenamesHTML(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupWithStoreMock(t)
+
+	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
+	rawDangerousFilename := "<img src=x onerror=alert(1)>.png"
+	encodedDangerousFilename := url.QueryEscape(rawDangerousFilename)
+	secondFilename := "photo & notes.png"
+	post := &model.Post{
+		Id:      "test-post-id",
+		Message: "",
+		FileIds: []string{"test-file-id-1", "test-file-id-2"},
+	}
+	channel := &model.Channel{
+		Id:          "test-channel-id",
+		Name:        "testchannel",
+		DisplayName: "ChannelName",
+		Type:        model.ChannelTypeOpen,
+	}
+	sender := buildTestUser("test-sender-id", "sender", "sender", true)
+	team := buildTestTeam("test-team-id", "testteam", "testteam")
+
+	storeMock := th.App.Srv().Store().(*mocks.Store)
+	fileInfoStoreMock := mocks.FileInfoStore{}
+	fileInfoStoreMock.On("GetForPost", post.Id, true, false, true).Return([]*model.FileInfo{
+		{
+			Id:        "test-file-id-1",
+			PostId:    post.Id,
+			Name:      encodedDangerousFilename,
+			Extension: "png",
+			MimeType:  "image/png",
+		},
+		{
+			Id:        "test-file-id-2",
+			PostId:    post.Id,
+			Name:      secondFilename,
+			Extension: "png",
+			MimeType:  "image/png",
+		},
+	}, nil)
+	storeMock.On("FileInfo").Return(&fileInfoStoreMock)
+
+	setupPreferenceMocks(th, recipient.Id, true)
+	th.App.Srv().EmailService.SetStore(storeMock)
+
+	notification := buildTestPostNotification(post, channel, sender)
+	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "")
+	require.NoError(t, err)
+
+	expectedFilenames := fmt.Sprintf("%s, %s", html.EscapeString(rawDangerousFilename), html.EscapeString(secondFilename))
+	require.Contains(t, body, "2 images sent:")
+	require.Contains(t, body, expectedFilenames)
+	require.NotContains(t, body, rawDangerousFilename)
+	require.NotContains(t, body, encodedDangerousFilename)
+}
+
 func TestGetNotificationEmailBodyPublicChannelMention(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	ch := &model.Channel{
 		Id:          "test-channel-id",
@@ -778,7 +864,7 @@ func TestGetNotificationEmailBodyPublicChannelMention(t *testing.T) {
 		Email:         "success+" + id + "@simulator.amazonses.com",
 		Username:      "un_" + id,
 		Nickname:      "nn_" + id,
-		Password:      "Password1",
+		Password:      model.NewTestPassword(),
 		EmailVerified: true,
 		Locale:        "en",
 	}
@@ -816,7 +902,6 @@ func TestGetNotificationEmailBodyPublicChannelMention(t *testing.T) {
 func TestGetNotificationEmailBodyMultiPublicChannelMention(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	ch := &model.Channel{
 		Id:          model.NewId(),
@@ -883,7 +968,6 @@ func TestGetNotificationEmailBodyMultiPublicChannelMention(t *testing.T) {
 func TestGetNotificationEmailBodyPrivateChannelMention(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	ch := &model.Channel{
 		Id:          "test-channel-id",
@@ -897,7 +981,7 @@ func TestGetNotificationEmailBodyPrivateChannelMention(t *testing.T) {
 		Email:         "success+" + id + "@simulator.amazonses.com",
 		Username:      "un_" + id,
 		Nickname:      "nn_" + id,
-		Password:      "Password1",
+		Password:      model.NewTestPassword(),
 		EmailVerified: true,
 		Locale:        "en",
 	}
@@ -935,7 +1019,6 @@ func TestGetNotificationEmailBodyPrivateChannelMention(t *testing.T) {
 func TestGenerateHyperlinkForChannelsPublic(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	ch := &model.Channel{
 		Name:        "channelname",
@@ -967,7 +1050,6 @@ func TestGenerateHyperlinkForChannelsPublic(t *testing.T) {
 func TestGenerateHyperlinkForChannelsMultiPublic(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	// TODO: Fix the case where the first channel name contains the other channel names (for example here channelnameone)"
 	ch := &model.Channel{
@@ -1024,7 +1106,6 @@ func TestGenerateHyperlinkForChannelsMultiPublic(t *testing.T) {
 func TestGenerateHyperlinkForChannelsPrivate(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	ch := &model.Channel{
 		Name:        "channelname",
@@ -1058,9 +1139,8 @@ func TestLandingLink(t *testing.T) {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
 	th := setupTestHelper(mockStore, mainHelper.GetSQLStore(), mainHelper.GetSQLSettings(), mainHelper.GetSearchEngine(), false, false,
 		func(cfg *model.Config) {
-			cfg.ServiceSettings.SiteURL = model.NewPointer("http://localhost:8065")
+			cfg.ServiceSettings.SiteURL = new("http://localhost:8065")
 		}, nil, t)
-	defer th.TearDown()
 
 	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	post := &model.Post{
@@ -1098,9 +1178,8 @@ func TestLandingLinkPermalink(t *testing.T) {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
 	th := setupTestHelper(mockStore, mainHelper.GetSQLStore(), mainHelper.GetSQLSettings(), mainHelper.GetSearchEngine(), false, false,
 		func(cfg *model.Config) {
-			cfg.ServiceSettings.SiteURL = model.NewPointer("http://localhost:8065")
+			cfg.ServiceSettings.SiteURL = new("http://localhost:8065")
 		}, nil, t)
-	defer th.TearDown()
 
 	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	post := &model.Post{
@@ -1215,7 +1294,6 @@ func TestMarkdownConversion(t *testing.T) {
 	}
 
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	storeMock := th.App.Srv().Store().(*mocks.Store)

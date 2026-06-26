@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import set from 'lodash/set';
 import React from 'react';
 import type {ComponentProps} from 'react';
 
@@ -14,12 +12,11 @@ import {
 } from 'actions/post_actions';
 import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 
-import Menu from 'components/widgets/menu/menu';
-
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {fakeDate} from 'tests/helpers/date';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
 import {copyToClipboard} from 'utils/utils';
-
-import type {GlobalState} from 'types/store';
 
 import ThreadMenu from '../thread_menu';
 
@@ -29,6 +26,11 @@ jest.mock('actions/post_actions');
 jest.mock('utils/utils');
 jest.mock('hooks/useReadout', () => ({
     useReadout: () => jest.fn(),
+}));
+jest.mock('utils/popouts/popout_windows', () => ({
+    canPopout: jest.fn(() => true),
+    isThreadPopoutWindow: jest.fn(() => false),
+    popoutThread: jest.fn(),
 }));
 
 const mockRouting = {
@@ -46,162 +48,275 @@ jest.mock('../../hooks', () => {
 });
 
 const mockDispatch = jest.fn();
-let mockState: GlobalState;
 
 jest.mock('react-redux', () => ({
     ...jest.requireActual('react-redux') as typeof import('react-redux'),
-    useSelector: (selector: (state: typeof mockState) => unknown) => selector(mockState),
     useDispatch: () => mockDispatch,
 }));
 
 describe('components/threading/common/thread_menu', () => {
     let props: ComponentProps<typeof ThreadMenu>;
 
+    const currentUserId = 'uid';
+    const currentTeamId = 'tid';
+    const channel = TestHelper.getChannelMock({
+        id: 'channel-id-123',
+    });
+    const threadId = '1y8hpek81byspd4enyk9mp1ncw';
+    const post = TestHelper.getPostMock(({
+        id: threadId,
+        channel_id: channel.id,
+    }));
+
+    const baseState = {
+        entities: {
+            channels: {
+                channels: {
+                    [channel.id]: channel,
+                },
+            },
+            general: {
+                config: {},
+            },
+            posts: {
+                posts: {
+                    [post.id]: post,
+                },
+            },
+            preferences: {
+                myPreferences: {},
+            },
+            teams: {
+                currentTeamId,
+            },
+            users: {
+                currentUserId,
+            },
+        },
+        views: {
+            browser: {
+                windowSize: 'desktopView',
+            },
+        },
+    };
+
     beforeEach(() => {
         props = {
-            threadId: '1y8hpek81byspd4enyk9mp1ncw',
+            idPrefix: 'test-thread-menu',
+            threadId,
             unreadTimestamp: 1610486901110,
             hasUnreads: false,
             isFollowing: false,
-            children: (
-                <button>{'test'}</button>
-            ),
         };
-
-        mockState = {entities: {preferences: {myPreferences: {}}}} as GlobalState;
     });
 
-    test('should match snapshot', () => {
-        const wrapper = shallow(
+    test('should render thread menu button', () => {
+        renderWithContext(
             <ThreadMenu
                 {...props}
             />,
+            baseState,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByRole('button', {name: 'More Actions'})).toBeInTheDocument();
     });
 
-    test('should match snapshot after opening', () => {
-        const wrapper = shallow(
+    test('should open menu when button is clicked', async () => {
+        renderWithContext(
             <ThreadMenu
                 {...props}
             />,
+            baseState,
         );
-        wrapper.find('button').simulate('click');
-        expect(wrapper).toMatchSnapshot();
+
+        const menuButton = screen.getByRole('button', {name: 'More Actions'});
+        await userEvent.click(menuButton);
+
+        expect(screen.getByRole('menuitem', {name: /Follow thread/})).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', {name: /Open in channel/})).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', {name: /Mark as unread/})).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', {name: /Save/})).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', {name: /Copy link/})).toBeInTheDocument();
     });
 
-    test('should allow following', () => {
-        const wrapper = shallow(
+    test('should allow following', async () => {
+        renderWithContext(
             <ThreadMenu
                 {...props}
                 isFollowing={false}
             />,
+            baseState,
         );
-        wrapper.find('button').simulate('click');
-        wrapper.find(Menu.ItemAction).find({text: 'Follow thread'}).simulate('click');
-        expect(setThreadFollow).toHaveBeenCalledWith('uid', 'tid', '1y8hpek81byspd4enyk9mp1ncw', true);
-        expect(mockDispatch).toHaveBeenCalledTimes(1);
+
+        const menuButton = screen.getByRole('button', {name: 'More Actions'});
+        await userEvent.click(menuButton);
+
+        const followButton = await screen.findByRole('menuitem', {name: /Follow thread/});
+        await userEvent.click(followButton);
+
+        await waitFor(() => {
+            expect(setThreadFollow).toHaveBeenCalledWith(currentUserId, currentTeamId, threadId, true);
+            expect(mockDispatch).toHaveBeenCalledTimes(1);
+        });
     });
 
-    test('should allow unfollowing', () => {
-        const wrapper = shallow(
+    test('should allow unfollowing', async () => {
+        renderWithContext(
             <ThreadMenu
                 {...props}
                 isFollowing={true}
             />,
+            baseState,
         );
-        wrapper.find('button').simulate('click');
-        wrapper.find(Menu.ItemAction).find({text: 'Unfollow thread'}).simulate('click');
-        expect(setThreadFollow).toHaveBeenCalledWith('uid', 'tid', '1y8hpek81byspd4enyk9mp1ncw', false);
-        expect(mockDispatch).toHaveBeenCalledTimes(1);
+
+        const menuButton = screen.getByRole('button', {name: 'More Actions'});
+        await userEvent.click(menuButton);
+
+        const unfollowButton = screen.getByRole('menuitem', {name: /Unfollow thread/});
+        await userEvent.click(unfollowButton);
+
+        await waitFor(() => {
+            expect(setThreadFollow).toHaveBeenCalledWith(currentUserId, currentTeamId, threadId, false);
+            expect(mockDispatch).toHaveBeenCalledTimes(1);
+        });
     });
 
-    test('should allow opening in channel', () => {
-        const wrapper = shallow(
+    test('should allow opening in channel', async () => {
+        renderWithContext(
             <ThreadMenu
                 {...props}
             />,
+            baseState,
         );
-        wrapper.find('button').simulate('click');
-        wrapper.find(Menu.ItemAction).find({text: 'Open in channel'}).simulate('click');
-        expect(mockRouting.goToInChannel).toHaveBeenCalledWith('1y8hpek81byspd4enyk9mp1ncw');
-        expect(mockDispatch).not.toHaveBeenCalled();
+
+        const menuButton = screen.getByRole('button', {name: 'More Actions'});
+        await userEvent.click(menuButton);
+
+        const openInChannelButton = screen.getByRole('menuitem', {name: /Open in channel/});
+        await userEvent.click(openInChannelButton);
+
+        await waitFor(() => {
+            expect(mockRouting.goToInChannel).toHaveBeenCalledWith(threadId);
+            expect(mockDispatch).not.toHaveBeenCalled();
+        });
     });
 
-    test('should allow marking as read', () => {
+    test('should allow marking as read', async () => {
         const resetFakeDate = fakeDate(new Date(1612582579566));
-        const wrapper = shallow(
+        renderWithContext(
             <ThreadMenu
                 {...props}
                 hasUnreads={true}
             />,
+            baseState,
         );
-        wrapper.find('button').simulate('click');
-        wrapper.find(Menu.ItemAction).find({text: 'Mark as read'}).simulate('click');
-        expect(markLastPostInThreadAsUnread).not.toHaveBeenCalled();
-        expect(updateThreadRead).toHaveBeenCalledWith('uid', 'tid', '1y8hpek81byspd4enyk9mp1ncw', 1612582579566);
-        expect(manuallyMarkThreadAsUnread).toHaveBeenCalledWith('1y8hpek81byspd4enyk9mp1ncw', 1612582579566);
-        expect(mockDispatch).toHaveBeenCalledTimes(2);
+
+        const menuButton = screen.getByRole('button', {name: 'More Actions'});
+        await userEvent.click(menuButton);
+
+        const markAsReadButton = screen.getByRole('menuitem', {name: /Mark as read/});
+        await userEvent.click(markAsReadButton);
+
+        await waitFor(() => {
+            expect(markLastPostInThreadAsUnread).not.toHaveBeenCalled();
+            expect(updateThreadRead).toHaveBeenCalledWith(currentUserId, currentTeamId, threadId, 1612582579566);
+            expect(manuallyMarkThreadAsUnread).toHaveBeenCalledWith(threadId, 1612582579566);
+            expect(mockDispatch).toHaveBeenCalledTimes(2);
+        });
         resetFakeDate();
     });
 
-    test('should allow marking as unread', () => {
-        const wrapper = shallow(
+    test('should allow marking as unread', async () => {
+        renderWithContext(
             <ThreadMenu
                 {...props}
                 hasUnreads={false}
             />,
+            baseState,
         );
-        wrapper.find('button').simulate('click');
-        wrapper.find(Menu.ItemAction).find({text: 'Mark as unread'}).simulate('click');
-        expect(updateThreadRead).not.toHaveBeenCalled();
-        expect(markLastPostInThreadAsUnread).toHaveBeenCalledWith('uid', 'tid', '1y8hpek81byspd4enyk9mp1ncw');
-        expect(manuallyMarkThreadAsUnread).toHaveBeenCalledWith('1y8hpek81byspd4enyk9mp1ncw', 1610486901110);
-        expect(mockDispatch).toHaveBeenCalledTimes(2);
-    });
 
-    test('should allow saving', () => {
-        const wrapper = shallow(
-            <ThreadMenu
-                {...props}
-            />,
-        );
-        wrapper.find('button').simulate('click');
-        wrapper.find(Menu.ItemAction).find({text: 'Save'}).simulate('click');
-        expect(savePost).toHaveBeenCalledWith('1y8hpek81byspd4enyk9mp1ncw');
-        expect(mockDispatch).toHaveBeenCalledTimes(1);
-    });
-    test('should allow unsaving', () => {
-        set(mockState, 'entities.preferences.myPreferences', {
-            'flagged_post--1y8hpek81byspd4enyk9mp1ncw': {
-                user_id: 'uid',
-                category: 'flagged_post',
-                name: '1y8hpek81byspd4enyk9mp1ncw',
-                value: 'true',
-            },
+        const menuButton = screen.getByRole('button', {name: 'More Actions'});
+        await userEvent.click(menuButton);
+
+        const markAsUnreadButton = screen.getByRole('menuitem', {name: /Mark as unread/});
+        await userEvent.click(markAsUnreadButton);
+
+        await waitFor(() => {
+            expect(updateThreadRead).not.toHaveBeenCalled();
+            expect(markLastPostInThreadAsUnread).toHaveBeenCalledWith(currentUserId, currentTeamId, threadId);
+            expect(manuallyMarkThreadAsUnread).toHaveBeenCalledWith(threadId, 1610486901110);
+            expect(mockDispatch).toHaveBeenCalledTimes(2);
         });
-
-        const wrapper = shallow(
-            <ThreadMenu
-                {...props}
-            />,
-        );
-        wrapper.find('button').simulate('click');
-        wrapper.find(Menu.ItemAction).find({text: 'Unsave'}).simulate('click');
-        expect(unsavePost).toHaveBeenCalledWith('1y8hpek81byspd4enyk9mp1ncw');
-        expect(mockDispatch).toHaveBeenCalledTimes(1);
     });
 
-    test('should allow link copying', () => {
-        const wrapper = shallow(
+    test('should allow saving', async () => {
+        renderWithContext(
             <ThreadMenu
                 {...props}
             />,
+            baseState,
         );
-        wrapper.find('button').simulate('click');
-        wrapper.find(Menu.ItemAction).find({text: 'Copy link'}).simulate('click');
-        expect(copyToClipboard).toHaveBeenCalledWith('http://localhost:8065/team-name-1/pl/1y8hpek81byspd4enyk9mp1ncw');
-        expect(mockDispatch).not.toHaveBeenCalled();
+
+        const menuButton = screen.getByRole('button', {name: 'More Actions'});
+        await userEvent.click(menuButton);
+
+        const saveButton = screen.getByRole('menuitem', {name: /Save/});
+        await userEvent.click(saveButton);
+
+        await waitFor(() => {
+            expect(savePost).toHaveBeenCalledWith(threadId);
+            expect(mockDispatch).toHaveBeenCalledTimes(1);
+        });
+    });
+    test('should allow unsaving', async () => {
+        renderWithContext(
+            <ThreadMenu
+                {...props}
+            />,
+            mergeObjects(baseState, {
+                entities: {
+                    preferences: {
+                        myPreferences: {
+                            [`flagged_post--${post.id}`]: {
+                                user_id: currentUserId,
+                                category: 'flagged_post',
+                                name: threadId,
+                                value: 'true',
+                            },
+                        },
+                    },
+                },
+            }),
+        );
+
+        const menuButton = screen.getByRole('button', {name: 'More Actions'});
+        await userEvent.click(menuButton);
+
+        const unsaveButton = screen.getByRole('menuitem', {name: /Unsave/});
+        await userEvent.click(unsaveButton);
+
+        await waitFor(() => {
+            expect(unsavePost).toHaveBeenCalledWith(threadId);
+            expect(mockDispatch).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    test('should allow link copying', async () => {
+        renderWithContext(
+            <ThreadMenu
+                {...props}
+            />,
+            baseState,
+        );
+
+        const menuButton = screen.getByRole('button', {name: 'More Actions'});
+        await userEvent.click(menuButton);
+
+        const copyLinkButton = screen.getByRole('menuitem', {name: /Copy link/});
+        await userEvent.click(copyLinkButton);
+
+        await waitFor(() => {
+            expect(copyToClipboard).toHaveBeenCalledWith(`http://localhost:8065/team-name-1/pl/${threadId}`);
+            expect(mockDispatch).not.toHaveBeenCalled();
+        });
     });
 });
-

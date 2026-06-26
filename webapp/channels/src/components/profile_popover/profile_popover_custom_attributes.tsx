@@ -10,6 +10,8 @@ import {getCustomProfileAttributeValues} from 'mattermost-redux/actions/users';
 import {getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
+import {getUserPropertyFieldLabel} from 'utils/properties';
+
 import type {GlobalState} from 'types/store';
 
 import ProfilePopoverPhone from './profile_popover_phone';
@@ -20,7 +22,7 @@ import ProfilePopoverUrl from './profile_popover_url';
 type Props = {
     userID: string;
     hideStatus?: boolean;
-}
+};
 const ProfilePopoverCustomAttributes = ({
     userID,
     hideStatus = false,
@@ -33,10 +35,15 @@ const ProfilePopoverCustomAttributes = ({
         if (!userProfile.custom_profile_attributes) {
             dispatch(getCustomProfileAttributeValues(userID));
         }
-    });
+    }, [dispatch, userID, userProfile.custom_profile_attributes]);
 
     const attributeSections = customProfileAttributeFields.map((attribute) => {
         if (!hideStatus && userProfile.custom_profile_attributes) {
+            // Hide source_only fields from profile popover
+            if (attribute.attrs?.access_mode === 'source_only') {
+                return null;
+            }
+
             const visibility = attribute.attrs?.visibility || 'when_set';
             if (visibility === 'hidden') {
                 return null;
@@ -47,7 +54,7 @@ const ProfilePopoverCustomAttributes = ({
 
             if (!hasValue && visibility === 'when_set') {
                 return null;
-            } else if (visibility === 'when_set' && (attribute.type === 'multiselect' || attribute.type === 'select')) {
+            } else if (visibility === 'when_set' && (attribute.type === 'multiselect' || attribute.type === 'select' || attribute.type === 'rank')) {
                 const attributeValue = userProfile.custom_profile_attributes[attribute.id];
 
                 // make sure attribute contains legitimate values
@@ -78,9 +85,9 @@ const ProfilePopoverCustomAttributes = ({
                         id={`user-popover__custom_attributes-title-${attribute.id}`}
                         className='user-popover__subtitle'
                     >
-                        {attribute.name}
+                        {getUserPropertyFieldLabel(attribute)}
                     </strong>
-                    {(attribute.type === 'multiselect' || attribute.type === 'select') && (
+                    {(attribute.type === 'multiselect' || attribute.type === 'select' || attribute.type === 'rank') && (
                         <ProfilePopoverSelectAttribute
                             attribute={attribute}
                             userProfile={userProfile}

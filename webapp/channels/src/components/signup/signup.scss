@@ -167,22 +167,6 @@
                         margin-top: 22px;
                     }
 
-                    .newsletter {
-                        margin-top: 24px;
-                        margin-bottom: 32px;
-                        color: rgba(var(--center-channel-color-rgb), 0.75);
-                        font-family: 'Open Sans';
-                        font-size: 12px;
-                        font-style: normal;
-                        font-weight: 400;
-                        line-height: 16px;
-
-                        .interested {
-                            display: block;
-                            color: var(--center-channel-color);
-                        }
-                    }
-
                     .signup-body-card-form-button-submit {
                         @include mixins.primary-button;
                         @include mixins.button-large;
@@ -220,19 +204,6 @@
                         flex-direction: column;
                         margin-top: 22px;
                         row-gap: 24px;
-                    }
-                }
-
-                .signup-body-card-agreement {
-                    margin-top: 32px;
-                    color: rgba(var(--center-channel-color-rgb), 0.75);
-                    font-size: 11px;
-                    line-height: 16px;
-
-                    a {
-                        @include mixins.link;
-
-                        font-size: 11px;
                     }
                 }
             }

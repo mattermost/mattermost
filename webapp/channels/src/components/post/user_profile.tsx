@@ -9,12 +9,13 @@ import type {Post} from '@mattermost/types/posts';
 
 import {ensureString} from 'mattermost-redux/utils/post_utils';
 
+import AiGeneratedIndicator from 'components/post_view/ai_generated_indicator/ai_generated_indicator';
 import PostHeaderCustomStatus from 'components/post_view/post_header_custom_status/post_header_custom_status';
 import UserProfile from 'components/user_profile';
 import BotTag from 'components/widgets/tag/bot_tag';
 import Tag from 'components/widgets/tag/tag';
 
-import {fromAutoResponder, isFromWebhook} from 'utils/post_utils';
+import {fromAutoResponder, hasAiGeneratedMetadata, isFromWebhook} from 'utils/post_utils';
 
 type Props = {
     post: Post;
@@ -25,20 +26,37 @@ type Props = {
     isBot: boolean;
     isSystemMessage: boolean;
     isMobileView: boolean;
+    location: string;
 };
 
 const PostUserProfile = (props: Props): JSX.Element | null => {
     const intl = useIntl();
-    const {post, compactDisplay, isMobileView, isConsecutivePost, enablePostUsernameOverride, isBot, isSystemMessage, colorizeUsernames} = props;
+    const {post, compactDisplay, isMobileView, isConsecutivePost, enablePostUsernameOverride, isBot, isSystemMessage, colorizeUsernames, location} = props;
     const isFromAutoResponder = fromAutoResponder(post);
     const colorize = compactDisplay && colorizeUsernames;
+
+    // Bot/webhook posts should never show a GUEST tag, even if the underlying
+    // account (e.g. the webhook creator) has been demoted to a guest.
+    const hideGuestTag = isBot || isFromWebhook(post);
 
     let userProfile: ReactNode = null;
     let botIndicator = null;
     let colon = null;
+    let aiIndicator = null;
 
     if (props.compactDisplay) {
         colon = <strong className='colon'>{':'}</strong>;
+
+        // Add AI indicator in compact mode after username, but not in RHS thread view (it goes after timestamp there)
+        if (hasAiGeneratedMetadata(post) && !(location === 'RHS_ROOT' || location === 'RHS_COMMENT')) {
+            aiIndicator = (
+                <AiGeneratedIndicator
+                    userId={post.props.ai_generated_by as string}
+                    username={post.props.ai_generated_by_username as string}
+                    postAuthorId={post.user_id}
+                />
+            );
+        }
     }
 
     const customStatus = (
@@ -55,6 +73,7 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
                 userId={post.user_id}
                 channelId={post.channel_id}
                 colorize={colorize}
+                hideGuestTag={hideGuestTag}
             />
         );
     }
@@ -65,6 +84,7 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
                 userId={post.user_id}
                 channelId={post.channel_id}
                 colorize={colorize}
+                hideGuestTag={hideGuestTag}
             />
         );
     } else {
@@ -73,6 +93,7 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
                 userId={post.user_id}
                 channelId={post.channel_id}
                 colorize={colorize}
+                hideGuestTag={hideGuestTag}
             />
         );
 
@@ -86,6 +107,7 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
                     userId={post.user_id}
                     channelId={post.channel_id}
                     hideStatus={true}
+                    hideGuestTag={hideGuestTag}
                     overwriteName={overwriteName}
                     colorize={colorize}
                     overwriteIcon={overwriteIcon}
@@ -124,6 +146,7 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
                     userId={post.user_id}
                     channelId={post.channel_id}
                     hideStatus={true}
+                    hideGuestTag={hideGuestTag}
                     colorize={colorize}
                 />
             );
@@ -148,6 +171,7 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
         {colon}
         {botIndicator}
         {customStatus}
+        {aiIndicator}
     </div>);
 };
 

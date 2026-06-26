@@ -15,7 +15,6 @@ import (
 func TestGetJob(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	status := &model.Job{
 		Id:     model.NewId(),
@@ -37,7 +36,6 @@ func TestGetJob(t *testing.T) {
 func TestSessionHasPermissionToCreateJob(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	jobs := []model.Job{
 		{
@@ -109,11 +107,10 @@ func TestSessionHasPermissionToCreateJob(t *testing.T) {
 
 func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	// Create a private channel and make BasicUser a channel admin
-	privateChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+	privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
 	_, err := th.App.AddUserToChannel(th.Context, th.BasicUser, privateChannel, false)
 	require.Nil(t, err)
 
@@ -162,7 +159,7 @@ func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
 
 	t.Run("channel admin cannot create access control sync job for other channel", func(t *testing.T) {
 		// Create another private channel that BasicUser is NOT admin of
-		otherChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+		otherChannel := th.CreatePrivateChannel(t, th.BasicTeam)
 
 		// EXPLICITLY remove channel admin role from BasicUser for otherChannel
 		// (CreatePrivateChannel might auto-add admin roles)
@@ -196,8 +193,118 @@ func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
 		assert.Equal(t, model.PermissionManageSystem.Id, permissionRequired.Id)
 	})
 
+	t.Run("team admin can create team-scoped sync job with team_id only", func(t *testing.T) {
+		teamAdmin := th.CreateUser(t)
+		th.LinkUserToTeam(t, teamAdmin, th.BasicTeam)
+		_, appErr := th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, "team_user team_admin")
+		require.Nil(t, appErr)
+
+		teamAdminSession := model.Session{
+			UserId: teamAdmin.Id,
+			Roles:  model.SystemUserRoleId,
+			TeamMembers: []*model.TeamMember{
+				{TeamId: th.BasicTeam.Id, UserId: teamAdmin.Id, Roles: "team_user team_admin"},
+			},
+		}
+
+		jobWithTeamOnly := model.Job{
+			Id:   model.NewId(),
+			Type: model.JobTypeAccessControlSync,
+			Data: model.StringMap{
+				"team_id": th.BasicTeam.Id,
+			},
+		}
+
+		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(teamAdminSession, &jobWithTeamOnly)
+		assert.True(t, hasPermission)
+		require.NotNil(t, permissionRequired)
+		assert.Equal(t, model.PermissionManageTeamAccessRules.Id, permissionRequired.Id)
+	})
+
+	t.Run("team admin can create policy-scoped sync job for their owned policy", func(t *testing.T) {
+		teamAdmin := th.CreateUser(t)
+		th.LinkUserToTeam(t, teamAdmin, th.BasicTeam)
+		_, appErr := th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, "team_user team_admin")
+		require.Nil(t, appErr)
+
+		// Build ownership via the real parent->child channel relationship, then reconcile scope.
+		parentPolicy := &model.AccessControlPolicy{
+			ID:      model.NewId(),
+			Name:    "team-owned-policy",
+			Type:    model.AccessControlPolicyTypeParent,
+			Version: model.AccessControlPolicyVersionV0_2,
+			Rules:   []model.AccessControlPolicyRule{{Actions: []string{"*"}, Expression: "true"}},
+		}
+		savedParent, storeErr := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, parentPolicy)
+		require.NoError(t, storeErr)
+
+		channel := th.CreatePrivateChannel(t, th.BasicTeam)
+		childPolicy := &model.AccessControlPolicy{
+			ID:      channel.Id,
+			Type:    model.AccessControlPolicyTypeChannel,
+			Version: model.AccessControlPolicyVersionV0_2,
+		}
+		require.Nil(t, childPolicy.Inherit(savedParent))
+		_, storeErr = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, childPolicy)
+		require.NoError(t, storeErr)
+
+		appErr = th.App.ReconcilePolicyTeamScope(th.Context, savedParent.ID)
+		require.Nil(t, appErr)
+
+		teamAdminSession := model.Session{
+			UserId: teamAdmin.Id,
+			Roles:  model.SystemUserRoleId,
+			TeamMembers: []*model.TeamMember{
+				{TeamId: th.BasicTeam.Id, UserId: teamAdmin.Id, Roles: "team_user team_admin"},
+			},
+		}
+
+		jobWithOwnedPolicy := model.Job{
+			Id:   model.NewId(),
+			Type: model.JobTypeAccessControlSync,
+			Data: model.StringMap{
+				"team_id":   th.BasicTeam.Id,
+				"policy_id": savedParent.ID,
+			},
+		}
+
+		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(teamAdminSession, &jobWithOwnedPolicy)
+		assert.True(t, hasPermission)
+		require.NotNil(t, permissionRequired)
+		assert.Equal(t, model.PermissionManageTeamAccessRules.Id, permissionRequired.Id)
+	})
+
+	t.Run("team admin cannot smuggle a foreign policy_id alongside their team_id", func(t *testing.T) {
+		teamAdmin := th.CreateUser(t)
+		th.LinkUserToTeam(t, teamAdmin, th.BasicTeam)
+		_, appErr := th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, "team_user team_admin")
+		require.Nil(t, appErr)
+
+		teamAdminSession := model.Session{
+			UserId: teamAdmin.Id,
+			Roles:  model.SystemUserRoleId,
+			TeamMembers: []*model.TeamMember{
+				{TeamId: th.BasicTeam.Id, UserId: teamAdmin.Id, Roles: "team_user team_admin"},
+			},
+		}
+
+		jobWithPolicyAndTeam := model.Job{
+			Id:   model.NewId(),
+			Type: model.JobTypeAccessControlSync,
+			Data: model.StringMap{
+				"team_id":   th.BasicTeam.Id,
+				"policy_id": model.NewId(), // foreign policy the team admin does not own
+			},
+		}
+
+		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(teamAdminSession, &jobWithPolicyAndTeam)
+		assert.False(t, hasPermission)
+		require.NotNil(t, permissionRequired)
+		assert.Equal(t, model.PermissionManageSystem.Id, permissionRequired.Id)
+	})
+
 	t.Run("regular user cannot create access control sync job", func(t *testing.T) {
-		regularUser := th.CreateUser()
+		regularUser := th.CreateUser(t)
 		regularUserSession := model.Session{
 			UserId: regularUser.Id,
 			Roles:  model.SystemUserRoleId,
@@ -221,8 +328,7 @@ func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
 
 func TestCreateAccessControlSyncJob(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("cancels pending job and creates new one", func(t *testing.T) {
 		// Create an existing pending job manually in the store
@@ -395,7 +501,6 @@ func TestCreateAccessControlSyncJob(t *testing.T) {
 func TestSessionHasPermissionToReadJob(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	jobs := []model.Job{
 		{
@@ -480,7 +585,6 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 func TestGetJobByType(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	jobType := model.NewId()
 
@@ -523,10 +627,104 @@ func TestGetJobByType(t *testing.T) {
 	require.Equal(t, statuses[1], received[0], "should've received oldest job last")
 }
 
+func TestGetJobsByTypeAndData(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	// Unique synthetic types avoid collisions with jobs seeded elsewhere (same pattern as TestGetJobByType).
+	targetJobType := model.NewId()
+	otherJobType := model.NewId()
+
+	policyID := model.NewId()
+	otherPolicyID := model.NewId()
+
+	jobs := []*model.Job{
+		{
+			Id:       model.NewId(),
+			Type:     targetJobType,
+			CreateAt: 1000,
+			Data:     map[string]string{"policy_id": policyID},
+		},
+		{
+			Id:       model.NewId(),
+			Type:     targetJobType,
+			CreateAt: 999,
+			Data:     map[string]string{"policy_id": policyID},
+		},
+		{
+			Id:       model.NewId(),
+			Type:     targetJobType,
+			CreateAt: 1001,
+			Data:     map[string]string{"policy_id": policyID},
+		},
+		{
+			Id:       model.NewId(),
+			Type:     targetJobType,
+			CreateAt: 1002,
+			Data:     map[string]string{"policy_id": otherPolicyID},
+		},
+		{
+			Id:       model.NewId(),
+			Type:     otherJobType,
+			CreateAt: 1003,
+			Data:     map[string]string{"policy_id": policyID},
+		},
+	}
+
+	for _, job := range jobs {
+		_, err := th.App.Srv().Store().Job().Save(job)
+		require.NoError(t, err)
+		defer func(id string) {
+			_, err := th.App.Srv().Store().Job().Delete(id)
+			require.NoError(t, err)
+		}(job.Id)
+	}
+
+	t.Run("returns all matching jobs for policy", func(t *testing.T) {
+		received, appErr := th.App.GetJobsByTypeAndData(th.Context, targetJobType,
+			map[string]string{"policy_id": policyID})
+		require.Nil(t, appErr)
+		require.Len(t, received, 3)
+		receivedIDs := make([]string, len(received))
+		for i, j := range received {
+			receivedIDs[i] = j.Id
+			assert.Equal(t, targetJobType, j.Type)
+		}
+		require.ElementsMatch(t, []string{jobs[0].Id, jobs[1].Id, jobs[2].Id}, receivedIDs)
+	})
+
+	t.Run("filters by data key-value, excludes other policies", func(t *testing.T) {
+		received, appErr := th.App.GetJobsByTypeAndData(th.Context, targetJobType,
+			map[string]string{"policy_id": otherPolicyID})
+		require.Nil(t, appErr)
+		require.Len(t, received, 1)
+		require.Equal(t, jobs[3].Id, received[0].Id)
+	})
+
+	t.Run("returns empty when no jobs match data filter", func(t *testing.T) {
+		received, appErr := th.App.GetJobsByTypeAndData(th.Context, targetJobType,
+			map[string]string{"policy_id": model.NewId()})
+		require.Nil(t, appErr)
+		require.Empty(t, received)
+	})
+
+	t.Run("empty data map returns all jobs of that type only", func(t *testing.T) {
+		received, appErr := th.App.GetJobsByTypeAndData(th.Context, targetJobType,
+			map[string]string{})
+		require.Nil(t, appErr)
+		require.Len(t, received, 4)
+		receivedIDs := make([]string, len(received))
+		for i, j := range received {
+			receivedIDs[i] = j.Id
+			assert.Equal(t, targetJobType, j.Type)
+		}
+		require.ElementsMatch(t, []string{jobs[0].Id, jobs[1].Id, jobs[2].Id, jobs[3].Id}, receivedIDs)
+	})
+}
+
 func TestGetJobsByTypes(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	jobType := model.NewId()
 	jobType1 := model.NewId()

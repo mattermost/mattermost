@@ -5,8 +5,9 @@ import {writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import fs from 'node:fs';
 
-import {Browser, BrowserContext, request} from '@playwright/test';
-import {UserProfile} from '@mattermost/types/users';
+import type {Browser, BrowserContext} from '@playwright/test';
+import {request} from '@playwright/test';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {testConfig} from './test_config';
 import {pages} from './ui/pages';
@@ -14,11 +15,10 @@ import {resolvePlaywrightPath} from './util';
 
 export class TestBrowser {
     readonly browser: Browser;
-    context: BrowserContext | null;
+    private contexts: BrowserContext[] = [];
 
     constructor(browser: Browser) {
         this.browser = browser;
-        this.context = null;
     }
 
     async login(user: UserProfile) {
@@ -37,17 +37,40 @@ export class TestBrowser {
         const systemConsolePage = new pages.SystemConsolePage(page);
         const scheduledPostsPage = new pages.ScheduledPostsPage(page);
         const draftsPage = new pages.DraftsPage(page);
+        const recapsPage = new pages.RecapsPage(page);
         const threadsPage = new pages.ThreadsPage(page);
+        const contentReviewPage = new pages.ContentReviewPage(page);
 
-        this.context = context;
+        this.contexts.push(context);
 
-        return {context, page, channelsPage, systemConsolePage, scheduledPostsPage, draftsPage, threadsPage};
+        return {
+            context,
+            page,
+            channelsPage,
+            systemConsolePage,
+            scheduledPostsPage,
+            draftsPage,
+            recapsPage,
+            threadsPage,
+            contentReviewPage,
+        };
+    }
+
+    /**
+     * Switch the auth state of an existing context to a different user
+     * without creating a new context. After switching, pages in the context
+     * should be reloaded to pick up the new auth state.
+     */
+    async switchUser(context: BrowserContext, user: UserProfile) {
+        const storagePath = await loginByAPI(user.username, user.password);
+        await (context as any).setStorageState(storagePath);
     }
 
     async close() {
-        if (this.context) {
-            await this.context.close();
+        for (const context of this.contexts) {
+            await context.close();
         }
+        this.contexts = [];
     }
 }
 

@@ -101,6 +101,15 @@ describe('Move Thread', () => {
         });
     });
 
+    afterEach(() => {
+        // # Close any open modals to prevent test pollution
+        cy.get('body').then(($body) => {
+            if ($body.find('.modal.in').length > 0) {
+                cy.get('body').type('{esc}');
+            }
+        });
+    });
+
     it('MM-T5514 Move root post from public channel to another public channel', () => {
         // # Check if ... button is visible in last post right side
         cy.get(`#CENTER_button_${testPost.id}`).should('not.be.visible');
@@ -223,6 +232,9 @@ describe('Move Thread', () => {
 
             // * Assert Notification is shown
             cy.findByTestId('notification-text').should('be.visible').should('contain.text', 'Moving this thread changes who has access');
+
+            // # Click confirm to close the modal and complete the move
+            cy.get('.GenericModal__button.confirm').click();
         });
     };
 });

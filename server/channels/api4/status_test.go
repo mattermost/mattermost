@@ -16,8 +16,7 @@ import (
 
 func TestGetUserStatus(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	t.Run("offline status", func(t *testing.T) {
@@ -55,7 +54,6 @@ func TestGetUserStatus(t *testing.T) {
 	})
 
 	t.Run("dnd status timed restore after time interval", func(t *testing.T) {
-		t.Skip("https://mattermost.atlassian.net/browse/MM-63533")
 		task := model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses From Test", th.App.UpdateDNDStatusOfUsers, 1*time.Second)
 		defer task.Cancel()
 		th.App.SetStatusOnline(th.BasicUser.Id, true)
@@ -66,10 +64,12 @@ func TestGetUserStatus(t *testing.T) {
 		userStatus, _, err = client.GetUserStatus(context.Background(), th.BasicUser.Id, "")
 		require.NoError(t, err)
 		assert.Equal(t, "dnd", userStatus.Status)
-		time.Sleep(3 * time.Second)
-		userStatus, _, err = client.GetUserStatus(context.Background(), th.BasicUser.Id, "")
-		require.NoError(t, err)
-		assert.Equal(t, "online", userStatus.Status)
+		// Poll for status restore instead of sleeping a fixed duration (MM-63533).
+		// The recurring task runs every 1s but can lag under CI load.
+		require.Eventually(t, func() bool {
+			userStatus, _, err = client.GetUserStatus(context.Background(), th.BasicUser.Id, "")
+			return err == nil && userStatus.Status == "online"
+		}, 15*time.Second, 500*time.Millisecond, "DND status was not restored to online within timeout")
 	})
 
 	t.Run("back to offline status", func(t *testing.T) {
@@ -95,7 +95,7 @@ func TestGetUserStatus(t *testing.T) {
 	})
 
 	t.Run("get status from other user", func(t *testing.T) {
-		th.LoginBasic2()
+		th.LoginBasic2(t)
 		userStatus, _, err := client.GetUserStatus(context.Background(), th.BasicUser2.Id, "")
 		require.NoError(t, err)
 		assert.Equal(t, "offline", userStatus.Status)
@@ -104,8 +104,7 @@ func TestGetUserStatus(t *testing.T) {
 
 func TestGetUsersStatusesByIds(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	usersIds := []string{th.BasicUser.Id, th.BasicUser2.Id}
@@ -188,8 +187,7 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 
 func TestUpdateUserStatus(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	t.Run("set online status", func(t *testing.T) {
@@ -253,8 +251,7 @@ func TestUpdateUserStatus(t *testing.T) {
 
 func TestUpdateUserCustomStatus(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	t.Run("set custom status", func(t *testing.T) {
@@ -356,8 +353,7 @@ func TestUpdateUserCustomStatus(t *testing.T) {
 
 func TestRemoveUserCustomStatus(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	t.Run("remove custom status successfully", func(t *testing.T) {
@@ -402,7 +398,7 @@ func TestRemoveUserCustomStatus(t *testing.T) {
 	})
 
 	t.Run("remove non-existent custom status", func(t *testing.T) {
-		th.LoginBasic()
+		th.LoginBasic(t)
 		resp, err := client.RemoveUserCustomStatus(context.Background(), th.BasicUser.Id)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)

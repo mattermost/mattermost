@@ -44,7 +44,7 @@ func (api *API) InitCloud() {
 	// GET /api/v4/cloud/installation
 	api.BaseRoutes.Cloud.Handle("/installation", api.APISessionRequired(getInstallation)).Methods(http.MethodGet)
 
-	// GET /api/v4/cloud/cws-health-check
+	// GET /api/v4/cloud/check-cws-connection
 	api.BaseRoutes.Cloud.Handle("/check-cws-connection", api.APIHandler(handleCheckCWSConnection)).Methods(http.MethodGet)
 
 	// GET /api/v4/cloud/preview/modal_data
@@ -119,7 +119,6 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 			IsFreeTrial:     subscription.IsFreeTrial,
 			TrialEndAt:      subscription.TrialEndAt,
 			EndAt:           subscription.EndAt,
-			CancelAt:        subscription.CancelAt,
 			DelinquentSince: subscription.DelinquentSince,
 			CustomerID:      "",
 			AddOns:          []string{},
@@ -137,10 +136,9 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 		subscription.SimulatedCurrentTimeMs = nil
 	}
 
-	if !c.App.Config().FeatureFlags.CloudAnnualRenewals {
-		subscription.WillRenew = ""
-		subscription.CancelAt = nil
-	}
+	// The annual renewals feature is deprecated; renewal and cancellation timing are not exposed to clients.
+	subscription.WillRenew = ""
+	subscription.CancelAt = nil
 
 	json, err := json.Marshal(subscription)
 	if err != nil {
@@ -605,12 +603,16 @@ func handleCheckCWSConnection(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	status := "available"
 	if err := c.App.Cloud().CheckCWSConnection(c.AppContext.Session().UserId); err != nil {
-		c.Err = model.NewAppError("Api4.handleCWSHealthCheck", "api.server.cws.health_check.app_error", nil, "CWS Server is not available.", http.StatusInternalServerError)
-		return
+		status = "unavailable"
 	}
 
-	ReturnStatusOK(w)
+	response := map[string]string{"status": status}
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		c.Err = model.NewAppError("Api4.handleCheckCWSConnection", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
 }
 
 func getPreviewModalData(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -34,6 +34,7 @@ import {
     comparePosts,
     isPostPendingOrFailed,
     isPostCommentMention,
+    isFromWebhook,
 } from 'mattermost-redux/utils/post_utils';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
@@ -44,7 +45,7 @@ export function getAllPosts(state: GlobalState) {
 export type UserActivityPost = Post & {
     system_post_ids: string[];
     user_activity_posts: Post[];
-}
+};
 
 export function getPost(state: GlobalState, postId: Post['id']): Post {
     return getAllPosts(state)[postId];
@@ -124,7 +125,7 @@ export function makeGetPostIdsForThread(): (state: GlobalState, postId: Post['id
     );
 }
 
-export function makeGetPostsChunkAroundPost(): (state: GlobalState, postId: Post['id'], channelId: Channel['id']) => PostOrderBlock| null | undefined {
+export function makeGetPostsChunkAroundPost(): (state: GlobalState, postId: Post['id'], channelId: Channel['id']) => PostOrderBlock | null | undefined {
     return createIdsSelector(
         'makeGetPostsChunkAroundPost',
         (state: GlobalState, postId: string, channelId: string) => state.entities.posts.postsInChannel[channelId],
@@ -157,7 +158,8 @@ function isPostInteractable(post: Post | undefined) {
         !isPostEphemeral(post) &&
         !isSystemMessage(post) &&
         !isPostPendingOrFailed(post) &&
-        post.state !== Posts.POST_DELETED;
+        post.state !== Posts.POST_DELETED &&
+        post.type !== Posts.POST_TYPES.BURN_ON_READ;
 }
 
 export function getLatestInteractablePostId(state: GlobalState, channelId: string, rootId = '') {
@@ -350,7 +352,7 @@ export function getSearchMatches(state: GlobalState): {
     return state.entities.search.matches;
 }
 
-export function makeGetMessageInHistoryItem(type: 'post'|'comment'): (state: GlobalState) => string {
+export function makeGetMessageInHistoryItem(type: 'post' | 'comment'): (state: GlobalState) => string {
     return createSelector(
         'makeGetMessageInHistoryItem',
         (state: GlobalState) => state.entities.posts.messagesHistory,
@@ -380,6 +382,19 @@ export function makeGetPostsForIds(): (state: GlobalState, postIds: Array<Post['
     );
 }
 
+function getMostRecentNonSystemPostId(posts: Record<string, Post>, postIdsInChannel: Array<Post['id']>): Post['id'] | undefined {
+    for (let i = 0; i < postIdsInChannel.length; i++) {
+        const p = posts[postIdsInChannel[i]];
+        if (!p) {
+            continue;
+        }
+        if (!p.type || !p.type.startsWith(Posts.SYSTEM_MESSAGE_PREFIX)) {
+            return p.id;
+        }
+    }
+    return undefined;
+}
+
 export const getMostRecentPostIdInChannel: (state: GlobalState, channelId: Channel['id']) => Post['id'] | undefined | null = createSelector(
     'getMostRecentPostIdInChannel',
     getAllPosts,
@@ -392,19 +407,24 @@ export const getMostRecentPostIdInChannel: (state: GlobalState, channelId: Chann
 
         if (!allowSystemMessages) {
             // return the most recent non-system message in the channel
-            let postId;
-            for (let i = 0; i < postIdsInChannel.length; i++) {
-                const p = posts[postIdsInChannel[i]];
-                if (!p.type || !p.type.startsWith(Posts.SYSTEM_MESSAGE_PREFIX)) {
-                    postId = p.id;
-                    break;
-                }
-            }
-            return postId;
+            return getMostRecentNonSystemPostId(posts, postIdsInChannel);
         }
 
         // return the most recent message in the channel
         return postIdsInChannel[0];
+    },
+);
+
+export const getMostRecentNonSystemPostIdInChannel: (state: GlobalState, channelId: Channel['id']) => Post['id'] | undefined = createSelector(
+    'getMostRecentNonSystemPostIdInChannel',
+    getAllPosts,
+    (state: GlobalState, channelId: string) => getPostIdsInChannel(state, channelId),
+    (posts, postIdsInChannel) => {
+        if (!postIdsInChannel) {
+            return undefined;
+        }
+
+        return getMostRecentNonSystemPostId(posts, postIdsInChannel);
     },
 );
 
@@ -533,7 +553,15 @@ export function getUnreadPostsChunk(state: GlobalState, channelId: Channel['id']
         }
     }
 
-    return getPostsChunkInChannelAroundTime(state, channelId, timeStamp);
+    // Try to find a chunk where lastViewedAt falls within the post range
+    const chunkAroundTime = getPostsChunkInChannelAroundTime(state, channelId, timeStamp);
+
+    if (chunkAroundTime) {
+        return chunkAroundTime;
+    }
+
+    // All fetched posts are newer than lastViewedAt. Return the recent chunk.
+    return recentChunk;
 }
 
 export const isPostsChunkIncludingUnreadsPosts = (state: GlobalState, chunk: PostOrderBlock, timeStamp: number): boolean => {
@@ -578,7 +606,7 @@ export const makeIsPostCommentMention = (): ((state: GlobalState, postId: Post['
                         continue;
                     }
 
-                    if (p.user_id === currentUser.id) {
+                    if (p.user_id === currentUser.id && !isFromWebhook(p)) {
                         threadRepliedToByCurrentUser = true;
                     }
                 }

@@ -5,6 +5,7 @@ import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Post} from '@mattermost/types/posts';
 import type {UserThread} from '@mattermost/types/threads';
 import {threadIsSynthetic} from '@mattermost/types/threads';
@@ -23,7 +24,6 @@ import FollowButton from 'components/threading/common/follow_button';
 import {THREADING_TIME} from 'components/threading/common/options';
 import Timestamp from 'components/timestamp';
 import Avatars from 'components/widgets/users/avatars';
-import WithTooltip from 'components/with_tooltip';
 
 import type {GlobalState} from 'types/store';
 
@@ -42,7 +42,7 @@ function ThreadFooter({
     const currentTeamId = useSelector(getCurrentTeamId);
     const currentUserId = useSelector(getCurrentUserId);
     const post = useSelector((state: GlobalState) => getPost(state, threadId));
-    const getThreadOrSynthetic = useMemo(makeGetThreadOrSynthetic, [post.id]);
+    const getThreadOrSynthetic = useMemo(() => makeGetThreadOrSynthetic(), []);
     const thread = useSelector((state: GlobalState) => getThreadOrSynthetic(state, post));
 
     useEffect(() => {
@@ -91,7 +91,7 @@ function ThreadFooter({
                     title={
                         <FormattedMessage
                             id='threading.numNewMessages'
-                            defaultMessage='{newReplies, plural, =0 {no unread messages} =1 {one unread message} other {# unread messages}}'
+                            defaultMessage='{newReplies, plural, =0 {No unread messages} =1 {One unread message} other {# unread messages}}'
                             values={{newReplies: thread.unread_replies}}
                         />
                     }

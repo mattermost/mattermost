@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, screen} from '@testing-library/react';
 import React from 'react';
 
 import type {UserPropertyField} from '@mattermost/types/properties';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import SelectType from './user_properties_type_menu';
 
@@ -19,6 +18,11 @@ describe('UserPropertyTypeMenu', () => {
         create_at: 1736541716295,
         delete_at: 0,
         update_at: 0,
+        created_by: '',
+        updated_by: '',
+        target_id: '',
+        target_type: '',
+        object_type: '',
         attrs: {
             sort_order: 0,
             visibility: 'when_set' as const,
@@ -28,18 +32,23 @@ describe('UserPropertyTypeMenu', () => {
 
     const updateField = jest.fn();
 
-    const renderComponent = (field: UserPropertyField = baseField) => {
+    const renderComponent = (field: UserPropertyField = baseField, rankEnabled = false) => {
         return renderWithContext(
             <SelectType
                 field={field}
                 updateField={updateField}
             />,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            FeatureFlagPropertyFieldRank: rankEnabled ? 'true' : 'false',
+                        },
+                    },
+                },
+            },
         );
     };
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
 
     it('renders with correct current type', () => {
         renderComponent();
@@ -76,14 +85,14 @@ describe('UserPropertyTypeMenu', () => {
         expect(menuButton).toBeDisabled();
     });
 
-    it('changes field type when a new type is selected', () => {
+    it('changes field type when a new type is selected', async () => {
         renderComponent();
 
         // Open the menu
-        fireEvent.click(screen.getByText('Text'));
+        await userEvent.click(screen.getByText('Text'));
 
         // Click to select Phone type
-        fireEvent.click(screen.getByText('Phone'));
+        await userEvent.click(screen.getByText('Phone'));
 
         // Verify the field was updated with the new type
         expect(updateField).toHaveBeenCalledWith({
@@ -96,26 +105,27 @@ describe('UserPropertyTypeMenu', () => {
         });
     });
 
-    it('filters options when searching', () => {
+    it('filters options when searching', async () => {
         renderComponent();
 
         // Open the menu
-        fireEvent.click(screen.getByText('Text'));
+        await userEvent.click(screen.getByText('Text'));
 
         // Type in the filter input
         const filterInput = screen.getByRole('textbox', {name: 'Attribute type'});
-        fireEvent.change(filterInput, {target: {value: 'multi'}});
+        await userEvent.clear(filterInput);
+        await userEvent.type(filterInput, 'multi');
 
         // Should only see Multi-select now
         expect(screen.getByText('Multi-select')).toBeInTheDocument();
         expect(screen.getAllByRole('menuitemradio')).toHaveLength(1);
     });
 
-    it('disables non-supported options when ldap-linked', () => {
+    it('disables non-supported options when ldap-linked', async () => {
         renderComponent({...baseField, attrs: {...baseField.attrs, ldap: 'ldapPropName'}});
 
         // Open the menu
-        fireEvent.click(screen.getByText('Text'));
+        await userEvent.click(screen.getByText('Text'));
 
         // Non-text should be disabled
         expect(screen.getByRole('menuitemradio', {name: 'Phone'})).toHaveAttribute('aria-disabled', 'true');
@@ -125,11 +135,11 @@ describe('UserPropertyTypeMenu', () => {
         expect(screen.getByRole('menuitemradio', {name: 'Select'})).toHaveAttribute('aria-disabled', 'true');
     });
 
-    it('disables non-supported options when saml-linked', () => {
+    it('disables non-supported options when saml-linked', async () => {
         renderComponent({...baseField, attrs: {...baseField.attrs, saml: 'samlPropName'}});
 
         // Open the menu
-        fireEvent.click(screen.getByText('Text'));
+        await userEvent.click(screen.getByText('Text'));
 
         // Non-text should be disabled
         expect(screen.getByRole('menuitemradio', {name: 'Phone'})).toHaveAttribute('aria-disabled', 'true');
@@ -139,7 +149,7 @@ describe('UserPropertyTypeMenu', () => {
         expect(screen.getByRole('menuitemradio', {name: 'Select'})).toHaveAttribute('aria-disabled', 'true');
     });
 
-    it('shows check icon for current type', () => {
+    it('shows check icon for current type', async () => {
         const selectField = {
             ...baseField,
             type: 'select' as const,
@@ -152,10 +162,30 @@ describe('UserPropertyTypeMenu', () => {
         renderComponent(selectField);
 
         // Open the menu
-        fireEvent.click(screen.getByText('Select'));
+        await userEvent.click(screen.getByText('Select'));
 
         // All options should be visible, but Select should have a check
         expect(screen.getByRole('menuitemradio', {name: 'Select'})).toHaveAttribute('aria-checked', 'true');
         expect(screen.getByRole('menuitemradio', {name: 'Text'})).toHaveAttribute('aria-checked', 'false');
+    });
+
+    it('hides the Rank type when the PropertyFieldRank feature flag is off', async () => {
+        renderComponent(baseField, false);
+
+        // Open the menu
+        await userEvent.click(screen.getByText('Text'));
+
+        // Other types remain available, but Rank is gated out
+        expect(screen.getByRole('menuitemradio', {name: 'Select'})).toBeInTheDocument();
+        expect(screen.queryByRole('menuitemradio', {name: 'Rank'})).not.toBeInTheDocument();
+    });
+
+    it('shows the Rank type when the PropertyFieldRank feature flag is on', async () => {
+        renderComponent(baseField, true);
+
+        // Open the menu
+        await userEvent.click(screen.getByText('Text'));
+
+        expect(screen.getByRole('menuitemradio', {name: 'Rank'})).toBeInTheDocument();
     });
 });

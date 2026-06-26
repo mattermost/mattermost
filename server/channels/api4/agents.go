@@ -14,8 +14,29 @@ import (
 func (api *API) InitAgents() {
 	// GET /api/v4/agents
 	api.BaseRoutes.Agents.Handle("", api.APISessionRequired(getAgents)).Methods(http.MethodGet)
+	// GET /api/v4/agents/status
+	api.BaseRoutes.Agents.Handle("/status", api.APISessionRequired(getAgentsStatus)).Methods(http.MethodGet)
 	// GET /api/v4/llmservices
 	api.BaseRoutes.LLMServices.Handle("", api.APISessionRequired(getLLMServices)).Methods(http.MethodGet)
+}
+
+func getAgentsStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	available, reason := c.App.GetAIPluginBridgeStatus(c.AppContext)
+
+	resp := &model.AgentsIntegrityResponse{
+		Available: available,
+		Reason:    reason,
+	}
+
+	jsonData, err := json.Marshal(resp)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getAgentsStatus", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if _, err := w.Write(jsonData); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getAgents(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -64,6 +64,7 @@ go.work.sum
 .npminstall
 .yarninstall
 /prepackaged_plugins
+tools/sharedchannel-test/sharedchannel-test
 
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o
@@ -159,7 +160,22 @@ docker-compose.override.yaml
 .notice-work/
 .aider*
 .env
+.envrc
+.planning/
 
 **/CLAUDE.local.md
-CLAUDE.md
+**/CLAUDE.md
+.claude
 .cursorrules
+.cursor/*
+!.cursor/README.md
+!.cursor/cursor.md
+!.cursor/Dockerfile
+!.cursor/environment.json
+!.cursor/scripts/
+.cursor/scripts/*
+!.cursor/scripts/cloud-agent-install.sh
+!.cursor/scripts/cloud-agent-start.sh
+server/prev-report.xml
+server/prev-gotestsum.json
+server/shard-*.txt

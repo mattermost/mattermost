@@ -4,15 +4,28 @@
 package app
 
 import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
+	"text/template"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/plugin/utils"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 )
@@ -22,17 +35,32 @@ func setupSharedChannels(tb testing.TB) *TestHelper {
 		*cfg.ConnectedWorkspacesSettings.EnableRemoteClusterService = true
 		*cfg.ConnectedWorkspacesSettings.EnableSharedChannels = true
 		cfg.FeatureFlags.EnableSharedChannelsMemberSync = true
-		cfg.ClusterSettings.ClusterName = model.NewPointer("test-remote")
+		cfg.ClusterSettings.ClusterName = new("test-remote")
 	})
+}
+
+// firstSharedChannelStatePostInOrderedPage walks pl.Order (same ordering as GetPostsPage:
+// root posts by CreateAt DESC) instead of ranging over pl.Posts, which is nondeterministic.
+func firstSharedChannelStatePostInOrderedPage(pl *model.PostList) *model.Post {
+	if pl == nil {
+		return nil
+	}
+	for _, id := range pl.Order {
+		p := pl.Posts[id]
+		if p != nil && p.Type == model.PostTypeSharedChannelState {
+			return p
+		}
+	}
+	return nil
 }
 
 func TestApp_CheckCanInviteToSharedChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := setupSharedChannels(t).InitBasic()
+	th := setupSharedChannels(t).InitBasic(t)
 
-	channel1 := th.CreateChannel(th.Context, th.BasicTeam)
-	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
-	channel3 := th.CreateChannel(th.Context, th.BasicTeam)
+	channel1 := th.CreateChannel(t, th.BasicTeam)
+	channel2 := th.CreateChannel(t, th.BasicTeam)
+	channel3 := th.CreateChannel(t, th.BasicTeam)
 
 	data := []struct {
 		channelID string
@@ -106,8 +134,7 @@ func TestApp_CheckCanInviteToSharedChannel(t *testing.T) {
 // TestApp_RemoteUnsharing tests the functionality where a shared channel is unshared on one side and triggers an unshare on the remote cluster.
 // This test uses a self-referential approach where a server syncs with itself through real HTTP communication.
 func TestApp_RemoteUnsharing(t *testing.T) {
-	th := setupSharedChannels(t).InitBasic()
-	defer th.TearDown()
+	th := setupSharedChannels(t).InitBasic(t)
 
 	ss := th.App.Srv().Store()
 
@@ -159,7 +186,7 @@ func TestApp_RemoteUnsharing(t *testing.T) {
 		syncHandler = NewSelfReferentialSyncHandler(t, service, selfCluster)
 
 		// Create a shared channel
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		sc := &model.SharedChannel{
 			ChannelId:        channel.Id,
 			TeamId:           channel.TeamId,
@@ -236,15 +263,11 @@ func TestApp_RemoteUnsharing(t *testing.T) {
 		assert.Equal(t, postCountBefore+1, len(postsAfterRemove.Posts), "There should be one new post")
 
 		// Find and verify the system message content
-		var systemPost *model.Post
-		for _, p := range postsAfterRemove.Posts {
-			if p.Type == model.PostTypeSystemGeneric {
-				systemPost = p
-				break
-			}
-		}
+		systemPost := firstSharedChannelStatePostInOrderedPage(postsAfterRemove)
 		require.NotNil(t, systemPost, "A system post should be created")
-		assert.Equal(t, "This channel is no longer shared.", systemPost.Message, "Message should match unshare message")
+		assert.Equal(t, i18n.T("shared_channel.system_message.no_longer_shared", map[string]any{"WorkspaceName": "Test Remote"}), systemPost.Message)
+		assert.Equal(t, model.SharedChannelStatePostValueUnshared, systemPost.GetProps()[model.PostPropsSharedChannelState])
+		assert.Equal(t, "Test Remote", systemPost.GetProps()[model.PostPropsSharedChannelWorkspaceName])
 	})
 
 	t.Run("remote-initiated unshare with multiple remotes", func(t *testing.T) {
@@ -305,7 +328,7 @@ func TestApp_RemoteUnsharing(t *testing.T) {
 		syncHandler2 = NewSelfReferentialSyncHandler(t, service, selfCluster2)
 
 		// Create a shared channel
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		sc := &model.SharedChannel{
 			ChannelId:        channel.Id,
 			TeamId:           channel.TeamId,
@@ -366,7 +389,7 @@ func TestApp_RemoteUnsharing(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			Message:   "Test message after remote 1 unshare",
 		}
-		_, appErr := th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{})
+		_, _, appErr := th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 
 		// Get post count after creating the test post but before "remote-initiated unshare"
@@ -429,21 +452,16 @@ func TestApp_RemoteUnsharing(t *testing.T) {
 		assert.Equal(t, postCountBefore+1, len(postsAfterRemove.Posts), "There should be one new post")
 
 		// Find and verify the system message content
-		var systemPost *model.Post
-		for _, p := range postsAfterRemove.Posts {
-			if p.Type == model.PostTypeSystemGeneric {
-				systemPost = p
-				break
-			}
-		}
+		systemPost := firstSharedChannelStatePostInOrderedPage(postsAfterRemove)
 		require.NotNil(t, systemPost, "A system post should be created")
-		assert.Equal(t, "This channel is no longer shared.", systemPost.Message, "Message should match unshare message")
+		assert.Equal(t, i18n.T("shared_channel.system_message.no_longer_shared", map[string]any{"WorkspaceName": "Test Remote 1"}), systemPost.Message)
+		assert.Equal(t, model.SharedChannelStatePostValueUnshared, systemPost.GetProps()[model.PostPropsSharedChannelState])
+		assert.Equal(t, "Test Remote 1", systemPost.GetProps()[model.PostPropsSharedChannelWorkspaceName])
 	})
 }
 
 func TestSyncMessageErrChannelNotSharedResponse(t *testing.T) {
-	th := setupSharedChannels(t).InitBasic()
-	defer th.TearDown()
+	th := setupSharedChannels(t).InitBasic(t)
 
 	// Setup: Create a shared channel and remote cluster
 	ss := th.App.Srv().Store()
@@ -453,7 +471,7 @@ func TestSyncMessageErrChannelNotSharedResponse(t *testing.T) {
 	service, ok := scsInterface.(*sharedchannel.Service)
 	require.True(t, ok, "Expected sharedchannel.Service concrete type")
 
-	channel := th.CreateChannel(th.Context, th.BasicTeam)
+	channel := th.CreateChannel(t, th.BasicTeam)
 	sc := &model.SharedChannel{
 		ChannelId:        channel.Id,
 		TeamId:           th.BasicTeam.Id,
@@ -519,7 +537,7 @@ func TestSyncMessageErrChannelNotSharedResponse(t *testing.T) {
 	// Test the complete flow by simulating what happens in sendSyncMsgToRemote callback
 	// This tests the fixed error detection logic that checks rcResp.Err
 	var callbackTriggered bool
-	mockCallback := func(rcMsg model.RemoteClusterMsg, rc *model.RemoteCluster, rcResp *remotecluster.Response, errResp error) {
+	mockCallback := func(_ /*rcMsg*/ model.RemoteClusterMsg, rc *model.RemoteCluster, rcResp *remotecluster.Response, _ /*errResp*/ error) {
 		callbackTriggered = true
 
 		// This simulates the fixed logic in sync_send_remote.go
@@ -548,14 +566,286 @@ func TestSyncMessageErrChannelNotSharedResponse(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// Find the system message
-	var systemPost *model.Post
-	for _, p := range posts.Posts {
-		if p.Type == model.PostTypeSystemGeneric && p.Message == "This channel is no longer shared." {
-			systemPost = p
-			break
-		}
-	}
+	systemPost := firstSharedChannelStatePostInOrderedPage(posts)
 	require.NotNil(t, systemPost, "System message should be posted when channel becomes unshared")
+	assert.Equal(t, i18n.T("shared_channel.system_message.no_longer_shared", map[string]any{"WorkspaceName": "Test Remote"}), systemPost.Message)
+	assert.Equal(t, model.SharedChannelStatePostValueUnshared, systemPost.GetProps()[model.PostPropsSharedChannelState])
+	assert.Equal(t, "Test Remote", systemPost.GetProps()[model.PostPropsSharedChannelWorkspaceName])
+}
+
+// TestUninviteRemoteFromChannel_OnlyRemovesRequestedRemote verifies that when a channel has multiple
+// remotes (including unconfirmed), uninviting one remote only removes that remote and does not
+// trigger unshare. This guards the IncludeUnconfirmed fix in unshareChannelIfNoActiveRemotes.
+func TestUninviteRemoteFromChannel_OnlyRemovesRequestedRemote(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupSharedChannels(t).InitBasic(t)
+	ss := th.App.Srv().Store()
+
+	t.Run("uninvite one of two remotes (one confirmed, one unconfirmed) leaves channel shared and other remote present", func(t *testing.T) {
+		channel := th.CreateChannel(t, th.BasicTeam)
+		sc := &model.SharedChannel{
+			ChannelId:        channel.Id,
+			TeamId:           channel.TeamId,
+			Home:             true,
+			ShareName:        channel.Name,
+			ShareDisplayName: channel.DisplayName,
+			CreatorId:        th.BasicUser.Id,
+			RemoteId:         "",
+		}
+		_, err := th.App.ShareChannel(th.Context, sc)
+		require.NoError(t, err)
+
+		rc1 := &model.RemoteCluster{
+			RemoteId:     model.NewId(),
+			Name:         "remote-1",
+			DisplayName:  "Remote 1",
+			SiteURL:      "https://r1.example.com",
+			Token:        model.NewId(),
+			CreateAt:     model.GetMillis(),
+			LastPingAt:   model.GetMillis(),
+			CreatorId:    th.BasicUser.Id,
+			RemoteTeamId: model.NewId(),
+		}
+		rc1, err = ss.RemoteCluster().Save(rc1)
+		require.NoError(t, err)
+
+		rc2 := &model.RemoteCluster{
+			RemoteId:     model.NewId(),
+			Name:         "remote-2",
+			DisplayName:  "Remote 2",
+			SiteURL:      "https://r2.example.com",
+			Token:        model.NewId(),
+			CreateAt:     model.GetMillis(),
+			LastPingAt:   model.GetMillis(),
+			CreatorId:    th.BasicUser.Id,
+			RemoteTeamId: model.NewId(),
+		}
+		rc2, err = ss.RemoteCluster().Save(rc2)
+		require.NoError(t, err)
+
+		// Remote 1: confirmed
+		scr1 := &model.SharedChannelRemote{
+			Id:                model.NewId(),
+			ChannelId:         channel.Id,
+			CreatorId:         th.BasicUser.Id,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+			RemoteId:          rc1.RemoteId,
+			LastPostUpdateAt:  model.GetMillis(),
+		}
+		_, err = ss.SharedChannel().SaveRemote(scr1)
+		require.NoError(t, err)
+
+		// Remote 2: unconfirmed (would be ignored by GetRemotes when IncludeUnconfirmed is false)
+		scr2 := &model.SharedChannelRemote{
+			Id:                model.NewId(),
+			ChannelId:         channel.Id,
+			CreatorId:         th.BasicUser.Id,
+			IsInviteAccepted:  false,
+			IsInviteConfirmed: false,
+			RemoteId:          rc2.RemoteId,
+			LastPostUpdateAt:  model.GetMillis(),
+		}
+		_, err = ss.SharedChannel().SaveRemote(scr2)
+		require.NoError(t, err)
+
+		// Uninvite the confirmed remote (remote 1)
+		err = th.App.UninviteRemoteFromChannel(channel.Id, rc1.RemoteId)
+		require.NoError(t, err)
+
+		// Channel must still be shared (unshareChannelIfNoActiveRemotes must not have run)
+		err = th.App.checkChannelIsShared(channel.Id)
+		require.NoError(t, err, "Channel should still be shared when an unconfirmed remote remains")
+
+		// Remote 1 must be gone (soft-deleted)
+		has1, err := ss.SharedChannel().HasRemote(channel.Id, rc1.RemoteId)
+		require.NoError(t, err)
+		require.False(t, has1, "Uninvited remote should no longer be present")
+
+		// Remote 2 (unconfirmed) must still be present
+		has2, err := ss.SharedChannel().HasRemote(channel.Id, rc2.RemoteId)
+		require.NoError(t, err)
+		require.True(t, has2, "Other remote (unconfirmed) should still be present")
+
+		// Uninvite posts a shared-channel state system message with the uninvited remote's display name
+		postsPage, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
+			ChannelId: channel.Id,
+			Page:      0,
+			PerPage:   20,
+		})
+		require.Nil(t, appErr)
+		uninvitePost := firstSharedChannelStatePostInOrderedPage(postsPage)
+		require.NotNil(t, uninvitePost, "expected a system_shared_chan_state post after uninvite")
+		assert.Equal(t, channel.Id, uninvitePost.ChannelId)
+		assert.Equal(t, model.SharedChannelStatePostValueUnshared, uninvitePost.GetProps()[model.PostPropsSharedChannelState])
+		assert.Equal(t, rc1.DisplayName, uninvitePost.GetProps()[model.PostPropsSharedChannelWorkspaceName])
+		assert.Equal(t, i18n.T("shared_channel.system_message.no_longer_shared", map[string]any{"WorkspaceName": rc1.DisplayName}), uninvitePost.Message)
+	})
+
+	t.Run("uninvite one of two confirmed remotes leaves channel shared and other remote present", func(t *testing.T) {
+		channel := th.CreateChannel(t, th.BasicTeam)
+		sc := &model.SharedChannel{
+			ChannelId:        channel.Id,
+			TeamId:           channel.TeamId,
+			Home:             true,
+			ShareName:        channel.Name,
+			ShareDisplayName: channel.DisplayName,
+			CreatorId:        th.BasicUser.Id,
+			RemoteId:         "",
+		}
+		_, err := th.App.ShareChannel(th.Context, sc)
+		require.NoError(t, err)
+
+		rc1 := &model.RemoteCluster{
+			RemoteId:     model.NewId(),
+			Name:         "remote-a",
+			DisplayName:  "Remote A",
+			SiteURL:      "https://ra.example.com",
+			Token:        model.NewId(),
+			CreateAt:     model.GetMillis(),
+			LastPingAt:   model.GetMillis(),
+			CreatorId:    th.BasicUser.Id,
+			RemoteTeamId: model.NewId(),
+		}
+		rc1, err = ss.RemoteCluster().Save(rc1)
+		require.NoError(t, err)
+
+		rc2 := &model.RemoteCluster{
+			RemoteId:     model.NewId(),
+			Name:         "remote-b",
+			DisplayName:  "Remote B",
+			SiteURL:      "https://rb.example.com",
+			Token:        model.NewId(),
+			CreateAt:     model.GetMillis(),
+			LastPingAt:   model.GetMillis(),
+			CreatorId:    th.BasicUser.Id,
+			RemoteTeamId: model.NewId(),
+		}
+		rc2, err = ss.RemoteCluster().Save(rc2)
+		require.NoError(t, err)
+
+		scr1 := &model.SharedChannelRemote{
+			Id:                model.NewId(),
+			ChannelId:         channel.Id,
+			CreatorId:         th.BasicUser.Id,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+			RemoteId:          rc1.RemoteId,
+			LastPostUpdateAt:  model.GetMillis(),
+		}
+		_, err = ss.SharedChannel().SaveRemote(scr1)
+		require.NoError(t, err)
+
+		scr2 := &model.SharedChannelRemote{
+			Id:                model.NewId(),
+			ChannelId:         channel.Id,
+			CreatorId:         th.BasicUser.Id,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+			RemoteId:          rc2.RemoteId,
+			LastPostUpdateAt:  model.GetMillis(),
+		}
+		_, err = ss.SharedChannel().SaveRemote(scr2)
+		require.NoError(t, err)
+
+		err = th.App.UninviteRemoteFromChannel(channel.Id, rc1.RemoteId)
+		require.NoError(t, err)
+
+		err = th.App.checkChannelIsShared(channel.Id)
+		require.NoError(t, err, "Channel should still be shared with the other remote")
+
+		has1, err := ss.SharedChannel().HasRemote(channel.Id, rc1.RemoteId)
+		require.NoError(t, err)
+		require.False(t, has1, "Uninvited remote should no longer be present")
+
+		has2, err := ss.SharedChannel().HasRemote(channel.Id, rc2.RemoteId)
+		require.NoError(t, err)
+		require.True(t, has2, "Other remote should still be present")
+	})
+
+	t.Run("uninvite the only non-deleted remote (other is already deleted) unshares the channel", func(t *testing.T) {
+		channel := th.CreateChannel(t, th.BasicTeam)
+		sc := &model.SharedChannel{
+			ChannelId:        channel.Id,
+			TeamId:           channel.TeamId,
+			Home:             true,
+			ShareName:        channel.Name,
+			ShareDisplayName: channel.DisplayName,
+			CreatorId:        th.BasicUser.Id,
+			RemoteId:         "",
+		}
+		_, err := th.App.ShareChannel(th.Context, sc)
+		require.NoError(t, err)
+
+		rc1 := &model.RemoteCluster{
+			RemoteId:     model.NewId(),
+			Name:         "remote-deleted",
+			DisplayName:  "Remote Deleted",
+			SiteURL:      "https://rd.example.com",
+			Token:        model.NewId(),
+			CreateAt:     model.GetMillis(),
+			LastPingAt:   model.GetMillis(),
+			CreatorId:    th.BasicUser.Id,
+			RemoteTeamId: model.NewId(),
+		}
+		rc1, err = ss.RemoteCluster().Save(rc1)
+		require.NoError(t, err)
+
+		rc2 := &model.RemoteCluster{
+			RemoteId:     model.NewId(),
+			Name:         "remote-active",
+			DisplayName:  "Remote Active",
+			SiteURL:      "https://ra.example.com",
+			Token:        model.NewId(),
+			CreateAt:     model.GetMillis(),
+			LastPingAt:   model.GetMillis(),
+			CreatorId:    th.BasicUser.Id,
+			RemoteTeamId: model.NewId(),
+		}
+		rc2, err = ss.RemoteCluster().Save(rc2)
+		require.NoError(t, err)
+
+		scr1 := &model.SharedChannelRemote{
+			Id:                model.NewId(),
+			ChannelId:         channel.Id,
+			CreatorId:         th.BasicUser.Id,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+			RemoteId:          rc1.RemoteId,
+			LastPostUpdateAt:  model.GetMillis(),
+		}
+		_, err = ss.SharedChannel().SaveRemote(scr1)
+		require.NoError(t, err)
+
+		scr2 := &model.SharedChannelRemote{
+			Id:                model.NewId(),
+			ChannelId:         channel.Id,
+			CreatorId:         th.BasicUser.Id,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+			RemoteId:          rc2.RemoteId,
+			LastPostUpdateAt:  model.GetMillis(),
+		}
+		_, err = ss.SharedChannel().SaveRemote(scr2)
+		require.NoError(t, err)
+
+		// Soft-delete the first remote so only one active remote remains
+		_, err = ss.SharedChannel().DeleteRemote(scr1.Id)
+		require.NoError(t, err)
+
+		// Channel is still shared (one active remote)
+		err = th.App.checkChannelIsShared(channel.Id)
+		require.NoError(t, err, "Channel should still be shared with the active remote")
+
+		// Uninvite the only remaining active remote
+		err = th.App.UninviteRemoteFromChannel(channel.Id, rc2.RemoteId)
+		require.NoError(t, err)
+
+		// Channel must now be unshared (no remaining non-deleted remotes)
+		err = th.App.checkChannelIsShared(channel.Id)
+		require.Error(t, err, "Channel should be unshared after removing the last active remote")
+		require.True(t, errors.Is(err, model.ErrChannelNotShared), "Error should be ErrChannelNotShared")
+	})
 }
 
 // TestTransformMentionsOnReceive provides comprehensive unit testing for the mention transformation logic
@@ -563,10 +853,10 @@ func TestSyncMessageErrChannelNotSharedResponse(t *testing.T) {
 // without requiring complex end-to-end cross-cluster setup.
 func TestTransformMentionsOnReceive(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := setupSharedChannels(t).InitBasic()
+	th := setupSharedChannels(t).InitBasic(t)
 
 	// Setup shared channel
-	sharedChannel := th.CreateChannel(th.Context, th.BasicTeam)
+	sharedChannel := th.CreateChannel(t, th.BasicTeam)
 	sc := &model.SharedChannel{
 		ChannelId: sharedChannel.Id,
 		TeamId:    th.BasicTeam.Id,
@@ -599,15 +889,16 @@ func TestTransformMentionsOnReceive(t *testing.T) {
 
 	// Helper to create test users
 	createUser := func(username string, remoteId *string) *model.User {
-		user := th.CreateUser()
-		user.Username = username
+		user := th.CreateUser(t)
 		if remoteId != nil {
-			user.RemoteId = remoteId
+			user = th.SetUserRemoteID(t, user.Id, *remoteId)
 		}
-		user, updateErr := th.App.UpdateUser(th.Context, user, false)
-		require.Nil(t, updateErr)
-		th.LinkUserToTeam(user, th.BasicTeam)
-		th.AddUserToChannel(user, sharedChannel)
+		user.Username = username
+		var appErr *model.AppError
+		user, appErr = th.App.UpdateUser(th.Context, user, false)
+		require.Nil(t, appErr)
+		th.LinkUserToTeam(t, user, th.BasicTeam)
+		th.AddUserToChannel(t, user, sharedChannel)
 		return user
 	}
 
@@ -852,4 +1143,805 @@ func TestTransformMentionsOnReceive(t *testing.T) {
 			"Multiple mentions should transform efficiently",
 		)
 	})
+}
+
+// registerPluginRemoteForTest registers a plugin as a shared channel remote and returns
+// the remote cluster. It also shares the given channel and invites the remote to it.
+func registerPluginRemoteForTest(t *testing.T, th *TestHelper, pluginID string, channel *model.Channel) *model.RemoteCluster {
+	t.Helper()
+
+	remoteID, err := th.App.RegisterPluginForSharedChannels(th.Context, model.RegisterPluginOpts{
+		Displayname: "test-plugin-remote",
+		PluginID:    pluginID,
+		CreatorID:   th.BasicUser.Id,
+		SiteURL:     "plugin://" + pluginID,
+	})
+	require.NoError(t, err)
+
+	sc := &model.SharedChannel{
+		ChannelId:        channel.Id,
+		TeamId:           channel.TeamId,
+		Home:             true,
+		ShareName:        channel.Name,
+		ShareDisplayName: channel.DisplayName,
+		CreatorId:        th.BasicUser.Id,
+	}
+	_, err = th.App.ShareChannel(th.Context, sc)
+	require.NoError(t, err)
+
+	err = th.App.InviteRemoteToChannel(channel.Id, remoteID, th.BasicUser.Id, false)
+	require.NoError(t, err)
+
+	rc, err := th.App.Srv().Store().RemoteCluster().Get(remoteID, false)
+	require.NoError(t, err)
+	return rc
+}
+
+func TestPluginAPIReceiveSharedChannelSyncMsg(t *testing.T) {
+	th := setupSharedChannels(t).InitBasic(t)
+
+	channel := th.CreateChannel(t, th.BasicTeam)
+	pluginID := "com.test.sync-plugin"
+	rc := registerPluginRemoteForTest(t, th, pluginID, channel)
+
+	api := NewPluginAPI(th.App, th.Context, &model.Manifest{Id: pluginID})
+
+	t.Run("nil msg returns error", func(t *testing.T) {
+		_, err := api.ReceiveSharedChannelSyncMsg(rc.RemoteId, nil)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "must not be nil")
+	})
+
+	t.Run("unknown remoteID returns error", func(t *testing.T) {
+		msg := model.NewSyncMsg(channel.Id)
+		_, err := api.ReceiveSharedChannelSyncMsg(model.NewId(), msg)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "not found")
+	})
+
+	t.Run("remoteID belonging to different plugin returns error", func(t *testing.T) {
+		otherPluginID := "com.other.plugin"
+		otherChannel := th.CreateChannel(t, th.BasicTeam)
+		otherRC := registerPluginRemoteForTest(t, th, otherPluginID, otherChannel)
+		msg := model.NewSyncMsg(channel.Id)
+		_, err := api.ReceiveSharedChannelSyncMsg(otherRC.RemoteId, msg)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "does not belong to plugin")
+	})
+
+	t.Run("channel not shared with remote returns error", func(t *testing.T) {
+		otherChannel := th.CreateChannel(t, th.BasicTeam)
+		msg := model.NewSyncMsg(otherChannel.Id)
+		_, err := api.ReceiveSharedChannelSyncMsg(rc.RemoteId, msg)
+		require.Error(t, err)
+	})
+
+	t.Run("syncs a user and verifies it exists in the database", func(t *testing.T) {
+		userID := model.NewId()
+		username := "synced-user-" + model.NewId()[:8]
+		email := model.NewId() + "@remote.test"
+
+		msg := model.NewSyncMsg(channel.Id)
+		msg.Users = map[string]*model.User{
+			userID: {
+				Id:       userID,
+				Username: username,
+				Email:    email,
+				RemoteId: new(rc.RemoteId),
+			},
+		}
+
+		resp, err := api.ReceiveSharedChannelSyncMsg(rc.RemoteId, msg)
+		require.NoError(t, err)
+		assert.Contains(t, resp.UsersSyncd, userID)
+		assert.Empty(t, resp.UserErrors)
+
+		// Verify the user was actually created in the database
+		user, appErr := th.App.GetUser(userID)
+		require.Nil(t, appErr)
+		assert.Contains(t, user.Username, username) // username gets ":remotename" appended by sync
+		assert.Equal(t, rc.RemoteId, user.GetRemoteID())
+	})
+
+	t.Run("syncs a post and verifies it exists in the database", func(t *testing.T) {
+		// First sync a user who will author the post
+		userID := model.NewId()
+		msg := model.NewSyncMsg(channel.Id)
+		msg.Users = map[string]*model.User{
+			userID: {
+				Id:       userID,
+				Username: "post-author-" + model.NewId()[:8],
+				Email:    model.NewId() + "@remote.test",
+				RemoteId: new(rc.RemoteId),
+			},
+		}
+		_, err := api.ReceiveSharedChannelSyncMsg(rc.RemoteId, msg)
+		require.NoError(t, err)
+
+		// Now sync a post from that user
+		postID := model.NewId()
+		postMsg := model.NewSyncMsg(channel.Id)
+		postMsg.Posts = []*model.Post{
+			{
+				Id:        postID,
+				ChannelId: channel.Id,
+				UserId:    userID,
+				Message:   "hello from the plugin remote",
+				CreateAt:  model.GetMillis(),
+				RemoteId:  new(rc.RemoteId),
+			},
+		}
+
+		resp, err := api.ReceiveSharedChannelSyncMsg(rc.RemoteId, postMsg)
+		require.NoError(t, err)
+		assert.Empty(t, resp.PostErrors)
+
+		// Verify the post exists in the database
+		post, appErr := th.App.GetSinglePost(th.Context, postID, false)
+		require.Nil(t, appErr)
+		assert.Equal(t, "hello from the plugin remote", post.Message)
+		assert.Equal(t, channel.Id, post.ChannelId)
+		assert.Equal(t, userID, post.UserId)
+	})
+}
+
+func TestPluginAPIReceiveSharedChannelAttachmentSyncMsg(t *testing.T) {
+	th := setupSharedChannels(t).InitBasic(t)
+
+	channel := th.CreateChannel(t, th.BasicTeam)
+	pluginID := "com.test.attachment-plugin"
+	rc := registerPluginRemoteForTest(t, th, pluginID, channel)
+
+	api := NewPluginAPI(th.App, th.Context, &model.Manifest{Id: pluginID})
+
+	t.Run("unknown remoteID returns error", func(t *testing.T) {
+		fi := &model.FileInfo{Name: "test.txt", Size: 4, CreatorId: th.BasicUser.Id}
+		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(model.NewId(), channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "not found")
+	})
+
+	t.Run("remoteID belonging to different plugin returns error", func(t *testing.T) {
+		otherPluginID := "com.other.attachment-plugin"
+		otherChannel := th.CreateChannel(t, th.BasicTeam)
+		otherRC := registerPluginRemoteForTest(t, th, otherPluginID, otherChannel)
+		fi := &model.FileInfo{Name: "test.txt", Size: 4, CreatorId: th.BasicUser.Id}
+		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(otherRC.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "does not belong to plugin")
+	})
+
+	t.Run("channel not shared with remote returns error", func(t *testing.T) {
+		otherChannel := th.CreateChannel(t, th.BasicTeam)
+		fi := &model.FileInfo{Name: "test.txt", Size: 4, CreatorId: th.BasicUser.Id}
+		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, otherChannel.Id, fi, bytes.NewReader([]byte("data")))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "not shared")
+	})
+
+	t.Run("nil FileInfo returns error", func(t *testing.T) {
+		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, nil, bytes.NewReader([]byte("data")))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "FileInfo is required")
+	})
+
+	t.Run("nil data returns error", func(t *testing.T) {
+		fi := &model.FileInfo{Name: "test.txt", Size: 4, CreatorId: th.BasicUser.Id}
+		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, nil)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "File data is required")
+	})
+
+	t.Run("empty CreatorId returns error", func(t *testing.T) {
+		fi := &model.FileInfo{Name: "test.txt", Size: 4}
+		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "CreatorId is required")
+	})
+
+	t.Run("empty Name returns error", func(t *testing.T) {
+		fi := &model.FileInfo{Size: 4, CreatorId: th.BasicUser.Id}
+		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "Name is required")
+	})
+
+	t.Run("local user as creator returns error", func(t *testing.T) {
+		fi := &model.FileInfo{Name: "test.txt", Size: 4, CreatorId: th.BasicUser.Id}
+		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "does not belong to remote")
+	})
+
+	t.Run("syncs an attachment and verifies FileInfo and SharedChannelAttachment in database", func(t *testing.T) {
+		// Create a remote user belonging to this plugin's remote
+		remoteUser := &model.User{
+			Email:    model.NewId() + "@remote.test",
+			Username: "remote-attach-" + model.NewId()[:8],
+			Password: model.NewTestPassword(),
+			RemoteId: new(rc.RemoteId),
+		}
+		remoteUser, appErr := th.App.CreateUser(th.Context, remoteUser)
+		require.Nil(t, appErr)
+
+		// The sender-side file ID must be preserved on the receiving server so the
+		// post's FileIds (which reference the sender ID) resolve to the saved file.
+		senderFileID := model.NewId()
+		fi := &model.FileInfo{
+			Id:        senderFileID,
+			CreatorId: remoteUser.Id,
+			Name:      "hello.txt",
+			Size:      13,
+		}
+
+		saved, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("hello, world!")))
+		require.NoError(t, err)
+		require.NotNil(t, saved)
+		assert.Equal(t, senderFileID, saved.Id, "saved FileInfo must keep the sender's file ID")
+		assert.Equal(t, rc.RemoteId, *saved.RemoteId)
+
+		// Verify the FileInfo was persisted with a server-constructed path
+		storedFI, appErr := th.App.GetFileInfo(th.Context, saved.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, senderFileID, storedFI.Id)
+		assert.Equal(t, "hello.txt", storedFI.Name)
+		assert.NotEmpty(t, storedFI.Path)
+		assert.Contains(t, storedFI.Path, "hello.txt")
+		assert.Equal(t, rc.RemoteId, *storedFI.RemoteId)
+
+		// Verify SharedChannelAttachment record was created for cursor tracking
+		sca, scaErr := th.App.Srv().Store().SharedChannel().GetAttachment(saved.Id, rc.RemoteId)
+		require.NoError(t, scaErr)
+		assert.Equal(t, saved.Id, sca.FileId)
+		assert.Equal(t, rc.RemoteId, sca.RemoteId)
+	})
+}
+
+// TestPluginAPIReceiveSharedChannelAttachmentSyncMsgOrderTolerance covers MM-68705:
+// the file-receive API must produce the same end state regardless of whether the
+// post or the file arrives first, and must be idempotent against re-delivery.
+func TestPluginAPIReceiveSharedChannelAttachmentSyncMsgOrderTolerance(t *testing.T) {
+	th := setupSharedChannels(t).InitBasic(t)
+
+	channel := th.CreateChannel(t, th.BasicTeam)
+	pluginID := "com.test.attachment-order-plugin"
+	rc := registerPluginRemoteForTest(t, th, pluginID, channel)
+
+	api := NewPluginAPI(th.App, th.Context, &model.Manifest{Id: pluginID})
+
+	// createRemoteUser builds a user owned by rc and inserts it directly so the
+	// test does not depend on a prior user-sync call ordering.
+	createRemoteUser := func(t *testing.T) *model.User {
+		t.Helper()
+		u := &model.User{
+			Email:    model.NewId() + "@remote.test",
+			Username: "remote-order-" + model.NewId()[:8],
+			Password: model.NewTestPassword(),
+			RemoteId: model.NewPointer(rc.RemoteId),
+		}
+		u, appErr := th.App.CreateUser(th.Context, u)
+		require.Nil(t, appErr)
+		return u
+	}
+
+	// syncPostWithFileIds sends a post via ReceiveSharedChannelSyncMsg with the
+	// given fileIDs preset on Post.FileIds. CreatePost on the receiving side
+	// will strip any fileID whose FileInfo does not yet exist.
+	syncPostWithFileIds := func(t *testing.T, postID, userID string, fileIDs []string) {
+		t.Helper()
+		msg := model.NewSyncMsg(channel.Id)
+		msg.Posts = []*model.Post{
+			{
+				Id:        postID,
+				ChannelId: channel.Id,
+				UserId:    userID,
+				Message:   "post with attachments",
+				FileIds:   fileIDs,
+				CreateAt:  model.GetMillis(),
+				RemoteId:  model.NewPointer(rc.RemoteId),
+			},
+		}
+		resp, err := api.ReceiveSharedChannelSyncMsg(rc.RemoteId, msg)
+		require.NoError(t, err)
+		assert.Empty(t, resp.PostErrors)
+	}
+
+	t.Run("post-then-file ordering binds correctly", func(t *testing.T) {
+		user := createRemoteUser(t)
+		postID := model.NewId()
+		fileID := model.NewId()
+
+		// Post arrives first carrying FileIds=[fileID]; FileInfo does not
+		// exist yet, but the remote-origin path preserves FileIds.
+		syncPostWithFileIds(t, postID, user.Id, []string{fileID})
+
+		preFile, appErr := th.App.GetSinglePost(th.Context, postID, false)
+		require.Nil(t, appErr)
+		assert.Contains(t, preFile.FileIds, fileID, "remote-origin posts must preserve unmatched FileIds")
+
+		fi := &model.FileInfo{
+			Id:        fileID,
+			CreatorId: user.Id,
+			PostId:    postID,
+			Name:      "attach.txt",
+			Size:      4,
+		}
+		saved, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.NoError(t, err)
+		require.NotNil(t, saved)
+
+		post, appErr := th.App.GetSinglePost(th.Context, postID, false)
+		require.Nil(t, appErr)
+		assert.Contains(t, post.FileIds, fileID)
+
+		storedFI, appErr := th.App.GetFileInfo(th.Context, fileID)
+		require.Nil(t, appErr)
+		assert.Equal(t, postID, storedFI.PostId)
+		assert.Equal(t, channel.Id, storedFI.ChannelId)
+	})
+
+	t.Run("file-then-post ordering binds correctly", func(t *testing.T) {
+		user := createRemoteUser(t)
+		postID := model.NewId()
+		fileID := model.NewId()
+
+		// File arrives first. The lazy-bind eagerly sets FileInfo.PostId
+		// even though the post is not yet present; the post-receive path
+		// preserves FileIds for remote-origin posts, so the post's later
+		// arrival converges without overwriting either side.
+		fi := &model.FileInfo{
+			Id:        fileID,
+			CreatorId: user.Id,
+			PostId:    postID,
+			Name:      "attach.txt",
+			Size:      4,
+		}
+		saved, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.NoError(t, err)
+		require.NotNil(t, saved)
+
+		syncPostWithFileIds(t, postID, user.Id, []string{fileID})
+
+		post, appErr := th.App.GetSinglePost(th.Context, postID, false)
+		require.Nil(t, appErr)
+		assert.Contains(t, post.FileIds, fileID)
+
+		storedFI, appErr := th.App.GetFileInfo(th.Context, fileID)
+		require.Nil(t, appErr)
+		assert.Equal(t, postID, storedFI.PostId)
+		assert.Equal(t, channel.Id, storedFI.ChannelId)
+	})
+
+	t.Run("repeated receive returns existing FileInfo without duplicate", func(t *testing.T) {
+		user := createRemoteUser(t)
+		fileID := model.NewId()
+		fi := &model.FileInfo{
+			Id:        fileID,
+			CreatorId: user.Id,
+			Name:      "retry.txt",
+			Size:      4,
+		}
+
+		first, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.NoError(t, err)
+		require.NotNil(t, first)
+
+		// Re-deliver with the same id, channel, and creator: must not error
+		// and must return the same FileInfo (no duplicate row, no new
+		// upload session).
+		second, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.NoError(t, err)
+		require.NotNil(t, second)
+		assert.Equal(t, first.Id, second.Id)
+		assert.Equal(t, first.Path, second.Path, "re-delivery must not produce a new server-side path")
+	})
+
+	t.Run("repeated receive with mismatched channel rejects", func(t *testing.T) {
+		user := createRemoteUser(t)
+		fileID := model.NewId()
+		fi := &model.FileInfo{
+			Id:        fileID,
+			CreatorId: user.Id,
+			Name:      "mismatch.txt",
+			Size:      4,
+		}
+
+		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.NoError(t, err)
+
+		// Share a second channel with the same remote and replay the same
+		// file id under the new channel; idempotency check must reject it.
+		otherChannel := th.CreateChannel(t, th.BasicTeam)
+		otherSC := &model.SharedChannel{
+			ChannelId:        otherChannel.Id,
+			TeamId:           otherChannel.TeamId,
+			Home:             true,
+			ShareName:        otherChannel.Name,
+			ShareDisplayName: otherChannel.DisplayName,
+			CreatorId:        th.BasicUser.Id,
+		}
+		_, shareErr := th.App.ShareChannel(th.Context, otherSC)
+		require.NoError(t, shareErr)
+		require.NoError(t, th.App.InviteRemoteToChannel(otherChannel.Id, rc.RemoteId, th.BasicUser.Id, false))
+
+		_, err = api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, otherChannel.Id, fi, bytes.NewReader([]byte("data")))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "different channel/creator")
+	})
+
+	t.Run("repeated receive with mismatched creator rejects", func(t *testing.T) {
+		userA := createRemoteUser(t)
+		userB := createRemoteUser(t)
+		fileID := model.NewId()
+		fi := &model.FileInfo{
+			Id:        fileID,
+			CreatorId: userA.Id,
+			Name:      "mismatch.txt",
+			Size:      4,
+		}
+
+		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.NoError(t, err)
+
+		fi.CreatorId = userB.Id
+		_, err = api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "different channel/creator")
+	})
+
+	t.Run("empty PostId is a lazy-bind no-op", func(t *testing.T) {
+		user := createRemoteUser(t)
+		fileID := model.NewId()
+		fi := &model.FileInfo{
+			Id:        fileID,
+			CreatorId: user.Id,
+			Name:      "free.txt",
+			Size:      4,
+		}
+
+		saved, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.NoError(t, err)
+		require.NotNil(t, saved)
+
+		storedFI, appErr := th.App.GetFileInfo(th.Context, fileID)
+		require.Nil(t, appErr)
+		assert.Empty(t, storedFI.PostId, "FileInfo must not be bound to any post when fi.PostId is empty")
+	})
+
+	t.Run("concurrent post and multi-file delivery converges", func(t *testing.T) {
+		// Plugin transports (e.g. NATS post stream + JetStream object store)
+		// deliver post-receive and file-receive on independent goroutines.
+		// A barrier-synchronised launch exercises the genuinely concurrent
+		// case: post.Save, attachFilesToPost, UploadData, and the lazy-bind
+		// can all interleave. The end state must still be: Post.FileIds
+		// contains every file id, and every FileInfo has PostId/ChannelId
+		// set. Run with -race to catch unsafe sharing.
+		const fanOut = 4
+		user := createRemoteUser(t)
+		postID := model.NewId()
+		fileIDs := make([]string, fanOut)
+		for i := range fileIDs {
+			fileIDs[i] = model.NewId()
+		}
+
+		var wg sync.WaitGroup
+		start := make(chan struct{})
+		errs := make(chan error, fanOut+1)
+
+		wg.Go(func() {
+			<-start
+			msg := model.NewSyncMsg(channel.Id)
+			msg.Posts = []*model.Post{
+				{
+					Id:        postID,
+					ChannelId: channel.Id,
+					UserId:    user.Id,
+					Message:   "post with attachments",
+					FileIds:   fileIDs,
+					CreateAt:  model.GetMillis(),
+					RemoteId:  model.NewPointer(rc.RemoteId),
+				},
+			}
+			resp, syncErr := api.ReceiveSharedChannelSyncMsg(rc.RemoteId, msg)
+			if syncErr != nil {
+				errs <- syncErr
+				return
+			}
+			if len(resp.PostErrors) > 0 {
+				errs <- fmt.Errorf("post sync returned errors: %v", resp.PostErrors)
+			}
+		})
+
+		for _, fid := range fileIDs {
+			wg.Go(func() {
+				<-start
+				fi := &model.FileInfo{
+					Id:        fid,
+					CreatorId: user.Id,
+					PostId:    postID,
+					Name:      "concurrent.txt",
+					Size:      4,
+				}
+				if _, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data"))); err != nil {
+					errs <- err
+				}
+			})
+		}
+
+		close(start)
+		wg.Wait()
+		close(errs)
+		for err := range errs {
+			require.NoError(t, err)
+		}
+
+		post, appErr := th.App.GetSinglePost(th.Context, postID, false)
+		require.Nil(t, appErr)
+		for _, fid := range fileIDs {
+			assert.Contains(t, post.FileIds, fid, "Post.FileIds must contain every file id after concurrent delivery")
+			fi, appErr := th.App.GetFileInfo(th.Context, fid)
+			require.Nil(t, appErr)
+			assert.Equal(t, postID, fi.PostId, "FileInfo.PostId must reference the post")
+			assert.Equal(t, channel.Id, fi.ChannelId, "FileInfo.ChannelId must reference the channel")
+		}
+	})
+
+	t.Run("post-then-file ordering publishes post_edited so clients refresh", func(t *testing.T) {
+		// In post-then-file ordering, the initial posted event carries an
+		// empty metadata.files (the FileInfo did not exist yet). The
+		// file-receive path's lazy-bind must publish a post_edited event
+		// after the bind so connected clients re-render with the new
+		// attachment without a channel reload.
+		messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser.Id, "",
+			[]model.WebsocketEventType{model.WebsocketEventPostEdited})
+		defer closeWS()
+
+		user := createRemoteUser(t)
+		postID := model.NewId()
+		fileID := model.NewId()
+
+		syncPostWithFileIds(t, postID, user.Id, []string{fileID})
+
+		fi := &model.FileInfo{
+			Id:        fileID,
+			CreatorId: user.Id,
+			PostId:    postID,
+			Name:      "ws.txt",
+			Size:      4,
+		}
+		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.NoError(t, err)
+
+		select {
+		case ev := <-messages:
+			require.Equal(t, model.WebsocketEventPostEdited, ev.EventType())
+			postJSON, ok := ev.GetData()["post"].(string)
+			require.True(t, ok, "post_edited payload must include serialised post")
+			var broadcastPost model.Post
+			require.NoError(t, json.Unmarshal([]byte(postJSON), &broadcastPost))
+			assert.Equal(t, postID, broadcastPost.Id)
+			require.NotNil(t, broadcastPost.Metadata, "broadcast post must include metadata")
+			fileIDsInBroadcast := make([]string, 0, len(broadcastPost.Metadata.Files))
+			for _, f := range broadcastPost.Metadata.Files {
+				fileIDsInBroadcast = append(fileIDsInBroadcast, f.Id)
+			}
+			assert.Contains(t, fileIDsInBroadcast, fileID,
+				"post_edited broadcast must surface the now-resolvable attachment to clients")
+		case <-time.After(5 * time.Second):
+			require.FailNow(t, "did not receive post_edited event within 5s after attachment lazy-bind")
+		}
+	})
+
+	t.Run("file-then-post ordering does not publish post_edited from lazy-bind", func(t *testing.T) {
+		// When the file arrives first, the post does not exist when the
+		// lazy-bind runs, so there is no post to broadcast. The eventual
+		// post arrival publishes a posted event with correct metadata; the
+		// lazy-bind must stay quiet to avoid a spurious post_edited for a
+		// post that has never been seen by any client.
+		messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser.Id, "",
+			[]model.WebsocketEventType{model.WebsocketEventPostEdited})
+		defer closeWS()
+
+		user := createRemoteUser(t)
+		postID := model.NewId()
+		fileID := model.NewId()
+
+		fi := &model.FileInfo{
+			Id:        fileID,
+			CreatorId: user.Id,
+			PostId:    postID,
+			Name:      "ws.txt",
+			Size:      4,
+		}
+		_, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
+		require.NoError(t, err)
+
+		select {
+		case ev := <-messages:
+			require.FailNowf(t, "unexpected event",
+				"did not expect a post_edited event from lazy-bind when post is absent, got: %v", ev.EventType())
+		case <-time.After(500 * time.Millisecond):
+			// Expected: no event.
+		}
+	})
+}
+
+func TestPluginAPIReceiveSharedChannelProfileImageSyncMsg(t *testing.T) {
+	th := setupSharedChannels(t).InitBasic(t)
+
+	channel := th.CreateChannel(t, th.BasicTeam)
+	pluginID := "com.test.profile-image-plugin"
+	rc := registerPluginRemoteForTest(t, th, pluginID, channel)
+
+	api := NewPluginAPI(th.App, th.Context, &model.Manifest{Id: pluginID})
+
+	t.Run("unknown remoteID returns error", func(t *testing.T) {
+		err := api.ReceiveSharedChannelProfileImageSyncMsg(model.NewId(), th.BasicUser.Id, []byte("img"))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "not found")
+	})
+
+	t.Run("remoteID belonging to different plugin returns error", func(t *testing.T) {
+		otherPluginID := "com.other.profile-plugin"
+		otherChannel := th.CreateChannel(t, th.BasicTeam)
+		otherRC := registerPluginRemoteForTest(t, th, otherPluginID, otherChannel)
+		err := api.ReceiveSharedChannelProfileImageSyncMsg(otherRC.RemoteId, th.BasicUser.Id, []byte("img"))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "does not belong to plugin")
+	})
+
+	t.Run("nonexistent user returns error", func(t *testing.T) {
+		err := api.ReceiveSharedChannelProfileImageSyncMsg(rc.RemoteId, model.NewId(), []byte("img"))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "not found")
+	})
+
+	t.Run("local user (wrong RemoteId) returns error", func(t *testing.T) {
+		err := api.ReceiveSharedChannelProfileImageSyncMsg(rc.RemoteId, th.BasicUser.Id, []byte("img"))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "does not belong to remote")
+	})
+
+	t.Run("syncs profile image and verifies it was saved", func(t *testing.T) {
+		// Create a remote user belonging to this plugin's remote
+		remoteUser := &model.User{
+			Email:    model.NewId() + "@remote.test",
+			Username: "remote-img-" + model.NewId()[:8],
+			Password: model.NewTestPassword(),
+			RemoteId: new(rc.RemoteId),
+		}
+		remoteUser, appErr := th.App.CreateUser(th.Context, remoteUser)
+		require.Nil(t, appErr)
+
+		lastPictureBefore := remoteUser.LastPictureUpdate
+
+		// Capture profile image before sync (default/empty for new user)
+		preImgBytes, _, appErr := th.App.GetProfileImage(remoteUser)
+		require.Nil(t, appErr)
+
+		pngData, err := os.ReadFile("tests/test.png")
+		require.NoError(t, err, "Failed to load tests/test.png")
+
+		err = api.ReceiveSharedChannelProfileImageSyncMsg(rc.RemoteId, remoteUser.Id, pngData)
+		require.NoError(t, err)
+
+		// Verify the user's LastPictureUpdate was bumped
+		updatedUser, appErr := th.App.GetUser(remoteUser.Id)
+		require.Nil(t, appErr)
+		assert.Greater(t, updatedUser.LastPictureUpdate, lastPictureBefore)
+
+		// Verify the image bytes changed and are non-empty
+		postImgBytes, _, appErr := th.App.GetProfileImage(updatedUser)
+		require.Nil(t, appErr)
+		assert.NotEmpty(t, postImgBytes)
+		assert.NotEqual(t, preImgBytes, postImgBytes, "profile image should differ after sync")
+	})
+}
+
+// activatePluginFromTemplate compiles a Go plugin from a .go.tmpl template file located
+// in the tests/ directory, executes the template with the provided data, activates it in
+// a real plugin environment with full RPC, and returns the environment. The plugin's
+// OnActivate hook runs through the real apiRPCClient → gob → apiRPCServer → PluginAPI
+// path. If OnActivate returns an error, the test fails.
+func activatePluginFromTemplate(t *testing.T, th *TestHelper, pluginID, templateFile string, data any) *plugin.Environment {
+	t.Helper()
+
+	testsDir, found := fileutils.FindDir("tests")
+	require.True(t, found, "tests directory not found")
+
+	tmplPath := filepath.Join(testsDir, templateFile)
+	tmplBytes, err := os.ReadFile(tmplPath)
+	require.NoError(t, err, "failed to read plugin template %s", tmplPath)
+
+	tmpl, err := template.New(filepath.Base(templateFile)).Parse(string(tmplBytes))
+	require.NoError(t, err, "failed to parse plugin template")
+
+	var buf strings.Builder
+	err = tmpl.Execute(&buf, data)
+	require.NoError(t, err, "failed to execute plugin template")
+
+	pluginDir := t.TempDir()
+	webappPluginDir := t.TempDir()
+
+	newPluginAPI := func(manifest *model.Manifest) plugin.API {
+		return th.App.NewPluginAPI(th.Context, manifest)
+	}
+	env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(th.App.Srv()), pluginDir, webappPluginDir, th.App.Log(), nil)
+	require.NoError(t, err)
+
+	th.App.ch.SetPluginsEnvironment(env)
+
+	backend := filepath.Join(pluginDir, pluginID, "backend.exe")
+	utils.CompileGo(t, buf.String(), backend)
+
+	manifestJSON := `{"id": "` + pluginID + `", "server": {"executable": "backend.exe"}}`
+	err = os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(manifestJSON), 0600)
+	require.NoError(t, err)
+
+	manifest, activated, reterr := env.Activate(pluginID)
+	require.NoError(t, reterr, "plugin OnActivate failed")
+	require.NotNil(t, manifest)
+	require.True(t, activated)
+
+	t.Cleanup(func() {
+		env.Shutdown()
+	})
+
+	return env
+}
+
+func TestPluginRPCSharedChannelSync(t *testing.T) {
+	th := setupSharedChannels(t).InitBasic(t)
+
+	// Pre-setup: create and share a channel, register the plugin as a remote, invite it
+	channel := th.CreateChannel(t, th.BasicTeam)
+	pluginID := "testplugin"
+	rc := registerPluginRemoteForTest(t, th, pluginID, channel)
+
+	// IDs the plugin will use to create content
+	syncUserID := model.NewId()
+	syncPostID := model.NewId()
+
+	// Compile and activate plugin from template — OnActivate runs through full RPC
+	activatePluginFromTemplate(t, th, pluginID, "shared_channel_sync_plugin_test.go.tmpl", struct {
+		ChannelID  string
+		RemoteID   string
+		SyncUserID string
+		SyncPostID string
+	}{
+		ChannelID:  channel.Id,
+		RemoteID:   rc.RemoteId,
+		SyncUserID: syncUserID,
+		SyncPostID: syncPostID,
+	})
+
+	// --- Post-activation verification: check everything landed in the DB ---
+
+	// Verify synced user
+	user, appErr := th.App.GetUser(syncUserID)
+	require.Nil(t, appErr, "synced user should exist in DB")
+	assert.Contains(t, user.Username, "rpc-synced-user")
+	assert.Equal(t, rc.RemoteId, user.GetRemoteID())
+
+	// Verify synced post
+	post, appErr := th.App.GetSinglePost(th.Context, syncPostID, false)
+	require.Nil(t, appErr, "synced post should exist in DB")
+	assert.Equal(t, "hello from plugin over RPC", post.Message)
+	assert.Equal(t, channel.Id, post.ChannelId)
+	assert.Equal(t, syncUserID, post.UserId)
+
+	// The attachment was verified inside the plugin's OnActivate (it would have returned
+	// an error if ReceiveSharedChannelAttachmentSyncMsg failed). The file ID is assigned
+	// server-side by the upload session, so we can't look it up by a pre-known ID here.
+	// The direct PluginAPI test (TestPluginAPIReceiveSharedChannelAttachmentSyncMsg) does
+	// the detailed DB verification for attachment persistence.
+
+	// Verify profile image was saved for the synced user
+	updatedUser, err := th.App.Srv().Store().User().Get(th.Context.Context(), syncUserID)
+	require.NoError(t, err)
+	assert.Greater(t, updatedUser.LastPictureUpdate, int64(0), "LastPictureUpdate should be set after profile image sync")
+
+	imgBytes, _, appErr := th.App.GetProfileImage(updatedUser)
+	require.Nil(t, appErr)
+	assert.NotEmpty(t, imgBytes, "profile image bytes should be readable")
 }

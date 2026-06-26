@@ -3,15 +3,32 @@
 
 import React from 'react';
 
+jest.mock('components/channel_type_icon/compass_icon_resolver', () => ({
+    compassIconForName: jest.fn(),
+}));
+
+jest.mock('utils/channel_utils', () => ({
+    ...jest.requireActual('utils/channel_utils'),
+    getArchiveIconComponent: jest.fn(() => (props: Record<string, unknown>) => (
+        <span
+            data-is-default-archive='true'
+            {...props}
+        />
+    )),
+}));
+
 import {PostPriority} from '@mattermost/types/posts';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Posts} from 'mattermost-redux/constants';
 
+import {compassIconForName} from 'components/channel_type_icon';
+
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {getHistory} from 'utils/browser_history';
 import {Locations} from 'utils/constants';
+import * as PopoutWindows from 'utils/popouts/popout_windows';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
@@ -35,12 +52,14 @@ describe('PostComponent', () => {
         isMobileView: false,
         isPostAcknowledgementsEnabled: false,
         isPostPriorityEnabled: false,
+        permissionPoliciesEnabled: false,
         location: Locations.CENTER,
         post: TestHelper.getPostMock({channel_id: channel.id}),
         recentEmojis: [],
         replyCount: 0,
         team: currentTeam,
         pluginActions: [],
+        burnOnReadDurationMinutes: 10,
         actions: {
             markPostAsUnread: jest.fn(),
             emitShortcutReactToLastPostFrom: jest.fn(),
@@ -50,7 +69,13 @@ describe('PostComponent', () => {
             closeRightHandSide: jest.fn(),
             selectPostCard: jest.fn(),
             setRhsExpanded: jest.fn(),
+            revealBurnOnReadPost: jest.fn(),
+            savePreferences: jest.fn(),
+            openModal: jest.fn(),
+            closeModal: jest.fn(),
+            highlightPostInChannelPopout: jest.fn(),
         },
+        isChannelAutotranslated: false,
     };
 
     describe('reactions', () => {
@@ -325,6 +350,66 @@ describe('PostComponent', () => {
                 expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).not.toHaveBeenCalled();
                 expect(getHistory().push).toHaveBeenCalled();
             });
+
+            test('should navigate within popout when clicking reply on a search result in a popout window', async () => {
+                jest.spyOn(PopoutWindows, 'isPopoutWindow').mockReturnValue(true);
+
+                const props = {
+                    ...propsForRootPost,
+                    location: Locations.SEARCH,
+                    matches: ['test'],
+                    teamName: currentTeam.name,
+                };
+                renderWithContext(<PostComponent {...props}/>, state);
+
+                await userEvent.click(screen.getByText('1 reply'));
+
+                expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).not.toHaveBeenCalled();
+                expect(getHistory().replace).toHaveBeenCalledWith(
+                    expect.stringContaining(`/_popout/thread/${currentTeam.name}/${rootPost.id}`),
+                );
+
+                jest.restoreAllMocks();
+            });
+
+            test('should navigate within popout on cross-team reply click instead of jumping', async () => {
+                jest.spyOn(PopoutWindows, 'isPopoutWindow').mockReturnValue(true);
+
+                const props = {
+                    ...propsForRootPost,
+                    location: Locations.SEARCH,
+                    matches: ['test'],
+                    team: TestHelper.getTeamMock({id: 'another_team'}),
+                    teamName: currentTeam.name,
+                };
+                renderWithContext(<PostComponent {...props}/>, state);
+
+                await userEvent.click(screen.getByText('1 reply'));
+
+                expect(getHistory().push).not.toHaveBeenCalled();
+                expect(getHistory().replace).toHaveBeenCalledWith(
+                    expect.stringContaining('/_popout/thread/'),
+                );
+
+                jest.restoreAllMocks();
+            });
+
+            test('should not navigate within popout when not a search result item', async () => {
+                jest.spyOn(PopoutWindows, 'isPopoutWindow').mockReturnValue(true);
+
+                const props = {
+                    ...propsForRootPost,
+                    location: Locations.CENTER,
+                };
+                renderWithContext(<PostComponent {...props}/>, state);
+
+                await userEvent.click(screen.getByText('1 reply'));
+
+                expect(propsForRootPost.actions.selectPostFromRightHandSideSearch).toHaveBeenCalledWith(rootPost);
+                expect(getHistory().replace).not.toHaveBeenCalled();
+
+                jest.restoreAllMocks();
+            });
         });
     });
 
@@ -549,5 +634,300 @@ describe('PostComponent', () => {
 
             expect(screen.queryByTestId('post-priority-label')).not.toBeInTheDocument();
         });
+    });
+
+    describe('AI-generated indicator', () => {
+        const aiGeneratedPost = TestHelper.getPostMock({
+            channel_id: channel.id,
+            props: {
+                ai_generated_by: 'ai_user_id',
+                ai_generated_by_username: 'aibot',
+            },
+        });
+
+        test('should show AI-generated indicator for AI posts in non-compact mode', () => {
+            const props = {
+                ...baseProps,
+                post: aiGeneratedPost,
+                compactDisplay: false,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            expect(screen.getByLabelText('Message posted by @aibot')).toBeInTheDocument();
+        });
+
+        test('should not show AI-generated indicator for regular posts', () => {
+            const regularPost = TestHelper.getPostMock({
+                channel_id: channel.id,
+            });
+            const props = {
+                ...baseProps,
+                post: regularPost,
+                compactDisplay: false,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            expect(screen.queryByLabelText(/AI-generated|Message posted by/)).not.toBeInTheDocument();
+        });
+
+        test('should show AI-generated indicator for consecutive AI posts', () => {
+            const props = {
+                ...baseProps,
+                post: aiGeneratedPost,
+                compactDisplay: false,
+                isConsecutivePost: true,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            expect(screen.getByLabelText('Message posted by @aibot')).toBeInTheDocument();
+        });
+
+        test('should show AI-generated indicator in PostUserProfile for compact mode in CENTER', () => {
+            const props = {
+                ...baseProps,
+                post: aiGeneratedPost,
+                compactDisplay: true,
+                location: Locations.CENTER,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            // In compact CENTER mode, indicator is rendered by PostUserProfile (after username)
+            // Verify it appears exactly once
+            const indicators = screen.queryAllByLabelText(/AI-generated|Message posted by/);
+            expect(indicators.length).toBe(1);
+        });
+
+        test('should show AI-generated indicator for consecutive AI posts in threads', () => {
+            const threadPost = TestHelper.getPostMock({
+                channel_id: channel.id,
+                root_id: 'root_post_id',
+                props: {
+                    ai_generated_by: 'ai_user_id',
+                    ai_generated_by_username: 'aibot',
+                },
+            });
+            const props = {
+                ...baseProps,
+                post: threadPost,
+                compactDisplay: false,
+                isConsecutivePost: true,
+                location: Locations.RHS_COMMENT,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            expect(screen.getByLabelText('Message posted by @aibot')).toBeInTheDocument();
+        });
+
+        test('should show AI-generated indicator for non-consecutive posts in threads', () => {
+            const threadPost = TestHelper.getPostMock({
+                channel_id: channel.id,
+                root_id: 'root_post_id',
+                props: {
+                    ai_generated_by: 'ai_user_id',
+                    ai_generated_by_username: 'aibot',
+                },
+            });
+            const props = {
+                ...baseProps,
+                post: threadPost,
+                compactDisplay: false,
+                isConsecutivePost: false,
+                location: Locations.RHS_COMMENT,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            expect(screen.getByLabelText('Message posted by @aibot')).toBeInTheDocument();
+        });
+    });
+
+    describe('plugin channel icon override', () => {
+        const mockedCompassIconForName = jest.mocked(compassIconForName);
+
+        afterEach(() => {
+            mockedCompassIconForName.mockReset();
+        });
+
+        test('renders override SVG icon for archived channel in search view when plugin matches', () => {
+            const StubIcon = ({size, color, className}: {size?: number; color?: string; className?: string}) => (
+                <span
+                    data-testid='stub-override-icon'
+                    data-size={size}
+                    data-color={color}
+                    className={className}
+                />
+            );
+            mockedCompassIconForName.mockReturnValue(StubIcon as any);
+
+            const props = {
+                ...baseProps,
+                channelIsArchived: true,
+                channelType: 'O' as any,
+                channel,
+                location: Locations.SEARCH,
+                isMentionSearch: true,
+            };
+
+            const state = {
+                plugins: {
+                    components: {
+                        ChannelIconOverride: [{
+                            id: '1',
+                            pluginId: 'test-plugin',
+                            matcher: () => true,
+                            iconName: 'shield-outline',
+                        }],
+                    },
+                },
+            } as any;
+
+            renderWithContext(<PostComponent {...props}/>, state);
+            const overrideIcon = screen.getByTestId('stub-override-icon');
+            expect(overrideIcon).toBeInTheDocument();
+
+            // Override icon gets svg-text-color (greyed to signal archived) but not the built-in archive icon classes
+            expect(overrideIcon).toHaveClass('svg-text-color');
+            expect(overrideIcon).not.toHaveClass('channel-header-archived-icon');
+
+            // No "Archived" tooltip when override wins (parent is aria-hidden; tooltip adds no a11y value)
+            expect(screen.queryByText('Archived')).not.toBeInTheDocument();
+
+            // Default archive icon is absent when override wins
+            expect(document.querySelector('[data-is-default-archive]')).not.toBeInTheDocument();
+        });
+
+        test('renders default SVG archive icon when no plugin matcher matches', () => {
+            mockedCompassIconForName.mockReturnValue(null);
+
+            const props = {
+                ...baseProps,
+                channelIsArchived: true,
+                channelType: 'O' as any,
+                channel,
+                location: Locations.SEARCH,
+                isMentionSearch: true,
+            };
+
+            const state = {
+                plugins: {
+                    components: {
+                        ChannelIconOverride: [{
+                            id: '1',
+                            pluginId: 'test-plugin',
+                            matcher: () => false,
+                            iconName: 'shield-outline',
+                        }],
+                    },
+                },
+            } as any;
+
+            const {container} = renderWithContext(<PostComponent {...props}/>, state);
+            expect(screen.queryByTestId('stub-override-icon')).not.toBeInTheDocument();
+            expect(container.querySelector('.search-channel__archived')).toBeInTheDocument();
+
+            // Default archive icon is present in the fallback path
+            expect(document.querySelector('[data-is-default-archive]')).toBeInTheDocument();
+        });
+    });
+});
+
+describe('PostComponent — PostHeader plugin component render site', () => {
+    const currentTeam = TestHelper.getTeamMock();
+    const channel = TestHelper.getChannelMock({team_id: currentTeam.id});
+
+    const baseProps: Props = {
+        center: false,
+        currentTeam,
+        currentUserId: 'currentUserId',
+        displayName: '',
+        hasReplies: false,
+        isBot: false,
+        isCollapsedThreadsEnabled: true,
+        isFlagged: false,
+        isMobileView: false,
+        isPostAcknowledgementsEnabled: false,
+        isPostPriorityEnabled: false,
+        permissionPoliciesEnabled: false,
+        location: Locations.CENTER,
+        post: TestHelper.getPostMock({channel_id: channel.id}),
+        recentEmojis: [],
+        replyCount: 0,
+        team: currentTeam,
+        pluginActions: [],
+        burnOnReadDurationMinutes: 10,
+        actions: {
+            markPostAsUnread: jest.fn(),
+            emitShortcutReactToLastPostFrom: jest.fn(),
+            selectPost: jest.fn(),
+            selectPostFromRightHandSideSearch: jest.fn(),
+            removePost: jest.fn(),
+            closeRightHandSide: jest.fn(),
+            selectPostCard: jest.fn(),
+            setRhsExpanded: jest.fn(),
+            revealBurnOnReadPost: jest.fn(),
+            savePreferences: jest.fn(),
+            openModal: jest.fn(),
+            closeModal: jest.fn(),
+            highlightPostInChannelPopout: jest.fn(),
+        },
+        isChannelAutotranslated: false,
+    };
+
+    // A real plugin-registered component rendered through Pluggable — not mocked away, so the
+    // test exercises the same Pluggable path the host uses in production.
+    const PluginBadge = () => <div data-testid='post-header-plugin'/>;
+
+    function stateWithPluginBadge() {
+        return {
+            plugins: {
+                components: {
+                    PostHeader: [{
+                        id: 'badge-1',
+                        pluginId: 'test-plugin',
+                        component: PluginBadge,
+                    }],
+                },
+            },
+        } as any;
+    }
+
+    it('renders a registered PostHeader component in the badges area', () => {
+        renderWithContext(<PostComponent {...baseProps}/>, stateWithPluginBadge());
+        expect(screen.getByTestId('post-header-plugin')).toBeInTheDocument();
+    });
+
+    it('does not render the component on a consecutive CENTER post (timestamp is hidden)', () => {
+        renderWithContext(
+            <PostComponent
+                {...baseProps}
+                isConsecutivePost={true}
+            />,
+            stateWithPluginBadge(),
+        );
+        expect(screen.queryByTestId('post-header-plugin')).not.toBeInTheDocument();
+    });
+
+    it('does not render the component on a consecutive RHS_COMMENT post (timestamp is reflowed to narrow style)', () => {
+        renderWithContext(
+            <PostComponent
+                {...baseProps}
+                isConsecutivePost={true}
+                location={Locations.RHS_COMMENT}
+            />,
+            stateWithPluginBadge(),
+        );
+        expect(screen.queryByTestId('post-header-plugin')).not.toBeInTheDocument();
+    });
+
+    it('renders the component on a consecutive RHS_COMMENT post in compactDisplay mode (timestamp stays in badges area)', () => {
+        renderWithContext(
+            <PostComponent
+                {...baseProps}
+                isConsecutivePost={true}
+                location={Locations.RHS_COMMENT}
+                compactDisplay={true}
+            />,
+            stateWithPluginBadge(),
+        );
+        expect(screen.getByTestId('post-header-plugin')).toBeInTheDocument();
     });
 });

@@ -10,10 +10,10 @@
 // Stage: @prod
 // Group: @channels @bot_accounts
 
-import {Team} from '@mattermost/types/teams';
+import type {Team} from '@mattermost/types/teams';
 
-import * as MESSAGES from '../../../fixtures/messages';
-import {getRandomId} from '../../../utils';
+import * as MESSAGES from '@/fixtures/messages';
+import {getRandomId} from '@/utils';
 
 describe('Edit bot', () => {
     let testTeam: Team;
@@ -69,7 +69,7 @@ describe('Edit bot', () => {
         });
     });
 
-    function createBot(userName, teamName) {
+    function createBot(userName: string, teamName: string) {
         // # Go to bot integrations page
         cy.uiOpenProductMenu('Integrations');
         cy.get('a.integration-option[href$="/bots"]').click();

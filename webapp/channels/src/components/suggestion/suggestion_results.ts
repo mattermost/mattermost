@@ -26,9 +26,10 @@ export type SuggestionResultsGroup<Item = unknown> = {
     key: string;
 
     /**
-     * The label for the group displayed to the user
+     * The label for the group displayed to the user.
+     * If omitted, the group will be rendered without a header.
      */
-    label: MessageDescriptor;
+    label?: MessageDescriptor;
 
     /**
      * A list of strings which the previously typed text may be replaced by.
@@ -193,11 +194,11 @@ export type ProviderResults<Item = unknown> = ProviderResultsGrouped<Item> | Pro
 export type ProviderResultsGrouped<Item = unknown> = {
     matchedPretext: string;
     groups: Array<ProviderResultsGroup<Item>>;
-}
+};
 
 export type ProviderResultsGroup<Item = unknown> = {
     key: string;
-    label: MessageDescriptor;
+    label?: MessageDescriptor;
 
     terms: string[];
     items: Array<Item | Loading>;
@@ -213,7 +214,7 @@ type ComponentOrComponents = {
     component: React.ElementType;
 } | {
     components: React.ElementType[];
-}
+};
 
 /**
  * Converts the results from a Provider which may have one or multiple components specified into one which always

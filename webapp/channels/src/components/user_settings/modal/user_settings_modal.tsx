@@ -35,7 +35,7 @@ export type OwnProps = {
     isContentProductSettings: boolean;
     userPreferences?: PreferencesType;
     activeTab?: string;
-}
+};
 
 export type Props = OwnProps & {
     intl: IntlShape;
@@ -48,7 +48,7 @@ export type Props = OwnProps & {
         getUserPreferences: (userID: string) => Promise<unknown>;
         getUser: (userID: string) => Promise<unknown>;
     };
-}
+};
 
 type State = {
     active_tab?: string;
@@ -292,7 +292,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
         return [
             {
                 name: 'profile',
-                uiName: formatMessage({id: 'user.settings.modal.profile', defaultMessage: 'Profile'}),
+                uiName: formatMessage({id: 'user.settings.modal.profile', defaultMessage: 'Profile Settings'}),
                 icon: 'icon icon-settings-outline',
                 iconTitle: formatMessage({id: 'user.settings.profile.icon', defaultMessage: 'Profile Settings Icon'}),
             },
@@ -324,7 +324,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
         let modalTitle: string;
         if (this.props.adminMode && this.props.user) {
             modalTitle = formatMessage(
-                {id: 'userSettings.adminMode.modal_header', defaultMessage: "{userDisplayName}'s Settings"},
+                {id: 'userSettings.adminMode.modal_header', defaultMessage: "Manage {userDisplayName}'s Settings"},
                 {userDisplayName: getDisplayName(this.props.user)},
             );
         } else if (this.props.isContentProductSettings) {

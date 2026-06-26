@@ -6,6 +6,7 @@ import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape, MessageDescriptor, WrappedComponentProps} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, ClientLicense, EnvironmentConfig} from '@mattermost/types/config';
 import type {Role} from '@mattermost/types/roles';
@@ -31,11 +32,11 @@ import FormError from 'components/form_error';
 import Markdown from 'components/markdown';
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import AdminSectionPanel from 'components/widgets/admin_console/admin_section_panel';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 import BetaTag from 'components/widgets/tag/beta_tag';
-import WithTooltip from 'components/with_tooltip';
 
-import * as I18n from 'i18n/i18n.jsx';
+import * as I18n from 'i18n/i18n';
 import Constants from 'utils/constants';
 import {mappingValueFromRoles, rolesFromMapping} from 'utils/policy_roles_adapter';
 
@@ -63,7 +64,7 @@ export type SystemConsoleCustomSettingsComponentProps = {
     unRegisterSaveAction: (saveAction: () => Promise<{error?: {message?: string}}>) => void;
     cancelSubmit: () => void;
     showConfirm: boolean;
-}
+};
 
 export type SchemaAdminSettingsProps = {
     config: Partial<AdminConfig>;
@@ -79,7 +80,7 @@ export type SchemaAdminSettingsProps = {
     cloud: CloudState;
     isCurrentUserSystemAdmin: boolean;
     enterpriseReady: boolean;
-} & WrappedComponentProps
+} & WrappedComponentProps;
 
 type State = {
     [x: string]: any;
@@ -91,7 +92,7 @@ type State = {
     showConfirmId: string;
     clientWarning: string;
     prevSchemaId?: string;
-}
+};
 
 // Some path parts may contain periods (e.g. plugin ids), but path walking the configuration
 // relies on splitting by periods. Use this pair of functions to allow such path parts.
@@ -257,7 +258,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                 if (setting.type === Constants.SettingsTypes.TYPE_PERMISSION) {
                     try {
                         state[setting.key] = mappingValueFromRoles(setting.permissions_mapping_name, roles!) === 'true';
-                    } catch (e) {
+                    } catch {
                         state[setting.key] = false;
                     }
                     return;
@@ -379,7 +380,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
             return (<></>);
         }
 
-        const handleRequestAction = (success: () => void, error: (error: {message: string}) => void) => {
+        const handleRequestAction = (success: () => void, error: (error: {message: string; detailed_error?: string}) => void) => {
             if (!setting.skipSaveNeeded && this.state.saveNeeded !== false) {
                 error({
                     message: this.props.intl.formatMessage({id: 'admin_settings.save_unsaved_changes', defaultMessage: 'Please save unsaved changes first'}),
@@ -396,8 +397,22 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                         if (tsetting.type === Constants.SettingsTypes.TYPE_TEXT) {
                             this.setState({[tsetting.key]: inputData, [`${tsetting.key}Error`]: null});
                         } else if (tsetting.type === Constants.SettingsTypes.TYPE_FILE_UPLOAD) {
-                            if (this.buildSettingFunctions[tsetting.type] && this.buildSettingFunctions[tsetting.type](tsetting)?.props.onSetData) {
-                                this.buildSettingFunctions[tsetting.type](tsetting)?.props.onSetData(tsetting.key, inputData);
+                            if (tsetting.set_action && tsetting.key) {
+                                const key = tsetting.key;
+                                const onSuccess = (filename: string) => {
+                                    this.handleChange(key, filename);
+                                    this.setState({[key]: filename, [`${key}Error`]: null});
+                                };
+                                const onError = (err: {message: string}) => {
+                                    this.setState({[`${key}Error`]: err.message});
+                                };
+                                if (typeof inputData !== 'string' || inputData.trim() === '') {
+                                    onError({
+                                        message: this.props.intl.formatMessage({id: 'admin.saml.getSamlMetadataFromIDPFail', defaultMessage: 'SAML Metadata URL did not connect and pull data successfully'}),
+                                    });
+                                    return;
+                                }
+                                tsetting.set_action(onSuccess, onError, inputData);
                             }
                         }
                     }
@@ -454,7 +469,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
         } else if (setting.multiple) {
             value = this.state[setting.key] ? this.state[setting.key].join(',') : '';
         } else {
-            value = this.state[setting.key] ?? (setting.default || '');
+            value = this.state[setting.key] ?? (typeof setting.default === 'function' ? setting.default(value, this.props.config, this.state) : setting.default || '');
         }
 
         let footer = null;
@@ -1063,6 +1078,9 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                         <CustomComponent
                             settingsList={settingsList}
                             key={section.key}
+                            sectionTitle={section.title}
+                            sectionDescription={section.description}
+                            {...section.componentProps}
                         />
                     ));
                     return;
@@ -1109,24 +1127,43 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                     return;
                 }
 
-                sections.push(
-                    <div
-                        className={'config-section'}
-                        key={section.key}
-                    >
-                        <SettingsGroup
-                            show={true}
+                // Sections with enhanced properties use AdminSectionPanel for richer UI
+                const hasEnhancedProps = section.description || section.license_sku;
+
+                if (hasEnhancedProps) {
+                    sections.push(
+                        <AdminSectionPanel
+                            key={section.key}
                             title={section.title}
-                            subtitle={section.subtitle}
+                            description={section.description}
+                            licenseSku={section.license_sku}
                         >
-                            <div className={'section-body'}>
-                                {header}
-                                {settingsList}
-                                {footer}
-                            </div>
-                        </SettingsGroup>
-                    </div>,
-                );
+                            {header}
+                            {settingsList}
+                            {footer}
+                        </AdminSectionPanel>,
+                    );
+                } else {
+                    // Standard sections use existing rendering
+                    sections.push(
+                        <div
+                            className={'config-section'}
+                            key={section.key}
+                        >
+                            <SettingsGroup
+                                show={true}
+                                title={section.title}
+                                subtitle={section.subtitle}
+                            >
+                                <div className={'section-body'}>
+                                    {header}
+                                    {settingsList}
+                                    {footer}
+                                </div>
+                            </SettingsGroup>
+                        </div>,
+                    );
+                }
             });
 
             return (
@@ -1155,6 +1192,10 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                 serverErrorId: error.id,
             });
         } else {
+            this.setState({
+                serverError: null,
+                serverErrirId: null,
+            });
             this.setState(getStateFromConfig(config, this.props.schema));
         }
 

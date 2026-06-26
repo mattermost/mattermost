@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	saml2 "github.com/mattermost/gosaml2"
+
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
@@ -64,6 +65,15 @@ const (
 	GenerateSupportDataID                     = 45
 	OnSAMLLoginID                             = 46
 	EmailNotificationWillBeSentID             = 47
+	FileWillBeDownloadedID                    = 48
+	ChannelMemberWillBeAddedID                = 49
+	TeamMemberWillBeAddedID                   = 50
+	ChannelWillBeArchivedID                   = 51
+	ChannelWillBeUpdatedID                    = 52
+	ChannelWillBeRestoredID                   = 53
+	ScheduledPostWillBeCreatedID              = 54
+	DraftWillBeUpsertedID                     = 55
+	MessagesWillBeConsumedWithContextID       = 56
 	TotalHooksID                              = iota
 )
 
@@ -190,6 +200,18 @@ type Hooks interface {
 	// Minimum server version: 9.3
 	MessagesWillBeConsumed(posts []*model.Post) []*model.Post
 
+	// MessagesWillBeConsumedWithContext is invoked when messages are requested by a client, before
+	// they are returned to the client. It is the context-aware variant of MessagesWillBeConsumed.
+	//
+	// To modify a post, return the replacement post; the returned posts are matched to the originals
+	// by ID. Posts that should be left unchanged may be omitted from the returned slice.
+	//
+	// Note that this method will be called for posts created by plugins, including the plugin that
+	// created the post.
+	//
+	// Minimum server version: 11.9
+	MessagesWillBeConsumedWithContext(c *Context, posts []*model.Post) []*model.Post
+
 	// MessageHasBeenDeleted is invoked after the message has been deleted from the database.
 	// Note that this method will be called for posts deleted by plugins, including the plugin that
 	// deleted the post.
@@ -202,6 +224,25 @@ type Hooks interface {
 	// Minimum server version: 5.2
 	ChannelHasBeenCreated(c *Context, channel *model.Channel)
 
+	// ChannelWillBeArchived is invoked before a channel is archived, allowing plugins to
+	// reject the archive operation.
+	//
+	// To reject the archive, return a non-empty string describing why it was rejected.
+	// To allow the archive, return an empty string.
+	//
+	// Minimum server version: 11.7
+	ChannelWillBeArchived(c *Context, channel *model.Channel) string
+
+	// ChannelMemberWillBeAdded is invoked before a member is added to a channel, allowing
+	// plugins to modify the channel member or reject the addition.
+	//
+	// To reject the addition, return a non-empty string describing why it was rejected.
+	// To modify the member, return the replacement, non-nil *model.ChannelMember and an empty string.
+	// To allow the addition without modification, return a nil *model.ChannelMember and an empty string.
+	//
+	// Minimum server version: 11.7
+	ChannelMemberWillBeAdded(c *Context, channelMember *model.ChannelMember) (*model.ChannelMember, string)
+
 	// UserHasJoinedChannel is invoked after the membership has been committed to the database.
 	// If actor is not nil, the user was invited to the channel by the actor.
 	//
@@ -213,6 +254,16 @@ type Hooks interface {
 	//
 	// Minimum server version: 5.2
 	UserHasLeftChannel(c *Context, channelMember *model.ChannelMember, actor *model.User)
+
+	// TeamMemberWillBeAdded is invoked before a member is added to a team, allowing
+	// plugins to modify the team member or reject the addition.
+	//
+	// To reject the addition, return a non-empty string describing why it was rejected.
+	// To modify the member, return the replacement, non-nil *model.TeamMember and an empty string.
+	// To allow the addition without modification, return a nil *model.TeamMember and an empty string.
+	//
+	// Minimum server version: 11.7
+	TeamMemberWillBeAdded(c *Context, teamMember *model.TeamMember) (*model.TeamMember, string)
 
 	// UserHasJoinedTeam is invoked after the membership has been committed to the database.
 	// If actor is not nil, the user was added to the team by the actor.
@@ -238,6 +289,20 @@ type Hooks interface {
 	//
 	// Minimum server version: 5.2
 	FileWillBeUploaded(c *Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string)
+
+	// FileWillBeDownloaded is invoked when a file is requested for download, but before it is sent to the client.
+	//
+	// To reject a file download, return an non-empty string describing why the file was rejected.
+	// To allow the download, return an empty string.
+	//
+	// The downloadType parameter indicates the type of file access and can be one of:
+	//   - model.FileDownloadTypeFile: Full file download
+	//   - model.FileDownloadTypeThumbnail: Thumbnail request
+	//   - model.FileDownloadTypePreview: Preview image request
+	//   - model.FileDownloadTypePublic: Public link access (userID will be empty string in this case)
+	//
+	// Minimum server version: 11.5
+	FileWillBeDownloaded(c *Context, fileInfo *model.FileInfo, userID string, downloadType model.FileDownloadType) string
 
 	// ReactionHasBeenAdded is invoked after the reaction has been committed to the database.
 	//
@@ -418,4 +483,42 @@ type Hooks interface {
 	//
 	// Minimum server version: 10.7
 	OnSAMLLogin(c *Context, user *model.User, assertion *saml2.AssertionInfo) error
+
+	// ChannelWillBeUpdated is invoked before a channel update is committed, allowing plugins to
+	// modify the channel or reject the update.
+	//
+	// To reject the update, return a non-empty string describing why. To modify the channel, return
+	// the replacement *model.Channel and an empty string. To allow the update without modification,
+	// return nil and an empty string.
+	//
+	// Fires from the app-layer UpdateChannel and PatchChannel paths so REST, local API, plugin API,
+	// import, and bulk callers all hit it.
+	//
+	// Minimum server version: 11.9
+	ChannelWillBeUpdated(c *Context, newChannel, oldChannel *model.Channel) (*model.Channel, string)
+
+	// ChannelWillBeRestored is invoked before an archived channel is un-archived. Fires from
+	// app.RestoreChannel before the store's Channel().Restore call. Sibling of
+	// ChannelWillBeArchived for the inverse operation.
+	//
+	// To reject, return a non-empty string. Empty string allows the restore.
+	//
+	// Minimum server version: 11.9
+	ChannelWillBeRestored(c *Context, channel *model.Channel) string
+
+	// ScheduledPostWillBeCreated is invoked before a scheduled post is committed. Fires from the
+	// app-layer SaveScheduledPost and UpdateScheduledPost paths.
+	//
+	// Return value semantics match MessageWillBePosted.
+	//
+	// Minimum server version: 11.9
+	ScheduledPostWillBeCreated(c *Context, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, string)
+
+	// DraftWillBeUpserted is invoked before a draft is committed. Fires from the app-layer
+	// UpsertDraft path.
+	//
+	// Return value semantics match MessageWillBePosted.
+	//
+	// Minimum server version: 11.9
+	DraftWillBeUpserted(c *Context, draft *model.Draft) (*model.Draft, string)
 }

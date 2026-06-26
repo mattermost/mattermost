@@ -1832,10 +1832,6 @@
     "translation": "جستجوی الاستیک غیرفعال است."
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "جستجوی الاستیک از قبل متوقف شده است."
-  },
-  {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "تجزیه نسخه سرور جستجوی الاستیک انجام نشد."
   },
@@ -4360,10 +4356,6 @@
     "translation": "مجوز تجاری Mattermost غیرفعال شده است."
   },
   {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "مجوز تجاری شما منقضی شده است و برخی از ویژگی ها ممکن است غیرفعال شوند. لطفا اشتراکتان را تمدید کنید."
-  },
-  {
     "id": "api.templates.questions_footer.title",
     "translation": "سوالات؟"
   },
@@ -5016,10 +5008,6 @@
     "translation": "دریافت کانال ها امکان پذیر نیست."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "شمارش کانال امکان پذیر نیست."
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "گرفتن کانالهای طرح ارائه شده امکان پذیر نیست."
   },
@@ -5532,10 +5520,6 @@
     "translation": "کاربر Slack با یک کاربر موجود Mattermost با ایمیل منطبق {{.Email}} و نام کاربری {{.Username}} ادغام شد.\n"
   },
   {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "کاربر Slack با ایمیل {{.Email}} و رمز عبور {{.Password}} وارد شده است.\n"
-  },
-  {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\nکاربران ایجاد کردند:\n"
   },
@@ -5558,10 +5542,6 @@
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "وارد کردن کاربر یکپارچه سازی / Slack Bot {{.Username}} امکان پذیر نیست.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "کاربر ادغام / Slack Bot با ایمیل {{.Email}} و رمز عبور {{.Password}} وارد شده است.\n"
   },
   {
     "id": "api.server.start_server.starting.critical",
@@ -6322,14 +6302,6 @@
     "translation": "بارگذاری پرونده امکان پذیر نیست. شناسه کانال نادرست است: {{.channelId}}"
   },
   {
-    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
-    "translation": "اطمینان حاصل کنید که bucket آمازون S3 شما در دسترس است و مجوزهای bucket خود را تأیید کنید."
-  },
-  {
-    "id": "api.file.test_connection_s3_auth.app_error",
-    "translation": "امکان اتصال به S3 وجود ندارد. پارامترهای مجوز اتصال آمازون S3 و تنظیمات احراز هویت را تأیید کنید."
-  },
-  {
     "id": "api.file.test_connection.app_error",
     "translation": "دسترسی به حافظه فایل امکان پذیر نیست."
   },
@@ -6941,10 +6913,6 @@
     "translation": "ارتباط امن"
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "کانال {{.Channel}} بیصدا نمی شود زیرا عضو آن نیستید."
-  },
-  {
     "id": "api.command_mute.no_channel.error",
     "translation": "کانال مشخص شده یافت نشد. برای شناسایی کانال ها لطفاً از [هندل کانال](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) استفاده کنید."
   },
@@ -7062,7 +7030,10 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} از قبل در کانال است."
+    "translation": {
+      "one": "{{.User}} از قبل در کانال است.",
+      "other": ""
+    }
   },
   {
     "id": "api.command_invite.success",
@@ -7175,10 +7146,6 @@
   {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
     "translation": "invalid_request: بد grant_type."
-  },
-  {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: گم شده client_secret."
   },
   {
     "id": "api.command_invite.channel.app_error",

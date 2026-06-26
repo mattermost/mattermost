@@ -95,6 +95,39 @@ func TestHTTPClient(t *testing.T) {
 	})
 }
 
+func TestNewTransportForInternalConnections(t *testing.T) {
+	// httptest servers listen on a loopback address, which is a reserved range.
+	mockHTTP := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer mockHTTP.Close()
+
+	u, err := url.Parse(mockHTTP.URL)
+	require.NoError(t, err)
+	host := u.Hostname()
+
+	t.Run("blocks reserved IP ranges when the allowlist is empty", func(t *testing.T) {
+		c := NewHTTPClient(NewTransportForInternalConnections(false, ""))
+		_, err := c.Get(mockHTTP.URL)
+		require.IsType(t, &url.Error{}, err)
+		require.Contains(t, err.(*url.Error).Err.Error(), "address forbidden")
+	})
+
+	t.Run("allows a host named in the allowlist", func(t *testing.T) {
+		c := NewHTTPClient(NewTransportForInternalConnections(false, host))
+		resp, err := c.Get(mockHTTP.URL)
+		require.NoError(t, err)
+		resp.Body.Close()
+	})
+
+	t.Run("allows a CIDR range named in the allowlist", func(t *testing.T) {
+		c := NewHTTPClient(NewTransportForInternalConnections(false, "127.0.0.0/8 ::1/128"))
+		resp, err := c.Get(mockHTTP.URL)
+		require.NoError(t, err)
+		resp.Body.Close()
+	})
+}
+
 func TestHTTPClientWithProxy(t *testing.T) {
 	proxy := createProxyServer()
 	defer proxy.Close()
@@ -211,6 +244,17 @@ func TestIsReservedIP(t *testing.T) {
 		{"127.120.6.3", net.IPv4(127, 120, 6, 3), true},
 		{"8.8.8.8", net.IPv4(8, 8, 8, 8), false},
 		{"9.9.9.9", net.IPv4(9, 9, 9, 8), false},
+		// IPv4-mapped IPv6 addresses should be detected as reserved
+		{"::ffff:127.0.0.1", net.ParseIP("::ffff:127.0.0.1"), true},
+		{"::ffff:192.168.1.1", net.ParseIP("::ffff:192.168.1.1"), true},
+		{"::ffff:10.0.0.1", net.ParseIP("::ffff:10.0.0.1"), true},
+		{"::ffff:169.254.169.254", net.ParseIP("::ffff:169.254.169.254"), true},
+		{"::ffff:8.8.8.8", net.ParseIP("::ffff:8.8.8.8"), false},
+		// Pure IPv6 reserved addresses
+		{"::1", net.ParseIP("::1"), true},
+		{"fe80::1", net.ParseIP("fe80::1"), true},
+		// Public IPv6
+		{"2607:f8b0:4004:800::200e", net.ParseIP("2607:f8b0:4004:800::200e"), false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

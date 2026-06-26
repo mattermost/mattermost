@@ -28,7 +28,6 @@ export interface Props {
     ownLimits?: Limits;
     backdrop?: boolean;
     backdropClassName?: string;
-    className?: string;
 }
 
 export default function CloudUsageModal(props: Props) {

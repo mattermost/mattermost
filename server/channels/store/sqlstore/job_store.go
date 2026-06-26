@@ -87,7 +87,7 @@ func (jss SqlJobStore) SaveOnce(job *model.Job) (*model.Job, error) {
 		jsonData = AppendBinaryFlag(jsonData)
 	}
 
-	tx, err := jss.GetMaster().BeginXWithIsolation(&sql.TxOptions{
+	tx, err := jss.GetMaster().BeginWithIsolation(&sql.TxOptions{
 		Isolation: sql.LevelSerializable,
 	})
 	if err != nil {
@@ -434,12 +434,7 @@ func (jss SqlJobStore) Delete(id string) (string, error) {
 }
 
 func (jss SqlJobStore) Cleanup(expiryTime int64, batchSize int) error {
-	var query string
-	if jss.DriverName() == model.DatabaseDriverPostgres {
-		query = "DELETE FROM Jobs WHERE Id IN (SELECT Id FROM Jobs WHERE CreateAt < ? AND (Status != ? AND Status != ?) ORDER BY CreateAt ASC LIMIT ?)"
-	} else {
-		query = "DELETE FROM Jobs WHERE CreateAt < ? AND (Status != ? AND Status != ?) ORDER BY CreateAt ASC LIMIT ?"
-	}
+	query := "DELETE FROM Jobs WHERE Id IN (SELECT Id FROM Jobs WHERE CreateAt < ? AND (Status != ? AND Status != ?) ORDER BY CreateAt ASC LIMIT ?)"
 
 	var rowsAffected int64 = 1
 
@@ -452,7 +447,7 @@ func (jss SqlJobStore) Cleanup(expiryTime int64, batchSize int) error {
 		var rowErr error
 		rowsAffected, rowErr = sqlResult.RowsAffected()
 		if rowErr != nil {
-			return errors.Wrap(err, "unable to delete jobs")
+			return errors.Wrap(rowErr, "unable to delete jobs")
 		}
 
 		time.Sleep(jobsCleanupDelay)

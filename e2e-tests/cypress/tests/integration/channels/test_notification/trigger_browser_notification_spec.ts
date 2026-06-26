@@ -7,7 +7,6 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @notification
 
 describe('Verify users can receive notification on browser', () => {
@@ -76,7 +75,7 @@ describe('Verify users can receive notification on browser', () => {
         cy.stubNotificationPermission('granted');
 
         cy.window().then((win) => {
-            win.Notification = function() {
+            (win as any).Notification = function() {
                 // Do nothing to simulate Focus Mode
             };
 

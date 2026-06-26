@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import CheckboxSetting from './checkbox_setting';
 
@@ -26,7 +26,7 @@ describe('components/admin_console/CheckboxSetting', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('onChange', () => {
+    test('onChange', async () => {
         const onChange = jest.fn();
         renderWithContext(
             <CheckboxSetting
@@ -41,7 +41,7 @@ describe('components/admin_console/CheckboxSetting', () => {
         const checkbox: HTMLInputElement = screen.getByRole('checkbox');
         expect(checkbox).not.toBeChecked();
 
-        fireEvent.click(checkbox);
+        await userEvent.click(checkbox);
 
         expect(onChange).toHaveBeenCalledTimes(1);
         expect(onChange).toHaveBeenCalledWith('string.id', true);

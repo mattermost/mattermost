@@ -12,7 +12,6 @@ import (
 func TestConnCreateTimeout(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	*th.App.Config().SqlSettings.QueryTimeout = 0
 
@@ -24,7 +23,6 @@ func TestConnCreateTimeout(t *testing.T) {
 func TestShutdownPluginConns(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	d := NewDriverImpl(th.Server)
 	_, err := d.ConnWithPluginID(true, "plugin1")

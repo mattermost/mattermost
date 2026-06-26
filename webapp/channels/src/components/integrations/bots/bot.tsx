@@ -6,6 +6,7 @@ import type {ChangeEvent, SyntheticEvent, ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {Bot as BotType} from '@mattermost/types/bots';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile, UserAccessToken} from '@mattermost/types/users';
@@ -69,6 +70,8 @@ type Props = {
      */
     fromApp: boolean;
 
+    pluginDisplayName?: string;
+
     actions: {
 
         /**
@@ -95,14 +98,14 @@ type Props = {
     *  Only used for routing since backstage is team based.
     */
     team: Team;
-}
+};
 
 type State = {
     confirmingId: string;
     creatingTokenState: string;
     token: UserAccessToken | Record<string, any>;
     error: ReactNode;
-}
+};
 
 export default class Bot extends React.PureComponent<Props, State> {
     public constructor(props: Props) {
@@ -402,7 +405,8 @@ export default class Bot extends React.PureComponent<Props, State> {
                                 </label>
                                 <div className='mt-2'>
                                     <SaveButton
-                                        btnClass='btn-sm btn-primary'
+                                        emphasis='primary'
+                                        size='sm'
                                         savingMessage={
                                             <FormattedMessage
                                                 id='user.settings.tokens.save'
@@ -411,15 +415,16 @@ export default class Bot extends React.PureComponent<Props, State> {
                                         }
                                         saving={false}
                                     />
-                                    <button
-                                        className='btn btn-sm btn-tertiary'
+                                    <Button
+                                        emphasis='tertiary'
+                                        size='sm'
                                         onClick={this.closeCreateToken}
                                     >
                                         <FormattedMessage
                                             id='user.settings.tokens.cancel'
                                             defaultMessage='Cancel'
                                         />
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
                         </form>
@@ -461,17 +466,57 @@ export default class Bot extends React.PureComponent<Props, State> {
                         {this.state.token.token}
                     </strong>
                     <div className='mt-2'>
-                        <button
-                            className='btn btn-sm btn-primary'
+                        <Button
+                            emphasis='primary'
+                            size='sm'
                             onClick={this.closeCreateToken}
                         >
                             <FormattedMessage
                                 id='bot.create_token.close'
                                 defaultMessage='Close'
                             />
-                        </button>
+                        </Button>
                     </div>
                 </div>,
+            );
+        }
+
+        let managedBy;
+        if (this.props.fromApp) {
+            managedBy = (
+                <FormattedMessage
+                    id='bots.managed_by.app'
+                    defaultMessage='Managed by Apps Framework'
+                />
+            );
+        } else if (this.props.owner && this.props.owner.username) {
+            managedBy = (
+                <FormattedMessage
+                    id='bots.managed_by.user'
+                    defaultMessage='Managed by {owner}'
+                    values={{owner: this.props.owner.username}}
+                />
+            );
+        } else if (this.props.bot.owner_id) {
+            managedBy = this.props.pluginDisplayName && this.props.pluginDisplayName !== this.props.bot.owner_id ? (
+                <FormattedMessage
+                    id='bots.managed_by.plugin_named'
+                    defaultMessage='Managed by {pluginName} plugin'
+                    values={{pluginName: this.props.pluginDisplayName}}
+                />
+            ) : (
+                <FormattedMessage
+                    id='bots.managed_by.plugin'
+                    defaultMessage='Managed by plugin {pluginId}'
+                    values={{pluginId: this.props.bot.owner_id}}
+                />
+            );
+        } else {
+            managedBy = (
+                <FormattedMessage
+                    id='bots.managed_by.unknown_plugin'
+                    defaultMessage='Managed by a plugin'
+                />
             );
         }
 
@@ -497,11 +542,7 @@ export default class Bot extends React.PureComponent<Props, State> {
                         <Markdown message={description}/>
                     </div>
                     <div className='light small'>
-                        <FormattedMessage
-                            id='bots.managed_by'
-                            defaultMessage='Managed by '
-                        />
-                        {ownerUsername}
+                        {managedBy}
                     </div>
                     <div className='bot-list is-empty'>
                         {tokenList}

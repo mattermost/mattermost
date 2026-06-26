@@ -37,7 +37,7 @@ export type ActionProps = {
 
     // action called to move the post from the original channel to a new channel
     moveThread: (postId: string, channelId: string) => Promise<ActionResult>;
-}
+};
 
 export type OwnProps = {
 
@@ -202,7 +202,6 @@ const MoveThreadModal = ({onExited, post, actions}: Props) => {
                 id: 'move_thread_modal.button.cancel',
                 defaultMessage: 'Cancel',
             })}
-            cancelButtonClassName={'MoveThreadModal__cancel-button'}
             isConfirmDisabled={isButtonClicked}
             handleConfirm={handleSubmit}
             handleEnterKeyPress={handleSubmit}

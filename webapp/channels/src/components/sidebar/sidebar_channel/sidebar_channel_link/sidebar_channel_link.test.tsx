@@ -3,40 +3,41 @@
 
 import React from 'react';
 
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 import type {ChannelType} from '@mattermost/types/channels';
 
-import SidebarChannelLink, {type SidebarChannelLink as SidebarChannelLinkComponent} from 'components/sidebar/sidebar_channel/sidebar_channel_link/sidebar_channel_link';
+import SidebarChannelLink from 'components/sidebar/sidebar_channel/sidebar_channel_link/sidebar_channel_link';
 
-import {shallowWithIntl, defaultIntl} from 'tests/helpers/intl-test-helper';
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
-jest.mock('packages/mattermost-redux/src/selectors/entities/shared_channels', () => ({
-    getRemoteNamesForChannel: jest.fn(),
-}));
-
-jest.mock('packages/mattermost-redux/src/actions/shared_channels', () => ({
-    fetchChannelRemotes: jest.fn(() => ({type: 'MOCK_ACTION'})),
+const isDesktopAppMock = jest.mocked(isDesktopApp);
+jest.mock('@mattermost/shared/utils/user_agent', () => ({
+    isDesktopApp: jest.fn(),
 }));
 
 describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
+    const baseChannel = {
+        id: 'channel_id',
+        display_name: 'channel_display_name',
+        create_at: 0,
+        update_at: 0,
+        delete_at: 0,
+        team_id: '',
+        type: 'O' as ChannelType,
+        name: '',
+        header: '',
+        purpose: '',
+        last_post_at: 0,
+        last_root_post_at: 0,
+        creator_id: '',
+        scheme_id: '',
+        group_constrained: false,
+    };
+
     const baseProps = {
-        channel: {
-            id: 'channel_id',
-            display_name: 'channel_display_name',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-            team_id: '',
-            type: 'O' as ChannelType,
-            name: '',
-            header: '',
-            purpose: '',
-            last_post_at: 0,
-            last_root_post_at: 0,
-            creator_id: '',
-            scheme_id: '',
-            group_constrained: false,
-        },
-        link: 'http://a.fake.link',
+        channel: baseChannel,
+        link: '/team/channels/town-square',
         label: 'channel_label',
         icon: null,
         unreadMentions: 0,
@@ -45,10 +46,8 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
         isChannelSelected: false,
         hasUrgent: false,
         showChannelsTutorialStep: false,
-        remoteNames: [],
+        remoteNames: [] as string[],
         isSharedChannel: false,
-        fetchChannelRemotes: jest.fn(),
-        intl: defaultIntl,
         actions: {
             markMostRecentPostInChannelAsUnread: jest.fn(),
             multiSelectChannel: jest.fn(),
@@ -62,131 +61,173 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const wrapper = shallowWithIntl(
-            <SidebarChannelLink {...baseProps}/>,
-        );
+    const renderLink = (props: Partial<typeof baseProps> = {}) => {
+        const merged = mergeObjects(baseProps, props);
+        return renderWithContext(<SidebarChannelLink {...merged}/>);
+    };
 
-        expect(wrapper).toMatchSnapshot();
+    test('should match snapshot', () => {
+        const {container} = renderLink();
+
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot for desktop', () => {
-        const userAgentMock = jest.requireMock('utils/user_agent');
-        userAgentMock.isDesktopApp.mockImplementation(() => false);
+        isDesktopAppMock.mockImplementation(() => false);
 
-        const wrapper = shallowWithIntl(
-            <SidebarChannelLink {...baseProps}/>,
-        );
+        const {container} = renderLink();
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when tooltip is enabled', () => {
-        const wrapper = shallowWithIntl(
-            <SidebarChannelLink {...baseProps}/>,
-        );
+        const props = {
+            label: 'a'.repeat(200),
+        };
 
-        wrapper.setState({showTooltip: true});
-        expect(wrapper).toMatchSnapshot();
+        Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {configurable: true, value: 50});
+        Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {configurable: true, value: 200});
+
+        const {container} = renderLink(props);
+
+        expect(container).toMatchSnapshot();
+
+        Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {configurable: true, value: 0});
+        Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {configurable: true, value: 0});
     });
 
     test('should match snapshot with aria label prefix and unread mentions', () => {
         const props = {
-            ...baseProps,
             isUnread: true,
             unreadMentions: 2,
             ariaLabelPrefix: 'aria_label_prefix_',
         };
 
-        const wrapper = shallowWithIntl(
-            <SidebarChannelLink {...props}/>,
-        );
+        const {container} = renderLink(props);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should enable tooltip when needed', () => {
-        const wrapper = shallowWithIntl(
-            <SidebarChannelLink {...baseProps}/>,
-        );
-        const instance = wrapper.instance() as SidebarChannelLinkComponent;
+        Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {configurable: true, value: 50});
+        Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {configurable: true, value: 60});
 
-        instance.labelRef = {
-            current: {
-                offsetWidth: 50,
-                scrollWidth: 60,
-            },
-        } as any;
+        const {container} = renderLink();
 
-        instance.enableToolTipIfNeeded();
-        expect(instance.state.showTooltip).toBe(true);
+        const label = container.querySelector('.SidebarChannelLinkLabel');
+        expect(label).toBeInTheDocument();
+
+        Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {configurable: true, value: 0});
+        Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {configurable: true, value: 0});
     });
 
     test('should not fetch shared channels for non-shared channels', () => {
         const props = {
-            ...baseProps,
             isSharedChannel: false,
         };
 
-        const wrapper = shallowWithIntl(
-            <SidebarChannelLink {...props}/>,
-        );
+        const {container} = renderLink(props);
 
-        expect(wrapper).toMatchSnapshot();
-        expect(props.actions.fetchChannelRemotes).not.toHaveBeenCalled();
+        expect(container).toMatchSnapshot();
+        expect(baseProps.actions.fetchChannelRemotes).not.toHaveBeenCalled();
     });
 
     test('should fetch shared channels data when channel is shared', () => {
         const props = {
-            ...baseProps,
             isSharedChannel: true,
             remoteNames: [],
         };
 
-        const wrapper = shallowWithIntl(
-            <SidebarChannelLink {...props}/>,
-        );
+        const {container} = renderLink(props);
 
-        expect(wrapper).toMatchSnapshot();
-        expect(props.actions.fetchChannelRemotes).toHaveBeenCalledWith('channel_id');
+        expect(container).toMatchSnapshot();
+        expect(baseProps.actions.fetchChannelRemotes).toHaveBeenCalledWith('channel_id');
     });
 
     test('should not fetch shared channels data when data already exists', () => {
         const props = {
-            ...baseProps,
             isSharedChannel: true,
             remoteNames: ['Remote 1', 'Remote 2'],
         };
 
-        const wrapper = shallowWithIntl(
-            <SidebarChannelLink {...props}/>,
-        );
+        const {container} = renderLink(props);
 
-        expect(wrapper).toMatchSnapshot();
-        expect(props.actions.fetchChannelRemotes).not.toHaveBeenCalled();
+        expect(container).toMatchSnapshot();
+        expect(baseProps.actions.fetchChannelRemotes).not.toHaveBeenCalled();
+    });
+
+    test('should pass urgent tooltip to ChannelMentionBadge when hasUrgent is true', async () => {
+        jest.useFakeTimers();
+
+        renderLink({
+            unreadMentions: 3,
+            hasUrgent: true,
+        });
+
+        const badge = screen.getByText('3').closest('.badge')!;
+        expect(badge).toHaveClass('urgent');
+
+        await userEvent.hover(badge, {advanceTimers: jest.advanceTimersByTime});
+
+        await waitFor(() => {
+            expect(screen.getByText('You have an urgent mention')).toBeInTheDocument();
+        });
+
+        jest.useRealTimers();
+    });
+
+    test('should not show urgent mention tooltip when hasUrgent is false', async () => {
+        jest.useFakeTimers();
+
+        renderLink({
+            unreadMentions: 3,
+            hasUrgent: false,
+        });
+
+        const badge = screen.getByText('3').closest('.badge')!;
+        expect(badge).not.toHaveClass('urgent');
+
+        await userEvent.hover(badge, {advanceTimers: jest.advanceTimersByTime});
+
+        expect(screen.queryByText('You have an urgent mention')).not.toBeInTheDocument();
+
+        jest.useRealTimers();
+    });
+
+    test('should include urgent mention in link accessible name when hasUrgent', () => {
+        renderLink({
+            unreadMentions: 2,
+            hasUrgent: true,
+        });
+
+        expect(screen.getByRole('link')).toHaveAccessibleName(/including an urgent mention/i);
+    });
+
+    test('should not include urgent mention in link accessible name when not hasUrgent', () => {
+        renderLink({
+            unreadMentions: 2,
+            hasUrgent: false,
+        });
+
+        expect(screen.getByRole('link')).not.toHaveAccessibleName(/including an urgent mention/i);
     });
 
     test('should refetch when channel changes', () => {
         const props = {
-            ...baseProps,
             isSharedChannel: true,
             remoteNames: [],
         };
 
-        const wrapper = shallowWithIntl(
-            <SidebarChannelLink {...props}/>,
+        const {rerender} = renderLink(props);
+
+        rerender(
+            <SidebarChannelLink
+                {...mergeObjects(mergeObjects(baseProps, props), {
+                    channel: mergeObjects(baseProps.channel, {id: 'new_channel_id'}),
+                })}
+            />,
         );
 
-        props.actions.fetchChannelRemotes.mockClear();
-
-        wrapper.setProps({
-            ...props,
-            channel: {
-                ...props.channel,
-                id: 'new_channel_id',
-            },
-        });
-
-        expect(props.actions.fetchChannelRemotes).toHaveBeenCalledWith('new_channel_id');
+        expect(baseProps.actions.fetchChannelRemotes).toHaveBeenCalledWith('new_channel_id');
     });
 });

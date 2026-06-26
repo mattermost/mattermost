@@ -1203,7 +1203,6 @@ describe('Reducers.users', () => {
             profilesNotInTeam: {
                 team2: new Set([user.id]),
             },
-            profilesWithoutTeam: new Set([user.id]),
             profilesInChannel: {
                 channel1: new Set([user.id]),
             },
@@ -1250,7 +1249,6 @@ describe('Reducers.users', () => {
             profilesNotInTeam: {
                 team2: new Set(),
             },
-            profilesWithoutTeam: new Set(),
             profilesInChannel: {
                 channel1: new Set(),
             },

@@ -21,7 +21,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
-	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
@@ -30,7 +29,6 @@ import (
 func TestCreateTeam(t *testing.T) {
 	// Test cannot easily run in parallel because it relies on (and mutates) i18n package translations.
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		team := &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.TeamOpen}
@@ -64,7 +62,7 @@ func TestCreateTeam(t *testing.T) {
 		require.Equalf(t, r.StatusCode, http.StatusBadRequest, "wrong status code, actual: %s, expected: %s", strconv.Itoa(r.StatusCode), strconv.Itoa(http.StatusBadRequest))
 
 		// Test GroupConstrained flag
-		groupConstrainedTeam := &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.TeamOpen, GroupConstrained: model.NewPointer(true)}
+		groupConstrainedTeam := &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.TeamOpen, GroupConstrained: new(true)}
 		rteam, resp, err = client.CreateTeam(context.Background(), groupConstrainedTeam)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
@@ -81,16 +79,16 @@ func TestCreateTeam(t *testing.T) {
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 
-		th.LoginBasic()
+		th.LoginBasic(t)
 
 		// Check the appropriate permissions are enforced.
-		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 		defer func() {
-			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+			th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 		}()
 
-		th.RemovePermissionFromRole(model.PermissionCreateTeam.Id, model.SystemUserRoleId)
-		th.AddPermissionToRole(model.PermissionCreateTeam.Id, model.SystemAdminRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionCreateTeam.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionCreateTeam.Id, model.SystemAdminRoleId)
 
 		_, resp, err = th.Client.CreateTeam(context.Background(), team)
 		require.Error(t, err)
@@ -142,7 +140,7 @@ func TestCreateTeam(t *testing.T) {
 		_, _, err = c.UpdateConfig(context.Background(), cfg)
 		require.NoError(t, err)
 
-		team := th.CreateTeamWithClient(c)
+		team := th.CreateTeamWithClient(t, c)
 		channels, _, err := c.GetPublicChannelsForTeam(context.Background(), team.Id, 0, 1000, "")
 		require.NoError(t, err)
 		for _, ch := range channels {
@@ -153,6 +151,47 @@ func TestCreateTeam(t *testing.T) {
 				require.Equal(t, translateFunc("api.channel.create_default_channels.town_square"), ch.DisplayName)
 			}
 		}
+	})
+
+	t.Run("should override team name with server-generated ID when UseAnonymousURLs is enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = true })
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		th.LoginBasic(t)
+
+		originalName := "originalname"
+		team := &model.Team{Name: originalName, DisplayName: "Anonymous URL Team", Type: model.TeamOpen}
+		createdTeam, resp, err := th.Client.CreateTeam(context.Background(), team)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		require.NotEqual(t, originalName, createdTeam.Name, "team name should be overridden by server")
+		require.True(t, model.IsValidId(createdTeam.Name))
+		require.Equal(t, "Anonymous URL Team", createdTeam.DisplayName, "display name should remain unchanged")
+
+		// setting UseAnonymousURLs to false should preserve team name
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = false })
+		team = &model.Team{Name: originalName, DisplayName: "Regular URL Team", Type: model.TeamOpen}
+		createdTeam, resp, err = th.Client.CreateTeam(context.Background(), team)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.Equal(t, originalName, createdTeam.Name)
+
+		// setting license to something other than Enterprise Advanced should preserve team name
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = true })
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+		originalName = "original-name-2"
+		team = &model.Team{Name: originalName, DisplayName: "Regular URL Team", Type: model.TeamOpen}
+		createdTeam, resp, err = th.Client.CreateTeam(context.Background(), team)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.Equal(t, originalName, createdTeam.Name)
 	})
 
 	t.Run("cloud limit reached returns 400", func(t *testing.T) {
@@ -167,7 +206,7 @@ func TestCreateTeam(t *testing.T) {
 
 		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
 			Teams: &model.TeamsLimits{
-				Active: model.NewPointer(1),
+				Active: new(1),
 			},
 		}, nil).Once()
 		team := &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.TeamOpen}
@@ -188,7 +227,7 @@ func TestCreateTeam(t *testing.T) {
 
 		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
 			Teams: &model.TeamsLimits{
-				Active: model.NewPointer(200),
+				Active: new(200),
 			},
 		}, nil).Once()
 		team := &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.TeamOpen}
@@ -201,7 +240,6 @@ func TestCreateTeam(t *testing.T) {
 func TestCreateTeamSanitization(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	// Non-admin users can create a team, but they become a team admin by doing so
 
@@ -236,11 +274,226 @@ func TestCreateTeamSanitization(t *testing.T) {
 	}, "system admin")
 }
 
+func TestCreateTeamInviteIdHiddenWithoutInvitePermission(t *testing.T) {
+	th := Setup(t)
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+	defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+
+	// team_admin inherits from team_user by default, so removing from team_user is enough.
+	th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+
+	rteam, _, err := th.Client.CreateTeam(context.Background(), &model.Team{
+		DisplayName: "Team Without Invite Permission",
+		Name:        GenerateTestTeamName(),
+		Email:       th.GenerateTestEmail(),
+		Type:        model.TeamOpen,
+	})
+	require.NoError(t, err)
+	require.NotEmpty(t, rteam.Email, "should not have sanitized email")
+	require.Empty(t, rteam.InviteId, "should have hidden invite_id when user lacks invite permission")
+}
+
+func TestCreateTeamInviteUserPermission(t *testing.T) {
+	th := Setup(t)
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+	defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+
+	th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+
+	t.Run("AllowOpenInvite=true is rejected with 403", func(t *testing.T) {
+		_, resp, err := th.Client.CreateTeam(context.Background(), &model.Team{
+			DisplayName:     "Open Invite Team Without Permission",
+			Name:            GenerateTestTeamName(),
+			Email:           th.GenerateTestEmail(),
+			Type:            model.TeamOpen,
+			AllowOpenInvite: true,
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("non-empty AllowedDomains is rejected with 403", func(t *testing.T) {
+		creatorDomain := strings.SplitN(th.BasicUser.Email, "@", 2)[1]
+
+		_, resp, err := th.Client.CreateTeam(context.Background(), &model.Team{
+			DisplayName:    "Restricted Domains Team Without Permission",
+			Name:           GenerateTestTeamName(),
+			Email:          th.GenerateTestEmail(),
+			Type:           model.TeamOpen,
+			AllowedDomains: creatorDomain,
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("team without invite-restricted fields is still created", func(t *testing.T) {
+		createdTeam, resp, err := th.Client.CreateTeam(context.Background(), &model.Team{
+			DisplayName: "Plain Team Without Invite Permission",
+			Name:        GenerateTestTeamName(),
+			Email:       th.GenerateTestEmail(),
+			Type:        model.TeamOpen,
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		assert.False(t, createdTeam.AllowOpenInvite)
+		assert.Empty(t, createdTeam.AllowedDomains)
+		assert.Empty(t, createdTeam.InviteId, "InviteId should be hidden from creators that can't invite users")
+	})
+}
+
+func TestCreateTeamInviteUserPermissionSystemAdmin(t *testing.T) {
+	th := Setup(t)
+	creatorDomain := strings.SplitN(th.SystemAdminUser.Email, "@", 2)[1]
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+	defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+
+	th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+
+	createdTeam, resp, err := th.SystemAdminClient.CreateTeam(context.Background(), &model.Team{
+		DisplayName:     "System Admin Team With Invite Permission",
+		Name:            GenerateTestTeamName(),
+		Email:           th.GenerateTestEmail(),
+		Type:            model.TeamOpen,
+		AllowOpenInvite: true,
+		AllowedDomains:  creatorDomain,
+	})
+	require.NoError(t, err)
+	CheckCreatedStatus(t, resp)
+
+	assert.True(t, createdTeam.AllowOpenInvite, "system admins should still be able to create open invite teams")
+	assert.Equal(t, creatorDomain, createdTeam.AllowedDomains, "system admins should still be able to set allowed domains")
+	require.NotEmpty(t, createdTeam.InviteId, "system admins should receive the invite_id when they can invite users")
+
+	persistedTeam, _, err := th.SystemAdminClient.GetTeam(context.Background(), createdTeam.Id, "")
+	require.NoError(t, err)
+
+	assert.True(t, persistedTeam.AllowOpenInvite, "system admins should persist open invite team settings")
+	assert.Equal(t, creatorDomain, persistedTeam.AllowedDomains, "system admins should persist allowed domains")
+}
+
+// Exercises the scheme branch of creatorCanInviteUsersOnTeam.
+func TestCreateTeamInviteUserPermissionScheme(t *testing.T) {
+	th := Setup(t)
+	th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
+	err := th.App.SetPhase2PermissionsMigrationStatus(true)
+	require.NoError(t, err)
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+	defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+
+	// Remove InviteUser from the built-in team roles; new schemes inherit from these at creation, so their defaults start without it too.
+	th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+
+	// SystemManager has SchemeWrite but not system-level InviteUser, so it exercises the scheme branch.
+	th.LoginSystemManager(t)
+	managerClient := th.SystemManagerClient
+
+	t.Run("scheme admin role grants InviteUser - create succeeds", func(t *testing.T) {
+		scheme, _, err := th.SystemAdminClient.CreateScheme(context.Background(), &model.Scheme{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        model.NewId(),
+			Scope:       model.SchemeScopeTeam,
+		})
+		require.NoError(t, err)
+		require.NotEmpty(t, scheme.DefaultTeamAdminRole)
+		require.NotEmpty(t, scheme.DefaultTeamUserRole)
+
+		th.AddPermissionToRole(t, model.PermissionInviteUser.Id, scheme.DefaultTeamAdminRole)
+
+		rteam, resp, err := managerClient.CreateTeam(context.Background(), &model.Team{
+			DisplayName:     "Scheme Team With Invite " + model.NewId(),
+			Name:            GenerateTestTeamName(),
+			Email:           th.GenerateTestEmail(),
+			Type:            model.TeamOpen,
+			SchemeId:        &scheme.Id,
+			AllowOpenInvite: true,
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		assert.True(t, rteam.AllowOpenInvite, "AllowOpenInvite should be preserved when scheme grants InviteUser")
+		assert.NotEmpty(t, rteam.InviteId, "InviteId should be returned when scheme grants InviteUser")
+	})
+
+	t.Run("scheme roles do not grant InviteUser - create is rejected", func(t *testing.T) {
+		scheme, _, err := th.SystemAdminClient.CreateScheme(context.Background(), &model.Scheme{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        model.NewId(),
+			Scope:       model.SchemeScopeTeam,
+		})
+		require.NoError(t, err)
+
+		_, resp, err := managerClient.CreateTeam(context.Background(), &model.Team{
+			DisplayName:     "Scheme Team Without Invite " + model.NewId(),
+			Name:            GenerateTestTeamName(),
+			Email:           th.GenerateTestEmail(),
+			Type:            model.TeamOpen,
+			SchemeId:        &scheme.Id,
+			AllowOpenInvite: true,
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("scheme roles do not grant InviteUser but no invite-restricted fields - create succeeds with hidden invite_id", func(t *testing.T) {
+		scheme, _, err := th.SystemAdminClient.CreateScheme(context.Background(), &model.Scheme{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        model.NewId(),
+			Scope:       model.SchemeScopeTeam,
+		})
+		require.NoError(t, err)
+
+		rteam, resp, err := managerClient.CreateTeam(context.Background(), &model.Team{
+			DisplayName: "Scheme Team Without Invite Fields " + model.NewId(),
+			Name:        GenerateTestTeamName(),
+			Email:       th.GenerateTestEmail(),
+			Type:        model.TeamOpen,
+			SchemeId:    &scheme.Id,
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		assert.Empty(t, rteam.InviteId, "InviteId should be hidden when scheme does not grant InviteUser")
+	})
+
+	t.Run("scheme admin role grants InviteUser but no invite-restricted fields - create succeeds with invite_id", func(t *testing.T) {
+		scheme, _, err := th.SystemAdminClient.CreateScheme(context.Background(), &model.Scheme{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        model.NewId(),
+			Scope:       model.SchemeScopeTeam,
+		})
+		require.NoError(t, err)
+		require.NotEmpty(t, scheme.DefaultTeamAdminRole)
+
+		th.AddPermissionToRole(t, model.PermissionInviteUser.Id, scheme.DefaultTeamAdminRole)
+
+		rteam, resp, err := managerClient.CreateTeam(context.Background(), &model.Team{
+			DisplayName: "Scheme Team Invite Via Defaults Only " + model.NewId(),
+			Name:        GenerateTestTeamName(),
+			Email:       th.GenerateTestEmail(),
+			Type:        model.TeamOpen,
+			SchemeId:    &scheme.Id,
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		assert.False(t, rteam.AllowOpenInvite)
+		assert.Empty(t, rteam.AllowedDomains)
+		assert.NotEmpty(t, rteam.InviteId, "InviteId should be returned when scheme grants InviteUser without open invite or domain restrictions")
+	})
+}
+
 func TestGetTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	team := th.BasicTeam
 
@@ -263,7 +516,7 @@ func TestGetTeam(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	})
 
-	th.LoginTeamAdmin()
+	th.LoginTeamAdmin(t)
 
 	team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TeamOpen, AllowOpenInvite: false}
 	rteam2, _, _ := client.CreateTeam(context.Background(), team2)
@@ -271,7 +524,7 @@ func TestGetTeam(t *testing.T) {
 	team3 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TeamInvite, AllowOpenInvite: true}
 	rteam3, _, _ := client.CreateTeam(context.Background(), team3)
 
-	th.LoginBasic()
+	th.LoginBasic(t)
 	// AllowInviteOpen is false and team is open, and user is not on team
 	_, resp, err := client.GetTeam(context.Background(), rteam2.Id, "")
 	require.Error(t, err)
@@ -302,21 +555,21 @@ func TestGetTeam(t *testing.T) {
 		_, _, err := contentReviewClient.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 		require.NoError(t, err)
 
-		th.LoginBasic()
+		th.LoginBasic(t)
 
-		privateTeam := th.CreateTeam()
-		privateChannel := th.CreateChannelWithClientAndTeam(contentReviewClient, model.ChannelTypePrivate, privateTeam.Id)
-		th.AddUserToChannel(th.BasicUser, privateChannel)
-		post := th.CreatePostWithClient(contentReviewClient, privateChannel)
+		privateTeam := th.CreateTeam(t)
+		privateChannel := th.CreateChannelWithClientAndTeam(t, contentReviewClient, model.ChannelTypePrivate, privateTeam.Id)
+		th.AddUserToChannel(t, th.BasicUser, privateChannel)
+		post := th.CreatePostWithClient(t, contentReviewClient, privateChannel)
 
 		response, err := contentReviewClient.FlagPostForContentReview(context.Background(), post.Id, &model.FlagContentRequest{
-			Reason:  "Sensitive data",
+			Reason:  "Classification mismatch",
 			Comment: "This is sensitive content",
 		})
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, response.StatusCode)
 
-		th.UnlinkUserFromTeam(th.BasicUser, privateTeam)
+		th.UnlinkUserFromTeam(t, th.BasicUser, privateTeam)
 
 		// now we will fetch the team providing the required params to indicate that we are fetching it for content review
 		fetchedTeam, _, err := contentReviewClient.GetTeamAsContentReviewer(context.Background(), privateTeam.Id, "", post.Id)
@@ -342,8 +595,7 @@ func TestGetTeam(t *testing.T) {
 
 func TestGetTeamSanitization(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	team, _, err := th.Client.CreateTeam(context.Background(), &model.Team{
 		DisplayName:    t.Name() + "_1",
@@ -355,10 +607,10 @@ func TestGetTeamSanitization(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("team user", func(t *testing.T) {
-		th.LinkUserToTeam(th.BasicUser2, team)
+		th.LinkUserToTeam(t, th.BasicUser2, team)
 
 		client := th.CreateClient()
-		th.LoginBasic2WithClient(client)
+		th.LoginBasic2WithClient(t, client)
 
 		rteam, _, err := client.GetTeam(context.Background(), team.Id, "")
 		require.NoError(t, err)
@@ -368,11 +620,11 @@ func TestGetTeamSanitization(t *testing.T) {
 	})
 
 	t.Run("team user without invite permissions", func(t *testing.T) {
-		th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamUserRoleId)
-		th.LinkUserToTeam(th.BasicUser2, team)
+		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+		th.LinkUserToTeam(t, th.BasicUser2, team)
 
 		client := th.CreateClient()
-		th.LoginBasic2WithClient(client)
+		th.LoginBasic2WithClient(t, client)
 
 		rteam, _, err := client.GetTeam(context.Background(), team.Id, "")
 		require.NoError(t, err)
@@ -393,7 +645,7 @@ func TestGetTeamSanitization(t *testing.T) {
 	})
 
 	t.Run("team admin permission re-added", func(t *testing.T) {
-		th.AddPermissionToRole(model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+		th.AddPermissionToRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
 		rteam, _, err := th.Client.GetTeam(context.Background(), team.Id, "")
 		require.NoError(t, err)
 
@@ -412,8 +664,7 @@ func TestGetTeamSanitization(t *testing.T) {
 
 func TestGetTeamUnread(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	teamUnread, _, err := client.GetTeamUnread(context.Background(), th.BasicTeam.Id, th.BasicUser.Id)
@@ -450,7 +701,6 @@ func TestGetTeamUnread(t *testing.T) {
 func TestUpdateTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		team := &model.Team{DisplayName: "Name", Description: "Some description", AllowOpenInvite: false, InviteId: "inviteid0", Name: "z-z-" + model.NewRandomTeamName() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TeamOpen}
@@ -470,7 +720,7 @@ func TestUpdateTeam(t *testing.T) {
 		require.Equal(t, uteam.DisplayName, "Updated Name", "Update failed")
 
 		// Test GroupConstrained flag
-		team.GroupConstrained = model.NewPointer(true)
+		team.GroupConstrained = new(true)
 		rteam, resp, err := client.UpdateTeam(context.Background(), team)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
@@ -536,7 +786,7 @@ func TestUpdateTeam(t *testing.T) {
 		_, resp, err = th.Client.UpdateTeam(context.Background(), team)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
-		th.LoginBasic()
+		th.LoginBasic(t)
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -550,9 +800,116 @@ func TestUpdateTeam(t *testing.T) {
 	})
 }
 
+func TestUpdateTeamInviteUserPermission(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	// Create a team with AllowOpenInvite=false
+	team := &model.Team{
+		DisplayName:     "Test Team",
+		Name:            GenerateTestTeamName(),
+		Email:           th.GenerateTestEmail(),
+		Type:            model.TeamOpen,
+		AllowOpenInvite: false,
+	}
+	team, _, err := th.Client.CreateTeam(context.Background(), team)
+	require.NoError(t, err)
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+	defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+
+	t.Run("user with InviteUser permission can change AllowOpenInvite", func(t *testing.T) {
+		th.AddPermissionToRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+
+		team.AllowOpenInvite = true
+		var updatedTeam *model.Team
+		updatedTeam, _, err = th.Client.UpdateTeam(context.Background(), team)
+		require.NoError(t, err)
+		require.True(t, updatedTeam.AllowOpenInvite)
+
+		// Reset for next test
+		team.AllowOpenInvite = false
+		updatedTeam, _, err = th.Client.UpdateTeam(context.Background(), team)
+		require.NoError(t, err)
+		require.False(t, updatedTeam.AllowOpenInvite)
+	})
+
+	t.Run("user without InviteUser permission cannot change AllowOpenInvite", func(t *testing.T) {
+		// Remove InviteUser permission from team user and admin roles
+		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+
+		// Attempt to change AllowOpenInvite to true
+		team.AllowOpenInvite = true
+		var resp *model.Response
+		_, resp, err = th.Client.UpdateTeam(context.Background(), team)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		// Verify the team's AllowOpenInvite didn't change
+		var fetchedTeam *model.Team
+		fetchedTeam, _, err = th.SystemAdminClient.GetTeam(context.Background(), team.Id, "")
+		require.NoError(t, err)
+		require.False(t, fetchedTeam.AllowOpenInvite, "AllowOpenInvite should still be false")
+	})
+
+	t.Run("user without InviteUser permission cannot change AllowedDomains", func(t *testing.T) {
+		// Remove InviteUser permission from team user and admin roles
+		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+
+		// Attempt to change AllowedDomains
+		team.AllowedDomains = "example.com"
+		var resp *model.Response
+		_, resp, err = th.Client.UpdateTeam(context.Background(), team)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		// Verify the team's AllowedDomains didn't change
+		var fetchedTeam *model.Team
+		fetchedTeam, _, err = th.SystemAdminClient.GetTeam(context.Background(), team.Id, "")
+		require.NoError(t, err)
+		require.Empty(t, fetchedTeam.AllowedDomains, "AllowedDomains should still be empty")
+	})
+
+	t.Run("user without InviteUser permission can change other fields", func(t *testing.T) {
+		// Remove InviteUser permission
+		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+
+		// Refetch the team to get clean state
+		team, _, err = th.SystemAdminClient.GetTeam(context.Background(), team.Id, "")
+		require.NoError(t, err)
+
+		// Change DisplayName and Description (should succeed)
+		team.DisplayName = "Updated Display Name"
+		team.Description = "Updated Description"
+		var updatedTeam *model.Team
+		updatedTeam, _, err = th.Client.UpdateTeam(context.Background(), team)
+		require.NoError(t, err)
+		require.Equal(t, "Updated Display Name", updatedTeam.DisplayName)
+		require.Equal(t, "Updated Description", updatedTeam.Description)
+	})
+
+	t.Run("system admin can change AllowOpenInvite regardless of permissions", func(t *testing.T) {
+		// Remove InviteUser permission for regular roles
+		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+
+		// Refetch the team
+		team, _, err = th.SystemAdminClient.GetTeam(context.Background(), team.Id, "")
+		require.NoError(t, err)
+
+		// System admin should be able to change AllowOpenInvite
+		team.AllowOpenInvite = true
+		var updatedTeam *model.Team
+		updatedTeam, _, err = th.SystemAdminClient.UpdateTeam(context.Background(), team)
+		require.NoError(t, err)
+		require.True(t, updatedTeam.AllowOpenInvite)
+	})
+}
+
 func TestUpdateTeamPrivacyInvitePermissions(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	// Create a team with AllowOpenInvite=true and Type=TeamOpen
@@ -572,7 +929,7 @@ func TestUpdateTeamPrivacyInvitePermissions(t *testing.T) {
 	// Test case: User with InviteUser permission can change privacy settings that regenerate invite ID
 	t.Run("user with invite permission can change privacy", func(t *testing.T) {
 		// Ensure the user has the InviteUser permission
-		th.AddPermissionToRole(model.PermissionInviteUser.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
 
 		// Change from Open to Invite (should regenerate invite ID)
 		_, resp, err := client.UpdateTeamPrivacy(context.Background(), team.Id, model.TeamInvite)
@@ -602,8 +959,8 @@ func TestUpdateTeamPrivacyInvitePermissions(t *testing.T) {
 		require.True(t, updatedTeam.AllowOpenInvite, "AllowOpenInvite should be true")
 
 		// Now remove the InviteUser permission from both team user and team admin roles
-		th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamUserRoleId)
-		th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
 
 		// Try to change from Open to Invite (should fail because this would regenerate invite ID)
 		_, resp, err = client.UpdateTeamPrivacy(context.Background(), team.Id, model.TeamInvite)
@@ -635,7 +992,6 @@ func TestUpdateTeamPrivacyInvitePermissions(t *testing.T) {
 func TestUpdateTeamSanitization(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	team, _, err := th.Client.CreateTeam(context.Background(), &model.Team{
 		DisplayName:    t.Name() + "_1",
@@ -667,17 +1023,16 @@ func TestUpdateTeamSanitization(t *testing.T) {
 
 func TestPatchTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	team := &model.Team{DisplayName: "Name", Description: "Some description", CompanyName: "Some company name", AllowOpenInvite: false, InviteId: "inviteid0", Name: "z-z-" + model.NewRandomTeamName() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TeamOpen}
 	team, _, _ = th.Client.CreateTeam(context.Background(), team)
 
 	patch := &model.TeamPatch{}
-	patch.DisplayName = model.NewPointer("Other name")
-	patch.Description = model.NewPointer("Other description")
-	patch.CompanyName = model.NewPointer("Other company name")
-	patch.AllowOpenInvite = model.NewPointer(true)
+	patch.DisplayName = new("Other name")
+	patch.Description = new("Other description")
+	patch.CompanyName = new("Other company name")
+	patch.AllowOpenInvite = new(true)
 
 	_, resp, err := th.Client.PatchTeam(context.Background(), GenerateTestID(), patch)
 	require.Error(t, err)
@@ -689,11 +1044,11 @@ func TestPatchTeam(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	th.LoginBasic2()
+	th.LoginBasic2(t)
 	_, resp, err = th.Client.PatchTeam(context.Background(), team.Id, patch)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
-	th.LoginBasic()
+	th.LoginBasic(t)
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		rteam, _, err2 := client.PatchTeam(context.Background(), team.Id, patch)
@@ -710,7 +1065,7 @@ func TestPatchTeam(t *testing.T) {
 			team2, _, _ = client.CreateTeam(context.Background(), team2)
 
 			patch2 := &model.TeamPatch{
-				AllowOpenInvite: model.NewPointer(false),
+				AllowOpenInvite: new(false),
 			}
 
 			rteam2, _, err3 := client.PatchTeam(context.Background(), team2.Id, patch2)
@@ -725,7 +1080,7 @@ func TestPatchTeam(t *testing.T) {
 			team2, _, _ = client.CreateTeam(context.Background(), team2)
 
 			patch2 := &model.TeamPatch{
-				AllowOpenInvite: model.NewPointer(true),
+				AllowOpenInvite: new(true),
 			}
 
 			rteam2, _, err3 := client.PatchTeam(context.Background(), team2.Id, patch2)
@@ -736,7 +1091,7 @@ func TestPatchTeam(t *testing.T) {
 		})
 
 		// Test GroupConstrained flag
-		patch.GroupConstrained = model.NewPointer(true)
+		patch.GroupConstrained = new(true)
 		rteam, resp, err2 := client.PatchTeam(context.Background(), team.Id, patch)
 		require.NoError(t, err2)
 		CheckOKStatus(t, resp)
@@ -758,13 +1113,13 @@ func TestPatchTeam(t *testing.T) {
 	})
 
 	t.Run("Changing AllowOpenInvite requires InviteUser permission", func(t *testing.T) {
-		th.LoginTeamAdmin()
+		th.LoginTeamAdmin(t)
 		team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TeamOpen, AllowOpenInvite: true}
 		team2, _, _ = th.Client.CreateTeam(context.Background(), team2)
 
 		patch2 := &model.TeamPatch{
-			AllowOpenInvite: model.NewPointer(false),
-			AllowedDomains:  model.NewPointer("test.com"),
+			AllowOpenInvite: new(false),
+			AllowedDomains:  new("test.com"),
 		}
 
 		rteam2, _, err3 := th.Client.PatchTeam(context.Background(), team2.Id, patch2)
@@ -773,18 +1128,18 @@ func TestPatchTeam(t *testing.T) {
 		require.False(t, rteam2.AllowOpenInvite)
 
 		// remove invite user permission from team admin and user roles
-		th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamAdminRoleId)
-		th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
 
 		patch2 = &model.TeamPatch{
-			AllowOpenInvite: model.NewPointer(true),
+			AllowOpenInvite: new(true),
 		}
 
 		_, _, err3 = th.Client.PatchTeam(context.Background(), rteam2.Id, patch2)
 		require.Error(t, err3)
 
 		patch2 = &model.TeamPatch{
-			AllowedDomains: model.NewPointer("testDomain.com"),
+			AllowedDomains: new("testDomain.com"),
 		}
 		_, _, err3 = th.Client.PatchTeam(context.Background(), rteam2.Id, patch2)
 		require.Error(t, err3)
@@ -797,7 +1152,7 @@ func TestPatchTeam(t *testing.T) {
 			appErr = th.App.Srv().RemoveLicense()
 			require.Nil(t, appErr)
 		}()
-		th.LoginTeamAdmin()
+		th.LoginTeamAdmin(t)
 		team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TeamOpen, AllowOpenInvite: false}
 		team2, _, _ = th.Client.CreateTeam(context.Background(), team2)
 
@@ -806,11 +1161,11 @@ func TestPatchTeam(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 
 		// Create a test group
-		group := th.CreateGroup()
+		group := th.CreateGroup(t)
 
 		// Create a group user
-		groupUser := th.CreateUser()
-		th.LinkUserToTeam(groupUser, th.BasicTeam)
+		groupUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, groupUser, th.BasicTeam)
 
 		// Create a group member
 		_, appErr = th.App.UpsertGroupMember(group.Id, groupUser.Id)
@@ -824,7 +1179,7 @@ func TestPatchTeam(t *testing.T) {
 		CheckCreatedStatus(t, r)
 
 		patch := &model.TeamPatch{}
-		patch.GroupConstrained = model.NewPointer(true)
+		patch.GroupConstrained = new(true)
 		_, r, err = th.SystemAdminClient.PatchTeam(context.Background(), team2.Id, patch)
 		require.NoError(t, err)
 		CheckOKStatus(t, r)
@@ -866,16 +1221,16 @@ func TestPatchTeam(t *testing.T) {
 			appErr = th.App.Srv().RemoveLicense()
 			require.Nil(t, appErr)
 		}()
-		th.LoginTeamAdmin()
+		th.LoginTeamAdmin(t)
 		team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TeamOpen, AllowOpenInvite: false}
 		team2, _, _ = th.Client.CreateTeam(context.Background(), team2)
 
 		// Create a test group
-		group := th.CreateGroup()
+		group := th.CreateGroup(t)
 
 		// Create a group user
-		groupUser := th.CreateUser()
-		th.LinkUserToTeam(groupUser, th.BasicTeam)
+		groupUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, groupUser, th.BasicTeam)
 
 		// Create a group member
 		_, appErr = th.App.UpsertGroupMember(group.Id, groupUser.Id)
@@ -888,13 +1243,25 @@ func TestPatchTeam(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, r)
 
+		// Wait for auto-add to place the group member on the team before toggling group constraint.
+		require.Eventually(t, func() bool {
+			tm, resp, getErr := th.SystemAdminClient.GetTeamMember(context.Background(), team2.Id, groupUser.Id, "")
+			return getErr == nil && resp.StatusCode == http.StatusOK && tm.UserId == groupUser.Id && tm.DeleteAt == 0
+		}, 5*time.Second, 100*time.Millisecond, "timed out waiting for group user to be added to the team")
+
 		patch := &model.TeamPatch{}
-		patch.GroupConstrained = model.NewPointer(true)
+		patch.GroupConstrained = new(true)
 		_, r, err = th.SystemAdminClient.PatchTeam(context.Background(), team2.Id, patch)
 		require.NoError(t, err)
 		CheckOKStatus(t, r)
 
-		patch.GroupConstrained = model.NewPointer(false)
+		// PatchTeam kicks off async membership cleanup in a goroutine; wait for it to settle.
+		require.Eventually(t, func() bool {
+			tm, resp, getErr := th.SystemAdminClient.GetTeamMember(context.Background(), team2.Id, groupUser.Id, "")
+			return getErr == nil && resp.StatusCode == http.StatusOK && tm.UserId == groupUser.Id && tm.DeleteAt == 0
+		}, 10*time.Second, 100*time.Millisecond, "timed out waiting for group-constrained membership cleanup to finish")
+
+		patch.GroupConstrained = new(false)
 		_, r, err = th.SystemAdminClient.PatchTeam(context.Background(), team2.Id, patch)
 		require.NoError(t, err)
 		CheckOKStatus(t, r)
@@ -937,7 +1304,6 @@ func TestPatchTeam(t *testing.T) {
 func TestRestoreTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 
 	createTeam := func(t *testing.T, deleted bool, teamType string) *model.Team {
@@ -999,22 +1365,22 @@ func TestRestoreTeam(t *testing.T) {
 	t.Run("sanitization", func(t *testing.T) {
 		t.Run("team admin without invite permission gets sanitized invite id", func(t *testing.T) {
 			team := createTeam(t, true, model.TeamOpen)
-			th.LinkUserToTeam(th.BasicUser2, team)
+			th.LinkUserToTeam(t, th.BasicUser2, team)
 
 			client2 := th.CreateClient()
-			th.LoginBasic2WithClient(client2)
+			th.LoginBasic2WithClient(t, client2)
 
 			// Make BasicUser2 a team admin
 			resp, err := th.SystemAdminClient.UpdateTeamMemberRoles(context.Background(), team.Id, th.BasicUser2.Id, "team_user team_admin")
 			require.NoError(t, err)
 			CheckOKStatus(t, resp)
 
-			defaultRolePermissions := th.SaveDefaultRolePermissions()
-			defer th.RestoreDefaultRolePermissions(defaultRolePermissions)
+			defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+			defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 
 			// Remove invite permission from both team user and team admin roles
-			th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamUserRoleId)
-			th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+			th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+			th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
 
 			restoredTeam, _, err := client2.RestoreTeam(context.Background(), team.Id)
 			require.NoError(t, err)
@@ -1023,21 +1389,21 @@ func TestRestoreTeam(t *testing.T) {
 
 		t.Run("team admin with invite permission gets unsanitized invite id", func(t *testing.T) {
 			team := createTeam(t, true, model.TeamOpen)
-			th.LinkUserToTeam(th.BasicUser2, team)
+			th.LinkUserToTeam(t, th.BasicUser2, team)
 
 			client2 := th.CreateClient()
-			th.LoginBasic2WithClient(client2)
+			th.LoginBasic2WithClient(t, client2)
 
 			// Make BasicUser2 a team admin
 			resp, err := th.SystemAdminClient.UpdateTeamMemberRoles(context.Background(), team.Id, th.BasicUser2.Id, "team_user team_admin")
 			require.NoError(t, err)
 			CheckOKStatus(t, resp)
 
-			defaultRolePermissions := th.SaveDefaultRolePermissions()
-			defer th.RestoreDefaultRolePermissions(defaultRolePermissions)
+			defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+			defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 
 			// Ensure team admin role has invite permission
-			th.AddPermissionToRole(model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+			th.AddPermissionToRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
 
 			restoredTeam, _, err := client2.RestoreTeam(context.Background(), team.Id)
 			require.NoError(t, err)
@@ -1055,7 +1421,7 @@ func TestRestoreTeam(t *testing.T) {
 	})
 
 	t.Run("no permission to manage team", func(t *testing.T) {
-		th.LoginBasic2()
+		th.LoginBasic2(t)
 		_, resp, err := client.RestoreTeam(context.Background(), teamPublic.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
@@ -1081,7 +1447,7 @@ func TestRestoreTeam(t *testing.T) {
 
 		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
 			Teams: &model.TeamsLimits{
-				Active: model.NewPointer(1),
+				Active: new(1),
 			},
 		}, nil).Once()
 
@@ -1102,7 +1468,7 @@ func TestRestoreTeam(t *testing.T) {
 
 		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
 			Teams: &model.TeamsLimits{
-				Active: model.NewPointer(200),
+				Active: new(200),
 			},
 		}, nil).Twice()
 		team := createTeam(t, true, model.TeamOpen)
@@ -1115,7 +1481,6 @@ func TestRestoreTeam(t *testing.T) {
 func TestPatchTeamSanitization(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	team, _, err := th.Client.CreateTeam(context.Background(), &model.Team{
 		DisplayName:    t.Name() + "_1",
@@ -1148,7 +1513,6 @@ func TestPatchTeamSanitization(t *testing.T) {
 func TestUpdateTeamPrivacy(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 
 	createTeam := func(teamType string, allowOpenInvite bool) *model.Team {
@@ -1231,7 +1595,7 @@ func TestUpdateTeamPrivacy(t *testing.T) {
 	})
 
 	t.Run("no permission to manage team", func(t *testing.T) {
-		th.LoginBasic2()
+		th.LoginBasic2(t)
 		_, resp, err := client.UpdateTeamPrivacy(context.Background(), teamPublic.Id, model.TeamInvite)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
@@ -1241,7 +1605,6 @@ func TestUpdateTeamPrivacy(t *testing.T) {
 func TestTeamUnicodeNames(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 
 	t.Run("create team unicode", func(t *testing.T) {
@@ -1296,9 +1659,9 @@ func TestTeamUnicodeNames(t *testing.T) {
 
 		patch := &model.TeamPatch{}
 
-		patch.DisplayName = model.NewPointer("Goat\u206e Team")
-		patch.Description = model.NewPointer("\ufffaGreat team.")
-		patch.CompanyName = model.NewPointer("\u202bAcme Inc\u202c")
+		patch.DisplayName = new("Goat\u206e Team")
+		patch.Description = new("\ufffaGreat team.")
+		patch.CompanyName = new("\u202bAcme Inc\u202c")
 
 		rteam, _, err := client.PatchTeam(context.Background(), team.Id, patch)
 		require.NoError(t, err)
@@ -1312,7 +1675,6 @@ func TestTeamUnicodeNames(t *testing.T) {
 func TestRegenerateTeamInviteId(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 
 	team := &model.Team{DisplayName: "Name", Description: "Some description", CompanyName: "Some company name", AllowOpenInvite: false, InviteId: "inviteid0", Name: "z-z-" + model.NewRandomTeamName() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TeamOpen}
@@ -1329,15 +1691,14 @@ func TestRegenerateTeamInviteId(t *testing.T) {
 	assert.NotEqual(t, rteam.Email, "")
 
 	manager := th.SystemManagerClient
-	th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.SystemManagerRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.SystemManagerRoleId)
 	_, _, err = manager.RegenerateTeamInviteId(context.Background(), team.Id)
 	require.Error(t, err)
 }
 
 func TestSoftDeleteTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	resp, err := th.Client.SoftDeleteTeam(context.Background(), th.BasicTeam.Id)
 	require.Error(t, err)
@@ -1349,7 +1710,7 @@ func TestSoftDeleteTeam(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	th.LoginBasic()
+	th.LoginBasic(t)
 	team := &model.Team{DisplayName: "DisplayName", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TeamOpen}
 	team, _, _ = th.Client.CreateTeam(context.Background(), team)
 
@@ -1375,7 +1736,6 @@ func TestSoftDeleteTeam(t *testing.T) {
 func TestPermanentDeleteTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	enableAPITeamDeletion := *th.App.Config().ServiceSettings.EnableAPITeamDeletion
 	defer func() {
@@ -1426,9 +1786,9 @@ func TestPermanentDeleteTeam(t *testing.T) {
 
 func TestGetAllTeams(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	th.LoginSystemManager()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+
+	th.LoginSystemManager(t)
 	client := th.Client
 
 	team1 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TeamOpen, AllowOpenInvite: true}
@@ -1551,16 +1911,16 @@ func TestGetAllTeams(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			defaultRolePermissions := th.SaveDefaultRolePermissions()
+			defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 			defer func() {
-				th.RestoreDefaultRolePermissions(defaultRolePermissions)
+				th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 			}()
-			th.RemovePermissionFromRole(model.PermissionListPublicTeams.Id, model.SystemUserRoleId)
-			th.RemovePermissionFromRole(model.PermissionJoinPublicTeams.Id, model.SystemUserRoleId)
-			th.RemovePermissionFromRole(model.PermissionListPrivateTeams.Id, model.SystemUserRoleId)
-			th.RemovePermissionFromRole(model.PermissionJoinPrivateTeams.Id, model.SystemUserRoleId)
+			th.RemovePermissionFromRole(t, model.PermissionListPublicTeams.Id, model.SystemUserRoleId)
+			th.RemovePermissionFromRole(t, model.PermissionJoinPublicTeams.Id, model.SystemUserRoleId)
+			th.RemovePermissionFromRole(t, model.PermissionListPrivateTeams.Id, model.SystemUserRoleId)
+			th.RemovePermissionFromRole(t, model.PermissionJoinPrivateTeams.Id, model.SystemUserRoleId)
 			for _, permission := range tc.Permissions {
-				th.AddPermissionToRole(permission, model.SystemUserRoleId)
+				th.AddPermissionToRole(t, permission, model.SystemUserRoleId)
 			}
 
 			var teams []*model.Team
@@ -1618,7 +1978,7 @@ func TestGetAllTeams(t *testing.T) {
 	policy, savePolicyErr := th.App.Srv().Store().RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      "Policy 1",
-			PostDurationDays: model.NewPointer(int64(30)),
+			PostDurationDays: new(int64(30)),
 		},
 		TeamIDs: []string{policyTeam.Id},
 	})
@@ -1677,7 +2037,7 @@ func TestGetAllTeams(t *testing.T) {
 	})
 
 	t.Run("Sanitize the teams in the response with total count", func(t *testing.T) {
-		otherUser := th.CreateUser()
+		otherUser := th.CreateUser(t)
 		_, _, err = client.Login(context.Background(), otherUser.Email, otherUser.Password)
 		require.NoError(t, err)
 		teams, _, _, err := client.GetAllTeamsWithTotalCount(context.Background(), "", 0, 10)
@@ -1694,7 +2054,6 @@ func TestGetAllTeams(t *testing.T) {
 func TestGetAllTeamsSanitization(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	team, _, err := th.Client.CreateTeam(context.Background(), &model.Team{
 		DisplayName:     t.Name() + "_1",
@@ -1755,8 +2114,7 @@ func TestGetAllTeamsSanitization(t *testing.T) {
 
 func TestGetTeamByName(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	team := th.BasicTeam
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
@@ -1788,7 +2146,7 @@ func TestGetTeamByName(t *testing.T) {
 	_, _, err = th.SystemAdminClient.GetTeamByName(context.Background(), team.Name, "")
 	require.NoError(t, err)
 
-	th.LoginTeamAdmin()
+	th.LoginTeamAdmin(t)
 
 	team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TeamOpen, AllowOpenInvite: false}
 	rteam2, _, _ := th.Client.CreateTeam(context.Background(), team2)
@@ -1796,7 +2154,7 @@ func TestGetTeamByName(t *testing.T) {
 	team3 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TeamInvite, AllowOpenInvite: true}
 	rteam3, _, _ := th.Client.CreateTeam(context.Background(), team3)
 
-	th.LoginBasic()
+	th.LoginBasic(t)
 	// AllowInviteOpen is false and team is open, and user is not on team
 	_, resp, err = th.Client.GetTeamByName(context.Background(), rteam2.Name, "")
 	require.Error(t, err)
@@ -1810,8 +2168,7 @@ func TestGetTeamByName(t *testing.T) {
 
 func TestGetTeamByNameSanitization(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	team, _, err := th.Client.CreateTeam(context.Background(), &model.Team{
 		DisplayName:    t.Name() + "_1",
@@ -1823,10 +2180,10 @@ func TestGetTeamByNameSanitization(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("team user", func(t *testing.T) {
-		th.LinkUserToTeam(th.BasicUser2, team)
+		th.LinkUserToTeam(t, th.BasicUser2, team)
 
 		client := th.CreateClient()
-		th.LoginBasic2WithClient(client)
+		th.LoginBasic2WithClient(t, client)
 
 		rteam, _, err := client.GetTeamByName(context.Background(), team.Name, "")
 		require.NoError(t, err)
@@ -1836,12 +2193,12 @@ func TestGetTeamByNameSanitization(t *testing.T) {
 	})
 
 	t.Run("team user without invite permissions", func(t *testing.T) {
-		th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamUserRoleId)
-		th.LinkUserToTeam(th.BasicUser2, team)
+		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+		th.LinkUserToTeam(t, th.BasicUser2, team)
 
 		client := th.CreateClient()
 
-		th.LoginBasic2WithClient(client)
+		th.LoginBasic2WithClient(t, client)
 
 		rteam, _, err := client.GetTeam(context.Background(), team.Id, "")
 		require.NoError(t, err)
@@ -1862,7 +2219,7 @@ func TestGetTeamByNameSanitization(t *testing.T) {
 	})
 
 	t.Run("team admin/non-admin with invite permission", func(t *testing.T) {
-		th.AddPermissionToRole(model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+		th.AddPermissionToRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
 		rteam, _, err := th.Client.GetTeamByName(context.Background(), team.Name, "")
 		require.NoError(t, err)
 
@@ -1881,9 +2238,9 @@ func TestGetTeamByNameSanitization(t *testing.T) {
 
 func TestSearchAllTeams(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	th.LoginSystemManager()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+
+	th.LoginSystemManager(t)
 
 	oTeam := th.BasicTeam
 	oTeam.AllowOpenInvite = true
@@ -1915,7 +2272,7 @@ func TestSearchAllTeams(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	th.LoginBasic()
+	th.LoginBasic(t)
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		rteams, _, err2 := client.SearchTeams(context.Background(), &model.TeamSearch{Term: oTeam.Name})
@@ -1952,7 +2309,7 @@ func TestSearchAllTeams(t *testing.T) {
 	policy, savePolicyErr := th.App.Srv().Store().RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      "Policy 1",
-			PostDurationDays: model.NewPointer(int64(30)),
+			PostDurationDays: new(int64(30)),
 		},
 		TeamIDs: []string{policyTeam.Id},
 	})
@@ -1990,7 +2347,6 @@ func TestSearchAllTeams(t *testing.T) {
 func TestSearchAllTeamsPaged(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	commonRandom := model.NewId()
 	teams := [3]*model.Team{}
 
@@ -2022,37 +2378,37 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 	}{
 		{
 			Name:               "Retrieve foobar team using partial term search",
-			Search:             &model.TeamSearch{Term: "oobardisplay", Page: model.NewPointer(0), PerPage: model.NewPointer(100)},
+			Search:             &model.TeamSearch{Term: "oobardisplay", Page: new(0), PerPage: new(100)},
 			ExpectedTeams:      []string{foobarTeam.Id},
 			ExpectedTotalCount: 1,
 		},
 		{
 			Name:               "Retrieve foobar team using the beginning of the display name as search text",
-			Search:             &model.TeamSearch{Term: "foobar", Page: model.NewPointer(0), PerPage: model.NewPointer(100)},
+			Search:             &model.TeamSearch{Term: "foobar", Page: new(0), PerPage: new(100)},
 			ExpectedTeams:      []string{foobarTeam.Id},
 			ExpectedTotalCount: 1,
 		},
 		{
 			Name:               "Retrieve foobar team using the ending of the term of the display name",
-			Search:             &model.TeamSearch{Term: "bardisplayname", Page: model.NewPointer(0), PerPage: model.NewPointer(100)},
+			Search:             &model.TeamSearch{Term: "bardisplayname", Page: new(0), PerPage: new(100)},
 			ExpectedTeams:      []string{foobarTeam.Id},
 			ExpectedTotalCount: 1,
 		},
 		{
 			Name:               "Retrieve foobar team using partial term search on the name property of team",
-			Search:             &model.TeamSearch{Term: "what", Page: model.NewPointer(0), PerPage: model.NewPointer(100)},
+			Search:             &model.TeamSearch{Term: "what", Page: new(0), PerPage: new(100)},
 			ExpectedTeams:      []string{foobarTeam.Id},
 			ExpectedTotalCount: 1,
 		},
 		{
 			Name:               "Retrieve foobar team using partial term search on the name property of team #2",
-			Search:             &model.TeamSearch{Term: "ever", Page: model.NewPointer(0), PerPage: model.NewPointer(100)},
+			Search:             &model.TeamSearch{Term: "ever", Page: new(0), PerPage: new(100)},
 			ExpectedTeams:      []string{foobarTeam.Id},
 			ExpectedTotalCount: 1,
 		},
 		{
 			Name:               "Get all teams on one page",
-			Search:             &model.TeamSearch{Term: commonRandom, Page: model.NewPointer(0), PerPage: model.NewPointer(100)},
+			Search:             &model.TeamSearch{Term: commonRandom, Page: new(0), PerPage: new(100)},
 			ExpectedTeams:      []string{teams[0].Id, teams[1].Id, teams[2].Id},
 			ExpectedTotalCount: 3,
 		},
@@ -2076,13 +2432,13 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 		},
 		{
 			Name:               "Get 2 teams on the first page",
-			Search:             &model.TeamSearch{Term: commonRandom, Page: model.NewPointer(0), PerPage: model.NewPointer(2)},
+			Search:             &model.TeamSearch{Term: commonRandom, Page: new(0), PerPage: new(2)},
 			ExpectedTeams:      []string{teams[0].Id, teams[1].Id},
 			ExpectedTotalCount: 3,
 		},
 		{
 			Name:               "Get 1 team on the second page",
-			Search:             &model.TeamSearch{Term: commonRandom, Page: model.NewPointer(1), PerPage: model.NewPointer(2)},
+			Search:             &model.TeamSearch{Term: commonRandom, Page: new(1), PerPage: new(2)},
 			ExpectedTeams:      []string{teams[2].Id},
 			ExpectedTotalCount: 3,
 		},
@@ -2112,15 +2468,14 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 		})
 	}
 
-	_, _, resp, err := th.Client.SearchTeamsPaged(context.Background(), &model.TeamSearch{Term: commonRandom, PerPage: model.NewPointer(100)})
+	_, _, resp, err := th.Client.SearchTeamsPaged(context.Background(), &model.TeamSearch{Term: commonRandom, PerPage: new(100)})
 	CheckErrorID(t, err, "api.team.search_teams.pagination_not_implemented.public_team_search")
 	require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 }
 
 func TestSearchAllTeamsSanitization(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	team, _, err := th.Client.CreateTeam(context.Background(), &model.Team{
 		DisplayName:    t.Name() + "_1",
@@ -2141,7 +2496,7 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 
 	t.Run("non-team user", func(t *testing.T) {
 		client := th.CreateClient()
-		th.LoginBasic2WithClient(client)
+		th.LoginBasic2WithClient(t, client)
 
 		rteams, _, err := client.SearchTeams(context.Background(), &model.TeamSearch{Term: t.Name()})
 		require.NoError(t, err)
@@ -2153,10 +2508,10 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 	})
 
 	t.Run("team user", func(t *testing.T) {
-		th.LinkUserToTeam(th.BasicUser2, team)
+		th.LinkUserToTeam(t, th.BasicUser2, team)
 
 		client := th.CreateClient()
-		th.LoginBasic2WithClient(client)
+		th.LoginBasic2WithClient(t, client)
 
 		rteams, _, err := client.SearchTeams(context.Background(), &model.TeamSearch{Term: t.Name()})
 		require.NoError(t, err)
@@ -2190,8 +2545,7 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 
 func TestGetTeamsForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TeamInvite}
@@ -2233,8 +2587,7 @@ func TestGetTeamsForUser(t *testing.T) {
 
 func TestGetTeamsForUserSanitization(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	team, _, err := th.Client.CreateTeam(context.Background(), &model.Team{
 		DisplayName:    t.Name() + "_1",
@@ -2254,11 +2607,11 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("team user", func(t *testing.T) {
-		th.LinkUserToTeam(th.BasicUser2, team)
-		th.LinkUserToTeam(th.BasicUser2, team2)
+		th.LinkUserToTeam(t, th.BasicUser2, team)
+		th.LinkUserToTeam(t, th.BasicUser2, team2)
 
 		client := th.CreateClient()
-		th.LoginBasic2WithClient(client)
+		th.LoginBasic2WithClient(t, client)
 
 		rteams, _, err := client.GetTeamsForUser(context.Background(), th.BasicUser2.Id, "")
 		require.NoError(t, err)
@@ -2273,14 +2626,14 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 	})
 
 	t.Run("team user without invite permissions", func(t *testing.T) {
-		th.LinkUserToTeam(th.BasicUser2, team)
-		th.LinkUserToTeam(th.BasicUser2, team2)
+		th.LinkUserToTeam(t, th.BasicUser2, team)
+		th.LinkUserToTeam(t, th.BasicUser2, team2)
 
 		client := th.CreateClient()
-		th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamUserRoleId)
-		defer th.AddPermissionToRole(model.PermissionInviteUser.Id, model.TeamUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
 
-		th.LoginBasic2WithClient(client)
+		th.LoginBasic2WithClient(t, client)
 
 		rteams, _, err := client.GetTeamsForUser(context.Background(), th.BasicUser2.Id, "")
 		require.NoError(t, err)
@@ -2333,8 +2686,7 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 
 func TestGetTeamMember(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	team := th.BasicTeam
 	user := th.BasicUser
@@ -2372,11 +2724,10 @@ func TestGetTeamMember(t *testing.T) {
 
 func TestGetTeamMembers(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	team := th.BasicTeam
-	userNotMember := th.CreateUser()
+	userNotMember := th.CreateUser(t)
 
 	rmembers, _, err := client.GetTeamMembers(context.Background(), team.Id, 0, 100, "")
 	require.NoError(t, err)
@@ -2445,8 +2796,7 @@ func TestGetTeamMembers(t *testing.T) {
 
 func TestGetTeamMembersForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	members, _, err := client.GetTeamMembersForUser(context.Background(), th.BasicUser.Id, "")
@@ -2475,7 +2825,7 @@ func TestGetTeamMembersForUser(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 	_, _, err = client.Login(context.Background(), user.Email, user.Password)
 	require.NoError(t, err)
 	_, resp, err = client.GetTeamMembersForUser(context.Background(), th.BasicUser.Id, "")
@@ -2488,8 +2838,7 @@ func TestGetTeamMembersForUser(t *testing.T) {
 
 func TestGetTeamMembersByIds(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	tm, _, err := client.GetTeamMembersByIds(context.Background(), th.BasicTeam.Id, []string{th.BasicUser.Id})
@@ -2526,11 +2875,10 @@ func TestGetTeamMembersByIds(t *testing.T) {
 
 func TestAddTeamMember(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	team := th.BasicTeam
-	otherUser := th.CreateUser()
+	otherUser := th.CreateUser(t)
 
 	th.App.Srv().SetLicense(model.NewTestLicense(""))
 	defer th.App.Srv().SetLicense(nil)
@@ -2541,7 +2889,7 @@ func TestAddTeamMember(t *testing.T) {
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 
-	guest := th.CreateUser()
+	guest := th.CreateUser(t)
 	_, err := th.SystemAdminClient.DemoteUserToGuest(context.Background(), guest.Id)
 	require.NoError(t, err)
 
@@ -2549,7 +2897,7 @@ func TestAddTeamMember(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// Regular user can't add a member to a team they don't belong to.
-	th.LoginBasic2()
+	th.LoginBasic2(t)
 	_, resp, err := client.AddTeamMember(context.Background(), team.Id, otherUser.Id)
 	CheckForbiddenStatus(t, resp)
 	require.Error(t, err, "Error is nil")
@@ -2567,7 +2915,7 @@ func TestAddTeamMember(t *testing.T) {
 	})
 
 	// Regular user can add a member to a team they belong to.
-	th.LoginBasic()
+	th.LoginBasic(t)
 	tm, resp, err := client.AddTeamMember(context.Background(), team.Id, otherUser.Id)
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
@@ -2602,18 +2950,18 @@ func TestAddTeamMember(t *testing.T) {
 	require.NoError(t, err)
 
 	// Check the appropriate permissions are enforced.
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 	defer func() {
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 	}()
 
 	// Set the config so that only team admins can add a user to a team.
-	th.AddPermissionToRole(model.PermissionInviteUser.Id, model.TeamAdminRoleId)
-	th.AddPermissionToRole(model.PermissionAddUserToTeam.Id, model.TeamAdminRoleId)
-	th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamUserRoleId)
-	th.RemovePermissionFromRole(model.PermissionAddUserToTeam.Id, model.TeamUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+	th.AddPermissionToRole(t, model.PermissionAddUserToTeam.Id, model.TeamAdminRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionAddUserToTeam.Id, model.TeamUserRoleId)
 
-	th.LoginBasic()
+	th.LoginBasic(t)
 
 	// Check that a regular user can't add someone to the team.
 	_, resp, err = client.AddTeamMember(context.Background(), team.Id, otherUser.Id)
@@ -2621,25 +2969,25 @@ func TestAddTeamMember(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	// Update user to team admin
-	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
+	th.UpdateUserToTeamAdmin(t, th.BasicUser, th.BasicTeam)
 	appErr = th.App.Srv().InvalidateAllCaches()
 	require.Nil(t, appErr)
-	th.LoginBasic()
+	th.LoginBasic(t)
 
 	// Should work as a team admin.
 	_, _, err = client.AddTeamMember(context.Background(), team.Id, otherUser.Id)
 	require.NoError(t, err)
 
 	// Change permission level to team user
-	th.AddPermissionToRole(model.PermissionInviteUser.Id, model.TeamUserRoleId)
-	th.AddPermissionToRole(model.PermissionAddUserToTeam.Id, model.TeamUserRoleId)
-	th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamAdminRoleId)
-	th.RemovePermissionFromRole(model.PermissionAddUserToTeam.Id, model.TeamAdminRoleId)
+	th.AddPermissionToRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionAddUserToTeam.Id, model.TeamUserRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionAddUserToTeam.Id, model.TeamAdminRoleId)
 
-	th.UpdateUserToNonTeamAdmin(th.BasicUser, th.BasicTeam)
+	th.UpdateUserToNonTeamAdmin(t, th.BasicUser, th.BasicTeam)
 	appErr = th.App.Srv().InvalidateAllCaches()
 	require.Nil(t, appErr)
-	th.LoginBasic()
+	th.LoginBasic(t)
 
 	// Should work as a regular user.
 	_, _, err = client.AddTeamMember(context.Background(), team.Id, otherUser.Id)
@@ -2655,7 +3003,7 @@ func TestAddTeamMember(t *testing.T) {
 	require.NoError(t, err)
 
 	token := model.NewToken(
-		app.TokenTypeTeamInvitation,
+		model.TokenTypeTeamInvitation,
 		model.MapToJSON(map[string]string{"teamId": team.Id}),
 	)
 	require.NoError(t, th.App.Srv().Store().Token().Save(token))
@@ -2679,7 +3027,7 @@ func TestAddTeamMember(t *testing.T) {
 	require.Nil(t, tm, "should have not returned team member")
 
 	// expired token of more than 50 hours
-	token = model.NewToken(app.TokenTypeTeamInvitation, "")
+	token = model.NewToken(model.TokenTypeTeamInvitation, "")
 	token.CreateAt = model.GetMillis() - 1000*60*60*50
 	require.NoError(t, th.App.Srv().Store().Token().Save(token))
 
@@ -2692,7 +3040,7 @@ func TestAddTeamMember(t *testing.T) {
 	// invalid team id
 	testId := GenerateTestID()
 	token = model.NewToken(
-		app.TokenTypeTeamInvitation,
+		model.TokenTypeTeamInvitation,
 		model.MapToJSON(map[string]string{"teamId": testId}),
 	)
 	require.NoError(t, th.App.Srv().Store().Token().Save(token))
@@ -2733,13 +3081,13 @@ func TestAddTeamMember(t *testing.T) {
 	require.Nil(t, tm, "should have not returned team member")
 
 	// Set a team to group-constrained
-	team.GroupConstrained = model.NewPointer(true)
+	team.GroupConstrained = new(true)
 	_, appErr = th.App.UpdateTeam(team)
 	require.Nil(t, appErr)
 
 	// Attempt to use a token on a group-constrained team
 	token = model.NewToken(
-		app.TokenTypeTeamInvitation,
+		model.TokenTypeTeamInvitation,
 		model.MapToJSON(map[string]string{"teamId": team.Id}),
 	)
 	require.NoError(t, th.App.Srv().Store().Token().Save(token))
@@ -2775,8 +3123,7 @@ func TestAddTeamMember(t *testing.T) {
 }
 
 func TestAddTeamMemberGuestPermissions(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
 	defer func() {
@@ -2787,13 +3134,13 @@ func TestAddTeamMemberGuestPermissions(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 	defer func() {
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 	}()
 
 	t.Run("should be able to add guest user to team when you have permission to", func(t *testing.T) {
-		th.AddPermissionToRole(model.PermissionInviteGuest.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionInviteGuest.Id, model.TeamUserRoleId)
 
 		guestUser := th.CreateGuestUser(t)
 
@@ -2803,7 +3150,7 @@ func TestAddTeamMemberGuestPermissions(t *testing.T) {
 	})
 
 	t.Run("should not be able to add guest user to team when you don't have permissino to", func(t *testing.T) {
-		th.RemovePermissionFromRole(model.PermissionInviteGuest.Id, model.TeamUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionInviteGuest.Id, model.TeamUserRoleId)
 
 		guestUser := th.CreateGuestUser(t)
 
@@ -2815,17 +3162,16 @@ func TestAddTeamMemberGuestPermissions(t *testing.T) {
 
 func TestAddTeamMemberMyself(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	// Check the appropriate permissions are enforced.
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 	defer func() {
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 	}()
 
-	th.LoginBasic()
+	th.LoginBasic(t)
 
 	testCases := []struct {
 		Name              string
@@ -2880,19 +3226,19 @@ func TestAddTeamMemberMyself(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			team := th.CreateTeam()
+			team := th.CreateTeam(t)
 			team.AllowOpenInvite = tc.Public
 			_, appErr := th.App.UpdateTeam(team)
 			require.Nil(t, appErr)
 			if tc.PublicPermission {
-				th.AddPermissionToRole(model.PermissionJoinPublicTeams.Id, model.SystemUserRoleId)
+				th.AddPermissionToRole(t, model.PermissionJoinPublicTeams.Id, model.SystemUserRoleId)
 			} else {
-				th.RemovePermissionFromRole(model.PermissionJoinPublicTeams.Id, model.SystemUserRoleId)
+				th.RemovePermissionFromRole(t, model.PermissionJoinPublicTeams.Id, model.SystemUserRoleId)
 			}
 			if tc.PrivatePermission {
-				th.AddPermissionToRole(model.PermissionJoinPrivateTeams.Id, model.SystemUserRoleId)
+				th.AddPermissionToRole(t, model.PermissionJoinPrivateTeams.Id, model.SystemUserRoleId)
 			} else {
-				th.RemovePermissionFromRole(model.PermissionJoinPrivateTeams.Id, model.SystemUserRoleId)
+				th.RemovePermissionFromRole(t, model.PermissionJoinPrivateTeams.Id, model.SystemUserRoleId)
 			}
 			_, resp, err := client.AddTeamMember(context.Background(), team.Id, th.BasicUser.Id)
 			if tc.ExpectedSuccess {
@@ -2906,8 +3252,7 @@ func TestAddTeamMemberMyself(t *testing.T) {
 
 func TestAddTeamMembersDomainConstrained(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.SystemAdminClient
 	team := th.BasicTeam
 	team.AllowedDomains = "domain1.com, domain2.com"
@@ -2915,15 +3260,16 @@ func TestAddTeamMembersDomainConstrained(t *testing.T) {
 	require.NoError(t, err)
 
 	// create two users on allowed domains
+	password := model.NewTestPassword()
 	user1, _, err := client.CreateUser(context.Background(), &model.User{
 		Email:    "user@domain1.com",
-		Password: "Pa$$word11",
+		Password: password,
 		Username: GenerateTestUsername(),
 	})
 	require.NoError(t, err)
 	user2, _, err := client.CreateUser(context.Background(), &model.User{
 		Email:    "user@domain2.com",
-		Password: "Pa$$word11",
+		Password: password,
 		Username: GenerateTestUsername(),
 	})
 	require.NoError(t, err)
@@ -2967,11 +3313,10 @@ func TestAddTeamMembersDomainConstrained(t *testing.T) {
 
 func TestAddTeamMembers(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	team := th.BasicTeam
-	otherUser := th.CreateUser()
+	otherUser := th.CreateUser(t)
 	userList := []string{
 		otherUser.Id,
 	}
@@ -2984,13 +3329,13 @@ func TestAddTeamMembers(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableBotAccountCreation = true
 	})
-	bot := th.CreateBotWithSystemAdminClient()
+	bot := th.CreateBotWithSystemAdminClient(t)
 
 	appErr := th.App.RemoveUserFromTeam(th.Context, th.BasicTeam.Id, th.BasicUser2.Id, "")
 	require.Nil(t, appErr)
 
 	// Regular user can't add a member to a team they don't belong to.
-	th.LoginBasic2()
+	th.LoginBasic2(t)
 	_, resp, err := client.AddTeamMembers(context.Background(), team.Id, userList)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
@@ -2998,7 +3343,7 @@ func TestAddTeamMembers(t *testing.T) {
 	require.NoError(t, err)
 
 	// Regular user can add a member to a team they belong to.
-	th.LoginBasic()
+	th.LoginBasic(t)
 	tm, resp, err := client.AddTeamMembers(context.Background(), team.Id, userList)
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
@@ -3011,13 +3356,13 @@ func TestAddTeamMembers(t *testing.T) {
 	require.Equal(t, tm[0].TeamId, team.Id, "team ids should have matched")
 
 	// Check the appropriate permissions are enforced.
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 	defer func() {
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 	}()
 
 	// Regular user can add a guest member to a team they belong to.
-	th.AddPermissionToRole(model.PermissionInviteGuest.Id, model.TeamUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionInviteGuest.Id, model.TeamUserRoleId)
 	tm, resp, err = client.AddTeamMembers(context.Background(), team.Id, guestList)
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
@@ -3053,12 +3398,12 @@ func TestAddTeamMembers(t *testing.T) {
 	require.NoError(t, err)
 
 	// Set the config so that only team admins can add a user to a team.
-	th.AddPermissionToRole(model.PermissionInviteUser.Id, model.TeamAdminRoleId)
-	th.AddPermissionToRole(model.PermissionAddUserToTeam.Id, model.TeamAdminRoleId)
-	th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamUserRoleId)
-	th.RemovePermissionFromRole(model.PermissionAddUserToTeam.Id, model.TeamUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+	th.AddPermissionToRole(t, model.PermissionAddUserToTeam.Id, model.TeamAdminRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionAddUserToTeam.Id, model.TeamUserRoleId)
 
-	th.LoginBasic()
+	th.LoginBasic(t)
 
 	// Check that a regular user can't add someone to the team.
 	_, resp, err = client.AddTeamMembers(context.Background(), team.Id, userList)
@@ -3066,39 +3411,39 @@ func TestAddTeamMembers(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	// Update user to team admin
-	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
+	th.UpdateUserToTeamAdmin(t, th.BasicUser, th.BasicTeam)
 	appErr = th.App.Srv().InvalidateAllCaches()
 	require.Nil(t, appErr)
-	th.LoginBasic()
+	th.LoginBasic(t)
 
 	// Should work as a team admin.
 	_, _, err = client.AddTeamMembers(context.Background(), team.Id, userList)
 	require.NoError(t, err)
 
 	// Change permission level to team user
-	th.AddPermissionToRole(model.PermissionInviteUser.Id, model.TeamUserRoleId)
-	th.AddPermissionToRole(model.PermissionAddUserToTeam.Id, model.TeamUserRoleId)
-	th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamAdminRoleId)
-	th.RemovePermissionFromRole(model.PermissionAddUserToTeam.Id, model.TeamAdminRoleId)
+	th.AddPermissionToRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionAddUserToTeam.Id, model.TeamUserRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionAddUserToTeam.Id, model.TeamAdminRoleId)
 
-	th.UpdateUserToNonTeamAdmin(th.BasicUser, th.BasicTeam)
+	th.UpdateUserToNonTeamAdmin(t, th.BasicUser, th.BasicTeam)
 	appErr = th.App.Srv().InvalidateAllCaches()
 	require.Nil(t, appErr)
-	th.LoginBasic()
+	th.LoginBasic(t)
 
 	// Should work as a regular user.
 	_, _, err = client.AddTeamMembers(context.Background(), team.Id, userList)
 	require.NoError(t, err)
 
 	// remove invite guests
-	th.RemovePermissionFromRole(model.PermissionInviteGuest.Id, model.TeamUserRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionInviteGuest.Id, model.TeamUserRoleId)
 	// Regular user can no longer add a guest member to a team they belong to.
 	_, resp, err = client.AddTeamMembers(context.Background(), team.Id, guestList)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	// Set a team to group-constrained
-	team.GroupConstrained = model.NewPointer(true)
+	team.GroupConstrained = new(true)
 	_, appErr = th.App.UpdateTeam(team)
 	require.Nil(t, appErr)
 
@@ -3127,8 +3472,7 @@ func TestAddTeamMembers(t *testing.T) {
 }
 
 func TestAddTeamMembersGuestPermissions(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
 	defer func() {
@@ -3139,13 +3483,13 @@ func TestAddTeamMembersGuestPermissions(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 	defer func() {
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 	}()
 
 	t.Run("should be able to add guest user to team when you have permission to", func(t *testing.T) {
-		th.AddPermissionToRole(model.PermissionInviteGuest.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionInviteGuest.Id, model.TeamUserRoleId)
 
 		guestUser := th.CreateGuestUser(t)
 
@@ -3155,7 +3499,7 @@ func TestAddTeamMembersGuestPermissions(t *testing.T) {
 	})
 
 	t.Run("should not be able to add guest user to team when you don't have permissino to", func(t *testing.T) {
-		th.RemovePermissionFromRole(model.PermissionInviteGuest.Id, model.TeamUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionInviteGuest.Id, model.TeamUserRoleId)
 
 		guestUser := th.CreateGuestUser(t)
 
@@ -3167,14 +3511,13 @@ func TestAddTeamMembersGuestPermissions(t *testing.T) {
 
 func TestRemoveTeamMember(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableBotAccountCreation = true
 	})
-	bot := th.CreateBotWithSystemAdminClient()
+	bot := th.CreateBotWithSystemAdminClient(t)
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		_, err := client.RemoveTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser.Id)
@@ -3211,7 +3554,7 @@ func TestRemoveTeamMember(t *testing.T) {
 	require.NoError(t, err)
 
 	// If the team is group-constrained the user cannot be removed
-	th.BasicTeam.GroupConstrained = model.NewPointer(true)
+	th.BasicTeam.GroupConstrained = new(true)
 	_, appErr := th.App.UpdateTeam(th.BasicTeam)
 	require.Nil(t, appErr)
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -3235,15 +3578,14 @@ func TestRemoveTeamMember(t *testing.T) {
 
 func TestRemoveTeamMemberEvents(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	client1 := th.CreateClient()
-	th.LoginBasicWithClient(client1)
+	th.LoginBasicWithClient(t, client1)
 	WebSocketClient := th.CreateConnectedWebSocketClientWithClient(t, client1)
 
 	client2 := th.CreateClient()
-	th.LoginBasic2WithClient(client2)
+	th.LoginBasic2WithClient(t, client2)
 	WebSocketClient2 := th.CreateConnectedWebSocketClientWithClient(t, client2)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -3270,8 +3612,7 @@ func TestRemoveTeamMemberEvents(t *testing.T) {
 
 func TestGetTeamStats(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	team := th.BasicTeam
 
@@ -3296,7 +3637,7 @@ func TestGetTeamStats(t *testing.T) {
 	require.NoError(t, err)
 
 	// deactivate BasicUser2
-	th.UpdateActiveUser(th.BasicUser2, false)
+	th.UpdateActiveUser(t, th.BasicUser2, false)
 
 	rstats, _, err = th.SystemAdminClient.GetTeamStats(context.Background(), team.Id, "")
 	require.NoError(t, err)
@@ -3306,7 +3647,7 @@ func TestGetTeamStats(t *testing.T) {
 	require.Equal(t, rstats.ActiveMemberCount, int64(2), "wrong count")
 
 	// login with different user and test if forbidden
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 	_, _, err = client.Login(context.Background(), user.Email, user.Password)
 	require.NoError(t, err)
 	_, resp, err = client.GetTeamStats(context.Background(), th.BasicTeam.Id, "")
@@ -3322,8 +3663,7 @@ func TestGetTeamStats(t *testing.T) {
 
 func TestUpdateTeamMemberRoles(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	SystemAdminClient := th.SystemAdminClient
 
@@ -3363,7 +3703,7 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	// user 1 (team admin) demotes system admin (member of a team)
-	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
+	th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
 	_, err = client.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, th.SystemAdminUser.Id, TeamMember)
 	require.NoError(t, err)
 	// Note from API v3
@@ -3402,8 +3742,7 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 
 func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
@@ -3419,7 +3758,7 @@ func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 		Nickname:      "nn_" + id,
 		FirstName:     "f_" + id,
 		LastName:      "l_" + id,
-		Password:      "Pa$$word11",
+		Password:      model.NewTestPassword(),
 		EmailVerified: true,
 	}
 	guest, appError := th.App.CreateGuest(th.Context, guest)
@@ -3428,7 +3767,7 @@ func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 	require.Nil(t, appError)
 
 	SystemAdminClient := th.SystemAdminClient
-	th.LoginBasic()
+	th.LoginBasic(t)
 
 	// cannot change the user scheme to false
 	s1 := &model.SchemeRoles{
@@ -3518,7 +3857,7 @@ func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	th.LoginBasic2()
+	th.LoginBasic2(t)
 	resp, err = th.Client.UpdateTeamMemberSchemeRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, s3)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
@@ -3532,8 +3871,7 @@ func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 
 func TestGetMyTeamsUnread(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	user := th.BasicUser
@@ -3565,51 +3903,50 @@ func TestGetMyTeamsUnread(t *testing.T) {
 
 func TestTeamExists(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	public_member_team := th.BasicTeam
 	err := th.App.UpdateTeamPrivacy(public_member_team.Id, model.TeamOpen, true)
 	require.Nil(t, err)
 
-	public_not_member_team := th.CreateTeamWithClient(th.SystemAdminClient)
+	public_not_member_team := th.CreateTeamWithClient(t, th.SystemAdminClient)
 	err = th.App.UpdateTeamPrivacy(public_not_member_team.Id, model.TeamOpen, true)
 	require.Nil(t, err)
 
-	private_member_team := th.CreateTeamWithClient(th.SystemAdminClient)
-	th.LinkUserToTeam(th.BasicUser, private_member_team)
+	private_member_team := th.CreateTeamWithClient(t, th.SystemAdminClient)
+	th.LinkUserToTeam(t, th.BasicUser, private_member_team)
 	err = th.App.UpdateTeamPrivacy(private_member_team.Id, model.TeamInvite, false)
 	require.Nil(t, err)
 
-	private_not_member_team := th.CreateTeamWithClient(th.SystemAdminClient)
+	private_not_member_team := th.CreateTeamWithClient(t, th.SystemAdminClient)
 	err = th.App.UpdateTeamPrivacy(private_not_member_team.Id, model.TeamInvite, false)
 	require.Nil(t, err)
 
 	// Check the appropriate permissions are enforced.
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 	defer func() {
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 	}()
 
-	th.AddPermissionToRole(model.PermissionListPublicTeams.Id, model.SystemUserRoleId)
-	th.AddPermissionToRole(model.PermissionListPrivateTeams.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionListPublicTeams.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionListPrivateTeams.Id, model.SystemUserRoleId)
 
 	t.Run("Logged user with permissions and valid public team", func(t *testing.T) {
-		th.LoginBasic()
+		th.LoginBasic(t)
 		exists, _, err := client.TeamExists(context.Background(), public_not_member_team.Name, "")
 		require.NoError(t, err)
 		assert.True(t, exists, "team should exist")
 	})
 
 	t.Run("Logged user with permissions and valid private team", func(t *testing.T) {
-		th.LoginBasic()
+		th.LoginBasic(t)
 		exists, _, err := client.TeamExists(context.Background(), private_not_member_team.Name, "")
 		require.NoError(t, err)
 		assert.True(t, exists, "team should exist")
 	})
 
 	t.Run("Logged user and invalid team", func(t *testing.T) {
-		th.LoginBasic()
+		th.LoginBasic(t)
 		exists, _, err := client.TeamExists(context.Background(), "testingteam", "")
 		require.NoError(t, err)
 		assert.False(t, exists, "team should not exist")
@@ -3624,8 +3961,8 @@ func TestTeamExists(t *testing.T) {
 	})
 
 	t.Run("Logged without LIST_PUBLIC_TEAMS permissions and member public team", func(t *testing.T) {
-		th.LoginBasic()
-		th.RemovePermissionFromRole(model.PermissionListPublicTeams.Id, model.SystemUserRoleId)
+		th.LoginBasic(t)
+		th.RemovePermissionFromRole(t, model.PermissionListPublicTeams.Id, model.SystemUserRoleId)
 
 		exists, _, err := client.TeamExists(context.Background(), public_member_team.Name, "")
 		require.NoError(t, err)
@@ -3633,8 +3970,8 @@ func TestTeamExists(t *testing.T) {
 	})
 
 	t.Run("Logged without LIST_PUBLIC_TEAMS permissions and not member public team", func(t *testing.T) {
-		th.LoginBasic()
-		th.RemovePermissionFromRole(model.PermissionListPublicTeams.Id, model.SystemUserRoleId)
+		th.LoginBasic(t)
+		th.RemovePermissionFromRole(t, model.PermissionListPublicTeams.Id, model.SystemUserRoleId)
 
 		exists, _, err := client.TeamExists(context.Background(), public_not_member_team.Name, "")
 		require.NoError(t, err)
@@ -3642,8 +3979,8 @@ func TestTeamExists(t *testing.T) {
 	})
 
 	t.Run("Logged without LIST_PRIVATE_TEAMS permissions and member private team", func(t *testing.T) {
-		th.LoginBasic()
-		th.RemovePermissionFromRole(model.PermissionListPrivateTeams.Id, model.SystemUserRoleId)
+		th.LoginBasic(t)
+		th.RemovePermissionFromRole(t, model.PermissionListPrivateTeams.Id, model.SystemUserRoleId)
 
 		exists, _, err := client.TeamExists(context.Background(), private_member_team.Name, "")
 		require.NoError(t, err)
@@ -3651,8 +3988,8 @@ func TestTeamExists(t *testing.T) {
 	})
 
 	t.Run("Logged without LIST_PRIVATE_TEAMS permissions and not member private team", func(t *testing.T) {
-		th.LoginBasic()
-		th.RemovePermissionFromRole(model.PermissionListPrivateTeams.Id, model.SystemUserRoleId)
+		th.LoginBasic(t)
+		th.RemovePermissionFromRole(t, model.PermissionListPrivateTeams.Id, model.SystemUserRoleId)
 
 		exists, _, err := client.TeamExists(context.Background(), private_not_member_team.Name, "")
 		require.NoError(t, err)
@@ -3662,8 +3999,7 @@ func TestTeamExists(t *testing.T) {
 
 func TestImportTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.TestForAllClients(t, func(T *testing.T, c *model.Client4) {
 		data, err := testutils.ReadTestFile("Fake_Team_Import.zip")
@@ -3754,8 +4090,7 @@ func TestImportTeam(t *testing.T) {
 
 func TestValidateUserPermissionsOnChannels(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("User WITH permissions on private channel CAN invite members to it", func(t *testing.T) {
 		channelIds := []string{th.BasicChannel.Id, th.BasicPrivateChannel.Id}
@@ -3783,8 +4118,7 @@ func TestValidateUserPermissionsOnChannels(t *testing.T) {
 
 func TestInviteUsersToTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	user1 := th.GenerateTestEmail()
 	user2 := th.GenerateTestEmail()
@@ -3953,8 +4287,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 
 func TestInviteGuestsToTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	guest1 := th.GenerateTestEmail()
 	guest2 := th.GenerateTestEmail()
@@ -4043,23 +4376,23 @@ func TestInviteGuestsToTeam(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictCreationToDomains = "@global.com,@common.com" })
 
 	t.Run("team domain restrictions should not affect inviting guests", func(t *testing.T) {
-		err := th.App.InviteGuestsToChannels(th.Context, th.BasicTeam.Id, &model.GuestsInvite{Emails: emailList, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id)
+		err := th.App.InviteGuestsToChannels(th.Context, th.BasicTeam.Id, &model.GuestsInvite{Emails: emailList, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id, false)
 		require.Nil(t, err, "guest user invites should not be affected by team restrictions")
 	})
 
 	t.Run("guest restrictions should affect guest users", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.RestrictCreationToDomains = "@guest.com" })
 
-		err := th.App.InviteGuestsToChannels(th.Context, th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"guest1@invalid.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id)
+		err := th.App.InviteGuestsToChannels(th.Context, th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"guest1@invalid.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id, false)
 		require.NotNil(t, err, "guest user invites should be affected by the guest domain restrictions")
 
-		res, err := th.App.InviteGuestsToChannelsGracefully(th.Context, th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"guest1@invalid.com", "guest1@guest.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id)
+		res, err := th.App.InviteGuestsToChannelsGracefully(th.Context, th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"guest1@invalid.com", "guest1@guest.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id, false)
 		require.Nil(t, err)
 		require.Len(t, res, 2)
 		require.NotNil(t, res[0].Error)
 		require.Nil(t, res[1].Error)
 
-		err = th.App.InviteGuestsToChannels(th.Context, th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"guest1@guest.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id)
+		err = th.App.InviteGuestsToChannels(th.Context, th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"guest1@guest.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id, false)
 		require.Nil(t, err, "whitelisted guest user email should be allowed by the guest domain restrictions")
 	})
 
@@ -4085,12 +4418,12 @@ func TestInviteGuestsToTeam(t *testing.T) {
 			Channels: []string{th.BasicChannel.Id},
 			Message:  "test message",
 		}
-		err = th.App.InviteGuestsToChannels(th.Context, th.BasicTeam.Id, invite, th.BasicUser.Id)
+		err = th.App.InviteGuestsToChannels(th.Context, th.BasicTeam.Id, invite, th.BasicUser.Id, false)
 		require.NotNil(t, err)
 		assert.Equal(t, "app.email.rate_limit_exceeded.app_error", err.Id)
 		assert.Equal(t, http.StatusRequestEntityTooLarge, err.StatusCode)
 
-		_, appErr := th.App.InviteGuestsToChannelsGracefully(th.Context, th.BasicTeam.Id, invite, th.BasicUser.Id)
+		_, appErr := th.App.InviteGuestsToChannelsGracefully(th.Context, th.BasicTeam.Id, invite, th.BasicUser.Id, false)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.email.rate_limit_exceeded.app_error", err.Id)
 		assert.Equal(t, http.StatusRequestEntityTooLarge, err.StatusCode)
@@ -4099,8 +4432,7 @@ func TestInviteGuestsToTeam(t *testing.T) {
 
 func TestInviteGuest(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	guest1 := th.GenerateTestEmail()
 	guest2 := th.GenerateTestEmail()
 
@@ -4146,8 +4478,7 @@ func TestInviteGuest(t *testing.T) {
 
 func TestGetTeamInviteInfo(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	team := th.BasicTeam
 
@@ -4172,15 +4503,14 @@ func TestGetTeamInviteInfo(t *testing.T) {
 
 func TestSetTeamIcon(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	team := th.BasicTeam
 
 	data, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err, err)
 
-	th.LoginTeamAdmin()
+	th.LoginTeamAdmin(t)
 
 	_, err = client.SetTeamIcon(context.Background(), team.Id, data)
 	require.NoError(t, err)
@@ -4189,7 +4519,7 @@ func TestSetTeamIcon(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	th.LoginBasic()
+	th.LoginBasic(t)
 
 	resp, err = client.SetTeamIcon(context.Background(), team.Id, data)
 	require.Error(t, err)
@@ -4231,8 +4561,7 @@ func TestSetTeamIcon(t *testing.T) {
 
 func TestGetTeamIcon(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	team := th.BasicTeam
 
@@ -4251,12 +4580,11 @@ func TestGetTeamIcon(t *testing.T) {
 
 func TestRemoveTeamIcon(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	team := th.BasicTeam
 
-	th.LoginTeamAdmin()
+	th.LoginTeamAdmin(t)
 	data, _ := testutils.ReadTestFile("test.png")
 	_, err := client.SetTeamIcon(context.Background(), team.Id, data)
 	require.NoError(t, err)
@@ -4283,7 +4611,7 @@ func TestRemoveTeamIcon(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	th.LoginBasic()
+	th.LoginBasic(t)
 	resp, err = client.RemoveTeamIcon(context.Background(), team.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
@@ -4292,7 +4620,6 @@ func TestRemoveTeamIcon(t *testing.T) {
 func TestUpdateTeamScheme(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.Srv().SetLicense(model.NewTestLicense(""))
 
@@ -4372,14 +4699,13 @@ func TestUpdateTeamScheme(t *testing.T) {
 
 func TestTeamMembersMinusGroupMembers(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	user1 := th.BasicUser
 	user2 := th.BasicUser2
 
-	team := th.CreateTeam()
-	team.GroupConstrained = model.NewPointer(true)
+	team := th.CreateTeam(t)
+	team.GroupConstrained = new(true)
 	team, appErr := th.App.UpdateTeam(team)
 	require.Nil(t, appErr)
 
@@ -4388,8 +4714,8 @@ func TestTeamMembersMinusGroupMembers(t *testing.T) {
 	_, appErr = th.App.AddTeamMember(th.Context, team.Id, user2.Id)
 	require.Nil(t, appErr)
 
-	group1 := th.CreateGroup()
-	group2 := th.CreateGroup()
+	group1 := th.CreateGroup(t)
+	group2 := th.CreateGroup(t)
 
 	_, appErr = th.App.UpsertGroupMember(group1.Id, user1.Id)
 	require.Nil(t, appErr)
@@ -4467,7 +4793,6 @@ func TestTeamMembersMinusGroupMembers(t *testing.T) {
 func TestInvalidateAllEmailInvites(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	t.Run("Forbidden when request performed by system user", func(t *testing.T) {
 		res, err := th.Client.InvalidateEmailInvites(context.Background())
@@ -4476,8 +4801,8 @@ func TestInvalidateAllEmailInvites(t *testing.T) {
 	})
 
 	t.Run("OK when request performed by system user with requisite system permission", func(t *testing.T) {
-		th.AddPermissionToRole(model.PermissionInvalidateEmailInvite.Id, model.SystemUserRoleId)
-		defer th.RemovePermissionFromRole(model.PermissionInvalidateEmailInvite.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionInvalidateEmailInvite.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionInvalidateEmailInvite.Id, model.SystemUserRoleId)
 		res, err := th.Client.InvalidateEmailInvites(context.Background())
 		require.NoError(t, err)
 		CheckOKStatus(t, res)
@@ -4487,5 +4812,321 @@ func TestInvalidateAllEmailInvites(t *testing.T) {
 		res, err := th.SystemAdminClient.InvalidateEmailInvites(context.Background())
 		require.NoError(t, err)
 		CheckOKStatus(t, res)
+	})
+}
+
+func setupTeamWithAdminAndMember(t *testing.T, th *TestHelper) *model.Client4 {
+	t.Helper()
+	th.UpdateUserToTeamAdmin(t, th.BasicUser2, th.BasicTeam)
+	require.Nil(t, th.App.Srv().InvalidateAllCaches())
+	teamAdminClient := th.CreateClient()
+	_, _, err := teamAdminClient.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
+	require.NoError(t, err)
+	return teamAdminClient
+}
+
+func assertRoleDataSanitized(t *testing.T, m *model.TeamMember) {
+	t.Helper()
+	assert.Empty(t, m.Roles)
+	assert.Empty(t, m.ExplicitRoles)
+	assert.False(t, m.SchemeAdmin)
+	assert.False(t, m.SchemeGuest)
+	assert.False(t, m.SchemeUser)
+	assert.Equal(t, int64(-1), m.DeleteAt)
+}
+
+func TestGetTeamMembersRoleDataSanitization(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	teamAdminClient := setupTeamWithAdminAndMember(t, th)
+
+	t.Run("non-admin cannot see role data of others", func(t *testing.T) {
+		members, _, err := th.Client.GetTeamMembers(context.Background(), th.BasicTeam.Id, 0, 100, "")
+		require.NoError(t, err)
+
+		for _, m := range members {
+			if m.UserId != th.BasicUser.Id {
+				assertRoleDataSanitized(t, m)
+			}
+		}
+	})
+
+	t.Run("non-admin sees own role data", func(t *testing.T) {
+		members, _, err := th.Client.GetTeamMembers(context.Background(), th.BasicTeam.Id, 0, 100, "")
+		require.NoError(t, err)
+
+		for _, m := range members {
+			if m.UserId == th.BasicUser.Id {
+				assert.True(t, m.SchemeUser)
+				return
+			}
+		}
+		require.Fail(t, "current user not found in members")
+	})
+
+	t.Run("team admin sees full role data for other user", func(t *testing.T) {
+		members, _, err := teamAdminClient.GetTeamMembers(context.Background(), th.BasicTeam.Id, 0, 100, "")
+		require.NoError(t, err)
+
+		for _, m := range members {
+			if m.UserId == th.BasicUser.Id {
+				assert.True(t, m.SchemeUser)
+				return
+			}
+		}
+		require.Fail(t, "target user not found in members")
+	})
+
+	t.Run("system admin sees full role data", func(t *testing.T) {
+		members, _, err := th.SystemAdminClient.GetTeamMembers(context.Background(), th.BasicTeam.Id, 0, 100, "")
+		require.NoError(t, err)
+
+		for _, m := range members {
+			if m.UserId == th.BasicUser2.Id {
+				assert.True(t, m.SchemeAdmin)
+				return
+			}
+		}
+		require.Fail(t, "team admin not found in members")
+	})
+}
+
+func TestGetTeamMemberRoleDataSanitization(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	teamAdminClient := setupTeamWithAdminAndMember(t, th)
+
+	t.Run("non-admin cannot see role data of others", func(t *testing.T) {
+		member, _, err := th.Client.GetTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id, "")
+		require.NoError(t, err)
+		assertRoleDataSanitized(t, member)
+	})
+
+	t.Run("non-admin sees own role data", func(t *testing.T) {
+		member, _, err := th.Client.GetTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, "")
+		require.NoError(t, err)
+		assert.True(t, member.SchemeUser)
+	})
+
+	t.Run("team admin sees full role data for other user", func(t *testing.T) {
+		member, _, err := teamAdminClient.GetTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, "")
+		require.NoError(t, err)
+		assert.True(t, member.SchemeUser)
+	})
+
+	t.Run("system admin sees full role data", func(t *testing.T) {
+		member, _, err := th.SystemAdminClient.GetTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id, "")
+		require.NoError(t, err)
+		assert.True(t, member.SchemeAdmin)
+	})
+}
+
+func TestGetTeamMembersByIdsRoleDataSanitization(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	teamAdminClient := setupTeamWithAdminAndMember(t, th)
+
+	t.Run("non-admin cannot see role data of others", func(t *testing.T) {
+		members, _, err := th.Client.GetTeamMembersByIds(context.Background(), th.BasicTeam.Id, []string{th.BasicUser2.Id})
+		require.NoError(t, err)
+		require.Len(t, members, 1)
+		assertRoleDataSanitized(t, members[0])
+	})
+
+	t.Run("non-admin sees own role data", func(t *testing.T) {
+		members, _, err := th.Client.GetTeamMembersByIds(context.Background(), th.BasicTeam.Id, []string{th.BasicUser.Id})
+		require.NoError(t, err)
+		require.Len(t, members, 1)
+		assert.True(t, members[0].SchemeUser)
+	})
+
+	t.Run("team admin sees full role data for other user", func(t *testing.T) {
+		members, _, err := teamAdminClient.GetTeamMembersByIds(context.Background(), th.BasicTeam.Id, []string{th.BasicUser.Id})
+		require.NoError(t, err)
+		require.Len(t, members, 1)
+		assert.True(t, members[0].SchemeUser)
+	})
+
+	t.Run("system admin sees full role data", func(t *testing.T) {
+		members, _, err := th.SystemAdminClient.GetTeamMembersByIds(context.Background(), th.BasicTeam.Id, []string{th.BasicUser2.Id})
+		require.NoError(t, err)
+		require.Len(t, members, 1)
+		assert.True(t, members[0].SchemeAdmin)
+	})
+}
+
+func TestAddTeamMemberRoleDataSanitization(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	teamAdminClient := setupTeamWithAdminAndMember(t, th)
+
+	t.Run("team admin adding user sees full role data in response", func(t *testing.T) {
+		newUser := th.CreateUser(t)
+		tm, _, err := teamAdminClient.AddTeamMember(context.Background(), th.BasicTeam.Id, newUser.Id)
+		require.NoError(t, err)
+		assert.True(t, tm.SchemeUser)
+	})
+
+	t.Run("non-admin adding user sees sanitized role data in response", func(t *testing.T) {
+		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+		th.AddPermissionToRole(t, model.PermissionAddUserToTeam.Id, model.TeamUserRoleId)
+
+		newUser := th.CreateUser(t)
+		tm, _, err := th.Client.AddTeamMember(context.Background(), th.BasicTeam.Id, newUser.Id)
+		require.NoError(t, err)
+		assertRoleDataSanitized(t, tm)
+	})
+}
+
+func TestAddTeamMembersRoleDataSanitization(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	teamAdminClient := setupTeamWithAdminAndMember(t, th)
+
+	t.Run("team admin adding users sees full role data in response", func(t *testing.T) {
+		newUser := th.CreateUser(t)
+		members, _, err := teamAdminClient.AddTeamMembers(context.Background(), th.BasicTeam.Id, []string{newUser.Id})
+		require.NoError(t, err)
+		require.Len(t, members, 1)
+		assert.True(t, members[0].SchemeUser)
+	})
+
+	t.Run("non-admin adding users sees sanitized role data in response", func(t *testing.T) {
+		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+		th.AddPermissionToRole(t, model.PermissionAddUserToTeam.Id, model.TeamUserRoleId)
+
+		newUser := th.CreateUser(t)
+		members, _, err := th.Client.AddTeamMembers(context.Background(), th.BasicTeam.Id, []string{newUser.Id})
+		require.NoError(t, err)
+		require.Len(t, members, 1)
+		assertRoleDataSanitized(t, members[0])
+	})
+}
+
+func TestGetTeamMembersForUserRoleDataSanitization(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	teamAdminClient := setupTeamWithAdminAndMember(t, th)
+
+	t.Run("user sees own role data", func(t *testing.T) {
+		members, _, err := th.Client.GetTeamMembersForUser(context.Background(), th.BasicUser.Id, "")
+		require.NoError(t, err)
+		require.NotEmpty(t, members)
+		for _, m := range members {
+			assert.True(t, m.SchemeUser)
+		}
+	})
+
+	t.Run("non-admin cannot see role data of another user", func(t *testing.T) {
+		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+		th.AddPermissionToRole(t, model.PermissionReadOtherUsersTeams.Id, model.SystemUserRoleId)
+
+		members, _, err := th.Client.GetTeamMembersForUser(context.Background(), th.BasicUser2.Id, "")
+		require.NoError(t, err)
+		require.NotEmpty(t, members)
+		for _, m := range members {
+			assertRoleDataSanitized(t, m)
+		}
+	})
+
+	t.Run("team admin sees full role data for other user in managed team", func(t *testing.T) {
+		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+		th.AddPermissionToRole(t, model.PermissionReadOtherUsersTeams.Id, model.SystemUserRoleId)
+
+		members, _, err := teamAdminClient.GetTeamMembersForUser(context.Background(), th.BasicUser.Id, "")
+		require.NoError(t, err)
+		require.NotEmpty(t, members)
+		for _, m := range members {
+			if m.TeamId == th.BasicTeam.Id {
+				assert.True(t, m.SchemeUser)
+				return
+			}
+		}
+		require.Fail(t, "basic team membership not found")
+	})
+
+	t.Run("system admin sees full role data", func(t *testing.T) {
+		members, _, err := th.SystemAdminClient.GetTeamMembersForUser(context.Background(), th.BasicUser2.Id, "")
+		require.NoError(t, err)
+		require.NotEmpty(t, members)
+		for _, m := range members {
+			if m.TeamId == th.BasicTeam.Id {
+				assert.True(t, m.SchemeAdmin)
+				return
+			}
+		}
+		require.Fail(t, "basic team membership not found")
+	})
+}
+
+func TestGetAllTeamsDirectoryHiding(t *testing.T) {
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.AttributeBasedAccessControl = true
+		cfg.FeatureFlags.TeamMembershipAccessControl = true
+	}).InitBasic(t)
+
+	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	require.True(t, ok, "SetLicense should return true")
+	defer th.App.Srv().SetLicense(nil)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+	})
+
+	mockACS := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().Channels().AccessControl = mockACS
+	defer func() { th.App.Srv().Channels().AccessControl = nil }()
+	// The requesting system admin does not satisfy the policy.
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+		Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
+
+	// An open-invite team governed by an active membership policy. th.CreateTeam
+	// uses th.Client (BasicUser), so the system admin is not a member.
+	team := th.CreateTeam(t)
+	policy := &model.AccessControlPolicy{
+		ID:       team.Id,
+		Type:     model.AccessControlPolicyTypeTeam,
+		Name:     "policy-" + team.Id,
+		Active:   true,
+		Revision: 1,
+		Version:  model.AccessControlPolicyVersionV0_3,
+		Imports:  []string{},
+		Rules:    []model.AccessControlPolicyRule{{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: "true"}},
+	}
+	_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+	require.NoError(t, err)
+	defer func() { _ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, team.Id) }()
+
+	reloaded, appErr := th.App.GetTeam(team.Id)
+	require.Nil(t, appErr)
+	require.True(t, reloaded.PolicyEnforced, "team must be reported as policy-enforced")
+
+	listTeamIDs := func(t *testing.T, forDirectory bool) []string {
+		t.Helper()
+		url := "/teams?page=0&per_page=200"
+		if forDirectory {
+			url += "&for_directory=true"
+		}
+		resp, err := th.SystemAdminClient.DoAPIGet(context.Background(), url, "")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		var teams []*model.Team
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&teams))
+		ids := make([]string, 0, len(teams))
+		for _, tm := range teams {
+			ids = append(ids, tm.Id)
+		}
+		return ids
+	}
+
+	t.Run("system admin sees a governed team in the management listing", func(t *testing.T) {
+		require.Contains(t, listTeamIDs(t, false), team.Id, "the console listing must stay complete for admins")
+	})
+
+	t.Run("system admin does not see a governed team in the directory listing", func(t *testing.T) {
+		require.NotContains(t, listTeamIDs(t, true), team.Id, "for_directory must hide a non-qualifying team even from an admin")
 	})
 }

@@ -30,6 +30,7 @@ export type UserNotifyProps = {
     auto_responder_message?: string;
     calls_mobile_sound?: 'true' | 'false' | '';
     calls_mobile_notification_sound?: 'Dynamic' | 'Calm' | 'Urgent' | 'Cheerful' | '';
+    channel_mention_auto_follow_threads?: 'true' | 'false';
 };
 
 export type UserProfile = {
@@ -77,7 +78,6 @@ export type UsersState = {
     profiles: IDMappedObjects<UserProfile>;
     profilesInTeam: RelationOneToManyUnique<Team, UserProfile>;
     profilesNotInTeam: RelationOneToManyUnique<Team, UserProfile>;
-    profilesWithoutTeam: Set<string>;
     profilesInChannel: RelationOneToManyUnique<Channel, UserProfile>;
     profilesNotInChannel: RelationOneToManyUnique<Channel, UserProfile>;
     profilesInGroup: RelationOneToManyUnique<Group, UserProfile>;
@@ -134,6 +134,7 @@ export type UserAccessToken = {
     user_id: string;
     description: string;
     is_active: boolean;
+    expires_at?: number;
 };
 
 export type UsersStats = {
@@ -153,4 +154,9 @@ export type GetFilteredUsersStatsOpts = {
 
 export type AuthChangeResponse = {
     follow_link: string;
+};
+
+export type UserAuthUpdate = {
+    auth_data?: string;
+    auth_service?: string;
 };

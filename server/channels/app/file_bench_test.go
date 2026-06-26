@@ -55,8 +55,7 @@ func prepareTestImages(tb testing.TB) {
 
 func BenchmarkUploadFile(b *testing.B) {
 	prepareTestImages(b)
-	th := Setup(b).InitBasic()
-	defer th.TearDown()
+	th := Setup(b).InitBasic(b)
 
 	teamID := model.NewId()
 	channelID := model.NewId()

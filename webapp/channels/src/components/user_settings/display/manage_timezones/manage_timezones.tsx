@@ -19,7 +19,7 @@ import {getBrowserTimezone} from 'utils/timezone';
 type Actions = {
     updateMe: (user: UserProfile) => Promise<ActionResult>;
     patchUser: (user: UserProfile) => Promise<ActionResult>;
-}
+};
 
 type Props = {
     user: UserProfile;
@@ -31,11 +31,11 @@ type Props = {
     timezoneLabel: string;
     actions: Actions;
     adminMode?: boolean;
-}
+};
 type SelectedOption = {
     value: string;
     label: string;
-}
+};
 
 type State = {
     useAutomaticTimezone: boolean;
@@ -45,7 +45,7 @@ type State = {
     serverError?: string;
     openMenu: boolean;
     selectedOption: SelectedOption;
-}
+};
 
 export default class ManageTimezones extends React.PureComponent<Props, State> {
     constructor(props: Props) {
@@ -259,7 +259,7 @@ export default class ManageTimezones extends React.PureComponent<Props, State> {
                 <br/>
                 <FormattedMessage
                     id='user.settings.timezones.promote'
-                    defaultMessage='Select the time zone used for timestamps in the user interface and email notifications.'
+                    defaultMessage='Select the timezone used for timestamps in the user interface and email notifications.'
                 />
             </div>,
         );

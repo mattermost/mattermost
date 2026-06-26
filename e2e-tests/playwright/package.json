@@ -7,13 +7,14 @@
     "postinstall": "script/post_install.sh && npm run build",
     "build": "npm run build --workspaces",
     "build:watch": "npm run build:watch --workspaces",
-    "tsc": "tsc -b && npm run tsc --workspaces",
+    "tsc": "npm run tsc --workspaces && tsc -b",
     "lint": "eslint .",
     "lint:test-docs": "node script/lint-test-docs.js",
     "prettier": "prettier . --check",
     "prettier:fix": "prettier --write .",
     "check": "npm run lint && npm run prettier && npm run tsc && npm run lint:test-docs",
     "test": "npm run build && cross-env PW_SNAPSHOT_ENABLE=true playwright test",
+    "test:smoke": "npm run build && playwright test --grep @smoke --project=chrome --retries=1",
     "test:ci": "npm run build && cross-env PW_SNAPSHOT_ENABLE=true playwright test --grep-invert @visual --project=chrome",
     "test:a11y-update-snapshots": "npm run build && cross-env PW_SNAPSHOT_ENABLE=true playwright test specs/accessibility --project=chrome --grep @snapshots --update-snapshots --update-source-method=overwrite",
     "test:visual": "npm run build && cross-env PW_SNAPSHOT_ENABLE=true playwright test --grep @visual",
@@ -24,6 +25,7 @@
     "codegen": "npm run build && cross-env playwright codegen $PW_BASE_URL",
     "playwright-ui": "npm run build && cross-env playwright test --ui",
     "show-report": "npm run build && npx playwright show-report results/reporter",
+    "start:libretranslate-mock": "node mock_libre_translate.js",
     "clean": "rm -rf dist node_modules package-lock.json *.tsbuildinfo logs results storage_state test-results && npm run clean --workspaces"
   },
   "dependencies": {
@@ -32,19 +34,20 @@
     "@mattermost/types": "file:../../webapp/platform/types"
   },
   "devDependencies": {
-    "@playwright/test": "1.56.0",
+    "@mattermost/eslint-plugin": "file:../../webapp/platform/eslint-plugin",
+    "@playwright/test": "1.59.1",
     "@types/luxon": "3.7.1",
-    "@typescript-eslint/eslint-plugin": "8.46.1",
+    "@types/pg": "8.15.4",
+    "@typescript-eslint/eslint-plugin": "8.58.1",
     "cross-env": "10.1.0",
-    "dayjs": "1.11.18",
-    "eslint": "9.37.0",
-    "eslint-import-resolver-typescript": "4.4.4",
-    "eslint-plugin-header": "3.1.1",
-    "eslint-plugin-import": "2.32.0",
-    "glob": "11.0.3",
+    "dayjs": "1.11.20",
+    "eslint": "9.39.2",
+    "eslint-import-resolver-typescript": "^4.4.5",
+    "glob": "13.0.6",
     "luxon": "3.7.2",
-    "prettier": "3.6.2",
-    "typescript": "5.9.3",
-    "zod": "4.1.12"
+    "pg": "8.13.1",
+    "prettier": "3.8.2",
+    "typescript": "6.0.2",
+    "zod": "4.3.6"
   }
 }

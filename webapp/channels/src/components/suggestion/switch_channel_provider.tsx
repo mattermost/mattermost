@@ -2,10 +2,11 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, {useLayoutEffect, useRef, useState} from 'react';
 import {defineMessage, useIntl} from 'react-intl';
 import {connect, useSelector} from 'react-redux';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {Team} from '@mattermost/types/teams';
@@ -52,6 +53,7 @@ import {isGuest} from 'mattermost-redux/utils/user_utils';
 import {getPostDraft} from 'selectors/rhs';
 import globalStore from 'stores/redux_store';
 
+import ChannelTypeIcon from 'components/channel_type_icon';
 import usePrefixedIds, {joinIds} from 'components/common/hooks/usePrefixedIds';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import ProfilePicture from 'components/profile_picture';
@@ -84,11 +86,11 @@ const ThreadsChannel: FakeChannel = {
 
 type FakeChannel = Pick<Channel, 'id' | 'name' | 'display_name' | 'update_at' | 'delete_at'> & {
     type: string;
-}
+};
 
 type FakeDirectChannel = FakeChannel & {
     userId: string;
-}
+};
 
 type ChannelItem = Channel | FakeChannel | FakeDirectChannel;
 
@@ -123,7 +125,7 @@ type Props = SuggestionProps<WrappedChannel> & {
     isPartOfOnlyOneTeam: boolean;
     status?: string;
     team?: Team;
-}
+};
 
 export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
     id,
@@ -143,6 +145,11 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
     const channelIsArchived = channel.delete_at && channel.delete_at !== 0;
 
     const currentUserId = useSelector(getCurrentUserId);
+
+    const channelNameRef = useRef<HTMLSpanElement>(null);
+    const [isChannelNameTruncated, setIsChannelNameTruncated] = useState(false);
+    const teamNameRef = useRef<HTMLSpanElement>(null);
+    const [isTeamNameTruncated, setIsTeamNameTruncated] = useState(false);
 
     const ids = usePrefixedIds(id, {
         name: null,
@@ -195,7 +202,11 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
                     defaultMessage: 'Archived channel',
                 })}
             >
-                <i className='icon icon-archive-outline'/>
+                {isRealChannel(channel) ? (
+                    <ChannelTypeIcon channel={channel}/>
+                ) : (
+                    <i className='icon icon-archive-outline'/>
+                )}
             </span>
         );
     } else if (hasDraft) {
@@ -221,7 +232,7 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
                     defaultMessage: 'Public channel',
                 })}
             >
-                <i className='icon icon-globe'/>
+                {isRealChannel(channel) && <ChannelTypeIcon channel={channel}/>}
             </span>
         );
     } else if (channel.type === Constants.PRIVATE_CHANNEL) {
@@ -234,7 +245,7 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
                     defaultMessage: 'Private channel',
                 })}
             >
-                <i className='icon icon-lock-outline'/>
+                {isRealChannel(channel) && <ChannelTypeIcon channel={channel}/>}
             </span>
         );
     } else if (channel.type === Constants.THREADS) {
@@ -319,17 +330,31 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
     let teamName = null;
     if (isRealChannel(channel) && channel.team_id && team) {
         teamName = (
-            <span
-                id={ids.teamName}
-                className='ml-2 suggestion-list__team-name'
+            <WithTooltip
+                title={team.display_name}
+                disabled={!isTeamNameTruncated}
             >
-                {team.display_name}
-            </span>
+                <span
+                    id={ids.teamName}
+                    ref={teamNameRef}
+                    className='ml-2 suggestion-list__team-name'
+                >
+                    {team.display_name}
+                </span>
+            </WithTooltip>
         );
     }
     const showSlug = (isPartOfOnlyOneTeam || channel.type === Constants.DM_CHANNEL) && channel.type !== Constants.THREADS;
 
     Reflect.deleteProperty(otherProps, 'dispatch');
+
+    useLayoutEffect(() => {
+        const channelEl = channelNameRef.current;
+        setIsChannelNameTruncated(Boolean(channelEl && channelEl.scrollWidth > channelEl.clientWidth));
+
+        const teamEl = teamNameRef.current;
+        setIsTeamNameTruncated(Boolean(teamEl && teamEl.scrollWidth > teamEl.clientWidth));
+    }, [name, description, showSlug, isPartOfOnlyOneTeam, team?.display_name, item.unread, channelIsArchived]);
 
     return (
         <SuggestionContainer
@@ -343,26 +368,34 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
         >
             {icon}
             <div className='suggestion-list__ellipsis suggestion-list__flex'>
-                <span className='suggestion-list__main'>
-                    <span
-                        id={ids.name}
-                        className={classNames({'suggestion-list__unread': item.unread && !channelIsArchived})}
-                    >
-                        {name}
-                    </span>
-                    {showSlug && description && (
-                        <span
-                            id={ids.description}
-                            className='ml-2 suggestion-list__desc'
+                <div className='suggestion-list__switch-channel-primary'>
+                    <span className='suggestion-list__main'>
+                        <WithTooltip
+                            title={name}
+                            disabled={!isChannelNameTruncated}
                         >
-                            {description}
-                        </span>
-                    )}
-                </span>
-                {customStatus}
-                {sharedIcon}
-                {tag && <span id={ids.tag}>{tag}</span>}
-                {badge}
+                            <span
+                                id={ids.name}
+                                ref={channelNameRef}
+                                className={classNames('suggestion-list__channel-name-text', {'suggestion-list__unread': item.unread && !channelIsArchived})}
+                            >
+                                {name}
+                            </span>
+                        </WithTooltip>
+                        {showSlug && description && (
+                            <span
+                                id={ids.description}
+                                className='ml-2 suggestion-list__desc'
+                            >
+                                {description}
+                            </span>
+                        )}
+                    </span>
+                    {customStatus}
+                    {sharedIcon}
+                    {tag && <span id={ids.tag}>{tag}</span>}
+                    {badge}
+                </div>
                 {!isPartOfOnlyOneTeam && teamName}
             </div>
         </SuggestionContainer>
@@ -654,9 +687,13 @@ export default class SwitchChannelProvider extends Provider {
 
         resultsCallback({
             matchedPretext: channelPrefix,
-            items: combinedItems,
-            terms: combinedTerms,
-            component: ConnectedSwitchChannelSuggestion,
+            groups: [{
+                key: 'channels',
+                label: defineMessage({id: 'suggestion.channels', defaultMessage: 'Channels'}),
+                items: combinedItems,
+                terms: combinedTerms,
+                component: ConnectedSwitchChannelSuggestion,
+            }],
         });
     }
 
@@ -667,7 +704,7 @@ export default class SwitchChannelProvider extends Provider {
         const currentUserId = getCurrentUserId(this.store.getState());
 
         // The naming format is fullname (nickname)
-        // username is shown seperately
+        // username is shown separately
         if ((user.first_name || user.last_name) && user.nickname) {
             displayName += Utils.getFullName(user);
             if (user.id !== currentUserId) {

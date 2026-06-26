@@ -121,10 +121,11 @@ export function checkCWSAvailability(): ActionFuncAsync {
         dispatch({type: GeneralTypes.CWS_AVAILABILITY_CHECK_REQUEST});
 
         try {
-            await Client4.cwsAvailabilityCheck();
-            dispatch({type: GeneralTypes.CWS_AVAILABILITY_CHECK_SUCCESS, data: 'available'});
-            return {data: 'available'};
-        } catch (error) {
+            const response = await Client4.cwsAvailabilityCheck();
+            const status = response.status;
+            dispatch({type: GeneralTypes.CWS_AVAILABILITY_CHECK_SUCCESS, data: status});
+            return {data: status};
+        } catch {
             dispatch({type: GeneralTypes.CWS_AVAILABILITY_CHECK_FAILURE});
             return {data: 'unavailable'};
         }

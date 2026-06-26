@@ -5,6 +5,7 @@ import React from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 
+import {Button, buttonClassNames} from '@mattermost/shared/components/button';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import type {Role} from '@mattermost/types/roles';
 
@@ -49,7 +50,7 @@ type State = {
     selectedPermission?: string;
     openRoles: Record<string, boolean>;
     urlParams: URLSearchParams;
-}
+};
 
 type RolesState = {
     system_admin: Role;
@@ -61,8 +62,8 @@ type RolesState = {
     run_member: Role;
     all_users: {name: string; display_name: string; permissions: Role['permissions']};
     guests: {name: string; display_name: string; permissions: Role['permissions']};
-}
-class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
+};
+export class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
     private rolesNeeded: string[];
 
     constructor(props: Props) {
@@ -405,7 +406,7 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
                                 <span>
                                     <FormattedMessage
                                         id='admin.permissions.systemScheme.introBanner'
-                                        defaultMessage='Configure the default permissions for Team Admins, Channel Admins and other members. This scheme is inherited by all teams unless a <link>Team Override Scheme</link>is applied in specific teams.'
+                                        defaultMessage='Configure the default permissions for Team Admins, Channel Admins and other members. This scheme is inherited by all teams unless a <link>Team Override Scheme</link> is applied in specific teams.'
                                         values={{
                                             link: (msg: React.ReactNode) => (
                                                 <ExternalLink
@@ -479,7 +480,7 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
                             className='permissions-block'
                             open={this.state.openRoles.playbook_admin}
                             onToggle={() => this.toggleRole('playbook_admin')}
-                            title={defineMessage({id: 'admin.permissions.systemScheme.playbookAdmin', defaultMessage: 'Playbook Administrator'})}
+                            title={defineMessage({id: 'admin.permissions.systemScheme.playbookAdmin', defaultMessage: 'Playbook Administrators'})}
                             subtitle={defineMessage({id: 'admin.permissions.systemScheme.playbookAdminSubtitle', defaultMessage: 'Permissions granted to administrators of a playbook.'})}
                         >
                             <PermissionsTreePlaybooks
@@ -536,7 +537,7 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
                         savingMessage={this.props.intl.formatMessage({id: 'admin.saving', defaultMessage: 'Saving Config...'})}
                     />
                     <BlockableLink
-                        className='btn btn-tertiary'
+                        className={buttonClassNames({emphasis: 'tertiary'})}
                         to='/admin_console/user_management/permissions'
                         data-testid='permission-scheme-cancel-button'
                     >
@@ -545,16 +546,16 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
                             defaultMessage='Cancel'
                         />
                     </BlockableLink>
-                    <a
+                    <Button
                         data-testid='resetPermissionsToDefault'
                         onClick={() => this.setState({showResetDefaultModal: true})}
-                        className='btn btn-quaternary'
+                        emphasis='quaternary'
                     >
                         <FormattedMessage
                             id='admin.permissions.systemScheme.resetDefaultsButton'
                             defaultMessage='Reset to Defaults'
                         />
-                    </a>
+                    </Button>
                     <div className='error-message'>
                         <FormError error={this.state.serverError}/>
                     </div>

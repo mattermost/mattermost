@@ -864,10 +864,6 @@
     "translation": "Elasticsearch je onemogočen."
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch je že ustavljen"
-  },
-  {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
     "translation": "Napaka pri dekodiranju rezultatov iskanja"
   },
@@ -2600,10 +2596,6 @@
     "translation": "Slack uporabnik je združen z obstoječim Mattermost uporabnikom z ujemajočo e-pošto {{.Email}} in uporabniškim imenom {{.Username}}.\r\n"
   },
   {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack uporabnik s sledečo e-pošto {{.Email}} in geslom {{.Password}} je bil uvožen.\r\n"
-  },
-  {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\r\nUstvarjeni uporabniki:\r\n"
   },
@@ -2626,10 +2618,6 @@
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "Ne morem uvoziti uporabnika Integration/Slack Bot {{.User username}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Slack uporabnik s sledečo e-pošto {{.Email}} in geslom {{.Password}} je bil uvožen.\r\n"
   },
   {
     "id": "api.server.start_server.starting.critical",
@@ -2908,10 +2896,6 @@
   {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
     "translation": "invalid_request: Slab grant_type"
-  },
-  {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Manjkajoči client_secret"
   },
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
@@ -3595,10 +3579,6 @@
     "translation": "Obvestil kanala {{.Channel}} ne boste prejemali dokler ne izključite utišanje kanala."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Kanala {{.Channel}} ni mogoče utišati ker niste član kanala."
-  },
-  {
     "id": "api.command_mute.no_channel.error",
     "translation": "Podanega kanala ni bilo mogoče najti. Prosim uporabite [channel handle](https://about.mattermost.com/default-channel-handle-documentation) za identifikacijo kanalov."
   },
@@ -3716,7 +3696,12 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} je že v kanalu."
+    "translation": {
+      "few": "",
+      "one": "{{.User}} je že v kanalu.",
+      "other": "",
+      "two": ""
+    }
   },
   {
     "id": "api.command_invite.success",
@@ -4277,7 +4262,7 @@
   },
   {
     "id": "api.channel.delete_channel.cannot.app_error",
-    "translation": "Privzetega kanala ni mogoče izbrisati {{.Channel}}"
+    "translation": "Privzetega kanala ni mogoče izbrisati {{.Channel}}."
   },
   {
     "id": "api.channel.delete_channel.archived",

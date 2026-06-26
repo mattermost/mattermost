@@ -12,10 +12,10 @@
 
 import moment from 'moment-timezone';
 
-import * as DATE_TIME_FORMAT from '../../../../fixtures/date_time_format';
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-import {getTimezoneLabel} from '../../../../utils/timezone';
-import {getAdminAccount} from '../../../../support/env';
+import * as DATE_TIME_FORMAT from '@/fixtures/date_time_format';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getTimezoneLabel} from '@/utils/timezone';
+import {getAdminAccount} from '@/support/env';
 
 describe('Profile > Display > Timezone', () => {
     const sysadmin = getAdminAccount();

@@ -5,7 +5,6 @@ import React, {memo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 
 import {openModal} from 'actions/views/modals';
@@ -13,11 +12,12 @@ import {openModal} from 'actions/views/modals';
 import DeleteChannelModal from 'components/delete_channel_modal';
 import * as Menu from 'components/menu';
 
+import {getArchiveIconComponent} from 'utils/channel_utils';
 import {ModalIdentifiers} from 'utils/constants';
 
 type Props = {
     channel: Channel;
-}
+};
 
 const ArchiveChannel = ({
     channel,
@@ -36,10 +36,12 @@ const ArchiveChannel = ({
         );
     };
 
+    const ArchiveIcon = getArchiveIconComponent(channel.type);
+
     return (
         <Menu.Item
             id='channelArchiveChannel'
-            leadingElement={<ArchiveOutlineIcon size={18}/>}
+            leadingElement={<ArchiveIcon size={18}/>}
             onClick={handleArchiveChannel}
             labels={
                 <FormattedMessage

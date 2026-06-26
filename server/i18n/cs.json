@@ -2472,10 +2472,6 @@
     "translation": "{{.Backend}} je zakázán."
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "{{.Backend}} je již zastaven."
-  },
-  {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "Nepodařilo se zpracovat verzi {{.Backend}} serveru."
   },
@@ -3000,10 +2996,6 @@
     "translation": "Slack uživatel byl propojen s existujícím Mattermost uživatelem se shodným emailem {{.Email}} a uživatelským jménem {{.Username}}.\n"
   },
   {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack uživatel s emailem {{.Email}} a heslem {{.Password}} byl naimportován.\n"
-  },
-  {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\nVytvořeno uživatelů:\n"
   },
@@ -3026,10 +3018,6 @@
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "Nepodařilo se naimportovat Integration/Slack Bot uživatele {{.Username}}.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Integration/Slack Bot uživatel s emailem {{.Email}} and heslem {{.Password}} byl naimportován.\n"
   },
   {
     "id": "api.server.start_server.starting.critical",
@@ -3568,10 +3556,6 @@
     "translation": "invalid_request: Špatný grant_type."
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Chybí client_secret."
-  },
-  {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: Špatné client_id."
   },
@@ -3982,10 +3966,6 @@
   {
     "id": "api.command_mute.success_mute",
     "translation": "Nebudete dostávat upozornění pro {{.Channel}}, dokud nevypnete ztlumení."
-  },
-  {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Nelze ztlumit kanál {{.Channel}}, protože nejste členem."
   },
   {
     "id": "api.command_mute.no_channel.error",
@@ -5066,10 +5046,6 @@
   {
     "id": "api.templates.remove_expired_license.subject",
     "translation": "Licence na Mattermost Enterprise byla deaktivována."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Vaše licence na Enterprise Edition vypršela a některé funkce mohou být deaktivovány. Obnovte prosím svou licenci nyní."
   },
   {
     "id": "api.team.join_user_to_team.allowed_domains.app_error",
@@ -6382,10 +6358,6 @@
   {
     "id": "app.channel.get_channels_by_ids.app_error",
     "translation": "Nepodařilo se získat kanály pro daná id."
-  },
-  {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Nepodařilo se získat počet kanálů."
   },
   {
     "id": "app.channel.get_by_scheme.app_error",
@@ -7740,14 +7712,6 @@
     "translation": "Funkce konceptů je zakázána."
   },
   {
-    "id": "api.file.test_connection_s3_auth.app_error",
-    "translation": "Nelze se připojit k S3. Zkontrolujte vaše autorizační parametry a nastavení autentifikace pro připojení k Amazon S3."
-  },
-  {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "Nastavení úložiště souborů obsahuje nevyplněné hodnoty."
-  },
-  {
     "id": "api.getUsersForReporting.invalid_active_filter",
     "translation": "Nelze skrýt zároveň aktivní i neaktivní uživatele."
   },
@@ -7766,14 +7730,6 @@
   {
     "id": "api.server.cws.disabled",
     "translation": "Interakce s portálem uživatelské podpory Mattermostu byly vypnuty systémovým administrátorem."
-  },
-  {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "CWS Server není k dispozici."
-  },
-  {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "CWS Server selhal při nastavení odebírání novinek."
   },
   {
     "id": "api.team.invite_guests_to_channels.disabled.error",
@@ -8026,10 +7982,6 @@
   {
     "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error",
     "translation": "Nepodařilo se získat přihlašovací údaje s uvedenou konfigurací připojení."
-  },
-  {
-    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
-    "translation": "Ujistěte se, že váš Amazon S3 bucket je dostupný, a ověřte oprávnění k vašemu bucketu."
   },
   {
     "id": "api.custom_groups.license_error",
@@ -10048,46 +10000,6 @@
     "translation": "Nelze vytvořit adresář pro obrázky vlastních emoji"
   },
   {
-    "id": "app.import.validate_user_import_data.guest_roles_conflict.error",
-    "translation": "Role uživatele nejsou v souladu se stavem hosta."
-  },
-  {
-    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
-    "translation": "Nepodařilo se obnovit přílohy souborů k příspěvku"
-  },
-  {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "Nepodařilo se vytvořit pole vlastního atributu profilu"
-  },
-  {
-    "id": "app.custom_profile_attributes.get_property_field.app_error",
-    "translation": "Nepodařilo se získat pole vlastního atributu profilu"
-  },
-  {
-    "id": "app.custom_profile_attributes.limit_reached.app_error",
-    "translation": "Byl dosažen limit polí vlastních atributů profilu"
-  },
-  {
-    "id": "app.custom_profile_attributes.list_property_values.app_error",
-    "translation": "Nepodařilo se získat hodnoty vlastních atributů profilu"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_delete.app_error",
-    "translation": "Nepodařilo se smazat pole vlastního atributu profilu"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
-    "translation": "Pole vlastního atributu profilu nebylo nalezeno"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_update.app_error",
-    "translation": "Nepodařilo se aktualizovat pole vlastního atributu profilu"
-  },
-  {
-    "id": "app.custom_profile_attributes.search_property_fields.app_error",
-    "translation": "Nepodařilo se vyhledat pole vlastních atributů profilu"
-  },
-  {
     "id": "app.file_info.delete_for_post_ids.app_error",
     "translation": "Nepodařilo se odstranit požadované soubory z databáze"
   },
@@ -10148,10 +10060,6 @@
     "translation": "Neplatná hodnota vlastnosti: {{.FieldName}} ({{.Reason}})."
   },
   {
-    "id": "api.custom_profile_attributes.license_error",
-    "translation": "Vaše licence nepodporuje vlastní atributy profilu."
-  },
-  {
     "id": "api.file.zip_file_reader.app_error",
     "translation": "Nelze získat čtečku souborů ZIP."
   },
@@ -10186,14 +10094,6 @@
   {
     "id": "api.context.get_session.app_error",
     "translation": "Relace nebyla nalezena."
-  },
-  {
-    "id": "app.custom_profile_attributes.count_property_fields.app_error",
-    "translation": "Nelze spočítat počet polí pro skupinu vlastního atributu profilu"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
-    "translation": "Nelze provést vložení nebo aktualizaci polí vlastního atributu profilu"
   },
   {
     "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
@@ -10264,20 +10164,8 @@
     "translation": "Nelze převést pole vlastnosti na pole vlastního atributu profilu"
   },
   {
-    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
-    "translation": "Neplatné atributy hodnoty vlastnosti: {{.AttributeName}} ({{.Reason}})."
-  },
-  {
-    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
-    "translation": "Nelze smazat hodnoty atributu vlastního profilu pro uživatele"
-  },
-  {
     "id": "ent.ldap.cpa_field_mapping.list_error",
     "translation": "Nepodařilo se načíst pole CPA"
-  },
-  {
-    "id": "app.custom_profile_attributes.validate_value.app_error",
-    "translation": "Nepodařilo se ověřit hodnotu vlastnosti"
   },
   {
     "id": "ent.ldap.update_cpa.empty_attribute",
@@ -10408,10 +10296,6 @@
     "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} by měl být předponou IndexPrefix {{.IndexPrefix}}."
   },
   {
-    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
-    "translation": "Nelze aktualizovat hodnotu pro synchronizované pole vlastního atributu profilu"
-  },
-  {
     "id": "api.access_control_policy.get_channels.limit.app_error",
     "translation": "Limit pro získání kanálů není platný."
   },
@@ -10434,14 +10318,6 @@
   {
     "id": "api.command_share.service_inactive",
     "translation": "Služba sdílených kanálů je zapnuta, ale neaktivní."
-  },
-  {
-    "id": "api.content_flagging.error.disabled",
-    "translation": "Označování obsahu je vypnuto."
-  },
-  {
-    "id": "api.content_flagging.error.license",
-    "translation": "Vaše licence nepodporuje označování obsahu."
   },
   {
     "id": "api.ldap.invalid_test_type.app_error",
@@ -10512,10 +10388,6 @@
     "translation": "Nepodařilo se zpracovat data pro náhledové okno"
   },
   {
-    "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
-    "translation": "Nelze upravit hodnotu pole Custom Profile spravovaného administrátorem"
-  },
-  {
     "id": "app.group.create_syncable_memberships.error",
     "translation": "Nelze vytvořit synchronizovaná členství."
   },
@@ -10578,10 +10450,6 @@
   {
     "id": "app.pap.access_control.channel_group_constrained",
     "translation": "Kanál je omezen skupinou a nelze na něj použít pravidla řízení přístupu."
-  },
-  {
-    "id": "app.pap.access_control.channel_not_private",
-    "translation": "Pravidla řízení přístupu lze použít pouze na soukromé kanály."
   },
   {
     "id": "app.pap.access_control.channel_shared",
@@ -10676,10 +10544,6 @@
     "translation": "Nepodařilo se odebrat přiřazení pravidla řízení přístupu z kanálů."
   },
   {
-    "id": "app.pap.update_access_control_policy_active.app_error",
-    "translation": "Nepodařilo se změnit aktivní stav pravidla řízení přístupu."
-  },
-  {
     "id": "app.pdp.access_evaluation.app_error",
     "translation": "Nepodařilo se vyhodnotit pravidlo řízení přístupu."
   },
@@ -10752,22 +10616,6 @@
     "translation": "Byly zjištěny počáteční nebo koncové mezery u {{.Setting}}. Nalezeno \"{{.Value}}\"."
   },
   {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
-    "translation": "Maximální stáří souboru v nastavení auditních logů nesmí být záporné."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
-    "translation": "Maximální počet záloh souborů v nastavení auditních logů nesmí být záporný."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
-    "translation": "Maximální fronta souborů v nastavení auditních logů musí být větší než nula."
-  },
-  {
-    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
-    "translation": "Maximální velikost souboru v nastavení auditních logů musí být větší než nula."
-  },
-  {
     "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
     "translation": "Pokud je povoleno ukládání auditních logů do souboru, musí být zadán název souboru."
   },
@@ -10796,10 +10644,6 @@
     "translation": "Cesta k profilovému obrázku uživatele je neplatná: \"{{.Path}}\""
   },
   {
-    "id": "app.job.get_existing_jobs.error",
-    "translation": "Nelze získat existující úlohy."
-  },
-  {
     "id": "app.submit_interactive_dialog.invalid_response",
     "translation": "Obdržena neplatná odpověď při odeslání interaktivního dialogu."
   },
@@ -10810,30 +10654,6 @@
   {
     "id": "api.command.execute_command.restricted_dm.error",
     "translation": "Nelze psát do chráněných přímých zpráv"
-  },
-  {
-    "id": "api.content_flagging.error.comment_required",
-    "translation": "Přidejte prosím komentář vysvětlující, proč označujete tuto zprávu."
-  },
-  {
-    "id": "api.content_flagging.error.comment_too_long",
-    "translation": "Důvod označení zprávy nesmí být delší než {{.MaxLength}} znaků."
-  },
-  {
-    "id": "api.content_flagging.error.not_available_on_team",
-    "translation": "Funkce označování obsahu není v tomto týmu povolena."
-  },
-  {
-    "id": "api.content_flagging.error.post_not_in_progress",
-    "translation": "Označený příspěvek musí být ve stavu „čeká“ nebo „přiřazen“, aby mohl být ponechán nebo odstraněn."
-  },
-  {
-    "id": "api.content_flagging.error.reason_invalid",
-    "translation": "Byl uveden neznámý důvod pro označení zprávy."
-  },
-  {
-    "id": "api.content_flagging.error.reason_required",
-    "translation": "Vyberte prosím důvod pro označení této zprávy."
   },
   {
     "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
@@ -10878,5 +10698,69 @@
   {
     "id": "api.encoding_error",
     "translation": "Došlo k chybě při zpracování JSON pro odpověď API"
+  },
+  {
+    "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
+    "translation": "ID kanálu neodpovídá ID kanálu nahlášeného příspěvku."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations_for_channel.restricted_permission.app_error",
+    "translation": "Nelze přidat oprávnění, které je omezeno týmovým nebo systémovým schématem oprávnění."
+  },
+  {
+    "id": "api.command.move_command.creator_no_permission.app_error",
+    "translation": "Nemáte oprávnění k přesunutí příkazu"
+  },
+  {
+    "id": "api.file.get_file.invalid_flagged_post.app_error",
+    "translation": "Bylo zadáno neodpovídající ID označeného příspěvku."
+  },
+  {
+    "id": "api.file.get_file_info.app_error",
+    "translation": "Nepodařilo se získat informace o souboru."
+  },
+  {
+    "id": "api.oauth.allow_oauth.pkce_required_public.app_error",
+    "translation": "Pro veřejné klienty OAuth používající autorizační tok s autorizačním kódem je vyžadováno PKCE (Proof Key for Code Exchange)."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.disabled.app_error",
+    "translation": "Poskytovatel služby OAuth je zakázán."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.invalid_url.app_error",
+    "translation": "Neplatná konfigurace URL pro metadata autorizačního serveru."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.site_url_required.app_error",
+    "translation": "Pro poskytování metadat autorizačního serveru musí být nakonfigurována adresa URL webu."
+  },
+  {
+    "id": "api.oauth.get_access_token.resource_mismatch.app_error",
+    "translation": "Neshoda parametru resource mezi autorizačním požadavkem a požadavkem na token."
+  },
+  {
+    "id": "api.oauth.regenerate_secret.public_client.app_error",
+    "translation": "invalid_request: Pro veřejné klienty OAuth nelze znovu vygenerovat tajný klíč."
+  },
+  {
+    "id": "api.post.burn_post.user_not_in_channel.app_error",
+    "translation": "Nemáte oprávnění aktivovat zprávu s automatickým smazáním. Musíte být členem kanálu."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.app_error",
+    "translation": "Při vytváření zprávy se sebesmazáním došlo k chybě."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.config.app_error",
+    "translation": "Zprávy se sebesmázáním nejsou povoleny. Povolte příslušný feature flag a nastavení služby."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.license.app_error",
+    "translation": "Zprávy se sebesmazáním vyžadují licenci Enterprise Advanced."
+  },
+  {
+    "id": "api.post.fill_in_post_props.invalid_ai_generated_user.app_error",
+    "translation": "Uživatel generovaný AI musí být buď autorem příspěvku, nebo botem."
   }
 ]

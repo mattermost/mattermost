@@ -78,6 +78,10 @@ func TestPostIsValid(t *testing.T) {
 	o.Type = PostCustomTypePrefix + "type"
 	appErr = o.IsValid(maxPostSize)
 	require.Nil(t, appErr)
+
+	o.Type = PostTypeCard
+	appErr = o.IsValid(maxPostSize)
+	require.Nil(t, appErr)
 }
 
 func TestPostPreSave(t *testing.T) {
@@ -167,10 +171,17 @@ func TestPost_ContainsIntegrationsReservedProps(t *testing.T) {
 			PostPropsOverrideUsername:   "overridden_username",
 			PostPropsOverrideIconURL:    "a-custom-url",
 			PostPropsOverrideIconEmoji:  ":custom_emoji_name:",
+			PostPropsMmBlocksActions: map[string]any{
+				"btn1": map[string]any{
+					"type": MmBlocksActionTypeExternal,
+					"url":  "http://example.com/hook",
+				},
+			},
 		},
 	}
 	keys2 := post2.ContainsIntegrationsReservedProps()
-	require.Len(t, keys2, 5)
+	require.Len(t, keys2, 6)
+	require.Contains(t, keys2, PostPropsMmBlocksActions)
 }
 
 func TestPostPatch_ContainsIntegrationsReservedProps(t *testing.T) {
@@ -191,8 +202,8 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 	post1 := &Post{}
 	post2 := &Post{}
 	for name, tc := range map[string]struct {
-		Attachments1 []*SlackAttachment
-		Attachments2 []*SlackAttachment
+		Attachments1 []*MessageAttachment
+		Attachments2 []*MessageAttachment
 		Expected     bool
 	}{
 		"Empty": {
@@ -201,7 +212,7 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 			true,
 		},
 		"DifferentLength": {
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
 					Text: "Hello World",
 				},
@@ -210,12 +221,12 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 			false,
 		},
 		"EqualText": {
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
 					Text: "Hello World",
 				},
 			},
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
 					Text: "Hello World",
 				},
@@ -223,12 +234,12 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 			true,
 		},
 		"DifferentText": {
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
 					Text: "Hello World",
 				},
 			},
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
 					Text: "Hello World 2",
 				},
@@ -236,13 +247,13 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 			false,
 		},
 		"DifferentColor": {
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
 					Text:  "Hello World",
 					Color: "#152313",
 				},
 			},
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
 					Text: "Hello World 2",
 				},
@@ -250,9 +261,9 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 			false,
 		},
 		"EqualFields": {
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
-					Fields: []*SlackAttachmentField{
+					Fields: []*MessageAttachmentField{
 						{
 							Title: "Hello World",
 							Value: "FooBar",
@@ -264,9 +275,9 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 					},
 				},
 			},
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
-					Fields: []*SlackAttachmentField{
+					Fields: []*MessageAttachmentField{
 						{
 							Title: "Hello World",
 							Value: "FooBar",
@@ -281,9 +292,9 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 			true,
 		},
 		"DifferentFields": {
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
-					Fields: []*SlackAttachmentField{
+					Fields: []*MessageAttachmentField{
 						{
 							Title: "Hello World",
 							Value: "FooBar",
@@ -291,9 +302,9 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 					},
 				},
 			},
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
-					Fields: []*SlackAttachmentField{
+					Fields: []*MessageAttachmentField{
 						{
 							Title: "Hello World",
 							Value: "FooBar",
@@ -310,7 +321,7 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 			false,
 		},
 		"EqualActions": {
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
 					Actions: []*PostAction{
 						{
@@ -332,7 +343,7 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 					},
 				},
 			},
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
 					Actions: []*PostAction{
 						{
@@ -357,7 +368,7 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 			true,
 		},
 		"DifferentActions": {
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
 					Actions: []*PostAction{
 						{
@@ -379,7 +390,7 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 					},
 				},
 			},
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
 					Actions: []*PostAction{
 						{
@@ -992,7 +1003,7 @@ func TestPostPriority(t *testing.T) {
 	p.Metadata.Priority = &PostPriority{}
 	require.False(t, p.IsUrgent())
 
-	p.Metadata.Priority.Priority = NewPointer(PostPriorityUrgent)
+	p.Metadata.Priority.Priority = new(PostPriorityUrgent)
 	require.True(t, p.IsUrgent())
 }
 

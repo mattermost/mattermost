@@ -1,0 +1,38 @@
+.UnifiedLabelsWrapper {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    padding-top: 16px;
+    gap: 8px;
+
+    &__close {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px;
+        border: none;
+        border-radius: 4px;
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+
+        svg {
+            display: block;
+        }
+    }
+
+    &:hover &__close {
+        opacity: 1;
+    }
+
+    &__close:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    &__close:active {
+        background: rgba(var(--center-channel-color-rgb), 0.16);
+    }
+}

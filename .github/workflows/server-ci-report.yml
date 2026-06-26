@@ -1,37 +1,67 @@
+# Server CI Report is invoked via workflow_call from server-ci.yml after test jobs finish.
 name: Server CI Report
 
 on:
-  workflow_run:
-    workflows:
-      - "Server CI PR"
-      - "Server CI Master"
-    types:
-      - completed
+  workflow_call:
+    inputs:
+      source-run-id:
+        description: Server CI workflow run ID (for artifact download)
+        required: true
+        type: string
+      source-event:
+        description: github.event_name from the Server CI run
+        required: true
+        type: string
+      head-commit-id:
+        description: Commit ID for junit report annotations
+        required: true
+        type: string
+      head-repository:
+        description: head_repository.full_name from the Server CI run
+        required: true
+        type: string
+      workflow-url:
+        description: HTML URL of the Server CI workflow run
+        required: true
+        type: string
+    secrets:
+      WEBHOOK_URL_FLAKY_TEST:
+        required: false
+      WEBHOOK_AUTH_TOKEN_FLAKY_TEST:
+        required: false
+      WEBHOOK_URL_FLAKY_TEST_MM:
+        required: false
+
+permissions: {}
 
 jobs:
   generate-report-matrix:
+    permissions:
+      actions: read
+      contents: read
+    if: inputs.head-repository == github.repository
     runs-on: ubuntu-22.04
     outputs:
       REPORT_MATRIX: ${{ steps.report.outputs.REPORT_MATRIX }}
     steps:
       - name: report/download-artifacts-from-PR-workflow
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
-          run-id: ${{ github.event.workflow_run.id }}
+          run-id: ${{ inputs.source-run-id }}
           github-token: ${{ github.token }}
           pattern: "*-test-logs"
           path: reports
-      
+
       - name: report/validate-and-prepare-data
         id: validate
         run: |
           # Create validated data file
           > /tmp/validated-tests.json
-          
+
           find "reports" -type f -name "test-name" | while read -r test_file; do
             folder=$(basename "$(dirname "$test_file")")
             test_name_raw=$(cat "$test_file" | tr -d '\n\r')
-            
+
             # Validate test name: allow alphanumeric, spaces, hyphens, underscores, parentheses, and dots
             if [[ "$test_name_raw" =~ ^[a-zA-Z0-9\ \(\)_.-]+$ ]] && [[ ${#test_name_raw} -le 100 ]]; then
               # Use jq to safely escape the test name as JSON
@@ -41,7 +71,7 @@ jobs:
               echo "Warning: Skipping invalid test name in $test_file: '$test_name_raw'" >&2
             fi
           done
-          
+
           # Verify we have at least some valid tests
           if [[ ! -s /tmp/validated-tests.json ]]; then
             echo "Error: No valid test names found" >&2
@@ -54,28 +84,28 @@ jobs:
           # Convert validated JSON objects to matrix format
           jq -s '{ "test": . }' /tmp/validated-tests.json | tee /tmp/report-matrix
           echo REPORT_MATRIX=$(cat /tmp/report-matrix | jq --compact-output --monochrome-output) >> ${GITHUB_OUTPUT}
-      
+
   publish-report:
     runs-on: ubuntu-22.04
     name: Publish Report ${{ matrix.test.name }}
-    needs: 
+    needs:
       - generate-report-matrix
     permissions:
+      actions: read
       pull-requests: write
       checks: write
-      issues: write
     strategy:
       matrix: ${{ fromJson(needs.generate-report-matrix.outputs.REPORT_MATRIX) }}
     steps:
       - name: report/download-artifacts-from-PR-workflow
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
-          run-id: ${{ github.event.workflow_run.id }}
+          run-id: ${{ inputs.source-run-id }}
           github-token: ${{ github.token }}
           name: ${{ matrix.test.artifact }}
           path: ${{ matrix.test.artifact }}
       - name: report/fetch-pr-number
-        if: github.event.workflow_run.name == 'Server CI PR'
+        if: inputs.source-event == 'pull_request'
         id: incoming-pr
         env:
           ARTIFACT: "${{ matrix.test.artifact }}"
@@ -94,32 +124,142 @@ jobs:
           fi
       - name: Publish test report
         id: report
-        uses: mikepenz/action-junit-report@cf701569b05ccdd861a76b8607a66d76f6fd4857 # v5.5.1
+        uses: mikepenz/action-junit-report@49b2ca06f62aa7ef83ae6769a2179271e160d8e4 # v6.3.1
         with:
           report_paths: ${{ matrix.test.artifact }}/report.xml
           check_name: ${{ matrix.test.name }} (Results)
           job_name: ${{ matrix.test.name }}
-          commit: ${{ github.event.workflow_run.head_commit.id }}
+          commit: ${{ inputs.head-commit-id }}
           require_tests: true
           check_retries: true
           flaky_summary: true
           include_passed: true
           check_annotations: true
 
-      - name: Report retried tests (pull request)
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
-        if: ${{ steps.report.outputs.flaky_summary != '<table><tr><th>Test</th><th>Retries</th></tr></table>' && github.event.workflow_run.name == 'Server CI PR' }}
+      - name: Report retried tests to Mattermost channel (pull request)
+        if: >-
+          steps.report.outputs.flaky_summary != '<table><tr><th>Test</th><th>Retries</th></tr></table>'
+          && steps.report.outputs.failed == '0'
+          && inputs.source-event == 'pull_request'
+          && env.WEBHOOK_URL_FLAKY_TEST_MM != ''
+        continue-on-error: true
         env:
-          TEST_NAME: "${{ matrix.test.name }}"
-          FLAKY_SUMMARY: "${{ steps.report.outputs.flaky_summary }}"
-          PR_NUMBER: "${{ steps.incoming-pr.outputs.NUMBER }}"
-        with:
-          script: |
-            const body = `#### ⚠️  One or more flaky tests detected ⚠️\n* Failing job: [github.com/mattermost/mattermost:${process.env.TEST_NAME}](${{ github.event.workflow_run.html_url }})\n* Double check your code to ensure you haven't introduced a flaky test.\n* If this seems to be unrelated to your changes, submit a separate pull request to skip the flaky tests (e.g. [23360](https://github.com/mattermost/mattermost/pull/23360)) and file JIRA ticket (e.g. [MM-52743](https://mattermost.atlassian.net/browse/MM-52743)) for later investigation.\n\n${process.env.FLAKY_SUMMARY}`
+          WEBHOOK_URL_FLAKY_TEST_MM: ${{ secrets.WEBHOOK_URL_FLAKY_TEST_MM }}
+          FLAKY_SUMMARY: ${{ steps.report.outputs.flaky_summary }}
+          PR_NUMBER: ${{ steps.incoming-pr.outputs.NUMBER }}
+          TEST_NAME: ${{ matrix.test.name }}
+          REPO: ${{ github.repository }}
+          WORKFLOW_RUN_HTML_URL: ${{ inputs.workflow-url }}
+          SERVER_URL: ${{ github.server_url }}
+        run: |
+          PR_URL="${SERVER_URL}/${REPO}/pull/${PR_NUMBER}"
 
-            await github.rest.issues.createComment({
-              issue_number: process.env.PR_NUMBER,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: body
-            })
+          # Convert the HTML <table> flaky summary into a Mattermost markdown table.
+          # The summary contains a header row plus, per suite, a section-header row
+          # (<td colspan="2"><strong>...</strong></td>) that markdown tables cannot
+          # represent. Parse the HTML, keep only rows matching the header's column
+          # count (dropping section-header rows), and emit a flat markdown table.
+          TABLE_MD=$(python3 - <<'PY'
+          import os, html
+          from html.parser import HTMLParser
+
+
+          class FlakyTableParser(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.rows = []
+                  self.row = None
+                  self.cell = None
+
+              def handle_starttag(self, tag, attrs):
+                  if tag == "tr":
+                      self.row = []
+                  elif tag in ("td", "th"):
+                      self.cell = []
+
+              def handle_endtag(self, tag):
+                  if tag in ("td", "th") and self.cell is not None:
+                      self.row.append("".join(self.cell))
+                      self.cell = None
+                  elif tag == "tr" and self.row is not None:
+                      self.rows.append(self.row)
+                      self.row = None
+
+              def handle_data(self, data):
+                  if self.cell is not None:
+                      self.cell.append(data)
+
+
+          parser = FlakyTableParser()
+          parser.feed(os.environ.get("FLAKY_SUMMARY", ""))
+
+          rows = parser.rows
+          if rows:
+              width = len(rows[0])
+              # Keep header + data rows; drop colspan section-header rows.
+              rows = [r for r in rows if len(r) == width]
+
+
+          def cell(text):
+              # Collapse all whitespace (incl. newlines) so a cell stays on one
+              # line; otherwise an embedded newline would break the markdown row.
+              text = " ".join(html.unescape(text).split())
+              return text.replace("|", "\\|")
+
+
+          if len(rows) >= 2:
+              lines = ["| " + " | ".join(cell(c) for c in rows[0]) + " |",
+                       "|" + "|".join(["---"] * width) + "|"]
+              lines += ["| " + " | ".join(cell(c) for c in r) + " |" for r in rows[1:]]
+              print("\n".join(lines))
+          PY
+          )
+
+          # Use real newlines; a literal "\n" renders verbatim in Mattermost.
+          NL=$'\n'
+          TEXT=":warning: **Flaky test(s) detected** in [${REPO}#${PR_NUMBER}](${PR_URL})"
+          TEXT="${TEXT}${NL}_Test job:_ [${TEST_NAME}](${WORKFLOW_RUN_HTML_URL})${NL}${NL}${TABLE_MD}"
+
+          PAYLOAD=$(jq -n \
+            --arg text "$TEXT" \
+            '{
+              username: "Flaky Test Report",
+              icon_url: "https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png",
+              attachments: [{color: "#CCCC00", text: $text}]
+            }')
+
+          curl -X POST -fsSL \
+            --connect-timeout 5 \
+            --max-time 30 \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD" \
+            "$WEBHOOK_URL_FLAKY_TEST_MM"
+
+      - name: Report retried tests to flaky-test webhook (pull request)
+        if: >-
+          steps.report.outputs.flaky_summary != '<table><tr><th>Test</th><th>Retries</th></tr></table>'
+          && steps.report.outputs.failed == '0'
+          && inputs.source-event == 'pull_request'
+          && env.WEBHOOK_URL_FLAKY_TEST != ''
+          && env.WEBHOOK_AUTH_TOKEN_FLAKY_TEST != ''
+        continue-on-error: true
+        env:
+          WEBHOOK_URL_FLAKY_TEST: ${{ secrets.WEBHOOK_URL_FLAKY_TEST }}
+          WEBHOOK_AUTH_TOKEN_FLAKY_TEST: ${{ secrets.WEBHOOK_AUTH_TOKEN_FLAKY_TEST }}
+          FLAKY_SUMMARY: ${{ steps.report.outputs.flaky_summary }}
+          PR_NUMBER: ${{ steps.incoming-pr.outputs.NUMBER }}
+          REPO: ${{ github.repository }}
+        run: |
+          PAYLOAD=$(jq -n \
+            --arg repo "$REPO" \
+            --arg pr_number "$PR_NUMBER" \
+            --arg flaky_summary "$FLAKY_SUMMARY" \
+            '{repo:$repo, pr_number:$pr_number, flaky_summary:$flaky_summary}')
+
+          curl -X POST -fsSL \
+            --connect-timeout 5 \
+            --max-time 30 \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $WEBHOOK_AUTH_TOKEN_FLAKY_TEST" \
+            -d "$PAYLOAD" \
+            "$WEBHOOK_URL_FLAKY_TEST"

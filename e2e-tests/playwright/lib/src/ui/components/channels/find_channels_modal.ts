@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 export default class FindChannelsModal {
     readonly container: Locator;
@@ -17,5 +18,13 @@ export default class FindChannelsModal {
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
+    }
+
+    getResult(channelName: string) {
+        return this.container.getByTestId(channelName);
+    }
+
+    async selectChannel(channelName: string) {
+        await this.getResult(channelName).click();
     }
 }

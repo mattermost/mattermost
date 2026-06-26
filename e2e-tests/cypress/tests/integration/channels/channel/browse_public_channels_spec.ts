@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 // ***************************************************************
 // - [#] indicates a test step (e.g. # Go to a page)
@@ -13,15 +13,15 @@ import {UserProfile} from '@mattermost/types/users';
 // Stage: @prod
 // Group: @channels @channel
 
-function verifyNoChannelToJoinMessage(isVisible) {
+function verifyNoChannelToJoinMessage(isVisible: boolean) {
     cy.findByText('No public channels').should(isVisible ? 'be.visible' : 'not.exist');
 }
 
-function ensureHideJoinedCheckboxEnabled(shouldBeChecked) {
+function ensureHideJoinedCheckboxEnabled(shouldBeChecked: boolean) {
     cy.get('#hideJoinedPreferenceCheckbox').then(($checkbox) => {
         cy.wrap($checkbox).findByText('Hide Joined').should('be.visible');
         cy.wrap($checkbox).find('div.get-app__checkbox').invoke('attr', 'class').then(($classList) => {
-            if ($classList.split(' ').includes('checked') ^ shouldBeChecked) {
+            if ($classList!.split(' ').includes('checked') !== Boolean(shouldBeChecked)) {
                 // We click on the button only when the XOR operands do not match
                 // e.g. checkbox is checked, but should not be checked; and vice-versa
                 cy.wrap($checkbox).click();

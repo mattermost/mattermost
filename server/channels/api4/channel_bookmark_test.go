@@ -16,8 +16,7 @@ import (
 
 func TestCreateChannelBookmark(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	err := th.App.SetPhase2PermissionsMigrationStatus(true)
 	require.NoError(t, err)
 
@@ -73,8 +72,8 @@ func TestCreateChannelBookmark(t *testing.T) {
 	})
 
 	t.Run("without the necessary permission on public channels, the creation should fail", func(t *testing.T) {
-		th.RemovePermissionFromRole(model.PermissionAddBookmarkPublicChannel.Id, model.ChannelUserRoleId)
-		defer th.AddPermissionToRole(model.PermissionAddBookmarkPublicChannel.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionAddBookmarkPublicChannel.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionAddBookmarkPublicChannel.Id, model.ChannelUserRoleId)
 
 		channelBookmark := &model.ChannelBookmark{
 			ChannelId:   th.BasicChannel.Id,
@@ -91,8 +90,8 @@ func TestCreateChannelBookmark(t *testing.T) {
 	})
 
 	t.Run("without the necessary permission on private channels, the creation should fail", func(t *testing.T) {
-		th.RemovePermissionFromRole(model.PermissionAddBookmarkPrivateChannel.Id, model.ChannelUserRoleId)
-		defer th.AddPermissionToRole(model.PermissionAddBookmarkPrivateChannel.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionAddBookmarkPrivateChannel.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionAddBookmarkPrivateChannel.Id, model.ChannelUserRoleId)
 
 		channelBookmark := &model.ChannelBookmark{
 			ChannelId:   th.BasicPrivateChannel.Id,
@@ -111,8 +110,8 @@ func TestCreateChannelBookmark(t *testing.T) {
 	t.Run("bookmark creation should not work in a moderated channel", func(t *testing.T) {
 		// moderate the channel to restrict bookmarks for members
 		manageBookmarks := model.ChannelModeratedPermissions[4]
-		th.PatchChannelModerationsForMembers(th.BasicChannel.Id, manageBookmarks, false)
-		defer th.PatchChannelModerationsForMembers(th.BasicChannel.Id, manageBookmarks, true)
+		th.PatchChannelModerationsForMembers(t, th.BasicChannel.Id, manageBookmarks, false)
+		defer th.PatchChannelModerationsForMembers(t, th.BasicChannel.Id, manageBookmarks, true)
 
 		channelBookmark := &model.ChannelBookmark{
 			ChannelId:   th.BasicChannel.Id,
@@ -168,11 +167,11 @@ func TestCreateChannelBookmark(t *testing.T) {
 
 	t.Run("a user should always be able to create channel bookmarks on DMs and GMs", func(t *testing.T) {
 		// this should work independently of the permissions applied
-		th.RemovePermissionFromRole(model.PermissionAddBookmarkPublicChannel.Id, model.ChannelUserRoleId)
-		th.RemovePermissionFromRole(model.PermissionAddBookmarkPrivateChannel.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionAddBookmarkPublicChannel.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionAddBookmarkPrivateChannel.Id, model.ChannelUserRoleId)
 		defer func() {
-			th.AddPermissionToRole(model.PermissionAddBookmarkPublicChannel.Id, model.ChannelUserRoleId)
-			th.AddPermissionToRole(model.PermissionAddBookmarkPrivateChannel.Id, model.ChannelUserRoleId)
+			th.AddPermissionToRole(t, model.PermissionAddBookmarkPublicChannel.Id, model.ChannelUserRoleId)
+			th.AddPermissionToRole(t, model.PermissionAddBookmarkPrivateChannel.Id, model.ChannelUserRoleId)
 		}()
 
 		// DM
@@ -278,8 +277,7 @@ func TestCreateChannelBookmark(t *testing.T) {
 
 func TestEditChannelBookmark(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	err := th.App.SetPhase2PermissionsMigrationStatus(true)
 	require.NoError(t, err)
 
@@ -352,8 +350,8 @@ func TestEditChannelBookmark(t *testing.T) {
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
 				if tc.removePermission != "" {
-					th.RemovePermissionFromRole(tc.removePermission, model.ChannelUserRoleId)
-					defer th.AddPermissionToRole(tc.removePermission, model.ChannelUserRoleId)
+					th.RemovePermissionFromRole(t, tc.removePermission, model.ChannelUserRoleId)
+					defer th.AddPermissionToRole(t, tc.removePermission, model.ChannelUserRoleId)
 				}
 
 				channelBookmark := &model.ChannelBookmark{
@@ -370,8 +368,8 @@ func TestEditChannelBookmark(t *testing.T) {
 				require.NotNil(t, cb)
 
 				patch := &model.ChannelBookmarkPatch{
-					DisplayName: model.NewPointer("Edited bookmark test"),
-					LinkUrl:     model.NewPointer("http://edited.url"),
+					DisplayName: new("Edited bookmark test"),
+					LinkUrl:     new("http://edited.url"),
 				}
 
 				ucb, resp, err := tc.userClient.UpdateChannelBookmark(context.Background(), cb.ChannelId, cb.Id, patch)
@@ -406,13 +404,13 @@ func TestEditChannelBookmark(t *testing.T) {
 
 		// moderate the channel to restrict bookmarks for members
 		manageBookmarks := model.ChannelModeratedPermissions[4]
-		th.PatchChannelModerationsForMembers(th.BasicChannel.Id, manageBookmarks, false)
-		defer th.PatchChannelModerationsForMembers(th.BasicChannel.Id, manageBookmarks, true)
+		th.PatchChannelModerationsForMembers(t, th.BasicChannel.Id, manageBookmarks, false)
+		defer th.PatchChannelModerationsForMembers(t, th.BasicChannel.Id, manageBookmarks, true)
 
 		// try to patch the channel bookmark
 		patch := &model.ChannelBookmarkPatch{
-			DisplayName: model.NewPointer("Edited bookmark test"),
-			LinkUrl:     model.NewPointer("http://edited.url"),
+			DisplayName: new("Edited bookmark test"),
+			LinkUrl:     new("http://edited.url"),
 		}
 
 		ucb, resp, err := th.Client.UpdateChannelBookmark(context.Background(), cb.ChannelId, cb.Id, patch)
@@ -441,8 +439,8 @@ func TestEditChannelBookmark(t *testing.T) {
 
 		// try to patch the channel bookmark
 		patch := &model.ChannelBookmarkPatch{
-			DisplayName: model.NewPointer("Edited bookmark test"),
-			LinkUrl:     model.NewPointer("http://edited.url"),
+			DisplayName: new("Edited bookmark test"),
+			LinkUrl:     new("http://edited.url"),
 		}
 
 		ucb, resp, err := th.Client.UpdateChannelBookmark(context.Background(), cb.ChannelId, cb.Id, patch)
@@ -453,8 +451,8 @@ func TestEditChannelBookmark(t *testing.T) {
 
 	t.Run("trying to edit a nonexistent bookmark should fail", func(t *testing.T) {
 		patch := &model.ChannelBookmarkPatch{
-			DisplayName: model.NewPointer("Edited bookmark test"),
-			LinkUrl:     model.NewPointer("http://edited.url"),
+			DisplayName: new("Edited bookmark test"),
+			LinkUrl:     new("http://edited.url"),
 		}
 
 		ucb, resp, err := th.Client.UpdateChannelBookmark(context.Background(), th.BasicChannel.Id, model.NewId(), patch)
@@ -481,8 +479,8 @@ func TestEditChannelBookmark(t *testing.T) {
 		require.Nil(t, appErr)
 
 		patch := &model.ChannelBookmarkPatch{
-			DisplayName: model.NewPointer("Edited bookmark test"),
-			LinkUrl:     model.NewPointer("http://edited.url"),
+			DisplayName: new("Edited bookmark test"),
+			LinkUrl:     new("http://edited.url"),
 		}
 
 		ucb, resp, err := th.Client.UpdateChannelBookmark(context.Background(), cb.ChannelId, cb.Id, patch)
@@ -493,11 +491,11 @@ func TestEditChannelBookmark(t *testing.T) {
 
 	t.Run("a user should always be able to edit channel bookmarks on DMs and GMs", func(t *testing.T) {
 		// this should work independently of the permissions applied
-		th.RemovePermissionFromRole(model.PermissionEditBookmarkPublicChannel.Id, model.ChannelUserRoleId)
-		th.RemovePermissionFromRole(model.PermissionEditBookmarkPrivateChannel.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionEditBookmarkPublicChannel.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionEditBookmarkPrivateChannel.Id, model.ChannelUserRoleId)
 		defer func() {
-			th.AddPermissionToRole(model.PermissionEditBookmarkPublicChannel.Id, model.ChannelUserRoleId)
-			th.AddPermissionToRole(model.PermissionEditBookmarkPrivateChannel.Id, model.ChannelUserRoleId)
+			th.AddPermissionToRole(t, model.PermissionEditBookmarkPublicChannel.Id, model.ChannelUserRoleId)
+			th.AddPermissionToRole(t, model.PermissionEditBookmarkPrivateChannel.Id, model.ChannelUserRoleId)
 		}()
 
 		// DM
@@ -518,8 +516,8 @@ func TestEditChannelBookmark(t *testing.T) {
 		require.NotNil(t, cb)
 
 		patch := &model.ChannelBookmarkPatch{
-			DisplayName: model.NewPointer("Edited bookmark test"),
-			LinkUrl:     model.NewPointer("http://edited.url"),
+			DisplayName: new("Edited bookmark test"),
+			LinkUrl:     new("http://edited.url"),
 		}
 
 		ucb, resp, err := th.Client.UpdateChannelBookmark(context.Background(), cb.ChannelId, cb.Id, patch)
@@ -568,8 +566,8 @@ func TestEditChannelBookmark(t *testing.T) {
 		require.NotNil(t, cb)
 
 		patch := &model.ChannelBookmarkPatch{
-			DisplayName: model.NewPointer("Edited bookmark test"),
-			LinkUrl:     model.NewPointer("http://edited.url"),
+			DisplayName: new("Edited bookmark test"),
+			LinkUrl:     new("http://edited.url"),
 		}
 
 		ucb, resp, err := guestClient.UpdateChannelBookmark(context.Background(), cb.ChannelId, cb.Id, patch)
@@ -608,13 +606,13 @@ func TestEditChannelBookmark(t *testing.T) {
 		require.NotNil(t, cb)
 
 		patch := &model.ChannelBookmarkPatch{
-			DisplayName: model.NewPointer("Edited bookmark test"),
-			LinkUrl:     model.NewPointer("http://edited.url"),
+			DisplayName: new("Edited bookmark test"),
+			LinkUrl:     new("http://edited.url"),
 		}
 
 		// create a client for basic user 2
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		ucb, resp, err := client2.UpdateChannelBookmark(context.Background(), cb.ChannelId, cb.Id, patch)
@@ -654,7 +652,7 @@ func TestEditChannelBookmark(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, cb)
 
-		patch := &model.ChannelBookmarkPatch{DisplayName: model.NewPointer("Edited bookmark test")}
+		patch := &model.ChannelBookmarkPatch{DisplayName: new("Edited bookmark test")}
 		_, resp, err := th.Client.UpdateChannelBookmark(context.Background(), cb.ChannelId, cb.Id, patch)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
@@ -686,8 +684,7 @@ func TestEditChannelBookmark(t *testing.T) {
 
 func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	err := th.App.SetPhase2PermissionsMigrationStatus(true)
 	require.NoError(t, err)
 
@@ -815,8 +812,8 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
 				if tc.removePermission != "" {
-					th.RemovePermissionFromRole(tc.removePermission, model.ChannelUserRoleId)
-					defer th.AddPermissionToRole(tc.removePermission, model.ChannelUserRoleId)
+					th.RemovePermissionFromRole(t, tc.removePermission, model.ChannelUserRoleId)
+					defer th.AddPermissionToRole(t, tc.removePermission, model.ChannelUserRoleId)
 				}
 
 				// first we capture and later restore original bookmark's sort order
@@ -867,8 +864,8 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 
 		// moderate the channel to restrict bookmarks for members
 		manageBookmarks := model.ChannelModeratedPermissions[4]
-		th.PatchChannelModerationsForMembers(th.BasicChannel.Id, manageBookmarks, false)
-		defer th.PatchChannelModerationsForMembers(th.BasicChannel.Id, manageBookmarks, true)
+		th.PatchChannelModerationsForMembers(t, th.BasicChannel.Id, manageBookmarks, false)
+		defer th.PatchChannelModerationsForMembers(t, th.BasicChannel.Id, manageBookmarks, true)
 
 		// try to update the channel bookmark's order
 		bookmarks, resp, err := th.Client.UpdateChannelBookmarkSortOrder(context.Background(), cb.ChannelId, cb.Id, 0)
@@ -934,11 +931,11 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 
 	t.Run("a user should always be able to update the channel bookmarks sort order on DMs and GMs", func(t *testing.T) {
 		// this should work independently of the permissions applied
-		th.RemovePermissionFromRole(model.PermissionOrderBookmarkPublicChannel.Id, model.ChannelUserRoleId)
-		th.RemovePermissionFromRole(model.PermissionOrderBookmarkPrivateChannel.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionOrderBookmarkPublicChannel.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionOrderBookmarkPrivateChannel.Id, model.ChannelUserRoleId)
 		defer func() {
-			th.AddPermissionToRole(model.PermissionOrderBookmarkPublicChannel.Id, model.ChannelUserRoleId)
-			th.AddPermissionToRole(model.PermissionOrderBookmarkPrivateChannel.Id, model.ChannelUserRoleId)
+			th.AddPermissionToRole(t, model.PermissionOrderBookmarkPublicChannel.Id, model.ChannelUserRoleId)
+			th.AddPermissionToRole(t, model.PermissionOrderBookmarkPrivateChannel.Id, model.ChannelUserRoleId)
 		}()
 
 		// DM
@@ -1016,7 +1013,7 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 
 		// create a client for basic user 2
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		bookmarks, resp, err := client2.UpdateChannelBookmarkSortOrder(context.Background(), th.BasicChannel.Id, cb.Id, 0)
@@ -1096,8 +1093,7 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 
 func TestDeleteChannelBookmark(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	err := th.App.SetPhase2PermissionsMigrationStatus(true)
 	require.NoError(t, err)
 
@@ -1170,8 +1166,8 @@ func TestDeleteChannelBookmark(t *testing.T) {
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
 				if tc.removePermission != "" {
-					th.RemovePermissionFromRole(tc.removePermission, model.ChannelUserRoleId)
-					defer th.AddPermissionToRole(tc.removePermission, model.ChannelUserRoleId)
+					th.RemovePermissionFromRole(t, tc.removePermission, model.ChannelUserRoleId)
+					defer th.AddPermissionToRole(t, tc.removePermission, model.ChannelUserRoleId)
 				}
 
 				// first we create a bookmark for the test case channel
@@ -1216,8 +1212,8 @@ func TestDeleteChannelBookmark(t *testing.T) {
 
 		// moderate the channel to restrict bookmarks for members
 		manageBookmarks := model.ChannelModeratedPermissions[4]
-		th.PatchChannelModerationsForMembers(th.BasicChannel.Id, manageBookmarks, false)
-		defer th.PatchChannelModerationsForMembers(th.BasicChannel.Id, manageBookmarks, true)
+		th.PatchChannelModerationsForMembers(t, th.BasicChannel.Id, manageBookmarks, false)
+		defer th.PatchChannelModerationsForMembers(t, th.BasicChannel.Id, manageBookmarks, true)
 
 		// try to delete the channel bookmark
 		bookmarks, resp, err := th.Client.DeleteChannelBookmark(context.Background(), cb.ChannelId, cb.Id)
@@ -1283,11 +1279,11 @@ func TestDeleteChannelBookmark(t *testing.T) {
 
 	t.Run("a user should always be able to delete the channel bookmarks on DMs and GMs", func(t *testing.T) {
 		// this should work independently of the permissions applied
-		th.RemovePermissionFromRole(model.PermissionDeleteBookmarkPublicChannel.Id, model.ChannelUserRoleId)
-		th.RemovePermissionFromRole(model.PermissionDeleteBookmarkPrivateChannel.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionDeleteBookmarkPublicChannel.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionDeleteBookmarkPrivateChannel.Id, model.ChannelUserRoleId)
 		defer func() {
-			th.AddPermissionToRole(model.PermissionDeleteBookmarkPublicChannel.Id, model.ChannelUserRoleId)
-			th.AddPermissionToRole(model.PermissionDeleteBookmarkPrivateChannel.Id, model.ChannelUserRoleId)
+			th.AddPermissionToRole(t, model.PermissionDeleteBookmarkPublicChannel.Id, model.ChannelUserRoleId)
+			th.AddPermissionToRole(t, model.PermissionDeleteBookmarkPrivateChannel.Id, model.ChannelUserRoleId)
 		}()
 
 		// DM
@@ -1391,7 +1387,7 @@ func TestDeleteChannelBookmark(t *testing.T) {
 
 		// create a client for basic user 2
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		dbm, resp, err := client2.DeleteChannelBookmark(context.Background(), th.BasicChannel.Id, cb.Id)
@@ -1453,8 +1449,7 @@ func TestDeleteChannelBookmark(t *testing.T) {
 
 func TestListChannelBookmarksForChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	err := th.App.SetPhase2PermissionsMigrationStatus(true)
 	require.NoError(t, err)
 
@@ -1501,8 +1496,8 @@ func TestListChannelBookmarksForChannel(t *testing.T) {
 
 	// an open channel for which the guest is a member but the basic
 	// user is not
-	onlyGuestChannel := th.CreateChannelWithClient(th.SystemAdminClient, model.ChannelTypePrivate)
-	th.AddUserToChannel(guest, onlyGuestChannel)
+	onlyGuestChannel := th.CreateChannelWithClient(t, th.SystemAdminClient, model.ChannelTypePrivate)
+	th.AddUserToChannel(t, guest, onlyGuestChannel)
 	guestBookmark := createBookmark("guest", onlyGuestChannel.Id)
 
 	// DM
@@ -1692,13 +1687,102 @@ func TestListChannelBookmarksForChannel(t *testing.T) {
 
 		// moderate the channel to restrict bookmarks for members
 		manageBookmarks := model.ChannelModeratedPermissions[4]
-		th.PatchChannelModerationsForMembers(th.BasicChannel.Id, manageBookmarks, false)
-		defer th.PatchChannelModerationsForMembers(th.BasicChannel.Id, manageBookmarks, true)
+		th.PatchChannelModerationsForMembers(t, th.BasicChannel.Id, manageBookmarks, false)
+		defer th.PatchChannelModerationsForMembers(t, th.BasicChannel.Id, manageBookmarks, true)
 
 		// try to list existing channel bookmarks
 		bookmarks, resp, err := th.Client.ListChannelBookmarksForChannel(context.Background(), th.BasicChannel.Id, 0)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.NotEmpty(t, bookmarks)
+	})
+}
+
+func TestBoardChannelBookmarkAPIReadonly(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicense())
+	err := th.App.SetPhase2PermissionsMigrationStatus(true)
+	require.NoError(t, err)
+
+	boardTargetID := model.NewId()
+	seed := &model.ChannelBookmark{
+		ChannelId:   th.BasicChannel.Id,
+		OwnerId:     th.BasicUser.Id,
+		DisplayName: "Roadmap",
+		LinkUrl:     "/test/boards/" + boardTargetID,
+		Type:        model.ChannelBookmarkBoard,
+		TargetId:    boardTargetID,
+	}
+	saved, sErr := th.App.Srv().Store().ChannelBookmark().Save(seed, true)
+	require.NoError(t, sErr)
+
+	t.Run("POST create with type board is rejected", func(t *testing.T) {
+		b := &model.ChannelBookmark{
+			ChannelId:   th.BasicChannel.Id,
+			DisplayName: "bad",
+			LinkUrl:     "/x/y",
+			Type:        model.ChannelBookmarkBoard,
+			TargetId:    model.NewId(),
+		}
+		_, resp, err := th.Client.CreateChannelBookmark(context.Background(), b)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.channel.bookmark.board.readonly.app_error")
+	})
+
+	t.Run("PATCH board bookmark is rejected", func(t *testing.T) {
+		name := "n"
+		_, resp, err := th.Client.UpdateChannelBookmark(context.Background(), th.BasicChannel.Id, saved.Id, &model.ChannelBookmarkPatch{DisplayName: &name})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.channel.bookmark.board.readonly.app_error")
+	})
+
+	t.Run("sort_order on board bookmark succeeds", func(t *testing.T) {
+		other := &model.ChannelBookmark{
+			ChannelId:   th.BasicChannel.Id,
+			DisplayName: "Link next to board",
+			LinkUrl:     "https://example.com",
+			Type:        model.ChannelBookmarkLink,
+		}
+		_, resp, err := th.Client.CreateChannelBookmark(context.Background(), other)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		bookmarks, resp, err := th.Client.UpdateChannelBookmarkSortOrder(context.Background(), th.BasicChannel.Id, saved.Id, int64(1))
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		var boardOrder int64 = -1
+		for _, b := range bookmarks {
+			if b.Id == saved.Id {
+				boardOrder = b.SortOrder
+				break
+			}
+		}
+		require.Equal(t, int64(1), boardOrder)
+	})
+
+	t.Run("DELETE board bookmark is rejected", func(t *testing.T) {
+		_, resp, err := th.Client.DeleteChannelBookmark(context.Background(), th.BasicChannel.Id, saved.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.channel.bookmark.board.readonly.app_error")
+	})
+
+	t.Run("GET list includes seeded board bookmark", func(t *testing.T) {
+		list, resp, err := th.Client.ListChannelBookmarksForChannel(context.Background(), th.BasicChannel.Id, 0)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		var found *model.ChannelBookmarkWithFileInfo
+		for _, x := range list {
+			if x.Id == saved.Id {
+				found = x
+				break
+			}
+		}
+		require.NotNil(t, found)
+		require.Equal(t, model.ChannelBookmarkBoard, found.Type)
+		require.Equal(t, boardTargetID, found.TargetId)
 	})
 }

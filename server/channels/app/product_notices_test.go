@@ -50,8 +50,6 @@ func TestNoticeValidation(t *testing.T) {
 		*cfg.AnnouncementSettings.UserNoticesEnabled = true
 	})
 
-	defer th.TearDown()
-
 	type args struct {
 		client               model.NoticeClientType
 		clientVersion        string
@@ -102,7 +100,7 @@ func TestNoticeValidation(t *testing.T) {
 
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						ClientType: model.NewNoticeClientType(model.NoticeClientTypeMobile),
+						ClientType: new(model.NoticeClientTypeMobile),
 					},
 				},
 			},
@@ -249,7 +247,7 @@ func TestNoticeValidation(t *testing.T) {
 				userCount: 300,
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						NumberOfUsers: model.NewPointer(int64(400)),
+						NumberOfUsers: new(int64(400)),
 					},
 				},
 			},
@@ -263,8 +261,8 @@ func TestNoticeValidation(t *testing.T) {
 				postCount: 2000,
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						NumberOfUsers: model.NewPointer(int64(400)),
-						NumberOfPosts: model.NewPointer(int64(3000)),
+						NumberOfUsers: new(int64(400)),
+						NumberOfPosts: new(int64(3000)),
 					},
 				},
 			},
@@ -276,7 +274,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						DisplayDate: model.NewPointer("> 2000-03-01T00:00:00Z <= 2999-04-01T00:00:00Z"),
+						DisplayDate: new("> 2000-03-01T00:00:00Z <= 2999-04-01T00:00:00Z"),
 					},
 				},
 			},
@@ -288,7 +286,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						DisplayDate: model.NewPointer(fmt.Sprintf("= %sT00:00:00Z", time.Now().UTC().Format("2006-01-02"))),
+						DisplayDate: new(fmt.Sprintf("= %sT00:00:00Z", time.Now().UTC().Format("2006-01-02"))),
 					},
 				},
 			},
@@ -300,7 +298,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						DisplayDate: model.NewPointer("> 2999-03-01T00:00:00Z <= 3000-04-01T00:00:00Z"),
+						DisplayDate: new("> 2999-03-01T00:00:00Z <= 3000-04-01T00:00:00Z"),
 					},
 				},
 			},
@@ -312,7 +310,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						DisplayDate: model.NewPointer("> 2000 -03-01T00:00:00Z <= 2999-04-01T00:00:00Z"),
+						DisplayDate: new("> 2000 -03-01T00:00:00Z <= 2999-04-01T00:00:00Z"),
 					},
 				},
 			},
@@ -325,7 +323,7 @@ func TestNoticeValidation(t *testing.T) {
 				systemAdmin: true,
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						Audience: model.NewNoticeAudience(model.NoticeAudienceSysadmin),
+						Audience: new(model.NoticeAudienceSysadmin),
 					},
 				},
 			},
@@ -338,7 +336,7 @@ func TestNoticeValidation(t *testing.T) {
 				systemAdmin: false,
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						Audience: model.NewNoticeAudience(model.NoticeAudienceSysadmin),
+						Audience: new(model.NoticeAudienceSysadmin),
 					},
 				},
 			},
@@ -351,7 +349,7 @@ func TestNoticeValidation(t *testing.T) {
 				teamAdmin: true,
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						Audience: model.NewNoticeAudience(model.NoticeAudienceTeamAdmin),
+						Audience: new(model.NoticeAudienceTeamAdmin),
 					},
 				},
 			},
@@ -364,7 +362,7 @@ func TestNoticeValidation(t *testing.T) {
 				teamAdmin: false,
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						Audience: model.NewNoticeAudience(model.NoticeAudienceTeamAdmin),
+						Audience: new(model.NoticeAudienceTeamAdmin),
 					},
 				},
 			},
@@ -376,7 +374,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						Audience: model.NewNoticeAudience(model.NoticeAudienceMember),
+						Audience: new(model.NoticeAudienceMember),
 					},
 				},
 			},
@@ -389,7 +387,7 @@ func TestNoticeValidation(t *testing.T) {
 				systemAdmin: true,
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						Audience: model.NewNoticeAudience(model.NoticeAudienceMember),
+						Audience: new(model.NoticeAudienceMember),
 					},
 				},
 			},
@@ -402,7 +400,7 @@ func TestNoticeValidation(t *testing.T) {
 				sku: "e20",
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						Sku: model.NewNoticeSKU(model.NoticeSKUE20),
+						Sku: new(model.NoticeSKUE20),
 					},
 				},
 			},
@@ -415,7 +413,7 @@ func TestNoticeValidation(t *testing.T) {
 				sku: "e20",
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						Sku: model.NewNoticeSKU(model.NoticeSKUE10),
+						Sku: new(model.NoticeSKUE10),
 					},
 				},
 			},
@@ -428,7 +426,7 @@ func TestNoticeValidation(t *testing.T) {
 				sku: "",
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						Sku: model.NewNoticeSKU(model.NoticeSKUTeam),
+						Sku: new(model.NoticeSKUTeam),
 					},
 				},
 			},
@@ -440,7 +438,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						Sku: model.NewNoticeSKU(model.NoticeSKUAll),
+						Sku: new(model.NoticeSKUAll),
 					},
 				},
 			},
@@ -453,7 +451,7 @@ func TestNoticeValidation(t *testing.T) {
 				cloud: true,
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						InstanceType: model.NewNoticeInstanceType(model.NoticeInstanceTypeCloud),
+						InstanceType: new(model.NoticeInstanceTypeCloud),
 					},
 				},
 			},
@@ -465,7 +463,7 @@ func TestNoticeValidation(t *testing.T) {
 			args: args{
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
-						InstanceType: model.NewNoticeInstanceType(model.NoticeInstanceTypeBoth),
+						InstanceType: new(model.NoticeInstanceTypeBoth),
 					},
 				},
 			},
@@ -548,8 +546,7 @@ func TestNoticeValidation(t *testing.T) {
 
 func TestNoticeFetch(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	notices := model.ProductNotices{model.ProductNotice{
 		Conditions: model.Conditions{},
@@ -567,7 +564,7 @@ func TestNoticeFetch(t *testing.T) {
 
 	notices2 := model.ProductNotices{model.ProductNotice{
 		Conditions: model.Conditions{
-			NumberOfPosts: model.NewPointer(int64(99999)),
+			NumberOfPosts: new(int64(99999)),
 		},
 		ID: "333",
 		LocalizedMessages: map[string]model.NoticeMessageInternal{

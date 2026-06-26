@@ -3,7 +3,7 @@
 
 import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import {
     DotsHorizontalIcon,
@@ -13,9 +13,11 @@ import {
     ArrowExpandIcon,
     OpenInNewIcon,
     BookOutlineIcon,
+    DownloadOutlineIcon,
 } from '@mattermost/compass-icons/components';
 import type {ChannelBookmark, ChannelBookmarkPatch} from '@mattermost/types/channel_bookmarks';
 
+import {getFile} from 'mattermost-redux/selectors/entities/files';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
@@ -26,23 +28,34 @@ import GetPublicModal from 'components/get_public_link_modal';
 import * as Menu from 'components/menu';
 
 import {ModalIdentifiers} from 'utils/constants';
-import {getSiteURL, shouldOpenInNewTab} from 'utils/url';
-import {copyToClipboard} from 'utils/utils';
+import {getSiteURL} from 'utils/url';
+
+import type {GlobalState} from 'types/store';
 
 import BookmarkDeleteModal from './bookmark_delete_modal';
 import ChannelBookmarksCreateModal from './channel_bookmarks_create_modal';
-import {useCanGetPublicLink, useChannelBookmarkPermission} from './utils';
+import {bookmarkHasLinkUrl, copyBookmarkLink, shouldOpenBookmarkInNewTab, useCanGetPublicLink, useChannelBookmarkPermission} from './utils';
 
-type Props = {bookmark: ChannelBookmark; open: () => void};
+type Props = {
+    bookmark: ChannelBookmark;
+    open: () => void;
+    buttonClassName?: string;
+    onBeforeAction?: () => void;
+    onMenuKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>, closeMenu?: () => void) => void;
+};
 const BookmarkItemDotMenu = ({
     bookmark,
     open,
+    buttonClassName,
+    onBeforeAction,
+    onMenuKeyDown,
 }: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
+    const fileInfo = useSelector((state: GlobalState) => (bookmark?.file_id && getFile(state, bookmark.file_id)) || undefined);
 
     const siteURL = getSiteURL();
-    const openInNewTab = bookmark.type === 'link' && bookmark.link_url && shouldOpenInNewTab(bookmark.link_url, siteURL);
+    const openInNewTab = shouldOpenBookmarkInNewTab(bookmark, siteURL);
 
     let openIcon;
     if (bookmark.type === 'file') {
@@ -51,17 +64,19 @@ const BookmarkItemDotMenu = ({
         openIcon = openInNewTab ? <OpenInNewIcon size={18}/> : <BookOutlineIcon size={18}/>;
     }
 
-    const canEdit = useChannelBookmarkPermission(bookmark.channel_id, 'edit');
-    const canDelete = useChannelBookmarkPermission(bookmark.channel_id, 'delete');
+    const canEdit = useChannelBookmarkPermission(bookmark.channel_id, 'edit') && bookmark.type !== 'board';
+    const canDelete = useChannelBookmarkPermission(bookmark.channel_id, 'delete') && bookmark.type !== 'board';
     const canGetPublicLink = useCanGetPublicLink();
 
     const editLabel = formatMessage({id: 'channel_bookmarks.edit', defaultMessage: 'Edit'});
     const openLabel = formatMessage({id: 'channel_bookmarks.open', defaultMessage: 'Open'});
     const copyLinkLabel = formatMessage({id: 'channel_bookmarks.copy', defaultMessage: 'Copy link'});
     const copyFileLabel = formatMessage({id: 'channel_bookmarks.copyFilePublicLink', defaultMessage: 'Get a public link'});
+    const downloadLabel = formatMessage({id: 'channel_bookmarks.download', defaultMessage: 'Download'});
     const deleteLabel = formatMessage({id: 'channel_bookmarks.delete', defaultMessage: 'Delete'});
 
     const handleEdit = useCallback(() => {
+        onBeforeAction?.();
         dispatch(openModal({
             modalId: ModalIdentifiers.CHANNEL_BOOKMARK_CREATE,
             dialogType: ChannelBookmarksCreateModal,
@@ -71,17 +86,15 @@ const BookmarkItemDotMenu = ({
                 onConfirm: async (data: ChannelBookmarkPatch) => dispatch(editBookmark(bookmark.channel_id, bookmark.id, data)) as ActionResult<boolean>,
             },
         }));
-    }, [editBookmark, dispatch, bookmark]);
+    }, [editBookmark, dispatch, bookmark, onBeforeAction]);
 
     const copyLink = useCallback(() => {
-        if (bookmark.type === 'link' && bookmark.link_url) {
-            copyToClipboard(bookmark.link_url);
-        } else if (bookmark.type === 'file' && bookmark.file_id) {
-            copyToClipboard(getFileDownloadUrl(bookmark.file_id));
-        }
-    }, [bookmark.type, bookmark.link_url, bookmark.file_id]);
+        onBeforeAction?.();
+        copyBookmarkLink(bookmark);
+    }, [bookmark, onBeforeAction]);
 
     const handleDelete = useCallback(() => {
+        onBeforeAction?.();
         dispatch(openModal({
             modalId: ModalIdentifiers.CHANNEL_BOOKMARK_DELETE,
             dialogType: BookmarkDeleteModal,
@@ -90,9 +103,10 @@ const BookmarkItemDotMenu = ({
                 onConfirm: () => dispatch(deleteBookmark(bookmark.channel_id, bookmark.id)),
             },
         }));
-    }, [deleteBookmark, dispatch, bookmark]);
+    }, [deleteBookmark, dispatch, bookmark, onBeforeAction]);
 
     const handleGetPublicLink = useCallback(() => {
+        onBeforeAction?.();
         if (!bookmark.file_id) {
             return;
         }
@@ -104,7 +118,13 @@ const BookmarkItemDotMenu = ({
                 fileId: bookmark.file_id,
             },
         }));
-    }, [bookmark.file_id, dispatch]);
+    }, [bookmark.file_id, dispatch, onBeforeAction]);
+
+    const handleDownload = useCallback(() => {
+        if (fileInfo) {
+            window.open(getFileDownloadUrl(fileInfo.id), '_blank');
+        }
+    }, [fileInfo]);
 
     return (
         <Menu.Container
@@ -112,12 +132,13 @@ const BookmarkItemDotMenu = ({
             transformOrigin={{vertical: 'top', horizontal: 'right'}}
             menuButton={{
                 id: `channelBookmarksDotMenuButton-${bookmark.id}`,
-                class: 'channelBookmarksDotMenuButton',
+                class: `channelBookmarksDotMenuButton ${buttonClassName ?? ''}`,
                 children: <DotsHorizontalIcon size={18}/>,
                 'aria-label': formatMessage({id: 'channel_bookmarks.editBookmarkLabel', defaultMessage: 'Bookmark menu'}),
             }}
             menu={{
                 id: 'channelBookmarksDotMenuDropdown',
+                onKeyDown: onMenuKeyDown,
             }}
         >
             <Menu.Item
@@ -138,7 +159,7 @@ const BookmarkItemDotMenu = ({
                     aria-label={editLabel}
                 />
             )}
-            {bookmark.type === 'link' && (
+            {bookmarkHasLinkUrl(bookmark) && (
                 <Menu.Item
                     key='channelBookmarksLinkCopy'
                     id='channelBookmarksLinkCopy'
@@ -156,6 +177,16 @@ const BookmarkItemDotMenu = ({
                     leadingElement={<LinkVariantIcon size={18}/>}
                     labels={<span>{copyFileLabel}</span>}
                     aria-label={copyFileLabel}
+                />
+            )}
+            {bookmark.type === 'file' && fileInfo && (
+                <Menu.Item
+                    key='channelBookmarksDownload'
+                    id='channelBookmarksDownload'
+                    onClick={handleDownload}
+                    leadingElement={<DownloadOutlineIcon size={18}/>}
+                    labels={<span>{downloadLabel}</span>}
+                    aria-label={downloadLabel}
                 />
             )}
             {canDelete && (

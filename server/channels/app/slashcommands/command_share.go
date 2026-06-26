@@ -63,6 +63,10 @@ func (sp *ShareProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Com
 }
 
 func (sp *ShareProvider) GetAutoCompleteListItems(rctx request.CTX, a *app.App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {
+	if !a.HasPermissionTo(commandArgs.UserId, model.PermissionManageSharedChannels) {
+		return []model.AutocompleteListItem{}, nil
+	}
+
 	switch {
 	case strings.Contains(parsed, " share "):
 
@@ -127,13 +131,14 @@ func (sp *ShareProvider) DoCommand(a *app.App, rctx request.CTX, args *model.Com
 		return response(args.T("api.command_share.permission_required", map[string]any{"Permission": "manage_shared_channels"}))
 	}
 
-	syncService := a.Srv().GetSharedChannelSyncService()
-	if syncService == nil || !syncService.Active() {
+	// Only check that the services are non-nil (licensed and configured). Do not check Active()
+	// here because Active() only returns true on the cluster leader node. In HA deployments,
+	// slash commands can be routed to any node via the load balancer, not just the leader.
+	if a.Srv().GetSharedChannelSyncService() == nil {
 		return response(args.T("api.command_share.service_disabled"))
 	}
 
-	rcService := a.Srv().GetRemoteClusterService()
-	if rcService == nil || !rcService.Active() {
+	if a.Srv().GetRemoteClusterService() == nil {
 		return response(args.T("api.command_remote.service_disabled"))
 	}
 

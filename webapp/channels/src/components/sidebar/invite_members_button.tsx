@@ -16,7 +16,7 @@ import {ModalIdentifiers} from 'utils/constants';
 
 type Props = {
     className?: string;
-}
+};
 
 const InviteMembersButton = (props: Props): JSX.Element | null => {
     const intl = useIntl();
@@ -41,7 +41,7 @@ const InviteMembersButton = (props: Props): JSX.Element | null => {
             >
                 <div
                     className='SidebarChannelNavigator__inviteMembersLhsButton'
-                    aria-label={intl.formatMessage({id: 'sidebar_left.sidebar_channel_navigator.inviteUsers', defaultMessage: 'Invite Members'})}
+                    aria-label={intl.formatMessage({id: 'sidebar_left.sidebar_channel_navigator.inviteUsers', defaultMessage: 'Invite Users'})}
                 >
                     <i
                         className='icon-plus-box'

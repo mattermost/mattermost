@@ -7,6 +7,7 @@ import React from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
+import {isMac} from '@mattermost/shared/utils/user_agent';
 import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -17,9 +18,9 @@ import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 
 import Constants, {AdvancedSections, Preferences} from 'utils/constants';
-import {isMac} from 'utils/user_agent';
 import {a11yFocus} from 'utils/utils';
 
+import EnableConcurrentReactExperimentalSection from './enable_concurrent_react_experimental_section';
 import JoinLeaveSection from './join_leave_section';
 import PerformanceDebuggingSection from './performance_debugging_section';
 
@@ -45,7 +46,7 @@ export type OwnProps = {
     activeSection: string;
     closeModal: () => void;
     collapseModal: () => void;
-}
+};
 
 export type Props = OwnProps & PropsFromRedux;
 
@@ -54,7 +55,7 @@ type State = {
     isSaving: boolean;
     showDeactivateAccountModal: boolean;
     serverError: string;
-}
+};
 
 export default class AdvancedSettingsDisplay extends React.PureComponent<Props, State> {
     constructor(props: Props) {
@@ -660,7 +661,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                             </div>,
                         ]}
                         saveButtonText={'Deactivate'}
-                        saveButtonClassName={'btn-danger'}
+                        saveButtonVariant='destructive'
                         setting={'deactivateAccount'}
                         submit={this.handleShowDeactivateAccountModal}
                         saving={this.state.isSaving}
@@ -691,7 +692,6 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                 />
             );
 
-            const confirmButtonClass = 'btn btn-danger';
             const deactivateMemberButton = (
                 <FormattedMessage
                     id='user.settings.advance.deactivate_member_modal.deactivateButton'
@@ -714,7 +714,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                             defaultMessage='Are you sure you want to deactivate your account? This can only be reversed by your System Administrator.'
                         />
                     }
-                    confirmButtonClass={confirmButtonClass}
+                    confirmButtonVariant='destructive'
                     confirmButtonText={deactivateMemberButton}
                     onConfirm={this.handleDeactivateAccountSubmit}
                     onCancel={this.handleHideDeactivateAccountModal}
@@ -788,6 +788,13 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                     {syncDraftsSectionDivider}
                     {syncDraftsSection}
                     {formattingSectionDivider}
+                    <EnableConcurrentReactExperimentalSection
+                        activeSection={this.props.activeSection}
+                        onUpdateSection={this.handleUpdateSection}
+                        adminMode={this.props.adminMode}
+                        renderOnOffLabel={this.renderOnOffLabel}
+                    />
+                    <div className='divider-light'/>
                     {deactivateAccountSection}
                     <div className='divider-dark'/>
                     {makeConfirmationModal}

@@ -6,8 +6,9 @@ package model
 import (
 	"encoding/json"
 	"fmt"
-	"os"
+	"maps"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -31,7 +32,7 @@ func TestConfigDefaults(t *testing.T) {
 	t.Run("nowhere nil when partially initialized", func(t *testing.T) {
 		var recursivelyUninitialize func(*Config, string, reflect.Value)
 		recursivelyUninitialize = func(config *Config, name string, v reflect.Value) {
-			if v.Type().Kind() == reflect.Ptr {
+			if v.Type().Kind() == reflect.Pointer {
 				// Ignoring these 2 settings.
 				// TODO: remove them completely in v8.0.
 				if name == "config.ElasticsearchSettings.BulkIndexingTimeWindowSeconds" ||
@@ -76,34 +77,34 @@ func TestConfigIsValid(t *testing.T) {
 		t.Run("email", func(t *testing.T) {
 			c := Config{}
 			c.SetDefaults()
-			c.SupportSettings.ReportAProblemType = NewPointer(string(SupportSettingsReportAProblemTypeMail))
+			c.SupportSettings.ReportAProblemType = new(string(SupportSettingsReportAProblemTypeMail))
 			c.SupportSettings.ReportAProblemMail = nil
 			require.NotNil(t, c.IsValid())
 
-			c.SupportSettings.ReportAProblemMail = NewPointer("")
+			c.SupportSettings.ReportAProblemMail = new("")
 			require.NotNil(t, c.IsValid())
 
-			c.SupportSettings.ReportAProblemMail = NewPointer("invalid")
+			c.SupportSettings.ReportAProblemMail = new("invalid")
 			require.NotNil(t, c.IsValid())
 
-			c.SupportSettings.ReportAProblemMail = NewPointer("valid@email.com")
+			c.SupportSettings.ReportAProblemMail = new("valid@email.com")
 			require.Nil(t, c.IsValid())
 		})
 
 		t.Run("link", func(t *testing.T) {
 			c := Config{}
 			c.SetDefaults()
-			c.SupportSettings.ReportAProblemType = NewPointer(string(SupportSettingsReportAProblemTypeLink))
+			c.SupportSettings.ReportAProblemType = new(string(SupportSettingsReportAProblemTypeLink))
 			c.SupportSettings.ReportAProblemLink = nil
 			require.NotNil(t, c.IsValid())
 
-			c.SupportSettings.ReportAProblemLink = NewPointer("")
+			c.SupportSettings.ReportAProblemLink = new("")
 			require.NotNil(t, c.IsValid())
 
-			c.SupportSettings.ReportAProblemLink = NewPointer("invalid")
+			c.SupportSettings.ReportAProblemLink = new("invalid")
 			require.NotNil(t, c.IsValid())
 
-			c.SupportSettings.ReportAProblemLink = NewPointer("http://valid.com")
+			c.SupportSettings.ReportAProblemLink = new("http://valid.com")
 			require.Nil(t, c.IsValid())
 		})
 	})
@@ -112,7 +113,7 @@ func TestConfigIsValid(t *testing.T) {
 func TestConfigEmptySiteName(t *testing.T) {
 	c1 := Config{
 		TeamSettings: TeamSettings{
-			SiteName: NewPointer(""),
+			SiteName: new(""),
 		},
 	}
 	c1.SetDefaults()
@@ -131,21 +132,45 @@ func TestServiceSettingsIsValid(t *testing.T) {
 		},
 		"OutgoingIntegrationRequestsTimeout is negative": {
 			ServiceSettings: ServiceSettings{
-				OutgoingIntegrationRequestsTimeout: NewPointer(int64(-1)),
+				OutgoingIntegrationRequestsTimeout: new(int64(-1)),
 			},
 			ExpectError: true,
 		},
 		"OutgoingIntegrationRequestsTimeout is zero": {
 			ServiceSettings: ServiceSettings{
-				OutgoingIntegrationRequestsTimeout: NewPointer(int64(0)),
+				OutgoingIntegrationRequestsTimeout: new(int64(0)),
 			},
 			ExpectError: true,
 		},
 		"OutgoingIntegrationRequestsTimeout is positiv": {
 			ServiceSettings: ServiceSettings{
-				OutgoingIntegrationRequestsTimeout: NewPointer(int64(1)),
+				OutgoingIntegrationRequestsTimeout: new(int64(1)),
 			},
 			ExpectError: false,
+		},
+		"MaximumPersonalAccessTokenLifetimeDays zero (unlimited) is accepted": {
+			ServiceSettings: ServiceSettings{
+				MaximumPersonalAccessTokenLifetimeDays: new(0),
+			},
+			ExpectError: false,
+		},
+		"MaximumPersonalAccessTokenLifetimeDays negative is rejected": {
+			ServiceSettings: ServiceSettings{
+				MaximumPersonalAccessTokenLifetimeDays: new(-1),
+			},
+			ExpectError: true,
+		},
+		"MaximumPersonalAccessTokenLifetimeDays at upper bound is accepted": {
+			ServiceSettings: ServiceSettings{
+				MaximumPersonalAccessTokenLifetimeDays: new(MaxPersonalAccessTokenLifetimeDays),
+			},
+			ExpectError: false,
+		},
+		"MaximumPersonalAccessTokenLifetimeDays beyond upper bound is rejected": {
+			ServiceSettings: ServiceSettings{
+				MaximumPersonalAccessTokenLifetimeDays: new(MaxPersonalAccessTokenLifetimeDays + 1),
+			},
+			ExpectError: true,
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -167,8 +192,8 @@ func TestConfigEnableDeveloper(t *testing.T) {
 		EnableDeveloper *bool
 		ExpectedSiteURL string
 	}{
-		{"enable developer is true", NewPointer(true), ServiceSettingsDefaultSiteURL},
-		{"enable developer is false", NewPointer(false), ""},
+		{"enable developer is true", new(true), ServiceSettingsDefaultSiteURL},
+		{"enable developer is false", new(false), ""},
 		{"enable developer is nil", nil, ""},
 	}
 
@@ -252,7 +277,7 @@ func TestFileSettingsDirectoryWhitespaceValidation(t *testing.T) {
 		t.Run(fmt.Sprintf("Valid %s", setting.name), func(t *testing.T) {
 			cfg := &Config{}
 			cfg.SetDefaults()
-			setting.configSetter(cfg, NewPointer(setting.validValue))
+			setting.configSetter(cfg, new(setting.validValue))
 
 			err := cfg.FileSettings.isValid()
 			require.Nil(t, err, "Expected no error but got: %v", err)
@@ -263,7 +288,7 @@ func TestFileSettingsDirectoryWhitespaceValidation(t *testing.T) {
 	t.Run("Directory with space in the middle (valid)", func(t *testing.T) {
 		cfg := &Config{}
 		cfg.SetDefaults()
-		cfg.FileSettings.Directory = NewPointer("/path/to/my directory")
+		cfg.FileSettings.Directory = new("/path/to/my directory")
 
 		err := cfg.FileSettings.isValid()
 		require.Nil(t, err, "Expected no error but got: %v", err)
@@ -284,7 +309,7 @@ func TestFileSettingsDirectoryWhitespaceValidation(t *testing.T) {
 						testValue = setting.validValue + ws.char
 					}
 
-					setting.configSetter(cfg, NewPointer(testValue))
+					setting.configSetter(cfg, new(testValue))
 
 					err := cfg.FileSettings.isValid()
 					require.NotNil(t, err, "Expected an error but got none")
@@ -292,6 +317,312 @@ func TestFileSettingsDirectoryWhitespaceValidation(t *testing.T) {
 				})
 			}
 		}
+	}
+}
+
+func TestFileSettingsAzureRequestTimeoutBounds(t *testing.T) {
+	cases := []struct {
+		name         string
+		value        int64
+		configSetter func(*Config, *int64)
+		errID        string
+	}{
+		{"AzureRequestTimeoutMilliseconds zero", 0, func(cfg *Config, v *int64) { cfg.FileSettings.AzureRequestTimeoutMilliseconds = v }, "model.config.is_valid.azure_timeout.app_error"},
+		{"AzureRequestTimeoutMilliseconds negative", -1, func(cfg *Config, v *int64) { cfg.FileSettings.AzureRequestTimeoutMilliseconds = v }, "model.config.is_valid.azure_timeout.app_error"},
+		{"AzureRequestTimeoutMilliseconds above ceiling", maxAzureRequestTimeoutMilliseconds + 1, func(cfg *Config, v *int64) { cfg.FileSettings.AzureRequestTimeoutMilliseconds = v }, "model.config.is_valid.azure_timeout.app_error"},
+		{"ExportAzureRequestTimeoutMilliseconds zero", 0, func(cfg *Config, v *int64) { cfg.FileSettings.ExportAzureRequestTimeoutMilliseconds = v }, "model.config.is_valid.export_azure_timeout.app_error"},
+		{"ExportAzureRequestTimeoutMilliseconds above ceiling", maxAzureRequestTimeoutMilliseconds + 1, func(cfg *Config, v *int64) { cfg.FileSettings.ExportAzureRequestTimeoutMilliseconds = v }, "model.config.is_valid.export_azure_timeout.app_error"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := &Config{}
+			cfg.SetDefaults()
+			tc.configSetter(cfg, NewPointer(tc.value))
+
+			err := cfg.FileSettings.isValid()
+			require.NotNil(t, err)
+			assert.Equal(t, tc.errID, err.Id)
+		})
+	}
+}
+
+func TestFileSettingsExtractContentTimeout(t *testing.T) {
+	t.Run("default is valid", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		require.NotNil(t, cfg.FileSettings.ExtractContentTimeout)
+		assert.Equal(t, 10, *cfg.FileSettings.ExtractContentTimeout)
+		assert.Nil(t, cfg.FileSettings.isValid())
+	})
+
+	t.Run("zero disables the timeout and is valid", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.FileSettings.ExtractContentTimeout = NewPointer(0)
+		assert.Nil(t, cfg.FileSettings.isValid())
+	})
+
+	t.Run("a positive value is valid", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.FileSettings.ExtractContentTimeout = NewPointer(10)
+		assert.Nil(t, cfg.FileSettings.isValid())
+	})
+
+	t.Run("a negative value is rejected", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.FileSettings.ExtractContentTimeout = NewPointer(-1)
+		err := cfg.FileSettings.isValid()
+		require.NotNil(t, err)
+		assert.Equal(t, "model.config.is_valid.extract_content_timeout.app_error", err.Id)
+	})
+}
+
+func TestFileSettingsAzureAuthMode(t *testing.T) {
+	t.Run("defaults to shared_key", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		require.NotNil(t, cfg.FileSettings.AzureAuthMode)
+		require.NotNil(t, cfg.FileSettings.ExportAzureAuthMode)
+		assert.Equal(t, AzureAuthModeSharedKey, *cfg.FileSettings.AzureAuthMode)
+		assert.Equal(t, AzureAuthModeSharedKey, *cfg.FileSettings.ExportAzureAuthMode)
+	})
+
+	t.Run("default_credential is accepted", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.FileSettings.AzureAuthMode = NewPointer(AzureAuthModeDefaultCredential)
+		cfg.FileSettings.ExportAzureAuthMode = NewPointer(AzureAuthModeDefaultCredential)
+
+		assert.Nil(t, cfg.FileSettings.isValid())
+	})
+
+	t.Run("unknown primary mode is rejected", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.FileSettings.AzureAuthMode = NewPointer("oauth2")
+
+		err := cfg.FileSettings.isValid()
+		require.NotNil(t, err)
+		assert.Equal(t, "model.config.is_valid.azure_auth_mode.app_error", err.Id)
+	})
+
+	t.Run("unknown export mode is rejected", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.FileSettings.ExportAzureAuthMode = NewPointer("oauth2")
+
+		err := cfg.FileSettings.isValid()
+		require.NotNil(t, err)
+		assert.Equal(t, "model.config.is_valid.export_azure_auth_mode.app_error", err.Id)
+	})
+}
+
+func TestFileSettingsAzureCloudValidation(t *testing.T) {
+	t.Run("unknown cloud values are rejected", func(t *testing.T) {
+		cases := []struct {
+			name         string
+			configSetter func(*Config, *string)
+			errID        string
+		}{
+			{"AzureCloud", func(cfg *Config, v *string) { cfg.FileSettings.AzureCloud = v }, "model.config.is_valid.azure_cloud.app_error"},
+			{"ExportAzureCloud", func(cfg *Config, v *string) { cfg.FileSettings.ExportAzureCloud = v }, "model.config.is_valid.azure_cloud.app_error"},
+		}
+		for _, tc := range cases {
+			t.Run(tc.name, func(t *testing.T) {
+				cfg := &Config{}
+				cfg.SetDefaults()
+				tc.configSetter(cfg, NewPointer("not-a-real-cloud"))
+
+				err := cfg.FileSettings.isValid()
+				require.NotNil(t, err)
+				assert.Equal(t, tc.errID, err.Id)
+			})
+		}
+	})
+
+	t.Run("custom cloud requires endpoint", func(t *testing.T) {
+		cases := []struct {
+			name        string
+			cloudSetter func(*Config, *string)
+			errID       string
+		}{
+			{"AzureCloud", func(cfg *Config, v *string) { cfg.FileSettings.AzureCloud = v }, "model.config.is_valid.azure_custom_endpoint.app_error"},
+			{"ExportAzureCloud", func(cfg *Config, v *string) { cfg.FileSettings.ExportAzureCloud = v }, "model.config.is_valid.azure_custom_endpoint.app_error"},
+		}
+		for _, tc := range cases {
+			t.Run(tc.name, func(t *testing.T) {
+				cfg := &Config{}
+				cfg.SetDefaults()
+				tc.cloudSetter(cfg, NewPointer(AzureCloudCustom))
+
+				err := cfg.FileSettings.isValid()
+				require.NotNil(t, err)
+				assert.Equal(t, tc.errID, err.Id)
+			})
+		}
+	})
+
+	t.Run("custom cloud with a valid endpoint passes validation", func(t *testing.T) {
+		cases := []struct {
+			name           string
+			cloudSetter    func(*Config, *string)
+			endpointSetter func(*Config, *string)
+		}{
+			{
+				"AzureCloud",
+				func(cfg *Config, v *string) { cfg.FileSettings.AzureCloud = v },
+				func(cfg *Config, v *string) { cfg.FileSettings.AzureEndpoint = v },
+			},
+			{
+				"ExportAzureCloud",
+				func(cfg *Config, v *string) { cfg.FileSettings.ExportAzureCloud = v },
+				func(cfg *Config, v *string) { cfg.FileSettings.ExportAzureEndpoint = v },
+			},
+		}
+		for _, tc := range cases {
+			t.Run(tc.name, func(t *testing.T) {
+				cfg := &Config{}
+				cfg.SetDefaults()
+				tc.cloudSetter(cfg, NewPointer(AzureCloudCustom))
+				tc.endpointSetter(cfg, NewPointer("https://account.blob.core.windows.net/"))
+
+				err := cfg.FileSettings.isValid()
+				require.Nil(t, err)
+			})
+		}
+	})
+}
+
+func TestFileSettingsAzureStorageAccountValidation(t *testing.T) {
+	// Managed clouds put the account name in the service hostname, so it must
+	// match Azure's documented format.
+	type accessors struct {
+		driver  func(*Config, *string)
+		cloud   func(*Config, *string)
+		account func(*Config, *string)
+	}
+	variants := []struct {
+		name string
+		accessors
+	}{
+		{
+			"upload",
+			accessors{
+				func(cfg *Config, v *string) { cfg.FileSettings.DriverName = v },
+				func(cfg *Config, v *string) { cfg.FileSettings.AzureCloud = v },
+				func(cfg *Config, v *string) { cfg.FileSettings.AzureStorageAccount = v },
+			},
+		},
+		{
+			"export",
+			accessors{
+				func(cfg *Config, v *string) { cfg.FileSettings.ExportDriverName = v },
+				func(cfg *Config, v *string) { cfg.FileSettings.ExportAzureCloud = v },
+				func(cfg *Config, v *string) { cfg.FileSettings.ExportAzureStorageAccount = v },
+			},
+		},
+	}
+
+	for _, variant := range variants {
+		t.Run(variant.name, func(t *testing.T) {
+			t.Run("malformed account name is rejected for commercial cloud", func(t *testing.T) {
+				for _, bad := range []string{"", "ab", strings.Repeat("a", 25), "WithUppercase", "with-dash", "with.dot", "with/slash", "with#hash"} {
+					cfg := &Config{}
+					cfg.SetDefaults()
+					variant.driver(cfg, NewPointer(ImageDriverAzure))
+					variant.cloud(cfg, NewPointer(AzureCloudCommercial))
+					variant.account(cfg, NewPointer(bad))
+
+					err := cfg.FileSettings.isValid()
+					require.NotNil(t, err, "expected %q to be rejected", bad)
+					assert.Equal(t, "model.config.is_valid.azure_storage_account.app_error", err.Id)
+				}
+			})
+
+			t.Run("valid account name passes for managed clouds", func(t *testing.T) {
+				// Empty cloud is treated as commercial, so it is validated too.
+				for _, cloud := range []string{AzureCloudCommercial, AzureCloudGovernment, ""} {
+					cfg := &Config{}
+					cfg.SetDefaults()
+					variant.driver(cfg, NewPointer(ImageDriverAzure))
+					variant.cloud(cfg, NewPointer(cloud))
+					variant.account(cfg, NewPointer("acmemattermost"))
+
+					err := cfg.FileSettings.isValid()
+					require.Nil(t, err)
+				}
+			})
+
+			t.Run("malformed account name is rejected for empty (commercial) cloud", func(t *testing.T) {
+				cfg := &Config{}
+				cfg.SetDefaults()
+				variant.driver(cfg, NewPointer(ImageDriverAzure))
+				variant.cloud(cfg, NewPointer(""))
+				variant.account(cfg, NewPointer("with#hash"))
+
+				err := cfg.FileSettings.isValid()
+				require.NotNil(t, err)
+				assert.Equal(t, "model.config.is_valid.azure_storage_account.app_error", err.Id)
+			})
+
+			t.Run("custom cloud skips account name validation", func(t *testing.T) {
+				cfg := &Config{}
+				cfg.SetDefaults()
+				variant.driver(cfg, NewPointer(ImageDriverAzure))
+				variant.cloud(cfg, NewPointer(AzureCloudCustom))
+				variant.account(cfg, NewPointer("with#hash"))
+				// Custom mode derives the host from the endpoint, not the account.
+				if variant.name == "upload" {
+					cfg.FileSettings.AzureEndpoint = NewPointer("https://blob.example.com/")
+				} else {
+					cfg.FileSettings.ExportAzureEndpoint = NewPointer("https://blob.example.com/")
+				}
+
+				err := cfg.FileSettings.isValid()
+				require.Nil(t, err)
+			})
+
+			t.Run("non-azure driver skips account name validation", func(t *testing.T) {
+				cfg := &Config{}
+				cfg.SetDefaults()
+				// DriverName stays at its default (local); the malformed Azure
+				// account name must not block an unrelated driver's config.
+				variant.cloud(cfg, NewPointer(AzureCloudCommercial))
+				variant.account(cfg, NewPointer("with#hash"))
+
+				err := cfg.FileSettings.isValid()
+				require.Nil(t, err)
+			})
+		})
+	}
+}
+
+func TestFileSettingsAzurePathPrefixTraversal(t *testing.T) {
+	cases := []struct {
+		name         string
+		configSetter func(*Config, *string)
+	}{
+		{
+			"AzurePathPrefix",
+			func(cfg *Config, value *string) { cfg.FileSettings.AzurePathPrefix = value },
+		},
+		{
+			"ExportAzurePathPrefix",
+			func(cfg *Config, value *string) { cfg.FileSettings.ExportAzurePathPrefix = value },
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := &Config{}
+			cfg.SetDefaults()
+			tc.configSetter(cfg, NewPointer("../escape"))
+
+			err := cfg.FileSettings.isValid()
+			require.NotNil(t, err)
+			assert.Equal(t, "model.config.is_valid.directory_traversal.app_error", err.Id)
+		})
 	}
 }
 
@@ -358,14 +689,14 @@ func TestConfigIsValidDefaultAlgorithms(t *testing.T) {
 func TestConfigServiceProviderDefault(t *testing.T) {
 	c1 := &Config{
 		SamlSettings: SamlSettings{
-			Enable:             NewPointer(true),
-			Verify:             NewPointer(false),
-			Encrypt:            NewPointer(false),
-			IdpURL:             NewPointer("http://test.url.com"),
-			IdpDescriptorURL:   NewPointer("http://test2.url.com"),
-			IdpCertificateFile: NewPointer("certificatefile"),
-			EmailAttribute:     NewPointer("Email"),
-			UsernameAttribute:  NewPointer("Username"),
+			Enable:             new(true),
+			Verify:             new(false),
+			Encrypt:            new(false),
+			IdpURL:             new("http://test.url.com"),
+			IdpDescriptorURL:   new("http://test2.url.com"),
+			IdpCertificateFile: new("certificatefile"),
+			EmailAttribute:     new("Email"),
+			UsernameAttribute:  new("Username"),
 		},
 	}
 
@@ -442,7 +773,7 @@ func TestConfigDefaultServiceSettingsExperimentalGroupUnreadChannels(t *testing.
 	// This setting was briefly a boolean, so ensure that those values still work as expected
 	c1 = Config{
 		ServiceSettings: ServiceSettings{
-			ExperimentalGroupUnreadChannels: NewPointer("1"),
+			ExperimentalGroupUnreadChannels: new("1"),
 		},
 	}
 	c1.SetDefaults()
@@ -451,7 +782,7 @@ func TestConfigDefaultServiceSettingsExperimentalGroupUnreadChannels(t *testing.
 
 	c1 = Config{
 		ServiceSettings: ServiceSettings{
-			ExperimentalGroupUnreadChannels: NewPointer("0"),
+			ExperimentalGroupUnreadChannels: new("0"),
 		},
 	}
 	c1.SetDefaults()
@@ -470,7 +801,7 @@ func TestConfigDefaultNPSPluginState(t *testing.T) {
 	t.Run("should enable NPS plugin if diagnostics are enabled", func(t *testing.T) {
 		c1 := Config{
 			LogSettings: LogSettings{
-				EnableDiagnostics: NewPointer(true),
+				EnableDiagnostics: new(true),
 			},
 		}
 
@@ -482,7 +813,7 @@ func TestConfigDefaultNPSPluginState(t *testing.T) {
 	t.Run("should not enable NPS plugin if diagnostics are disabled", func(t *testing.T) {
 		c1 := Config{
 			LogSettings: LogSettings{
-				EnableDiagnostics: NewPointer(false),
+				EnableDiagnostics: new(false),
 			},
 		}
 
@@ -521,7 +852,7 @@ func TestConfigDefaultChannelExportPluginState(t *testing.T) {
 func TestTeamSettingsIsValidSiteNameEmpty(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()
-	c1.TeamSettings.SiteName = NewPointer("")
+	c1.TeamSettings.SiteName = new("")
 
 	// should not fail if ts.SiteName is not set, defaults are used
 	require.Nil(t, c1.TeamSettings.isValid())
@@ -532,7 +863,7 @@ func TestTeamSettingsDefaultJoinLeaveMessage(t *testing.T) {
 	c1.SetDefaults()
 
 	// should default to true
-	require.Equal(t, NewPointer(true), c1.TeamSettings.EnableJoinLeaveMessageByDefault)
+	require.Equal(t, new(true), c1.TeamSettings.EnableJoinLeaveMessageByDefault)
 }
 
 func TestMessageExportSettingsIsValidEnableExportNotSet(t *testing.T) {
@@ -544,7 +875,7 @@ func TestMessageExportSettingsIsValidEnableExportNotSet(t *testing.T) {
 
 func TestMessageExportSettingsIsValidEnableExportFalse(t *testing.T) {
 	mes := &MessageExportSettings{
-		EnableExport: NewPointer(false),
+		EnableExport: new(false),
 	}
 
 	// should fail fast because message export isn't enabled
@@ -553,18 +884,18 @@ func TestMessageExportSettingsIsValidEnableExportFalse(t *testing.T) {
 
 func TestMessageExportSettingsIsValidExportFromTimestampInvalid(t *testing.T) {
 	mes := &MessageExportSettings{
-		EnableExport: NewPointer(true),
+		EnableExport: new(true),
 	}
 
 	// should fail fast because export from timestamp isn't set
 	require.NotNil(t, mes.isValid())
 
-	mes.ExportFromTimestamp = NewPointer(int64(-1))
+	mes.ExportFromTimestamp = new(int64(-1))
 
 	// should fail fast because export from timestamp isn't valid
 	require.NotNil(t, mes.isValid())
 
-	mes.ExportFromTimestamp = NewPointer(GetMillis() + 10000)
+	mes.ExportFromTimestamp = new(GetMillis() + 10000)
 
 	// should fail fast because export from timestamp is greater than current time
 	require.NotNil(t, mes.isValid())
@@ -572,14 +903,14 @@ func TestMessageExportSettingsIsValidExportFromTimestampInvalid(t *testing.T) {
 
 func TestMessageExportSettingsIsValidDailyRunTimeInvalid(t *testing.T) {
 	mes := &MessageExportSettings{
-		EnableExport:        NewPointer(true),
-		ExportFromTimestamp: NewPointer(int64(0)),
+		EnableExport:        new(true),
+		ExportFromTimestamp: new(int64(0)),
 	}
 
 	// should fail fast because daily runtime isn't set
 	require.NotNil(t, mes.isValid())
 
-	mes.DailyRunTime = NewPointer("33:33:33")
+	mes.DailyRunTime = new("33:33:33")
 
 	// should fail fast because daily runtime is invalid format
 	require.NotNil(t, mes.isValid())
@@ -587,9 +918,9 @@ func TestMessageExportSettingsIsValidDailyRunTimeInvalid(t *testing.T) {
 
 func TestMessageExportSettingsIsValidBatchSizeInvalid(t *testing.T) {
 	mes := &MessageExportSettings{
-		EnableExport:        NewPointer(true),
-		ExportFromTimestamp: NewPointer(int64(0)),
-		DailyRunTime:        NewPointer("15:04"),
+		EnableExport:        new(true),
+		ExportFromTimestamp: new(int64(0)),
+		DailyRunTime:        new("15:04"),
 	}
 
 	// should fail fast because batch size isn't set
@@ -598,10 +929,10 @@ func TestMessageExportSettingsIsValidBatchSizeInvalid(t *testing.T) {
 
 func TestMessageExportSettingsIsValidExportFormatInvalid(t *testing.T) {
 	mes := &MessageExportSettings{
-		EnableExport:        NewPointer(true),
-		ExportFromTimestamp: NewPointer(int64(0)),
-		DailyRunTime:        NewPointer("15:04"),
-		BatchSize:           NewPointer(100),
+		EnableExport:        new(true),
+		ExportFromTimestamp: new(int64(0)),
+		DailyRunTime:        new("15:04"),
+		BatchSize:           new(100),
 	}
 
 	// should fail fast because export format isn't set
@@ -610,11 +941,11 @@ func TestMessageExportSettingsIsValidExportFormatInvalid(t *testing.T) {
 
 func TestMessageExportSettingsIsValidGlobalRelayEmailAddressInvalid(t *testing.T) {
 	mes := &MessageExportSettings{
-		EnableExport:        NewPointer(true),
-		ExportFormat:        NewPointer(ComplianceExportTypeGlobalrelay),
-		ExportFromTimestamp: NewPointer(int64(0)),
-		DailyRunTime:        NewPointer("15:04"),
-		BatchSize:           NewPointer(100),
+		EnableExport:        new(true),
+		ExportFormat:        new(ComplianceExportTypeGlobalrelay),
+		ExportFromTimestamp: new(int64(0)),
+		DailyRunTime:        new("15:04"),
+		BatchSize:           new(100),
 	}
 
 	// should fail fast because global relay email address isn't set
@@ -623,11 +954,11 @@ func TestMessageExportSettingsIsValidGlobalRelayEmailAddressInvalid(t *testing.T
 
 func TestMessageExportSettingsIsValidActiance(t *testing.T) {
 	mes := &MessageExportSettings{
-		EnableExport:        NewPointer(true),
-		ExportFormat:        NewPointer(ComplianceExportTypeActiance),
-		ExportFromTimestamp: NewPointer(int64(0)),
-		DailyRunTime:        NewPointer("15:04"),
-		BatchSize:           NewPointer(100),
+		EnableExport:        new(true),
+		ExportFormat:        new(ComplianceExportTypeActiance),
+		ExportFromTimestamp: new(int64(0)),
+		DailyRunTime:        new("15:04"),
+		BatchSize:           new(100),
 	}
 
 	// should pass because everything is valid
@@ -636,11 +967,11 @@ func TestMessageExportSettingsIsValidActiance(t *testing.T) {
 
 func TestMessageExportSettingsIsValidGlobalRelaySettingsMissing(t *testing.T) {
 	mes := &MessageExportSettings{
-		EnableExport:        NewPointer(true),
-		ExportFormat:        NewPointer(ComplianceExportTypeGlobalrelay),
-		ExportFromTimestamp: NewPointer(int64(0)),
-		DailyRunTime:        NewPointer("15:04"),
-		BatchSize:           NewPointer(100),
+		EnableExport:        new(true),
+		ExportFormat:        new(ComplianceExportTypeGlobalrelay),
+		ExportFromTimestamp: new(int64(0)),
+		DailyRunTime:        new("15:04"),
+		BatchSize:           new(100),
 	}
 
 	// should fail because globalrelay settings are missing
@@ -649,16 +980,16 @@ func TestMessageExportSettingsIsValidGlobalRelaySettingsMissing(t *testing.T) {
 
 func TestMessageExportSettingsIsValidGlobalRelaySettingsInvalidCustomerType(t *testing.T) {
 	mes := &MessageExportSettings{
-		EnableExport:        NewPointer(true),
-		ExportFormat:        NewPointer(ComplianceExportTypeGlobalrelay),
-		ExportFromTimestamp: NewPointer(int64(0)),
-		DailyRunTime:        NewPointer("15:04"),
-		BatchSize:           NewPointer(100),
+		EnableExport:        new(true),
+		ExportFormat:        new(ComplianceExportTypeGlobalrelay),
+		ExportFromTimestamp: new(int64(0)),
+		DailyRunTime:        new("15:04"),
+		BatchSize:           new(100),
 		GlobalRelaySettings: &GlobalRelayMessageExportSettings{
-			CustomerType: NewPointer("Invalid"),
-			EmailAddress: NewPointer("valid@mattermost.com"),
-			SMTPUsername: NewPointer("SomeUsername"),
-			SMTPPassword: NewPointer("SomePassword"),
+			CustomerType: new("Invalid"),
+			EmailAddress: new("valid@mattermost.com"),
+			SMTPUsername: new("SomeUsername"),
+			SMTPPassword: new("SomePassword"),
 		},
 	}
 
@@ -676,49 +1007,49 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 		{
 			"Invalid email address",
 			&GlobalRelayMessageExportSettings{
-				CustomerType: NewPointer(GlobalrelayCustomerTypeA9),
-				EmailAddress: NewPointer("invalidEmailAddress"),
-				SMTPUsername: NewPointer("SomeUsername"),
-				SMTPPassword: NewPointer("SomePassword"),
+				CustomerType: new(GlobalrelayCustomerTypeA9),
+				EmailAddress: new("invalidEmailAddress"),
+				SMTPUsername: new("SomeUsername"),
+				SMTPPassword: new("SomePassword"),
 			},
 			false,
 		},
 		{
 			"Missing smtp username",
 			&GlobalRelayMessageExportSettings{
-				CustomerType: NewPointer(GlobalrelayCustomerTypeA10),
-				EmailAddress: NewPointer("valid@mattermost.com"),
-				SMTPPassword: NewPointer("SomePassword"),
+				CustomerType: new(GlobalrelayCustomerTypeA10),
+				EmailAddress: new("valid@mattermost.com"),
+				SMTPPassword: new("SomePassword"),
 			},
 			false,
 		},
 		{
 			"Invalid smtp username",
 			&GlobalRelayMessageExportSettings{
-				CustomerType: NewPointer(GlobalrelayCustomerTypeA10),
-				EmailAddress: NewPointer("valid@mattermost.com"),
-				SMTPUsername: NewPointer(""),
-				SMTPPassword: NewPointer("SomePassword"),
+				CustomerType: new(GlobalrelayCustomerTypeA10),
+				EmailAddress: new("valid@mattermost.com"),
+				SMTPUsername: new(""),
+				SMTPPassword: new("SomePassword"),
 			},
 			false,
 		},
 		{
 			"Invalid smtp password",
 			&GlobalRelayMessageExportSettings{
-				CustomerType: NewPointer(GlobalrelayCustomerTypeA10),
-				EmailAddress: NewPointer("valid@mattermost.com"),
-				SMTPUsername: NewPointer("SomeUsername"),
-				SMTPPassword: NewPointer(""),
+				CustomerType: new(GlobalrelayCustomerTypeA10),
+				EmailAddress: new("valid@mattermost.com"),
+				SMTPUsername: new("SomeUsername"),
+				SMTPPassword: new(""),
 			},
 			false,
 		},
 		{
 			"Valid data",
 			&GlobalRelayMessageExportSettings{
-				CustomerType: NewPointer(GlobalrelayCustomerTypeA9),
-				EmailAddress: NewPointer("valid@mattermost.com"),
-				SMTPUsername: NewPointer("SomeUsername"),
-				SMTPPassword: NewPointer("SomePassword"),
+				CustomerType: new(GlobalrelayCustomerTypeA9),
+				EmailAddress: new("valid@mattermost.com"),
+				SMTPUsername: new("SomeUsername"),
+				SMTPPassword: new("SomePassword"),
 			},
 			true,
 		},
@@ -727,11 +1058,11 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mes := &MessageExportSettings{
-				EnableExport:        NewPointer(true),
-				ExportFormat:        NewPointer(ComplianceExportTypeGlobalrelay),
-				ExportFromTimestamp: NewPointer(int64(0)),
-				DailyRunTime:        NewPointer("15:04"),
-				BatchSize:           NewPointer(100),
+				EnableExport:        new(true),
+				ExportFormat:        new(ComplianceExportTypeGlobalrelay),
+				ExportFromTimestamp: new(int64(0)),
+				DailyRunTime:        new("15:04"),
+				BatchSize:           new(100),
 				GlobalRelaySettings: tt.value,
 			}
 
@@ -758,7 +1089,7 @@ func TestMessageExportSetDefaults(t *testing.T) {
 func TestMessageExportSetDefaultsExportEnabledExportFromTimestampNil(t *testing.T) {
 	// Test retained as protection against regression of MM-13185
 	mes := &MessageExportSettings{
-		EnableExport: NewPointer(true),
+		EnableExport: new(true),
 	}
 	mes.SetDefaults()
 
@@ -772,8 +1103,8 @@ func TestMessageExportSetDefaultsExportEnabledExportFromTimestampNil(t *testing.
 func TestMessageExportSetDefaultsExportEnabledExportFromTimestampZero(t *testing.T) {
 	// Test retained as protection against regression of MM-13185
 	mes := &MessageExportSettings{
-		EnableExport:        NewPointer(true),
-		ExportFromTimestamp: NewPointer(int64(0)),
+		EnableExport:        new(true),
+		ExportFromTimestamp: new(int64(0)),
 	}
 	mes.SetDefaults()
 
@@ -786,8 +1117,8 @@ func TestMessageExportSetDefaultsExportEnabledExportFromTimestampZero(t *testing
 
 func TestMessageExportSetDefaultsExportEnabledExportFromTimestampNonZero(t *testing.T) {
 	mes := &MessageExportSettings{
-		EnableExport:        NewPointer(true),
-		ExportFromTimestamp: NewPointer(int64(12345)),
+		EnableExport:        new(true),
+		ExportFromTimestamp: new(int64(12345)),
 	}
 	mes.SetDefaults()
 
@@ -799,7 +1130,7 @@ func TestMessageExportSetDefaultsExportEnabledExportFromTimestampNonZero(t *test
 
 func TestMessageExportSetDefaultsExportDisabledExportFromTimestampNil(t *testing.T) {
 	mes := &MessageExportSettings{
-		EnableExport: NewPointer(false),
+		EnableExport: new(false),
 	}
 	mes.SetDefaults()
 
@@ -811,8 +1142,8 @@ func TestMessageExportSetDefaultsExportDisabledExportFromTimestampNil(t *testing
 
 func TestMessageExportSetDefaultsExportDisabledExportFromTimestampZero(t *testing.T) {
 	mes := &MessageExportSettings{
-		EnableExport:        NewPointer(false),
-		ExportFromTimestamp: NewPointer(int64(0)),
+		EnableExport:        new(false),
+		ExportFromTimestamp: new(int64(0)),
 	}
 	mes.SetDefaults()
 
@@ -825,8 +1156,8 @@ func TestMessageExportSetDefaultsExportDisabledExportFromTimestampZero(t *testin
 func TestMessageExportSetDefaultsExportDisabledExportFromTimestampNonZero(t *testing.T) {
 	// Test retained as protection against regression of MM-13185
 	mes := &MessageExportSettings{
-		EnableExport:        NewPointer(false),
-		ExportFromTimestamp: NewPointer(int64(12345)),
+		EnableExport:        new(false),
+		ExportFromTimestamp: new(int64(12345)),
 	}
 	mes.SetDefaults()
 
@@ -946,7 +1277,7 @@ func TestListenAddressIsValidated(t *testing.T) {
 
 	for key, expected := range testValues {
 		ss := &ServiceSettings{
-			ListenAddress: NewPointer(key),
+			ListenAddress: new(key),
 		}
 		ss.SetDefaults(true)
 		if expected {
@@ -972,6 +1303,8 @@ func TestImageProxySettingsSetDefaults(t *testing.T) {
 }
 
 func TestImageProxySettingsIsValid(t *testing.T) {
+	testHMACKey := NewTestPassword()
+
 	for _, test := range []struct {
 		Name                    string
 		Enable                  bool
@@ -1012,7 +1345,7 @@ func TestImageProxySettingsIsValid(t *testing.T) {
 			Enable:                  true,
 			ImageProxyType:          ImageProxyTypeAtmosCamo,
 			RemoteImageProxyURL:     "someurl",
-			RemoteImageProxyOptions: "someoptions",
+			RemoteImageProxyOptions: testHMACKey,
 			ExpectError:             false,
 		},
 		{
@@ -1030,6 +1363,14 @@ func TestImageProxySettingsIsValid(t *testing.T) {
 			RemoteImageProxyURL:     "someurl",
 			RemoteImageProxyOptions: "",
 			ExpectError:             true,
+		},
+		{
+			Name:                    "atmos/camo, short options under FIPS",
+			Enable:                  true,
+			ImageProxyType:          ImageProxyTypeAtmosCamo,
+			RemoteImageProxyURL:     "someurl",
+			RemoteImageProxyOptions: "foo",
+			ExpectError:             FIPSEnabled,
 		},
 	} {
 		t.Run(test.Name, func(t *testing.T) {
@@ -1059,133 +1400,133 @@ func TestLdapSettingsIsValid(t *testing.T) {
 		{
 			Name: "disabled",
 			LdapSettings: LdapSettings{
-				Enable: NewPointer(false),
+				Enable: new(false),
 			},
 			ExpectError: false,
 		},
 		{
 			Name: "missing server",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer(""),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				UserFilter:        NewPointer(""),
+				Enable:            new(true),
+				LdapServer:        new(""),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				UserFilter:        new(""),
 			},
 			ExpectError: true,
 		},
 		{
 			Name: "empty user filter",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				UserFilter:        NewPointer(""),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				UserFilter:        new(""),
 			},
 			ExpectError: false,
 		},
 		{
 			Name: "valid user filter #1",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				UserFilter:        NewPointer("(property=value)"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				UserFilter:        new("(property=value)"),
 			},
 			ExpectError: false,
 		},
 		{
 			Name: "invalid user filter #1",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				UserFilter:        NewPointer("("),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				UserFilter:        new("("),
 			},
 			ExpectError: true,
 		},
 		{
 			Name: "invalid user filter #2",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				UserFilter:        NewPointer("()"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				UserFilter:        new("()"),
 			},
 			ExpectError: true,
 		},
 		{
 			Name: "valid user filter #2",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				UserFilter:        NewPointer("(&(property=value)(otherthing=othervalue))"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				UserFilter:        new("(&(property=value)(otherthing=othervalue))"),
 			},
 			ExpectError: false,
 		},
 		{
 			Name: "valid user filter #3",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				UserFilter:        NewPointer("(&(property=value)(|(otherthing=othervalue)(other=thing)))"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				UserFilter:        new("(&(property=value)(|(otherthing=othervalue)(other=thing)))"),
 			},
 			ExpectError: false,
 		},
 		{
 			Name: "invalid user filter #3",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				UserFilter:        NewPointer("(&(property=value)(|(otherthing=othervalue)(other=thing))"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				UserFilter:        new("(&(property=value)(|(otherthing=othervalue)(other=thing))"),
 			},
 			ExpectError: true,
 		},
 		{
 			Name: "invalid user filter #4",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				UserFilter:        NewPointer("(&(property=value)((otherthing=othervalue)(other=thing)))"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				UserFilter:        new("(&(property=value)((otherthing=othervalue)(other=thing)))"),
 			},
 			ExpectError: true,
 		},
@@ -1193,98 +1534,98 @@ func TestLdapSettingsIsValid(t *testing.T) {
 		{
 			Name: "valid guest filter #1",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				GuestFilter:       NewPointer("(property=value)"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				GuestFilter:       new("(property=value)"),
 			},
 			ExpectError: false,
 		},
 		{
 			Name: "invalid guest filter #1",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				GuestFilter:       NewPointer("("),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				GuestFilter:       new("("),
 			},
 			ExpectError: true,
 		},
 		{
 			Name: "invalid guest filter #2",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				GuestFilter:       NewPointer("()"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				GuestFilter:       new("()"),
 			},
 			ExpectError: true,
 		},
 		{
 			Name: "valid guest filter #2",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				GuestFilter:       NewPointer("(&(property=value)(otherthing=othervalue))"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				GuestFilter:       new("(&(property=value)(otherthing=othervalue))"),
 			},
 			ExpectError: false,
 		},
 		{
 			Name: "valid guest filter #3",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				GuestFilter:       NewPointer("(&(property=value)(|(otherthing=othervalue)(other=thing)))"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				GuestFilter:       new("(&(property=value)(|(otherthing=othervalue)(other=thing)))"),
 			},
 			ExpectError: false,
 		},
 		{
 			Name: "invalid guest filter #3",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				GuestFilter:       NewPointer("(&(property=value)(|(otherthing=othervalue)(other=thing))"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				GuestFilter:       new("(&(property=value)(|(otherthing=othervalue)(other=thing))"),
 			},
 			ExpectError: true,
 		},
 		{
 			Name: "invalid guest filter #4",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				GuestFilter:       NewPointer("(&(property=value)((otherthing=othervalue)(other=thing)))"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				GuestFilter:       new("(&(property=value)((otherthing=othervalue)(other=thing)))"),
 			},
 			ExpectError: true,
 		},
@@ -1292,98 +1633,98 @@ func TestLdapSettingsIsValid(t *testing.T) {
 		{
 			Name: "valid Admin filter #1",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				AdminFilter:       NewPointer("(property=value)"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				AdminFilter:       new("(property=value)"),
 			},
 			ExpectError: false,
 		},
 		{
 			Name: "invalid Admin filter #1",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				AdminFilter:       NewPointer("("),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				AdminFilter:       new("("),
 			},
 			ExpectError: true,
 		},
 		{
 			Name: "invalid Admin filter #2",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				AdminFilter:       NewPointer("()"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				AdminFilter:       new("()"),
 			},
 			ExpectError: true,
 		},
 		{
 			Name: "valid Admin filter #2",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				AdminFilter:       NewPointer("(&(property=value)(otherthing=othervalue))"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				AdminFilter:       new("(&(property=value)(otherthing=othervalue))"),
 			},
 			ExpectError: false,
 		},
 		{
 			Name: "valid Admin filter #3",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				AdminFilter:       NewPointer("(&(property=value)(|(otherthing=othervalue)(other=thing)))"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				AdminFilter:       new("(&(property=value)(|(otherthing=othervalue)(other=thing)))"),
 			},
 			ExpectError: false,
 		},
 		{
 			Name: "invalid Admin filter #3",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				AdminFilter:       NewPointer("(&(property=value)(|(otherthing=othervalue)(other=thing))"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				AdminFilter:       new("(&(property=value)(|(otherthing=othervalue)(other=thing))"),
 			},
 			ExpectError: true,
 		},
 		{
 			Name: "invalid Admin filter #4",
 			LdapSettings: LdapSettings{
-				Enable:            NewPointer(true),
-				LdapServer:        NewPointer("server"),
-				BaseDN:            NewPointer("basedn"),
-				EmailAttribute:    NewPointer("email"),
-				UsernameAttribute: NewPointer("username"),
-				IdAttribute:       NewPointer("id"),
-				LoginIdAttribute:  NewPointer("loginid"),
-				AdminFilter:       NewPointer("(&(property=value)((otherthing=othervalue)(other=thing)))"),
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				AdminFilter:       new("(&(property=value)((otherthing=othervalue)(other=thing)))"),
 			},
 			ExpectError: true,
 		},
@@ -1448,21 +1789,21 @@ func TestLogSettingsIsValid(t *testing.T) {
 				AdvancedLoggingJSON: json.RawMessage(`
 				{
 					"console-log": {
-							"Type": "XYZ",
-							"Format": "json",
-							"Levels": [
-							  {"ID": 10, "Name": "stdlog", "Stacktrace": false},
-									{"ID": 5, "Name": "debug", "Stacktrace": false},
-									{"ID": 4, "Name": "info", "Stacktrace": false, "color": 36},
-									{"ID": 3, "Name": "warn", "Stacktrace": false, "color": 33},
-									{"ID": 2, "Name": "error", "Stacktrace": true, "color": 31},
-									{"ID": 1, "Name": "fatal", "Stacktrace": true},
-									{"ID": 0, "Name": "panic", "Stacktrace": true}
-							],
-							"Options": {
-									"Out": "stdout"
-							},
-							"MaxQueueSize": 1000
+						"Type": "XYZ",
+						"Format": "json",
+						"Levels": [
+							{"ID": 10, "Name": "stdlog", "Stacktrace": false},
+							{"ID": 5, "Name": "debug", "Stacktrace": false},
+							{"ID": 4, "Name": "info", "Stacktrace": false, "color": 36},
+							{"ID": 3, "Name": "warn", "Stacktrace": false, "color": 33},
+							{"ID": 2, "Name": "error", "Stacktrace": true, "color": 31},
+							{"ID": 1, "Name": "fatal", "Stacktrace": true},
+							{"ID": 0, "Name": "panic", "Stacktrace": true}
+						],
+						"Options": {
+							"Out": "stdout"
+						},
+						"MaxQueueSize": 1000
 					}
 				}
 				`),
@@ -1474,18 +1815,85 @@ func TestLogSettingsIsValid(t *testing.T) {
 				AdvancedLoggingJSON: json.RawMessage(`
 				{
 					"console-log": {
-							"Type": "console",
-							"Format": "json",
-							"Levels": [
-								{"ID": 5, "Name": "debug", "Stacktrace": false},
-								{"ID": 4, "Name": "info", "Stacktrace": false, "color": 36},
-								{"ID": 3, "Name": "warn", "Stacktrace": false, "color": 33},
-								{"ID": 2, "Name": "error", "Stacktrace": true, "color": 31}
-							],
-							"Options": {
-									"Out": "stdout"
-							},
-							"MaxQueueSize": 1000
+						"Type": "console",
+						"Format": "json",
+						"Levels": [
+							{"ID": 5, "Name": "debug", "Stacktrace": false},
+							{"ID": 4, "Name": "info", "Stacktrace": false, "color": 36},
+							{"ID": 3, "Name": "warn", "Stacktrace": false, "color": 33},
+							{"ID": 2, "Name": "error", "Stacktrace": true, "color": 31}
+						],
+						"Options": {
+							"Out": "stdout"
+						},
+						"MaxQueueSize": 1000
+					}
+				}
+				`),
+			},
+			ExpectError: false,
+		},
+		"AdvancedLoggingJSON with invalid log level": {
+			LogSettings: LogSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"console-log": {
+						"Type": "console",
+						"Format": "json",
+						"Levels": [
+							{"ID": 999, "Name": "info", "Stacktrace": false}
+						],
+						"Options": {
+							"Out": "stdout"
+						},
+						"MaxQueueSize": 1000
+					}
+				}
+				`),
+			},
+			ExpectError: true,
+		},
+		"AdvancedLoggingJSON with audit log level": {
+			LogSettings: LogSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"console-log": {
+						"Type": "console",
+						"Format": "json",
+						"Levels": [
+							{ "id": 100, "name": "audit-api" },
+							{ "id": 101, "name": "audit-content" },
+							{ "id": 102, "name": "audit-permissions" },
+							{ "id": 103, "name": "audit-cli" }
+						],
+						"Options": {
+							"Out": "stdout"
+						},
+						"MaxQueueSize": 1000
+					}
+				}
+				`),
+			},
+			ExpectError: true,
+		},
+		"AdvancedLoggingJSON with custom log levels": {
+			LogSettings: LogSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"audit-log": {
+						"Type": "console",
+						"Format": "json",
+						"Levels": [
+							{"ID": 140, "Name": "LDAPError", "Stacktrace": false},
+							{"ID": 141, "Name": "LDAPWarn", "Stacktrace": false},
+							{"ID": 142, "Name": "LDAPInfo", "Stacktrace": false},
+							{"ID": 143, "Name": "LDAPDebug", "Stacktrace": false},
+							{"ID": 144, "Name": "LDAPTrace", "Stacktrace": false}
+						],
+						"Options": {
+							"Out": "stdout"
+						},
+						"MaxQueueSize": 1000
 					}
 				}
 				`),
@@ -1512,15 +1920,19 @@ func TestConfigSanitize(t *testing.T) {
 
 	*c.LdapSettings.BindPassword = "foo"
 	*c.FileSettings.AmazonS3SecretAccessKey = "bar"
+	*c.FileSettings.ExportAmazonS3SecretAccessKey = "export-secret"
 	*c.EmailSettings.SMTPPassword = "baz"
 	*c.GitLabSettings.Secret = "bingo"
 	*c.OpenIdSettings.Secret = "secret"
+	*c.ServiceSettings.GoogleDeveloperKey = "google-api-key"
+	*c.ServiceSettings.GiphySdkKey = "giphy-sdk-key"
+	*c.AutoTranslationSettings.LibreTranslate.APIKey = "libre-api-key"
 	c.SqlSettings.DataSourceReplicas = []string{"stuff"}
 	c.SqlSettings.DataSourceSearchReplicas = []string{"stuff"}
 	c.SqlSettings.ReplicaLagSettings = []*ReplicaLagSettings{{
-		DataSource:       NewPointer("DataSource"),
-		QueryAbsoluteLag: NewPointer("QueryAbsoluteLag"),
-		QueryTimeLag:     NewPointer("QueryTimeLag"),
+		DataSource:       new("DataSource"),
+		QueryAbsoluteLag: new("QueryAbsoluteLag"),
+		QueryTimeLag:     new("QueryTimeLag"),
 	}}
 
 	c.Sanitize(nil, nil)
@@ -1528,12 +1940,16 @@ func TestConfigSanitize(t *testing.T) {
 	assert.Equal(t, FakeSetting, *c.LdapSettings.BindPassword)
 	assert.Equal(t, FakeSetting, *c.FileSettings.PublicLinkSalt)
 	assert.Equal(t, FakeSetting, *c.FileSettings.AmazonS3SecretAccessKey)
+	assert.Equal(t, FakeSetting, *c.FileSettings.ExportAmazonS3SecretAccessKey)
 	assert.Equal(t, FakeSetting, *c.EmailSettings.SMTPPassword)
 	assert.Equal(t, FakeSetting, *c.GitLabSettings.Secret)
 	assert.Equal(t, FakeSetting, *c.OpenIdSettings.Secret)
+	assert.Equal(t, FakeSetting, *c.AutoTranslationSettings.LibreTranslate.APIKey)
 	assert.Equal(t, FakeSetting, *c.SqlSettings.DataSource)
 	assert.Equal(t, FakeSetting, *c.SqlSettings.AtRestEncryptKey)
 	assert.Equal(t, FakeSetting, *c.ElasticsearchSettings.Password)
+	assert.Equal(t, FakeSetting, *c.ServiceSettings.GoogleDeveloperKey)
+	assert.Equal(t, FakeSetting, *c.ServiceSettings.GiphySdkKey)
 	assert.Equal(t, FakeSetting, c.SqlSettings.DataSourceReplicas[0])
 	assert.Equal(t, FakeSetting, c.SqlSettings.DataSourceSearchReplicas[0])
 
@@ -1562,15 +1978,19 @@ func TestConfigSanitize(t *testing.T) {
 }
 
 func TestPluginSettingsSanitize(t *testing.T) {
-	plugins := map[string]map[string]any{
-		"plugin.id": {
-			"somesetting":  "some value",
-			"secrettext":   "a secret",
-			"secretnumber": 123,
-		},
-		"another.plugin": {
-			"somesetting": 456,
-		},
+	const (
+		pluginID1 = "plugin.id"
+		pluginID2 = "another.plugin"
+	)
+	settingsPlugin1 := map[string]any{
+		"someoldsettings": "some old value",
+		"somesetting":     "some value",
+		"secrettext":      "a secret",
+		"secretnumber":    123,
+	}
+
+	settingsPlugin2 := map[string]any{
+		"somesetting": 456,
 	}
 
 	for name, tc := range map[string]struct {
@@ -1579,34 +1999,66 @@ func TestPluginSettingsSanitize(t *testing.T) {
 	}{
 		"nil list of manifests": {
 			manifests: nil,
-			expected: map[string]map[string]any{
-				"plugin.id": {
-					"somesetting":  FakeSetting,
-					"secrettext":   FakeSetting,
-					"secretnumber": FakeSetting,
-				},
-				"another.plugin": {
-					"somesetting": FakeSetting,
-				},
-			},
+			expected:  map[string]map[string]any{},
 		},
 		"empty list of manifests": {
 			manifests: []*Manifest{},
-			expected: map[string]map[string]any{
-				"plugin.id": {
-					"somesetting":  FakeSetting,
-					"secrettext":   FakeSetting,
-					"secretnumber": FakeSetting,
+			expected:  map[string]map[string]any{},
+		},
+		"one plugin installed without settings schema": {
+			manifests: []*Manifest{
+				{
+					Id:             pluginID1,
+					SettingsSchema: nil,
 				},
-				"another.plugin": {
-					"somesetting": FakeSetting,
+			},
+			expected: map[string]map[string]any{
+				pluginID1: {
+					"someoldsettings": "some old value",
+					"somesetting":     "some value",
+					"secrettext":      "a secret",
+					"secretnumber":    123,
+				},
+			},
+		},
+		"one plugin installed empty settings schema": {
+			manifests: []*Manifest{
+				{
+					Id:             pluginID1,
+					SettingsSchema: &PluginSettingsSchema{},
+				},
+			},
+			expected: map[string]map[string]any{
+				pluginID1: {
+					"someoldsettings": "some old value",
+					"somesetting":     "some value",
+					"secrettext":      "a secret",
+					"secretnumber":    123,
+				},
+			},
+		},
+		"one plugin installed empty settings list": {
+			manifests: []*Manifest{
+				{
+					Id: pluginID1,
+					SettingsSchema: &PluginSettingsSchema{
+						Settings: []*PluginSetting{},
+					},
+				},
+			},
+			expected: map[string]map[string]any{
+				pluginID1: {
+					"someoldsettings": "some old value",
+					"somesetting":     "some value",
+					"secrettext":      "a secret",
+					"secretnumber":    123,
 				},
 			},
 		},
 		"one plugin installed": {
 			manifests: []*Manifest{
 				{
-					Id: "plugin.id",
+					Id: pluginID1,
 					SettingsSchema: &PluginSettingsSchema{
 						Settings: []*PluginSetting{
 							{
@@ -1629,17 +2081,18 @@ func TestPluginSettingsSanitize(t *testing.T) {
 				},
 			},
 			expected: map[string]map[string]any{
-				"plugin.id": {
-					"somesetting":  "some value",
-					"secrettext":   FakeSetting,
-					"secretnumber": FakeSetting,
+				pluginID1: {
+					"someoldsettings": "some old value",
+					"somesetting":     "some value",
+					"secrettext":      FakeSetting,
+					"secretnumber":    FakeSetting,
 				},
 			},
 		},
 		"two plugins installed": {
 			manifests: []*Manifest{
 				{
-					Id: "plugin.id",
+					Id: pluginID1,
 					SettingsSchema: &PluginSettingsSchema{
 						Settings: []*PluginSetting{
 							{
@@ -1661,7 +2114,7 @@ func TestPluginSettingsSanitize(t *testing.T) {
 					},
 				},
 				{
-					Id: "another.plugin",
+					Id: pluginID2,
 					SettingsSchema: &PluginSettingsSchema{
 						Settings: []*PluginSetting{
 							{
@@ -1674,25 +2127,111 @@ func TestPluginSettingsSanitize(t *testing.T) {
 				},
 			},
 			expected: map[string]map[string]any{
-				"plugin.id": {
-					"somesetting":  "some value",
-					"secrettext":   FakeSetting,
-					"secretnumber": FakeSetting,
+				pluginID1: {
+					"someoldsettings": "some old value",
+					"somesetting":     "some value",
+					"secrettext":      FakeSetting,
+					"secretnumber":    FakeSetting,
 				},
-				"another.plugin": {
+				pluginID2: {
 					"somesetting": 456,
+				},
+			},
+		},
+		"secret settings in sections are sanitized": {
+			manifests: []*Manifest{
+				{
+					Id: pluginID1,
+					SettingsSchema: &PluginSettingsSchema{
+						Settings: []*PluginSetting{
+							{
+								Key:    "somesetting",
+								Type:   "text",
+								Secret: false,
+							},
+						},
+						Sections: []*PluginSettingsSection{
+							{
+								Key: "section1",
+								Settings: []*PluginSetting{
+									{
+										Key:    "secrettext",
+										Type:   "text",
+										Secret: true,
+									},
+									{
+										Key:    "secretnumber",
+										Type:   "number",
+										Secret: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: map[string]map[string]any{
+				pluginID1: {
+					"someoldsettings": "some old value",
+					"somesetting":     "some value",
+					"secrettext":      FakeSetting,
+					"secretnumber":    FakeSetting,
+				},
+			},
+		},
+		"secret settings across multiple sections": {
+			manifests: []*Manifest{
+				{
+					Id: pluginID1,
+					SettingsSchema: &PluginSettingsSchema{
+						Sections: []*PluginSettingsSection{
+							{
+								Key: "section1",
+								Settings: []*PluginSetting{
+									{
+										Key:    "somesetting",
+										Type:   "text",
+										Secret: false,
+									},
+									{
+										Key:    "secrettext",
+										Type:   "text",
+										Secret: true,
+									},
+								},
+							},
+							{
+								Key: "section2",
+								Settings: []*PluginSetting{
+									{
+										Key:    "secretnumber",
+										Type:   "number",
+										Secret: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: map[string]map[string]any{
+				pluginID1: {
+					"someoldsettings": "some old value",
+					"somesetting":     "some value",
+					"secrettext":      FakeSetting,
+					"secretnumber":    FakeSetting,
 				},
 			},
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			if name != "one plugin installed" {
-				return
-			}
-
 			c := PluginSettings{}
 			c.SetDefaults(*NewLogSettings())
-			c.Plugins = plugins
+
+			c.Plugins[pluginID1] = make(map[string]any)
+			maps.Copy(c.Plugins[pluginID1], settingsPlugin1)
+			c.Plugins[pluginID2] = make(map[string]any)
+			maps.Copy(c.Plugins[pluginID2], settingsPlugin2)
 
 			c.Sanitize(tc.manifests)
 
@@ -1943,6 +2482,40 @@ func TestConfigServiceSettingsIsValid(t *testing.T) {
 		require.NotNil(t, appErr)
 		require.Equal(t, "model.config.is_valid.collapsed_threads.app_error", appErr.Id)
 	})
+
+	t.Run("DCR redirect URI allowlist validation", func(t *testing.T) {
+		cfg := Config{}
+		cfg.SetDefaults()
+
+		// Valid allowlist
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"https://example.com/**", "https://*.test.com/callback", "http://localhost:*"}
+		appErr := cfg.ServiceSettings.isValid()
+		require.Nil(t, appErr)
+
+		// Empty/whitespace entry rejected
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"https://ok.com/**", "  ", "https://also.com/cb"}
+		appErr = cfg.ServiceSettings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", appErr.Id)
+
+		// Non-http(s) scheme rejected
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"ftp://example.com/**"}
+		appErr = cfg.ServiceSettings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", appErr.Id)
+
+		// Malformed pattern (too short) rejected
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"https://"}
+		appErr = cfg.ServiceSettings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", appErr.Id)
+
+		// Malformed wildcard expression rejected
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"https://example.com/***"}
+		appErr = cfg.ServiceSettings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", appErr.Id)
+	})
 }
 
 func TestConfigDefaultCallsPluginState(t *testing.T) {
@@ -1954,8 +2527,8 @@ func TestConfigDefaultCallsPluginState(t *testing.T) {
 	})
 
 	t.Run("should enable Calls plugin by default on Cloud", func(t *testing.T) {
-		os.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
-		defer os.Unsetenv("MM_CLOUD_INSTALLATION_ID")
+		// t.Setenv prevents t.Parallel — env var has no config equivalent
+		t.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
 		c1 := Config{}
 		c1.SetDefaults()
 
@@ -1987,8 +2560,8 @@ func TestConfigDefaultAIPluginState(t *testing.T) {
 	})
 
 	t.Run("should enable AI plugin by default on Cloud", func(t *testing.T) {
-		os.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
-		defer os.Unsetenv("MM_CLOUD_INSTALLATION_ID")
+		// t.Setenv prevents t.Parallel — env var has no config equivalent
+		t.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
 		c1 := Config{}
 		c1.SetDefaults()
 
@@ -2026,7 +2599,7 @@ func TestConfigGetMessageRetentionHours(t *testing.T) {
 			name: "should return MessageRetentionHours config value",
 			config: Config{
 				DataRetentionSettings: DataRetentionSettings{
-					MessageRetentionHours: NewPointer(48),
+					MessageRetentionHours: new(48),
 				},
 			},
 			value: 48,
@@ -2035,8 +2608,8 @@ func TestConfigGetMessageRetentionHours(t *testing.T) {
 			name: "should return MessageRetentionHours config value",
 			config: Config{
 				DataRetentionSettings: DataRetentionSettings{
-					MessageRetentionDays:  NewPointer(50),
-					MessageRetentionHours: NewPointer(48),
+					MessageRetentionDays:  new(50),
+					MessageRetentionHours: new(48),
 				},
 			},
 			value: 48,
@@ -2045,8 +2618,8 @@ func TestConfigGetMessageRetentionHours(t *testing.T) {
 			name: "should return MessageRetentionDays config value in hours",
 			config: Config{
 				DataRetentionSettings: DataRetentionSettings{
-					MessageRetentionDays:  NewPointer(50),
-					MessageRetentionHours: NewPointer(0),
+					MessageRetentionDays:  new(50),
+					MessageRetentionHours: new(0),
 				},
 			},
 			value: 1200,
@@ -2077,7 +2650,7 @@ func TestConfigGetFileRetentionHours(t *testing.T) {
 			name: "should return FileRetentionHours config value",
 			config: Config{
 				DataRetentionSettings: DataRetentionSettings{
-					FileRetentionHours: NewPointer(48),
+					FileRetentionHours: new(48),
 				},
 			},
 			value: 48,
@@ -2086,8 +2659,8 @@ func TestConfigGetFileRetentionHours(t *testing.T) {
 			name: "should return FileRetentionHours config value",
 			config: Config{
 				DataRetentionSettings: DataRetentionSettings{
-					FileRetentionDays:  NewPointer(50),
-					FileRetentionHours: NewPointer(48),
+					FileRetentionDays:  new(50),
+					FileRetentionHours: new(48),
 				},
 			},
 			value: 48,
@@ -2096,8 +2669,8 @@ func TestConfigGetFileRetentionHours(t *testing.T) {
 			name: "should return FileRetentionDays config value in hours",
 			config: Config{
 				DataRetentionSettings: DataRetentionSettings{
-					FileRetentionDays:  NewPointer(50),
-					FileRetentionHours: NewPointer(0),
+					FileRetentionDays:  new(50),
+					FileRetentionHours: new(0),
 				},
 			},
 			value: 1200,
@@ -2125,8 +2698,8 @@ func TestConfigDefaultConnectedWorkspacesSettings(t *testing.T) {
 		c := Config{}
 		c.SetDefaults()
 		c.ConnectedWorkspacesSettings = ConnectedWorkspacesSettings{}
-		c.ExperimentalSettings.EnableSharedChannels = NewPointer(true)
-		c.ExperimentalSettings.EnableRemoteClusterService = NewPointer(false)
+		c.ExperimentalSettings.EnableSharedChannels = new(true)
+		c.ExperimentalSettings.EnableRemoteClusterService = new(false)
 
 		c.SetDefaults()
 		require.True(t, *c.ConnectedWorkspacesSettings.EnableSharedChannels)
@@ -2136,10 +2709,10 @@ func TestConfigDefaultConnectedWorkspacesSettings(t *testing.T) {
 	t.Run("if the config is being updated and server federation settings already have values, they should not change", func(t *testing.T) {
 		c := Config{}
 		c.SetDefaults()
-		c.ConnectedWorkspacesSettings.EnableSharedChannels = NewPointer(false)
-		c.ConnectedWorkspacesSettings.EnableRemoteClusterService = NewPointer(true)
-		c.ExperimentalSettings.EnableSharedChannels = NewPointer(true)
-		c.ExperimentalSettings.EnableRemoteClusterService = NewPointer(false)
+		c.ConnectedWorkspacesSettings.EnableSharedChannels = new(false)
+		c.ConnectedWorkspacesSettings.EnableRemoteClusterService = new(true)
+		c.ExperimentalSettings.EnableSharedChannels = new(true)
+		c.ExperimentalSettings.EnableRemoteClusterService = new(false)
 
 		c.SetDefaults()
 		require.False(t, *c.ConnectedWorkspacesSettings.EnableSharedChannels)
@@ -2160,84 +2733,123 @@ func TestExperimentalAuditSettingsIsValid(t *testing.T) {
 		},
 		"file enabled with empty filename": {
 			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled: NewPointer(true),
-				FileName:    NewPointer(""),
+				FileEnabled: new(true),
+				FileName:    new(""),
 			},
 			ExpectError: true,
 		},
 		"file enabled with valid filename": {
 			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:      NewPointer(true),
-				FileName:         NewPointer("audit.log"),
-				FileMaxSizeMB:    NewPointer(100),
-				FileMaxAgeDays:   NewPointer(5),
-				FileMaxBackups:   NewPointer(10),
-				FileMaxQueueSize: NewPointer(1000),
+				FileEnabled: new(true),
+				FileName:    new("audit.log"),
 			},
 			ExpectError: false,
-		},
-		"invalid file max size": {
-			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:   NewPointer(true),
-				FileName:      NewPointer("audit.log"),
-				FileMaxSizeMB: NewPointer(0),
-			},
-			ExpectError: true,
-		},
-		"negative file max size": {
-			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:   NewPointer(true),
-				FileName:      NewPointer("audit.log"),
-				FileMaxSizeMB: NewPointer(-10),
-			},
-			ExpectError: true,
-		},
-		"negative file max age": {
-			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:    NewPointer(true),
-				FileName:       NewPointer("audit.log"),
-				FileMaxSizeMB:  NewPointer(100),
-				FileMaxAgeDays: NewPointer(-5),
-			},
-			ExpectError: true,
-		},
-		"negative file max backups": {
-			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:    NewPointer(true),
-				FileName:       NewPointer("audit.log"),
-				FileMaxSizeMB:  NewPointer(100),
-				FileMaxAgeDays: NewPointer(5),
-				FileMaxBackups: NewPointer(-10),
-			},
-			ExpectError: true,
-		},
-		"zero file max queue size": {
-			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:      NewPointer(true),
-				FileName:         NewPointer("audit.log"),
-				FileMaxSizeMB:    NewPointer(100),
-				FileMaxAgeDays:   NewPointer(5),
-				FileMaxBackups:   NewPointer(10),
-				FileMaxQueueSize: NewPointer(0),
-			},
-			ExpectError: true,
-		},
-		"negative file max queue size": {
-			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:      NewPointer(true),
-				FileName:         NewPointer("audit.log"),
-				FileMaxSizeMB:    NewPointer(100),
-				FileMaxAgeDays:   NewPointer(5),
-				FileMaxBackups:   NewPointer(10),
-				FileMaxQueueSize: NewPointer(-1000),
-			},
-			ExpectError: true,
 		},
 		"AdvancedLoggingJSON has JSON error ": {
 			ExperimentalAuditSettings: ExperimentalAuditSettings{
 				AdvancedLoggingJSON: json.RawMessage(`
 				{
 					"foo": "bar",
+				`),
+			},
+			ExpectError: true,
+		},
+		"AdvancedLoggingJSON has missing target": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"foo": "bar",
+				}
+				`),
+			},
+			ExpectError: true,
+		},
+		"AdvancedLoggingJSON has an unknown Type": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"console-log": {
+						"Type": "XYZ",
+						"Format": "json",
+						"Levels": [
+							{ "id": 100, "name": "audit-api" },
+							{ "id": 101, "name": "audit-content" },
+							{ "id": 102, "name": "audit-permissions" },
+							{ "id": 103, "name": "audit-cli" }
+						],
+						"Options": {
+							"Out": "stdout"
+						},
+						"MaxQueueSize": 1000
+					}
+				}
+				`),
+			},
+			ExpectError: true,
+		},
+		"AdvancedLoggingJSON is valid": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"console-log": {
+						"Type": "console",
+						"Format": "json",
+						"Levels": [
+							{ "id": 100, "name": "audit-api" },
+							{ "id": 101, "name": "audit-content" },
+							{ "id": 102, "name": "audit-permissions" },
+							{ "id": 103, "name": "audit-cli" }
+						],
+						"Options": {
+							"Out": "stdout"
+						},
+						"MaxQueueSize": 1000
+					}
+				}
+				`),
+			},
+			ExpectError: false,
+		},
+
+		"AdvancedLoggingJSON with standard log levels": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"console-log": {
+						"Type": "console",
+						"Format": "json",
+						"Levels": [
+							{"ID": 5, "Name": "debug", "Stacktrace": false},
+							{"ID": 4, "Name": "info", "Stacktrace": false, "color": 36},
+							{"ID": 3, "Name": "warn", "Stacktrace": false, "color": 33},
+							{"ID": 2, "Name": "error", "Stacktrace": true, "color": 31}
+						],
+						"Options": {
+							"Out": "stdout"
+						},
+						"MaxQueueSize": 1000
+					}
+				}
+				`),
+			},
+			ExpectError: true,
+		},
+		"AdvancedLoggingJSON with unknown log level": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"audit-log": {
+						"Type": "console",
+						"Format": "json",
+						"Levels": [
+							{"ID": 999, "Name": "info", "Stacktrace": false}
+						],
+						"Options": {
+							"Out": "stdout"
+						},
+						"MaxQueueSize": 1000
+					}
+				}
 				`),
 			},
 			ExpectError: true,
@@ -2270,7 +2882,7 @@ func TestFilterConfig(t *testing.T) {
 		require.Empty(t, m)
 
 		cfg.ServiceSettings = ServiceSettings{
-			EnableLocalMode: NewPointer(true),
+			EnableLocalMode: new(true),
 		}
 
 		m, err = FilterConfig(cfg, ConfigFilterOptions{
@@ -2288,7 +2900,7 @@ func TestFilterConfig(t *testing.T) {
 		cfg.SetDefaults()
 
 		dsn := "somedb://user:password@localhost:5432/mattermost"
-		cfg.SqlSettings.DataSource = NewPointer(dsn)
+		cfg.SqlSettings.DataSource = new(dsn)
 
 		m, err := FilterConfig(cfg, ConfigFilterOptions{
 			GetConfigOptions: GetConfigOptions{
@@ -2319,7 +2931,7 @@ func TestFilterConfig(t *testing.T) {
 		require.NoError(t, err)
 		require.Empty(t, m)
 
-		cfg.SqlSettings.DriverName = NewPointer("mysql")
+		cfg.SqlSettings.DriverName = new("postgresql")
 		m, err = FilterConfig(cfg, ConfigFilterOptions{
 			GetConfigOptions: GetConfigOptions{
 				RemoveDefaults: true,
@@ -2328,7 +2940,7 @@ func TestFilterConfig(t *testing.T) {
 		})
 		require.NoError(t, err)
 		require.NotEmpty(t, m)
-		require.Equal(t, "mysql", m["SqlSettings"].(map[string]any)["DriverName"])
+		require.Equal(t, "postgresql", m["SqlSettings"].(map[string]any)["DriverName"])
 	})
 
 	t.Run("should not clear non primitive types", func(t *testing.T) {
@@ -2443,9 +3055,7 @@ func TestAutoTranslationSettingsDefaults(t *testing.T) {
 
 		require.False(t, *c.AutoTranslationSettings.Enable)
 		require.Equal(t, "", *c.AutoTranslationSettings.Provider)
-		require.Equal(t, 800, *c.AutoTranslationSettings.TimeoutsMs.NewPost)
-		require.Equal(t, 2000, *c.AutoTranslationSettings.TimeoutsMs.Fetch)
-		require.Equal(t, 300, *c.AutoTranslationSettings.TimeoutsMs.Notification)
+		require.Equal(t, 5000, *c.AutoTranslationSettings.TimeoutMs)
 		require.Equal(t, "", *c.AutoTranslationSettings.LibreTranslate.URL)
 		require.Equal(t, "", *c.AutoTranslationSettings.LibreTranslate.APIKey)
 		// TODO: Enable Agents provider in future release
@@ -2463,14 +3073,14 @@ func TestAutoTranslationSettingsIsValid(t *testing.T) {
 		{
 			name: "disabled settings should be valid",
 			settings: AutoTranslationSettings{
-				Enable: NewPointer(false),
+				Enable: new(false),
 			},
 			expectError: false,
 		},
 		{
 			name: "enabled with no provider should fail",
 			settings: AutoTranslationSettings{
-				Enable:   NewPointer(true),
+				Enable:   new(true),
 				Provider: nil,
 			},
 			expectError: true,
@@ -2479,8 +3089,8 @@ func TestAutoTranslationSettingsIsValid(t *testing.T) {
 		{
 			name: "enabled with unsupported provider should fail",
 			settings: AutoTranslationSettings{
-				Enable:   NewPointer(true),
-				Provider: NewPointer("unsupported"),
+				Enable:   new(true),
+				Provider: new("unsupported"),
 			},
 			expectError: true,
 			errorId:     "model.config.is_valid.autotranslation.provider.unsupported.app_error",
@@ -2488,10 +3098,10 @@ func TestAutoTranslationSettingsIsValid(t *testing.T) {
 		{
 			name: "libretranslate without URL should fail",
 			settings: AutoTranslationSettings{
-				Enable:   NewPointer(true),
-				Provider: NewPointer("libretranslate"),
+				Enable:   new(true),
+				Provider: new("libretranslate"),
 				LibreTranslate: &LibreTranslateProviderSettings{
-					URL: NewPointer(""),
+					URL: new(""),
 				},
 			},
 			expectError: true,
@@ -2513,14 +3123,41 @@ func TestAutoTranslationSettingsIsValid(t *testing.T) {
 		{
 			name: "valid libretranslate settings",
 			settings: AutoTranslationSettings{
-				Enable:   NewPointer(true),
-				Provider: NewPointer("libretranslate"),
+				Enable:   new(true),
+				Provider: new("libretranslate"),
 				LibreTranslate: &LibreTranslateProviderSettings{
-					URL:    NewPointer("https://lt.example.com"),
-					APIKey: NewPointer("optional-key"),
+					URL:    new("https://lt.example.com"),
+					APIKey: new("optional-key"),
 				},
 			},
 			expectError: false,
+		},
+		{
+			name: "valid workers at 48",
+			settings: AutoTranslationSettings{
+				Enable:   new(true),
+				Provider: new("libretranslate"),
+				Workers:  new(48),
+				LibreTranslate: &LibreTranslateProviderSettings{
+					URL:    new("https://lt.example.com"),
+					APIKey: new("optional-key"),
+				},
+			},
+			expectError: false,
+		},
+		{
+			name:    "invalid workers above 64",
+			errorId: "model.config.is_valid.autotranslation.workers.app_error",
+			settings: AutoTranslationSettings{
+				Enable:   new(true),
+				Provider: new("libretranslate"),
+				Workers:  new(65),
+				LibreTranslate: &LibreTranslateProviderSettings{
+					URL:    new("https://lt.example.com"),
+					APIKey: new("optional-key"),
+				},
+			},
+			expectError: true,
 		},
 		// TODO: Enable Agents provider in future release
 		// {
@@ -2548,4 +3185,275 @@ func TestAutoTranslationSettingsIsValid(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestConfigAccessTagsMapToValidPermissions(t *testing.T) {
+	permissionMap := map[string]bool{}
+	for _, p := range AllPermissions {
+		permissionMap[p.Id] = true
+	}
+
+	specialTags := map[string]bool{
+		ConfigAccessTagWriteRestrictable: true,
+		ConfigAccessTagCloudRestrictable: true,
+		ConfigAccessTagAnySysConsoleRead: true,
+	}
+
+	// Pre-existing tag issues tracked separately; skip to avoid blocking on known problems.
+	knownIssues := map[string]bool{
+		"Config.SqlSettings.ReplicaLagSettings.DataSource":       true,
+		"Config.SqlSettings.ReplicaLagSettings.QueryAbsoluteLag": true,
+		"Config.SqlSettings.ReplicaLagSettings.QueryTimeLag":     true,
+	}
+
+	var checkStruct func(t *testing.T, st reflect.Type, path string)
+	checkStruct = func(t *testing.T, st reflect.Type, path string) {
+		for field := range st.Fields() {
+			fieldPath := path + "." + field.Name
+
+			elemType := field.Type
+			if elemType.Kind() == reflect.Pointer || elemType.Kind() == reflect.Slice {
+				elemType = elemType.Elem()
+			}
+			if elemType.Kind() == reflect.Pointer {
+				elemType = elemType.Elem()
+			}
+			if elemType.Kind() == reflect.Struct {
+				checkStruct(t, elemType, fieldPath)
+				continue
+			}
+
+			accessTag := field.Tag.Get("access")
+			if accessTag == "" {
+				continue
+			}
+
+			if knownIssues[fieldPath] {
+				continue
+			}
+
+			for tagValue := range strings.SplitSeq(accessTag, ",") {
+				tagValue = strings.TrimSpace(tagValue)
+				if tagValue == "" || specialTags[tagValue] {
+					continue
+				}
+
+				readID := "sysconsole_read_" + tagValue
+				writeID := "sysconsole_write_" + tagValue
+				assert.True(t, permissionMap[readID] || permissionMap[writeID],
+					"Config field %s has access tag %q which does not map to any known permission (tried %s and %s)",
+					fieldPath, tagValue, readID, writeID)
+			}
+		}
+	}
+
+	checkStruct(t, reflect.TypeFor[Config](), "Config")
+}
+
+func TestMobileEphemeralModeSettingsDefaults(t *testing.T) {
+	c := Config{}
+	c.SetDefaults()
+
+	require.False(t, *c.MobileEphemeralModeSettings.Enable)
+	require.Equal(t, MobileEphemeralModeDefaultDisconnectionTimeoutSeconds, *c.MobileEphemeralModeSettings.DisconnectionTimeoutSeconds)
+	require.Equal(t, MobileEphemeralModeDefaultOfflinePersistenceTimerHours, *c.MobileEphemeralModeSettings.OfflinePersistenceTimerHours)
+	require.Equal(t, MobileEphemeralModeDefaultAutoCacheCleanupDays, *c.MobileEphemeralModeSettings.AutoCacheCleanupDays)
+}
+
+func TestMobileEphemeralModeSettingsIsValid(t *testing.T) {
+	testCases := []struct {
+		name        string
+		settings    MobileEphemeralModeSettings
+		expectError bool
+		errorId     string
+	}{
+		{
+			name: "disabled settings should be valid",
+			settings: MobileEphemeralModeSettings{
+				Enable: NewPointer(false),
+			},
+			expectError: false,
+		},
+		{
+			name: "enabled with valid values",
+			settings: MobileEphemeralModeSettings{
+				Enable:                       NewPointer(true),
+				DisconnectionTimeoutSeconds:  NewPointer(120),
+				OfflinePersistenceTimerHours: NewPointer(24),
+				AutoCacheCleanupDays:         NewPointer(7),
+			},
+			expectError: false,
+		},
+		{
+			name: "invalid disconnection timeout above max",
+			settings: MobileEphemeralModeSettings{
+				Enable:                       NewPointer(true),
+				DisconnectionTimeoutSeconds:  NewPointer(MobileEphemeralModeMaxDisconnectionTimeoutSeconds + 1),
+				OfflinePersistenceTimerHours: NewPointer(0),
+				AutoCacheCleanupDays:         NewPointer(0),
+			},
+			expectError: true,
+			errorId:     "model.config.is_valid.mobile_ephemeral_mode.disconnection_timeout.app_error",
+		},
+		{
+			name: "invalid offline persistence above max",
+			settings: MobileEphemeralModeSettings{
+				Enable:                       NewPointer(true),
+				DisconnectionTimeoutSeconds:  NewPointer(60),
+				OfflinePersistenceTimerHours: NewPointer(MobileEphemeralModeMaxOfflinePersistenceTimerHours + 1),
+				AutoCacheCleanupDays:         NewPointer(0),
+			},
+			expectError: true,
+			errorId:     "model.config.is_valid.mobile_ephemeral_mode.offline_persistence.app_error",
+		},
+		{
+			name: "invalid auto cache cleanup above max",
+			settings: MobileEphemeralModeSettings{
+				Enable:                       NewPointer(true),
+				DisconnectionTimeoutSeconds:  NewPointer(60),
+				OfflinePersistenceTimerHours: NewPointer(0),
+				AutoCacheCleanupDays:         NewPointer(MobileEphemeralModeMaxAutoCacheCleanupDays + 1),
+			},
+			expectError: true,
+			errorId:     "model.config.is_valid.mobile_ephemeral_mode.auto_cache_cleanup.app_error",
+		},
+		{
+			name: "invalid negative disconnection timeout",
+			settings: MobileEphemeralModeSettings{
+				Enable:                       NewPointer(true),
+				DisconnectionTimeoutSeconds:  NewPointer(-1),
+				OfflinePersistenceTimerHours: NewPointer(0),
+				AutoCacheCleanupDays:         NewPointer(0),
+			},
+			expectError: true,
+			errorId:     "model.config.is_valid.mobile_ephemeral_mode.disconnection_timeout.app_error",
+		},
+		{
+			name: "invalid negative offline persistence",
+			settings: MobileEphemeralModeSettings{
+				Enable:                       NewPointer(true),
+				DisconnectionTimeoutSeconds:  NewPointer(60),
+				OfflinePersistenceTimerHours: NewPointer(-1),
+				AutoCacheCleanupDays:         NewPointer(0),
+			},
+			expectError: true,
+			errorId:     "model.config.is_valid.mobile_ephemeral_mode.offline_persistence.app_error",
+		},
+		{
+			name: "invalid negative auto cache cleanup",
+			settings: MobileEphemeralModeSettings{
+				Enable:                       NewPointer(true),
+				DisconnectionTimeoutSeconds:  NewPointer(60),
+				OfflinePersistenceTimerHours: NewPointer(0),
+				AutoCacheCleanupDays:         NewPointer(-1),
+			},
+			expectError: true,
+			errorId:     "model.config.is_valid.mobile_ephemeral_mode.auto_cache_cleanup.app_error",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.settings.isValid()
+			if tc.expectError {
+				require.NotNil(t, err)
+				require.Equal(t, tc.errorId, err.Id)
+			} else {
+				require.Nil(t, err)
+			}
+		})
+	}
+}
+
+func TestNativeAppSettingsIsValid(t *testing.T) {
+	t.Run("defaults are valid", func(t *testing.T) {
+		cfg := Config{}
+		cfg.SetDefaults()
+		require.Nil(t, cfg.NativeAppSettings.AreDownloadLinksValid())
+	})
+
+	t.Run("empty string is valid (hides the menu item)", func(t *testing.T) {
+		cfg := Config{}
+		cfg.SetDefaults()
+		*cfg.NativeAppSettings.AppDownloadLink = ""
+		*cfg.NativeAppSettings.AndroidAppDownloadLink = ""
+		*cfg.NativeAppSettings.IosAppDownloadLink = ""
+		require.Nil(t, cfg.NativeAppSettings.AreDownloadLinksValid())
+	})
+
+	t.Run("valid https URLs are accepted", func(t *testing.T) {
+		cfg := Config{}
+		cfg.SetDefaults()
+		*cfg.NativeAppSettings.AppDownloadLink = "https://example.com/download"
+		*cfg.NativeAppSettings.AndroidAppDownloadLink = "https://play.google.com/store/apps/details?id=com.mattermost.rn"
+		*cfg.NativeAppSettings.IosAppDownloadLink = "https://apps.apple.com/us/app/mattermost/id1257222717"
+		require.Nil(t, cfg.NativeAppSettings.AreDownloadLinksValid())
+	})
+
+	t.Run("custom scheme URLs are accepted for enterprise use cases", func(t *testing.T) {
+		cfg := Config{}
+		cfg.SetDefaults()
+		*cfg.NativeAppSettings.AppDownloadLink = "myapp://install/mattermost"
+		require.Nil(t, cfg.NativeAppSettings.AreDownloadLinksValid())
+	})
+
+	t.Run("malformed AppDownloadLink is rejected", func(t *testing.T) {
+		cfg := Config{}
+		cfg.SetDefaults()
+		*cfg.NativeAppSettings.AppDownloadLink = "http://://mattermost.com"
+		appErr := cfg.NativeAppSettings.AreDownloadLinksValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.native_app_settings.download_link.app_error", appErr.Id)
+	})
+
+	t.Run("malformed AndroidAppDownloadLink is rejected", func(t *testing.T) {
+		cfg := Config{}
+		cfg.SetDefaults()
+		*cfg.NativeAppSettings.AndroidAppDownloadLink = "not-a-url"
+		appErr := cfg.NativeAppSettings.AreDownloadLinksValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.native_app_settings.download_link.app_error", appErr.Id)
+	})
+
+	t.Run("malformed IosAppDownloadLink is rejected", func(t *testing.T) {
+		cfg := Config{}
+		cfg.SetDefaults()
+		*cfg.NativeAppSettings.IosAppDownloadLink = "not-a-url"
+		appErr := cfg.NativeAppSettings.AreDownloadLinksValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.native_app_settings.download_link.app_error", appErr.Id)
+	})
+}
+
+func TestExperimentalSettingsEnableWatermarkDefault(t *testing.T) {
+	t.Parallel()
+
+	t.Run("EnableWatermark defaults to false", func(t *testing.T) {
+		cfg := Config{}
+		cfg.SetDefaults()
+		require.NotNil(t, cfg.ExperimentalSettings.EnableWatermark)
+		require.False(t, *cfg.ExperimentalSettings.EnableWatermark)
+	})
+
+	t.Run("SetDefaults does not overwrite explicit true value", func(t *testing.T) {
+		cfg := Config{}
+		cfg.ExperimentalSettings.EnableWatermark = new(true)
+		cfg.SetDefaults()
+		require.NotNil(t, cfg.ExperimentalSettings.EnableWatermark)
+		require.True(t, *cfg.ExperimentalSettings.EnableWatermark)
+	})
+}
+
+func TestElasticsearchSettingsSetDefaults(t *testing.T) {
+	t.Run("EnableSearchPublicChannelsWithoutMembership defaults to true when nil", func(t *testing.T) {
+		s := ElasticsearchSettings{}
+		s.SetDefaults()
+		require.True(t, *s.EnableSearchPublicChannelsWithoutMembership)
+	})
+
+	t.Run("EnableSearchPublicChannelsWithoutMembership preserves explicit false", func(t *testing.T) {
+		s := ElasticsearchSettings{EnableSearchPublicChannelsWithoutMembership: NewPointer(false)}
+		s.SetDefaults()
+		require.False(t, *s.EnableSearchPublicChannelsWithoutMembership)
+	})
 }

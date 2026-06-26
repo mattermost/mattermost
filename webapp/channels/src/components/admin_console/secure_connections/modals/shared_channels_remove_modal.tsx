@@ -12,7 +12,7 @@ type Props = {
     onConfirm: () => void;
     onCancel?: () => void;
     onExited: () => void;
-}
+};
 
 const noop = () => {};
 
@@ -48,9 +48,9 @@ function SharedChannelsRemoveModal({
                     defaultMessage='Remove'
                 />
             )}
+            confirmButtonVariant='destructive'
             onExited={onExited}
             compassDesign={true}
-            isDeleteModal={true}
             bodyPadding={false}
         >
             <ModalBody/>

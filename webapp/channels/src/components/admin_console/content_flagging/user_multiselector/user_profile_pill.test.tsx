@@ -2,11 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {MultiValueProps} from 'react-select/dist/declarations/src/components/MultiValue';
+import type {MultiValueProps} from 'react-select';
 
+import type {Group} from '@mattermost/types/groups';
+import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {fireEvent, renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {AutocompleteOptionType} from './user_multiselector';
@@ -24,7 +26,7 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
                 last_name: 'User',
                 email: 'test@example.com',
             }),
-        } as AutocompleteOptionType<UserProfile>,
+        } as AutocompleteOptionType<UserProfile | Group | Team>,
         innerProps: {},
         selectProps: {},
         removeProps: {
@@ -44,13 +46,13 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
         isMulti: true,
         isRtl: false,
         theme: {} as any,
-    } as unknown as MultiValueProps<AutocompleteOptionType<UserProfile>, true>;
+    } as unknown as MultiValueProps<AutocompleteOptionType<UserProfile | Group | Team>, true>;
 
     const initialState = {
         entities: {
             users: {
                 profiles: {
-                    'user-id-1': baseProps.data.raw,
+                    'user-id-1': baseProps.data.raw as UserProfile,
                 },
             },
             preferences: {
@@ -63,10 +65,6 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
             },
         },
     };
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
 
     test('should render user profile pill with avatar and display name', () => {
         const {container} = renderWithContext(
@@ -108,7 +106,7 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
         expect(removeComponent).toBeInTheDocument();
     });
 
-    test('should call onClick when remove button is clicked', () => {
+    test('should call onClick when remove button is clicked', async () => {
         const mockOnClick = jest.fn();
         const propsWithClick = {
             ...baseProps,
@@ -126,7 +124,7 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
         expect(removeComponent).toBeInTheDocument();
         expect(removeComponent).toBeDefined();
 
-        fireEvent.click(removeComponent!);
+        await userEvent.click(removeComponent!);
         expect(mockOnClick).toHaveBeenCalledTimes(1);
     });
 
@@ -140,7 +138,7 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
                     username: undefined,
                 },
             },
-        } as unknown as MultiValueProps<AutocompleteOptionType<UserProfile>, true>;
+        } as unknown as MultiValueProps<AutocompleteOptionType<UserProfile | Group | Team>, true>;
 
         const {container} = renderWithContext(
             <MultiUserProfilePill {...propsWithoutUsername}/>,

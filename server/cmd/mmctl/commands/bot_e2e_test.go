@@ -14,7 +14,7 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestListBotCmdF() {
-	s.SetupTestHelper().InitBasic().DeleteBots()
+	s.SetupTestHelper().InitBasic(s.T()).DeleteBots(s.T())
 
 	s.RunForSystemAdminAndLocal("List Bot", func(c client.Client) {
 		printer.Clean()
@@ -156,7 +156,7 @@ func (s *MmctlE2ETestSuite) TestListBotCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestBotEnableCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 	s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableBotAccountCreation = true })
 
 	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
@@ -244,7 +244,7 @@ func (s *MmctlE2ETestSuite) TestBotEnableCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestBotDisableCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 	s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableBotAccountCreation = true })
 
 	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
@@ -328,7 +328,7 @@ func (s *MmctlE2ETestSuite) TestBotDisableCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestBotAssignCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForSystemAdminAndLocal("Assign Bot", func(c client.Client) {
 		printer.Clean()
@@ -395,7 +395,7 @@ func (s *MmctlE2ETestSuite) TestBotAssignCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestBotCreateCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	createBots := *s.th.App.Config().ServiceSettings.EnableBotAccountCreation
 	s.th.App.UpdateConfig(func(c *model.Config) { *c.ServiceSettings.EnableBotAccountCreation = true })

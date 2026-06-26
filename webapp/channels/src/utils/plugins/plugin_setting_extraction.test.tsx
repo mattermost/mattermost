@@ -148,7 +148,7 @@ describe('plugin setting extraction', () => {
         const config = getFullExample();
         const res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
-        expect(console.warn).not.toBeCalled();
+        expect(console.warn).not.toHaveBeenCalled();
         expect(res?.sections).toHaveLength(2);
 
         const sections = res?.sections as PluginConfigurationSection[];
@@ -444,7 +444,7 @@ describe('plugin setting extraction', () => {
             const res = extractPluginConfiguration(config, 'PluginId');
             expect(res).toBeTruthy();
             expect(res?.sections).toHaveLength(3);
-            expect(console.warn).not.toBeCalled();
+            expect(console.warn).not.toHaveBeenCalled();
         });
 
         it('missing setting component', () => {
@@ -453,7 +453,7 @@ describe('plugin setting extraction', () => {
             const res = extractPluginConfiguration(config, 'PluginId');
             expect(res).toBeTruthy();
             expect(res?.sections).toHaveLength(2);
-            expect(console.warn).toBeCalled();
+            expect(console.warn).toHaveBeenCalled();
             expect(res?.sections[0].title).toEqual('Section');
             expect(res?.sections[1].title).toEqual('Custom section');
         });
@@ -464,7 +464,7 @@ describe('plugin setting extraction', () => {
             const res = extractPluginConfiguration(config, 'PluginId');
             expect(res).toBeTruthy();
             expect(res?.sections).toHaveLength(2);
-            expect(console.warn).toBeCalled();
+            expect(console.warn).toHaveBeenCalled();
             expect(res?.sections[0].title).toEqual('Section');
             expect(res?.sections[1].title).toEqual('Section with custom setting');
         });
@@ -475,7 +475,7 @@ describe('plugin setting extraction', () => {
             const res = extractPluginConfiguration(config, 'PluginId');
             expect(res).toBeTruthy();
             expect(res?.sections).toHaveLength(2);
-            expect(console.warn).toBeCalled();
+            expect(console.warn).toHaveBeenCalled();
             expect(res?.sections[0].title).toEqual('Section');
             expect(res?.sections[1].title).toEqual('Custom section');
         });
@@ -486,7 +486,7 @@ describe('plugin setting extraction', () => {
             const res = extractPluginConfiguration(config, 'PluginId');
             expect(res).toBeTruthy();
             expect(res?.sections).toHaveLength(2);
-            expect(console.warn).toBeCalled();
+            expect(console.warn).toHaveBeenCalled();
             expect(res?.sections[0].title).toEqual('Section');
             expect(res?.sections[1].title).toEqual('Section with custom setting');
         });

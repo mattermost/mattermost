@@ -16,8 +16,7 @@ func TestGetServerLimits(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	t.Run("admin users can get full server limits", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		// Set up unlicensed server
 		th.App.Srv().SetLicense(nil)
@@ -36,8 +35,7 @@ func TestGetServerLimits(t *testing.T) {
 	})
 
 	t.Run("non-admin users get limited data with licensed server", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		// Set up licensed server with user limits
 		userLimit := 100
@@ -67,8 +65,7 @@ func TestGetServerLimits(t *testing.T) {
 	})
 
 	t.Run("admin users get full limts", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		// Set up licensed server with post history limits
 		userLimit := 100
@@ -98,8 +95,7 @@ func TestGetServerLimits(t *testing.T) {
 	})
 
 	t.Run("non-admin users get post history limits when configured", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		// Set up licensed server with post history limits
 		userLimit := 100
@@ -130,8 +126,7 @@ func TestGetServerLimits(t *testing.T) {
 	})
 
 	t.Run("zero post history limit shows no limits", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		// Set up licensed server with zero post history limit
 		userLimit := 100
@@ -159,8 +154,7 @@ func TestGetServerLimits(t *testing.T) {
 	})
 
 	t.Run("license with nil Limits shows no post history limits", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		// Set up licensed server with nil Limits
 		userLimit := 100
@@ -182,5 +176,40 @@ func TestGetServerLimits(t *testing.T) {
 
 			require.Equal(t, int64(0), serverLimits.LastAccessiblePostTime)
 		}
+	})
+
+	t.Run("non-admin users get zero single channel guest data", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		userLimit := 100
+		license := model.NewTestLicense("")
+		license.Features.Users = &userLimit
+		th.App.Srv().SetLicense(license)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+
+		serverLimits, resp, err := th.Client.GetServerLimits(context.Background())
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		require.Equal(t, int64(0), serverLimits.SingleChannelGuestCount)
+		require.Equal(t, int64(0), serverLimits.SingleChannelGuestLimit)
+	})
+
+	t.Run("admin users get single channel guest data with eligible license", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		userLimit := 100
+		license := model.NewTestLicense("")
+		license.Features.Users = &userLimit
+		th.App.Srv().SetLicense(license)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+
+		serverLimits, resp, err := th.SystemAdminClient.GetServerLimits(context.Background())
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		require.Equal(t, int64(userLimit), serverLimits.SingleChannelGuestLimit)
 	})
 }

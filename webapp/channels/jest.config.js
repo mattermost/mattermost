@@ -4,7 +4,6 @@
 /** @type {import('jest').Config} */
 
 const config = {
-    snapshotSerializers: ['enzyme-to-json/serializer'],
     testPathIgnorePatterns: ['/node_modules/'],
     clearMocks: true,
     collectCoverageFrom: [
@@ -14,7 +13,7 @@ const config = {
         '/node_modules/',
         'mattermost-redux/src/selectors/create_selector',
     ],
-    coverageReporters: ['lcov', 'text-summary'],
+    coverageReporters: ['json', 'lcov', 'text-summary'],
     fakeTimers: {
         doNotFake: ['performance'],
     },
@@ -22,9 +21,11 @@ const config = {
         '^@mattermost/(components)$': '<rootDir>/../platform/$1/src',
         '^@mattermost/(client)$': '<rootDir>/../platform/$1/src',
         '^@mattermost/(types)/(.*)$': '<rootDir>/../platform/$1/src/$2',
+        '^@mattermost/shared/(.*)$': '<rootDir>/../platform/shared/src/$1',
         '^mattermost-redux/test/(.*)$':
             '<rootDir>/src/packages/mattermost-redux/test/$1',
         '^mattermost-redux/(.*)$': '<rootDir>/src/packages/mattermost-redux/src/$1',
+        '^pdfjs-dist/.*': '<rootDir>/src/tests/pdfjs_mock.ts',
         '^.+\\.(jpg|jpeg|png|apng|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$':
             '<rootDir>/src/tests/image_url_mock.json',
         '^.+\\.(css|less|scss)$': 'identity-obj-proxy',
@@ -32,10 +33,6 @@ const config = {
     },
     moduleDirectories: ['src', 'node_modules'],
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
-    reporters: [
-        'default',
-        ['jest-junit', {outputDirectory: 'build', outputName: 'test-results.xml'}],
-    ],
     transformIgnorePatterns: [
         'node_modules/(?!react-native|react-router|pdfjs-dist|p-queue|p-timeout|@mattermost/compass-icons|cidr-regex|ip-regex|serialize-error)',
     ],

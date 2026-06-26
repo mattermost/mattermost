@@ -548,10 +548,6 @@
     "translation": "Δε θα λάβετε ειδοποιήσεις για το {{.Channel}} μέχρι να απενεργοποιηθεί η σίγαση του καναλιού."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Δεν ήταν δυνατή η σίγαση του καναλιού {{.Channel}} καθώς δεν είστε μέλος."
-  },
-  {
     "id": "api.command_mute.no_channel.error",
     "translation": "Δεν ήταν δυνατή η εύρεση του συγκεκριμένου καναλιού. Χρησιμοποιήστε τη διαχείριση καναλιού για τον εντοπισμό καναλιών."
   },
@@ -673,7 +669,10 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "Ο χρήστης {{.User}} είναι ήδη στο κανάλι."
+    "translation": {
+      "one": "Ο χρήστης {{.User}} είναι ήδη στο κανάλι.",
+      "other": ""
+    }
   },
   {
     "id": "api.command_invite.success",
@@ -1939,10 +1938,6 @@
     "translation": "Ο χρήστης Slack συγχωνεύτηκε με έναν υπάρχοντα χρήστη Mattermost με email {{.Email}} και όνομα χρήστη {{.Username}}, αλλά δεν μπόρεσε να προσθέσει τον χρήστη στην ομάδα του.\n"
   },
   {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Έγινε εισαγωγή του χρήστη Slack με email {{.Email}} και κωδικό πρόσβασης {{.Password}}.\n"
-  },
-  {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\nΟι χρήστες δημιούργησαν:\n"
   },
@@ -1965,10 +1960,6 @@
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "Δεν είναι δυνατή η εισαγωγή του χρήστη Integration/Slack Bot {{.Username}}.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Έγινε εισαγωγή του χρήστη Integration/Slack Bot με email {{.Email}} και κωδικό πρόσβασης {{.Password}}.\n"
   },
   {
     "id": "api.team.demote_user_to_guest.license.error",
@@ -2309,14 +2300,6 @@
     "translation": "Δεν είναι δυνατή η μεταφόρτωση του αρχείου. Εσφαλμένο αναγνωριστικό καναλιού: {{.channelId}}"
   },
   {
-    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
-    "translation": "Βεβαιωθείτε ότι ο Amazon S3 bucket είναι διαθέσιμος και επαληθεύστε τα δικαιώματα του."
-  },
-  {
-    "id": "api.file.test_connection_s3_auth.app_error",
-    "translation": "Δεν είναι δυνατή η σύνδεση στο S3. Επαληθεύστε τις παραμέτρους εξουσιοδότησης σύνδεσης και τις ρυθμίσεις ελέγχου ταυτότητας για το Amazon S3."
-  },
-  {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "Παρουσιάστηκε σφάλμα ανάγνωσης από τον τοπικό χώρο αποθήκευσης αρχείων του διακομιστή."
   },
@@ -2351,10 +2334,6 @@
   {
     "id": "api.error_set_first_admin_visit_marketplace_status",
     "translation": "Σφάλμα κατά την προσπάθεια αποθήκευσης της κατάστασης της πρώτης επίσκεψης του διαχειριστή στο marketplace."
-  },
-  {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Λείπει το client_secret."
   },
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
@@ -2849,10 +2828,6 @@
   {
     "id": "api.templates.remove_expired_license.subject",
     "translation": "Η άδεια χρήσης Mattermost Enterprise έχει απενεργοποιηθεί."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Η άδεια χρήσης σας Enterprise Edition έχει λήξει και ορισμένες δυνατότητες ενδέχεται να είναι απενεργοποιημένες. Παρακαλούμε ανανεώστε την άδειά σας τώρα."
   },
   {
     "id": "api.templates.post_body.button",

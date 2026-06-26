@@ -14,7 +14,7 @@ import {sendEmailInvitesToTeamGracefully} from 'mattermost-redux/actions/teams';
 import {Client4} from 'mattermost-redux/client';
 import {General} from 'mattermost-redux/constants';
 import {getFirstAdminSetupComplete, getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getIsOnboardingFlowEnabled, getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeam, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -24,6 +24,7 @@ import LogoSvg from 'components/common/svg_images_components/logo_dark_blue_svg'
 import Constants from 'utils/constants';
 import {makeNewTeam} from 'utils/team_utils';
 import {getSiteURL, teamNameToUrl} from 'utils/url';
+import {applyTheme, resetTheme} from 'utils/utils';
 
 import InviteMembers from './invite_members';
 import InviteMembersIllustration from './invite_members_illustration';
@@ -62,12 +63,12 @@ export type Actions = {
     updateTeam: (team: Team) => Promise<ActionResult>;
     checkIfTeamExists: (teamName: string) => Promise<ActionResult<boolean>>;
     getProfiles: (page: number, perPage: number, options: Record<string, any>) => Promise<ActionResult>;
-}
+};
 
 type Props = RouterProps & {
     background?: JSX.Element | string;
     actions: Actions;
-}
+};
 
 const PreparingWorkspace = ({
     actions,
@@ -82,6 +83,7 @@ const PreparingWorkspace = ({
     });
     const isUserFirstAdmin = useSelector(isFirstAdmin);
     const onboardingFlowEnabled = useSelector(getIsOnboardingFlowEnabled);
+    const currentTheme = useSelector(getTheme);
 
     const currentTeam = useSelector(getCurrentTeam);
     const myTeams = useSelector(getMyTeams);
@@ -111,10 +113,19 @@ const PreparingWorkspace = ({
 
     const [[mostRecentStep, currentStep], setStepHistory] = useState<[WizardStep, WizardStep]>([stepOrder[0], stepOrder[0]]);
     const [submissionState, setSubmissionState] = useState<SubmissionState>(SubmissionStates.Presubmit);
-    const browserSiteUrl = useMemo(getSiteURL, []);
+    const browserSiteUrl = useMemo(() => getSiteURL(), []);
     const [form, setForm] = useState({
         ...emptyForm,
     });
+
+    // Apply denim theme on mount, restore user theme on unmount
+    useEffect(() => {
+        resetTheme();
+
+        return () => {
+            applyTheme(currentTheme);
+        };
+    }, []);
 
     useEffect(() => {
         if (!pluginsEnabled) {
@@ -203,7 +214,7 @@ const PreparingWorkspace = ({
                     redirectWithError(WizardSteps.InviteMembers, genericSubmitError);
                     return;
                 }
-            } catch (e) {
+            } catch {
                 redirectWithError(WizardSteps.InviteMembers, genericSubmitError);
                 return;
             }
@@ -229,7 +240,7 @@ const PreparingWorkspace = ({
         try {
             await Client4.completeSetup(completeSetupRequest);
             dispatch({type: GeneralTypes.FIRST_ADMIN_COMPLETE_SETUP_RECEIVED, data: true});
-        } catch (e) {
+        } catch {
             redirectWithError(WizardSteps.Plugins, genericSubmitError);
             return;
         }

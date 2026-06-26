@@ -1,15 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount} from 'enzyme';
 import React from 'react';
-import {Provider} from 'react-redux';
-import configureStore from 'redux-mock-store';
+
+jest.mock('components/channel_type_icon/compass_icon_resolver', () => ({
+    compassIconForName: jest.fn(),
+}));
+
+jest.mock('utils/channel_utils', () => ({
+    ...jest.requireActual('utils/channel_utils'),
+    getArchiveIconComponent: jest.fn(() => (props: Record<string, unknown>) => (
+        <span
+            data-is-default-archive='true'
+            {...props}
+        />
+    )),
+}));
 
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 
-import {fetchChannelRemotes} from 'packages/mattermost-redux/src/actions/shared_channels';
-import {getRemoteNamesForChannel} from 'packages/mattermost-redux/src/selectors/entities/shared_channels';
+import {compassIconForName} from 'components/channel_type_icon';
+
+import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
 
 import ChannelHeaderTitle from './channel_header_title';
 
@@ -19,7 +32,9 @@ jest.mock('./channel_header_title_favorite', () => {
 });
 
 jest.mock('./channel_header_title_direct', () => {
-    return () => <div id='mock-direct'/>;
+    return ({dmUser}: {dmUser?: {username?: string}}) => (
+        <div id='mock-direct'>{dmUser?.username}</div>
+    );
 });
 
 jest.mock('./channel_header_title_group', () => {
@@ -28,6 +43,10 @@ jest.mock('./channel_header_title_group', () => {
 
 jest.mock('../channel_header_menu/channel_header_menu', () => {
     return () => <div id='mock-header-menu'/>;
+});
+
+jest.mock('components/profile_picture', () => {
+    return () => <div id='mock-profile-picture'/>;
 });
 
 // Mock the modules causing issues
@@ -44,135 +63,193 @@ jest.mock('selectors/views/channel_sidebar', () => ({
     getDraggingState: jest.fn(),
 }));
 
-// Need to mock this for createSelectorCreator
-jest.mock('mattermost-redux/utils/helpers', () => ({
-    memoizeResult: jest.fn(),
-    defaultMemoize: jest.fn(),
-    createIdsSelector: jest.fn(),
-    createShallowSelector: jest.fn(),
-}));
-
-// Mock create_selector
-jest.mock('mattermost-redux/selectors/create_selector', () => ({
-    createSelector: jest.fn((...args) => {
-        const last = args[args.length - 1];
-        return jest.fn(last);
-    }),
-    createSelectorCreator: jest.fn(() => {
-        return jest.fn((...args) => {
-            const last = args[args.length - 1];
-            return jest.fn(last);
-        });
-    }),
-}));
-
 jest.mock('mattermost-redux/selectors/entities/channels', () => ({
     getCurrentChannel: jest.fn(),
     isCurrentChannelFavorite: jest.fn(),
-}));
-
-jest.mock('packages/mattermost-redux/src/selectors/entities/shared_channels', () => ({
-    getRemoteNamesForChannel: jest.fn(),
-}));
-
-// Use a mock name prefix to avoid the Jest variable scoping issue
-jest.mock('packages/mattermost-redux/src/actions/shared_channels', () => ({
-    fetchChannelRemotes: jest.fn(() => ({type: 'MOCK_ACTION'})),
-}));
-
-// Also mock for the actual path used in the test
-jest.mock('mattermost-redux/actions/shared_channels', () => ({
-    fetchChannelRemotes: jest.fn(() => ({type: 'MOCK_ACTION'})),
+    makeGetChannel: jest.fn(() => jest.fn()),
 }));
 
 describe('components/channel_header/ChannelHeaderTitle', () => {
-    const mockStore = configureStore();
+    test('should return null when no channel', () => {
+        (getCurrentChannel as jest.Mock).mockReturnValue(null);
 
-    afterEach(() => {
-        jest.clearAllMocks();
+        const {container} = renderWithContext(<ChannelHeaderTitle/>);
+
+        expect(container.firstChild).toBeNull();
     });
 
-    test('should not fetch shared channels for non-shared channels', () => {
-        // Mock non-shared channel
-        const channel = {
+    test('should render bot layout for DM with bot user', () => {
+        const channel = TestHelper.getChannelMock({
             id: 'channel_id',
-            team_id: 'team_id',
-            display_name: 'Test Channel',
-            type: 'O',
-            shared: false,
-        };
+            type: 'D',
+            display_name: 'Bot User',
+        });
+        const botUser = TestHelper.getUserMock({
+            id: 'bot_id',
+            username: 'bot',
+            is_bot: true,
+        });
 
         (getCurrentChannel as jest.Mock).mockReturnValue(channel);
-        (getRemoteNamesForChannel as jest.Mock).mockReturnValue([]);
 
-        const store = mockStore({});
+        renderWithContext(<ChannelHeaderTitle dmUser={botUser}/>);
 
-        mount(
-            <Provider store={store}>
-                <ChannelHeaderTitle/>
-            </Provider>,
-        );
-
-        expect(fetchChannelRemotes).not.toHaveBeenCalled();
+        // Bot layout has distinct structure - no header menu, has BOT tag
+        expect(document.querySelector('.channel-header__bot')).toBeInTheDocument();
+        expect(screen.getByText('BOT')).toBeInTheDocument();
+        expect(document.querySelector('#mock-header-menu')).not.toBeInTheDocument();
     });
 
-    test('should fetch shared channels data when channel is shared', () => {
-        // We don't directly need to test fetchChannelRemoteNames in this test
-        // since our ChannelHeaderTitle doesn't directly call it
-        // That would be properly tested in the channel_header.test.tsx file
-
-        // Mock shared channel
-        const channel = {
+    test('should render profile picture for DM channel', () => {
+        const channel = TestHelper.getChannelMock({
             id: 'channel_id',
-            team_id: 'team_id',
-            display_name: 'Test Channel',
-            type: 'O',
-            shared: true,
-        };
+            type: 'D',
+            display_name: 'User Name',
+        });
+        const dmUser = TestHelper.getUserMock({
+            id: 'user_id',
+            username: 'testuser',
+        });
 
         (getCurrentChannel as jest.Mock).mockReturnValue(channel);
-        (getRemoteNamesForChannel as jest.Mock).mockReturnValue([]);
 
-        const store = mockStore({});
+        renderWithContext(<ChannelHeaderTitle dmUser={dmUser}/>);
 
-        mount(
-            <Provider store={store}>
-                <ChannelHeaderTitle remoteNames={[]}/>
-            </Provider>,
-        );
-
-        // Instead of testing the action being called, we can test that the component
-        // renders correctly with a shared channel
-        // If we were doing full end-to-end testing, we'd need to fully
-        // test the Redux action flow, but that's beyond this component test
+        // DM shows profile picture, public/GM channels don't
+        expect(document.querySelector('#mock-profile-picture')).toBeInTheDocument();
     });
 
-    test('should not fetch shared channels data when data already exists', () => {
-        // Similar to the test above, we're testing the component rendering
-        // rather than the action which is called by a parent component
-
-        // Mock shared channel
-        const channel = {
+    test('should not render profile picture for public channel', () => {
+        const channel = TestHelper.getChannelMock({
             id: 'channel_id',
-            team_id: 'team_id',
-            display_name: 'Test Channel',
             type: 'O',
-            shared: true,
-        };
+            display_name: 'Public Channel',
+        });
 
         (getCurrentChannel as jest.Mock).mockReturnValue(channel);
-        (getRemoteNamesForChannel as jest.Mock).mockReturnValue(['Remote 1', 'Remote 2']); // Data exists
 
-        const store = mockStore({});
+        renderWithContext(<ChannelHeaderTitle/>);
 
-        mount(
-            <Provider store={store}>
-                <ChannelHeaderTitle remoteNames={['Remote 1', 'Remote 2']}/>
-            </Provider>,
-        );
+        // Public channel renders header menu and favorite, but no profile picture
+        expect(document.querySelector('.channel-header__top')).toBeInTheDocument();
+        expect(document.querySelector('#mock-header-menu')).toBeInTheDocument();
+        expect(document.querySelector('#mock-profile-picture')).not.toBeInTheDocument();
+    });
 
-        // Again, we'd ideally verify that the component renders correctly with remote names
-        // But since we're mocking the sub-components, this is primarily a test of the
-        // component's structure rather than its full rendering
+    test('should render header menu for GM channel without profile picture', () => {
+        const channel = TestHelper.getChannelMock({
+            id: 'channel_id',
+            type: 'G',
+            display_name: 'Group Channel',
+        });
+        const gmMembers = [
+            TestHelper.getUserMock({id: 'user1', username: 'user1'}),
+            TestHelper.getUserMock({id: 'user2', username: 'user2'}),
+        ];
+
+        (getCurrentChannel as jest.Mock).mockReturnValue(channel);
+
+        renderWithContext(<ChannelHeaderTitle gmMembers={gmMembers}/>);
+
+        // GM channel renders header menu but no profile picture (unlike DM)
+        expect(document.querySelector('#mock-header-menu')).toBeInTheDocument();
+        expect(document.querySelector('#mock-profile-picture')).not.toBeInTheDocument();
+    });
+
+    describe('plugin channel icon override', () => {
+        const mockedCompassIconForName = jest.mocked(compassIconForName);
+
+        afterEach(() => {
+            mockedCompassIconForName.mockReset();
+        });
+
+        // The archive icon is rendered directly (not inside ChannelHeaderMenu) for bot DM channels.
+        // Use a bot DM + archived channel to test the override path without fighting the mock.
+        test('renders override SVG icon in archive slot when plugin matcher matches', () => {
+            const StubIcon = (props: {'data-testid'?: string; size?: number; className?: string}) => (
+                <span
+                    data-testid={props['data-testid'] ?? 'stub-override-icon'}
+                    data-size={props.size}
+                    className={props.className}
+                />
+            );
+            mockedCompassIconForName.mockReturnValue(StubIcon as any);
+
+            const channel = TestHelper.getChannelMock({
+                id: 'channel_id',
+                type: 'D',
+                delete_at: 1000,
+            });
+            const botUser = TestHelper.getUserMock({
+                id: 'bot_id',
+                username: 'bot',
+                is_bot: true,
+            });
+            (getCurrentChannel as jest.Mock).mockReturnValue(channel);
+
+            const stateWithOverride = {
+                plugins: {
+                    components: {
+                        ChannelIconOverride: [{
+                            id: '1',
+                            pluginId: 'test-plugin',
+                            matcher: () => true,
+                            iconName: 'shield-outline',
+                        }],
+                    },
+                },
+            } as any;
+
+            renderWithContext(<ChannelHeaderTitle dmUser={botUser}/>, stateWithOverride);
+
+            // Override branch passes data-testid='channel-header-archive-icon' to the stub
+            const overrideIcon = screen.getByTestId('channel-header-archive-icon');
+            expect(overrideIcon).toBeInTheDocument();
+
+            // Override icon gets svg-text-color (greyed to signal archived) but not the built-in archive icon classes
+            expect(overrideIcon).toHaveClass('svg-text-color');
+            expect(overrideIcon).not.toHaveClass('channel-header-archived-icon');
+
+            // Default archive icon is absent when override wins
+            expect(document.querySelector('[data-is-default-archive]')).not.toBeInTheDocument();
+        });
+
+        test('renders default archive SVG icon when no plugin matcher matches', () => {
+            mockedCompassIconForName.mockReturnValue(null);
+
+            const channel = TestHelper.getChannelMock({
+                id: 'channel_id',
+                type: 'D',
+                delete_at: 1000,
+            });
+            const botUser = TestHelper.getUserMock({
+                id: 'bot_id',
+                username: 'bot',
+                is_bot: true,
+            });
+            (getCurrentChannel as jest.Mock).mockReturnValue(channel);
+
+            const stateWithNoMatch = {
+                plugins: {
+                    components: {
+                        ChannelIconOverride: [{
+                            id: '1',
+                            pluginId: 'test-plugin',
+                            matcher: () => false,
+                            iconName: 'shield-outline',
+                        }],
+                    },
+                },
+            } as any;
+
+            renderWithContext(<ChannelHeaderTitle dmUser={botUser}/>, stateWithNoMatch);
+
+            // Default archive icon rendered with full archive chrome (spread props include className + data-testid)
+            const archiveIcon = screen.getByTestId('channel-header-archive-icon');
+            expect(archiveIcon).toBeInTheDocument();
+            expect(archiveIcon).toHaveAttribute('data-is-default-archive', 'true');
+            expect(archiveIcon).toHaveClass('channel-header-archived-icon', 'svg-text-color');
+            expect(screen.queryByTestId('stub-override-icon')).not.toBeInTheDocument();
+        });
     });
 });

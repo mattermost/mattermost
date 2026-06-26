@@ -1,13 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {IDMappedObjects} from './utilities';
+
 export type FieldType = (
     'text' |
     'select' |
     'multiselect' |
     'date' |
     'user' |
-    'multiuser'
+    'multiuser' |
+    'rank'
 );
 
 export type PropertyField = {
@@ -19,11 +22,20 @@ export type PropertyField = {
         subType?: string;
         [key: string]: unknown;
     };
-    target_id?: string;
-    target_type?: string;
+    target_id: string;
+    target_type: string;
+    object_type: string;
+    linked_field_id?: string;
     create_at: number;
     update_at: number;
     delete_at: number;
+    created_by: string;
+    updated_by: string;
+};
+
+export type PropertyGroup = {
+    id: string;
+    name: string;
 };
 
 export type NameMappedPropertyFields = {[key: PropertyField['name']]: PropertyField};
@@ -38,10 +50,30 @@ export type PropertyValue<T> = {
     create_at: number;
     update_at: number;
     delete_at: number;
-}
+    created_by: string;
+    updated_by: string;
+};
 
 export type UserPropertyFieldType = 'text' | 'select' | 'multiselect';
-export type UserPropertyFieldGroupID = 'custom_profile_attributes';
+
+/**
+ * Known property-field group identifiers for user-targeted attributes.
+ *
+ * - `custom_profile_attributes`: long-lived user attributes managed through
+ *   the Custom Profile Attributes feature (CPA group).
+ * - `session_attributes`: per-session, environmental attributes the live
+ *   PDP injects into evaluation (e.g. `network_status`, `client_type`,
+ *   `device_managed`). Defined as a group so ABAC tooling — like the
+ *   "Test access rule" simulator — can detect whether session-attribute
+ *   plumbing is configured and progressively expose features (the
+ *   "Use active session" checkbox + "Configure session attributes" panel)
+ *   only when at least one session attribute exists.
+ */
+export type UserPropertyFieldGroupID = 'custom_profile_attributes' | 'session_attributes';
+
+export const SESSION_ATTRIBUTES_GROUP_ID: UserPropertyFieldGroupID = 'session_attributes';
+export const SESSION_ATTRIBUTES_OBJECT_TYPE = 'session';
+
 export type UserPropertyValueType = 'phone' | 'url' | '';
 
 export type FieldVisibility = 'always' | 'hidden' | 'when_set';
@@ -55,7 +87,8 @@ export type PropertyFieldOption = {
     id: string;
     name: string;
     color?: string;
-}
+    rank?: number;
+};
 
 export type UserPropertyField = PropertyField & {
     group_id: UserPropertyFieldGroupID;
@@ -67,6 +100,10 @@ export type UserPropertyField = PropertyField & {
         ldap?: string;
         saml?: string;
         managed?: string;
+        protected?: boolean;
+        source_plugin_id?: string;
+        access_mode?: '' | 'source_only' | 'shared_only';
+        display_name?: string;
     };
 };
 
@@ -75,10 +112,52 @@ export type SelectPropertyField = PropertyField & {
         editable?: boolean;
         options?: PropertyFieldOption[];
     };
-}
+};
 
 export const supportsOptions = (field: UserPropertyField) => {
-    return field.type === 'select' || field.type === 'multiselect';
+    return field.type === 'select' || field.type === 'multiselect' || field.type === 'rank';
 };
 
 export type UserPropertyFieldPatch = Partial<Pick<UserPropertyField, 'name' | 'attrs' | 'type'>>;
+
+// PSA v2 state types
+
+export type PropertiesState = {
+    fields: PropertyFieldsState;
+    values: PropertyValuesState;
+    groups: PropertyGroupsState;
+};
+
+export type PropertyFieldsState = {
+    byObjectType: {
+        [objectType: string]: {
+            [groupId: string]: IDMappedObjects<PropertyField>;
+        };
+    };
+    byId: IDMappedObjects<PropertyField>;
+};
+
+export type PropertyValuesState = {
+    byTargetId: {
+        [targetId: string]: {
+            [fieldId: string]: PropertyValue<unknown>;
+        };
+    };
+    byFieldId: {
+        [fieldId: string]: {
+            [targetId: string]: PropertyValue<unknown>;
+        };
+    };
+};
+
+export type PropertyGroupsState = {
+    byId: IDMappedObjects<PropertyGroup>;
+    byName: {[name: string]: PropertyGroup};
+};
+
+export type PropertyValuesUpdated<T> = {
+    object_type?: string;
+    target_id?: string;
+    field_id?: string;
+    values: Array<PropertyValue<T>>;
+};

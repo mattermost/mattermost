@@ -31,7 +31,15 @@ func (a *App) canSendPushNotifications() bool {
 	}
 
 	pushServer := *a.Config().EmailSettings.PushNotificationServer
-	if license := a.Srv().License(); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
+	// Check for MHPNS servers (both current and legacy DNS aliases)
+	isMHPNSServer := pushServer == model.MHPNS ||
+		pushServer == model.MHPNSLegacyUS ||
+		pushServer == model.MHPNSLegacyDE ||
+		pushServer == model.MHPNSGlobal ||
+		pushServer == model.MHPNSUS ||
+		pushServer == model.MHPNSEU ||
+		pushServer == model.MHPNSAP
+	if license := a.Srv().License(); isMHPNSServer && (license == nil || !*license.Features.MHPNS) {
 		a.Log().LogM(mlog.MlvlNotificationWarn, "Push notifications are disabled - license missing",
 			mlog.String("status", model.NotificationStatusNotSent),
 			mlog.String("reason", "push_disabled_license"),
@@ -164,7 +172,17 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 		mlog.String("post_id", post.Id),
 	)
 
-	mentions, keywords := a.getExplicitMentionsAndKeywords(rctx, post, channel, profileMap, groups, channelMemberNotifyPropsMap, parentPostList)
+	var mentions *MentionResults
+	var keywords MentionKeywords
+	if post.Type == model.PostTypeBurnOnRead {
+		borPost, appErr := a.getBurnOnReadPost(store.RequestContextWithMaster(rctx), post)
+		if appErr != nil {
+			return nil, appErr
+		}
+		mentions, keywords = a.getExplicitMentionsAndKeywords(rctx, borPost, channel, profileMap, groups, channelMemberNotifyPropsMap, parentPostList)
+	} else {
+		mentions, keywords = a.getExplicitMentionsAndKeywords(rctx, post, channel, profileMap, groups, channelMemberNotifyPropsMap, parentPostList)
+	}
 
 	var allActivityPushUserIds []string
 	if channel.Type != model.ChannelTypeDirect {
@@ -234,12 +252,22 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 			}
 			if channel.Type != model.ChannelTypeDirect {
 				rootMentions = getExplicitMentions(rootPost, keywords)
-				for id := range rootMentions.Mentions {
+				for id, mentionType := range rootMentions.Mentions {
+					if mentionType == ChannelMention {
+						if profile, ok := profileMap[id]; ok && profile.NotifyProps[model.ChannelMentionAutoFollowThreadsProp] == "false" {
+							continue
+						}
+					}
 					threadParticipants[id] = true
 				}
 			}
 		}
-		for id := range mentions.Mentions {
+		for id, mentionType := range mentions.Mentions {
+			if mentionType == ChannelMention {
+				if profile, ok := profileMap[id]; ok && profile.NotifyProps[model.ChannelMentionAutoFollowThreadsProp] == "false" {
+					continue
+				}
+			}
 			threadParticipants[id] = true
 		}
 
@@ -722,22 +750,19 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 	// If this is a reply in a thread, notify participants
 	if isCRTAllowed && post.RootId != "" {
 		for uid := range followers {
-			// A user following a thread but had left the channel won't get a notification
-			// https://mattermost.atlassian.net/browse/MM-36769
 			if profileMap[uid] == nil {
-				// This also sometimes happens when bots, which will never show up in the map, reply to threads
-				// Their own post goes through this and they get "notified", which we don't need to count as an error if they can't
-				if uid != post.UserId {
-					a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonMissingProfile, model.NotificationNoPlatform)
-					rctx.Logger().LogM(mlog.MlvlNotificationError, "Missing profile",
-						mlog.String("type", model.NotificationTypeWebsocket),
-						mlog.String("post_id", post.Id),
-						mlog.String("status", model.NotificationStatusError),
-						mlog.String("reason", model.NotificationReasonMissingProfile),
-						mlog.String("sender_id", sender.Id),
-						mlog.String("receiver_id", uid),
-					)
-				}
+				// A follower can be absent from the profile map for several valid reasons: they're a
+				// bot, they've been deactivated, or they've left the channel (MM-36769). None can
+				// receive the notification, so record it as not sent rather than an error.
+				a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypeWebsocket, model.NotificationReasonMissingProfile, model.NotificationNoPlatform)
+				rctx.Logger().LogM(mlog.MlvlNotificationDebug, "Missing profile",
+					mlog.String("type", model.NotificationTypeWebsocket),
+					mlog.String("post_id", post.Id),
+					mlog.String("status", model.NotificationStatusNotSent),
+					mlog.String("reason", model.NotificationReasonMissingProfile),
+					mlog.String("sender_id", sender.Id),
+					mlog.String("receiver_id", uid),
+				)
 				continue
 			}
 			if a.IsCRTEnabledForUser(rctx, uid) {
@@ -826,7 +851,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 					a.sanitizeProfiles(userThread.Participants, false)
 					userThread.Post.SanitizeProps()
 
-					sanitizedPost, err := a.SanitizePostMetadataForUser(rctx, userThread.Post, uid)
+					sanitizedPost, isMemberForPreview, err := a.SanitizePostMetadataForUser(rctx, userThread.Post, uid)
 					if err != nil {
 						a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonParseError, model.NotificationNoPlatform)
 						rctx.Logger().LogM(mlog.MlvlNotificationError, "Failed to sanitize metadata",
@@ -849,6 +874,18 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 					message.Add("thread", string(payload))
 					message.Add("previous_unread_mentions", previousUnreadMentions)
 					message.Add("previous_unread_replies", previousUnreadReplies)
+
+					auditRec := a.MakeAuditRecord(rctx, model.AuditEventWebsocketPost, model.AuditStatusSuccess)
+					defer a.LogAuditRec(rctx, auditRec, nil)
+					model.AddEventParameterToAuditRec(auditRec, "post_id", userThread.Post.Id)
+					if !isMemberForPreview {
+						previewPost := userThread.Post.GetPreviewPost()
+						if previewPost != nil {
+							model.AddEventParameterToAuditRec(auditRec, "preview_post_id", previewPost.Post.Id)
+						}
+						model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
+					}
+					auditRec.Success()
 
 					a.Publish(message)
 				}
@@ -982,7 +1019,7 @@ func (a *App) RemoveNotifications(rctx request.CTX, post *model.Post, channel *m
 				a.sanitizeProfiles(userThread.Participants, false)
 				userThread.Post.SanitizeProps()
 
-				sanitizedPost, err1 := a.SanitizePostMetadataForUser(rctx, userThread.Post, userID)
+				sanitizedPost, isMemberForPreview, err1 := a.SanitizePostMetadataForUser(rctx, userThread.Post, userID)
 				if err1 != nil {
 					return err1
 				}
@@ -992,6 +1029,18 @@ func (a *App) RemoveNotifications(rctx request.CTX, post *model.Post, channel *m
 				if jsonErr != nil {
 					rctx.Logger().Warn("Failed to encode thread to JSON")
 				}
+
+				auditRec := a.MakeAuditRecord(rctx, model.AuditEventWebsocketPost, model.AuditStatusSuccess)
+				defer a.LogAuditRec(rctx, auditRec, nil)
+				model.AddEventParameterToAuditRec(auditRec, "post_id", userThread.Post.Id)
+				if !isMemberForPreview {
+					previewPost := userThread.Post.GetPreviewPost()
+					if previewPost != nil {
+						model.AddEventParameterToAuditRec(auditRec, "preview_post_id", previewPost.Post.Id)
+					}
+					model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
+				}
+				auditRec.Success()
 
 				message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, team.Id, "", userID, nil, "")
 				message.Add("thread", string(payload))
@@ -1425,7 +1474,7 @@ func getMentionsEnabledFields(post *model.Post) model.StringArray {
 
 // allowChannelMentions returns whether or not the channel mentions are allowed for the given post.
 func (a *App) allowChannelMentions(rctx request.CTX, post *model.Post, numProfiles int) bool {
-	if !a.HasPermissionToChannel(rctx, post.UserId, post.ChannelId, model.PermissionUseChannelMentions) {
+	if ok, _ := a.HasPermissionToChannel(rctx, post.UserId, post.ChannelId, model.PermissionUseChannelMentions); !ok {
 		return false
 	}
 
@@ -1446,7 +1495,7 @@ func (a *App) allowGroupMentions(rctx request.CTX, post *model.Post) bool {
 		return false
 	}
 
-	if !a.HasPermissionToChannel(rctx, post.UserId, post.ChannelId, model.PermissionUseGroupMentions) {
+	if ok, _ := a.HasPermissionToChannel(rctx, post.UserId, post.ChannelId, model.PermissionUseGroupMentions); !ok {
 		return false
 	}
 

@@ -15,14 +15,11 @@ import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
 import type {FilterOptions} from 'components/admin_console/filter/filter';
 import TeamFilterDropdown from 'components/admin_console/filter/team_filter_dropdown';
 import {PAGE_SIZE} from 'components/admin_console/team_channel_settings/abstract_list';
-import SharedChannelIndicator from 'components/shared_channel_indicator';
-import ArchiveIcon from 'components/widgets/icons/archive_icon';
-import GlobeIcon from 'components/widgets/icons/globe_icon';
-import LockIcon from 'components/widgets/icons/lock_icon';
+import {ChannelIcon} from 'components/channel_type_icon';
 
 import {getHistory} from 'utils/browser_history';
-import {isArchivedChannel} from 'utils/channel_utils';
-import {Constants} from 'utils/constants';
+
+import AdminChannelSharedIndicator from './admin_channel_shared_indicator';
 
 import './channel_list.scss';
 
@@ -190,25 +187,18 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
         channelsToDisplay = channelsToDisplay.slice(startCount - 1, endCount);
 
         return channelsToDisplay.map((channel) => {
-            let iconToDisplay = <GlobeIcon className='channel-icon'/>;
-
-            if (channel.type === Constants.PRIVATE_CHANNEL) {
-                iconToDisplay = <LockIcon className='channel-icon'/>;
-            }
-
-            if (isArchivedChannel(channel)) {
-                iconToDisplay = (
-                    <ArchiveIcon
-                        className='channel-icon'
-                        data-testid={`${channel.name}-archive-icon`}
-                    />
-                );
-            }
+            const iconToDisplay = (
+                <ChannelIcon
+                    channel={channel}
+                    className='channel-icon'
+                    data-testid={`${channel.name}-archive-icon`}
+                />
+            );
 
             const sharedChannelIcon = channel.shared ? (
-                <SharedChannelIndicator
+                <AdminChannelSharedIndicator
+                    channelId={channel.id}
                     className='channel-icon'
-                    withTooltip={true}
                 />
             ) : null;
 
@@ -411,7 +401,6 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
                     columns={columns}
                     rows={rows}
                     loading={this.state.loading}
-                    page={this.state.page}
                     nextPage={this.nextPage}
                     previousPage={this.previousPage}
                     startCount={startCount}

@@ -7,6 +7,7 @@ import {Modal, Fade} from 'react-bootstrap';
 import {defineMessage, FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {AppCallResponse, AppField, AppForm, AppFormValues, AppSelectOption, FormResponseData, AppLookupResponse, AppFormValue} from '@mattermost/types/apps';
 import type {DialogElement} from '@mattermost/types/integrations';
 
@@ -47,7 +48,7 @@ export type AppsFormProps = {
         performLookupCall: (field: AppField, values: AppFormValues, userInput: string) => Promise<DoAppCallResult<AppLookupResponse>>;
         refreshOnSelect: (field: AppField, values: AppFormValues) => Promise<DoAppCallResult<FormResponseData>>;
     };
-}
+};
 
 export type Props = AppsFormProps & WrappedComponentProps<'intl'>;
 
@@ -59,10 +60,11 @@ export type State = {
     loading: boolean;
     submitting: string | null;
     form: AppForm;
-}
+    isInteracting: boolean;
+};
 
 // Helper function to validate date format and warn if datetime format is used
-const validateDateFieldValue = (fieldName: string, valueType: string, value: string): { warning: string; datePortion: string } | null => {
+const validateDateFieldValue = (fieldName: string, valueType: string, value: string): {warning: string; datePortion: string} | null => {
     if (!value) {
         return null;
     }
@@ -86,44 +88,49 @@ const validateDateFieldValue = (fieldName: string, valueType: string, value: str
 const validateAppField = (field: AppField): string[] => {
     const errors: string[] = [];
 
+    // Resolve effective datetime values (datetime_config takes precedence over deprecated top-level fields)
+    const effectiveTimeInterval = field.datetime_config?.time_interval ?? field.time_interval;
+    const effectiveMinDate = field.datetime_config?.min_date ?? field.min_date;
+    const effectiveMaxDate = field.datetime_config?.max_date ?? field.max_date;
+
     // Validate time_interval for datetime fields (no mutation)
-    if (field.type === AppFieldTypes.DATETIME && field.time_interval !== undefined) {
-        if (typeof field.time_interval !== 'number' || field.time_interval <= 0 || field.time_interval > 1440) {
+    if (field.type === AppFieldTypes.DATETIME && effectiveTimeInterval !== undefined) {
+        if (typeof effectiveTimeInterval !== 'number' || effectiveTimeInterval <= 0 || effectiveTimeInterval > 1440) {
             errors.push(`Field "${field.name}": time_interval must be a positive number between 1 and 1440 minutes`);
-        } else if (1440 % field.time_interval !== 0) {
-            errors.push(`Field "${field.name}": time_interval must be a divisor of 1440 (24 hours * 60 minutes) to create valid time intervals, got ${field.time_interval}`);
+        } else if (1440 % effectiveTimeInterval !== 0) {
+            errors.push(`Field "${field.name}": time_interval must be a divisor of 1440 (24 hours * 60 minutes) to create valid time intervals, got ${effectiveTimeInterval}`);
         }
     }
 
     // Validate min_date and max_date for date/datetime fields (no mutation)
     if (field.type === AppFieldTypes.DATE || field.type === AppFieldTypes.DATETIME) {
-        if (field.min_date) {
-            const result = validateDateFieldValue(field.name, 'min_date', field.min_date);
+        if (effectiveMinDate) {
+            const result = validateDateFieldValue(field.name, 'min_date', effectiveMinDate);
             if (result) {
                 errors.push(result.warning);
             }
 
-            const moment = stringToMoment(field.min_date);
+            const moment = stringToMoment(effectiveMinDate);
             if (!moment) {
-                errors.push(`Field "${field.name}": min_date "${field.min_date}" is not a valid date format`);
+                errors.push(`Field "${field.name}": min_date "${effectiveMinDate}" is not a valid date format`);
             }
         }
 
-        if (field.max_date) {
-            const result = validateDateFieldValue(field.name, 'max_date', field.max_date);
+        if (effectiveMaxDate) {
+            const result = validateDateFieldValue(field.name, 'max_date', effectiveMaxDate);
             if (result) {
                 errors.push(result.warning);
             }
-            const moment = stringToMoment(field.max_date);
+            const moment = stringToMoment(effectiveMaxDate);
             if (!moment) {
-                errors.push(`Field "${field.name}": max_date "${field.max_date}" is not a valid date format`);
+                errors.push(`Field "${field.name}": max_date "${effectiveMaxDate}" is not a valid date format`);
             }
         }
 
         // Validate that min_date < max_date if both are present
-        if (field.min_date && field.max_date) {
-            const minMoment = stringToMoment(field.min_date);
-            const maxMoment = stringToMoment(field.max_date);
+        if (effectiveMinDate && effectiveMaxDate) {
+            const minMoment = stringToMoment(effectiveMinDate);
+            const maxMoment = stringToMoment(effectiveMaxDate);
 
             if (minMoment && maxMoment && minMoment.isAfter(maxMoment)) {
                 errors.push(`Field "${field.name}": min_date cannot be after max_date`);
@@ -155,21 +162,36 @@ const getSafeDateValue = (dateString: string): string => {
 const createSanitizedField = (field: AppField): AppField => {
     const sanitized = {...field};
 
+    // Resolve effective datetime values (datetime_config takes precedence over deprecated top-level fields)
+    const effectiveInterval = field.datetime_config?.time_interval ?? field.time_interval;
+    const effectiveMin = field.datetime_config?.min_date ?? field.min_date;
+    const effectiveMax = field.datetime_config?.max_date ?? field.max_date;
+
     // Sanitize time_interval for datetime fields
-    if (field.type === AppFieldTypes.DATETIME && field.time_interval !== undefined) {
-        const interval = field.time_interval;
-        if (typeof interval !== 'number' || interval <= 0 || interval > 1440 || 1440 % interval !== 0) {
-            sanitized.time_interval = DEFAULT_TIME_INTERVAL_MINUTES;
+    if (field.type === AppFieldTypes.DATETIME && effectiveInterval !== undefined) {
+        const interval = effectiveInterval;
+        const sanitizedInterval = (typeof interval !== 'number' || interval <= 0 || interval > 1440 || 1440 % interval !== 0) ? DEFAULT_TIME_INTERVAL_MINUTES : interval;
+        if (sanitized.datetime_config) {
+            sanitized.datetime_config = {...sanitized.datetime_config, time_interval: sanitizedInterval};
         }
+        sanitized.time_interval = sanitizedInterval;
     }
 
-    // Sanitize date values for date/datetime fields
-    if (field.type === AppFieldTypes.DATE || field.type === AppFieldTypes.DATETIME) {
-        if (field.min_date) {
-            sanitized.min_date = getSafeDateValue(field.min_date);
+    // Sanitize date values for date fields only — datetime fields need the full pattern preserved
+    if (field.type === AppFieldTypes.DATE) {
+        if (effectiveMin) {
+            const safeMin = getSafeDateValue(effectiveMin);
+            if (sanitized.datetime_config) {
+                sanitized.datetime_config = {...sanitized.datetime_config, min_date: safeMin};
+            }
+            sanitized.min_date = safeMin;
         }
-        if (field.max_date) {
-            sanitized.max_date = getSafeDateValue(field.max_date);
+        if (effectiveMax) {
+            const safeMax = getSafeDateValue(effectiveMax);
+            if (sanitized.datetime_config) {
+                sanitized.datetime_config = {...sanitized.datetime_config, max_date: safeMax};
+            }
+            sanitized.max_date = safeMax;
         }
         if (field.type === AppFieldTypes.DATE && field.value && typeof field.value === 'string') {
             sanitized.value = getSafeDateValue(field.value);
@@ -206,14 +228,27 @@ const initFormValues = (form: AppForm, timezone?: string): AppFormValues => {
                 // Set default to current time for required datetime fields
                 const currentTime = timezone ? moment.tz(timezone) : moment();
 
-                // Use sanitized time_interval (guaranteed to be valid)
-                const timePickerInterval = field.time_interval || DEFAULT_TIME_INTERVAL_MINUTES;
+                // Use sanitized time_interval (guaranteed to be valid; datetime_config takes precedence)
+                const timePickerInterval = field.datetime_config?.time_interval ?? field.time_interval ?? DEFAULT_TIME_INTERVAL_MINUTES;
 
                 // Round up to next time interval
                 const minutesMod = currentTime.minutes() % timePickerInterval;
-                const defaultMoment = minutesMod === 0 ?
+                let defaultMoment = minutesMod === 0 ?
                     currentTime.clone().seconds(0).milliseconds(0) :
                     currentTime.clone().add(timePickerInterval - minutesMod, 'minutes').seconds(0).milliseconds(0);
+
+                // Clamp default to min_date/max_date bounds (datetime_config takes precedence)
+                const effectiveMin = field.datetime_config?.min_date ?? field.min_date;
+                const effectiveMax = field.datetime_config?.max_date ?? field.max_date;
+                const minMoment = effectiveMin ? stringToMoment(effectiveMin, timezone) : null;
+                const maxMoment = effectiveMax ? stringToMoment(effectiveMax, timezone) : null;
+                if (minMoment && defaultMoment.isBefore(minMoment)) {
+                    defaultMoment = minMoment.clone();
+                }
+                if (maxMoment && defaultMoment.isAfter(maxMoment)) {
+                    defaultMoment = maxMoment.clone();
+                }
+
                 defaultValue = momentToString(defaultMoment, true);
             }
 
@@ -225,6 +260,12 @@ const initFormValues = (form: AppForm, timezone?: string): AppFormValues => {
 };
 
 export class AppsForm extends React.PureComponent<Props, State> {
+    // Cache sanitized fields to preserve object identity across renders.
+    // Without this, createSanitizedField() returns a new object every render,
+    // causing AppsFormSelectField to remount its AsyncSelect (via refreshNonce),
+    // which re-triggers dynamic select lookups on every keystroke in any field.
+    private sanitizedFieldCache = new Map<AppField, AppField>();
+
     constructor(props: Props) {
         super(props);
 
@@ -239,6 +280,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
             fieldErrors: {},
             submitting: null,
             form,
+            isInteracting: false,
         };
     }
 
@@ -246,7 +288,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
         if (nextProps.form !== prevState.form) {
             const values = {
                 ...prevState.values,
-                ...initFormValues(nextProps.form),
+                ...initFormValues(nextProps.form, nextProps.timezone),
             };
 
             return {
@@ -256,6 +298,14 @@ export class AppsForm extends React.PureComponent<Props, State> {
         }
 
         return null;
+    }
+
+    componentDidUpdate(prevProps: Props) {
+        // Clear sanitized field cache when the form changes (e.g., refresh or multistep)
+        // so stale entries don't accumulate.
+        if (prevProps.form !== this.props.form) {
+            this.sanitizedFieldCache.clear();
+        }
     }
 
     updateErrors = (elements: DialogElement[], fieldErrors?: {[x: string]: string}, formError?: string): boolean => {
@@ -517,6 +567,10 @@ export class AppsForm extends React.PureComponent<Props, State> {
         this.setState({values});
     };
 
+    setIsInteracting = (isInteracting: boolean) => {
+        this.setState({isInteracting});
+    };
+
     hasDateTimeFields = (): boolean => {
         const {fields} = this.props.form;
         return fields ? fields.some((field) =>
@@ -530,9 +584,8 @@ export class AppsForm extends React.PureComponent<Props, State> {
         const bodyClass = loading ? 'apps-form-modal-body-loading' : 'apps-form-modal-body-loaded';
         const bodyClassNames = 'apps-form-modal-body-common ' + bodyClass;
 
-        // Apply same pattern as DND modal for date/datetime fields
+        const dialogClassName = 'a11y__modal about-modal';
         const hasDateTimeFields = this.hasDateTimeFields();
-        const dialogClassName = hasDateTimeFields ? 'a11y__modal about-modal modal-overflow' : 'a11y__modal about-modal';
 
         return (
             <Modal
@@ -641,8 +694,13 @@ export class AppsForm extends React.PureComponent<Props, State> {
         }
 
         return fields.filter((f) => f.name !== form.submit_buttons).map((originalField, index) => {
-            // Use sanitized field for safe usage in components
-            const field = createSanitizedField(originalField);
+            // Use cached sanitized field to preserve object identity across renders.
+            // This prevents AsyncSelect remounts that trigger spurious lookup calls.
+            let field = this.sanitizedFieldCache.get(originalField);
+            if (!field) {
+                field = createSanitizedField(originalField);
+                this.sanitizedFieldCache.set(originalField, field);
+            }
 
             return (
                 <AppsFormField
@@ -654,6 +712,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
                     value={this.state.values[field.name]}
                     performLookup={this.performLookup}
                     onChange={this.onChange}
+                    setIsInteracting={this.setIsInteracting}
                     listComponent={isEmbedded ? SuggestionList : ModalSuggestionList}
                 />
             );
@@ -667,7 +726,6 @@ export class AppsForm extends React.PureComponent<Props, State> {
             <>
                 {header && (
                     <AppsFormHeader
-                        id='appsModalHeader'
                         value={header}
                     />
                 )}
@@ -692,7 +750,6 @@ export class AppsForm extends React.PureComponent<Props, State> {
                 key='submit'
                 type='submit'
                 autoFocus={!fields || fields.length === 0}
-                className='btn btn-primary save-button'
                 spinning={Boolean(this.state.submitting)}
                 spinningText={defineMessage({
                     id: 'interactive_dialog.submitting',
@@ -711,7 +768,6 @@ export class AppsForm extends React.PureComponent<Props, State> {
                         id={'appsModalSubmit' + o.value}
                         key={o.value}
                         type='submit'
-                        className='btn btn-primary save-button'
                         spinning={this.state.submitting === o.value}
                         spinningText={o.label}
                         onClick={(e: React.MouseEvent) => this.handleSubmit(e, field.name, o.value)}
@@ -735,17 +791,17 @@ export class AppsForm extends React.PureComponent<Props, State> {
                             </div>
                         </div>
                     )}
-                    <button
+                    <Button
                         id='appsModalCancel'
                         type='button'
-                        className='btn btn-tertiary cancel-button'
+                        emphasis='tertiary'
                         onClick={this.onHide}
                     >
                         <FormattedMessage
                             id='interactive_dialog.cancel'
                             defaultMessage='Cancel'
                         />
-                    </button>
+                    </Button>
                     {submitButtons}
                 </div>
             </>
@@ -763,6 +819,10 @@ function fieldsAsElements(fields?: AppField[]): DialogElement[] {
         type: f.type,
         subtype: f.subtype,
         optional: !f.is_required,
+        datetime_config: f.datetime_config,
+        min_date: f.datetime_config?.min_date ?? f.min_date,
+        max_date: f.datetime_config?.max_date ?? f.max_date,
+        time_interval: f.datetime_config?.time_interval ?? f.time_interval,
     })) as DialogElement[];
 }
 

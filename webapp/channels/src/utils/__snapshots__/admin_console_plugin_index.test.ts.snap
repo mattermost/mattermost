@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`AdminConsolePluginsIndex.getPluginEntries should return map with the text extracted from plugins 1`] = `
 Object {

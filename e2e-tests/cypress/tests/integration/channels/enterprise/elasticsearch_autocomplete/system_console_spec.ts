@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @enterprise @elasticsearch @autocomplete @not_cloud
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Elasticsearch system console', () => {
     before(() => {
@@ -67,8 +67,8 @@ describe('Elasticsearch system console', () => {
             return cy.get('@firstRow').then((el) => {
                 return el.find('.status-icon-success').length > 0;
             });
-        }
-        , {
+        },
+        {
             timeout: TIMEOUTS.FIVE_MIN,
             interval: TIMEOUTS.TWO_SEC,
             errorMsg: 'Reindex did not succeed in time',

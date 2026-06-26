@@ -19,7 +19,6 @@ import (
 func TestListExports(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	t.Run("no permissions", func(t *testing.T) {
 		exports, _, err := th.Client.ListExports(context.Background())
@@ -90,7 +89,6 @@ func TestListExports(t *testing.T) {
 func TestDeleteExport(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	t.Run("no permissions", func(t *testing.T) {
 		_, err := th.Client.DeleteExport(context.Background(), "export.zip")
@@ -135,7 +133,6 @@ func TestDeleteExport(t *testing.T) {
 func TestDownloadExport(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	t.Run("no permissions", func(t *testing.T) {
 		var buf bytes.Buffer
@@ -200,7 +197,6 @@ func TestDownloadExport(t *testing.T) {
 
 func BenchmarkDownloadExport(b *testing.B) {
 	th := Setup(b)
-	defer th.TearDown()
 
 	dataDir := *th.App.Config().FileSettings.Directory
 	exportDir := filepath.Join(dataDir, *th.App.Config().ExportSettings.Directory)

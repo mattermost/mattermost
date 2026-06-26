@@ -21,7 +21,6 @@ type Props = {
     onExited: () => void;
     userId: string;
     currentDate: Date;
-    locale: string;
     timezone?: string;
 
     actions: {
@@ -31,7 +30,7 @@ type Props = {
 
 type State = {
     selectedDateTime: moment.Moment;
-}
+};
 
 export default injectIntl(class DndCustomTimePicker extends React.PureComponent<Props, State> {
     constructor(props: Props) {
@@ -103,10 +102,12 @@ export default injectIntl(class DndCustomTimePicker extends React.PureComponent<
         this.props.onExited();
     };
 
-    handleDateTimeChange = (newDateTime: moment.Moment) => {
-        this.setState({
-            selectedDateTime: newDateTime,
-        });
+    handleDateTimeChange = (newDateTime: moment.Moment | null) => {
+        if (newDateTime) {
+            this.setState({
+                selectedDateTime: newDateTime,
+            });
+        }
     };
 
     render() {

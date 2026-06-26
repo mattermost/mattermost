@@ -5,11 +5,11 @@ import classNames from 'classnames';
 import React, {memo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {PostPriorityMetadata} from '@mattermost/types/posts';
 
 import {HasNoMentions, HasSpecialMentions} from 'components/post_priority/error_messages';
 import PriorityLabel from 'components/post_priority/post_priority_label';
-import WithTooltip from 'components/with_tooltip';
 
 import './priority_labels.scss';
 
@@ -79,7 +79,7 @@ function PriorityLabels({
                 <WithTooltip
                     title={intl.formatMessage({
                         id: 'post_priority.remove',
-                        defaultMessage: 'Remove {priority}',
+                        defaultMessage: 'Remove {priority} label',
                     }, {priority})}
                 >
                     <button
@@ -90,7 +90,7 @@ function PriorityLabels({
                         <span className='sr-only'>
                             <FormattedMessage
                                 id={'post_priority.remove'}
-                                defaultMessage={'Remove {priority}'}
+                                defaultMessage={'Remove {priority} label'}
                                 values={{priority}}
                             />
                         </span>

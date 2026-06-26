@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, ScheduledPostIndicator} from '@mattermost/playwright-lib';
-import type {ChannelsPage, ScheduledPostsPage} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
+import type {ChannelsPage, ScheduledPostsPage, ScheduledPostIndicator} from '@mattermost/playwright-lib';
 
 test.beforeEach(async ({pw}) => {
     // Ensure license but skip test if no license which is required for "Scheduled Drafts"
@@ -300,7 +300,7 @@ test(
 
         // # Initialize test setup with main user and create a second user
         const {user, team, adminClient} = await pw.initSetup();
-        const otherUser = await adminClient.createUser(pw.random.user(), '', '');
+        const otherUser = await adminClient.createUser(await pw.random.user(), '', '');
 
         // # Login as first user and navigate to DM channel with second user
         const {channelsPage, scheduledPostsPage} = await pw.testBrowser.login(user);

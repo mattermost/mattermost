@@ -9,9 +9,11 @@ import type {Dispatch} from 'redux';
 import type {Emoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
 
-import {General} from 'mattermost-redux/constants';
-import {getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {General, Preferences as ReduxPreferences} from 'mattermost-redux/constants';
+import {getDirectTeammate, isMyChannelAutotranslated} from 'mattermost-redux/selectors/entities/channels';
+import {getConfig, isPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getCurrentUserLocale} from 'mattermost-redux/selectors/entities/i18n';
 import {getPost, makeGetCommentCountForPost, makeIsPostCommentMention, isPostAcknowledgementsEnabled, isPostPriorityEnabled, isPostFlagged} from 'mattermost-redux/selectors/entities/posts';
 import type {UserActivityPost} from 'mattermost-redux/selectors/entities/posts';
 import {
@@ -22,21 +24,28 @@ import {
 import {getCurrentTeam, getTeam, getTeamMemberships} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 
+import {burnPostNow} from 'actions/burn_on_read_deletion';
+import {revealBurnOnReadPost} from 'actions/burn_on_read_posts';
 import {markPostAsUnread, emitShortcutReactToLastPostFrom} from 'actions/post_actions';
+import {openModal, closeModal} from 'actions/views/modals';
 import {closeRightHandSide, selectPost, setRhsExpanded, selectPostCard, selectPostFromRightHandSideSearch} from 'actions/views/rhs';
+import {getBurnOnReadDurationMinutes} from 'selectors/burn_on_read';
+import {isBurnOnReadPost, shouldDisplayConcealedPlaceholder} from 'selectors/burn_on_read_posts';
 import {getShortcutReactToLastPostEmittedFrom, getOneClickReactionEmojis} from 'selectors/emojis';
+import {getIsGlobalThreadsView} from 'selectors/lhs';
 import {getIsPostBeingEdited, getIsPostBeingEditedInRHS, isEmbedVisible} from 'selectors/posts';
 import {getHighlightedPostId, getRhsState, getSelectedPostCard} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 
 import {isArchivedChannel} from 'utils/channel_utils';
 import {Locations, Preferences, RHSStates} from 'utils/constants';
-import {areConsecutivePostsBySameUser, canDeletePost, shouldShowActionsMenu, shouldShowDotMenu} from 'utils/post_utils';
+import {isPopoutWindow} from 'utils/popouts/popout_windows';
+import {areConsecutivePostsBySameUser, canDeletePost, getPostTranslation, shouldShowActionsMenu, shouldShowDotMenu} from 'utils/post_utils';
 import {getDisplayNameByUser} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
-import {removePostCloseRHSDeleteDraft} from './actions';
+import {highlightPostInChannelPopout, removePostCloseRHSDeleteDraft} from './actions';
 import PostComponent from './post_component';
 
 type OwnProps = {
@@ -45,6 +54,7 @@ type OwnProps = {
     postId?: string;
     shouldHighlight?: boolean;
     location: keyof typeof Locations;
+    preventClickInteraction?: boolean;
 };
 
 function isFirstReply(post: Post, previousPost?: Post | null): boolean {
@@ -62,7 +72,7 @@ function isFirstReply(post: Post, previousPost?: Post | null): boolean {
     return false;
 }
 
-function isConsecutivePost(state: GlobalState, ownProps: OwnProps) {
+function isConsecutivePost(state: GlobalState, ownProps: OwnProps, locale: string) {
     let post;
     if (ownProps.postId) {
         post = getPost(state, ownProps.postId);
@@ -76,6 +86,15 @@ function isConsecutivePost(state: GlobalState, ownProps: OwnProps) {
     if (previousPost && post && !post.metadata?.priority?.priority) {
         consecutivePost = areConsecutivePostsBySameUser(post, previousPost);
     }
+
+    if (previousPost && post && consecutivePost && isMyChannelAutotranslated(state, post.channel_id)) {
+        const translation = getPostTranslation(post, locale);
+        const previousTranslation = getPostTranslation(previousPost, locale);
+        if (translation?.state !== previousTranslation?.state) {
+            consecutivePost = false;
+        }
+    }
+
     return consecutivePost;
 }
 
@@ -104,7 +123,11 @@ function makeMapStateToProps() {
         const config = getConfig(state);
         const enableEmojiPicker = config.EnableEmojiPicker === 'true';
         const enablePostUsernameOverride = config.EnablePostUsernameOverride === 'true';
+        const permissionPoliciesEnabled = isPermissionPoliciesEnabled(state);
         const channel = state.entities.channels.channels[post.channel_id];
+        if (!channel) {
+            return null;
+        }
         const shortcutReactToLastPostEmittedFrom = getShortcutReactToLastPostEmittedFrom(state);
 
         const user = getUser(state, post.user_id);
@@ -147,7 +170,9 @@ function makeMapStateToProps() {
             teamName = team?.name || currentTeam?.name;
         }
 
-        const canReply = isDMorGM || (channel.team_id === currentTeam?.id);
+        const isPostBurnOnRead = isBurnOnReadPost(state, post.id);
+        const isSearchPopout = isPopoutWindow() && ownProps.location === Locations.SEARCH;
+        const canReply = !isPostBurnOnRead && (isDMorGM || isSearchPopout || (channel.team_id === currentTeam?.id));
         const directTeammate = getDirectTeammate(state, channel.id);
 
         const previewCollapsed = get(
@@ -164,6 +189,8 @@ function makeMapStateToProps() {
             Preferences.LINK_PREVIEW_DISPLAY_DEFAULT === 'true',
         );
 
+        const locale = getCurrentUserLocale(state);
+
         return {
             enableEmojiPicker,
             enablePostUsernameOverride,
@@ -175,9 +202,9 @@ function makeMapStateToProps() {
             replyCount: getReplyCount(state, post),
             canReply,
             pluginPostTypes: state.plugins.postTypes,
+            channel,
             channelIsArchived: isArchivedChannel(channel),
-            channelIsShared: channel?.shared,
-            isConsecutivePost: isConsecutivePost(state, ownProps),
+            isConsecutivePost: isConsecutivePost(state, ownProps, locale),
             previousPostIsComment,
             isFlagged: isPostFlagged(state, post.id),
             compactDisplay: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT,
@@ -193,7 +220,7 @@ function makeMapStateToProps() {
             recentEmojis: emojis,
             center: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
             isCollapsedThreadsEnabled: isCollapsedThreadsEnabled(state),
-            isExpanded: state.views.rhs.isSidebarExpanded,
+            isExpanded: state.views.rhs.isSidebarExpanded || getIsGlobalThreadsView(state),
             isPostBeingEdited: ownProps.location === Locations.CENTER ? !getIsPostBeingEditedInRHS(state, post.id) && getIsPostBeingEdited(state, post.id) : getIsPostBeingEditedInRHS(state, post.id),
             isMobileView: getIsMobileView(state),
             previewCollapsed,
@@ -216,6 +243,11 @@ function makeMapStateToProps() {
             shouldShowDotMenu: shouldShowDotMenu(state, post, channel),
             canDelete: canDeletePost(state, post, channel),
             pluginActions: state.plugins.components.PostAction,
+            shouldDisplayBurnOnReadConcealed: shouldDisplayConcealedPlaceholder(state, post.id),
+            burnOnReadDurationMinutes: getBurnOnReadDurationMinutes(state),
+            burnOnReadSkipConfirmation: getBool(state, ReduxPreferences.CATEGORY_BURN_ON_READ, ReduxPreferences.BURN_ON_READ_SKIP_CONFIRMATION, false),
+            isBurnOnReadPost: isPostBurnOnRead,
+            permissionPoliciesEnabled,
         };
     };
 }
@@ -225,19 +257,25 @@ function mapDispatchToProps(dispatch: Dispatch) {
         actions: bindActionCreators({
             markPostAsUnread,
             emitShortcutReactToLastPostFrom,
+            highlightPostInChannelPopout,
             selectPost,
             selectPostFromRightHandSideSearch,
             setRhsExpanded,
             removePost: removePostCloseRHSDeleteDraft,
             closeRightHandSide,
             selectPostCard,
+            revealBurnOnReadPost,
+            burnPostNow,
+            savePreferences,
+            openModal,
+            closeModal,
         }, dispatch),
     };
 }
 
 const connector = connect(makeMapStateToProps, mapDispatchToProps);
 
-export type PropsFromRedux = ConnectedProps<typeof connector>
+export type PropsFromRedux = ConnectedProps<typeof connector>;
 
 export default connector(PostComponent);
 

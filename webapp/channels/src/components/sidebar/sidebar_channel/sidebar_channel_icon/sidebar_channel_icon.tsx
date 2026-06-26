@@ -3,16 +3,18 @@
 
 import React from 'react';
 
+import type {Channel} from '@mattermost/types/channels';
+
+import ChannelTypeIcon from 'components/channel_type_icon';
+
 type Props = {
+    channel: Channel;
     icon: JSX.Element | null;
-    isDeleted: boolean;
 };
 
-function SidebarChannelIcon({isDeleted, icon}: Props) {
-    if (isDeleted) {
-        return (
-            <i className='icon icon-archive-outline'/>
-        );
+function SidebarChannelIcon({channel, icon}: Props) {
+    if (channel.delete_at !== 0) {
+        return <ChannelTypeIcon channel={channel}/>;
     }
     return icon;
 }

@@ -3,8 +3,10 @@
 
 import React from 'react';
 import {FormattedDate, FormattedMessage, defineMessages} from 'react-intl';
+import {useSelector} from 'react-redux';
 
-import {BellRingOutlineIcon, GlobeIcon, PencilOutlineIcon, StarOutlineIcon, LockOutlineIcon, StarIcon} from '@mattermost/compass-icons/components';
+import {BellRingOutlineIcon, PencilOutlineIcon, StarOutlineIcon, StarIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {UserProfile as UserProfileType} from '@mattermost/types/users';
 
@@ -12,8 +14,12 @@ import {Permissions} from 'mattermost-redux/constants';
 import {NotificationLevel} from 'mattermost-redux/constants/channels';
 import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
 
+import {getChannelIntroOverride} from 'selectors/channel_intro';
+
 import AddGroupsToTeamModal from 'components/add_groups_to_team_modal';
+import ChannelIntroRenderer from 'components/channel_intro_renderer/channel_intro_renderer';
 import ChannelNotificationsModal from 'components/channel_notifications_modal';
+import {ChannelIcon} from 'components/channel_type_icon';
 import ChannelIntroPrivateSvg from 'components/common/svg_images_components/channel_intro_private_svg';
 import ChannelIntroPublicSvg from 'components/common/svg_images_components/channel_intro_public_svg';
 import ChannelIntroTownSquareSvg from 'components/common/svg_images_components/channel_intro_town_square_svg';
@@ -28,6 +34,8 @@ import {Constants, ModalIdentifiers} from 'utils/constants';
 import {getMonthLong} from 'utils/i18n';
 import * as Utils from 'utils/utils';
 
+import type {GlobalState} from 'types/store';
+
 import AddMembersButton from './add_members_button';
 import PluggableIntroButtons from './pluggable_intro_buttons';
 
@@ -40,6 +48,7 @@ type Props = {
     enableUserCreation?: boolean;
     isReadOnly?: boolean;
     isFavorite: boolean;
+    isInManagedCategory: boolean;
     teamIsGroupConstrained?: boolean;
     creatorName: string;
     teammate?: UserProfileType;
@@ -54,7 +63,7 @@ type Props = {
         favoriteChannel: (channelId: string) => any;
         unfavoriteChannel: (channelId: string) => any;
     };
-}
+};
 
 export default class ChannelIntroMessage extends React.PureComponent<Props> {
     toggleFavorite = () => {
@@ -85,6 +94,7 @@ export default class ChannelIntroMessage extends React.PureComponent<Props> {
             enableUserCreation,
             isReadOnly,
             isFavorite,
+            isInManagedCategory,
             teamIsGroupConstrained,
             creatorName,
             teammate,
@@ -110,11 +120,11 @@ export default class ChannelIntroMessage extends React.PureComponent<Props> {
         } else if (channel.type === Constants.GM_CHANNEL) {
             return createGMIntroMessage(channel, centeredIntro, isFavorite, isMobileView, this.toggleFavorite, channelProfiles, currentUserId, currentUser, channelMember);
         } else if (channel.name === Constants.DEFAULT_CHANNEL) {
-            return createDefaultIntroMessage(channel, centeredIntro, currentUser, isFavorite, isMobileView, this.toggleFavorite, stats, usersLimit, enableUserCreation, isReadOnly, teamIsGroupConstrained);
+            return createDefaultIntroMessage(channel, centeredIntro, currentUser, isFavorite, isMobileView, this.toggleFavorite, stats, usersLimit, enableUserCreation, isReadOnly, teamIsGroupConstrained, isInManagedCategory);
         } else if (channel.name === Constants.OFFTOPIC_CHANNEL) {
-            return createOffTopicIntroMessage(channel, centeredIntro, isFavorite, isMobileView, currentUser, this.toggleFavorite, stats, usersLimit);
+            return createOffTopicIntroMessage(channel, centeredIntro, isFavorite, isMobileView, currentUser, this.toggleFavorite, stats, usersLimit, isInManagedCategory);
         } else if (channel.type === Constants.OPEN_CHANNEL || channel.type === Constants.PRIVATE_CHANNEL) {
-            return createStandardIntroMessage(channel, centeredIntro, currentUser, isFavorite, isMobileView, this.toggleFavorite, stats, usersLimit, locale, creatorName);
+            return createStandardIntroMessage(channel, centeredIntro, currentUser, isFavorite, isMobileView, this.toggleFavorite, stats, usersLimit, locale, creatorName, isInManagedCategory);
         }
         return null;
     }
@@ -228,7 +238,7 @@ function createGMIntroMessage(
             <p className='channel-intro__text'>
                 <FormattedMessage
                     id='intro_messages.group_message'
-                    defaultMessage='This is the start of your group message history with these teammates. Messages and files shared here are not shown to people outside this area.'
+                    defaultMessage='This is the start of your group message history with these teammates. '
                 />
             </p>
         </div>
@@ -321,6 +331,7 @@ function createOffTopicIntroMessage(
     toggleFavorite: () => void,
     stats: any,
     usersLimit: number,
+    isInManagedCategory?: boolean,
 ) {
     const isPrivate = channel.type === Constants.PRIVATE_CHANNEL;
     const children = createSetHeaderButton(channel);
@@ -360,7 +371,7 @@ function createOffTopicIntroMessage(
     } else {
         actionButtons = (
             <div className='channel-intro__actions'>
-                {createFavoriteButton(isFavorite, toggleFavorite)}
+                {createFavoriteButton(isFavorite, toggleFavorite, isInManagedCategory)}
                 {setHeaderButton}
                 {createNotificationPreferencesButton(channel, currentUser)}
             </div>
@@ -402,6 +413,7 @@ function createDefaultIntroMessage(
     enableUserCreation?: boolean,
     isReadOnly?: boolean,
     teamIsGroupConstrained?: boolean,
+    isInManagedCategory?: boolean,
 ) {
     let teamInviteLink = null;
     const totalUsers = stats.total_users_count;
@@ -476,7 +488,7 @@ function createDefaultIntroMessage(
     } else {
         actionButtons = (
             <div className='channel-intro__actions'>
-                {createFavoriteButton(isFavorite, toggleFavorite)}
+                {createFavoriteButton(isFavorite, toggleFavorite, isInManagedCategory)}
                 {setHeaderButton}
                 {createNotificationPreferencesButton(channel, currentUser)}
                 {teamIsGroupConstrained && pluginButtons}
@@ -518,6 +530,24 @@ function createDefaultIntroMessage(
     );
 }
 
+/**
+ * Renders either a plugin-supplied intro body for channels the plugin's matcher selects, or the
+ * default children. Action buttons (favorite, add members, etc.) are rendered outside this
+ * component so the server controls them regardless of any override.
+ */
+const ChannelIntroBody = ({channel, children}: {channel: Channel; children: React.ReactNode}) => {
+    const override = useSelector((state: GlobalState) => getChannelIntroOverride(state, channel.id));
+    if (override) {
+        return (
+            <ChannelIntroRenderer
+                registration={override}
+                channel={channel}
+            />
+        );
+    }
+    return <>{children}</>;
+};
+
 function createStandardIntroMessage(
     channel: Channel,
     centeredIntro: string,
@@ -529,8 +559,8 @@ function createStandardIntroMessage(
     usersLimit: number,
     locale: string,
     creatorName: string,
+    isInManagedCategory?: boolean,
 ) {
-    const uiName = channel.display_name;
     let memberMessage;
     let teamInviteLink = null;
     const channelIsArchived = channel.delete_at !== 0;
@@ -577,7 +607,7 @@ function createStandardIntroMessage(
                 <FormattedMessage
                     id='intro_messages.noCreatorPrivate'
                     defaultMessage='Private channel created on {date}.'
-                    values={{name: (uiName), date}}
+                    values={{date}}
                 />
             );
         } else if (channel.type === Constants.OPEN_CHANNEL) {
@@ -585,7 +615,7 @@ function createStandardIntroMessage(
                 <FormattedMessage
                     id='intro_messages.noCreator'
                     defaultMessage='Public channel created on {date}.'
-                    values={{name: (uiName), date}}
+                    values={{date}}
                 />
             );
         }
@@ -596,7 +626,6 @@ function createStandardIntroMessage(
                     id='intro_messages.creatorPrivate'
                     defaultMessage='Private channel created by {creator} on {date}.'
                     values={{
-                        name: (uiName),
                         creator: (creatorName),
                         date,
                     }}
@@ -610,7 +639,6 @@ function createStandardIntroMessage(
                     id='intro_messages.creator'
                     defaultMessage='Public channel created by {creator} on {date}.'
                     values={{
-                        name: (uiName),
                         creator: (creatorName),
                         date,
                     }}
@@ -666,7 +694,7 @@ function createStandardIntroMessage(
     } else {
         actionButtons = (
             <div className='channel-intro__actions'>
-                {createFavoriteButton(isFavorite, toggleFavorite)}
+                {createFavoriteButton(isFavorite, toggleFavorite, isInManagedCategory)}
                 {teamInviteLink}
                 {setHeaderButton}
                 {!isMobileView && createNotificationPreferencesButton(channel, currentUser)}
@@ -680,18 +708,23 @@ function createStandardIntroMessage(
             id='channelIntro'
             className={'channel-intro ' + centeredIntro}
         >
-            {isPrivate ? <ChannelIntroPrivateSvg/> : <ChannelIntroPublicSvg/>}
-            <h2 className='channel-intro__title'>
-                {channel.display_name}
-            </h2>
-            <div className='channel-intro__created'>
-                {isPrivate ? <LockOutlineIcon size={14}/> : <GlobeIcon size={14}/>}
-                {createMessage}
-            </div>
-            <p className='channel-intro__text'>
-                {memberMessage}
-                {purposeMessage}
-            </p>
+            <ChannelIntroBody channel={channel}>
+                {isPrivate ? <ChannelIntroPrivateSvg/> : <ChannelIntroPublicSvg/>}
+                <h2 className='channel-intro__title'>
+                    {channel.display_name}
+                </h2>
+                <div className='channel-intro__created'>
+                    <ChannelIcon
+                        channel={channel}
+                        size={14}
+                    />
+                    {createMessage}
+                </div>
+                <p className='channel-intro__text'>
+                    {memberMessage}
+                    {purposeMessage}
+                </p>
+            </ChannelIntroBody>
             {actionButtons}
         </div>
     );
@@ -722,7 +755,7 @@ function createSetHeaderButton(channel: Channel) {
     );
 }
 
-function createFavoriteButton(isFavorite: boolean, toggleFavorite: () => void, classes?: string) {
+function createFavoriteButton(isFavorite: boolean, toggleFavorite: () => void, disabled?: boolean, classes?: string) {
     let favoriteText;
     if (isFavorite) {
         favoriteText = (
@@ -737,17 +770,36 @@ function createFavoriteButton(isFavorite: boolean, toggleFavorite: () => void, c
                 defaultMessage='Favorite'
             />);
     }
-    return (
+
+    const button = (
         <button
             id='toggleFavoriteIntroButton'
             className={`action-button ${isFavorite ? 'active' : ''}  ${classes}`}
             onClick={toggleFavorite}
+            disabled={disabled}
             aria-label={'Favorite'}
         >
             {isFavorite ? <StarIcon size={24}/> : <StarOutlineIcon size={24}/>}
             {favoriteText}
         </button>
     );
+
+    if (disabled) {
+        return (
+            <WithTooltip
+                title={
+                    <FormattedMessage
+                        id='channelHeader.managedCategoryFavoriteDisabled'
+                        defaultMessage='Channels in managed categories cannot be favorited.'
+                    />
+                }
+            >
+                {button}
+            </WithTooltip>
+        );
+    }
+
+    return button;
 }
 
 function createNotificationPreferencesButton(channel: Channel, currentUser: UserProfileType) {
@@ -755,7 +807,7 @@ function createNotificationPreferencesButton(channel: Channel, currentUser: User
         <ToggleModalButton
             id='channelIntroNotificationPreferencesButton'
             modalId={ModalIdentifiers.CHANNEL_NOTIFICATIONS}
-            ariaLabel={Utils.localizeMessage({id: 'intro_messages.notificationPreferences', defaultMessage: 'Notification Preferences'})}
+            ariaLabel={Utils.localizeMessage({id: 'intro_messages.notificationPreferences', defaultMessage: 'Notifications'})}
             className={'action-button'}
             dialogType={ChannelNotificationsModal}
             dialogProps={{channel, currentUser, focusOriginElement: 'channelIntroNotificationPreferencesButton'}}

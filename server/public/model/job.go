@@ -44,6 +44,11 @@ const (
 	JobTypeDeleteDmsPreferencesMigration = "delete_dms_preferences_migration"
 	JobTypeMobileSessionMetadata         = "mobile_session_metadata"
 	JobTypeAccessControlSync             = "access_control_sync"
+	JobTypePushProxyAuth                 = "push_proxy_auth"
+	JobTypeRecap                         = "recap"
+	JobTypeDeleteExpiredPosts            = "delete_expired_posts"
+	JobTypeAutoTranslationRecovery       = "autotranslation_recovery"
+	JobTypeCleanupExpiredAccessTokens    = "cleanup_expired_access_tokens"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"
@@ -74,6 +79,7 @@ var AllJobTypes = [...]string{
 	JobTypeLastAccessiblePost,
 	JobTypeLastAccessibleFile,
 	JobTypeCleanupDesktopTokens,
+	JobTypeCleanupExpiredAccessTokens,
 	JobTypeRefreshMaterializedViews,
 	JobTypeMobileSessionMetadata,
 }

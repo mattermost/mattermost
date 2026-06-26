@@ -11,10 +11,10 @@ import PrewrittenChips from 'components/advanced_create_post/prewritten_chips';
 import OnboardingTourTip from './onboarding_tour_tip';
 
 type Props = {
-    prefillMessage: (msg: string, shouldFocus: boolean) => void;
+    prefillMessage: (msg: string) => void;
     channelId: string;
     currentUserId: string;
-}
+};
 
 const translate = {x: -6, y: -6};
 

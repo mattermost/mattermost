@@ -3,6 +3,7 @@
 
 import React from 'react';
 
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {TeamMembership, TeamStats, GetTeamMembersOpts} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -13,7 +14,6 @@ import SearchableUserList from 'components/searchable_user_list/searchable_user_
 import TeamMembersDropdown from 'components/team_members_dropdown';
 
 import Constants from 'utils/constants';
-import * as UserAgent from 'utils/user_agent';
 
 const USERS_PER_PAGE = 50;
 
@@ -35,11 +35,11 @@ type Props = {
         loadTeamMembersForProfilesList: (profiles: any, teamId: string, reloadAllMembers: boolean) => Promise<ActionResult>;
         setModalSearchTerm: (term: string) => ActionResult;
     };
-}
+};
 
 type State = {
     loading: boolean;
-}
+};
 
 export default class MemberListTeam extends React.PureComponent<Props, State> {
     private searchTimeoutId: number;

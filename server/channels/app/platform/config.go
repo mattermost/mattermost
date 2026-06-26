@@ -107,6 +107,9 @@ func (ps *PlatformService) SaveConfig(newCfg *model.Config, sendConfigChangeClus
 		}
 	}
 
+	// Validate log file paths (logs errors for now, will block server startup in future version)
+	config.WarnIfLogPathsOutsideRoot(newCfg)
+
 	oldCfg, newCfg, err := ps.configStore.Set(newCfg)
 	if errors.Is(err, config.ErrReadOnlyConfiguration) {
 		return nil, nil, model.NewAppError("saveConfig", "ent.cluster.save_config.error", nil, "", http.StatusForbidden).Wrap(err)

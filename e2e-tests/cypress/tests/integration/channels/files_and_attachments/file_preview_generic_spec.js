@@ -10,14 +10,14 @@
 // Stage: @prod
 // Group: @channels @files_and_attachments
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-
 import {
     attachFile,
     downloadAttachmentAndVerifyItsProperties,
     interceptFileUpload,
     waitUntilUploadComplete,
 } from './helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Upload Files - Generic', () => {
     before(() => {
@@ -81,6 +81,16 @@ describe('Upload Files - Generic', () => {
         };
         testGenericFile(properties);
     });
+
+    it('MM-T3824_6 - XML', () => {
+        const properties = {
+            filePath: 'mm_file_testing/Documents/XML.xml',
+            fileName: 'XML.xml',
+            mimeType: 'application/xml',
+            type: 'xml',
+        };
+        testGenericFile(properties);
+    });
 });
 
 function testGenericFile(properties) {
@@ -104,6 +114,7 @@ function testGenericFile(properties) {
     cy.uiGetFilePreviewModal().as('filePreviewModal');
     switch (type) {
     case 'text':
+    case 'xml':
         cy.get('@filePreviewModal').get('code').should('exist');
         break;
     case 'pdf':

@@ -288,10 +288,6 @@
     "translation": "- Додатне грешке можете наћи у записницима на серверу.\r\n"
   },
   {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack корисник са мејлом {{.Email}} и лозинком {{.Password}} је увежен.\r\n"
-  },
-  {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\r\nКорисника направљено:\r\n"
   },
@@ -314,10 +310,6 @@
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "Не могу да увезем интеграционог Slack бот корисника {{.Username}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Интеграциони Slack бот корисник са мејлом {{.Email}} и лозинком {{.Password}} је увежен.\r\n"
   },
   {
     "id": "api.server.start_server.starting.critical",

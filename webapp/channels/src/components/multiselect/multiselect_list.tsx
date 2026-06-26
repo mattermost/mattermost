@@ -16,25 +16,22 @@ export type Props<T extends Value> = {
     ariaLabelRenderer: GetOptionValue<T>;
     loading?: boolean;
     onAdd: (value: T) => void;
-    onPageChange?: (newPage: number, currentPage: number) => void;
     onSelect: (value: T | null) => void;
     optionRenderer: (
         option: T,
         isSelected: boolean,
         add: (value: T) => void,
-        select: (value: T) => void
+        select: (value: T) => void,
     ) => React.ReactNode;
     query?: string;
     selectedItemRef?: React.RefObject<HTMLDivElement>;
     options: T[];
-    page: number;
-    perPage: number;
     customNoOptionsMessage?: React.ReactNode;
-}
+};
 
 type State = {
     selected: number;
-}
+};
 const KeyCodes = Constants.KeyCodes;
 
 export default class MultiSelectList<T extends Value> extends React.PureComponent<Props<T>, State> {

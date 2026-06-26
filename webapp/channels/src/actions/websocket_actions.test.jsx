@@ -1,15 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {CloudTypes} from 'mattermost-redux/action_types';
+import cloneDeep from 'lodash/cloneDeep';
+
+import {WebSocketEvents} from '@mattermost/client';
+
+import {ChannelTypes, CloudTypes, TeamTypes} from 'mattermost-redux/action_types';
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
 import {fetchAllMyTeamsChannels} from 'mattermost-redux/actions/channels';
 import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {getGroup} from 'mattermost-redux/actions/groups';
 import {
     getPostThreads,
+    getPostsAround,
     receivedNewPost,
 } from 'mattermost-redux/actions/posts';
+import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
 import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_polling';
 import {getUser} from 'mattermost-redux/actions/users';
 import {getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
@@ -21,20 +27,28 @@ import {closeRightHandSide} from 'actions/views/rhs';
 import realConfigureStore from 'store';
 import store from 'stores/redux_store';
 
+import {invalidateAccessControlAttributesCache} from 'components/common/hooks/useAccessControlAttributes';
+
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
+import {defaultIntl} from 'tests/helpers/intl-test-helper';
 import configureStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
-import Constants, {SocketEvents, ActionTypes, UserStatuses} from 'utils/constants';
+import Constants, {ActionTypes, ModalIdentifiers, UserStatuses} from 'utils/constants';
+import {setIntl} from 'utils/i18n';
 
 import {
     handleChannelUpdatedEvent,
+    handleChannelAccessControlUpdatedEvent,
+    handleTeamAccessControlUpdatedEvent,
     handleEvent,
+    handleFileUploadRejected,
     handleNewPostEvent,
     handleNewPostEvents,
     handlePluginEnabled,
     handlePluginDisabled,
     handlePostEditEvent,
     handlePostUnreadEvent,
+    handleUserAddedEvent,
     handleUserRemovedEvent,
     handleLeaveTeamEvent,
     reconnect,
@@ -52,6 +66,7 @@ import {
 jest.mock('mattermost-redux/actions/posts', () => ({
     ...jest.requireActual('mattermost-redux/actions/posts'),
     getPostThreads: jest.fn(() => ({type: 'GET_THREADS_FOR_POSTS'})),
+    getPostsAround: jest.fn(() => ({type: 'GET_POSTS_AROUND'})),
     getMentionsAndStatusesForPosts: jest.fn(),
 }));
 
@@ -110,6 +125,19 @@ jest.mock('actions/views/channel', () => ({
 jest.mock('plugins', () => ({
     ...jest.requireActual('plugins'),
     loadPluginsIfNecessary: jest.fn(() => Promise.resolve()),
+}));
+
+jest.mock('components/common/hooks/useAccessControlAttributes', () => ({
+    EntityType: {Channel: 'channel'},
+    invalidateAccessControlAttributesCache: jest.fn(),
+}));
+
+jest.mock('mattermost-redux/actions/shared_channels', () => ({
+    fetchChannelRemotes: jest.fn((channelId, forceRefresh) => ({
+        type: 'MOCK_FETCH_CHANNEL_REMOTES',
+        channelId,
+        forceRefresh,
+    })),
 }));
 
 let mockState = {
@@ -199,6 +227,10 @@ let mockState = {
                     order: ['post5', 'post2', 'post1'],
                     recent: true,
                 }],
+                channel2: [{
+                    order: ['post4', 'post3'],
+                    recent: true,
+                }],
             },
         },
     },
@@ -230,7 +262,7 @@ jest.mock('actions/views/rhs', () => ({
 
 describe('handleEvent', () => {
     test('should dispatch channel updated event properly', () => {
-        const msg = {event: SocketEvents.CHANNEL_UPDATED};
+        const msg = {event: WebSocketEvents.ChannelUpdated};
 
         handleEvent(msg);
 
@@ -239,20 +271,102 @@ describe('handleEvent', () => {
 });
 
 describe('handlePostEditEvent', () => {
+    beforeEach(() => {
+        store.dispatch.mockClear();
+        getPostsAround.mockClear();
+    });
+
+    const buildMsg = (postOverrides) => {
+        const post = JSON.stringify({
+            id: 'test',
+            create_at: 123,
+            update_at: 123,
+            user_id: 'user',
+            channel_id: '12345',
+            root_id: '',
+            message: 'asd',
+            pending_post_id: '2345',
+            metadata: {},
+            ...postOverrides,
+        });
+        return {
+            data: {post},
+            broadcast: {channel_id: '1234657'},
+        };
+    };
+
     test('post edited', async () => {
-        const post = '{"id":"test","create_at":123,"update_at":123,"user_id":"user","channel_id":"12345","root_id":"","message":"asd","pending_post_id":"2345","metadata":{}}';
-        const expectedAction = {type: 'RECEIVED_POST', data: JSON.parse(post), features: {crtEnabled: false}};
-        const msg = {
-            data: {
-                post,
-            },
-            broadcast: {
-                channel_id: '1234657',
-            },
+        const msg = buildMsg({});
+        const expectedAction = {
+            type: 'RECEIVED_POST',
+            data: JSON.parse(msg.data.post),
+            features: {crtEnabled: false},
         };
 
         handlePostEditEvent(msg);
         expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
+        expect(getPostsAround).not.toHaveBeenCalled();
+    });
+
+    test('restored post within a loaded block range triggers getPostsAround', () => {
+        // mockState's otherChannel block contains post5 (create_at 12345 — newest)
+        // through post1 (create_at 12341 — oldest). A restored post not in that
+        // order but with create_at inside the range should fetch surrounding posts.
+        const msg = buildMsg({id: 'restored', channel_id: 'otherChannel', create_at: 12343});
+
+        handlePostEditEvent(msg);
+
+        expect(getPostsAround).toHaveBeenCalledWith('otherChannel', 'restored');
+        expect(store.dispatch).toHaveBeenCalledWith({type: 'GET_POSTS_AROUND'});
+    });
+
+    test('restored post newer than every loaded block in the current channel triggers getPostsAround', () => {
+        const msg = buildMsg({id: 'restored', channel_id: 'otherChannel', create_at: 99999});
+        handlePostEditEvent(msg);
+        expect(getPostsAround).toHaveBeenCalledWith('otherChannel', 'restored');
+    });
+
+    test('restored post newer than every loaded block in a non-current channel does not trigger getPostsAround', () => {
+        const msg = buildMsg({id: 'restored', channel_id: 'channel2', create_at: 99999});
+        handlePostEditEvent(msg);
+        expect(getPostsAround).not.toHaveBeenCalled();
+    });
+
+    test('restored post older than every loaded block does not trigger getPostsAround', () => {
+        // create_at well below the block's oldest (12341). Inserting here would
+        // produce a disjoint block; let the user load it naturally on scroll.
+        const msg = buildMsg({id: 'restored', channel_id: 'otherChannel', create_at: 100});
+
+        handlePostEditEvent(msg);
+
+        expect(getPostsAround).not.toHaveBeenCalled();
+    });
+
+    test('post already in a block does not trigger getPostsAround', () => {
+        // post5 is in mockState's otherChannel order — receivedPost updates the
+        // entity in place; no surrounding fetch is needed.
+        const msg = buildMsg({id: 'post5', channel_id: 'otherChannel', create_at: 12345});
+
+        handlePostEditEvent(msg);
+
+        expect(getPostsAround).not.toHaveBeenCalled();
+    });
+
+    test('edit for an unloaded channel does not trigger getPostsAround', () => {
+        const msg = buildMsg({id: 'restored', channel_id: 'channelNotInState', create_at: 12343});
+
+        handlePostEditEvent(msg);
+
+        expect(getPostsAround).not.toHaveBeenCalled();
+    });
+
+    test('thread reply does not trigger getPostsAround', () => {
+        // Replies live in postsInThread, not postsInChannel — skip this path.
+        const msg = buildMsg({id: 'reply', channel_id: 'otherChannel', create_at: 12343, root_id: 'post5'});
+
+        handlePostEditEvent(msg);
+
+        expect(getPostsAround).not.toHaveBeenCalled();
     });
 });
 
@@ -332,6 +446,68 @@ describe('handlePostUnreadEvent', () => {
 
         handlePostUnreadEvent(msg);
         expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
+    });
+});
+
+describe('handleUserAddedEvent', () => {
+    const currentChannelId = mockState.entities.channels.currentChannelId;
+
+    // getLicense() must resolve to an object for handleUserAddedEvent, so add one
+    // to a local copy of the state rather than mutating the shared mockState.
+    const stateWithLicense = {
+        ...mockState,
+        entities: {
+            ...mockState.entities,
+            general: {
+                ...mockState.entities.general,
+                license: {},
+            },
+        },
+    };
+
+    test('should load the added user profile when it is not already in the store', async () => {
+        const testStore = configureStore(stateWithLicense);
+        const msg = {
+            data: {
+                user_id: 'remoteUser',
+            },
+            broadcast: {
+                channel_id: currentChannelId,
+            },
+        };
+
+        await testStore.dispatch(handleUserAddedEvent(msg));
+        expect(getUser).toHaveBeenCalledWith('remoteUser');
+    });
+
+    test('should not load the added user profile when it is already in the store', async () => {
+        const testStore = configureStore(stateWithLicense);
+        const msg = {
+            data: {
+                user_id: 'user',
+            },
+            broadcast: {
+                channel_id: currentChannelId,
+            },
+        };
+
+        await testStore.dispatch(handleUserAddedEvent(msg));
+        expect(getUser).not.toHaveBeenCalled();
+    });
+
+    test('should not load the added user profile when the channel is not the current channel', async () => {
+        const testStore = configureStore(stateWithLicense);
+        const msg = {
+            data: {
+                user_id: 'remoteUser',
+            },
+            broadcast: {
+                channel_id: 'someOtherChannel',
+            },
+        };
+
+        await testStore.dispatch(handleUserAddedEvent(msg));
+        expect(getUser).not.toHaveBeenCalled();
     });
 });
 
@@ -703,14 +879,67 @@ describe('reconnect', () => {
     });
 
     test('should reload custom profile attribute fields on reconnect', () => {
+        const clonedMockState = cloneDeep(mockState);
+
+        mockState = mergeObjects(
+            mockState,
+            {
+                entities: {
+                    general: {
+                        license: {
+                            SkuShortName: 'enterprise',
+                        },
+                        config: {
+                            FeatureFlagCustomProfileAttributes: 'true',
+                        },
+                    },
+                },
+            },
+        );
+
         reconnect();
         expect(getCustomProfileAttributeFields).toHaveBeenCalled();
+
+        // Restore mock state
+        mockState = clonedMockState;
+    });
+
+    test.each([
+        {SkuShortName: 'starter', FeatureFlagCustomProfileAttributes: 'true'},
+        {SkuShortName: 'enterprise', FeatureFlagCustomProfileAttributes: 'false'},
+    ])("should not reload custom profile attribute fields on reconnect if feature isn't available", ({SkuShortName, FeatureFlagCustomProfileAttributes}) => {
+        const clonedMockState = cloneDeep(mockState);
+
+        mockState = mergeObjects(
+            mockState,
+            {
+                entities: {
+                    general: {
+                        license: {
+                            SkuShortName,
+                        },
+                        config: {
+                            FeatureFlagCustomProfileAttributes,
+                        },
+                    },
+                },
+            },
+        );
+
+        reconnect();
+        expect(getCustomProfileAttributeFields).not.toHaveBeenCalled();
+
+        // Restore mock state
+        mockState = clonedMockState;
     });
 });
 
 describe('handleChannelUpdatedEvent', () => {
     const initialState = {
         entities: {
+            general: {
+                config: {},
+            },
             channels: {
                 currentChannelId: 'channel',
                 channels: {
@@ -718,6 +947,7 @@ describe('handleChannelUpdatedEvent', () => {
                         id: 'channel',
                     },
                 },
+                myMembers: {},
             },
             teams: {
                 currentTeamId: 'team',
@@ -816,6 +1046,80 @@ describe('handleChannelUpdatedEvent', () => {
     });
 });
 
+describe('handleChannelAccessControlUpdatedEvent', () => {
+    beforeEach(() => {
+        invalidateAccessControlAttributesCache.mockClear();
+    });
+
+    test('dispatches RECEIVED_CHANNEL with parsed channel and invalidates attribute cache', () => {
+        const testStore = configureStore({});
+        const channel = {
+            id: 'channel-ac-1',
+            team_id: 'team-1',
+            policy_enforced: true,
+        };
+        const msg = {
+            data: {
+                channel: JSON.stringify(channel),
+            },
+        };
+
+        testStore.dispatch(handleChannelAccessControlUpdatedEvent(msg));
+
+        expect(testStore.getActions()).toEqual([
+            {
+                type: ChannelTypes.RECEIVED_CHANNEL,
+                data: channel,
+            },
+        ]);
+        expect(invalidateAccessControlAttributesCache).toHaveBeenCalledTimes(1);
+        expect(invalidateAccessControlAttributesCache).toHaveBeenCalledWith('channel', 'channel-ac-1');
+    });
+
+    test('returns early when msg.data.channel is missing', () => {
+        const testStore = configureStore({});
+        const msg = {data: {}};
+
+        testStore.dispatch(handleChannelAccessControlUpdatedEvent(msg));
+
+        expect(testStore.getActions()).toEqual([]);
+        expect(invalidateAccessControlAttributesCache).not.toHaveBeenCalled();
+    });
+});
+
+describe('handleTeamAccessControlUpdatedEvent', () => {
+    test('dispatches RECEIVED_TEAM with parsed team', () => {
+        const testStore = configureStore({});
+        const team = {
+            id: 'team-ac-1',
+            policy_enforced: true,
+        };
+        const msg = {
+            data: {
+                team: JSON.stringify(team),
+            },
+        };
+
+        testStore.dispatch(handleTeamAccessControlUpdatedEvent(msg));
+
+        expect(testStore.getActions()).toEqual([
+            {
+                type: TeamTypes.RECEIVED_TEAM,
+                data: team,
+            },
+        ]);
+    });
+
+    test('returns early when msg.data.team is missing', () => {
+        const testStore = configureStore({});
+        const msg = {data: {}};
+
+        testStore.dispatch(handleTeamAccessControlUpdatedEvent(msg));
+
+        expect(testStore.getActions()).toEqual([]);
+    });
+});
+
 describe('handleCloudSubscriptionChanged', () => {
     const baseSubscription = {
         id: 'basesub',
@@ -861,7 +1165,7 @@ describe('handleCloudSubscriptionChanged', () => {
             id: 'newsub',
         };
         const msg = {
-            event: SocketEvents.CLOUD_PRODUCT_LIMITS_CHANGED,
+            event: WebSocketEvents.CloudSubscriptionChanged,
             data: {
                 limits: newLimits,
                 subscription: newSubscription,
@@ -900,7 +1204,7 @@ describe('handleCloudSubscriptionChanged', () => {
             },
         };
         const msg = {
-            event: SocketEvents.CLOUD_PRODUCT_LIMITS_CHANGED,
+            event: WebSocketEvents.CloudSubscriptionChanged,
             data: {
                 limits: newLimits,
             },
@@ -934,7 +1238,7 @@ describe('handleCloudSubscriptionChanged', () => {
         };
 
         const msg = {
-            event: SocketEvents.CLOUD_PRODUCT_LIMITS_CHANGED,
+            event: WebSocketEvents.CloudSubscriptionChanged,
             data: {
                 subscription: newSubscription,
             },
@@ -951,14 +1255,12 @@ describe('handleCloudSubscriptionChanged', () => {
 });
 
 describe('handlePluginEnabled/handlePluginDisabled', () => {
-    const origLog = console.log;
     const origError = console.error;
     const origCreateElement = document.createElement;
     const origGetElementsByTagName = document.getElementsByTagName;
     const origWindowPlugins = window.plugins;
 
     afterEach(() => {
-        console.log = origLog;
         console.error = origError;
         document.createElement = origCreateElement;
         document.getElementsByTagName = origGetElementsByTagName;
@@ -984,8 +1286,7 @@ describe('handlePluginEnabled/handlePluginDisabled', () => {
         };
 
         beforeEach(async () => {
-            console.log = jest.fn();
-            console.error = jest.fn();
+            console.error = jest.fn((...args) => origError(...args));
 
             document.createElement = jest.fn();
             document.getElementsByTagName = jest.fn();
@@ -994,59 +1295,35 @@ describe('handlePluginEnabled/handlePluginDisabled', () => {
             }]);
         });
 
-        test('when a plugin is enabled', () => {
+        test('when a plugin is enabled', async () => {
             const manifest = {
                 ...baseManifest,
                 id: 'com.mattermost.demo-plugin',
-            };
-            const initialize = jest.fn();
-            window.plugins = {
-                [manifest.id]: {
-                    initialize,
-                },
             };
 
             const mockScript = {};
             document.createElement.mockReturnValue(mockScript);
 
-            expect(mockScript.onload).toBeUndefined();
             handlePluginEnabled({data: {manifest}});
 
             expect(document.createElement).toHaveBeenCalledWith('script');
             expect(document.getElementsByTagName).toHaveBeenCalledTimes(1);
             expect(document.getElementsByTagName()[0].appendChild).toHaveBeenCalledTimes(1);
-            expect(mockScript.onload).toBeInstanceOf(Function);
 
-            // Pretend to be a browser, invoke onload
-            mockScript.onload();
-            expect(initialize).toHaveBeenCalledWith(expect.anything(), store);
-            const registery = initialize.mock.calls[0][0];
-            const mockComponent = 'mockRootComponent';
-            registery.registerRootComponent(mockComponent);
+            expect(store.dispatch).toHaveBeenCalledTimes(1);
 
             let dispatchArg = store.dispatch.mock.calls[0][0];
             expect(dispatchArg.type).toBe(ActionTypes.RECEIVED_WEBAPP_PLUGIN);
             expect(dispatchArg.data).toBe(manifest);
 
-            dispatchArg = store.dispatch.mock.calls[1][0];
-
-            expect(dispatchArg.type).toBe(ActionTypes.RECEIVED_PLUGIN_COMPONENT);
-            expect(dispatchArg.name).toBe('Root');
-            expect(dispatchArg.data.component).toBe(mockComponent);
-            expect(dispatchArg.data.pluginId).toBe(manifest.id);
+            // Assert handlePluginEnabled is idempotent
+            handlePluginEnabled({data: {manifest}});
 
             expect(store.dispatch).toHaveBeenCalledTimes(2);
 
-            // Assert handlePluginEnabled is idempotent
-            mockScript.onload = undefined;
-            handlePluginEnabled({data: {manifest}});
-            expect(mockScript.onload).toBeUndefined();
-
-            dispatchArg = store.dispatch.mock.calls[2][0];
+            dispatchArg = store.dispatch.mock.calls[1][0];
             expect(dispatchArg.type).toBe(ActionTypes.RECEIVED_WEBAPP_PLUGIN);
             expect(dispatchArg.data).toBe(manifest);
-
-            expect(store.dispatch).toHaveBeenCalledTimes(3);
 
             expect(console.error).toHaveBeenCalledTimes(0);
         });
@@ -1055,12 +1332,6 @@ describe('handlePluginEnabled/handlePluginDisabled', () => {
             const manifest = {
                 ...baseManifest,
                 id: 'com.mattermost.demo-2-plugin',
-            };
-            const initialize = jest.fn();
-            window.plugins = {
-                [manifest.id]: {
-                    initialize,
-                },
             };
 
             const manifestv2 = {
@@ -1074,69 +1345,39 @@ describe('handlePluginEnabled/handlePluginDisabled', () => {
             const mockScript = {};
             document.createElement.mockReturnValue(mockScript);
 
-            expect(mockScript.onload).toBeUndefined();
             handlePluginEnabled({data: {manifest}});
 
             expect(document.createElement).toHaveBeenCalledWith('script');
             expect(document.getElementsByTagName).toHaveBeenCalledTimes(1);
             expect(document.getElementsByTagName()[0].appendChild).toHaveBeenCalledTimes(1);
-            expect(mockScript.onload).toBeInstanceOf(Function);
-
-            // Pretend to be a browser, invoke onload
-            mockScript.onload();
-            expect(initialize).toHaveBeenCalledWith(expect.anything(), store);
-            const registry = initialize.mock.calls[0][0];
-            const mockComponent = 'mockRootComponent';
-            registry.registerRootComponent(mockComponent);
 
             let dispatchArg = store.dispatch.mock.calls[0][0];
             expect(dispatchArg.type).toBe(ActionTypes.RECEIVED_WEBAPP_PLUGIN);
             expect(dispatchArg.data).toBe(manifest);
 
-            dispatchArg = store.dispatch.mock.calls[1][0];
-            expect(dispatchArg.type).toBe(ActionTypes.RECEIVED_PLUGIN_COMPONENT);
-            expect(dispatchArg.name).toBe('Root');
-            expect(dispatchArg.data.component).toBe(mockComponent);
-            expect(dispatchArg.data.pluginId).toBe(manifest.id);
-
             // Upgrade plugin
-            mockScript.onload = undefined;
             handlePluginEnabled({data: {manifest: manifestv2}});
 
             // Assert upgrade is idempotent
             handlePluginEnabled({data: {manifest: manifestv2}});
 
-            expect(mockScript.onload).toBeInstanceOf(Function);
             expect(document.createElement).toHaveBeenCalledTimes(2);
 
-            mockScript.onload();
-            expect(initialize).toHaveBeenCalledWith(expect.anything(), store);
-            expect(initialize).toHaveBeenCalledTimes(2);
-            const registry2 = initialize.mock.calls[0][0];
-            const mockComponent2 = 'mockRootComponent2';
-            registry2.registerRootComponent(mockComponent2);
+            dispatchArg = store.dispatch.mock.calls[1][0];
+            expect(dispatchArg.type).toBe(ActionTypes.RECEIVED_WEBAPP_PLUGIN);
+            expect(dispatchArg.data).toBe(manifestv2);
 
-            dispatchArg = store.dispatch.mock.calls[2][0];
+            expect(store.dispatch).toHaveBeenCalledTimes(4);
+            const dispatchRemovedArg = store.dispatch.mock.calls[2][0];
+            expect(typeof dispatchRemovedArg).toBe('function');
+            dispatchRemovedArg(store.dispatch);
+
+            dispatchArg = store.dispatch.mock.calls[3][0];
             expect(dispatchArg.type).toBe(ActionTypes.RECEIVED_WEBAPP_PLUGIN);
             expect(dispatchArg.data).toBe(manifestv2);
 
             expect(store.dispatch).toHaveBeenCalledTimes(6);
-            const dispatchRemovedArg = store.dispatch.mock.calls[3][0];
-            expect(typeof dispatchRemovedArg).toBe('function');
-            dispatchRemovedArg(store.dispatch);
-
-            dispatchArg = store.dispatch.mock.calls[4][0];
-            expect(dispatchArg.type).toBe(ActionTypes.RECEIVED_WEBAPP_PLUGIN);
-            expect(dispatchArg.data).toBe(manifestv2);
-
-            const dispatchReceivedArg2 = store.dispatch.mock.calls[5][0];
-            expect(dispatchReceivedArg2.type).toBe(ActionTypes.RECEIVED_PLUGIN_COMPONENT);
-            expect(dispatchReceivedArg2.name).toBe('Root');
-            expect(dispatchReceivedArg2.data.component).toBe(mockComponent2);
-            expect(dispatchReceivedArg2.data.pluginId).toBe(manifest.id);
-
-            expect(store.dispatch).toHaveBeenCalledTimes(8);
-            const dispatchReceivedArg4 = store.dispatch.mock.calls[7][0];
+            const dispatchReceivedArg4 = store.dispatch.mock.calls[5][0];
 
             expect(dispatchReceivedArg4.type).toBe(ActionTypes.REMOVED_WEBAPP_PLUGIN);
             expect(dispatchReceivedArg4.data).toBe(manifestv2);
@@ -1164,7 +1405,6 @@ describe('handlePluginEnabled/handlePluginDisabled', () => {
         };
 
         beforeEach(async () => {
-            console.log = jest.fn();
             console.error = jest.fn();
 
             document.createElement = jest.fn();
@@ -1294,7 +1534,7 @@ describe('handleStatusChangedEvent', () => {
         expect(getStatusForUserId(testStore.getState(), currentUserId)).toBe(UserStatuses.ONLINE);
 
         testStore.dispatch(handleStatusChangedEvent({
-            event: SocketEvents.STATUS_CHANGED,
+            event: WebSocketEvents.StatusChange,
             data: {
                 user_id: currentUserId,
                 status: UserStatuses.AWAY,
@@ -1304,7 +1544,7 @@ describe('handleStatusChangedEvent', () => {
         expect(getStatusForUserId(testStore.getState(), currentUserId)).toBe(UserStatuses.AWAY);
 
         testStore.dispatch(handleStatusChangedEvent({
-            event: SocketEvents.STATUS_CHANGED,
+            event: WebSocketEvents.StatusChange,
             data: {
                 user_id: currentUserId,
                 status: UserStatuses.ONLINE,
@@ -1314,7 +1554,7 @@ describe('handleStatusChangedEvent', () => {
         expect(getStatusForUserId(testStore.getState(), currentUserId)).toBe(UserStatuses.ONLINE);
 
         testStore.dispatch(handleStatusChangedEvent({
-            event: SocketEvents.STATUS_CHANGED,
+            event: WebSocketEvents.StatusChange,
             data: {
                 user_id: currentUserId,
                 status: UserStatuses.OFFLINE,
@@ -1346,7 +1586,7 @@ describe('handleCustomAttributeValuesUpdated', () => {
         expect(stateUser(testStore.getState(), currentUserId)).toEqual({id: currentUserId});
 
         testStore.dispatch(handleCustomAttributeValuesUpdated({
-            event: SocketEvents.CPA_VALUES_UPDATED,
+            event: WebSocketEvents.CPAValuesUpdated,
             data: {
                 user_id: currentUserId,
                 values: {field1: 'value1', field2: 'value2'},
@@ -1359,7 +1599,7 @@ describe('handleCustomAttributeValuesUpdated', () => {
 
         // update one field, add new field
         testStore.dispatch(handleCustomAttributeValuesUpdated({
-            event: SocketEvents.CPA_VALUES_UPDATED,
+            event: WebSocketEvents.CPAValuesUpdated,
             data: {
                 user_id: currentUserId,
                 values: {field1: 'valueChanged', field3: 'new field'},
@@ -1378,7 +1618,7 @@ describe('handleCustomAttributeValuesUpdated', () => {
         expect(stateUser(testStore.getState(), currentUserId)).toEqual({id: currentUserId});
 
         testStore.dispatch(handleCustomAttributeValuesUpdated({
-            event: SocketEvents.CPA_VALUES_UPDATED,
+            event: WebSocketEvents.CPAValuesUpdated,
             data: {
                 user_id: 'nonExistantUser',
                 values: {field1: 'value1', field2: 'value2'},
@@ -1408,7 +1648,7 @@ describe('handleCustomAttributeCRUD', () => {
         const testStore = realConfigureStore(makeInitialState());
 
         testStore.dispatch(handleCustomAttributesCreated({
-            event: SocketEvents.CPA_FIELD_CREATED,
+            event: WebSocketEvents.CPAFieldCreated,
             data: {
                 field: field1,
             },
@@ -1422,7 +1662,7 @@ describe('handleCustomAttributeCRUD', () => {
 
         // create second field
         testStore.dispatch(handleCustomAttributesCreated({
-            event: SocketEvents.CPA_FIELD_CREATED,
+            event: WebSocketEvents.CPAFieldCreated,
             data: {
                 field: field2,
             },
@@ -1436,7 +1676,7 @@ describe('handleCustomAttributeCRUD', () => {
 
         // update field
         testStore.dispatch(handleCustomAttributesUpdated({
-            event: SocketEvents.CPA_FIELD_UPDATED,
+            event: WebSocketEvents.CPAFieldUpdated,
             data: {
                 field: {...field1, name: 'Updated Name'},
             },
@@ -1450,7 +1690,7 @@ describe('handleCustomAttributeCRUD', () => {
 
         // delete field
         testStore.dispatch(handleCustomAttributesDeleted({
-            event: SocketEvents.CPA_FIELD_DELETED,
+            event: WebSocketEvents.CPAFieldDeleted,
             data: {
                 field_id: field1.id,
             },
@@ -1468,7 +1708,7 @@ describe('handleCustomAttributeCRUD', () => {
 
             // First create a field
             testStore.dispatch(handleCustomAttributesCreated({
-                event: SocketEvents.CPA_FIELD_CREATED,
+                event: WebSocketEvents.CPAFieldCreated,
                 data: {
                     field: field1,
                 },
@@ -1482,7 +1722,7 @@ describe('handleCustomAttributeCRUD', () => {
             // Update the field
             const updatedField = {...field1, name: 'Updated Field Name'};
             testStore.dispatch(handleCustomAttributesUpdated({
-                event: SocketEvents.CPA_FIELD_UPDATED,
+                event: WebSocketEvents.CPAFieldUpdated,
                 data: {
                     field: updatedField,
                 },
@@ -1514,7 +1754,7 @@ describe('handleCustomAttributeCRUD', () => {
 
             // First create a field
             testStore.dispatch(handleCustomAttributesCreated({
-                event: SocketEvents.CPA_FIELD_CREATED,
+                event: WebSocketEvents.CPAFieldCreated,
                 data: {
                     field: field1,
                 },
@@ -1523,7 +1763,7 @@ describe('handleCustomAttributeCRUD', () => {
             // Update the field with delete_values flag
             const updatedField = {...field1, type: 'select'};
             testStore.dispatch(handleCustomAttributesUpdated({
-                event: SocketEvents.CPA_FIELD_UPDATED,
+                event: WebSocketEvents.CPAFieldUpdated,
                 data: {
                     field: updatedField,
                     delete_values: true,
@@ -1561,7 +1801,7 @@ describe('handleCustomAttributeCRUD', () => {
 
             // First create a field
             testStore.dispatch(handleCustomAttributesCreated({
-                event: SocketEvents.CPA_FIELD_CREATED,
+                event: WebSocketEvents.CPAFieldCreated,
                 data: {
                     field: field1,
                 },
@@ -1570,7 +1810,7 @@ describe('handleCustomAttributeCRUD', () => {
             // Update the field but with delete_values flag set to false
             const updatedField = {...field1, name: 'Updated Field Name', type: 'text'};
             testStore.dispatch(handleCustomAttributesUpdated({
-                event: SocketEvents.CPA_FIELD_UPDATED,
+                event: WebSocketEvents.CPAFieldUpdated,
                 data: {
                     field: updatedField,
                     delete_values: false,
@@ -1609,7 +1849,7 @@ describe('handleCustomAttributeCRUD', () => {
 
             // First create a field
             testStore.dispatch(handleCustomAttributesCreated({
-                event: SocketEvents.CPA_FIELD_CREATED,
+                event: WebSocketEvents.CPAFieldCreated,
                 data: {
                     field: field1,
                 },
@@ -1618,7 +1858,7 @@ describe('handleCustomAttributeCRUD', () => {
             // Update the field without specifying delete_values
             const updatedField = {...field1, type: 'number'};
             testStore.dispatch(handleCustomAttributesUpdated({
-                event: SocketEvents.CPA_FIELD_UPDATED,
+                event: WebSocketEvents.CPAFieldUpdated,
                 data: {
                     field: updatedField,
 
@@ -1637,5 +1877,274 @@ describe('handleCustomAttributeCRUD', () => {
             expect(user.custom_profile_attributes).toBeTruthy();
             expect(user.custom_profile_attributes[field1.id]).toEqual('some value');
         });
+    });
+});
+
+describe('handleChannelConvertedEvent', () => {
+    const channelId = 'converted-channel';
+
+    beforeEach(() => {
+        store.dispatch.mockClear();
+        mockState = {
+            ...mockState,
+            entities: {
+                ...mockState.entities,
+                channels: {
+                    ...mockState.entities.channels,
+                    channels: {
+                        ...mockState.entities.channels.channels,
+                        [channelId]: {
+                            id: channelId,
+                            team_id: 'currentTeamId',
+                            type: Constants.PRIVATE_CHANNEL,
+                            name: 'test-channel',
+                        },
+                    },
+                },
+            },
+        };
+    });
+
+    test('should update channel type from private to public when channel_type is O', () => {
+        const msg = {
+            event: 'channel_converted',
+            data: {
+                channel_id: channelId,
+                channel_type: Constants.OPEN_CHANNEL,
+            },
+        };
+
+        handleEvent(msg);
+
+        expect(store.dispatch).toHaveBeenCalledWith({
+            type: 'RECEIVED_CHANNEL',
+            data: expect.objectContaining({
+                id: channelId,
+                type: Constants.OPEN_CHANNEL,
+            }),
+        });
+    });
+
+    test('should update channel type from public to private when channel_type is P', () => {
+        mockState.entities.channels.channels[channelId].type = Constants.OPEN_CHANNEL;
+
+        const msg = {
+            event: 'channel_converted',
+            data: {
+                channel_id: channelId,
+                channel_type: Constants.PRIVATE_CHANNEL,
+            },
+        };
+
+        handleEvent(msg);
+
+        expect(store.dispatch).toHaveBeenCalledWith({
+            type: 'RECEIVED_CHANNEL',
+            data: expect.objectContaining({
+                id: channelId,
+                type: Constants.PRIVATE_CHANNEL,
+            }),
+        });
+    });
+
+    test('should fall back to private when channel_type is not present (backwards compat)', () => {
+        mockState.entities.channels.channels[channelId].type = Constants.OPEN_CHANNEL;
+
+        const msg = {
+            event: 'channel_converted',
+            data: {
+                channel_id: channelId,
+            },
+        };
+
+        handleEvent(msg);
+
+        expect(store.dispatch).toHaveBeenCalledWith({
+            type: 'RECEIVED_CHANNEL',
+            data: expect.objectContaining({
+                id: channelId,
+                type: Constants.PRIVATE_CHANNEL,
+            }),
+        });
+    });
+
+    test('should not dispatch when channel is not in state', () => {
+        const msg = {
+            event: 'channel_converted',
+            data: {
+                channel_id: 'nonexistent-channel',
+                channel_type: Constants.OPEN_CHANNEL,
+            },
+        };
+
+        handleEvent(msg);
+
+        expect(store.dispatch).not.toHaveBeenCalledWith(
+            expect.objectContaining({type: 'RECEIVED_CHANNEL'}),
+        );
+    });
+
+    test('should not dispatch when channel_id is missing', () => {
+        const msg = {
+            event: 'channel_converted',
+            data: {},
+        };
+
+        handleEvent(msg);
+
+        expect(store.dispatch).not.toHaveBeenCalledWith(
+            expect.objectContaining({type: 'RECEIVED_CHANNEL'}),
+        );
+    });
+
+    test('should preserve other channel properties when updating type', () => {
+        const msg = {
+            event: 'channel_converted',
+            data: {
+                channel_id: channelId,
+                channel_type: Constants.OPEN_CHANNEL,
+            },
+        };
+
+        handleEvent(msg);
+
+        expect(store.dispatch).toHaveBeenCalledWith({
+            type: 'RECEIVED_CHANNEL',
+            data: {
+                id: channelId,
+                team_id: 'currentTeamId',
+                type: Constants.OPEN_CHANNEL,
+                name: 'test-channel',
+            },
+        });
+    });
+});
+
+describe('handleSharedChannelRemoteUpdatedEvent', () => {
+    const channelId = 'shared-remote-channel';
+
+    beforeEach(() => {
+        store.dispatch.mockClear();
+        fetchChannelRemotes.mockClear();
+        mockState = {
+            ...mockState,
+            entities: {
+                ...mockState.entities,
+                channels: {
+                    ...mockState.entities.channels,
+                    channels: {
+                        ...mockState.entities.channels.channels,
+                        [channelId]: {
+                            id: channelId,
+                            team_id: 'currentTeamId',
+                            type: Constants.OPEN_CHANNEL,
+                            name: 'shared-channel',
+                            shared: true,
+                        },
+                    },
+                },
+            },
+        };
+    });
+
+    test('dispatches fetchChannelRemotes when local channel is shared', () => {
+        const msg = {
+            event: WebSocketEvents.SharedChannelRemoteUpdated,
+            data: {channel_id: channelId},
+            broadcast: {channel_id: channelId},
+        };
+
+        handleEvent(msg);
+
+        expect(fetchChannelRemotes).toHaveBeenCalledWith(channelId, true);
+        expect(store.dispatch).toHaveBeenCalledWith({
+            type: 'MOCK_FETCH_CHANNEL_REMOTES',
+            channelId,
+            forceRefresh: true,
+        });
+    });
+
+    test('skips fetch when local channel is not shared (regression: MM-66162)', () => {
+        mockState.entities.channels.channels[channelId].shared = false;
+
+        const msg = {
+            event: WebSocketEvents.SharedChannelRemoteUpdated,
+            data: {channel_id: channelId},
+            broadcast: {channel_id: channelId},
+        };
+
+        handleEvent(msg);
+
+        expect(fetchChannelRemotes).not.toHaveBeenCalled();
+    });
+
+    test('skips fetch when channel is absent from local state', () => {
+        const msg = {
+            event: WebSocketEvents.SharedChannelRemoteUpdated,
+            data: {channel_id: 'unknown-channel'},
+            broadcast: {channel_id: 'unknown-channel'},
+        };
+
+        handleEvent(msg);
+
+        expect(fetchChannelRemotes).not.toHaveBeenCalled();
+    });
+
+    test('skips fetch when channel_id is missing from both data and broadcast', () => {
+        const msg = {
+            event: WebSocketEvents.SharedChannelRemoteUpdated,
+            data: {},
+            broadcast: {},
+        };
+
+        handleEvent(msg);
+
+        expect(fetchChannelRemotes).not.toHaveBeenCalled();
+    });
+});
+
+describe('handleFileUploadRejected', () => {
+    beforeAll(() => {
+        setIntl(defaultIntl);
+    });
+
+    afterAll(() => {
+        setIntl(null);
+    });
+
+    const msg = {
+        event: WebSocketEvents.FileUploadRejected,
+        data: {
+            file_name: 'secret.tdf',
+            rejection_reason: 'blocked by policy',
+            channel_id: 'channel1',
+        },
+        broadcast: {},
+    };
+
+    test('opens an info toast with the rejection reason', () => {
+        const testStore = configureStore();
+
+        testStore.dispatch(handleFileUploadRejected(msg));
+
+        const openModalAction = testStore.getActions().find((action) => action.type === ActionTypes.MODAL_OPEN);
+        expect(openModalAction).toBeDefined();
+        expect(openModalAction.modalId).toBe(ModalIdentifiers.INFO_TOAST);
+        expect(openModalAction.dialogProps.position).toBe('bottom-center');
+        expect(openModalAction.dialogProps.content.message).toContain('blocked by policy');
+        expect(typeof openModalAction.dialogProps.onExited).toBe('function');
+    });
+
+    test('onExited closes the info toast', () => {
+        const testStore = configureStore();
+
+        testStore.dispatch(handleFileUploadRejected(msg));
+
+        const openModalAction = testStore.getActions().find((action) => action.type === ActionTypes.MODAL_OPEN);
+        openModalAction.dialogProps.onExited();
+
+        const closeModalAction = testStore.getActions().find((action) => action.type === ActionTypes.MODAL_CLOSE);
+        expect(closeModalAction).toBeDefined();
+        expect(closeModalAction.modalId).toBe(ModalIdentifiers.INFO_TOAST);
     });
 });

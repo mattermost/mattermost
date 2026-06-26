@@ -3,9 +3,11 @@
 
 import React from 'react';
 
+import type {UserPropertyField} from '@mattermost/types/properties';
+
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
-import {TestButton} from './shared';
+import {TestButton, hasUsableAttributes} from './shared';
 
 describe('TestButton', () => {
     const baseProps = {
@@ -27,6 +29,24 @@ describe('TestButton', () => {
         // Check for icon
         const icon = button.querySelector('i.icon.icon-lock-outline');
         expect(icon).toBeInTheDocument();
+    });
+
+    test('should render the supplied label override instead of the default copy', () => {
+        renderWithContext(
+            <TestButton
+                {...baseProps}
+                label='Simulate rules'
+            />,
+            {},
+        );
+
+        // The default "Test access rule" copy must not appear when a
+        // label override is provided — used by the permission-rule
+        // editors to surface "Simulate rules" instead.
+        expect(screen.queryByRole('button', {name: /test access rule/i})).not.toBeInTheDocument();
+        const button = screen.getByRole('button', {name: /simulate rules/i});
+        expect(button).toBeInTheDocument();
+        expect(button.querySelector('i.icon.icon-lock-outline')).toBeInTheDocument();
     });
 
     test('should be enabled and clickable when disabled is false', () => {
@@ -164,5 +184,248 @@ describe('TestButton', () => {
 
         // Undefined tooltip should not show tooltip
         expect(button.parentElement).not.toHaveAttribute('data-testid', 'tooltip-wrapper');
+    });
+});
+
+describe('hasUsableAttributes', () => {
+    test('should return true when EnableUserManagedAttributes is true and attributes exist', () => {
+        const userAttributes: UserPropertyField[] = [
+            {
+                id: 'attr1',
+                name: 'department',
+                type: 'text',
+                group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
+                attrs: {
+                    sort_order: 0,
+                    visibility: 'always',
+                    value_type: '',
+                },
+                create_at: 0,
+                update_at: 0,
+                delete_at: 0,
+                created_by: '',
+                updated_by: '',
+            },
+        ];
+
+        expect(hasUsableAttributes(userAttributes, true)).toBe(true);
+    });
+
+    test('should return true when attributes are LDAP synced', () => {
+        const userAttributes: UserPropertyField[] = [
+            {
+                id: 'attr1',
+                name: 'department',
+                type: 'text',
+                group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
+                attrs: {
+                    sort_order: 0,
+                    visibility: 'always',
+                    value_type: '',
+                    ldap: 'ldap_department',
+                },
+                create_at: 0,
+                update_at: 0,
+                delete_at: 0,
+                created_by: '',
+                updated_by: '',
+            },
+        ];
+
+        expect(hasUsableAttributes(userAttributes, false)).toBe(true);
+    });
+
+    test('should return true when attributes are SAML synced', () => {
+        const userAttributes: UserPropertyField[] = [
+            {
+                id: 'attr1',
+                name: 'department',
+                type: 'text',
+                group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
+                attrs: {
+                    sort_order: 0,
+                    visibility: 'always',
+                    value_type: '',
+                    saml: 'saml_department',
+                },
+                create_at: 0,
+                update_at: 0,
+                delete_at: 0,
+                created_by: '',
+                updated_by: '',
+            },
+        ];
+
+        expect(hasUsableAttributes(userAttributes, false)).toBe(true);
+    });
+
+    test('should return true when attributes are admin-managed', () => {
+        const userAttributes: UserPropertyField[] = [
+            {
+                id: 'attr1',
+                name: 'department',
+                type: 'text',
+                group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
+                attrs: {
+                    sort_order: 0,
+                    visibility: 'always',
+                    value_type: '',
+                    managed: 'admin',
+                },
+                create_at: 0,
+                update_at: 0,
+                delete_at: 0,
+                created_by: '',
+                updated_by: '',
+            },
+        ];
+
+        expect(hasUsableAttributes(userAttributes, false)).toBe(true);
+    });
+
+    test('should return true when attributes are plugin-managed (protected)', () => {
+        const userAttributes: UserPropertyField[] = [
+            {
+                id: 'attr1',
+                name: 'department',
+                type: 'text',
+                group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
+                attrs: {
+                    sort_order: 0,
+                    visibility: 'always',
+                    value_type: '',
+                    protected: true,
+                    source_plugin_id: 'com.example.plugin',
+                },
+                create_at: 0,
+                update_at: 0,
+                delete_at: 0,
+                created_by: '',
+                updated_by: '',
+            },
+        ];
+
+        expect(hasUsableAttributes(userAttributes, false)).toBe(true);
+    });
+
+    test('should return false when attributes exist but are not usable (not LDAP/SAML/admin/protected and EnableUserManagedAttributes is false)', () => {
+        const userAttributes: UserPropertyField[] = [
+            {
+                id: 'attr1',
+                name: 'department',
+                type: 'text',
+                group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
+                attrs: {
+                    sort_order: 0,
+                    visibility: 'always',
+                    value_type: '',
+                },
+                create_at: 0,
+                update_at: 0,
+                delete_at: 0,
+                created_by: '',
+                updated_by: '',
+            },
+        ];
+
+        expect(hasUsableAttributes(userAttributes, false)).toBe(false);
+    });
+
+    test('should return false when no attributes exist', () => {
+        const userAttributes: UserPropertyField[] = [];
+
+        expect(hasUsableAttributes(userAttributes, false)).toBe(false);
+        expect(hasUsableAttributes(userAttributes, true)).toBe(false);
+    });
+
+    test('should return false when attributes have spaces in their names', () => {
+        const userAttributes: UserPropertyField[] = [
+            {
+                id: 'attr1',
+                name: 'department name',
+                type: 'text',
+                group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
+                attrs: {
+                    sort_order: 0,
+                    visibility: 'always',
+                    value_type: '',
+                    ldap: 'ldap_department',
+                },
+                create_at: 0,
+                update_at: 0,
+                delete_at: 0,
+                created_by: '',
+                updated_by: '',
+            },
+        ];
+
+        expect(hasUsableAttributes(userAttributes, false)).toBe(false);
+    });
+
+    test('should return true when at least one attribute is usable (mixed attributes)', () => {
+        const userAttributes: UserPropertyField[] = [
+            {
+                id: 'attr1',
+                name: 'department name',
+                type: 'text',
+                group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
+                attrs: {
+                    sort_order: 0,
+                    visibility: 'always',
+                    value_type: '',
+                },
+                create_at: 0,
+                update_at: 0,
+                delete_at: 0,
+                created_by: '',
+                updated_by: '',
+            },
+            {
+                id: 'attr2',
+                name: 'location',
+                type: 'text',
+                group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
+                attrs: {
+                    sort_order: 0,
+                    visibility: 'always',
+                    value_type: '',
+                    ldap: 'ldap_location',
+                },
+                create_at: 0,
+                update_at: 0,
+                delete_at: 0,
+                created_by: '',
+                updated_by: '',
+            },
+        ];
+
+        expect(hasUsableAttributes(userAttributes, false)).toBe(true);
     });
 });

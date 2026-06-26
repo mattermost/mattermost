@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, fireEvent} from '@testing-library/react';
 import React from 'react';
 
 import type {UserPropertyField, UserPropertyFieldGroupID, UserPropertyFieldType} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {act, renderWithContext} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import CustomProfileAttributes from './custom_profile_attributes';
 
@@ -28,6 +27,11 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
         create_at: 1736541716295,
         delete_at: 0,
         update_at: 0,
+        created_by: '',
+        updated_by: '',
+        target_id: '',
+        target_type: '',
+        object_type: '',
     };
 
     const createAttribute = (id: string, name: string, attrs: Record<string, string>): UserPropertyField => ({
@@ -55,10 +59,6 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
     });
 
     const initialState = createInitialState({attr1, attr2});
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
 
     test('should not render anything when no attributes exist', () => {
         const {container} = renderWithContext(
@@ -100,9 +100,11 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
             );
 
             const input = await screen.findByDisplayValue('department');
-            fireEvent.change(input, {target: {value: 'new-department'}});
+            await userEvent.clear(input);
+            await userEvent.type(input, 'new-department');
 
-            const saveAction = baseProps.registerSaveAction.mock.calls[1][0];
+            const calls = baseProps.registerSaveAction.mock.calls;
+            const saveAction = calls[calls.length - 1][0];
             await act(async () => {
                 await saveAction();
             });
@@ -158,9 +160,11 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
             );
 
             const input = await screen.findByDisplayValue('title');
-            fireEvent.change(input, {target: {value: 'new-title'}});
+            await userEvent.clear(input);
+            await userEvent.type(input, 'new-title');
 
-            const saveAction = baseProps.registerSaveAction.mock.calls[1][0];
+            const calls = baseProps.registerSaveAction.mock.calls;
+            const saveAction = calls[calls.length - 1][0];
             await act(async () => {
                 await saveAction();
             });
@@ -199,9 +203,11 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
         );
 
         const input = await screen.findByDisplayValue('department');
-        fireEvent.change(input, {target: {value: 'new-department'}});
+        await userEvent.clear(input);
+        await userEvent.type(input, 'new-department');
 
-        const saveAction = baseProps.registerSaveAction.mock.calls[1][0];
+        const calls = baseProps.registerSaveAction.mock.calls;
+        const saveAction = calls[calls.length - 1][0];
 
         // Verify the save action catches and returns the error
         await expect(saveAction()).resolves.toEqual(
@@ -266,5 +272,64 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
 
         const warning = await screen.findByText((content) => content.includes('This attribute will be converted to a TEXT attribute'));
         expect(warning).toBeInTheDocument();
+    });
+
+    describe('display_name labels', () => {
+        test('should render TextSetting label and help text using display_name', async () => {
+            const displayNameAttr: UserPropertyField = {
+                ...baseField,
+                id: 'attr_display',
+                name: 'my_field',
+                attrs: {
+                    sort_order: 0,
+                    visibility: 'when_set',
+                    value_type: '',
+                    ldap: 'department',
+                    display_name: 'My Display Name',
+                },
+            };
+            const state = createInitialState({displayNameAttr});
+
+            renderWithContext(
+                <CustomProfileAttributes {...baseProps}/>,
+                state,
+            );
+
+            const labelEl = await screen.findByTestId('custom_profile_attribute-my_fieldlabel');
+            expect(labelEl.tagName).toBe('LABEL');
+            expect(labelEl).toHaveTextContent('My Display Name');
+            expect(labelEl).not.toHaveTextContent('my_field');
+
+            const helpTextEl = screen.getByTestId('custom_profile_attribute-my_fieldhelp-text');
+            expect(helpTextEl).toHaveTextContent(/users cannot edit their My Display Name/);
+            expect(helpTextEl).not.toHaveTextContent('users cannot edit their my_field');
+        });
+
+        test('should fall back to name when display_name is missing', async () => {
+            const fallbackAttr: UserPropertyField = {
+                ...baseField,
+                id: 'attr_fallback',
+                name: 'my_field',
+                attrs: {
+                    sort_order: 0,
+                    visibility: 'when_set',
+                    value_type: '',
+                    ldap: 'department',
+                },
+            };
+            const state = createInitialState({fallbackAttr});
+
+            renderWithContext(
+                <CustomProfileAttributes {...baseProps}/>,
+                state,
+            );
+
+            const labelEl = await screen.findByTestId('custom_profile_attribute-my_fieldlabel');
+            expect(labelEl.tagName).toBe('LABEL');
+            expect(labelEl).toHaveTextContent('my_field');
+
+            const helpTextEl = screen.getByTestId('custom_profile_attribute-my_fieldhelp-text');
+            expect(helpTextEl).toHaveTextContent(/users cannot edit their my_field/);
+        });
     });
 });

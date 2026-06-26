@@ -19,12 +19,15 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/text/encoding/unicode"
+	"golang.org/x/text/transform"
+
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 var imageContentTypes = []string{
 	"image/bmp", "image/cgm", "image/g3fax", "image/gif", "image/ief", "image/jp2",
-	"image/jpeg", "image/jpg", "image/pict", "image/png", "image/prs.btif", "image/svg+xml",
+	"image/jpeg", "image/jpg", "image/pict", "image/png", "image/prs.btif",
 	"image/tiff", "image/vnd.adobe.photoshop", "image/vnd.djvu", "image/vnd.dwg",
 	"image/vnd.dxf", "image/vnd.fastbidsheet", "image/vnd.fpx", "image/vnd.fst",
 	"image/vnd.fujixerox.edmics-mmr", "image/vnd.fujixerox.edmics-rlc",
@@ -162,22 +165,30 @@ func (backend *LocalBackend) ServeImage(w http.ResponseWriter, req *http.Request
 
 	copyHeader(w.Header(), resp.Header, "Cache-Control", "Last-Modified", "Expires", "Etag", "Link")
 
-	if should304(req, resp) {
-		w.WriteHeader(http.StatusNotModified)
+	// Wrap the body in a bufio.Reader so we can peek at bytes for
+	// content-type detection without consuming the stream.
+	b := bufio.NewReaderSize(resp.Body, contentPeekSize)
+	resp.Body = io.NopCloser(b)
+
+	if isSVGContent(b) {
+		http.Error(w, msgNotAllowed, http.StatusForbidden)
 		return
 	}
 
 	contentType, _, _ := mime.ParseMediaType(resp.Header.Get("Content-Type"))
 	if contentType == "" || contentType == "application/octet-stream" || contentType == "binary/octet-stream" {
-		// try to detect content type
-		b := bufio.NewReader(resp.Body)
-		resp.Body = io.NopCloser(b)
 		contentType = peekContentType(b)
 	}
 	if resp.ContentLength != 0 && !contentTypeMatches(imageContentTypes, contentType) {
 		http.Error(w, msgNotAllowed, http.StatusForbidden)
 		return
 	}
+
+	if should304(req, resp) {
+		w.WriteHeader(http.StatusNotModified)
+		return
+	}
+
 	w.Header().Set("Content-Type", contentType)
 
 	copyHeader(w.Header(), resp.Header, "Content-Length")
@@ -246,6 +257,41 @@ func peekContentType(p *bufio.Reader) string {
 		return ""
 	}
 	return http.DetectContentType(byt)
+}
+
+// contentPeekSize is the number of bytes read ahead for content inspection.
+// It must match the bufio.Reader buffer size created in ServeImage.
+const contentPeekSize = 8192
+
+// isSVGContent peeks at the first contentPeekSize bytes of p and reports whether
+// they contain SVG markers. UTF-16 encoded content (identified by a BOM) is
+// decoded to ASCII before scanning.
+func isSVGContent(p *bufio.Reader) bool {
+	byt, err := p.Peek(contentPeekSize)
+	if err != nil && err != bufio.ErrBufferFull && err != io.EOF {
+		return false
+	}
+	if len(byt) == 0 {
+		return false
+	}
+
+	// UseBOM selects endianness from a BOM when present (0xFF 0xFE → LE,
+	// 0xFE 0xFF → BE), defaulting to LE otherwise.
+	enc := unicode.UTF16(unicode.LittleEndian, unicode.UseBOM)
+	if decoded, _, decodeErr := transform.Bytes(enc.NewDecoder(), byt); decodeErr == nil {
+		lower := strings.ToLower(string(decoded))
+		if strings.Contains(lower, "<svg") ||
+			(strings.Contains(lower, "<?xml") && strings.Contains(lower, "<svg")) {
+			return true
+		}
+	}
+
+	// Raw-byte scan for UTF-8 / ASCII content; interleaved-NUL patterns cover BOM-less UTF-16 BE.
+	rawLower := strings.ToLower(string(byt))
+	return strings.Contains(rawLower, "<svg") ||
+		(strings.Contains(rawLower, "<?xml") && strings.Contains(rawLower, "<svg")) ||
+		strings.Contains(rawLower, "<\x00s\x00v\x00g\x00") || // BOM-less UTF-16 LE
+		strings.Contains(rawLower, "\x00<\x00s\x00v\x00g") // BOM-less UTF-16 BE
 }
 
 // contentTypeMatches returns whether contentType matches one of the allowed patterns.

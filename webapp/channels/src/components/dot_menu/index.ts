@@ -8,6 +8,7 @@ import type {Dispatch} from 'redux';
 
 import type {Post} from '@mattermost/types/posts';
 
+import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {setThreadFollow} from 'mattermost-redux/actions/threads';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
@@ -24,6 +25,7 @@ import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserId, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
 import {isSystemMessage} from 'mattermost-redux/utils/post_utils';
 
+import {burnPostNow} from 'actions/burn_on_read_deletion';
 import {
     flagPost,
     unflagPost,
@@ -32,7 +34,8 @@ import {
     setEditingPost,
     markPostAsUnread,
 } from 'actions/post_actions';
-import {openModal} from 'actions/views/modals';
+import {openModal, closeModal} from 'actions/views/modals';
+import {isBurnOnReadPost, isThisPostBurnOnReadPost, shouldDisplayConcealedPlaceholder} from 'selectors/burn_on_read_posts';
 import {makeCanWrangler} from 'selectors/posts';
 import {getIsMobileView} from 'selectors/views/browser';
 
@@ -102,7 +105,10 @@ function makeMapStateToProps() {
             }
         }
 
-        const canFlagContent = channel && !isSystemMessage(post) && contentFlaggingEnabledInTeam(state, channel.team_id);
+        const canFlagContent = channel && !isSystemMessage(post) && !isThisPostBurnOnReadPost(post) && contentFlaggingEnabledInTeam(state, channel.team_id);
+
+        const isBoRPost = isBurnOnReadPost(state, post.id);
+        const isPostSender = post.user_id === userId;
 
         return {
             channelIsArchived: isArchivedChannel(channel),
@@ -117,13 +123,25 @@ function makeMapStateToProps() {
             threadId,
             isFollowingThread,
             isMentionedInRootPost,
-            isCollapsedThreadsEnabled: collapsedThreads,
             threadReplyCount,
             isMobileView: getIsMobileView(state),
             timezone: getCurrentTimezone(state),
             isMilitaryTime,
-            canMove: channel ? canWrangler(state, channel.type, threadReplyCount) : false,
+            canMove: channel && !isBoRPost ? canWrangler(state, channel.type, threadReplyCount) : false,
+            canReply: !systemMessage && !isBoRPost && ownProps.location === Locations.CENTER,
+            canForward: !systemMessage && !isBoRPost,
+            canFollowThread: !systemMessage && !isBoRPost && collapsedThreads && (
+                !ownProps.location ||
+                ownProps.location === Locations.CENTER ||
+                ownProps.location === Locations.RHS_ROOT ||
+                ownProps.location === Locations.RHS_COMMENT
+            ),
+            canPin: !systemMessage && !isBoRPost && !isArchivedChannel(channel),
+            canCopyText: !systemMessage && !isBoRPost,
+            canCopyLink: !systemMessage && (!isBoRPost || isPostSender),
             canFlagContent,
+            isBurnOnReadPost: isBoRPost,
+            isUnrevealedBurnOnReadPost: shouldDisplayConcealedPlaceholder(state, post.id),
         };
     };
 }
@@ -137,8 +155,11 @@ function mapDispatchToProps(dispatch: Dispatch) {
             pinPost,
             unpinPost,
             openModal,
+            closeModal,
             markPostAsUnread,
             setThreadFollow,
+            burnPostNow,
+            savePreferences,
         }, dispatch),
     };
 }

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {AccessControlVisualAST} from '@mattermost/types/access_control';
@@ -10,6 +10,8 @@ import type {UserPropertyField} from '@mattermost/types/properties';
 import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import {CPA_FIELD_NAME_PATTERN} from 'utils/properties';
+
 import AttributeSelectorMenu from './attribute_selector_menu';
 import OperatorSelectorMenu from './operator_selector_menu';
 import type {TableRow} from './value_selector_menu';
@@ -17,9 +19,61 @@ import ValueSelectorMenu from './value_selector_menu';
 
 import CELHelpModal from '../../modals/cel_help/cel_help_modal';
 import TestResultsModal from '../../modals/policy_test/test_modal';
-import {AddAttributeButton, TestButton, HelpText, OPERATOR_CONFIG, OPERATOR_LABELS, OperatorLabel} from '../shared';
+import {AddAttributeButton, TestButton, HelpText, OPERATOR_CONFIG, OPERATOR_LABELS, OperatorLabel, isMultiValueOperator, isMultiselectOperator, isRankOperator} from '../shared';
 
 import './table_editor.scss';
+
+export function celStringLiteral(val: string): string {
+    return '"' + val.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
+}
+
+export function rowToCEL(row: TableRow): string {
+    // A fully-masked row has no visible values on the client side.  Emit a
+    // placeholder "in []" expression so the backend merge can locate this
+    // condition by attribute and re-inject the hidden values before persisting.
+    // Without this guard the condition would be filtered out by updateExpression,
+    // the empty expression would be sent to the server, and buildCELFromConditions
+    // would return "true" — making the policy wide-open (security regression).
+    if (row.hasMaskedValues && row.values.length === 0) {
+        return `user.attributes.${row.attribute} in []`;
+    }
+
+    const attributeExpr = `user.attributes.${row.attribute}`;
+    const config = OPERATOR_CONFIG[row.operator];
+
+    if (!config) {
+        if (row.attribute_type === 'multiselect') {
+            return row.values.map((val: string) => `${celStringLiteral(val)} in ${attributeExpr}`).join(' && ');
+        }
+        const valuesStr = row.values.map((val: string) => celStringLiteral(val)).join(', ');
+        return `${attributeExpr} in [${valuesStr}]`;
+    }
+
+    if (config.type === 'list') {
+        if (row.operator === OperatorLabel.HAS_ANY_OF) {
+            const parts = row.values.map((val: string) => `${celStringLiteral(val)} ${config.celOp} ${attributeExpr}`);
+            const orExpr = parts.join(' || ');
+            return parts.length > 1 ? `(${orExpr})` : orExpr;
+        }
+        if (row.operator === OperatorLabel.HAS_ALL_OF) {
+            return row.values.map((val: string) => `${celStringLiteral(val)} ${config.celOp} ${attributeExpr}`).join(' && ');
+        }
+
+        if (row.attribute_type === 'multiselect') {
+            return row.values.map((val: string) => `${celStringLiteral(val)} ${config.celOp} ${attributeExpr}`).join(' && ');
+        }
+        const valuesStr = row.values.map((val: string) => celStringLiteral(val)).join(', ');
+        return `${attributeExpr} ${config.celOp} [${valuesStr}]`;
+    }
+
+    const value = row.values.length > 0 ? row.values[0] : '';
+
+    if (config.type === 'comparison') {
+        return `${attributeExpr} ${config.celOp} ${celStringLiteral(value)}`;
+    }
+
+    return `${attributeExpr}.${config.celOp}(${celStringLiteral(value)})`;
+}
 
 interface TableEditorProps {
     value: string;
@@ -29,7 +83,8 @@ interface TableEditorProps {
     userAttributes: UserPropertyField[];
     enableUserManagedAttributes: boolean;
     onParseError: (error: string) => void;
-    channelId?: string; // Optional channelId for channel-specific context
+    channelId?: string;
+    teamId?: string;
     actions: {
         getVisualAST: (expr: string) => Promise<ActionResult>;
     };
@@ -37,22 +92,74 @@ interface TableEditorProps {
     // Props for user self-exclusion detection
     isSystemAdmin?: boolean;
     validateExpressionAgainstRequester?: (expression: string) => Promise<ActionResult<{requester_matches: boolean}>>;
+
+    /**
+     * When provided, the built-in TestResultsModal is suppressed and the
+     * Test access rule button forwards its click to the parent. The parent
+     * is responsible for rendering its own results modal — used by the
+     * permission-rule editor so its dual-lane simulation modal can replace
+     * the legacy expression-only one without changing the button's layout.
+     */
+    onTestClick?: () => void;
+
+    /** Force the test button into the disabled state (overrides default). */
+    testButtonDisabled?: boolean;
+
+    /** Tooltip shown when the test button is disabled. Useful for explaining
+     *  why simulation is unavailable (e.g. no attributes loaded). */
+    testButtonTooltip?: string;
+
+    /** Optional label override for the test button. Lets the
+     *  permission-rule editor render "Simulate rules" instead of the
+     *  default "Test access rule" copy. */
+    testButtonLabel?: React.ReactNode;
+
+    // Callback to notify parent when masked state changes (for CEL editor integration)
+    onMaskedStateChange?: (hasMasked: boolean) => void;
 }
 
 // Finds the first available (non-disabled) attribute from a list of user attributes.
-// An attribute is considered available if it doesn't have spaces in its name (CEL incompatible)
-// and is considered "safe" (synced from LDAP/SAML, admin-managed, OR enableUserManagedAttributes is true).
+// An attribute is considered available if it doesn't have spaces in its NAME (the CEL identifier —
+// not the display_name). New CPA fields cannot have spaces in name
+// so hasSpaces only fires for grandfathered legacy fields.
+// An attribute is considered "safe" (synced from LDAP/SAML, admin-managed, plugin-managed (protected), OR enableUserManagedAttributes is true).
 export const findFirstAvailableAttributeFromList = (
     userAttributes: UserPropertyField[],
     enableUserManagedAttributes: boolean,
 ): UserPropertyField | undefined => {
     return userAttributes.find((attr) => {
-        const hasSpaces = attr.name.includes(' ');
+        const isValidCELIdentifier = CPA_FIELD_NAME_PATTERN.test(attr.name);
         const isSynced = attr.attrs?.ldap || attr.attrs?.saml;
         const isAdminManaged = attr.attrs?.managed === 'admin';
-        const allowed = isSynced || isAdminManaged || enableUserManagedAttributes;
-        return !hasSpaces && allowed;
+        const isProtected = attr.attrs?.protected;
+        const allowed = isSynced || isAdminManaged || isProtected || enableUserManagedAttributes;
+        return isValidCELIdentifier && allowed;
     });
+};
+
+// Returns the operator a freshly-selected attribute of the given type should
+// default to. Ranked attributes default to "is at least" (the canonical
+// "Secret or above" clearance comparison).
+const defaultOperatorForType = (type?: string): OperatorLabel => {
+    if (type === 'multiselect') {
+        return OperatorLabel.HAS_ANY_OF;
+    }
+    if (type === 'rank') {
+        return OperatorLabel.IS_AT_LEAST;
+    }
+    return OperatorLabel.IS;
+};
+
+// Whether an operator is valid for an attribute of the given type. Mirrors the
+// per-type operator sets shown by OperatorSelectorMenu.
+const isOperatorValidForType = (op: string, type?: string): boolean => {
+    if (type === 'multiselect') {
+        return isMultiselectOperator(op);
+    }
+    if (type === 'rank') {
+        return isRankOperator(op) || op === OperatorLabel.IS_NOT;
+    }
+    return !isMultiselectOperator(op) && !isRankOperator(op);
 };
 
 // Parses a CEL (Common Expression Language) string into a structured array of TableRow objects.
@@ -80,11 +187,19 @@ export const parseExpression = (visualAST: AccessControlVisualAST): TableRow[] =
             op = OperatorLabel.IS;
         }
 
+        // OPERATOR_LABELS maps '==' to the generic "is". On a ranked attribute the
+        // same operator reads as "is exactly" so it round-trips to the ranked menu.
+        if (node.attribute_type === 'rank' && op === OperatorLabel.IS) {
+            op = OperatorLabel.IS_EXACTLY;
+        }
+
         let values;
         if (Array.isArray(node.value)) {
             values = node.value;
-        } else {
+        } else if (node.value !== null && node.value !== undefined) {
             values = [node.value];
+        } else {
+            values = [];
         }
 
         tableRows.push({
@@ -92,6 +207,7 @@ export const parseExpression = (visualAST: AccessControlVisualAST): TableRow[] =
             operator: op,
             values,
             attribute_type: node.attribute_type,
+            hasMaskedValues: node.has_masked_values === true,
         });
     }
 
@@ -112,9 +228,15 @@ function TableEditor({
     enableUserManagedAttributes,
     onParseError,
     channelId,
+    teamId,
     actions,
     isSystemAdmin = false,
     validateExpressionAgainstRequester,
+    onTestClick,
+    testButtonDisabled,
+    testButtonTooltip,
+    testButtonLabel,
+    onMaskedStateChange,
 }: TableEditorProps): JSX.Element {
     const {formatMessage} = useIntl();
 
@@ -126,10 +248,18 @@ function TableEditor({
     // State for user self-exclusion detection (only applies to non-system-admins)
     const [userWouldBeExcluded, setUserWouldBeExcluded] = useState(false);
 
-    // Effect to parse the incoming CEL expression string (value prop)
-    // and update the internal rows state. Handles errors during parsing.
+    // Derived state: whether any row has masked values
+    const hasMaskedRows = useMemo(() => rows.some((r) => r.hasMaskedValues), [rows]);
+
+    // Prevents getVisualAST re-parse when expression change is from internal row editing.
+    const isInternalChange = React.useRef(false);
+
     useEffect(() => {
-        // Skip parsing if no expression to avoid unnecessary API calls
+        if (isInternalChange.current) {
+            isInternalChange.current = false;
+            return;
+        }
+
         if (!value || value.trim() === '') {
             setRows([]);
             return;
@@ -160,10 +290,8 @@ function TableEditor({
         });
     }, [value]);
 
-    // Effect to check if user would be excluded by their own rules
     useEffect(() => {
         const checkUserSelfExclusion = async () => {
-            // Only check for non-system admins when there's an expression and validation function
             if (isSystemAdmin || !value.trim() || !validateExpressionAgainstRequester) {
                 setUserWouldBeExcluded(false);
                 return;
@@ -172,8 +300,7 @@ function TableEditor({
             try {
                 const result = await validateExpressionAgainstRequester(value);
                 setUserWouldBeExcluded(!result.data?.requester_matches);
-            } catch (error) {
-                // If validation fails, assume they would not be excluded (to allow testing)
+            } catch {
                 setUserWouldBeExcluded(false);
             }
         };
@@ -181,68 +308,30 @@ function TableEditor({
         checkUserSelfExclusion();
     }, [value, isSystemAdmin, validateExpressionAgainstRequester]);
 
-    // Converts the internal rows state back into a CEL expression string
-    // and calls the onChange and onValidate props.
+    useEffect(() => {
+        onMaskedStateChange?.(hasMaskedRows);
+    }, [hasMaskedRows, onMaskedStateChange]);
+
     const updateExpression = useCallback((newRows: TableRow[]) => {
-        const rowsThatCanFormExpressions = newRows.filter((row) => row.attribute); // Only include rows that have an attribute selected
+        // Include masked rows with no visible values: rowToCEL will emit an "in []"
+        // placeholder so the backend merge can restore the hidden values on save.
+        const rowsThatCanFormExpressions = newRows.filter((row) => row.attribute && (row.values.length > 0 || row.hasMaskedValues));
 
-        const expr = rowsThatCanFormExpressions.map((row) => {
-            const attributeExpr = `user.attributes.${row.attribute}`;
-            const config = OPERATOR_CONFIG[row.operator];
+        const expr = rowsThatCanFormExpressions.map((row) => rowToCEL(row)).join(' && ');
 
-            // Find the attribute object to check its type
-            const attributeObj = userAttributes.find((attr) => attr.name === row.attribute);
-
-            if (!config) {
-                // Fallback for unknown operators, defaulting to 'in' logic
-                // This handles cases where row.operator might be an unexpected string.
-                const valuesStr = row.values.map((val: string) => `"${val}"`).join(', ');
-
-                // For multiselect, reverse the order since multiselect attributes can contain multiple values
-                if (attributeObj?.type === 'multiselect') {
-                    return `[${valuesStr}] in ${attributeExpr}`;
-                }
-                return `${attributeExpr} in [${valuesStr}]`;
-            }
-
-            if (config.type === 'list') { // Handles 'in'
-                const valuesStr = row.values.map((val: string) => `"${val}"`).join(', ');
-
-                // For multiselect, reverse the order since multiselect attributes can contain multiple values
-                if (attributeObj?.type === 'multiselect') {
-                    return `[${valuesStr}] ${config.celOp} ${attributeExpr}`;
-                }
-                return `${attributeExpr} ${config.celOp} [${valuesStr}]`;
-            }
-
-            // For 'comparison' and 'method' types, they operate on a single value.
-            const value = row.values.length > 0 ? row.values[0] : '';
-
-            if (config.type === 'comparison') {
-                return `${attributeExpr} ${config.celOp} "${value}"`;
-            }
-
-            // config.type must be 'method'
-            return `${attributeExpr}.${config.celOp}("${value}")`;
-        }).join(' && ');
-
+        isInternalChange.current = true;
         onChange(expr);
         if (onValidate) {
-            // Basic validation: if we can build an expression, or if the expression is empty
-            // (e.g. no rows, or rows without attributes yet), it's valid from table perspective.
             onValidate(expr === '' || rowsThatCanFormExpressions.length > 0);
         }
-    }, [onChange, onValidate, userAttributes]);
+    }, [onChange, onValidate]);
 
-    // Helper function to find the first available (non-disabled) attribute
     const findFirstAvailableAttribute = useCallback(() => {
         return findFirstAvailableAttributeFromList(userAttributes, enableUserManagedAttributes);
     }, [userAttributes, enableUserManagedAttributes]);
 
-    // Row Manipulation Handlers
     const addRow = useCallback(() => {
         if (userAttributes.length === 0) {
-            // Show a helpful message instead of silently failing
             onParseError('No user attributes available. Please ensure ABAC is properly configured and you have the necessary permissions.');
             return;
         }
@@ -254,11 +343,12 @@ function TableEditor({
         }
 
         setRows((currentRows) => {
-            const newRow = {
-                attribute: firstAvailableAttribute.name, // Default to the first available attribute
-                operator: OperatorLabel.IS, // Default operator
+            const newRow: TableRow = {
+                attribute: firstAvailableAttribute.name,
+                operator: defaultOperatorForType(firstAvailableAttribute.type),
                 values: [],
-                attribute_type: userAttributes[0]?.type || '',
+                attribute_type: firstAvailableAttribute.type || '',
+                hasMaskedValues: false,
             };
             const newRows = [...currentRows, newRow];
             updateExpression(newRows); // Ensure expression is updated immediately
@@ -275,34 +365,55 @@ function TableEditor({
         });
     }, [updateExpression]);
 
+    const requestRemoveRow = useCallback((index: number) => {
+        // Masked rows have their remove button disabled — the row is read-only
+        // because the server would 403 on a delete that strips hidden values.
+        removeRow(index);
+    }, [removeRow]);
+
     const updateRowAttribute = useCallback((index: number, attribute: string) => {
         setRows((currentRows) => {
             const newRows = [...currentRows];
             const oldAttribute = newRows[index].attribute;
             newRows[index] = {...newRows[index], attribute};
 
-            // If attribute changes, we are resetting values.
             if (oldAttribute !== attribute) {
                 newRows[index].values = [];
-                newRows[index].operator = OperatorLabel.IS;
+
+                const newAttributeObj = userAttributes.find((attr) => attr.name === attribute);
+                const newType = newAttributeObj?.type || '';
+                newRows[index].attribute_type = newType;
+
+                // Reset the operator to a valid default when the current one
+                // isn't offered for the new attribute type (e.g. switching a
+                // select row to a ranked attribute, or to/from multiselect).
+                if (!isOperatorValidForType(currentRows[index].operator, newType)) {
+                    newRows[index].operator = defaultOperatorForType(newType);
+                }
+
+                // Values were cleared — row is in an intermediate editing state.
+                // Don't regenerate the expression now; it will be updated when
+                // the user selects new values via updateRowValues.
+                return newRows;
             }
             updateExpression(newRows);
             return newRows;
         });
-    }, [updateExpression]);
+    }, [updateExpression, userAttributes]);
 
     const updateRowOperator = useCallback((index: number, newOperator: string) => {
         setRows((currentRows) => {
             const oldOperator = currentRows[index].operator;
-            let newValues = [...currentRows[index].values]; // Start with a copy of current values
+            let newValues = [...currentRows[index].values];
 
-            if (newOperator === OperatorLabel.IN && oldOperator !== OperatorLabel.IN) {
-                // Transitioning TO 'in' FROM a non-'in' (likely single-value) operator:
-                // Trim each value and then filter out any that become empty strings.
+            const wasMulti = isMultiValueOperator(oldOperator);
+            const isMulti = isMultiValueOperator(newOperator);
+
+            if (isMulti && !wasMulti) {
+                // Transitioning TO a multi-value operator FROM a single-value operator:
                 newValues = newValues.map((v) => v.trim()).filter((v) => v !== '');
-            } else if (newOperator !== OperatorLabel.IN) {
-                // Transitioning TO a non-'in' (single-value) operator (or staying as one):
-                // If there are multiple values (e.g., coming from 'in'), take only the first one.
+            } else if (!isMulti && wasMulti) {
+                // Transitioning TO a single-value operator FROM a multi-value operator:
                 if (newValues.length > 1) {
                     newValues = [newValues[0]];
                 }
@@ -382,7 +493,7 @@ function TableEditor({
                                     <AttributeSelectorMenu
                                         currentAttribute={row.attribute}
                                         availableAttributes={userAttributes}
-                                        disabled={disabled}
+                                        disabled={disabled || row.hasMaskedValues}
                                         onChange={(attribute) => updateRowAttribute(index, attribute)}
                                         menuId={`attribute-selector-menu-${index}`}
                                         buttonId={`attribute-selector-button-${index}`}
@@ -394,14 +505,15 @@ function TableEditor({
                                 <td className='table-editor__cell'>
                                     <OperatorSelectorMenu
                                         currentOperator={row.operator}
-                                        disabled={disabled}
+                                        disabled={disabled || row.hasMaskedValues}
                                         onChange={(operator) => updateRowOperator(index, operator)}
+                                        attributeType={userAttributes.find((attr) => attr.name === row.attribute)?.type}
                                     />
                                 </td>
                                 <td className='table-editor__cell'>
                                     <ValueSelectorMenu
                                         row={row}
-                                        disabled={disabled}
+                                        disabled={disabled || row.hasMaskedValues}
                                         updateValues={(values: string[]) => updateRowValues(index, values)}
                                         options={row.attribute ? userAttributes.find((attr) => attr.name === row.attribute)?.attrs?.options || [] : []}
                                     />
@@ -410,8 +522,8 @@ function TableEditor({
                                     <button
                                         type='button'
                                         className='table-editor__row-remove'
-                                        onClick={() => removeRow(index)}
-                                        disabled={disabled}
+                                        onClick={() => requestRemoveRow(index)}
+                                        disabled={disabled || row.hasMaskedValues}
                                         aria-label={formatMessage({id: 'admin.access_control.table_editor.remove_row', defaultMessage: 'Remove row'})}
                                     >
                                         <i className='icon icon-trash-can-outline'/>
@@ -444,20 +556,35 @@ function TableEditor({
                     })}
                 />
                 <TestButton
-                    onClick={() => setShowTestResults(true)}
-                    disabled={disabled || !value || userWouldBeExcluded}
+                    onClick={onTestClick ?? (() => setShowTestResults(true))}
+                    disabled={(testButtonDisabled ?? false) || disabled || (!onTestClick && !value) || userWouldBeExcluded || hasMaskedRows}
                     disabledTooltip={
-                        userWouldBeExcluded ?
-                            formatMessage({
-                                id: 'admin.access_control.table_editor.user_excluded_tooltip',
-                                defaultMessage: 'You cannot test access rules that would exclude you from the channel',
-                            }) :
-                            undefined
+
+                        // Precedence: an explicit parent-supplied
+                        // tooltip paired with `testButtonDisabled`
+                        // wins (the parent already chose what the
+                        // user should see and why), then the
+                        // user-excluded message, then any other
+                        // testButtonTooltip the parent passed
+                        // alongside other disable reasons. The
+                        // earlier `userWouldBeExcluded ? … : tooltip`
+                        // ternary silenced parent hints whenever the
+                        // self-exclusion check happened to also
+                        // be true.
+                        (testButtonDisabled && testButtonTooltip) ||
+                        (userWouldBeExcluded ? formatMessage({
+                            id: 'admin.access_control.table_editor.user_excluded_tooltip',
+                            defaultMessage: 'You cannot test access rules that would exclude you from the channel',
+                        }) : testButtonTooltip)
                     }
+                    label={testButtonLabel}
                 />
             </div>
 
-            {showTestResults && (
+            {/* Built-in expression-only modal. Suppressed when the parent
+              * provided an `onTestClick` override (used by the permission-rule
+              * editor, which renders its own dual-lane simulation modal). */}
+            {!onTestClick && showTestResults && (
                 <TestResultsModal
                     onExited={() => setShowTestResults(false)}
                     isStacked={true}
@@ -465,7 +592,7 @@ function TableEditor({
                         openModal: () => {},
                         searchUsers: (term: string, after: string, limit: number) => {
                             // Return the action for the modal to dispatch
-                            return searchUsersForExpression(value, term, after, limit, channelId);
+                            return searchUsersForExpression(value, term, after, limit, channelId, teamId);
                         },
                     }}
                 />

@@ -4,6 +4,7 @@
     &__sectionTitle {
         padding-top: 16px;
         padding-bottom: 8px;
+        color: var(--center-channel-color);
         font-weight: 600;
 
         &--first {
@@ -38,6 +39,24 @@
     &__sectionTitleParenthetical {
         color: rgba(var(--center-channel-color-rgb), 0.75);
         font-weight: normal;
+    }
+
+    &__guestMagicLinkSection {
+        padding: 12px 0;
+    }
+
+    &__guestMagicLinkCheckbox {
+        display: flex;
+        align-items: center;
+        margin: 0;
+        cursor: pointer;
+        font-weight: normal;
+        gap: 8px;
+
+        input[type='checkbox'] {
+            margin: 0;
+            cursor: pointer;
+        }
     }
 }
 

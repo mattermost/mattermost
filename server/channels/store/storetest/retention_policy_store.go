@@ -4,7 +4,6 @@
 package storetest
 
 import (
-	"sort"
 	"strconv"
 	"testing"
 
@@ -60,26 +59,8 @@ func CheckRetentionPolicyWithTeamAndChannelIdsAreEqual(t *testing.T, p1, p2 *mod
 	require.Equal(t, p1.ID, p2.ID)
 	require.Equal(t, p1.DisplayName, p2.DisplayName)
 	require.Equal(t, p1.PostDurationDays, p2.PostDurationDays)
-	require.Equal(t, len(p1.ChannelIDs), len(p2.ChannelIDs))
-	if p1.ChannelIDs == nil || p2.ChannelIDs == nil {
-		require.Equal(t, p1.ChannelIDs, p2.ChannelIDs)
-	} else {
-		sort.Strings(p1.ChannelIDs)
-		sort.Strings(p2.ChannelIDs)
-	}
-	for i := range p1.ChannelIDs {
-		require.Equal(t, p1.ChannelIDs[i], p2.ChannelIDs[i])
-	}
-	if p1.TeamIDs == nil || p2.TeamIDs == nil {
-		require.Equal(t, p1.TeamIDs, p2.TeamIDs)
-	} else {
-		sort.Strings(p1.TeamIDs)
-		sort.Strings(p2.TeamIDs)
-	}
-	require.Equal(t, len(p1.TeamIDs), len(p2.TeamIDs))
-	for i := range p1.TeamIDs {
-		require.Equal(t, p1.TeamIDs[i], p2.TeamIDs[i])
-	}
+	require.ElementsMatch(t, p1.ChannelIDs, p2.ChannelIDs)
+	require.ElementsMatch(t, p1.TeamIDs, p2.TeamIDs)
 }
 
 func CheckRetentionPolicyWithTeamAndChannelCountsAreEqual(t *testing.T, p1, p2 *model.RetentionPolicyWithTeamAndChannelCounts) {
@@ -174,7 +155,7 @@ func createRetentionPolicyWithTeamAndChannelIds(displayName string, teamIDs, cha
 	return &model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      displayName,
-			PostDurationDays: model.NewPointer(int64(30)),
+			PostDurationDays: new(int64(30)),
 		},
 		TeamIDs:    teamIDs,
 		ChannelIDs: channelIDs,
@@ -254,7 +235,7 @@ func testRetentionPolicyStorePatch(t *testing.T, rctx request.CTX, ss store.Stor
 		patch := &model.RetentionPolicyWithTeamAndChannelIDs{
 			RetentionPolicy: model.RetentionPolicy{
 				ID:               policy.ID,
-				PostDurationDays: model.NewPointer(int64(10000)),
+				PostDurationDays: new(int64(10000)),
 			},
 		}
 		_, err := ss.RetentionPolicy().Patch(patch)
@@ -264,7 +245,7 @@ func testRetentionPolicyStorePatch(t *testing.T, rctx request.CTX, ss store.Stor
 		checkRetentionPolicyLikeThisExists(t, ss, expected)
 
 		// Store a negative value (= infinity)
-		patch.PostDurationDays = model.NewPointer(int64(-1))
+		patch.PostDurationDays = new(int64(-1))
 		_, err = ss.RetentionPolicy().Patch(patch)
 		require.NoError(t, err)
 		expected = copyRetentionPolicyWithTeamAndChannelIds(policy)
@@ -431,13 +412,11 @@ func testRetentionPolicyStoreGetChannels(t *testing.T, rctx request.CTX, ss stor
 		channels, err := ss.RetentionPolicy().GetChannels(policy.ID, 0, len(channelIDs))
 		require.NoError(t, err)
 		require.Len(t, channels, len(channelIDs))
-		sort.Strings(channelIDs)
-		sort.Slice(channels, func(i, j int) bool {
-			return channels[i].Id < channels[j].Id
-		})
-		for i := range channelIDs {
-			require.Equal(t, channelIDs[i], channels[i].Id)
+		actualIDs := make([]string, len(channels))
+		for i, ch := range channels {
+			actualIDs[i] = ch.Id
 		}
+		require.ElementsMatch(t, channelIDs, actualIDs)
 	})
 }
 
@@ -527,13 +506,11 @@ func testRetentionPolicyStoreGetTeams(t *testing.T, rctx request.CTX, ss store.S
 		teams, err := ss.RetentionPolicy().GetTeams(policy.ID, 0, len(teamIDs))
 		require.NoError(t, err)
 		require.Len(t, teams, len(teamIDs))
-		sort.Strings(teamIDs)
-		sort.Slice(teams, func(i, j int) bool {
-			return teams[i].Id < teams[j].Id
-		})
-		for i := range teamIDs {
-			require.Equal(t, teamIDs[i], teams[i].Id)
+		actualIDs := make([]string, len(teams))
+		for i, tm := range teams {
+			actualIDs[i] = tm.Id
 		}
+		require.ElementsMatch(t, teamIDs, actualIDs)
 	})
 }
 

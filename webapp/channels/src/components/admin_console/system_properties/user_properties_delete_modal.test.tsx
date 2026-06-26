@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, fireEvent} from '@testing-library/react';
 import React from 'react';
 
 import type {UserPropertyField} from '@mattermost/types/properties';
 
 import {openModal} from 'actions/views/modals';
 
-import {renderWithContext, renderHookWithContext} from 'tests/react_testing_utils';
+import {renderHookWithContext, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
+import {getUserPropertyFieldLabel} from 'utils/properties';
 
 import RemoveUserPropertyFieldModal, {useUserPropertyFieldDelete} from './user_properties_delete_modal';
 
@@ -21,10 +21,6 @@ describe('RemoveUserPropertyFieldModal', () => {
     const onConfirm = jest.fn();
     const onCancel = jest.fn();
     const onExited = jest.fn();
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
 
     it('renders with the correct field name', () => {
         renderWithContext(
@@ -41,7 +37,7 @@ describe('RemoveUserPropertyFieldModal', () => {
         expect(screen.getByText('Delete')).toBeInTheDocument();
     });
 
-    it('calls onConfirm when confirm button is clicked', () => {
+    it('calls onConfirm when confirm button is clicked', async () => {
         renderWithContext(
             <RemoveUserPropertyFieldModal
                 name='Test Field'
@@ -51,11 +47,11 @@ describe('RemoveUserPropertyFieldModal', () => {
             />,
         );
 
-        fireEvent.click(screen.getByText('Delete'));
+        await userEvent.click(screen.getByText('Delete'));
         expect(onConfirm).toHaveBeenCalledTimes(1);
     });
 
-    it('calls onCancel when cancel button is clicked', () => {
+    it('calls onCancel when cancel button is clicked', async () => {
         renderWithContext(
             <RemoveUserPropertyFieldModal
                 name='Test Field'
@@ -65,7 +61,7 @@ describe('RemoveUserPropertyFieldModal', () => {
             />,
         );
 
-        fireEvent.click(screen.getByText('Cancel'));
+        await userEvent.click(screen.getByText('Cancel'));
         expect(onCancel).toHaveBeenCalledTimes(1);
     });
 });
@@ -79,6 +75,11 @@ describe('useUserPropertyFieldDelete', () => {
         create_at: 1736541716295,
         delete_at: 0,
         update_at: 0,
+        created_by: '',
+        updated_by: '',
+        target_id: '',
+        target_type: '',
+        object_type: '',
         attrs: {
             sort_order: 0,
             visibility: 'when_set',
@@ -95,10 +96,29 @@ describe('useUserPropertyFieldDelete', () => {
             modalId: ModalIdentifiers.USER_PROPERTY_FIELD_DELETE,
             dialogType: RemoveUserPropertyFieldModal,
             dialogProps: {
-                name: baseField.name,
+                name: getUserPropertyFieldLabel(baseField),
                 onConfirm: expect.any(Function),
+                isOrphaned: false,
+                sourcePluginId: undefined,
             },
         });
+    });
+
+    it('passes display_name as the modal name when set', () => {
+        const {result} = renderHookWithContext(() => useUserPropertyFieldDelete());
+        const fieldWithDisplayName = {
+            ...baseField,
+            name: 'department',
+            attrs: {...baseField.attrs, display_name: 'Department Head'},
+        };
+
+        result.current.promptDelete(fieldWithDisplayName);
+
+        expect(openModal).toHaveBeenCalledWith(expect.objectContaining({
+            dialogProps: expect.objectContaining({
+                name: 'Department Head',
+            }),
+        }));
     });
 
     it('returns a promise that resolves when onConfirm is called', async () => {

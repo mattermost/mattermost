@@ -9,8 +9,8 @@
 
 // Group: @channels @messaging
 
-import {getRandomId} from '../../../utils';
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import {getRandomId} from '@/utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Messaging', () => {
     let testTeam;

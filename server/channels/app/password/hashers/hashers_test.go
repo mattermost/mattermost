@@ -136,3 +136,10 @@ func TestIsLatestHasher(t *testing.T) {
 		require.Equal(t, tc.expectedOutput, actualOutput)
 	}
 }
+
+func BenchmarkDefaultHasher(b *testing.B) {
+	hasher := DefaultPBKDF2()
+	for b.Loop() {
+		_, _ = hasher.Hash("password")
+	}
+}

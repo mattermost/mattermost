@@ -50,7 +50,6 @@ const (
 	WebsocketEventReactionRemoved                     WebsocketEventType = "reaction_removed"
 	WebsocketEventResponse                            WebsocketEventType = "response"
 	WebsocketEventEmojiAdded                          WebsocketEventType = "emoji_added"
-	WebsocketEventChannelViewed                       WebsocketEventType = "channel_viewed"
 	WebsocketEventMultipleChannelsViewed              WebsocketEventType = "multiple_channels_viewed"
 	WebsocketEventPluginStatusesChanged               WebsocketEventType = "plugin_statuses_changed"
 	WebsocketEventPluginEnabled                       WebsocketEventType = "plugin_enabled"
@@ -72,7 +71,6 @@ const (
 	WebsocketEventSidebarCategoryUpdated              WebsocketEventType = "sidebar_category_updated"
 	WebsocketEventSidebarCategoryDeleted              WebsocketEventType = "sidebar_category_deleted"
 	WebsocketEventSidebarCategoryOrderUpdated         WebsocketEventType = "sidebar_category_order_updated"
-	WebsocketEventCloudPaymentStatusUpdated           WebsocketEventType = "cloud_payment_status_updated"
 	WebsocketEventCloudSubscriptionChanged            WebsocketEventType = "cloud_subscription_changed"
 	WebsocketEventThreadUpdated                       WebsocketEventType = "thread_updated"
 	WebsocketEventThreadFollowChanged                 WebsocketEventType = "thread_follow_changed"
@@ -89,6 +87,8 @@ const (
 	WebsocketEventChannelBookmarkUpdated              WebsocketEventType = "channel_bookmark_updated"
 	WebsocketEventChannelBookmarkDeleted              WebsocketEventType = "channel_bookmark_deleted"
 	WebsocketEventChannelBookmarkSorted               WebsocketEventType = "channel_bookmark_sorted"
+	WebsocketEventChannelAccessControlUpdated         WebsocketEventType = "channel_access_control_updated"
+	WebsocketEventTeamAccessControlUpdated            WebsocketEventType = "team_access_control_updated"
 	WebsocketPresenceIndicator                        WebsocketEventType = "presence"
 	WebsocketPostedNotifyAck                          WebsocketEventType = "posted_notify_ack"
 	WebsocketScheduledPostCreated                     WebsocketEventType = "scheduled_post_created"
@@ -99,6 +99,28 @@ const (
 	WebsocketEventCPAFieldDeleted                     WebsocketEventType = "custom_profile_attributes_field_deleted"
 	WebsocketEventCPAValuesUpdated                    WebsocketEventType = "custom_profile_attributes_values_updated"
 	WebsocketContentFlaggingReportValueUpdated        WebsocketEventType = "content_flagging_report_value_updated"
+	WebsocketEventRecapUpdated                        WebsocketEventType = "recap_updated"
+	WebsocketEventPostTranslationUpdated              WebsocketEventType = "post_translation_updated"
+	WebsocketEventPostRevealed                        WebsocketEventType = "post_revealed"
+	WebsocketEventPostBurned                          WebsocketEventType = "post_burned"
+	WebsocketEventBurnOnReadAllRevealed               WebsocketEventType = "burn_on_read_all_revealed"
+
+	WebsocketEventBoardCreated WebsocketEventType = "board_created"
+
+	WebsocketEventViewCreated                WebsocketEventType = "view_created"
+	WebsocketEventViewUpdated                WebsocketEventType = "view_updated"
+	WebsocketEventViewDeleted                WebsocketEventType = "view_deleted"
+	WebsocketEventViewSorted                 WebsocketEventType = "view_sorted"
+	WebsocketEventPropertyFieldCreated       WebsocketEventType = "property_field_created"
+	WebsocketEventPropertyFieldUpdated       WebsocketEventType = "property_field_updated"
+	WebsocketEventPropertyFieldDeleted       WebsocketEventType = "property_field_deleted"
+	WebsocketEventPropertyValuesUpdated      WebsocketEventType = "property_values_updated"
+	WebsocketEventFileDownloadRejected       WebsocketEventType = "file_download_rejected"
+	WebsocketEventFileUploadRejected         WebsocketEventType = "file_upload_rejected"
+	WebsocketEventShowToast                  WebsocketEventType = "show_toast"
+	WebsocketEventSharedChannelRemoteUpdated WebsocketEventType = "shared_channel_remote_updated"
+	WebsocketEventChannelJoinRequestCreated  WebsocketEventType = "channel_join_request_created"
+	WebsocketEventChannelJoinRequestUpdated  WebsocketEventType = "channel_join_request_updated"
 
 	WebSocketMsgTypeResponse = "response"
 	WebSocketMsgTypeEvent    = "event"
@@ -218,6 +240,7 @@ type WebSocketEvent struct {
 	broadcast       *WebsocketBroadcast
 	sequence        int64
 	precomputedJSON *precomputedWebSocketEventJSON
+	rejected        bool
 }
 
 // PrecomputeJSON precomputes and stores the serialized JSON for all fields other than Sequence.
@@ -449,4 +472,12 @@ func (m *WebSocketResponse) ToJSON() ([]byte, error) {
 func WebSocketResponseFromJSON(data io.Reader) (*WebSocketResponse, error) {
 	var o *WebSocketResponse
 	return o, json.NewDecoder(data).Decode(&o)
+}
+
+func (ev *WebSocketEvent) Reject() {
+	ev.rejected = true
+}
+
+func (ev *WebSocketEvent) IsRejected() bool {
+	return ev.rejected
 }

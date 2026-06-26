@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {act} from '@testing-library/react';
+import {createMemoryHistory} from 'history';
 import React from 'react';
 
 import type {Post} from '@mattermost/types/posts';
@@ -92,6 +93,17 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
                 },
             },
             teams: {
+                teams: {
+                    [reportedPostTeam.id]: reportedPostTeam,
+                },
+            },
+            contentFlagging: {
+                flaggedPosts: {
+                    [reportedPost.id]: reportedPost,
+                },
+                channels: {
+                    [reportedPostChannel.id]: reportedPostChannel,
+                },
                 teams: {
                     [reportedPostTeam.id]: reportedPostTeam,
                 },
@@ -261,7 +273,7 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
             target_type: 'post',
             group_id: 'ey36rkw3bjybb8gtrdkn3hmeqa',
             field_id: contentFlaggingFields.reporting_reason.id,
-            value: 'Sensitive data',
+            value: 'Classification mismatch',
             create_at: 1756790533487,
             update_at: 1756790533487,
             delete_at: 0,
@@ -337,6 +349,7 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
         usePropertyCardViewPostLoader.mockReturnValue(reportedPost);
 
         Client4.getFlaggedPost = jest.fn().mockResolvedValue(reportedPost);
+        Client4.getChannel = jest.fn().mockResolvedValue(reportedPostChannel);
     });
 
     it('should render selected fields when not in RHS', async () => {
@@ -353,7 +366,7 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
         // validate title
         const title = screen.queryByTestId('property-card-title');
         expect(title).toBeVisible();
-        expect(title).toHaveTextContent('@reporting_user flagged a message for review');
+        expect(title).toHaveTextContent('@reporting_user submitted a message for review');
 
         expect(screen.queryAllByTestId('property-card-row')).toHaveLength(4);
 
@@ -363,7 +376,7 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
         expect(statusFieldValue).toHaveTextContent('Pending');
 
         const reasonFieldValue = screen.queryAllByTestId('select-property')[1];
-        expect(reasonFieldValue).toHaveTextContent('Sensitive data');
+        expect(reasonFieldValue).toHaveTextContent('Classification mismatch');
 
         const postPreview = screen.queryByTestId('post-preview-property');
         expect(postPreview).toBeVisible();
@@ -417,5 +430,64 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
         expect(screen.queryByTestId('data-spillage-action')).toBeVisible();
         expect(screen.queryByTestId('data-spillage-action-remove-message')).toBeVisible();
         expect(screen.queryByTestId('data-spillage-action-keep-message')).toBeVisible();
+    });
+
+    it('should render in short mode in the global threads view even when isRHS is true', async () => {
+        const history = createMemoryHistory({initialEntries: ['/myteam/threads/abcdefghijklmnopqrstuvwxyz']});
+
+        renderWithContext(
+            <DataSpillageReport
+                post={post}
+                isRHS={true}
+            />,
+            baseState,
+            {history},
+        );
+
+        await act(async () => {});
+
+        const card = screen.getByTestId('data-spillage-report');
+        expect(card).toHaveClass('mode_short');
+        expect(card).not.toHaveClass('mode_full');
+
+        // short mode renders only the short field set
+        expect(screen.queryAllByTestId('property-card-row')).toHaveLength(4);
+
+        // action rows are gated on mode === 'full', so they must not render here
+        expect(screen.queryByTestId('data-spillage-action')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('data-spillage-action-download-report')).not.toBeInTheDocument();
+    });
+
+    describe.each([
+        ['Pending', true],
+        ['Retained', false],
+        ['Removed', false],
+    ])('Download Report button when status is %s', (status, expectActions) => {
+        it('is rendered in action rows in RHS mode', async () => {
+            usePostContentFlaggingValues.mockReturnValue(
+                postContentFlaggingValues.map((v) =>
+                    (v.field_id === contentFlaggingFields.status.id ? {...v, value: status} : v),
+                ),
+            );
+
+            renderWithContext(
+                <DataSpillageReport
+                    post={post}
+                    isRHS={true}
+                />,
+                baseState,
+            );
+
+            await act(async () => {});
+
+            expect(screen.getByTestId('data-spillage-action-download-report')).toBeVisible();
+            expect(screen.getByTestId('data-spillage-action-download-report')).toHaveTextContent('Download Report');
+
+            if (expectActions) {
+                expect(screen.queryByTestId('data-spillage-action')).toBeVisible();
+            } else {
+                expect(screen.queryByTestId('data-spillage-action')).not.toBeInTheDocument();
+            }
+        });
     });
 });

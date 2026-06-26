@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import DatabaseSettings from 'components/admin_console/database_settings';
 
-jest.mock('actions/admin_actions.jsx', () => {
+import {renderWithContext} from 'tests/react_testing_utils';
+
+jest.mock('actions/admin_actions', () => {
     const pingFn = () => {
         return jest.fn(() => {
             return {ActiveSearchBackend: 'none'};
@@ -34,6 +35,7 @@ describe('components/DatabaseSettings', () => {
                 DisableDatabaseSearch: true,
                 DataSource: 'postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable\u0026connect_timeout=10',
                 QueryTimeout: 10,
+                AnalyticsQueryTimeout: 300,
                 ConnMaxLifetimeMilliseconds: 10,
                 ConnMaxIdleTimeMilliseconds: 20,
             },
@@ -47,11 +49,11 @@ describe('components/DatabaseSettings', () => {
             config,
             isDisabled: false,
         };
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <DatabaseSettings
                 {...props}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

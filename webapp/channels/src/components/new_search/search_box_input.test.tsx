@@ -6,7 +6,7 @@ import React from 'react';
 import {
     renderWithContext,
     screen,
-    fireEvent,
+    userEvent,
 } from 'tests/react_testing_utils';
 
 import SearchBoxInput from './search_box_input';
@@ -44,31 +44,37 @@ describe('components/new_search/SearchBoxInput', () => {
         expect(screen.getByPlaceholderText('Search messages')).toHaveValue('test-value');
     });
 
-    test('should call on key down when there is a key down event on the input field', () => {
+    test('should call on key down when there is a key down event on the input field', async () => {
         const props = {...baseProps};
         renderWithContext(<SearchBoxInput {...props}/>);
-        fireEvent.keyDown(screen.getByPlaceholderText('Search messages'), {key: 'Enter'});
+        const input = screen.getByPlaceholderText('Search messages');
+        input.focus();
+        await userEvent.keyboard('{Enter}');
         expect(props.onKeyDown).toHaveBeenCalledTimes(1);
     });
 
-    test('should call on key down when there is a key down event on the input field', () => {
+    test('should call on key down when there is a key down event on the input field with Escape', async () => {
         const props = {...baseProps};
         renderWithContext(<SearchBoxInput {...props}/>);
-        fireEvent.keyDown(screen.getByPlaceholderText('Search messages'), {key: 'Enter'});
+        const input = screen.getByPlaceholderText('Search messages');
+        input.focus();
+        await userEvent.keyboard('{Escape}');
         expect(props.onKeyDown).toHaveBeenCalledTimes(1);
     });
 
-    test('should update the search term on change', () => {
+    test('should update the search term on change', async () => {
         const props = {...baseProps};
         renderWithContext(<SearchBoxInput {...props}/>);
-        fireEvent.change(screen.getByPlaceholderText('Search messages'), {target: {value: 'new-value'}});
+        const input = screen.getByPlaceholderText('Search messages');
+        await userEvent.clear(input);
+        await userEvent.type(input, 'new-value');
         expect(props.setSearchTerms).toHaveBeenCalledWith('new-value');
     });
 
-    test('should clear the terms and focus in the input whenever click the clear button', () => {
+    test('should clear the terms and focus in the input whenever click the clear button', async () => {
         const props = {...baseProps, searchTerms: 'test-value'};
         renderWithContext(<SearchBoxInput {...props}/>);
-        fireEvent.click(screen.getByText('Clear'));
+        await userEvent.click(screen.getByText('Clear'));
         expect(props.setSearchTerms).toHaveBeenCalledWith('');
         expect(props.focus).toHaveBeenCalledWith(0);
     });

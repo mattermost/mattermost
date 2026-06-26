@@ -6,6 +6,7 @@ import React, {memo, useRef} from 'react';
 import {useIntl} from 'react-intl';
 
 import {CloseIcon, MenuDownIcon, MenuRightIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {
     OpenGraphMetadata,
     OpenGraphMetadataImage,
@@ -16,7 +17,6 @@ import type {
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import ExternalImage from 'components/external_image';
 import ExternalLink from 'components/external_link';
-import WithTooltip from 'components/with_tooltip';
 
 import {PostTypes} from 'utils/constants';
 import {isSystemMessage} from 'utils/post_utils';
@@ -45,7 +45,7 @@ export type Props = {
     isEmbedVisible?: boolean;
     toggleEmbedVisibility: () => void;
     actions: {
-        editPost: (post: { id: string; props: Record<string, any> }) => void;
+        editPost: (post: Post) => void;
     };
     isInPermalink?: boolean;
     imageCollapsed?: boolean;
@@ -74,7 +74,7 @@ export function getBestImage(openGraphData?: OpenGraphMetadata, imagesMetadata?:
     return getNearestPoint<ImageMetadata>(DIMENSIONS_NEAREST_POINT_IMAGE, images);
 }
 
-export const getIsLargeImage = (data: ImageMetadata|null) => {
+export const getIsLargeImage = (data: ImageMetadata | null) => {
     if (!data) {
         return false;
     }
@@ -115,7 +115,7 @@ const PostAttachmentOpenGraph = ({openGraphData, post, actions, link, isInPermal
             props,
         };
 
-        return actions.editPost(patchedPost);
+        return actions.editPost(patchedPost as Post);
     };
 
     const safeLink = makeUrlSafe(openGraphData?.url || link);
@@ -168,7 +168,7 @@ type BodyProps = {
     isInPermalink?: boolean;
     sitename?: string;
     description?: string;
-}
+};
 
 export const PostAttachmentOpenGraphBody = memo(({title, isInPermalink, sitename = '', description = ''}: BodyProps) => {
     return title ? (
@@ -182,11 +182,11 @@ export const PostAttachmentOpenGraphBody = memo(({title, isInPermalink, sitename
 
 type ImageProps = {
     title?: string;
-    imageMetadata?: ImageMetadata|null;
+    imageMetadata?: ImageMetadata | null;
     isInPermalink: Props['isInPermalink'];
     isEmbedVisible: Props['isEmbedVisible'];
     toggleEmbedVisibility: Props['toggleEmbedVisibility'];
-}
+};
 
 export const PostAttachmentOpenGraphImage = memo(({imageMetadata, isInPermalink, toggleEmbedVisibility, isEmbedVisible = true, title = ''}: ImageProps) => {
     const {formatMessage} = useIntl();

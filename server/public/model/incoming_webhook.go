@@ -28,6 +28,7 @@ type IncomingWebhook struct {
 	Username      string `json:"username"`
 	IconURL       string `json:"icon_url"`
 	ChannelLocked bool   `json:"channel_locked"`
+	LastUsed      int64  `json:"last_used"`
 }
 
 func (o *IncomingWebhook) Auditable() map[string]any {
@@ -44,19 +45,21 @@ func (o *IncomingWebhook) Auditable() map[string]any {
 		"username":       o.Username,
 		"icon_url:":      o.IconURL,
 		"channel_locked": o.ChannelLocked,
+		"last_used":      o.LastUsed,
 	}
 }
 
 type IncomingWebhookRequest struct {
-	Text        string             `json:"text"`
-	Username    string             `json:"username"`
-	IconURL     string             `json:"icon_url"`
-	ChannelName string             `json:"channel"`
-	Props       StringInterface    `json:"props"`
-	Attachments []*SlackAttachment `json:"attachments"`
-	Type        string             `json:"type"`
-	IconEmoji   string             `json:"icon_emoji"`
-	Priority    *PostPriority      `json:"priority"`
+	Text        string               `json:"text"`
+	Username    string               `json:"username"`
+	IconURL     string               `json:"icon_url"`
+	ChannelName string               `json:"channel"`
+	RootId      string               `json:"root_id"`
+	Props       StringInterface      `json:"props"`
+	Attachments []*MessageAttachment `json:"attachments"`
+	Type        string               `json:"type"`
+	IconEmoji   string               `json:"icon_emoji"`
+	Priority    *PostPriority        `json:"priority"`
 }
 
 type IncomingWebhooksWithCount struct {
@@ -202,7 +205,7 @@ func IncomingWebhookRequestFromJSON(data io.Reader) (*IncomingWebhookRequest, *A
 		}
 	}
 
-	o.Attachments = StringifySlackFieldValue(o.Attachments)
+	o.Attachments = StringifyMessageAttachmentFieldValue(o.Attachments)
 
 	return o, nil
 }

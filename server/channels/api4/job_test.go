@@ -5,6 +5,7 @@ package api4
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -18,8 +19,8 @@ import (
 func TestCreateJob(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	th.LoginSystemManager()
-	defer th.TearDown()
+
+	th.LoginSystemManager(t)
 
 	job := &model.Job{
 		Type: model.JobTypeActiveUsers,
@@ -53,7 +54,6 @@ func TestCreateJob(t *testing.T) {
 func TestGetJob(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	job := &model.Job{
 		Id:     model.NewId(),
@@ -90,7 +90,6 @@ func TestGetJob(t *testing.T) {
 func TestGetJobs(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	jobType := model.JobTypeDataRetention
 
@@ -175,8 +174,8 @@ func TestGetJobs(t *testing.T) {
 func TestGetJobsByType(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	th.LoginSystemManager()
-	defer th.TearDown()
+
+	th.LoginSystemManager(t)
 
 	jobType := model.JobTypeDataRetention
 
@@ -242,11 +241,325 @@ func TestGetJobsByType(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestGetJobsByTypeWithPolicyIDFilter(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+	th.LoginSystemManager(t)
+
+	policyID := model.NewId()
+	otherPolicyID := model.NewId()
+
+	t0 := model.GetMillis()
+	jobs := []*model.Job{
+		{
+			Id:       model.NewId(),
+			Type:     model.JobTypeAccessControlSync,
+			CreateAt: t0,
+			Data:     map[string]string{"policy_id": policyID},
+		},
+		{
+			Id:       model.NewId(),
+			Type:     model.JobTypeAccessControlSync,
+			CreateAt: t0 + 1,
+			Data:     map[string]string{"policy_id": policyID},
+		},
+		{
+			Id:       model.NewId(),
+			Type:     model.JobTypeAccessControlSync,
+			CreateAt: t0 + 2,
+			Data:     map[string]string{"policy_id": otherPolicyID},
+		},
+	}
+
+	for _, job := range jobs {
+		_, err := th.App.Srv().Store().Job().Save(job)
+		require.NoError(t, err)
+		defer func(jobID string) {
+			_, appErr := th.App.Srv().Store().Job().Delete(jobID)
+			require.NoError(t, appErr, "Failed to delete job %s", jobID)
+		}(job.Id)
+	}
+
+	t.Run("policy_id filter returns only matching jobs", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.DoAPIGet(
+			context.Background(),
+			"/jobs/type/"+model.JobTypeAccessControlSync+"?page=0&per_page=60&policy_id="+policyID,
+			"",
+		)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		var received []*model.Job
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&received))
+		require.Len(t, received, 2)
+		// Newest first
+		require.Equal(t, jobs[1].Id, received[0].Id)
+		require.Equal(t, jobs[0].Id, received[1].Id)
+	})
+
+	t.Run("policy_id filter excludes other policies", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.DoAPIGet(
+			context.Background(),
+			"/jobs/type/"+model.JobTypeAccessControlSync+"?page=0&per_page=60&policy_id="+otherPolicyID,
+			"",
+		)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		var received []*model.Job
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&received))
+		require.Len(t, received, 1)
+		require.Equal(t, jobs[2].Id, received[0].Id)
+	})
+
+	t.Run("policy_id filter on non-access_control_sync type is ignored", func(t *testing.T) {
+		// Save a data-retention job with a policy_id field (unusual, but proves the filter is ignored)
+		drJob := &model.Job{
+			Id:       model.NewId(),
+			Type:     model.JobTypeDataRetention,
+			CreateAt: t0 + 3,
+			Data:     map[string]string{"policy_id": policyID},
+		}
+		_, err := th.App.Srv().Store().Job().Save(drJob)
+		require.NoError(t, err)
+		defer func() {
+			_, appErr := th.App.Srv().Store().Job().Delete(drJob.Id)
+			require.NoError(t, appErr)
+		}()
+
+		resp, err := th.SystemAdminClient.DoAPIGet(
+			context.Background(),
+			"/jobs/type/"+model.JobTypeDataRetention+"?page=0&per_page=60&policy_id="+policyID,
+			"",
+		)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		var received []*model.Job
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&received))
+		// policy_id is ignored for non-access_control_sync; all data-retention jobs are returned
+		ids := make([]string, len(received))
+		for i, j := range received {
+			ids[i] = j.Id
+		}
+		require.Contains(t, ids, drJob.Id)
+	})
+
+	t.Run("policy_id filter requires system admin permission", func(t *testing.T) {
+		// SessionHasPermissionToReadJob for JobTypeAccessControlSync already requires
+		// PermissionManageSystem (see app/job.go), so the policyID guard in getJobsByType
+		// acts as defence-in-depth. Use SystemManagerClient — a role that has many admin
+		// privileges but intentionally lacks PermissionManageSystem — to verify that any
+		// caller without manage_system is denied (403) at the read-job gate before the
+		// policyID branch is even reached.
+		resp, err := th.SystemManagerClient.DoAPIGet(
+			context.Background(),
+			"/jobs/type/"+model.JobTypeAccessControlSync+"?page=0&per_page=60&policy_id="+policyID,
+			"",
+		)
+		require.Error(t, err)
+		require.Equal(t, 403, resp.StatusCode)
+		resp.Body.Close()
+	})
+
+	t.Run("without policy_id returns all access_control_sync jobs", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.DoAPIGet(
+			context.Background(),
+			"/jobs/type/"+model.JobTypeAccessControlSync+"?page=0&per_page=60",
+			"",
+		)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		var received []*model.Job
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&received))
+
+		ids := make([]string, len(received))
+		for i, j := range received {
+			ids[i] = j.Id
+		}
+		require.Contains(t, ids, jobs[0].Id)
+		require.Contains(t, ids, jobs[1].Id)
+		require.Contains(t, ids, jobs[2].Id)
+	})
+
+	t.Run("policy_id with no matching jobs returns empty list not error", func(t *testing.T) {
+		unknownPolicyID := model.NewId()
+		resp, err := th.SystemAdminClient.DoAPIGet(
+			context.Background(),
+			"/jobs/type/"+model.JobTypeAccessControlSync+"?page=0&per_page=60&policy_id="+unknownPolicyID,
+			"",
+		)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		require.Equal(t, 200, resp.StatusCode)
+
+		var received []*model.Job
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&received))
+		require.Empty(t, received)
+	})
+
+	t.Run("policy_id filter respects page and per_page pagination", func(t *testing.T) {
+		// Two jobs match policyID (jobs[0] at t0, jobs[1] at t0+1). Sorted newest-first,
+		// so page=0,per_page=1 → jobs[1]; page=1,per_page=1 → jobs[0]; page=2 → empty.
+		resp0, err := th.SystemAdminClient.DoAPIGet(
+			context.Background(),
+			"/jobs/type/"+model.JobTypeAccessControlSync+"?page=0&per_page=1&policy_id="+policyID,
+			"",
+		)
+		require.NoError(t, err)
+		defer resp0.Body.Close()
+
+		var page0 []*model.Job
+		require.NoError(t, json.NewDecoder(resp0.Body).Decode(&page0))
+		require.Len(t, page0, 1)
+		require.Equal(t, jobs[1].Id, page0[0].Id, "page 0 should be the newest job")
+
+		resp1, err := th.SystemAdminClient.DoAPIGet(
+			context.Background(),
+			"/jobs/type/"+model.JobTypeAccessControlSync+"?page=1&per_page=1&policy_id="+policyID,
+			"",
+		)
+		require.NoError(t, err)
+		defer resp1.Body.Close()
+
+		var page1 []*model.Job
+		require.NoError(t, json.NewDecoder(resp1.Body).Decode(&page1))
+		require.Len(t, page1, 1)
+		require.Equal(t, jobs[0].Id, page1[0].Id, "page 1 should be the older job")
+
+		resp2, err := th.SystemAdminClient.DoAPIGet(
+			context.Background(),
+			"/jobs/type/"+model.JobTypeAccessControlSync+"?page=2&per_page=1&policy_id="+policyID,
+			"",
+		)
+		require.NoError(t, err)
+		defer resp2.Body.Close()
+
+		var page2 []*model.Job
+		require.NoError(t, json.NewDecoder(resp2.Body).Decode(&page2))
+		require.Empty(t, page2, "page beyond last should be empty")
+	})
+}
+
+func TestGetJobsByType_TeamAdminAccessControlSync(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.AddPermissionToRole(t, model.PermissionManageTeamAccessRules.Id, model.TeamAdminRoleId)
+
+	teamJob := &model.Job{
+		Id:       model.NewId(),
+		Type:     model.JobTypeAccessControlSync,
+		Status:   model.JobStatusSuccess,
+		CreateAt: model.GetMillis(),
+		Data:     map[string]string{"team_id": th.BasicTeam.Id, "policy_id": "p1"},
+	}
+	otherTeamJob := &model.Job{
+		Id:       model.NewId(),
+		Type:     model.JobTypeAccessControlSync,
+		Status:   model.JobStatusSuccess,
+		CreateAt: model.GetMillis(),
+		Data:     map[string]string{"team_id": model.NewId(), "policy_id": "p2"},
+	}
+	systemJob := &model.Job{
+		Id:       model.NewId(),
+		Type:     model.JobTypeAccessControlSync,
+		Status:   model.JobStatusSuccess,
+		CreateAt: model.GetMillis(),
+		Data:     map[string]string{"policy_id": "p3"},
+	}
+
+	for _, job := range []*model.Job{teamJob, otherTeamJob, systemJob} {
+		_, err := th.App.Srv().Store().Job().Save(job)
+		require.NoError(t, err)
+		defer func(id string) {
+			_, _ = th.App.Srv().Store().Job().Delete(id)
+		}(job.Id)
+	}
+
+	t.Run("team admin can see only their team's sync jobs", func(t *testing.T) {
+		th.LoginTeamAdmin(t)
+		defer th.LoginBasic(t)
+
+		jobs, _, err := th.Client.GetJobsByTypeForTeam(context.Background(), model.JobTypeAccessControlSync, 0, 60, th.BasicTeam.Id)
+		require.NoError(t, err)
+
+		require.Len(t, jobs, 1)
+		require.Equal(t, teamJob.Id, jobs[0].Id)
+	})
+
+	t.Run("team admin cannot see sync jobs without team_id", func(t *testing.T) {
+		th.LoginTeamAdmin(t)
+		defer th.LoginBasic(t)
+
+		_, resp, err := th.Client.GetJobsByType(context.Background(), model.JobTypeAccessControlSync, 0, 60)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("team admin cannot read non-sync job types with team_id", func(t *testing.T) {
+		th.LoginTeamAdmin(t)
+		defer th.LoginBasic(t)
+
+		_, resp, err := th.Client.GetJobsByTypeForTeam(context.Background(), model.JobTypeDataRetention, 0, 60, th.BasicTeam.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("system admin sees all sync jobs without team_id filter", func(t *testing.T) {
+		jobs, _, err := th.SystemAdminClient.GetJobsByType(context.Background(), model.JobTypeAccessControlSync, 0, 60)
+		require.NoError(t, err)
+		require.GreaterOrEqual(t, len(jobs), 3)
+	})
+
+	t.Run("system admin with team_id filter sees only that team's jobs", func(t *testing.T) {
+		jobs, _, err := th.SystemAdminClient.GetJobsByTypeForTeam(context.Background(), model.JobTypeAccessControlSync, 0, 60, th.BasicTeam.Id)
+		require.NoError(t, err)
+		require.Len(t, jobs, 1)
+		require.Equal(t, teamJob.Id, jobs[0].Id)
+	})
+
+	t.Run("returns empty when no team-scoped jobs exist for that team", func(t *testing.T) {
+		jobs, _, err := th.SystemAdminClient.GetJobsByTypeForTeam(context.Background(), model.JobTypeAccessControlSync, 0, 60, model.NewId())
+		require.NoError(t, err)
+		require.Empty(t, jobs)
+	})
+
+	t.Run("pagination works correctly for team-scoped jobs", func(t *testing.T) {
+		// page=0 returns the job, page=1 returns empty (not the same page again)
+		jobs, _, err := th.SystemAdminClient.GetJobsByTypeForTeam(context.Background(), model.JobTypeAccessControlSync, 0, 1, th.BasicTeam.Id)
+		require.NoError(t, err)
+		require.Len(t, jobs, 1)
+
+		jobs, _, err = th.SystemAdminClient.GetJobsByTypeForTeam(context.Background(), model.JobTypeAccessControlSync, 1, 1, th.BasicTeam.Id)
+		require.NoError(t, err)
+		require.Empty(t, jobs)
+	})
+
+	t.Run("team admin cannot query jobs for a team they are not admin of", func(t *testing.T) {
+		th.LoginTeamAdmin(t)
+		defer th.LoginBasic(t)
+
+		otherTeamID := model.NewId()
+		_, resp, err := th.Client.GetJobsByTypeForTeam(context.Background(), model.JobTypeAccessControlSync, 0, 60, otherTeamID)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("malformed team_id returns 400 instead of silently dropping the filter", func(t *testing.T) {
+		// "not-a-valid-id" is not a 26-character alphanum Mattermost ID.
+		_, resp, err := th.SystemAdminClient.GetJobsByTypeForTeam(context.Background(), model.JobTypeAccessControlSync, 0, 60, "not-a-valid-id")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+}
+
 func TestDownloadJob(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	th.LoginSystemManager()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+
+	th.LoginSystemManager(t)
 	jobName := model.NewId()
 	job := &model.Job{
 		Id:   jobName,
@@ -379,7 +692,6 @@ func TestDownloadJob(t *testing.T) {
 func TestCancelJob(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	jobType := model.JobTypeMessageExport
 	jobs := []*model.Job{
@@ -430,7 +742,6 @@ func TestCancelJob(t *testing.T) {
 func TestUpdateJobStatus(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	jobType := model.JobTypeDataRetention
 	jobs := []*model.Job{

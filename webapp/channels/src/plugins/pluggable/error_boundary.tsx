@@ -7,12 +7,12 @@ import styled from 'styled-components';
 
 type Props = {
     children: React.ReactNode;
-    pluginId?: string;
-}
+    pluginId: string;
+};
 
 type State = {
     hasError: boolean;
-}
+};
 
 const WrapperDiv = styled.div`
     align-items: center;
@@ -70,9 +70,6 @@ export default class PluggableErrorBoundary extends React.PureComponent<Props, S
                         <FormattedMessage
                             id='pluggable.errorRefresh'
                             defaultMessage='Refresh?'
-                            values={{
-                                pluginId: this.props.pluginId,
-                            }}
                         />
                     </a>
                 </WrapperDiv>

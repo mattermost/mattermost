@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-const timeouts = require('../../../fixtures/timeouts');
+const timeouts = require('@/fixtures/timeouts');
 
 // ***************************************************************
 // - [#] indicates a test step (e.g. # Go to a page)
@@ -9,7 +9,6 @@ const timeouts = require('../../../fixtures/timeouts');
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @scroll
 
 describe('Scroll', () => {

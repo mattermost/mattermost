@@ -3,8 +3,6 @@
 
 import React from 'react';
 
-import type {Channel} from '@mattermost/types/channels';
-
 import Permissions from 'mattermost-redux/constants/permissions';
 
 import {removeDraft, updateDraft} from 'actions/views/drafts';
@@ -26,6 +24,22 @@ jest.mock('actions/views/drafts', () => ({
     ...jest.requireActual('actions/views/drafts'),
     updateDraft: jest.fn((...args) => ({type: 'MOCK_UPDATE_DRAFT', args})),
     removeDraft: jest.fn((...args) => ({type: 'MOCK_REMOVE_DRAFT', args})),
+}));
+
+jest.mock('utils/exec_commands.ts', () => ({
+    focusAndInsertText: (element: HTMLElement, text: string) => {
+        element.focus();
+
+        if ('value' in element && 'selectionStart' in element) {
+            const textbox = element as HTMLTextAreaElement;
+            const textBefore = textbox.value.substring(0, textbox.selectionStart);
+            const textAfter = textbox.value.substring(textbox.selectionEnd);
+            textbox.value = textBefore + text + textAfter;
+
+            textbox.selectionStart = textBefore.length + text.length;
+            textbox.selectionEnd = textbox.selectionStart;
+        }
+    },
 }));
 
 const mockedRemoveDraft = jest.mocked(removeDraft);
@@ -128,7 +142,6 @@ const baseProps = {
     message: '',
     showEmojiPicker: false,
     uploadsProgressPercent: {},
-    currentChannel: initialState.entities.channels.channels.current_channel_id as Channel,
     channelId,
     rootId: '',
     errorClass: null,
@@ -179,7 +192,6 @@ const baseProps = {
     loadPrevMessage: jest.fn(),
     loadNextMessage: jest.fn(),
     replyToLastPost: jest.fn(),
-    caretPosition: 0,
 };
 
 describe('components/avanced_text_editor/advanced_text_editor', () => {
@@ -480,5 +492,182 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         props.isThreadView = true;
         rerender(<AdvancedTextEditor {...props}/>);
         expect(container.querySelector('#editPostFileDropOverlay')).toBeVisible();
+    });
+
+    describe('emoji picker', () => {
+        const testState = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        EnableEmojiPicker: 'true',
+                    },
+                },
+            },
+        });
+
+        it('should add emojis to the end of the text', async () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                testState,
+            );
+
+            const textbox = screen.getByPlaceholderText('Write to Test Channel') as HTMLTextAreaElement;
+
+            expect(textbox).toHaveValue('');
+
+            // Open the emoji picker and select an emoji
+            await userEvent.click(screen.getByRole('button', {name: 'select an emoji'}));
+            await userEvent.click(screen.getByRole('button', {name: 'blush emoji'}));
+
+            expect(textbox).toHaveFocus();
+            expect(textbox).toHaveValue('\uD83D\uDE0A ');
+            expect(textbox.selectionStart).toEqual(3);
+            expect(textbox.selectionEnd).toEqual(3);
+
+            // Do it again
+            await userEvent.click(screen.getByRole('button', {name: 'select an emoji'}));
+            await userEvent.click(screen.getByRole('button', {name: 'relaxed emoji'}));
+
+            expect(textbox).toHaveFocus();
+            expect(textbox).toHaveValue('\uD83D\uDE0A \u263A\uFE0F ');
+            expect(textbox.selectionStart).toEqual(6);
+            expect(textbox.selectionEnd).toEqual(6);
+        });
+
+        it('should add a space after the existing text if needed', async () => {
+            renderWithContext(
+                <AdvancedTextEditor {...baseProps}/>,
+                testState,
+            );
+
+            const textbox = screen.getByPlaceholderText('Write to Test Channel') as HTMLTextAreaElement;
+
+            await userEvent.type(textbox, 'This is some text');
+
+            expect(textbox).toHaveValue('This is some text');
+
+            // Open the emoji picker and select an emoji
+            await userEvent.click(screen.getByRole('button', {name: 'select an emoji'}));
+            await userEvent.click(screen.getByRole('button', {name: 'blush emoji'}));
+
+            expect(textbox).toHaveFocus();
+            expect(textbox).toHaveValue('This is some text \uD83D\uDE0A ');
+            expect(textbox.selectionStart).toEqual(21);
+            expect(textbox.selectionEnd).toEqual(21);
+        });
+
+        it('should be able to add an emoji in the middle of the text', async () => {
+            renderWithContext(
+                <AdvancedTextEditor {...baseProps}/>,
+                testState,
+            );
+
+            const textbox = screen.getByPlaceholderText('Write to Test Channel') as HTMLTextAreaElement;
+
+            await userEvent.type(textbox, 'aaabbb');
+            expect(textbox).toHaveValue('aaabbb');
+
+            // Move into the middle of the text
+            await userEvent.keyboard('{ArrowLeft}{ArrowLeft}{ArrowLeft}');
+
+            expect(textbox).toHaveValue('aaabbb');
+
+            // Open the emoji picker and select an emoji
+            await userEvent.click(screen.getByRole('button', {name: 'select an emoji'}));
+            await userEvent.click(screen.getByRole('button', {name: 'blush emoji'}));
+
+            expect(textbox).toHaveFocus();
+            expect(textbox).toHaveValue('aaa \uD83D\uDE0A bbb');
+            expect(textbox.selectionStart).toEqual(7);
+            expect(textbox.selectionEnd).toEqual(textbox.selectionEnd);
+        });
+
+        it('should be able to add an emoji in the middle of the text without adding an extra space', async () => {
+            renderWithContext(
+                <AdvancedTextEditor {...baseProps}/>,
+                testState,
+            );
+
+            const textbox = screen.getByPlaceholderText('Write to Test Channel') as HTMLTextAreaElement;
+
+            await userEvent.type(textbox, 'aaabbb');
+            expect(textbox).toHaveValue('aaabbb');
+
+            // Move into the middle of the text
+            await userEvent.keyboard('{ArrowLeft}{ArrowLeft}{ArrowLeft} ');
+
+            expect(textbox).toHaveValue('aaa bbb');
+
+            // Open the emoji picker and select an emoji
+            await userEvent.click(screen.getByRole('button', {name: 'select an emoji'}));
+            await userEvent.click(screen.getByRole('button', {name: 'blush emoji'}));
+
+            expect(textbox).toHaveFocus();
+            expect(textbox).toHaveValue('aaa \uD83D\uDE0A bbb');
+            expect(textbox.selectionStart).toEqual(7);
+            expect(textbox.selectionEnd).toEqual(textbox.selectionEnd);
+        });
+    });
+
+    describe('composer placeholder', () => {
+        const suffixState = {
+            plugins: {
+                components: {
+                    ComposerPlaceholder: [
+                        {
+                            id: 'suffix-1',
+                            pluginId: 'test-plugin',
+                            transform: (placeholder: string) => `${placeholder} (encrypted)`,
+                        },
+                    ],
+                },
+            },
+        };
+
+        it('appends registered suffix to the composer placeholder', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                mergeObjects(initialState, suffixState),
+            );
+
+            expect(screen.getByPlaceholderText('Write to Test Channel (encrypted)')).toBeInTheDocument();
+        });
+
+        it('appends suffix to the thread-reply placeholder', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    rootId='root-post-id'
+                />,
+                mergeObjects(initialState, suffixState),
+            );
+
+            expect(screen.getByPlaceholderText('Reply to this thread... (encrypted)')).toBeInTheDocument();
+        });
+
+        it('appends suffix to the read-only channel placeholder', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                mergeObjects(mergeObjects(initialState, suffixState), {
+                    entities: {
+                        roles: {
+                            roles: {
+                                user_roles: {permissions: []},
+                            },
+                        },
+                    },
+                }),
+            );
+
+            expect(screen.getByPlaceholderText(
+                'This channel is read-only. Only members with permission can post here. (encrypted)',
+            )).toBeInTheDocument();
+        });
     });
 });

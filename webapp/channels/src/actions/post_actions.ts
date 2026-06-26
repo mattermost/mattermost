@@ -4,8 +4,8 @@
 import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
+import type {WebSocketMessages} from '@mattermost/client';
 import type {FileInfo} from '@mattermost/types/files';
-import type {GroupChannel} from '@mattermost/types/groups';
 import type {Post} from '@mattermost/types/posts';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 
@@ -58,16 +58,15 @@ import type {
 import type {PostDraft} from 'types/store/draft';
 import type {StorageItem} from 'types/store/storage';
 
-import type {NewPostMessageProps} from './new_post';
 import {completePostReceive} from './new_post';
 import type {OnSubmitOptions, SubmitPostReturnType} from './views/create_comment';
 
 export type CreatePostOptions = {
     keepDraft?: boolean;
     ignorePostError?: boolean;
-}
+};
 
-export function handleNewPost(post: Post, msg?: {data?: NewPostMessageProps & GroupChannel}): ActionFuncAsync<boolean> {
+export function handleNewPost(post: Post, msg?: WebSocketMessages.Posted | WebSocketMessages.EphemeralPost): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         let websocketMessageProps = {};
         const state = getState();
@@ -82,9 +81,9 @@ export function handleNewPost(post: Post, msg?: {data?: NewPostMessageProps & Gr
             await dispatch(getMyChannelMember(post.channel_id));
         }
 
-        dispatch(completePostReceive(post, websocketMessageProps as NewPostMessageProps, myChannelMemberDoesntExist));
+        dispatch(completePostReceive(post, websocketMessageProps, myChannelMemberDoesntExist));
 
-        if (msg && msg.data) {
+        if (msg && msg.data && 'channel_type' in msg.data) {
             if (msg.data.channel_type === Constants.DM_CHANNEL) {
                 dispatch(loadNewDMIfNeeded(post.channel_id));
             } else if (msg.data.channel_type === Constants.GM_CHANNEL) {
@@ -426,11 +425,11 @@ export function markPostAsUnread(post: Post, location?: string): ActionFuncAsync
 export function markMostRecentPostInChannelAsUnread(channelId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         let state = getState();
-        let postId = PostSelectors.getMostRecentPostIdInChannel(state, channelId);
+        let postId = PostSelectors.getMostRecentNonSystemPostIdInChannel(state, channelId);
         if (!postId) {
             await dispatch(PostActions.getPosts(channelId));
             state = getState();
-            postId = PostSelectors.getMostRecentPostIdInChannel(state, channelId);
+            postId = PostSelectors.getMostRecentNonSystemPostIdInChannel(state, channelId);
         }
         if (postId) {
             const lastPost = PostSelectors.getPost(state, postId);

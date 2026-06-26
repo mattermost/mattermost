@@ -16,7 +16,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/blang/semver/v4"
+	"github.com/Masterminds/semver/v3"
 	svg "github.com/h2non/go-is-svg"
 	"github.com/pkg/errors"
 
@@ -158,9 +158,7 @@ func (ch *Channels) syncPluginsActiveState() {
 		pluginsEnvironment.Shutdown()
 	}
 
-	if err := ch.notifyPluginStatusesChanged(); err != nil {
-		ch.srv.Log().Warn("failed to notify plugin status changed", mlog.Err(err))
-	}
+	ch.notifyPluginStatusesChanged()
 }
 
 func (a *App) NewPluginAPI(rctx request.CTX, manifest *model.Manifest) plugin.API {
@@ -687,18 +685,18 @@ func (a *App) mergePrepackagedPlugins(remoteMarketplacePlugins map[string]*model
 		}
 
 		// If available in the marketplace, only overwrite if newer.
-		prepackagedVersion, err := semver.Parse(prepackaged.Manifest.Version)
+		prepackagedVersion, err := semver.StrictNewVersion(prepackaged.Manifest.Version)
 		if err != nil {
 			return model.NewAppError("mergePrepackagedPlugins", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 
 		marketplacePlugin := remoteMarketplacePlugins[prepackaged.Manifest.Id]
-		marketplaceVersion, err := semver.Parse(marketplacePlugin.Manifest.Version)
+		marketplaceVersion, err := semver.StrictNewVersion(marketplacePlugin.Manifest.Version)
 		if err != nil {
 			return model.NewAppError("mergePrepackagedPlugins", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 
-		if prepackagedVersion.GT(marketplaceVersion) {
+		if prepackagedVersion.GreaterThan(marketplaceVersion) {
 			remoteMarketplacePlugins[prepackaged.Manifest.Id] = prepackagedMarketplace
 		}
 	}
@@ -1075,7 +1073,7 @@ func (ch *Channels) shouldPersistTransitionallyPrepackagedPlugin(availablePlugin
 		return true
 	}
 
-	prepackagedVersion, err := semver.Parse(p.Manifest.Version)
+	prepackagedVersion, err := semver.StrictNewVersion(p.Manifest.Version)
 	if err != nil {
 		logger.Error("Should not persist transitionally prepackged plugin: invalid prepackaged version", mlog.Err(err))
 		return false
@@ -1083,14 +1081,14 @@ func (ch *Channels) shouldPersistTransitionallyPrepackagedPlugin(availablePlugin
 
 	logger = logger.With(mlog.String("existing_version", existing.Manifest.Version))
 
-	existingVersion, err := semver.Parse(existing.Manifest.Version)
+	existingVersion, err := semver.StrictNewVersion(existing.Manifest.Version)
 	if err != nil {
 		// Consider this an old version and replace with the prepackaged version instead.
 		logger.Warn("Should persist transitionally prepackged plugin: invalid existing version", mlog.Err(err))
 		return true
 	}
 
-	if prepackagedVersion.GT(existingVersion) {
+	if prepackagedVersion.GreaterThan(existingVersion) {
 		logger.Info("Should persist transitionally prepackged plugin: newer version")
 		return true
 	}

@@ -33,18 +33,18 @@ func postToMessageExport(t *testing.T, p *model.Post, u *model.User, c *model.Ch
 		ChannelDisplayName: &c.DisplayName,
 		ChannelType:        &c.Type,
 		UserId:             &u.Id,
-		UserEmail:          model.NewPointer(u.Email),
+		UserEmail:          new(u.Email),
 		Username:           &u.Username,
 		IsBot:              false,
-		PostId:             model.NewPointer(p.Id),
-		PostCreateAt:       model.NewPointer(p.CreateAt),
+		PostId:             new(p.Id),
+		PostCreateAt:       new(p.CreateAt),
 		PostUpdateAt:       &p.UpdateAt,
 		PostDeleteAt:       &p.DeleteAt,
 		PostEditAt:         &p.EditAt,
 		PostMessage:        &p.Message,
 		PostType:           &p.Type,
 		PostRootId:         &p.RootId,
-		PostProps:          model.NewPointer(string(props)),
+		PostProps:          new(string(props)),
 		PostOriginalId:     &p.OriginalId,
 		PostFileIds:        p.FileIds,
 	}
@@ -56,9 +56,8 @@ func Test_getPostExport(t *testing.T) {
 	}
 
 	jobs.DefaultWatcherPollingInterval = 100
-	th := api4.SetupEnterprise(t).InitBasic()
+	th := api4.SetupEnterprise(t).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicense("message_export"))
-	defer th.TearDown()
 
 	// the post exports from the db will be random (because they all have the same updateAt), so do it a few times
 	for i := range 10 {
@@ -187,13 +186,13 @@ func TestPostToAttachmentsEntries(t *testing.T) {
 		{
 			name: "no-attachments",
 			post: model.MessageExport{
-				ChannelId:          model.NewPointer("Test"),
-				ChannelDisplayName: model.NewPointer("Test"),
-				PostCreateAt:       model.NewPointer(int64(1)),
-				PostMessage:        model.NewPointer("Some message"),
-				UserEmail:          model.NewPointer("test@test.com"),
-				UserId:             model.NewPointer("test"),
-				Username:           model.NewPointer("test"),
+				ChannelId:          new("Test"),
+				ChannelDisplayName: new("Test"),
+				PostCreateAt:       new(int64(1)),
+				PostMessage:        new("Some message"),
+				UserEmail:          new("test@test.com"),
+				UserId:             new("test"),
+				Username:           new("test"),
 				ChannelType:        &chanTypeDirect,
 			},
 			attachments:                nil,
@@ -206,14 +205,14 @@ func TestPostToAttachmentsEntries(t *testing.T) {
 		{
 			name: "one-attachment",
 			post: model.MessageExport{
-				PostId:             model.NewPointer("test"),
-				ChannelId:          model.NewPointer("Test"),
-				ChannelDisplayName: model.NewPointer("Test"),
-				PostCreateAt:       model.NewPointer(int64(1)),
-				PostMessage:        model.NewPointer("Some message"),
-				UserEmail:          model.NewPointer("test@test.com"),
-				UserId:             model.NewPointer("test"),
-				Username:           model.NewPointer("test"),
+				PostId:             new("test"),
+				ChannelId:          new("Test"),
+				ChannelDisplayName: new("Test"),
+				PostCreateAt:       new(int64(1)),
+				PostMessage:        new("Some message"),
+				UserEmail:          new("test@test.com"),
+				UserId:             new("test"),
+				Username:           new("test"),
 				ChannelType:        &chanTypeDirect,
 				PostFileIds:        []string{"12345"},
 			},
@@ -237,14 +236,14 @@ func TestPostToAttachmentsEntries(t *testing.T) {
 		{
 			name: "two-attachment",
 			post: model.MessageExport{
-				PostId:             model.NewPointer("test"),
-				ChannelId:          model.NewPointer("Test"),
-				ChannelDisplayName: model.NewPointer("Test"),
-				PostCreateAt:       model.NewPointer(int64(1)),
-				PostMessage:        model.NewPointer("Some message"),
-				UserEmail:          model.NewPointer("test@test.com"),
-				UserId:             model.NewPointer("test"),
-				Username:           model.NewPointer("test"),
+				PostId:             new("test"),
+				ChannelId:          new("Test"),
+				ChannelDisplayName: new("Test"),
+				PostCreateAt:       new(int64(1)),
+				PostMessage:        new("Some message"),
+				UserEmail:          new("test@test.com"),
+				UserId:             new("test"),
+				Username:           new("test"),
 				ChannelType:        &chanTypeDirect,
 				PostFileIds:        []string{"12345", "54321"},
 			},
@@ -274,15 +273,15 @@ func TestPostToAttachmentsEntries(t *testing.T) {
 		{
 			name: "one-attachment-deleted",
 			post: model.MessageExport{
-				PostId:             model.NewPointer("test"),
-				ChannelId:          model.NewPointer("Test"),
-				ChannelDisplayName: model.NewPointer("Test"),
-				PostCreateAt:       model.NewPointer(int64(1)),
-				PostDeleteAt:       model.NewPointer(int64(2)),
-				PostMessage:        model.NewPointer("Some message"),
-				UserEmail:          model.NewPointer("test@test.com"),
-				UserId:             model.NewPointer("test"),
-				Username:           model.NewPointer("test"),
+				PostId:             new("test"),
+				ChannelId:          new("Test"),
+				ChannelDisplayName: new("Test"),
+				PostCreateAt:       new(int64(1)),
+				PostDeleteAt:       new(int64(2)),
+				PostMessage:        new("Some message"),
+				UserEmail:          new("test@test.com"),
+				UserId:             new("test"),
+				Username:           new("test"),
 				ChannelType:        &chanTypeDirect,
 				PostFileIds:        []string{"12345", "54321"},
 			},
@@ -314,15 +313,15 @@ func TestPostToAttachmentsEntries(t *testing.T) {
 		{
 			name: "one-attachment-deleted, ignore it (only record the creation)",
 			post: model.MessageExport{
-				PostId:             model.NewPointer("test"),
-				ChannelId:          model.NewPointer("Test"),
-				ChannelDisplayName: model.NewPointer("Test"),
-				PostCreateAt:       model.NewPointer(int64(1)),
-				PostDeleteAt:       model.NewPointer(int64(2)),
-				PostMessage:        model.NewPointer("Some message"),
-				UserEmail:          model.NewPointer("test@test.com"),
-				UserId:             model.NewPointer("test"),
-				Username:           model.NewPointer("test"),
+				PostId:             new("test"),
+				ChannelId:          new("Test"),
+				ChannelDisplayName: new("Test"),
+				PostCreateAt:       new(int64(1)),
+				PostDeleteAt:       new(int64(2)),
+				PostMessage:        new("Some message"),
+				UserEmail:          new("test@test.com"),
+				UserId:             new("test"),
+				Username:           new("test"),
 				ChannelType:        &chanTypeDirect,
 				PostFileIds:        []string{"12345", "54321"},
 			},
@@ -397,12 +396,12 @@ func TestGetJoinLeavePosts(t *testing.T) {
 	channelMemberHistories := map[string][]*model.ChannelMemberHistoryResult{
 		"good-request-1": {
 			{JoinTime: 1, UserId: "test1", UserEmail: "test1", Username: "test1"},
-			{JoinTime: 2, LeaveTime: model.NewPointer(int64(3)), UserId: "test2", UserEmail: "test2", Username: "test2"},
+			{JoinTime: 2, LeaveTime: new(int64(3)), UserId: "test2", UserEmail: "test2", Username: "test2"},
 			{JoinTime: 3, UserId: "test3", UserEmail: "test3", Username: "test3"},
 		},
 		"good-request-2": {
 			{JoinTime: 4, UserId: "test4", UserEmail: "test4", Username: "test4"},
-			{JoinTime: 5, LeaveTime: model.NewPointer(int64(6)), UserId: "test5", UserEmail: "test5", Username: "test5"},
+			{JoinTime: 5, LeaveTime: new(int64(6)), UserId: "test5", UserEmail: "test5", Username: "test5"},
 			{JoinTime: 6, UserId: "test6", UserEmail: "test6", Username: "test6"},
 		},
 	}

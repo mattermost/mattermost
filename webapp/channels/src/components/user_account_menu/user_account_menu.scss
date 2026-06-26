@@ -1,4 +1,4 @@
-@import "utils/_mixins";
+@use "utils/mixins";
 
 #userAccountMenu {
     .userAccountMenu_nameMenuItem {
@@ -21,14 +21,14 @@
             font-size: 16px;
             font-weight: 600;
             line-height: 22px;
-            @include textEllipsis;
+            @include mixins.textEllipsis;
         }
 
         span.userAccountMenu_nameMenuItem_secondaryLabel {
             max-width: 150px;
             font-size: 14px;
             line-height: 18px;
-            @include textEllipsis;
+            @include mixins.textEllipsis;
         }
     }
 
@@ -61,7 +61,7 @@
         .label-elements {
             > span {
                 max-width: 196px;
-                @include textEllipsis;
+                @include mixins.textEllipsis;
             }
         }
     }

@@ -8,7 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"sort"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -22,13 +22,13 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
 func TestPermanentDeleteChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableIncomingWebhooks = true
@@ -85,12 +85,12 @@ func TestPermanentDeleteChannel(t *testing.T) {
 
 func TestRemoveAllDeactivatedMembersFromChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+
 	var appErr *model.AppError
 
-	team := th.CreateTeam()
-	channel := th.CreateChannel(th.Context, team)
+	team := th.CreateTeam(t)
+	channel := th.CreateChannel(t, team)
 	defer func() {
 		appErr = th.App.PermanentDeleteChannel(th.Context, channel)
 		require.Nil(t, appErr)
@@ -101,7 +101,7 @@ func TestRemoveAllDeactivatedMembersFromChannel(t *testing.T) {
 	_, _, appErr = th.App.AddUserToTeam(th.Context, team.Id, th.BasicUser.Id, "")
 	require.Nil(t, appErr)
 
-	deactivatedUser := th.CreateUser()
+	deactivatedUser := th.CreateUser(t)
 	_, _, appErr = th.App.AddUserToTeam(th.Context, team.Id, deactivatedUser.Id, "")
 	require.Nil(t, appErr)
 	_, appErr = th.App.AddUserToChannel(th.Context, deactivatedUser, channel, false)
@@ -123,13 +123,13 @@ func TestRemoveAllDeactivatedMembersFromChannel(t *testing.T) {
 func TestMoveChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should move channels between teams", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+
 		var appErr *model.AppError
 
-		sourceTeam := th.CreateTeam()
-		targetTeam := th.CreateTeam()
-		channel1 := th.CreateChannel(th.Context, sourceTeam)
+		sourceTeam := th.CreateTeam(t)
+		targetTeam := th.CreateTeam(t)
+		channel1 := th.CreateChannel(t, sourceTeam)
 		defer func() {
 			appErr = th.App.PermanentDeleteChannel(th.Context, channel1)
 			require.Nil(t, appErr)
@@ -167,8 +167,8 @@ func TestMoveChannel(t *testing.T) {
 
 		// Test moving a channel with a deactivated user who isn't in the destination team.
 		// It should fail, unless removeDeactivatedMembers is true.
-		deactivatedUser := th.CreateUser()
-		channel2 := th.CreateChannel(th.Context, sourceTeam)
+		deactivatedUser := th.CreateUser(t)
+		channel2 := th.CreateChannel(t, sourceTeam)
 		defer func() {
 			appErr = th.App.PermanentDeleteChannel(th.Context, channel2)
 			require.Nil(t, appErr)
@@ -209,16 +209,15 @@ func TestMoveChannel(t *testing.T) {
 	})
 
 	t.Run("should remove sidebar entries when moving channels from one team to another", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
-		sourceTeam := th.CreateTeam()
-		targetTeam := th.CreateTeam()
-		channel := th.CreateChannel(th.Context, sourceTeam)
+		sourceTeam := th.CreateTeam(t)
+		targetTeam := th.CreateTeam(t)
+		channel := th.CreateChannel(t, sourceTeam)
 
-		th.LinkUserToTeam(th.BasicUser, sourceTeam)
-		th.LinkUserToTeam(th.BasicUser, targetTeam)
-		th.AddUserToChannel(th.BasicUser, channel)
+		th.LinkUserToTeam(t, th.BasicUser, sourceTeam)
+		th.LinkUserToTeam(t, th.BasicUser, targetTeam)
+		th.AddUserToChannel(t, th.BasicUser, channel)
 
 		// Put the channel in a custom category so that it explicitly exists in SidebarChannels
 		category, appErr := th.App.CreateSidebarCategory(th.Context, th.BasicUser.Id, sourceTeam.Id, &model.SidebarCategoryWithChannels{
@@ -250,16 +249,15 @@ func TestMoveChannel(t *testing.T) {
 	})
 
 	t.Run("should update threads when moving channels between teams", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
-		sourceTeam := th.CreateTeam()
-		targetTeam := th.CreateTeam()
-		channel := th.CreateChannel(th.Context, sourceTeam)
+		sourceTeam := th.CreateTeam(t)
+		targetTeam := th.CreateTeam(t)
+		channel := th.CreateChannel(t, sourceTeam)
 
-		th.LinkUserToTeam(th.BasicUser, sourceTeam)
-		th.LinkUserToTeam(th.BasicUser, targetTeam)
-		th.AddUserToChannel(th.BasicUser, channel)
+		th.LinkUserToTeam(t, th.BasicUser, sourceTeam)
+		th.LinkUserToTeam(t, th.BasicUser, targetTeam)
+		th.AddUserToChannel(t, th.BasicUser, channel)
 
 		// Create a thread in the channel
 		post := &model.Post{
@@ -267,7 +265,7 @@ func TestMoveChannel(t *testing.T) {
 			ChannelId: channel.Id,
 			Message:   "test",
 		}
-		post, appErr := th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{})
+		post, _, appErr := th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 
 		// Post a reply to the thread
@@ -277,7 +275,7 @@ func TestMoveChannel(t *testing.T) {
 			RootId:    post.Id,
 			Message:   "reply",
 		}
-		_, appErr = th.App.CreatePost(th.Context, reply, channel, model.CreatePostFlags{})
+		_, _, appErr = th.App.CreatePost(th.Context, reply, channel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 
 		// Check that the thread count before move
@@ -305,12 +303,11 @@ func TestMoveChannel(t *testing.T) {
 
 func TestRemoveUsersFromChannelNotMemberOfTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	team := th.CreateTeam()
-	team2 := th.CreateTeam()
-	channel1 := th.CreateChannel(th.Context, team)
+	team := th.CreateTeam(t)
+	team2 := th.CreateTeam(t)
+	channel1 := th.CreateChannel(t, team)
 	defer func() {
 		appErr := th.App.PermanentDeleteChannel(th.Context, channel1)
 		require.Nil(t, appErr)
@@ -347,8 +344,7 @@ func TestRemoveUsersFromChannelNotMemberOfTeam(t *testing.T) {
 
 func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordTownSquare(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	// figure out the initial number of users in town square
 	channel, err := th.App.Srv().Store().Channel().GetByName(th.BasicTeam.Id, "town-square", true)
@@ -359,7 +355,7 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordTownSquare(t *testi
 	initialNumTownSquareUsers := len(users)
 
 	// create a new user that joins the default channels
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 	appErr := th.App.JoinDefaultChannels(th.Context, th.BasicTeam.Id, user, false, "")
 	require.Nil(t, appErr)
 
@@ -380,8 +376,7 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordTownSquare(t *testi
 
 func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordOffTopic(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	// figure out the initial number of users in off-topic
 	channel, err := th.App.Srv().Store().Channel().GetByName(th.BasicTeam.Id, "off-topic", true)
@@ -392,7 +387,7 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordOffTopic(t *testing
 	initialNumTownSquareUsers := len(users)
 
 	// create a new user that joins the default channels
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 	appError := th.App.JoinDefaultChannels(th.Context, th.BasicTeam.Id, user, false, "")
 	require.Nil(t, appError)
 
@@ -413,10 +408,9 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordOffTopic(t *testing
 
 func TestJoinDefaultChannelsExperimentalDefaultChannels(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	basicChannel2 := th.CreateChannel(th.Context, th.BasicTeam)
+	basicChannel2 := th.CreateChannel(t, th.BasicTeam)
 	defer func() {
 		appErr := th.App.PermanentDeleteChannel(th.Context, basicChannel2)
 		require.Nil(t, appErr)
@@ -424,7 +418,7 @@ func TestJoinDefaultChannelsExperimentalDefaultChannels(t *testing.T) {
 	defaultChannelList := []string{th.BasicChannel.Name, basicChannel2.Name, basicChannel2.Name}
 	th.App.Config().TeamSettings.ExperimentalDefaultChannels = defaultChannelList
 
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 	appErr := th.App.JoinDefaultChannels(th.Context, th.BasicTeam.Id, user, false, "")
 	require.Nil(t, appErr)
 
@@ -440,10 +434,9 @@ func TestJoinDefaultChannelsExperimentalDefaultChannels(t *testing.T) {
 
 func TestJoinDefaultChannelsExperimentalDefaultChannelsMissing(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	basicChannel2 := th.CreateChannel(th.Context, th.BasicTeam)
+	basicChannel2 := th.CreateChannel(t, th.BasicTeam)
 	defer func() {
 		appErr := th.App.PermanentDeleteChannel(th.Context, basicChannel2)
 		require.Nil(t, appErr)
@@ -451,7 +444,7 @@ func TestJoinDefaultChannelsExperimentalDefaultChannelsMissing(t *testing.T) {
 	defaultChannelList := []string{th.BasicChannel.Name, basicChannel2.Name, "thischanneldoesnotexist", basicChannel2.Name}
 	th.App.Config().TeamSettings.ExperimentalDefaultChannels = defaultChannelList
 
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 	require.Nil(t, th.App.JoinDefaultChannels(th.Context, th.BasicTeam.Id, user, false, ""))
 
 	for _, channelName := range defaultChannelList {
@@ -471,11 +464,10 @@ func TestJoinDefaultChannelsExperimentalDefaultChannelsMissing(t *testing.T) {
 
 func TestCreateChannelPublicCreatesChannelMemberHistoryRecord(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	// creates a public channel and adds basic user to it
-	publicChannel := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen)
+	publicChannel := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
 
 	// there should be a ChannelMemberHistory record for the user
 	histories, err := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, []string{publicChannel.Id})
@@ -487,11 +479,10 @@ func TestCreateChannelPublicCreatesChannelMemberHistoryRecord(t *testing.T) {
 
 func TestCreateChannelPrivateCreatesChannelMemberHistoryRecord(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	// creates a private channel and adds basic user to it
-	privateChannel := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypePrivate)
+	privateChannel := th.createChannel(t, th.BasicTeam, model.ChannelTypePrivate)
 
 	// there should be a ChannelMemberHistory record for the user
 	histories, err := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, []string{privateChannel.Id})
@@ -503,8 +494,7 @@ func TestCreateChannelPrivateCreatesChannelMemberHistoryRecord(t *testing.T) {
 
 func TestCreateChannelDisplayNameTrimsWhitespace(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	channel, appErr := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "  Public 1  ", Name: "public1", Type: model.ChannelTypeOpen, TeamId: th.BasicTeam.Id}, false)
 	defer func() {
@@ -517,10 +507,9 @@ func TestCreateChannelDisplayNameTrimsWhitespace(t *testing.T) {
 
 func TestUpdateChannelPrivacy(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	privateChannel := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypePrivate)
+	privateChannel := th.createChannel(t, th.BasicTeam, model.ChannelTypePrivate)
 	privateChannel.Type = model.ChannelTypeOpen
 
 	publicChannel, appErr := th.App.UpdateChannelPrivacy(th.Context, privateChannel, th.BasicUser)
@@ -529,21 +518,65 @@ func TestUpdateChannelPrivacy(t *testing.T) {
 	assert.Equal(t, publicChannel.Type, model.ChannelTypeOpen)
 }
 
+func TestUpdateChannelPrivacyWebSocketEvent(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("private to public includes channel_type O in WS event", func(t *testing.T) {
+		privateChannel := th.createChannel(t, th.BasicTeam, model.ChannelTypePrivate)
+
+		wsMessages, closeWS := connectFakeWebSocket(t, th, th.BasicUser.Id, "", []model.WebsocketEventType{model.WebsocketEventChannelConverted})
+		defer closeWS()
+
+		privateChannel.Type = model.ChannelTypeOpen
+		_, appErr := th.App.UpdateChannelPrivacy(th.Context, privateChannel, th.BasicUser)
+		require.Nil(t, appErr)
+
+		select {
+		case received := <-wsMessages:
+			data := received.GetData()
+			assert.Equal(t, privateChannel.Id, data["channel_id"])
+			assert.Equal(t, string(model.ChannelTypeOpen), data["channel_type"])
+		case <-time.After(10 * time.Second):
+			require.Fail(t, "Did not receive channel_converted websocket event")
+		}
+	})
+
+	t.Run("public to private includes channel_type P in WS event", func(t *testing.T) {
+		publicChannel := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
+
+		wsMessages, closeWS := connectFakeWebSocket(t, th, th.BasicUser.Id, "", []model.WebsocketEventType{model.WebsocketEventChannelConverted})
+		defer closeWS()
+
+		publicChannel.Type = model.ChannelTypePrivate
+		_, appErr := th.App.UpdateChannelPrivacy(th.Context, publicChannel, th.BasicUser)
+		require.Nil(t, appErr)
+
+		select {
+		case received := <-wsMessages:
+			data := received.GetData()
+			assert.Equal(t, publicChannel.Id, data["channel_id"])
+			assert.Equal(t, string(model.ChannelTypePrivate), data["channel_type"])
+		case <-time.After(10 * time.Second):
+			require.Fail(t, "Did not receive channel_converted websocket event")
+		}
+	})
+}
+
 func TestGetOrCreateDirectChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	team1 := th.CreateTeam()
-	team2 := th.CreateTeam()
+	team1 := th.CreateTeam(t)
+	team2 := th.CreateTeam(t)
 
-	user1 := th.CreateUser()
-	th.LinkUserToTeam(user1, team1)
+	user1 := th.CreateUser(t)
+	th.LinkUserToTeam(t, user1, team1)
 
-	user2 := th.CreateUser()
-	th.LinkUserToTeam(user2, team2)
+	user2 := th.CreateUser(t)
+	th.LinkUserToTeam(t, user2, team2)
 
-	bot1 := th.CreateBot()
+	bot1 := th.CreateBot(t)
 
 	t.Run("Bot can create with restriction", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -551,15 +584,52 @@ func TestGetOrCreateDirectChannel(t *testing.T) {
 			cfg.TeamSettings.RestrictDirectMessage = &setting
 		})
 
+		// Create a session for the bot owner so IsBotExemptFromDMRestrictions can work
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  th.BasicUser.GetRawRoles(),
+		})
+		require.Nil(t, err)
+		rctx := th.Context.WithSession(session)
+
 		// check with bot in first userid param
-		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, bot1.UserId, user1.Id)
+		channel, appErr := th.App.GetOrCreateDirectChannel(rctx, bot1.UserId, user1.Id)
 		require.NotNil(t, channel, "channel should be non-nil")
 		require.Nil(t, appErr)
 
 		// check with bot in second userid param
-		channel, appErr = th.App.GetOrCreateDirectChannel(th.Context, user1.Id, bot1.UserId)
+		channel, appErr = th.App.GetOrCreateDirectChannel(rctx, user1.Id, bot1.UserId)
 		require.NotNil(t, channel, "channel should be non-nil")
 		require.Nil(t, appErr)
+	})
+
+	t.Run("System bot can DM any user with RestrictDirectMessage=team (MM-67314)", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			setting := model.DirectMessageTeam
+			cfg.TeamSettings.RestrictDirectMessage = &setting
+		})
+
+		systemBot, appErr := th.App.GetSystemBot(th.Context)
+		require.Nil(t, appErr)
+
+		// Simulate a background job (e.g. CheckPostReminders) that uses an empty session.
+		// The system bot is on no teams, so without the fix this would return an error.
+		emptyCtx := request.EmptyContext(th.App.Log())
+		channel, appErr := th.App.GetOrCreateDirectChannel(emptyCtx, user1.Id, systemBot.UserId)
+		require.Nil(t, appErr)
+		require.NotNil(t, channel)
+
+		// Simulate a regular user triggering SendTestMessage from a non-admin session.
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: user1.Id,
+			Roles:  user1.GetRawRoles(),
+		})
+		require.Nil(t, err)
+		rctx := th.Context.WithSession(session)
+
+		channel, appErr = th.App.GetOrCreateDirectChannel(rctx, user1.Id, systemBot.UserId)
+		require.Nil(t, appErr)
+		require.NotNil(t, channel)
 	})
 
 	t.Run("User from other team cannot create with restriction", func(t *testing.T) {
@@ -574,9 +644,7 @@ func TestGetOrCreateDirectChannel(t *testing.T) {
 	})
 
 	t.Run("Cannot create with a remote user", func(t *testing.T) {
-		user2.RemoteId = model.NewPointer(model.NewId())
-		_, appErr := th.App.UpdateUser(th.Context, user2, false)
-		require.Nil(t, appErr)
+		th.SetUserRemoteID(t, user2.Id, model.NewId())
 
 		dm, appErr := th.App.GetOrCreateDirectChannel(th.Context, user1.Id, user2.Id)
 		require.Nil(t, dm)
@@ -586,11 +654,10 @@ func TestGetOrCreateDirectChannel(t *testing.T) {
 
 func TestCreateGroupChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	user1 := th.CreateUser()
-	user2 := th.CreateUser()
+	user1 := th.CreateUser(t)
+	user2 := th.CreateUser(t)
 
 	groupUserIds := make([]string, 0)
 	groupUserIds = append(groupUserIds, user1.Id)
@@ -598,9 +665,7 @@ func TestCreateGroupChannel(t *testing.T) {
 	groupUserIds = append(groupUserIds, th.BasicUser.Id)
 
 	t.Run("Should not allow to create a group with a remote user", func(t *testing.T) {
-		user2.RemoteId = model.NewPointer(model.NewId())
-		_, appErr := th.App.UpdateUser(th.Context, user2, false)
-		require.Nil(t, appErr)
+		th.SetUserRemoteID(t, user2.Id, model.NewId())
 
 		dm, appErr := th.App.CreateGroupChannel(th.Context, groupUserIds, th.BasicUser.Id)
 		require.NotNil(t, appErr)
@@ -610,11 +675,10 @@ func TestCreateGroupChannel(t *testing.T) {
 
 func TestCreateGroupChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	user1 := th.CreateUser()
-	user2 := th.CreateUser()
+	user1 := th.CreateUser(t)
+	user2 := th.CreateUser(t)
 
 	groupUserIds := make([]string, 0)
 	groupUserIds = append(groupUserIds, user1.Id)
@@ -634,18 +698,15 @@ func TestCreateGroupChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 		channelMemberHistoryUserIds = append(channelMemberHistoryUserIds, history.UserId)
 	}
 
-	sort.Strings(groupUserIds)
-	sort.Strings(channelMemberHistoryUserIds)
-	assert.Equal(t, groupUserIds, channelMemberHistoryUserIds)
+	assert.ElementsMatch(t, groupUserIds, channelMemberHistoryUserIds)
 }
 
 func TestCreateDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
-	user1 := th.CreateUser()
-	user2 := th.CreateUser()
+	user1 := th.CreateUser(t)
+	user2 := th.CreateUser(t)
 
 	channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, user1.Id, user2.Id)
 	require.Nil(t, appErr, "Failed to create direct channel.")
@@ -669,10 +730,9 @@ func TestCreateDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 func TestGetDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
-	user1 := th.CreateUser()
-	user2 := th.CreateUser()
+	user1 := th.CreateUser(t)
+	user2 := th.CreateUser(t)
 
 	// this function call implicitly creates a direct channel between the two users if one doesn't already exist
 	channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, user1.Id, user2.Id)
@@ -697,11 +757,10 @@ func TestGetDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 
 func TestAddUserToChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic().DeleteBots()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t).DeleteBots(t)
 
 	// create a user and add it to a channel
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 	_, appErr := th.App.AddTeamMember(th.Context, th.BasicTeam.Id, user.Id)
 	require.Nil(t, appErr, "Failed to add user to team.")
 
@@ -709,13 +768,15 @@ func TestAddUserToChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 	groupUserIds = append(groupUserIds, th.BasicUser.Id)
 	groupUserIds = append(groupUserIds, user.Id)
 
-	channel := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen)
+	channel := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
 
+	startTime := model.GetMillis()
 	_, appErr = th.App.AddUserToChannel(th.Context, user, channel, false)
 	require.Nil(t, appErr, "Failed to add user to channel.")
 
 	// there should be a ChannelMemberHistory record for the user
-	histories, nErr := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, []string{channel.Id})
+	// Use a wide time window (±10s) to avoid flaky failures under CI load (MM-67041)
+	histories, nErr := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(startTime-10000, model.GetMillis()+10000, []string{channel.Id})
 	require.NoError(t, nErr)
 	assert.Len(t, histories, 2)
 	channelMemberHistoryUserIds := make([]string, 0)
@@ -723,30 +784,29 @@ func TestAddUserToChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 		assert.Equal(t, channel.Id, history.ChannelId)
 		channelMemberHistoryUserIds = append(channelMemberHistoryUserIds, history.UserId)
 	}
-	assert.Equal(t, groupUserIds, channelMemberHistoryUserIds)
+	assert.ElementsMatch(t, groupUserIds, channelMemberHistoryUserIds)
 }
 
 func TestUsersAndPostsCreateActivityInChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic().DeleteBots()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t).DeleteBots(t)
 
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 	_, err := th.App.AddTeamMember(th.Context, th.BasicTeam.Id, user.Id)
 	require.Nil(t, err, "Failed to add user to team.")
-	user3 := th.CreateUser()
+	user3 := th.CreateUser(t)
 	_, err = th.App.AddTeamMember(th.Context, th.BasicTeam.Id, user3.Id)
 	require.Nil(t, err, "Failed to add user to team.")
-	user4 := th.CreateUser()
+	user4 := th.CreateUser(t)
 	_, err = th.App.AddTeamMember(th.Context, th.BasicTeam.Id, user4.Id)
 	require.Nil(t, err, "Failed to add user to team.")
 
-	channel1 := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen)
-	channel2 := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen)
-	channel3 := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen)
-	channel4 := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen)
-	channel5 := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen)
-	channel6 := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen)
+	channel1 := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
+	channel2 := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
+	channel3 := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
+	channel4 := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
+	channel5 := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
+	channel6 := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
 
 	// user3 is already in channel3
 	_, err = th.App.AddUserToChannel(th.Context, user3, channel3, false)
@@ -770,7 +830,7 @@ func TestUsersAndPostsCreateActivityInChannel(t *testing.T) {
 		Message:   "root post",
 		UserId:    th.BasicUser.Id,
 	}
-	_, err = th.App.CreatePost(th.Context, post, channel1, model.CreatePostFlags{})
+	_, _, err = th.App.CreatePost(th.Context, post, channel1, model.CreatePostFlags{})
 	require.Nil(t, err, "Failed to create post.")
 
 	_, err = th.App.AddUserToChannel(th.Context, user, channel2, false)
@@ -797,7 +857,7 @@ func TestUsersAndPostsCreateActivityInChannel(t *testing.T) {
 	}
 	err = th.App.RemoveUserFromChannel(th.Context, user4.Id, user4.Id, channel4)
 	require.Nil(t, err, "Failed to create post.")
-	_, err = th.App.CreatePost(th.Context, post2, channel5, model.CreatePostFlags{})
+	_, _, err = th.App.CreatePost(th.Context, post2, channel5, model.CreatePostFlags{})
 	require.Nil(t, err, "Failed to create post.")
 	_, err = th.App.AddUserToChannel(th.Context, user, channel6, false)
 	require.Nil(t, err, "Failed to add user to channel.")
@@ -811,16 +871,15 @@ func TestUsersAndPostsCreateActivityInChannel(t *testing.T) {
 
 func TestLeaveDefaultChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	guest := th.CreateGuest()
-	th.LinkUserToTeam(guest, th.BasicTeam)
+	guest := th.CreateGuest(t)
+	th.LinkUserToTeam(t, guest, th.BasicTeam)
 
 	townSquare, appErr := th.App.GetChannelByName(th.Context, "town-square", th.BasicTeam.Id, false)
 	require.Nil(t, appErr)
-	th.AddUserToChannel(guest, townSquare)
-	th.AddUserToChannel(th.BasicUser, townSquare)
+	th.AddUserToChannel(t, guest, townSquare)
+	th.AddUserToChannel(t, th.BasicUser, townSquare)
 
 	t.Run("User tries to leave the default channel", func(t *testing.T) {
 		appErr = th.App.LeaveChannel(th.Context, townSquare.Id, th.BasicUser.Id)
@@ -843,7 +902,7 @@ func TestLeaveDefaultChannel(t *testing.T) {
 			Message:   "root post",
 			UserId:    th.BasicUser.Id,
 		}
-		rpost, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		rpost, _, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
 		reply := &model.Post{
@@ -852,7 +911,7 @@ func TestLeaveDefaultChannel(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			RootId:    rpost.Id,
 		}
-		_, appErr = th.App.CreatePost(th.Context, reply, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		_, _, appErr = th.App.CreatePost(th.Context, reply, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
 		threads, appErr := th.App.GetThreadsForUser(th.Context, th.BasicUser.Id, townSquare.TeamId, model.GetUserThreadsOpts{})
@@ -871,8 +930,7 @@ func TestLeaveDefaultChannel(t *testing.T) {
 
 func TestLeaveChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	createThread := func(channel *model.Channel) (rpost *model.Post) {
 		t.Helper()
@@ -882,7 +940,7 @@ func TestLeaveChannel(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 		}
 
-		rpost, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		rpost, _, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
 		reply := &model.Post{
@@ -891,7 +949,7 @@ func TestLeaveChannel(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			RootId:    rpost.Id,
 		}
-		_, appErr = th.App.CreatePost(th.Context, reply, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		_, _, appErr = th.App.CreatePost(th.Context, reply, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
 		return rpost
@@ -899,7 +957,7 @@ func TestLeaveChannel(t *testing.T) {
 
 	t.Run("thread memberships are deleted", func(t *testing.T) {
 		createThread(th.BasicChannel)
-		channel2 := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen)
+		channel2 := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
 		createThread(channel2)
 
 		threads, appErr := th.App.GetThreadsForUser(th.Context, th.BasicUser.Id, th.BasicChannel.TeamId, model.GetUserThreadsOpts{})
@@ -918,7 +976,7 @@ func TestLeaveChannel(t *testing.T) {
 	})
 
 	t.Run("can leave private channel as last member", func(t *testing.T) {
-		channel := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypePrivate)
+		channel := th.createChannel(t, th.BasicTeam, model.ChannelTypePrivate)
 
 		count, appErr := th.App.GetChannelMemberCount(th.Context, channel.Id)
 		require.Nil(t, appErr, "It should get the channel member count")
@@ -931,16 +989,15 @@ func TestLeaveChannel(t *testing.T) {
 
 func TestLeaveLastChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	guest := th.CreateGuest()
-	th.LinkUserToTeam(guest, th.BasicTeam)
+	guest := th.CreateGuest(t)
+	th.LinkUserToTeam(t, guest, th.BasicTeam)
 
 	townSquare, appErr := th.App.GetChannelByName(th.Context, "town-square", th.BasicTeam.Id, false)
 	require.Nil(t, appErr)
-	th.AddUserToChannel(guest, townSquare)
-	th.AddUserToChannel(guest, th.BasicChannel)
+	th.AddUserToChannel(t, guest, townSquare)
+	th.AddUserToChannel(t, guest, th.BasicChannel)
 
 	t.Run("Guest leaves not last channel", func(t *testing.T) {
 		appErr = th.App.LeaveChannel(th.Context, townSquare.Id, guest.Id)
@@ -961,11 +1018,10 @@ func TestLeaveLastChannel(t *testing.T) {
 
 func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	// create a user and add it to a channel
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 	_, appErr := th.App.AddTeamMember(th.Context, th.BasicTeam.Id, user.Id)
 	require.Nil(t, appErr)
 
@@ -973,13 +1029,15 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 	groupUserIds = append(groupUserIds, th.BasicUser.Id)
 	groupUserIds = append(groupUserIds, user.Id)
 
-	channel := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen)
+	channel := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
 
+	startTime := model.GetMillis()
 	_, appErr = th.App.AddChannelMember(th.Context, user.Id, channel, ChannelMemberOpts{})
 	require.Nil(t, appErr, "Failed to add user to channel.")
 
 	// there should be a ChannelMemberHistory record for the user
-	histories, nErr := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, []string{channel.Id})
+	// Use a wide time window (±10s) to avoid flaky failures under CI load (MM-67037)
+	histories, nErr := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(startTime-10000, model.GetMillis()+10000, []string{channel.Id})
 	require.NoError(t, nErr)
 	assert.Len(t, histories, 2)
 	channelMemberHistoryUserIds := make([]string, 0)
@@ -987,7 +1045,7 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 		assert.Equal(t, channel.Id, history.ChannelId)
 		channelMemberHistoryUserIds = append(channelMemberHistoryUserIds, history.UserId)
 	}
-	assert.Equal(t, groupUserIds, channelMemberHistoryUserIds)
+	assert.ElementsMatch(t, groupUserIds, channelMemberHistoryUserIds)
 
 	postList, nErr := th.App.Srv().Store().Post().GetPosts(th.Context, model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
 	require.NoError(t, nErr)
@@ -1003,10 +1061,9 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 
 func TestAddChannelMemberDeletedUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 	_, appErr := th.App.AddTeamMember(th.Context, th.BasicTeam.Id, user.Id)
 	require.Nil(t, appErr)
 
@@ -1020,11 +1077,10 @@ func TestAddChannelMemberDeletedUser(t *testing.T) {
 
 func TestAppUpdateChannelScheme(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	channel := th.BasicChannel
-	mockID := model.NewPointer("x")
+	mockID := new("x")
 	channel.SchemeId = mockID
 
 	updatedChannel, appErr := th.App.UpdateChannelScheme(th.Context, channel)
@@ -1038,13 +1094,12 @@ func TestAppUpdateChannelScheme(t *testing.T) {
 func TestSetChannelsMuted(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should mute and unmute the given channels", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		channel1 := th.BasicChannel
 
-		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(th.BasicUser, channel2)
+		channel2 := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, th.BasicUser, channel2)
 
 		// Ensure that both channels start unmuted
 		member1, appErr := th.App.GetChannelMember(th.Context, channel1.Id, th.BasicUser.Id)
@@ -1089,8 +1144,7 @@ func TestSetChannelsMuted(t *testing.T) {
 
 func TestFillInChannelProps(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	channelPublic1, appErr := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "Public 1", Name: "public1", Type: model.ChannelTypeOpen, TeamId: th.BasicTeam.Id}, false)
 	require.Nil(t, appErr)
@@ -1310,8 +1364,7 @@ func TestFillInChannelProps(t *testing.T) {
 
 func TestRenameChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	testCases := []struct {
 		Name                string
@@ -1323,7 +1376,7 @@ func TestRenameChannel(t *testing.T) {
 	}{
 		{
 			"Rename open channel",
-			th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen),
+			th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen),
 			false,
 			"newchannelname",
 			"newchannelname",
@@ -1331,7 +1384,7 @@ func TestRenameChannel(t *testing.T) {
 		},
 		{
 			"Fail on rename open channel with bad name",
-			th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen),
+			th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen),
 			true,
 			"6zii9a9g6pruzj451x3esok54h__wr4j4g8zqtnhmkw771pfpynqwo",
 			"",
@@ -1339,7 +1392,7 @@ func TestRenameChannel(t *testing.T) {
 		},
 		{
 			"Success on rename open channel with consecutive underscores in name",
-			th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen),
+			th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen),
 			false,
 			"foo__bar",
 			"foo__bar",
@@ -1347,7 +1400,7 @@ func TestRenameChannel(t *testing.T) {
 		},
 		{
 			"Fail on rename direct message channel",
-			th.CreateDmChannel(th.BasicUser2),
+			th.CreateDmChannel(t, th.BasicUser2),
 			true,
 			"newchannelname",
 			"",
@@ -1355,7 +1408,7 @@ func TestRenameChannel(t *testing.T) {
 		},
 		{
 			"Fail on rename group message channel",
-			th.CreateGroupChannel(th.Context, th.BasicUser2, th.CreateUser()),
+			th.CreateGroupChannel(t, th.BasicUser2, th.CreateUser(t)),
 			true,
 			"newchannelname",
 			"",
@@ -1378,8 +1431,7 @@ func TestRenameChannel(t *testing.T) {
 
 func TestGetChannelMembersTimezones(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	_, appErr := th.App.AddChannelMember(th.Context, th.BasicUser2.Id, th.BasicChannel, ChannelMemberOpts{})
 	require.Nil(t, appErr, "Failed to add user to channel.")
@@ -1395,7 +1447,7 @@ func TestGetChannelMembersTimezones(t *testing.T) {
 	_, appErr = th.App.UpdateUser(th.Context, user2, false)
 	require.Nil(t, appErr)
 
-	user3 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+	user3 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 	ruser, appErr := th.App.CreateUser(th.Context, &user3)
 	require.Nil(t, appErr)
 
@@ -1409,7 +1461,7 @@ func TestGetChannelMembersTimezones(t *testing.T) {
 	_, appErr = th.App.UpdateUser(th.Context, ruser, false)
 	require.Nil(t, appErr)
 
-	user4 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+	user4 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 	ruser, _ = th.App.CreateUser(th.Context, &user4)
 	_, appErr = th.App.AddUserToChannel(th.Context, ruser, th.BasicChannel, false)
 	require.NotNil(t, appErr, "user should not be able to join the channel without being in the team.")
@@ -1422,7 +1474,7 @@ func TestGetChannelMembersTimezones(t *testing.T) {
 
 func TestGetChannelsForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	channel := &model.Channel{
 		DisplayName: "Public",
 		Name:        "public",
@@ -1436,7 +1488,6 @@ func TestGetChannelsForUser(t *testing.T) {
 		appErr = th.App.PermanentDeleteChannel(th.Context, channel)
 		require.Nil(t, appErr)
 	}()
-	defer th.TearDown()
 
 	channelList, appErr := th.App.GetChannelsForTeamForUser(th.Context, th.BasicTeam.Id, th.BasicUser.Id, &model.ChannelSearchOpts{
 		IncludeDeleted: false,
@@ -1468,8 +1519,7 @@ func TestGetChannelsForUser(t *testing.T) {
 func TestGetPublicChannelsForTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	team := th.CreateTeam()
-	defer th.TearDown()
+	team := th.CreateTeam(t)
 
 	var expectedChannels []*model.Channel
 
@@ -1516,8 +1566,7 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 func TestGetPrivateChannelsForTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	team := th.CreateTeam()
-	defer th.TearDown()
+	team := th.CreateTeam(t)
 
 	var expectedChannels []*model.Channel
 	for i := range 8 {
@@ -1552,11 +1601,10 @@ func TestGetPrivateChannelsForTeam(t *testing.T) {
 
 func TestUpdateChannelMemberRolesChangingGuest(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("from guest to user", func(t *testing.T) {
-		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 		ruser, _ := th.App.CreateGuest(th.Context, &user)
 
 		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
@@ -1570,7 +1618,7 @@ func TestUpdateChannelMemberRolesChangingGuest(t *testing.T) {
 	})
 
 	t.Run("from user to guest", func(t *testing.T) {
-		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 		ruser, _ := th.App.CreateUser(th.Context, &user)
 
 		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
@@ -1584,7 +1632,7 @@ func TestUpdateChannelMemberRolesChangingGuest(t *testing.T) {
 	})
 
 	t.Run("from user to admin", func(t *testing.T) {
-		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 		ruser, _ := th.App.CreateUser(th.Context, &user)
 
 		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
@@ -1598,7 +1646,7 @@ func TestUpdateChannelMemberRolesChangingGuest(t *testing.T) {
 	})
 
 	t.Run("from guest to guest plus custom", func(t *testing.T) {
-		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 		ruser, _ := th.App.CreateGuest(th.Context, &user)
 
 		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
@@ -1615,7 +1663,7 @@ func TestUpdateChannelMemberRolesChangingGuest(t *testing.T) {
 	})
 
 	t.Run("a guest cant have user role", func(t *testing.T) {
-		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 		ruser, _ := th.App.CreateGuest(th.Context, &user)
 
 		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
@@ -1629,10 +1677,125 @@ func TestUpdateChannelMemberRolesChangingGuest(t *testing.T) {
 	})
 }
 
+func TestUpdateChannelMemberRolesRequireUser(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("empty roles string requires user or guest scheme role", func(t *testing.T) {
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Tester", Username: "tester" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
+		ruser, _ := th.App.CreateUser(th.Context, &user)
+
+		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.AddUserToChannel(th.Context, ruser, th.BasicChannel, false)
+		require.Nil(t, appErr)
+
+		member, appErr := th.App.GetChannelMember(th.Context, th.BasicChannel.Id, ruser.Id)
+		require.Nil(t, appErr)
+		require.True(t, member.SchemeUser)
+		require.False(t, member.SchemeGuest)
+
+		_, appErr = th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, ruser.Id, "")
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.channel.update_channel_member_roles.unset_user_scheme.app_error", appErr.Id)
+	})
+
+	t.Run("admin role requires user or guest scheme role", func(t *testing.T) {
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Tester", Username: "tester" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
+		ruser, _ := th.App.CreateUser(th.Context, &user)
+
+		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.AddUserToChannel(th.Context, ruser, th.BasicChannel, false)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, ruser.Id, "channel_admin")
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.channel.update_channel_member_roles.unset_user_scheme.app_error", appErr.Id)
+	})
+
+	t.Run("valid user and admin roles update succeeds", func(t *testing.T) {
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Tester", Username: "tester" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
+		ruser, _ := th.App.CreateUser(th.Context, &user)
+
+		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.AddUserToChannel(th.Context, ruser, th.BasicChannel, false)
+		require.Nil(t, appErr)
+
+		updatedMember, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, ruser.Id, "channel_user channel_admin")
+		require.Nil(t, appErr)
+		require.True(t, updatedMember.SchemeUser)
+		require.True(t, updatedMember.SchemeAdmin)
+		require.False(t, updatedMember.SchemeGuest)
+	})
+
+	t.Run("removing admin role while keeping user role succeeds", func(t *testing.T) {
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Tester", Username: "tester" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
+		ruser, _ := th.App.CreateUser(th.Context, &user)
+
+		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.AddUserToChannel(th.Context, ruser, th.BasicChannel, false)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, ruser.Id, "channel_user channel_admin")
+		require.Nil(t, appErr)
+
+		updatedMember, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, ruser.Id, "channel_user")
+		require.Nil(t, appErr)
+		require.True(t, updatedMember.SchemeUser)
+		require.False(t, updatedMember.SchemeAdmin)
+	})
+}
+
+func TestUpdateChannelMemberAutotranslation(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("disable autotranslation", func(t *testing.T) {
+		updatedMember, appErr := th.App.UpdateChannelMemberAutotranslation(th.Context, th.BasicChannel.Id, th.BasicUser.Id, true)
+		require.Nil(t, appErr)
+		require.True(t, updatedMember.AutoTranslationDisabled, "autotranslation should be disabled")
+
+		member, appErr := th.App.GetChannelMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.True(t, member.AutoTranslationDisabled, "autotranslation disabled should persist as true")
+	})
+
+	t.Run("enable autotranslation", func(t *testing.T) {
+		_, appErr := th.App.UpdateChannelMemberAutotranslation(th.Context, th.BasicChannel.Id, th.BasicUser.Id, true)
+		require.Nil(t, appErr)
+
+		updatedMember, appErr := th.App.UpdateChannelMemberAutotranslation(th.Context, th.BasicChannel.Id, th.BasicUser.Id, false)
+		require.Nil(t, appErr)
+		require.False(t, updatedMember.AutoTranslationDisabled, "autotranslation should be enabled")
+
+		member, appErr := th.App.GetChannelMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.False(t, member.AutoTranslationDisabled, "autotranslation disabled should persist as false")
+	})
+
+	t.Run("nonexistent channel returns not found", func(t *testing.T) {
+		_, appErr := th.App.UpdateChannelMemberAutotranslation(th.Context, model.NewId(), th.BasicUser.Id, true)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+	})
+
+	t.Run("nonexistent user returns not found", func(t *testing.T) {
+		_, appErr := th.App.UpdateChannelMemberAutotranslation(th.Context, th.BasicChannel.Id, model.NewId(), true)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+	})
+}
+
 func TestDefaultChannelNames(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	actual := th.App.DefaultChannelNames(th.Context)
 	expect := []string{"town-square", "off-topic"}
@@ -1649,8 +1812,7 @@ func TestDefaultChannelNames(t *testing.T) {
 
 func TestSearchChannelsForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	c1, appErr := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "test-dev-1", Name: "test-dev-1", Type: model.ChannelTypeOpen, TeamId: th.BasicTeam.Id}, false)
 	require.Nil(t, appErr)
@@ -1707,24 +1869,23 @@ func TestSearchChannelsForUser(t *testing.T) {
 
 func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	u1 := th.BasicUser
 	u2 := th.BasicUser2
 	c1 := th.BasicChannel
-	pc1 := th.CreatePrivateChannel(th.Context, th.BasicTeam)
-	th.AddUserToChannel(u2, c1)
-	th.AddUserToChannel(u1, pc1)
-	th.AddUserToChannel(u2, pc1)
+	pc1 := th.CreatePrivateChannel(t, th.BasicTeam)
+	th.AddUserToChannel(t, u2, c1)
+	th.AddUserToChannel(t, u1, pc1)
+	th.AddUserToChannel(t, u2, pc1)
 
-	p1 := th.CreatePost(c1)
-	p2 := th.CreatePost(c1)
-	p3 := th.CreatePost(c1)
+	p1 := th.CreatePost(t, c1)
+	p2 := th.CreatePost(t, c1)
+	p3 := th.CreatePost(t, c1)
 
-	pp1 := th.CreatePost(pc1)
+	pp1 := th.CreatePost(t, pc1)
 	require.NotNil(t, pp1)
-	pp2 := th.CreatePost(pc1)
+	pp2 := th.CreatePost(t, pc1)
 
 	unread, appErr := th.App.GetChannelUnread(th.Context, c1.Id, u1.Id)
 	require.Nil(t, appErr)
@@ -1799,19 +1960,19 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 	})
 
 	t.Run("Unread with mentions", func(t *testing.T) {
-		c2 := th.CreateChannel(th.Context, th.BasicTeam)
+		c2 := th.CreateChannel(t, th.BasicTeam)
 		_, appErr := th.App.AddUserToChannel(th.Context, u2, c2, false)
 		require.Nil(t, appErr)
 
-		p4, appErr := th.App.CreatePost(th.Context, &model.Post{
+		p4, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    u2.Id,
 			ChannelId: c2.Id,
 			Message:   "@" + u1.Username,
 		}, c2, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
-		th.CreatePost(c2)
+		th.CreatePost(t, c2)
 
-		_, appErr = th.App.CreatePost(th.Context, &model.Post{
+		_, _, appErr = th.App.CreatePost(th.Context, &model.Post{
 			UserId:    u2.Id,
 			ChannelId: c2.Id,
 			RootId:    p4.Id,
@@ -1833,13 +1994,13 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 	})
 
 	t.Run("Unread on a DM channel", func(t *testing.T) {
-		dc := th.CreateDmChannel(u2)
+		dc := th.CreateDmChannel(t, u2)
 
-		dm1 := th.CreatePost(dc)
-		th.CreatePost(dc)
-		th.CreatePost(dc)
+		dm1 := th.CreatePost(t, dc)
+		th.CreatePost(t, dc)
+		th.CreatePost(t, dc)
 
-		_, appErr := th.App.CreatePost(th.Context, &model.Post{ChannelId: dc.Id, UserId: th.BasicUser.Id, Message: "testReply", RootId: dm1.Id}, dc, model.CreatePostFlags{})
+		_, _, appErr := th.App.CreatePost(th.Context, &model.Post{ChannelId: dc.Id, UserId: th.BasicUser.Id, Message: "testReply", RootId: dm1.Id}, dc, model.CreatePostFlags{})
 		assert.Nil(t, appErr)
 
 		response, appErr := th.App.MarkChannelAsUnreadFromPost(th.Context, dm1.Id, u2.Id, true)
@@ -1864,16 +2025,15 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 
 func TestAddUserToChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	user1 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+	user1 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 	ruser1, _ := th.App.CreateUser(th.Context, &user1)
 	defer func() {
 		appErr := th.App.PermanentDeleteUser(th.Context, &user1)
 		require.Nil(t, appErr)
 	}()
-	bot := th.CreateBot()
+	bot := th.CreateBot(t)
 	botUser, _ := th.App.GetUser(bot.UserId)
 	defer func() {
 		appErr := th.App.PermanentDeleteBot(th.Context, botUser.Id)
@@ -1885,7 +2045,7 @@ func TestAddUserToChannel(t *testing.T) {
 	_, appErr = th.App.AddTeamMember(th.Context, th.BasicTeam.Id, bot.UserId)
 	require.Nil(t, appErr)
 
-	group := th.CreateGroup()
+	group := th.CreateGroup(t)
 
 	_, appErr = th.App.UpsertGroupMember(group.Id, user1.Id)
 	require.Nil(t, appErr)
@@ -1907,7 +2067,7 @@ func TestAddUserToChannel(t *testing.T) {
 	require.Nil(t, appErr)
 	require.False(t, cm1.SchemeAdmin)
 
-	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 	ruser2, _ := th.App.CreateUser(th.Context, &user2)
 	defer func() {
 		appErr = th.App.PermanentDeleteUser(th.Context, &user2)
@@ -1936,8 +2096,8 @@ func TestAddUserToChannel(t *testing.T) {
 	require.Nil(t, appErr)
 	require.True(t, cm2.SchemeAdmin)
 
-	privateChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
-	privateChannel.GroupConstrained = model.NewPointer(true)
+	privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+	privateChannel.GroupConstrained = new(true)
 	_, appErr = th.App.UpdateChannel(th.Context, privateChannel)
 	require.Nil(t, appErr)
 
@@ -1959,17 +2119,16 @@ func TestAddUserToChannel(t *testing.T) {
 
 func TestRemoveUserFromChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 	ruser, _ := th.App.CreateUser(th.Context, &user)
 	defer func() {
 		appErr := th.App.PermanentDeleteUser(th.Context, ruser)
 		require.Nil(t, appErr)
 	}()
 
-	bot := th.CreateBot()
+	bot := th.CreateBot(t)
 	botUser, _ := th.App.GetUser(bot.UserId)
 	defer func() {
 		appErr := th.App.PermanentDeleteBot(th.Context, botUser.Id)
@@ -1982,14 +2141,14 @@ func TestRemoveUserFromChannel(t *testing.T) {
 	_, appErr = th.App.AddTeamMember(th.Context, th.BasicTeam.Id, bot.UserId)
 	require.Nil(t, appErr)
 
-	privateChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+	privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
 
 	_, appErr = th.App.AddUserToChannel(th.Context, ruser, privateChannel, false)
 	require.Nil(t, appErr)
 	_, appErr = th.App.AddUserToChannel(th.Context, botUser, privateChannel, false)
 	require.Nil(t, appErr)
 
-	group := th.CreateGroup()
+	group := th.CreateGroup(t)
 	_, appErr = th.App.UpsertGroupMember(group.Id, ruser.Id)
 	require.Nil(t, appErr)
 
@@ -2000,7 +2159,7 @@ func TestRemoveUserFromChannel(t *testing.T) {
 	})
 	require.Nil(t, appErr)
 
-	privateChannel.GroupConstrained = model.NewPointer(true)
+	privateChannel.GroupConstrained = new(true)
 	_, appErr = th.App.UpdateChannel(th.Context, privateChannel)
 	require.Nil(t, appErr)
 
@@ -2019,15 +2178,14 @@ func TestRemoveUserFromChannel(t *testing.T) {
 
 func TestPatchChannelModerationsForChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	err := th.App.SetPhase2PermissionsMigrationStatus(true)
 	require.NoError(t, err)
 	channel := th.BasicChannel
 
 	user := th.BasicUser
-	th.AddUserToChannel(user, channel)
+	th.AddUserToChannel(t, user, channel)
 
 	createPosts := model.ChannelModeratedPermissions[0]
 	createReactions := model.ChannelModeratedPermissions[1]
@@ -2052,7 +2210,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &createPosts,
-					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewPointer(false)},
+					Roles: &model.ChannelModeratedRolesPatch{Members: new(false)},
 				},
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
@@ -2063,7 +2221,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &createPosts,
-					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewPointer(true)},
+					Roles: &model.ChannelModeratedRolesPatch{Members: new(true)},
 				},
 			},
 		},
@@ -2072,7 +2230,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &createReactions,
-					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewPointer(false)},
+					Roles: &model.ChannelModeratedRolesPatch{Members: new(false)},
 				},
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
@@ -2083,7 +2241,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &createReactions,
-					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewPointer(true)},
+					Roles: &model.ChannelModeratedRolesPatch{Members: new(true)},
 				},
 			},
 		},
@@ -2092,7 +2250,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &channelMentions,
-					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewPointer(false)},
+					Roles: &model.ChannelModeratedRolesPatch{Members: new(false)},
 				},
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
@@ -2103,7 +2261,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &channelMentions,
-					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewPointer(true)},
+					Roles: &model.ChannelModeratedRolesPatch{Members: new(true)},
 				},
 			},
 		},
@@ -2112,7 +2270,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &manageMembers,
-					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewPointer(false)},
+					Roles: &model.ChannelModeratedRolesPatch{Members: new(false)},
 				},
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
@@ -2123,7 +2281,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &manageMembers,
-					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewPointer(true)},
+					Roles: &model.ChannelModeratedRolesPatch{Members: new(true)},
 				},
 			},
 		},
@@ -2132,7 +2290,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &manageBookmarks,
-					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewPointer(false)},
+					Roles: &model.ChannelModeratedRolesPatch{Members: new(false)},
 				},
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
@@ -2143,7 +2301,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &manageBookmarks,
-					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewPointer(true)},
+					Roles: &model.ChannelModeratedRolesPatch{Members: new(true)},
 				},
 			},
 		},
@@ -2152,7 +2310,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &createPosts,
-					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewPointer(false)},
+					Roles: &model.ChannelModeratedRolesPatch{Guests: new(false)},
 				},
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
@@ -2163,7 +2321,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &createPosts,
-					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewPointer(true)},
+					Roles: &model.ChannelModeratedRolesPatch{Guests: new(true)},
 				},
 			},
 		},
@@ -2172,7 +2330,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &createReactions,
-					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewPointer(false)},
+					Roles: &model.ChannelModeratedRolesPatch{Guests: new(false)},
 				},
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
@@ -2183,7 +2341,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &createReactions,
-					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewPointer(true)},
+					Roles: &model.ChannelModeratedRolesPatch{Guests: new(true)},
 				},
 			},
 		},
@@ -2192,7 +2350,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &channelMentions,
-					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewPointer(false)},
+					Roles: &model.ChannelModeratedRolesPatch{Guests: new(false)},
 				},
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
@@ -2203,7 +2361,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &channelMentions,
-					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewPointer(true)},
+					Roles: &model.ChannelModeratedRolesPatch{Guests: new(true)},
 				},
 			},
 		},
@@ -2212,7 +2370,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &manageMembers,
-					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewPointer(false)},
+					Roles: &model.ChannelModeratedRolesPatch{Guests: new(false)},
 				},
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{},
@@ -2224,7 +2382,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &manageBookmarks,
-					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewPointer(false)},
+					Roles: &model.ChannelModeratedRolesPatch{Guests: new(false)},
 				},
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{},
@@ -2237,8 +2395,8 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 				{
 					Name: &nonChannelModeratedPermission,
 					Roles: &model.ChannelModeratedRolesPatch{
-						Members: model.NewPointer(false),
-						Guests:  model.NewPointer(false),
+						Members: new(false),
+						Guests:  new(false),
 					},
 				},
 			},
@@ -2252,8 +2410,8 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 				{
 					Name: &createPosts,
 					Roles: &model.ChannelModeratedRolesPatch{
-						Members: model.NewPointer(true),
-						Guests:  model.NewPointer(false),
+						Members: new(true),
+						Guests:  new(false),
 					},
 				},
 			},
@@ -2267,8 +2425,8 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 				{
 					Name: &createPosts,
 					Roles: &model.ChannelModeratedRolesPatch{
-						Members: model.NewPointer(false),
-						Guests:  model.NewPointer(true),
+						Members: new(false),
+						Guests:  new(true),
 					},
 				},
 			},
@@ -2282,7 +2440,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 				{
 					Name: &createPosts,
 					Roles: &model.ChannelModeratedRolesPatch{
-						Members: model.NewPointer(false),
+						Members: new(false),
 					},
 				},
 			},
@@ -2307,34 +2465,34 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 				{
 					Name: &createPosts,
 					Roles: &model.ChannelModeratedRolesPatch{
-						Members: model.NewPointer(true),
-						Guests:  model.NewPointer(true),
+						Members: new(true),
+						Guests:  new(true),
 					},
 				},
 				{
 					Name: &createReactions,
 					Roles: &model.ChannelModeratedRolesPatch{
-						Members: model.NewPointer(true),
-						Guests:  model.NewPointer(true),
+						Members: new(true),
+						Guests:  new(true),
 					},
 				},
 				{
 					Name: &channelMentions,
 					Roles: &model.ChannelModeratedRolesPatch{
-						Members: model.NewPointer(true),
-						Guests:  model.NewPointer(true),
+						Members: new(true),
+						Guests:  new(true),
 					},
 				},
 				{
 					Name: &manageMembers,
 					Roles: &model.ChannelModeratedRolesPatch{
-						Members: model.NewPointer(true),
+						Members: new(true),
 					},
 				},
 				{
 					Name: &manageBookmarks,
 					Roles: &model.ChannelModeratedRolesPatch{
-						Members: model.NewPointer(true),
+						Members: new(true),
 					},
 				},
 			},
@@ -2424,8 +2582,8 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			{
 				Name: &createPosts,
 				Roles: &model.ChannelModeratedRolesPatch{
-					Members: model.NewPointer(false),
-					Guests:  model.NewPointer(false),
+					Members: new(false),
+					Guests:  new(false),
 				},
 			},
 		}
@@ -2433,8 +2591,8 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			{
 				Name: &createPosts,
 				Roles: &model.ChannelModeratedRolesPatch{
-					Members: model.NewPointer(false),
-					Guests:  model.NewPointer(false),
+					Members: new(false),
+					Guests:  new(false),
 				},
 			},
 		}
@@ -2473,7 +2631,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			{
 				Name: &createPosts,
 				Roles: &model.ChannelModeratedRolesPatch{
-					Members: model.NewPointer(true),
+					Members: new(true),
 				},
 			},
 		}
@@ -2481,7 +2639,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			{
 				Name: &createPosts,
 				Roles: &model.ChannelModeratedRolesPatch{
-					Members: model.NewPointer(false),
+					Members: new(false),
 				},
 			},
 		}
@@ -2490,18 +2648,19 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 
 		_, appErr := th.App.PatchChannelModerationsForChannel(th.Context, channel.DeepCopy(), addCreatePosts)
 		require.Nil(t, appErr)
-		require.True(t, th.App.SessionHasPermissionToChannel(th.Context, mockSession, channel.Id, model.PermissionCreatePost))
+		ok, _ := th.App.SessionHasPermissionToChannel(th.Context, mockSession, channel.Id, model.PermissionCreatePost)
+		require.True(t, ok)
 
 		_, appErr = th.App.PatchChannelModerationsForChannel(th.Context, channel.DeepCopy(), removeCreatePosts)
 		require.Nil(t, appErr)
-		require.False(t, th.App.SessionHasPermissionToChannel(th.Context, mockSession, channel.Id, model.PermissionCreatePost))
+		ok, _ = th.App.SessionHasPermissionToChannel(th.Context, mockSession, channel.Id, model.PermissionCreatePost)
+		require.False(t, ok)
 	})
 }
 
 func TestClearChannelMembersCache(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockChannelStore := mocks.ChannelStore{}
@@ -2534,7 +2693,6 @@ func TestClearChannelMembersCache(t *testing.T) {
 func TestGetMemberCountsByGroup(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockChannelStore := mocks.ChannelStore{}
@@ -2557,7 +2715,6 @@ func TestGetMemberCountsByGroup(t *testing.T) {
 func TestGetChannelsMemberCount(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockChannelStore := mocks.ChannelStore{}
@@ -2575,13 +2732,12 @@ func TestGetChannelsMemberCount(t *testing.T) {
 
 func TestViewChannelCollapsedThreadsTurnedOff(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	u1 := th.BasicUser
 	u2 := th.BasicUser2
 	c1 := th.BasicChannel
-	th.AddUserToChannel(u2, c1)
+	th.AddUserToChannel(t, u2, c1)
 
 	// Enable CRT
 
@@ -2608,7 +2764,7 @@ func TestViewChannelCollapsedThreadsTurnedOff(t *testing.T) {
 		Message:   "root post @" + u1.Username,
 		UserId:    u2.Id,
 	}
-	rpost1, appErr := th.App.CreatePost(th.Context, post1, c1, model.CreatePostFlags{SetOnline: true})
+	rpost1, _, appErr := th.App.CreatePost(th.Context, post1, c1, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, appErr)
 
 	// mention the user in a reply post
@@ -2618,7 +2774,7 @@ func TestViewChannelCollapsedThreadsTurnedOff(t *testing.T) {
 		UserId:    u2.Id,
 		RootId:    rpost1.Id,
 	}
-	_, appErr = th.App.CreatePost(th.Context, post2, c1, model.CreatePostFlags{SetOnline: true})
+	_, _, appErr = th.App.CreatePost(th.Context, post2, c1, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, appErr)
 
 	// Check we have unread mention in the thread
@@ -2656,14 +2812,14 @@ func TestMarkChannelAsUnreadFromPostCollapsedThreadsTurnedOff(t *testing.T) {
 	mainHelper.Parallel(t)
 	// Enable CRT
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
 	})
 
-	th.AddUserToChannel(th.BasicUser2, th.BasicChannel)
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
 
 	// Turn off CRT for user
 	preference := model.Preference{
@@ -2685,19 +2841,19 @@ func TestMarkChannelAsUnreadFromPostCollapsedThreadsTurnedOff(t *testing.T) {
 	// user1: a root post
 	// user2: Another root mention @u1
 	user1Mention := " @" + th.BasicUser.Username
-	rootPost1, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "first root mention" + user1Mention}, th.BasicChannel, model.CreatePostFlags{})
+	rootPost1, _, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "first root mention" + user1Mention}, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hello"}, th.BasicChannel, model.CreatePostFlags{})
+	_, _, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hello"}, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
-	replyPost1, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "mention" + user1Mention}, th.BasicChannel, model.CreatePostFlags{})
+	replyPost1, _, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "mention" + user1Mention}, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "another reply"}, th.BasicChannel, model.CreatePostFlags{})
+	_, _, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "another reply"}, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "another mention" + user1Mention}, th.BasicChannel, model.CreatePostFlags{})
+	_, _, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost1.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "another mention" + user1Mention}, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "a root post"}, th.BasicChannel, model.CreatePostFlags{})
+	_, _, appErr = th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "a root post"}, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
-	_, appErr = th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "another root mention" + user1Mention}, th.BasicChannel, model.CreatePostFlags{})
+	_, _, appErr = th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "another root mention" + user1Mention}, th.BasicChannel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
 
 	t.Run("Mark reply post as unread", func(t *testing.T) {
@@ -2742,34 +2898,34 @@ func TestMarkChannelAsUnreadFromPostCollapsedThreadsTurnedOff(t *testing.T) {
 
 func TestMarkUnreadCRTOffUpdatesThreads(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOff
 	})
 
 	t.Run("Mentions counted correctly if post is edited", func(t *testing.T) {
-		user3 := th.CreateUser()
+		user3 := th.CreateUser(t)
 		defer func() {
 			appErr := th.App.PermanentDeleteUser(th.Context, user3)
 			require.Nil(t, appErr)
 		}()
-		rootPost, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "root post"}, th.BasicChannel, model.CreatePostFlags{})
+		rootPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "root post"}, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
-		r1, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "reply 1"}, th.BasicChannel, model.CreatePostFlags{})
+		r1, _, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "reply 1"}, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
-		_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "reply 2 @" + user3.Username}, th.BasicChannel, model.CreatePostFlags{})
+		_, _, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: th.BasicUser.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "reply 2 @" + user3.Username}, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
-		_, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "reply 3"}, th.BasicChannel, model.CreatePostFlags{})
+		_, _, appErr = th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "reply 3"}, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 		editedPost := r1.Clone()
 		editedPost.Message += " edited"
-		_, appErr = th.App.UpdatePost(th.Context, editedPost, &model.UpdatePostOptions{SafeUpdate: false})
+		_, _, appErr = th.App.UpdatePost(th.Context, editedPost, &model.UpdatePostOptions{SafeUpdate: false})
 		require.Nil(t, appErr)
 
-		th.LinkUserToTeam(user3, th.BasicTeam)
-		th.AddUserToChannel(user3, th.BasicChannel)
+		th.LinkUserToTeam(t, user3, th.BasicTeam)
+		th.AddUserToChannel(t, user3, th.BasicChannel)
 
 		_, appErr = th.App.MarkChannelAsUnreadFromPost(th.Context, editedPost.Id, user3.Id, false)
 		require.Nil(t, appErr)
@@ -2845,7 +3001,6 @@ func TestIsCRTEnabledForUser(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
 			th := SetupWithStoreMock(t)
-			defer th.TearDown()
 
 			th.App.Config().ServiceSettings.CollapsedThreads = &tc.appCRT
 
@@ -2863,67 +3018,230 @@ func TestIsCRTEnabledForUser(t *testing.T) {
 
 func TestGetDirectOrGroupMessageMembersCommonTeams(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	teamsToCreate := 2
-	usersToCreate := 4 // at least 3 users to create a GM channel, last user is not in any team
-	teams := make([]string, 0, teamsToCreate)
-	for i := 0; i < cap(teams); i++ {
-		team := th.CreateTeam()
-		defer func(team *model.Team) {
-			appErr := th.App.PermanentDeleteTeam(th.Context, team)
-			require.Nil(t, appErr)
-		}(team)
-		teams = append(teams, team.Id)
+	team1 := th.CreateTeam(t)
+	team2 := th.CreateTeam(t)
+
+	user1 := th.CreateUser(t)
+	user2 := th.CreateUser(t)
+	user3 := th.CreateUser(t)
+	user4NotInAnyTeams := th.CreateUser(t)
+	unrelatedUser := th.CreateUser(t)
+
+	// All of user1, user2 and user3, and unrelatedUser on team1
+	th.LinkUserToTeam(t, user1, team1)
+	th.LinkUserToTeam(t, user2, team1)
+	th.LinkUserToTeam(t, user3, team1)
+	th.LinkUserToTeam(t, unrelatedUser, team1)
+
+	// Only user2, user3, and unrelatedUser on team2
+	th.LinkUserToTeam(t, user2, team2)
+	th.LinkUserToTeam(t, user3, team2)
+	th.LinkUserToTeam(t, unrelatedUser, team2)
+
+	assertNoTeamsInCommon := func(t *testing.T, commonTeams []*model.Team) {
+		t.Helper()
+		assert.Empty(t, commonTeams, "expected no teams in common")
 	}
 
-	users := make([]string, 0, usersToCreate)
-	for i := 0; i < cap(users); i++ {
-		user := th.CreateUser()
-		defer func(user *model.User) {
-			appErr := th.App.PermanentDeleteUser(th.Context, user)
-			require.Nil(t, appErr)
-		}(user)
-		users = append(users, user.Id)
-	}
-
-	for _, teamId := range teams {
-		// add first 3 users to each team, last user is not in any team
-		for i := range 3 {
-			_, _, appErr := th.App.AddUserToTeam(th.Context, teamId, users[i], "")
-			require.Nil(t, appErr)
+	assertTeam1InCommon := func(t *testing.T, commonTeams []*model.Team) {
+		t.Helper()
+		if assert.Len(t, commonTeams, 1, "expected 1 team in common") {
+			assert.Equal(t, team1.Id, commonTeams[0].Id, "expected team1 in common")
 		}
 	}
 
-	// create GM channel with first 3 users who share common teams
-	gmChannel, appErr := th.App.createGroupChannel(th.Context, users[:3], users[0])
-	require.Nil(t, appErr)
-	require.NotNil(t, gmChannel)
+	assertTeam1And2InCommon := func(t *testing.T, commonTeams []*model.Team) {
+		t.Helper()
+		if assert.Len(t, commonTeams, 2, "expected 2 teams in common") {
+			assert.True(t, slices.ContainsFunc(commonTeams, func(team *model.Team) bool {
+				return team.Id == team1.Id
+			}), "expected team1 in common")
+			assert.True(t, slices.ContainsFunc(commonTeams, func(team *model.Team) bool {
+				return team.Id == team2.Id
+			}), "expected team2 in common")
+		}
+	}
 
-	// normally you can't create a GM channel with users that don't share any teams, but we do it here to test the edge case
-	// create GM channel with last 3 users, where last member is not in any team
-	otherGMChannel, appErr := th.App.createGroupChannel(th.Context, users[1:], users[0])
-	require.Nil(t, appErr)
-	require.NotNil(t, otherGMChannel)
-
-	t.Run("Get teams for GM channel", func(t *testing.T) {
-		commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeams(th.Context, gmChannel.Id)
+	t.Run("teams for dm with user1 and user2", func(t *testing.T) {
+		dmChannel, appErr := th.App.createDirectChannel(th.Context, user1.Id, user2.Id)
 		require.Nil(t, appErr)
-		require.Equal(t, 2, len(commonTeams))
+		require.NotNil(t, dmChannel)
+
+		commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeams(th.Context, dmChannel.Id)
+		require.Nil(t, appErr)
+		assertTeam1InCommon(t, commonTeams)
+
+		t.Run("as user1", func(t *testing.T) {
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: user1.Id}), dmChannel.Id)
+			require.Nil(t, appErr)
+			assertTeam1InCommon(t, commonTeams)
+		})
+
+		t.Run("as user2", func(t *testing.T) {
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: user2.Id}), dmChannel.Id)
+			require.Nil(t, appErr)
+			assertTeam1InCommon(t, commonTeams)
+		})
+
+		t.Run("as unrelatedUser", func(t *testing.T) {
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: unrelatedUser.Id}), dmChannel.Id)
+			require.Nil(t, appErr)
+			assertNoTeamsInCommon(t, commonTeams)
+		})
 	})
 
-	t.Run("No common teams", func(t *testing.T) {
-		commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeams(th.Context, otherGMChannel.Id)
+	t.Run("teams for dm with user1 and deactivatedUser", func(t *testing.T) {
+		deactivatedUser := th.CreateUser(t)
+
+		// deactiverUser on team1 only
+		th.LinkUserToTeam(t, deactivatedUser, team1)
+
+		dmChannel, appErr := th.App.createDirectChannel(th.Context, user1.Id, deactivatedUser.Id)
 		require.Nil(t, appErr)
-		require.Equal(t, 0, len(commonTeams))
+		require.NotNil(t, dmChannel)
+
+		_, appErr = th.App.UpdateActive(th.Context, deactivatedUser, false)
+		require.Nil(t, appErr)
+
+		commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeams(th.Context, dmChannel.Id)
+		require.Nil(t, appErr)
+		// By default, we return the teams common only to active users.
+		assertTeam1InCommon(t, commonTeams)
+
+		t.Run("as user1", func(t *testing.T) {
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: user1.Id}), dmChannel.Id)
+			require.Nil(t, appErr)
+			assertTeam1InCommon(t, commonTeams)
+		})
+
+		t.Run("as deactivatedUser", func(t *testing.T) {
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: deactivatedUser.Id}), dmChannel.Id)
+			require.Nil(t, appErr)
+
+			// When requesting as deactivated user in the dm, no teams are considered in common.
+			assertNoTeamsInCommon(t, commonTeams)
+		})
+
+		t.Run("as unrelatedUser", func(t *testing.T) {
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: unrelatedUser.Id}), dmChannel.Id)
+			require.Nil(t, appErr)
+			assertNoTeamsInCommon(t, commonTeams)
+		})
+	})
+
+	t.Run("teams for gm with user1, user2 and user3", func(t *testing.T) {
+		gmChannel, appErr := th.App.createGroupChannel(th.Context, []string{user1.Id, user2.Id, user3.Id}, user1.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, gmChannel)
+
+		commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeams(th.Context, gmChannel.Id)
+		require.Nil(t, appErr)
+		assertTeam1InCommon(t, commonTeams)
+
+		t.Run("as user1", func(t *testing.T) {
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: user1.Id}), gmChannel.Id)
+			require.Nil(t, appErr)
+			assertTeam1InCommon(t, commonTeams)
+		})
+
+		t.Run("as user2", func(t *testing.T) {
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: user2.Id}), gmChannel.Id)
+			require.Nil(t, appErr)
+			assertTeam1InCommon(t, commonTeams)
+		})
+
+		t.Run("as user3", func(t *testing.T) {
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: user3.Id}), gmChannel.Id)
+			require.Nil(t, appErr)
+			assertTeam1InCommon(t, commonTeams)
+		})
+
+		t.Run("as unrelatedUser", func(t *testing.T) {
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: unrelatedUser.Id}), gmChannel.Id)
+			require.Nil(t, appErr)
+			assertNoTeamsInCommon(t, commonTeams)
+		})
+	})
+
+	t.Run("teams for gm with user2, user3, and user4NotInAnyTeams", func(t *testing.T) {
+		gmChannel, appErr := th.App.createGroupChannel(th.Context, []string{user2.Id, user3.Id, user4NotInAnyTeams.Id}, user1.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, gmChannel)
+
+		commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeams(th.Context, gmChannel.Id)
+		require.Nil(t, appErr)
+		assertNoTeamsInCommon(t, commonTeams)
+
+		t.Run("as user2", func(t *testing.T) {
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: user2.Id}), gmChannel.Id)
+			require.Nil(t, appErr)
+			assertNoTeamsInCommon(t, commonTeams)
+		})
+
+		t.Run("as user3", func(t *testing.T) {
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: user3.Id}), gmChannel.Id)
+			require.Nil(t, appErr)
+			assertNoTeamsInCommon(t, commonTeams)
+		})
+
+		t.Run("as unrelatedUser", func(t *testing.T) {
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: unrelatedUser.Id}), gmChannel.Id)
+			require.Nil(t, appErr)
+			assertNoTeamsInCommon(t, commonTeams)
+		})
+	})
+
+	t.Run("teams for gm with user2, user3, and deactivatedUser", func(t *testing.T) {
+		deactivatedUser := th.CreateUser(t)
+
+		// deactiverUser on team2 only
+		th.LinkUserToTeam(t, deactivatedUser, team2)
+
+		gmChannel, appErr := th.App.createGroupChannel(th.Context, []string{user2.Id, user3.Id, deactivatedUser.Id}, user1.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, gmChannel)
+
+		_, appErr = th.App.UpdateActive(th.Context, deactivatedUser, false)
+		require.Nil(t, appErr)
+
+		commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeams(th.Context, gmChannel.Id)
+		require.Nil(t, appErr)
+		// By default, we return the teams common only to active users.
+		assertTeam1And2InCommon(t, commonTeams)
+
+		t.Run("as user2", func(t *testing.T) {
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: user2.Id}), gmChannel.Id)
+			require.Nil(t, appErr)
+			assertTeam1And2InCommon(t, commonTeams)
+		})
+
+		t.Run("as user3", func(t *testing.T) {
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: user3.Id}), gmChannel.Id)
+			require.Nil(t, appErr)
+			assertTeam1And2InCommon(t, commonTeams)
+		})
+
+		t.Run("as deactivatedUser", func(t *testing.T) {
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: deactivatedUser.Id}), gmChannel.Id)
+			require.Nil(t, appErr)
+
+			// When requesting as deactivated user in the gm, no teams are considered in common.
+			assertNoTeamsInCommon(t, commonTeams)
+		})
+
+		t.Run("as unrelatedUser", func(t *testing.T) {
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: unrelatedUser.Id}), gmChannel.Id)
+			require.Nil(t, appErr)
+			assertNoTeamsInCommon(t, commonTeams)
+		})
 	})
 }
 
 func TestConvertGroupMessageToChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 
@@ -3070,22 +3388,21 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 
 func TestPatchChannelMembersNotifyProps(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("should update multiple users' notify props", func(t *testing.T) {
-		user1 := th.CreateUser()
-		user2 := th.CreateUser()
+		user1 := th.CreateUser(t)
+		user2 := th.CreateUser(t)
 
-		channel1 := th.CreateChannel(th.Context, th.BasicTeam)
-		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
+		channel1 := th.CreateChannel(t, th.BasicTeam)
+		channel2 := th.CreateChannel(t, th.BasicTeam)
 
-		th.LinkUserToTeam(user1, th.BasicTeam)
-		th.LinkUserToTeam(user2, th.BasicTeam)
-		th.AddUserToChannel(user1, channel1)
-		th.AddUserToChannel(user1, channel2)
-		th.AddUserToChannel(user2, channel1)
-		th.AddUserToChannel(user2, channel2)
+		th.LinkUserToTeam(t, user1, th.BasicTeam)
+		th.LinkUserToTeam(t, user2, th.BasicTeam)
+		th.AddUserToChannel(t, user1, channel1)
+		th.AddUserToChannel(t, user1, channel2)
+		th.AddUserToChannel(t, user2, channel1)
+		th.AddUserToChannel(t, user2, channel2)
 
 		result, appErr := th.App.PatchChannelMembersNotifyProps(th.Context, []*model.ChannelMemberIdentifier{
 			{UserId: user1.Id, ChannelId: channel1.Id},
@@ -3122,17 +3439,17 @@ func TestPatchChannelMembersNotifyProps(t *testing.T) {
 	})
 
 	t.Run("should send WS events for each user", func(t *testing.T) {
-		user1 := th.CreateUser()
-		user2 := th.CreateUser()
+		user1 := th.CreateUser(t)
+		user2 := th.CreateUser(t)
 
-		channel1 := th.CreateChannel(th.Context, th.BasicTeam)
-		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
+		channel1 := th.CreateChannel(t, th.BasicTeam)
+		channel2 := th.CreateChannel(t, th.BasicTeam)
 
-		th.LinkUserToTeam(user1, th.BasicTeam)
-		th.LinkUserToTeam(user2, th.BasicTeam)
-		th.AddUserToChannel(user1, channel1)
-		th.AddUserToChannel(user1, channel2)
-		th.AddUserToChannel(user2, channel1)
+		th.LinkUserToTeam(t, user1, th.BasicTeam)
+		th.LinkUserToTeam(t, user2, th.BasicTeam)
+		th.AddUserToChannel(t, user1, channel1)
+		th.AddUserToChannel(t, user1, channel2)
+		th.AddUserToChannel(t, user2, channel1)
 
 		eventTypesFilter := []model.WebsocketEventType{model.WebsocketEventChannelMemberUpdated}
 
@@ -3156,7 +3473,7 @@ func TestPatchChannelMembersNotifyProps(t *testing.T) {
 		received := <-messages1
 		assert.Equal(t, model.WebsocketEventChannelMemberUpdated, received.EventType())
 
-		member := decodeJSON(received.GetData()["channelMember"], &model.ChannelMember{})
+		member := decodeJSON(t, received.GetData()["channelMember"], &model.ChannelMember{})
 		assert.Equal(t, user1.Id, member.UserId)
 		assert.Contains(t, []string{channel1.Id, channel2.Id}, member.ChannelId)
 		assert.Equal(t, model.ChannelNotifyNone, member.NotifyProps[model.DesktopNotifyProp])
@@ -3167,7 +3484,7 @@ func TestPatchChannelMembersNotifyProps(t *testing.T) {
 		received = <-messages1
 		assert.Equal(t, model.WebsocketEventChannelMemberUpdated, received.EventType())
 
-		member = decodeJSON(received.GetData()["channelMember"], &model.ChannelMember{})
+		member = decodeJSON(t, received.GetData()["channelMember"], &model.ChannelMember{})
 		assert.Equal(t, user1.Id, member.UserId)
 		assert.Contains(t, []string{channel1.Id, channel2.Id}, member.ChannelId)
 		assert.Equal(t, model.ChannelNotifyNone, member.NotifyProps[model.DesktopNotifyProp])
@@ -3178,7 +3495,7 @@ func TestPatchChannelMembersNotifyProps(t *testing.T) {
 		received = <-messages2
 		assert.Equal(t, model.WebsocketEventChannelMemberUpdated, received.EventType())
 
-		member = decodeJSON(received.GetData()["channelMember"], &model.ChannelMember{})
+		member = decodeJSON(t, received.GetData()["channelMember"], &model.ChannelMember{})
 		assert.Equal(t, user2.Id, member.UserId)
 		assert.Equal(t, channel1.Id, member.ChannelId)
 		assert.Equal(t, model.ChannelNotifyNone, member.NotifyProps[model.DesktopNotifyProp])
@@ -3199,8 +3516,7 @@ func TestPatchChannelMembersNotifyProps(t *testing.T) {
 }
 
 func TestGetChannelFileCount(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	channel := th.BasicChannel
 
@@ -3210,7 +3526,7 @@ func TestGetChannelFileCount(t *testing.T) {
 		Message:   "This is a test post",
 		UserId:    th.BasicUser.Id,
 	}
-	post, appErr := th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{})
+	post, _, appErr := th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{})
 	require.Nil(t, appErr)
 
 	fileInfo1 := &model.FileInfo{
@@ -3252,10 +3568,9 @@ func TestGetChannelFileCount(t *testing.T) {
 }
 
 func TestCheckIfChannelIsRestrictedDM(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	channel := th.CreateDmChannel(th.BasicUser2)
+	channel := th.CreateDmChannel(t, th.BasicUser2)
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageTeam
 	})
@@ -3274,10 +3589,10 @@ func TestCheckIfChannelIsRestrictedDM(t *testing.T) {
 		require.Nil(t, teamErr)
 	}
 
-	team1 := th.CreateTeam()
-	team2 := th.CreateTeam()
-	th.LinkUserToTeam(th.BasicUser, team1)
-	th.LinkUserToTeam(th.BasicUser2, team2)
+	team1 := th.CreateTeam(t)
+	team2 := th.CreateTeam(t)
+	th.LinkUserToTeam(t, th.BasicUser, team1)
+	th.LinkUserToTeam(t, th.BasicUser2, team2)
 
 	t.Run("should be restricted", func(t *testing.T) {
 		restricted, err := th.App.CheckIfChannelIsRestrictedDM(th.Context, channel)
@@ -3301,21 +3616,21 @@ func TestCheckIfChannelIsRestrictedDM(t *testing.T) {
 	})
 
 	t.Run("channel is not a direct or group channel", func(t *testing.T) {
-		openChannel := th.CreateChannel(th.Context, th.BasicTeam)
+		openChannel := th.CreateChannel(t, th.BasicTeam)
 		restricted, err := th.App.CheckIfChannelIsRestrictedDM(th.Context, openChannel)
 		require.Nil(t, err)
 		require.False(t, restricted)
 	})
 
 	t.Run("group message where users share a team", func(t *testing.T) {
-		team := th.CreateTeam()
-		user1 := th.CreateUser()
-		user2 := th.CreateUser()
-		th.LinkUserToTeam(user1, team)
-		th.LinkUserToTeam(user2, team)
-		th.LinkUserToTeam(th.BasicUser, team)
+		team := th.CreateTeam(t)
+		user1 := th.CreateUser(t)
+		user2 := th.CreateUser(t)
+		th.LinkUserToTeam(t, user1, team)
+		th.LinkUserToTeam(t, user2, team)
+		th.LinkUserToTeam(t, th.BasicUser, team)
 
-		groupChannel := th.CreateGroupChannel(th.Context, user1, user2)
+		groupChannel := th.CreateGroupChannel(t, user1, user2)
 
 		restricted, err := th.App.CheckIfChannelIsRestrictedDM(th.Context, groupChannel)
 		require.Nil(t, err)
@@ -3324,16 +3639,21 @@ func TestCheckIfChannelIsRestrictedDM(t *testing.T) {
 }
 
 func TestUpdateChannel(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+
+	t.Run("returns 404 for non-existent channel id", func(t *testing.T) {
+		_, appErr := th.App.UpdateChannel(th.Context, &model.Channel{Id: model.NewId()})
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
+	})
 
 	t.Run("should be able to update banner info", func(t *testing.T) {
-		channel := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen)
+		channel := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
 
 		channel.BannerInfo = &model.ChannelBannerInfo{
-			Enabled:         model.NewPointer(true),
-			Text:            model.NewPointer("banner text"),
-			BackgroundColor: model.NewPointer("#000000"),
+			Enabled:         new(true),
+			Text:            new("banner text"),
+			BackgroundColor: new("#000000"),
 		}
 
 		updatedChannel, appErr := th.App.UpdateChannel(th.Context, channel)
@@ -3343,7 +3663,7 @@ func TestUpdateChannel(t *testing.T) {
 		require.Equal(t, "banner text", *updatedChannel.BannerInfo.Text)
 		require.Equal(t, "#000000", *updatedChannel.BannerInfo.BackgroundColor)
 
-		channel.BannerInfo.Enabled = model.NewPointer(false)
+		channel.BannerInfo.Enabled = new(false)
 		updatedChannel, appErr = th.App.UpdateChannel(th.Context, channel)
 		require.Nil(t, appErr)
 		require.NotNil(t, updatedChannel.BannerInfo)
@@ -3352,17 +3672,16 @@ func TestUpdateChannel(t *testing.T) {
 }
 
 func TestPatchChannel(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("should be able to patch banner info", func(t *testing.T) {
-		channel := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen)
+		channel := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
 
 		patch := &model.ChannelPatch{
 			BannerInfo: &model.ChannelBannerInfo{
-				Enabled:         model.NewPointer(true),
-				Text:            model.NewPointer("banner text"),
-				BackgroundColor: model.NewPointer("#000000"),
+				Enabled:         new(true),
+				Text:            new("banner text"),
+				BackgroundColor: new("#000000"),
 			},
 		}
 
@@ -3375,7 +3694,7 @@ func TestPatchChannel(t *testing.T) {
 
 		patch = &model.ChannelPatch{
 			BannerInfo: &model.ChannelBannerInfo{
-				Text: model.NewPointer("text 1"),
+				Text: new("text 1"),
 			},
 		}
 
@@ -3388,7 +3707,7 @@ func TestPatchChannel(t *testing.T) {
 
 		patch = &model.ChannelPatch{
 			BannerInfo: &model.ChannelBannerInfo{
-				BackgroundColor: model.NewPointer("#FF00FF"),
+				BackgroundColor: new("#FF00FF"),
 			},
 		}
 
@@ -3402,7 +3721,7 @@ func TestPatchChannel(t *testing.T) {
 		// should be able to unset fields as well
 		patch = &model.ChannelPatch{
 			BannerInfo: &model.ChannelBannerInfo{
-				Enabled: model.NewPointer(false),
+				Enabled: new(false),
 			},
 		}
 
@@ -3413,12 +3732,12 @@ func TestPatchChannel(t *testing.T) {
 	})
 
 	t.Run("should not allow saving channel with invalid background info", func(t *testing.T) {
-		channel := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen)
+		channel := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
 
 		// enabling banner without data is invalid
 		patch := &model.ChannelPatch{
 			BannerInfo: &model.ChannelBannerInfo{
-				Enabled: model.NewPointer(true),
+				Enabled: new(true),
 			},
 		}
 
@@ -3430,12 +3749,12 @@ func TestPatchChannel(t *testing.T) {
 	})
 
 	t.Run("cannot configure channel banner on DMs", func(t *testing.T) {
-		dmChannel := th.CreateDmChannel(th.BasicUser2)
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
 
 		// enabling banner without data is invalid
 		patch := &model.ChannelPatch{
 			BannerInfo: &model.ChannelBannerInfo{
-				Enabled: model.NewPointer(true),
+				Enabled: new(true),
 			},
 		}
 
@@ -3447,13 +3766,13 @@ func TestPatchChannel(t *testing.T) {
 	})
 
 	t.Run("cannot configure channel banner on GMs", func(t *testing.T) {
-		user3 := th.CreateUser()
-		gmChannel := th.CreateGroupChannel(th.Context, th.BasicUser2, user3)
+		user3 := th.CreateUser(t)
+		gmChannel := th.CreateGroupChannel(t, th.BasicUser2, user3)
 
 		// enabling banner without data is invalid
 		patch := &model.ChannelPatch{
 			BannerInfo: &model.ChannelBannerInfo{
-				Enabled: model.NewPointer(true),
+				Enabled: new(true),
 			},
 		}
 
@@ -3470,7 +3789,7 @@ func TestPatchChannel(t *testing.T) {
 		})
 
 		// Create a DM channel between two users who don't share a team
-		dmChannel := th.CreateDmChannel(th.BasicUser2)
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
 
 		// Ensure the two users do not share a team
 		teams, err := th.App.GetTeamsForUser(th.BasicUser.Id)
@@ -3487,13 +3806,13 @@ func TestPatchChannel(t *testing.T) {
 		}
 
 		// Create separate teams for each user
-		team1 := th.CreateTeam()
-		team2 := th.CreateTeam()
-		th.LinkUserToTeam(th.BasicUser, team1)
-		th.LinkUserToTeam(th.BasicUser2, team2)
+		team1 := th.CreateTeam(t)
+		team2 := th.CreateTeam(t)
+		th.LinkUserToTeam(t, th.BasicUser, team1)
+		th.LinkUserToTeam(t, th.BasicUser2, team2)
 
 		patch := &model.ChannelPatch{
-			DisplayName: model.NewPointer("Updated DM"),
+			DisplayName: new("Updated DM"),
 		}
 
 		_, appErr := th.App.PatchChannel(th.Context, dmChannel, patch, th.BasicUser.Id)
@@ -3506,23 +3825,57 @@ func TestPatchChannel(t *testing.T) {
 			*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageAny
 		})
 	})
+
+	t.Run("Patch channel with autotranslations post a message to the channel", func(t *testing.T) {
+		channel := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
+
+		patch := &model.ChannelPatch{
+			AutoTranslation: new(true),
+		}
+
+		patchedChannel, appErr := th.App.PatchChannel(th.Context, channel, patch, channel.CreatorId)
+		require.Nil(t, appErr)
+		require.True(t, patchedChannel.AutoTranslation)
+
+		posts, appErr := th.App.GetPosts(th.Context, channel.Id, 0, 1)
+		require.Nil(t, appErr)
+		require.NotNil(t, posts)
+		systemPost := posts.Posts[posts.Order[0]]
+		require.Equal(t, model.PostTypeAutotranslationChange, systemPost.Type)
+		require.Equal(t, th.BasicUser.Username, systemPost.GetProp("username"))
+		require.Equal(t, true, systemPost.GetProp("enabled"))
+
+		patch.AutoTranslation = new(false)
+
+		patchedChannel, appErr = th.App.PatchChannel(th.Context, channel, patch, channel.CreatorId)
+		require.Nil(t, appErr)
+		require.False(t, patchedChannel.AutoTranslation)
+
+		posts, appErr = th.App.GetPosts(th.Context, channel.Id, 0, 1)
+		require.Nil(t, appErr)
+		require.NotNil(t, posts)
+		systemPost = posts.Posts[posts.Order[0]]
+		require.Equal(t, model.PostTypeAutotranslationChange, systemPost.Type)
+		require.Equal(t, th.BasicUser.Username, systemPost.GetProp("username"))
+		require.Equal(t, false, systemPost.GetProp("enabled"))
+	})
 }
 
 func TestCreateChannelWithCategorySorting(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	// Enable ExperimentalChannelCategorySorting
+	// Enable channel category sorting (default category names)
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ExperimentalSettings.ExperimentalChannelCategorySorting = true
+		*cfg.TeamSettings.EnableChannelCategorySorting = true
 	})
 
 	t.Run("should set category when adding user to channel with category and trim white spaces", func(t *testing.T) {
 		channel := &model.Channel{
-			DisplayName: "  Category  /  Channel Name  ",
-			Name:        "name1",
-			Type:        model.ChannelTypeOpen,
-			TeamId:      th.BasicTeam.Id,
+			DisplayName:         "  Channel Name  ",
+			DefaultCategoryName: "  Category  ",
+			Name:                "name1",
+			Type:                model.ChannelTypeOpen,
+			TeamId:              th.BasicTeam.Id,
 		}
 
 		channel, appErr := th.App.CreateChannelWithUser(th.Context, channel, th.BasicUser.Id)
@@ -3565,10 +3918,11 @@ func TestCreateChannelWithCategorySorting(t *testing.T) {
 
 	t.Run("should not set category when feature is disabled", func(t *testing.T) {
 		channel := &model.Channel{
-			DisplayName: "Category2/Channel Name",
-			Name:        "name2",
-			Type:        model.ChannelTypeOpen,
-			TeamId:      th.BasicTeam.Id,
+			DisplayName:         "Channel Name",
+			DefaultCategoryName: "Category2",
+			Name:                "name2",
+			Type:                model.ChannelTypeOpen,
+			TeamId:              th.BasicTeam.Id,
 		}
 
 		channel, appErr := th.App.CreateChannel(th.Context, channel, false)
@@ -3576,9 +3930,9 @@ func TestCreateChannelWithCategorySorting(t *testing.T) {
 		require.Equal(t, "Channel Name", channel.DisplayName)
 		require.Equal(t, "Category2", channel.DefaultCategoryName)
 
-		// Disable ExperimentalChannelCategorySorting
+		// Disable channel category sorting
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ExperimentalSettings.ExperimentalChannelCategorySorting = false
+			*cfg.TeamSettings.EnableChannelCategorySorting = false
 		})
 
 		// Add user to channel
@@ -3601,16 +3955,15 @@ func TestCreateChannelWithCategorySorting(t *testing.T) {
 }
 
 func TestPatchChannelWithCategorySorting(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	// Enable ExperimentalChannelCategorySorting
+	// Enable channel category sorting
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ExperimentalSettings.ExperimentalChannelCategorySorting = true
+		*cfg.TeamSettings.EnableChannelCategorySorting = true
 	})
 
 	// Create initial channel
-	channel := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen)
+	channel := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
 	channel.DisplayName = "Initial Name"
 	channel, appErr := th.App.UpdateChannel(th.Context, channel)
 	require.Nil(t, appErr)
@@ -3619,9 +3972,9 @@ func TestPatchChannelWithCategorySorting(t *testing.T) {
 	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser, channel, false)
 	require.Nil(t, appErr)
 
-	// Patch channel with new display name containing category
 	patch := &model.ChannelPatch{
-		DisplayName: model.NewPointer("  New Category  /  New Channel Name  "),
+		DisplayName:         new("  New Channel Name  "),
+		DefaultCategoryName: new("  New Category  "),
 	}
 
 	patchedChannel, appErr := th.App.PatchChannel(th.Context, channel, patch, channel.CreatorId)
@@ -3631,15 +3984,111 @@ func TestPatchChannelWithCategorySorting(t *testing.T) {
 
 	// Test that category is not updated when feature is disabled
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ExperimentalSettings.ExperimentalChannelCategorySorting = false
+		*cfg.TeamSettings.EnableChannelCategorySorting = false
 	})
 
 	patch = &model.ChannelPatch{
-		DisplayName: model.NewPointer("Disabled Category/Channel Name"),
+		DisplayName: new("Disabled Category/Channel Name"),
 	}
 
-	patchedChannel, appErr = th.App.PatchChannel(th.Context, channel, patch, channel.CreatorId)
+	patchedChannel, appErr = th.App.PatchChannel(th.Context, patchedChannel, patch, patchedChannel.CreatorId)
 	require.Nil(t, appErr)
 	require.Equal(t, "Disabled Category/Channel Name", patchedChannel.DisplayName)
 	require.Equal(t, "New Category", patchedChannel.DefaultCategoryName)
+}
+
+func TestPatchChannelDefaultCategoryMovesOutOfChannels(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.EnableChannelCategorySorting = true
+	})
+
+	// Create several channels so the target sits at an index > 0 in the default Channels category,
+	// exercising the path that previously panicked when removing the channel from its original category.
+	var channels []*model.Channel
+	for range 3 {
+		c := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
+		channels = append(channels, c)
+	}
+
+	categories, appErr := th.App.GetSidebarCategoriesForTeamForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
+	require.Nil(t, appErr)
+
+	var channelsCategory *model.SidebarCategoryWithChannels
+	for _, category := range categories.Categories {
+		if category.Type == model.SidebarCategoryChannels {
+			channelsCategory = category
+			break
+		}
+	}
+	require.NotNil(t, channelsCategory)
+
+	created := make(map[string]*model.Channel, len(channels))
+	for _, c := range channels {
+		created[c.Id] = c
+	}
+
+	// Pick the created channel sitting at the highest index in the default Channels category so the
+	// removal path operates on an index > 1, which previously triggered an out-of-range panic.
+	var target *model.Channel
+	targetIndex := -1
+	for i, channelID := range channelsCategory.Channels {
+		if c, ok := created[channelID]; ok && i > targetIndex {
+			target = c
+			targetIndex = i
+		}
+	}
+	require.NotNil(t, target)
+	require.Greater(t, targetIndex, 1, "expected a created channel beyond index 1 to exercise the removal path")
+
+	patch := &model.ChannelPatch{DefaultCategoryName: new("Moved Category")}
+	_, appErr = th.App.PatchChannel(th.Context, target, patch, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	categories, appErr = th.App.GetSidebarCategoriesForTeamForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
+	require.Nil(t, appErr)
+
+	for _, category := range categories.Categories {
+		switch {
+		case category.DisplayName == "Moved Category":
+			assert.Contains(t, category.Channels, target.Id, "channel should be in the new default category")
+		case category.Type == model.SidebarCategoryChannels:
+			assert.NotContains(t, category.Channels, target.Id, "channel should no longer be in the default Channels category")
+		}
+	}
+}
+
+func TestPatchChannelDefaultCategoryReapplyIsIdempotent(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.EnableChannelCategorySorting = true
+	})
+
+	channel := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
+
+	patch := &model.ChannelPatch{DefaultCategoryName: new("Reapply Category")}
+	channel, appErr := th.App.PatchChannel(th.Context, channel, patch, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	// Patching again re-runs the default category logic while the channel is already in the target
+	// category. This must not error or list the channel twice in the category.
+	_, appErr = th.App.PatchChannel(th.Context, channel, &model.ChannelPatch{Header: new("updated header")}, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	categories, appErr := th.App.GetSidebarCategoriesForTeamForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
+	require.Nil(t, appErr)
+
+	for _, category := range categories.Categories {
+		if category.DisplayName == "Reapply Category" {
+			count := 0
+			for _, channelID := range category.Channels {
+				if channelID == channel.Id {
+					count++
+				}
+			}
+			assert.Equal(t, 1, count, "channel should appear exactly once in the default category")
+		}
+	}
 }

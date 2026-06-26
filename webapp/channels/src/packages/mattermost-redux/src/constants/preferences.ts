@@ -55,6 +55,12 @@ const Preferences = {
     CATEGORY_WHATS_NEW_MODAL: 'whats_new_modal',
     HAS_SEEN_SIDEBAR_WHATS_NEW_MODAL: 'has_seen_sidebar_whats_new_modal',
 
+    CATEGORY_SHORTCUT_ACTIONS: 'shortcut_actions',
+    MARK_ALL_READ_WITHOUT_CONFIRM: 'mark_all_read_without_confirm',
+
+    CATEGORY_NEW_FEATURES: 'new_features',
+    HAS_SEEN_MARK_ALL_READ_FEATURE: 'mark_all_read_seen',
+
     CATEGORY_PERFORMANCE_DEBUGGING: 'performance_debugging',
     NAME_DISABLE_CLIENT_PLUGINS: 'disable_client_plugins',
     NAME_DISABLE_TYPING_MESSAGES: 'disable_typing_messages',
@@ -75,10 +81,12 @@ const Preferences = {
     CATEGORY_REPORTING: 'reporting',
 
     HIDE_BATCH_EXPORT_CONFIRM_MODAL: 'hide_batch_export_confirm_modal',
-    HIDE_MYSQL_STATS_NOTIFICATION: 'hide_mysql_stats_notifcation',
 
     CATEGORY_OVERAGE_USERS_BANNER: 'overage_users_banner',
     CATEGORY_POST_HISTORY_LIMIT_BANNER: 'post_history_limit_banner',
+
+    CATEGORY_BURN_ON_READ: 'burn_on_read',
+    BURN_ON_READ_SKIP_CONFIRMATION: 'skip_delete_confirmation',
 
     CATEGORY_THEME: 'theme',
     THEMES: {

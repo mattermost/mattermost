@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @enterprise @messaging
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Move Thread', () => {
     let user1;
@@ -75,8 +75,12 @@ describe('Move Thread', () => {
     });
 
     afterEach(() => {
-        // # Go to 1. public channel
-        cy.visit(`/${testTeam.name}/channels/${dmChannel.name}`);
+        // # Close any open modals to prevent test pollution
+        cy.get('body').then(($body) => {
+            if ($body.find('.modal.in').length > 0) {
+                cy.get('body').type('{esc}');
+            }
+        });
     });
 
     it('MM-T5512_1 Move root post from DM', () => {
@@ -203,10 +207,10 @@ describe('Move Thread', () => {
 
             if (cancel) {
                 // * Assert if button is active
-                cy.get('.MoveThreadModal__cancel-button').should('not.be.disabled').type('{esc}', {force: true});
+                cy.findByRole('button', {name: 'Cancel'}).should('not.be.disabled').click();
             } else {
                 // * Assert if button is active
-                cy.get('.GenericModal__button.confirm').should('not.be.disabled').type('{enter}', {force: true});
+                cy.findByRole('button', {name: 'Move'}).should('not.be.disabled').click();
             }
         });
     };

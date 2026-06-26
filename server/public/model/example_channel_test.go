@@ -102,8 +102,7 @@ func ExampleClient4_GetChannel() {
 	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
 
 	channelId := "channel_id"
-	etag := ""
-	channel, _, err := client.GetChannel(context.Background(), channelId, etag)
+	channel, _, err := client.GetChannel(context.Background(), channelId)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -145,10 +144,10 @@ func ExampleClient4_PatchChannel() {
 
 	channelId := "channel_id"
 	patch := &model.ChannelPatch{
-		Name:        model.NewPointer("new_name"),
-		DisplayName: model.NewPointer("New Display Name"),
-		Header:      model.NewPointer("New header"),
-		Purpose:     model.NewPointer("New purpose"),
+		Name:        new("new_name"),
+		DisplayName: new("New Display Name"),
+		Header:      new("New header"),
+		Purpose:     new("New purpose"),
 	}
 
 	_, _, err := client.PatchChannel(context.Background(), channelId, patch)
@@ -473,5 +472,21 @@ func ExampleClient4_UpdateChannelScheme() {
 	_, err := client.UpdateChannelScheme(context.Background(), channelID, schemeID)
 	if err != nil {
 		log.Fatal(err)
+	}
+}
+
+func ExampleClient4_GetDirectOrGroupMessageMembersCommonTeams() {
+	client := model.NewAPIv4Client(os.Getenv("MM_SERVICESETTINGS_SITEURL"))
+	client.SetToken(os.Getenv("MM_AUTHTOKEN"))
+
+	channelID := "dm_or_gm_channel_id"
+	teams, _, err := client.GetDirectOrGroupMessageMembersCommonTeams(context.Background(), channelID)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Found %d common teams for members of channel %s\n", len(teams), channelID)
+	for _, team := range teams {
+		fmt.Printf("  - %s (%s)\n", team.DisplayName, team.Name)
 	}
 }

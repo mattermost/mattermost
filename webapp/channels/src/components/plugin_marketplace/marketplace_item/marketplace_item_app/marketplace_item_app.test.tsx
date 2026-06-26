@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import MarketplaceItemApp from './marketplace_item_app';
 import type {MarketplaceItemAppProps} from './marketplace_item_app';
@@ -23,33 +24,33 @@ describe('components/MarketplaceItemApp', () => {
         };
 
         test('should render', () => {
-            const wrapper = shallow<MarketplaceItemApp>(
+            const {container} = renderWithContext(
                 <MarketplaceItemApp {...baseProps}/>,
             );
 
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
 
         test('should render with no plugin description', () => {
             const props = {...baseProps};
             delete props.description;
 
-            const wrapper = shallow(
+            const {container} = renderWithContext(
                 <MarketplaceItemApp {...props}/>,
             );
 
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
 
         test('should render with no homepage url', () => {
             const props = {...baseProps};
             delete props.homepageUrl;
 
-            const wrapper = shallow<MarketplaceItemApp>(
+            const {container} = renderWithContext(
                 <MarketplaceItemApp {...props}/>,
             );
 
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
 
         test('should render with server error', () => {
@@ -58,11 +59,11 @@ describe('components/MarketplaceItemApp', () => {
                 error: 'An error occurred.',
             };
 
-            const wrapper = shallow<MarketplaceItemApp>(
+            const {container} = renderWithContext(
                 <MarketplaceItemApp {...props}/>,
             );
 
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
 
         it('when installing', () => {
@@ -70,11 +71,11 @@ describe('components/MarketplaceItemApp', () => {
                 ...baseProps,
                 isInstalling: true,
             };
-            const wrapper = shallow<MarketplaceItemApp>(
+            const {container} = renderWithContext(
                 <MarketplaceItemApp {...props}/>,
             );
 
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
 
         test('should render installed app', () => {
@@ -83,11 +84,11 @@ describe('components/MarketplaceItemApp', () => {
                 installed: true,
             };
 
-            const wrapper = shallow<MarketplaceItemApp>(
+            const {container} = renderWithContext(
                 <MarketplaceItemApp {...props}/>,
             );
 
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
 
         test('should render with icon', () => {
@@ -96,11 +97,11 @@ describe('components/MarketplaceItemApp', () => {
                 iconURL: 'http://localhost:8065/plugins/com.mattermost.apps/apps/com.mattermost.servicenow/static/now-mobile-icon.png',
             };
 
-            const wrapper = shallow<MarketplaceItemApp>(
+            const {container} = renderWithContext(
                 <MarketplaceItemApp {...props}/>,
             );
 
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
 
         test('should render with empty list of labels', () => {
@@ -109,14 +110,17 @@ describe('components/MarketplaceItemApp', () => {
                 labels: [],
             };
 
-            const wrapper = shallow<MarketplaceItemApp>(
+            const {container} = renderWithContext(
                 <MarketplaceItemApp {...props}/>,
             );
 
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
 
         test('should render with one labels', () => {
+            // Suppress known React ref warning from WithTooltip wrapping Tag (function component)
+            const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
             const props = {
                 ...baseProps,
                 labels: [
@@ -128,11 +132,13 @@ describe('components/MarketplaceItemApp', () => {
                 ],
             };
 
-            const wrapper = shallow<MarketplaceItemApp>(
+            const {container} = renderWithContext(
                 <MarketplaceItemApp {...props}/>,
             );
 
-            expect(wrapper).toMatchSnapshot();
+            spy.mockRestore();
+
+            expect(container).toMatchSnapshot();
         });
 
         test('should render with two labels', () => {
@@ -151,24 +157,24 @@ describe('components/MarketplaceItemApp', () => {
                 ],
             };
 
-            const wrapper = shallow<MarketplaceItemApp>(
+            const {container} = renderWithContext(
                 <MarketplaceItemApp {...props}/>,
             );
 
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
 
-        test('install should trigger app installation', () => {
+        test('install should trigger app installation', async () => {
             const props = {
                 ...baseProps,
                 isDefaultMarketplace: true,
             };
 
-            const wrapper = shallow<MarketplaceItemApp>(
+            renderWithContext(
                 <MarketplaceItemApp {...props}/>,
             );
 
-            wrapper.instance().onInstall();
+            await userEvent.click(screen.getByText('Install'));
             expect(props.actions.installApp).toHaveBeenCalledWith('id');
         });
     });

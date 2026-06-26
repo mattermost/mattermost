@@ -121,6 +121,10 @@ const Button = styled.button<{open: boolean}>(({open}) => {
             bottom: 22px;
             left: 22px;
         }
+
+        #root.global-classification-banner-bottom-visible & {
+            bottom: calc(15px + var(--global-classification-banner-bottom-height, 24px));
+        }
     `;
 });
 
@@ -298,7 +302,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
                             >
                                 <FormattedMessage
                                     id='onboardingTask.checklist.dismiss_link'
-                                    defaultMessage="No thanks, I'll figure it out myself"
+                                    defaultMessage='No thanks, I’ll figure it out myself'
                                 />
                             </span>
                         </>

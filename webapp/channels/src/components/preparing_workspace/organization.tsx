@@ -12,7 +12,7 @@ import type {Team} from '@mattermost/types/teams';
 import {getTeams} from 'mattermost-redux/actions/teams';
 import {getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
 
-import OrganizationSVG from 'components/common/svg_images_components/organization-building_svg';
+import CompanySVG from 'components/common/svg_images_components/company_svg';
 import QuickInput from 'components/quick_input';
 
 import Constants from 'utils/constants';
@@ -35,7 +35,7 @@ type Props = PreparingWorkspacePageProps & {
     createTeam: (OrganizationName: string) => Promise<{error: string | null; newTeam: Team | null | undefined}>;
     updateTeam: (teamToUpdate: Team) => Promise<{error: string | null; updatedTeam: Team | null}>;
     setInviteId: (inviteId: string) => void;
-}
+};
 
 const Organization = (props: Props) => {
     const {formatMessage} = useIntl();
@@ -133,7 +133,10 @@ const Organization = (props: Props) => {
                 <div className='Organization-right-col'>
                     <div className='Organization-form-wrapper'>
                         <div className='Organization__progress-path'>
-                            <OrganizationSVG/>
+                            <CompanySVG
+                                width={205}
+                                height={180}
+                            />
                             <PageLine
                                 style={{
                                     marginTop: '5px',

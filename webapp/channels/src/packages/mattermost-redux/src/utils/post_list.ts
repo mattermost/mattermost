@@ -79,6 +79,17 @@ export function makeFilterPostsAndAddSeparators() {
                     continue;
                 }
 
+                // Filter out expired burn-on-read posts
+                // Note: BoR posts should display regardless of feature flag being enabled/disabled
+                // The feature flag only controls creation of NEW BoR messages, not display of existing ones
+                if (post.type === Posts.POST_TYPES.BURN_ON_READ) {
+                    // Skip if already expired and deleted
+                    const expireAt = post.metadata?.expire_at;
+                    if (expireAt && typeof expireAt === 'number' && expireAt <= Date.now()) {
+                        continue;
+                    }
+                }
+
                 lastDate = pushPostDateIfNeeded(post, currentUser, out, lastDate);
 
                 if (
@@ -101,7 +112,7 @@ export function makeFilterPostsAndAddSeparators() {
     );
 }
 
-function pushPostDateIfNeeded(post: Post, currentUser: UserProfile, out: Array<Post|string>, lastDate?: Date) {
+function pushPostDateIfNeeded(post: Post, currentUser: UserProfile, out: Array<Post | string>, lastDate?: Date) {
     // Push on a date header if the last post was on a different day than the current one
     const postDate = new Date(post.create_at);
     const currentOffset = postDate.getTimezoneOffset() * 60 * 1000;
@@ -133,7 +144,7 @@ export function makeAddDateSeparatorsForSearchResults() {
                 return [];
             }
 
-            const out: Array<Post|string> = [];
+            const out: Array<Post | string> = [];
             let lastDate;
 
             for (const post of posts) {
@@ -480,7 +491,7 @@ export type MessageData = {
     actorId?: string;
     postType: string;
     userIds: string[];
-}
+};
 
 function isMessageData(v: unknown): v is MessageData {
     if (typeof v !== 'object' || !v) {
@@ -506,7 +517,7 @@ type UserActivityProp = {
     allUserIds: string[];
     allUsernames: string[];
     messageData: MessageData[];
-}
+};
 
 export function isUserActivityProp(v: unknown): v is UserActivityProp {
     if (typeof v !== 'object' || !v) {

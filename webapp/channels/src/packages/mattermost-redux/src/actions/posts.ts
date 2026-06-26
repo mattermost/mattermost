@@ -27,7 +27,7 @@ import {decrementThreadCounts} from 'mattermost-redux/actions/threads';
 import {getProfilesByIds, getProfilesByUsernames, getStatusesByIds} from 'mattermost-redux/actions/users';
 import {Client4, DEFAULT_LIMIT_AFTER, DEFAULT_LIMIT_BEFORE} from 'mattermost-redux/client';
 import {General, Preferences, Posts} from 'mattermost-redux/constants';
-import {getCurrentChannelId, getMyChannelMember as getMyChannelMemberSelector} from 'mattermost-redux/selectors/entities/channels';
+import {getAllChannels, getCurrentChannelId, getMyChannelMember, getMyChannelMember as getMyChannelMemberSelector} from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getCustomEmojisByName as selectCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
 import {getAllGroupsByName} from 'mattermost-redux/selectors/entities/groups';
@@ -174,7 +174,7 @@ export type CreatePostReturnType = {
     created?: boolean;
     pending?: string;
     error?: string;
-}
+};
 
 export function createPost(
     post: Post,
@@ -200,6 +200,21 @@ export function createPost(
             update_at: timestamp,
             reply_count: 0,
         };
+
+        // Add current_team_id for DM/GM posts to enable proper channel mention resolution
+        // This prevents cross-team information disclosure and makes mention resolution deterministic
+        const channel = state.entities.channels.channels[post.channel_id];
+        const currentTeamId = state.entities.teams.currentTeamId;
+        if (channel && !channel.team_id && currentTeamId) {
+            // DM/GM channel - add current team context
+            newPost = {
+                ...newPost,
+                props: {
+                    ...newPost.props,
+                    current_team_id: currentTeamId,
+                },
+            };
+        }
 
         if (post.root_id) {
             newPost.reply_count = PostSelectors.getPostRepliesCount(state, post.root_id) + 1;
@@ -510,7 +525,7 @@ export function unpinPost(postId: string): ActionFuncAsync {
 export type SubmitReactionReturnType = {
     reaction?: Reaction;
     removedReaction?: boolean;
-}
+};
 
 export function addReaction(postId: string, emojiName: string): ActionFuncAsync<SubmitReactionReturnType> {
     return async (dispatch, getState) => {
@@ -749,7 +764,6 @@ export function getPostsUnread(channelId: string, fetchThreads = true, collapsed
             dispatch(logError(error));
             return {error};
         }
-
         const actions: AnyAction[] = [
             {
                 type: PostTypes.RECEIVED_POSTS,
@@ -928,7 +942,7 @@ export function getPostThreads(posts: Post[], fetchThreads = true): ThunkActionF
 }
 
 // Note that getMentionsAndStatusesForPosts can take either an array of posts or a map of ids to posts
-export async function getMentionsAndStatusesForPosts(postsArrayOrMap: Post[]|PostList['posts'], dispatch: DispatchFunc, getState: GetStateFunc) {
+export async function getMentionsAndStatusesForPosts(postsArrayOrMap: Post[] | PostList['posts'], dispatch: DispatchFunc, getState: GetStateFunc) {
     if (!postsArrayOrMap) {
         // Some API methods return {error} for no results
         return Promise.resolve();
@@ -1139,7 +1153,7 @@ export function getNeededAtMentionedUsernamesAndGroups(state: GlobalState, posts
     return usernamesAndGroupsToLoad;
 }
 
-export type ExtendedPost = Post & { system_post_ids?: string[] };
+export type ExtendedPost = Post & {system_post_ids?: string[]};
 
 export function removePost(post: ExtendedPost): ActionFunc<boolean> {
     return (dispatch, getState) => {
@@ -1246,6 +1260,38 @@ export function doPostActionWithCookie(postId: string, actionId: string, actionC
     };
 }
 
+export function doPostActionWithQuery(postId: string, actionId: string, query: Record<string, string>): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.doPostActionWithQuery(postId, actionId, query);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        if (data && data.trigger_id) {
+            dispatch({
+                type: IntegrationTypes.RECEIVED_DIALOG_TRIGGER_ID,
+                data: data.trigger_id,
+            });
+            const state = getState();
+            const post = PostSelectors.getPost(state, postId);
+            if (post) {
+                dispatch({
+                    type: IntegrationTypes.RECEIVED_DIALOG_ARGUMENTS,
+                    data: {
+                        channel_id: post.channel_id,
+                    },
+                });
+            }
+        }
+
+        return {data};
+    };
+}
+
 export function addMessageIntoHistory(message: string) {
     return {
         type: PostTypes.ADD_MESSAGE_INTO_HISTORY,
@@ -1282,17 +1328,39 @@ export function moveHistoryIndexForward(index: string): ActionFuncAsync {
     };
 }
 
+export function resetReloadPostsInTranslatedChannels(): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        const state = getState();
+        const channels = getAllChannels(state);
+        for (const channel of Object.values(channels)) {
+            if (!channel.autotranslation) {
+                continue;
+            }
+
+            const myMember = getMyChannelMember(state, channel.id);
+            if (myMember?.autotranslation_disabled) {
+                continue;
+            }
+
+            dispatch(resetReloadPostsInChannel(channel.id));
+        }
+
+        return {data: true};
+    };
+}
+
 /**
  * Ensures thread-replies in channels correctly follow CRT:ON/OFF
  */
-export function resetReloadPostsInChannel(): ActionFuncAsync {
+export function resetReloadPostsInChannel(channelId?: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         dispatch({
             type: PostTypes.RESET_POSTS_IN_CHANNEL,
+            channelId,
         });
 
         const currentChannelId = getCurrentChannelId(getState());
-        if (currentChannelId) {
+        if (currentChannelId && (!channelId || channelId === currentChannelId)) {
             // wait for channel to be fully deselected; prevent stuck loading screen
             // full state-change/reconciliation will cause prefetchChannelPosts to reload posts
             await dispatch(selectChannel('')); // do not remove await

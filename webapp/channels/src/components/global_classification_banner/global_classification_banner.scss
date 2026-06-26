@@ -1,0 +1,35 @@
+$banner-height: 24px;
+
+.global-classification-banner {
+    z-index: 1000;
+    display: flex;
+    width: 100%;
+    height: $banner-height;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 8px;
+
+    &--bottom {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+    }
+}
+
+.global-classification-banner__text {
+    overflow: hidden;
+    color: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+#root.global-classification-banner-bottom-visible {
+    --global-classification-banner-bottom-height: #{$banner-height};
+
+    padding-bottom: $banner-height;
+}

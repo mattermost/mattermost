@@ -4,29 +4,29 @@
 package storetest
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"testing"
 	"time"
 
+	sq "github.com/mattermost/squirrel"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/stretchr/testify/require"
 )
 
 func TestPropertyValueStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("CreatePropertyValue", func(t *testing.T) { testCreatePropertyValue(t, rctx, ss) })
 	t.Run("CreateManyPropertyValues", func(t *testing.T) { testCreateManyPropertyValues(t, rctx, ss) })
 	t.Run("CreatePropertyValueWithArray", func(t *testing.T) { testCreatePropertyValueWithArray(t, rctx, ss) })
-	t.Run("GetPropertyValue", func(t *testing.T) { testGetPropertyValue(t, rctx, ss) })
-	t.Run("GetManyPropertyValues", func(t *testing.T) { testGetManyPropertyValues(t, rctx, ss) })
+	t.Run("GetPropertyValue", func(t *testing.T) { testGetPropertyValue(t, rctx, ss, s) })
+	t.Run("GetManyPropertyValues", func(t *testing.T) { testGetManyPropertyValues(t, rctx, ss, s) })
 	t.Run("UpdatePropertyValue", func(t *testing.T) { testUpdatePropertyValue(t, rctx, ss) })
-	t.Run("UpsertPropertyValue", func(t *testing.T) { testUpsertPropertyValue(t, rctx, ss) })
+	t.Run("UpsertPropertyValue", func(t *testing.T) { testUpsertPropertyValue(t, rctx, ss, s) })
 	t.Run("DeletePropertyValue", func(t *testing.T) { testDeletePropertyValue(t, rctx, ss) })
-	t.Run("SearchPropertyValues", func(t *testing.T) { testSearchPropertyValues(t, rctx, ss) })
-	t.Run("SearchPropertyValuesSince", func(t *testing.T) { testSearchPropertyValuesSince(t, rctx, ss) })
+	t.Run("SearchPropertyValues", func(t *testing.T) { testSearchPropertyValues(t, rctx, ss, s) })
 	t.Run("DeleteForField", func(t *testing.T) { testDeleteForField(t, rctx, ss) })
 	t.Run("DeleteForTarget", func(t *testing.T) { testDeleteForTarget(t, rctx, ss) })
 }
@@ -52,12 +52,16 @@ func testCreatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		require.ErrorContains(t, err, "model.property_value.is_valid.app_error")
 	})
 
+	creatorUserID := model.NewId()
+
 	newValue := &model.PropertyValue{
 		TargetID:   model.NewId(),
 		TargetType: "test_type",
 		GroupID:    model.NewId(),
 		FieldID:    model.NewId(),
 		Value:      json.RawMessage(`"test value"`),
+		CreatedBy:  creatorUserID,
+		UpdatedBy:  creatorUserID,
 	}
 
 	t.Run("should be able to create a property value", func(t *testing.T) {
@@ -67,6 +71,8 @@ func testCreatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NotZero(t, value.CreateAt)
 		require.NotZero(t, value.UpdateAt)
 		require.Zero(t, value.DeleteAt)
+		require.Equal(t, creatorUserID, value.CreatedBy)
+		require.Equal(t, creatorUserID, value.UpdatedBy)
 	})
 
 	t.Run("should enforce the value's uniqueness", func(t *testing.T) {
@@ -74,6 +80,20 @@ func testCreatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		value, err := ss.PropertyValue().Create(newValue)
 		require.Error(t, err)
 		require.Zero(t, value)
+	})
+
+	t.Run("should allow empty CreatedBy and UpdatedBy", func(t *testing.T) {
+		valueWithoutTracking := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    model.NewId(),
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"value without tracking"`),
+		}
+		value, err := ss.PropertyValue().Create(valueWithoutTracking)
+		require.NoError(t, err)
+		require.Empty(t, value.CreatedBy)
+		require.Empty(t, value.UpdatedBy)
 	})
 }
 
@@ -296,11 +316,40 @@ func testCreateManyPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 	})
 }
 
-func testGetPropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
+// insertPropertyValueWithNullColumns inserts a property value row that
+// simulates a record created before the migrations that added CreatedBy
+// and UpdatedBy columns. Those columns are left NULL so that the store's
+// COALESCE logic is exercised.
+// Returns groupID, targetID, fieldID, valueID.
+func insertPropertyValueWithNullColumns(t *testing.T, ss store.Store, s SqlStore) (string, string, string, string) {
+	t.Helper()
+
+	valueID := model.NewId()
+	groupID := model.NewId()
+	targetID := model.NewId()
+	fieldID := model.NewId()
+	db := ss.GetInternalMasterDB()
+
+	builder := sq.StatementBuilder.PlaceholderFormat(s.GetQueryPlaceholder()).
+		Insert("PropertyValues").
+		Columns("ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt").
+		Values(valueID, targetID, "test_type", groupID, fieldID, `"null-columns-value"`, model.GetMillis(), model.GetMillis(), 0)
+
+	query, args, err := builder.ToSql()
+	require.NoError(t, err)
+
+	_, err = db.Exec(query, args...)
+	require.NoError(t, err)
+
+	return groupID, targetID, fieldID, valueID
+}
+
+func testGetPropertyValue(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
 	t.Run("should fail on nonexisting value", func(t *testing.T) {
 		value, err := ss.PropertyValue().Get("", model.NewId())
 		require.Zero(t, value)
-		require.ErrorIs(t, err, sql.ErrNoRows)
+		var enf *store.ErrNotFound
+		require.ErrorAs(t, err, &enf)
 	})
 
 	groupID := model.NewId()
@@ -331,7 +380,8 @@ func testGetPropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("should not be able to retrieve an existing value when specifying a different group ID", func(t *testing.T) {
 		value, err := ss.PropertyValue().Get(model.NewId(), newValue.ID)
 		require.Zero(t, value)
-		require.ErrorIs(t, err, sql.ErrNoRows)
+		var enf *store.ErrNotFound
+		require.ErrorAs(t, err, &enf)
 	})
 
 	t.Run("should be able to retrieve an existing property value with matching groupID", func(t *testing.T) {
@@ -368,15 +418,27 @@ func testGetPropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		// Try to get the value with a different group ID
 		value, err := ss.PropertyValue().Get(model.NewId(), newValue.ID)
 		require.Zero(t, value)
-		require.ErrorIs(t, err, sql.ErrNoRows)
+		var enf *store.ErrNotFound
+		require.ErrorAs(t, err, &enf)
+	})
+
+	t.Run("null columns, before createdBy and updatedBy migrations", func(t *testing.T) {
+		groupID, _, _, valueID := insertPropertyValueWithNullColumns(t, ss, s)
+
+		value, err := ss.PropertyValue().Get(groupID, valueID)
+		require.NoError(t, err)
+		require.Equal(t, valueID, value.ID)
+		require.Empty(t, value.CreatedBy)
+		require.Empty(t, value.UpdatedBy)
 	})
 }
 
-func testGetManyPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
+func testGetManyPropertyValues(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
 	t.Run("should fail on nonexisting values", func(t *testing.T) {
 		values, err := ss.PropertyValue().GetMany("", []string{model.NewId(), model.NewId()})
 		require.Empty(t, values)
-		require.ErrorContains(t, err, "missmatch results")
+		var target *store.ErrResultsMismatch
+		require.ErrorAs(t, err, &target)
 	})
 
 	groupID := model.NewId()
@@ -410,7 +472,8 @@ func testGetManyPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("should fail if at least one of the ids is nonexistent", func(t *testing.T) {
 		values, err := ss.PropertyValue().GetMany(groupID, []string{newValues[0].ID, newValues[1].ID, model.NewId()})
 		require.Empty(t, values)
-		require.ErrorContains(t, err, "missmatch results")
+		var target *store.ErrResultsMismatch
+		require.ErrorAs(t, err, &target)
 	})
 
 	t.Run("should be able to retrieve existing property values", func(t *testing.T) {
@@ -423,13 +486,25 @@ func testGetManyPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("should fail if asked for valid IDs but outside the group", func(t *testing.T) {
 		values, err := ss.PropertyValue().GetMany(groupID, []string{newValues[0].ID, newValueOutsideGroup.ID})
 		require.Empty(t, values)
-		require.ErrorContains(t, err, "missmatch results")
+		var target *store.ErrResultsMismatch
+		require.ErrorAs(t, err, &target)
 	})
 
 	t.Run("should be able to retrieve existing property values from multiple groups", func(t *testing.T) {
 		fields, err := ss.PropertyValue().GetMany("", []string{newValues[0].ID, newValueOutsideGroup.ID})
 		require.NoError(t, err)
 		require.Len(t, fields, 2)
+	})
+
+	t.Run("null columns, before createdBy and updatedBy migrations", func(t *testing.T) {
+		groupID, _, _, valueID := insertPropertyValueWithNullColumns(t, ss, s)
+
+		values, err := ss.PropertyValue().GetMany(groupID, []string{valueID})
+		require.NoError(t, err)
+		require.Len(t, values, 1)
+		require.Equal(t, valueID, values[0].ID)
+		require.Empty(t, values[0].CreatedBy)
+		require.Empty(t, values[0].UpdatedBy)
 	})
 }
 
@@ -686,9 +761,92 @@ func testUpdatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, originalValue2, string(updated2.Value))
 	})
+
+	t.Run("should update UpdatedBy but not CreatedBy on update", func(t *testing.T) {
+		creatorUserID := model.NewId()
+		updaterUserID := model.NewId()
+
+		value := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    model.NewId(),
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"original value"`),
+			CreatedBy:  creatorUserID,
+			UpdatedBy:  creatorUserID,
+		}
+
+		_, err := ss.PropertyValue().Create(value)
+		require.NoError(t, err)
+
+		// Update the value with a different user
+		value.Value = json.RawMessage(`"updated value"`)
+		value.UpdatedBy = updaterUserID
+
+		_, err = ss.PropertyValue().Update("", []*model.PropertyValue{value})
+		require.NoError(t, err)
+
+		// Verify CreatedBy stays the same but UpdatedBy changes
+		fetched, err := ss.PropertyValue().Get("", value.ID)
+		require.NoError(t, err)
+		require.Equal(t, creatorUserID, fetched.CreatedBy, "CreatedBy should not change on update")
+		require.Equal(t, updaterUserID, fetched.UpdatedBy, "UpdatedBy should change on update")
+		require.Equal(t, `"updated value"`, string(fetched.Value))
+	})
+
+	t.Run("should handle bulk updates with different UpdatedBy values", func(t *testing.T) {
+		creatorUserID := model.NewId()
+		user1 := model.NewId()
+		user2 := model.NewId()
+		groupID := model.NewId()
+
+		value1 := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    groupID,
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"value 1"`),
+			CreatedBy:  creatorUserID,
+			UpdatedBy:  creatorUserID,
+		}
+		value2 := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    groupID,
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"value 2"`),
+			CreatedBy:  creatorUserID,
+			UpdatedBy:  creatorUserID,
+		}
+
+		_, err := ss.PropertyValue().Create(value1)
+		require.NoError(t, err)
+		_, err = ss.PropertyValue().Create(value2)
+		require.NoError(t, err)
+
+		// Update with different users
+		value1.Value = json.RawMessage(`"value 1 updated"`)
+		value1.UpdatedBy = user1
+		value2.Value = json.RawMessage(`"value 2 updated"`)
+		value2.UpdatedBy = user2
+
+		_, err = ss.PropertyValue().Update("", []*model.PropertyValue{value1, value2})
+		require.NoError(t, err)
+
+		// Verify both values have correct UpdatedBy
+		fetched1, err := ss.PropertyValue().Get("", value1.ID)
+		require.NoError(t, err)
+		require.Equal(t, user1, fetched1.UpdatedBy)
+		require.Equal(t, creatorUserID, fetched1.CreatedBy)
+
+		fetched2, err := ss.PropertyValue().Get("", value2.ID)
+		require.NoError(t, err)
+		require.Equal(t, user2, fetched2.UpdatedBy)
+		require.Equal(t, creatorUserID, fetched2.CreatedBy)
+	})
 }
 
-func testUpsertPropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
+func testUpsertPropertyValue(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
 	t.Run("should fail if the property value is not valid", func(t *testing.T) {
 		value := &model.PropertyValue{
 			TargetID:   "",
@@ -849,6 +1007,121 @@ func testUpsertPropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		require.Empty(t, results)
 	})
+
+	t.Run("should track UpdatedBy in Upsert operations", func(t *testing.T) {
+		creatorUserID := model.NewId()
+		updaterUserID := model.NewId()
+		groupID := model.NewId()
+		targetID := model.NewId()
+		fieldID := model.NewId()
+
+		// First upsert (insert)
+		value1 := &model.PropertyValue{
+			TargetID:   targetID,
+			TargetType: "test_type",
+			GroupID:    groupID,
+			FieldID:    fieldID,
+			Value:      json.RawMessage(`"initial value"`),
+			CreatedBy:  creatorUserID,
+			UpdatedBy:  creatorUserID,
+		}
+
+		upserted1, err := ss.PropertyValue().Upsert([]*model.PropertyValue{value1})
+		require.NoError(t, err)
+		require.Len(t, upserted1, 1)
+		require.Equal(t, creatorUserID, upserted1[0].CreatedBy)
+		require.Equal(t, creatorUserID, upserted1[0].UpdatedBy)
+
+		// Second upsert (update) - same target, group, and field
+		value2 := &model.PropertyValue{
+			TargetID:   targetID,
+			TargetType: "test_type",
+			GroupID:    groupID,
+			FieldID:    fieldID,
+			Value:      json.RawMessage(`"updated via upsert"`),
+			UpdatedBy:  updaterUserID,
+		}
+
+		upserted2, err := ss.PropertyValue().Upsert([]*model.PropertyValue{value2})
+		require.NoError(t, err)
+		require.Len(t, upserted2, 1)
+
+		// Verify UpdatedBy changed but CreatedBy remained
+		fetched, err := ss.PropertyValue().Get("", upserted2[0].ID)
+		require.NoError(t, err)
+		require.Equal(t, creatorUserID, fetched.CreatedBy, "CreatedBy should remain from initial insert")
+		require.Equal(t, updaterUserID, fetched.UpdatedBy, "UpdatedBy should change on upsert")
+		require.Equal(t, `"updated via upsert"`, string(fetched.Value))
+	})
+
+	t.Run("should not allow to change created by in upsert operations", func(t *testing.T) {
+		creatorUserID := model.NewId()
+		differentUserID := model.NewId()
+		updaterUserID := model.NewId()
+		groupID := model.NewId()
+		targetID := model.NewId()
+		fieldID := model.NewId()
+
+		// First upsert (insert) with original creator
+		value1 := &model.PropertyValue{
+			TargetID:   targetID,
+			TargetType: "test_type",
+			GroupID:    groupID,
+			FieldID:    fieldID,
+			Value:      json.RawMessage(`"initial value"`),
+			CreatedBy:  creatorUserID,
+			UpdatedBy:  creatorUserID,
+		}
+
+		upserted1, err := ss.PropertyValue().Upsert([]*model.PropertyValue{value1})
+		require.NoError(t, err)
+		require.Len(t, upserted1, 1)
+		require.Equal(t, creatorUserID, upserted1[0].CreatedBy)
+
+		// Second upsert (update) - try to change CreatedBy (should be ignored)
+		value2 := &model.PropertyValue{
+			TargetID:   targetID,
+			TargetType: "test_type",
+			GroupID:    groupID,
+			FieldID:    fieldID,
+			Value:      json.RawMessage(`"updated via upsert"`),
+			CreatedBy:  differentUserID, // Attempting to change CreatedBy
+			UpdatedBy:  updaterUserID,
+		}
+
+		upserted2, err := ss.PropertyValue().Upsert([]*model.PropertyValue{value2})
+		require.NoError(t, err)
+		require.Len(t, upserted2, 1)
+
+		// Verify CreatedBy was NOT changed, even though we tried to change it
+		fetched, err := ss.PropertyValue().Get("", upserted2[0].ID)
+		require.NoError(t, err)
+		require.Equal(t, creatorUserID, fetched.CreatedBy, "CreatedBy should remain unchanged even when attempting to modify it via upsert")
+		require.Equal(t, updaterUserID, fetched.UpdatedBy, "UpdatedBy should change on upsert")
+		require.Equal(t, `"updated via upsert"`, string(fetched.Value))
+	})
+
+	t.Run("null columns, upsert conflict path before createdBy and updatedBy migrations", func(t *testing.T) {
+		groupID, targetID, fieldID, _ := insertPropertyValueWithNullColumns(t, ss, s)
+
+		// Upsert with the same (GroupID, TargetID, FieldID) to trigger the conflict (update) path.
+		// The existing row has NULL CreatedBy/UpdatedBy; the COALESCE in RETURNING must handle them.
+		updaterID := model.NewId()
+		value := &model.PropertyValue{
+			TargetID:   targetID,
+			TargetType: "test_type",
+			GroupID:    groupID,
+			FieldID:    fieldID,
+			Value:      json.RawMessage(`"upserted value"`),
+			UpdatedBy:  updaterID,
+		}
+
+		upserted, err := ss.PropertyValue().Upsert([]*model.PropertyValue{value})
+		require.NoError(t, err)
+		require.Len(t, upserted, 1)
+		require.Empty(t, upserted[0].CreatedBy)
+		require.Equal(t, updaterID, upserted[0].UpdatedBy)
+	})
 }
 
 func testDeletePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
@@ -942,7 +1215,7 @@ func testDeletePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 	})
 }
 
-func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
+func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
 	groupID := model.NewId()
 	targetID := model.NewId()
 	fieldID := model.NewId()
@@ -1101,38 +1374,35 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 			expectedIDs: []string{value1.ID, value2.ID},
 		},
 		{
-			name: "filter by SinceUpdateAt timestamp - no results before",
+			// Delta mode auto-includes tombstones so the at-or-after-value3
+			// cutoff surfaces value4 even after it has been soft-deleted.
+			// With `>=` semantics value3 itself is also included.
+			name: "filter by SinceUpdateAt timestamp - includes tombstones automatically",
 			opts: model.PropertyValueSearchOpts{
-				SinceUpdateAt: value3.UpdateAt, // After all existing values
+				SinceUpdateAt: value3.UpdateAt,
 				PerPage:       10,
 			},
-			expectedIDs: []string{},
+			expectedIDs: []string{value3.ID, value4.ID},
 		},
 		{
-			name: "filter by SinceUpdateAt timestamp - get values after specific time",
+			// Using value1.UpdateAt+1 demonstrates the `>=` boundary excludes
+			// anything strictly before it: value1 is dropped while later rows
+			// (including soft-deleted value4) are surfaced.
+			name: "filter by SinceUpdateAt timestamp - get values strictly after value1",
 			opts: model.PropertyValueSearchOpts{
-				SinceUpdateAt: value1.UpdateAt, // After value1, should get value2 and value3
+				SinceUpdateAt: value1.UpdateAt + 1,
 				PerPage:       10,
 			},
-			expectedIDs: []string{value2.ID, value3.ID},
+			expectedIDs: []string{value2.ID, value3.ID, value4.ID},
 		},
 		{
 			name: "filter by SinceUpdateAt timestamp with group filter",
 			opts: model.PropertyValueSearchOpts{
 				GroupID:       groupID,
-				SinceUpdateAt: value1.UpdateAt, // After value1, should only get value2 from same group
+				SinceUpdateAt: value1.UpdateAt + 1,
 				PerPage:       10,
 			},
-			expectedIDs: []string{value2.ID},
-		},
-		{
-			name: "filter by SinceUpdateAt timestamp including deleted",
-			opts: model.PropertyValueSearchOpts{
-				SinceUpdateAt:  value3.UpdateAt, // After value3, should get value4 (deleted)
-				IncludeDeleted: true,
-				PerPage:        10,
-			},
-			expectedIDs: []string{value4.ID},
+			expectedIDs: []string{value2.ID, value4.ID},
 		},
 	}
 
@@ -1152,110 +1422,326 @@ func testSearchPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
 			require.ElementsMatch(t, tc.expectedIDs, ids)
 		})
 	}
-}
 
-func testSearchPropertyValuesSince(t *testing.T, _ request.CTX, ss store.Store) {
-	// Create values with controlled timestamps for precise testing
-	groupID := model.NewId()
+	t.Run("null columns, before createdBy and updatedBy migrations", func(t *testing.T) {
+		nullGroupID, _, _, nullValueID := insertPropertyValueWithNullColumns(t, ss, s)
 
-	// Create value 1 (will remain unchanged)
-	value1, err := ss.PropertyValue().Create(&model.PropertyValue{
-		GroupID:    groupID,
-		TargetID:   model.NewId(),
-		TargetType: "test_type",
-		FieldID:    model.NewId(),
-		Value:      json.RawMessage(`"value1"`),
-	})
-	require.NoError(t, err)
-
-	time.Sleep(10 * time.Millisecond) // Ensure different timestamps
-
-	// Create value 2 (will be updated later)
-	value2, err := ss.PropertyValue().Create(&model.PropertyValue{
-		GroupID:    groupID,
-		TargetID:   model.NewId(),
-		TargetType: "test_type",
-		FieldID:    model.NewId(),
-		Value:      json.RawMessage(`"value2"`),
-	})
-	require.NoError(t, err)
-
-	time.Sleep(10 * time.Millisecond)
-
-	// Create value 3 (will remain unchanged)
-	value3, err := ss.PropertyValue().Create(&model.PropertyValue{
-		GroupID:    groupID,
-		TargetID:   model.NewId(),
-		TargetType: "test_type",
-		FieldID:    model.NewId(),
-		Value:      json.RawMessage(`"value3"`),
-	})
-	require.NoError(t, err)
-
-	// Update value2 to change its UpdateAt timestamp
-	time.Sleep(10 * time.Millisecond)
-	value2.Value = json.RawMessage(`"value2_updated"`)
-	updatedValues, err := ss.PropertyValue().Update("", []*model.PropertyValue{value2})
-	require.NoError(t, err)
-	require.Len(t, updatedValues, 1)
-	updatedValue2 := updatedValues[0]
-
-	t.Run("SinceUpdateAt filters correctly by UpdateAt", func(t *testing.T) {
-		// Get values updated after value1 (should get value2 and value3)
 		results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
-			GroupID:       groupID,
-			SinceUpdateAt: value1.UpdateAt,
-			PerPage:       10,
+			GroupID: nullGroupID,
+			PerPage: 10,
 		})
 		require.NoError(t, err)
-		require.Len(t, results, 2)
+		require.Len(t, results, 1)
+		require.Equal(t, nullValueID, results[0].ID)
+		require.Empty(t, results[0].CreatedBy)
+		require.Empty(t, results[0].UpdatedBy)
+	})
 
-		resultIDs := make([]string, len(results))
-		for i, result := range results {
-			resultIDs[i] = result.ID
+	t.Run("Since", func(t *testing.T) {
+		// Controlled fixtures: value1 (untouched), value2 (Update bumps its
+		// UpdateAt past value3's), value3 (untouched).
+		groupID := model.NewId()
+
+		value1, err := ss.PropertyValue().Create(&model.PropertyValue{
+			GroupID:    groupID,
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"value1"`),
+		})
+		require.NoError(t, err)
+		time.Sleep(10 * time.Millisecond)
+
+		value2, err := ss.PropertyValue().Create(&model.PropertyValue{
+			GroupID:    groupID,
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"value2"`),
+		})
+		require.NoError(t, err)
+		time.Sleep(10 * time.Millisecond)
+
+		value3, err := ss.PropertyValue().Create(&model.PropertyValue{
+			GroupID:    groupID,
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"value3"`),
+		})
+		require.NoError(t, err)
+
+		time.Sleep(10 * time.Millisecond)
+		value2.Value = json.RawMessage(`"value2_updated"`)
+		updatedValues, err := ss.PropertyValue().Update("", []*model.PropertyValue{value2})
+		require.NoError(t, err)
+		require.Len(t, updatedValues, 1)
+		updatedValue2 := updatedValues[0]
+
+		t.Run("SinceUpdateAt filters correctly by UpdateAt", func(t *testing.T) {
+			// `>=` semantics: value1 is included at the boundary,
+			// plus value3 and the post-update value2.
+			results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+				GroupID:       groupID,
+				SinceUpdateAt: value1.UpdateAt,
+				PerPage:       10,
+			})
+			require.NoError(t, err)
+			require.Len(t, results, 3)
+
+			resultIDs := make([]string, len(results))
+			for i, result := range results {
+				resultIDs[i] = result.ID
+			}
+			require.ElementsMatch(t, []string{value1.ID, value2.ID, value3.ID}, resultIDs)
+		})
+
+		t.Run("SinceUpdateAt with boundary condition", func(t *testing.T) {
+			// `value3.UpdateAt - 1` keeps value3 in the window and value2's
+			// post-Update timestamp is even later, so both are returned.
+			results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+				GroupID:       groupID,
+				SinceUpdateAt: value3.UpdateAt - 1,
+				PerPage:       10,
+			})
+			require.NoError(t, err)
+			require.Len(t, results, 2)
+
+			resultIDs := make([]string, len(results))
+			for i, result := range results {
+				resultIDs[i] = result.ID
+			}
+			require.ElementsMatch(t, []string{value2.ID, value3.ID}, resultIDs)
+		})
+
+		t.Run("SinceUpdateAt at the most recent update returns just that row", func(t *testing.T) {
+			// `>=` semantics: querying at the highest UpdateAt in the
+			// group returns the row at exactly that timestamp.
+			results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+				GroupID:       groupID,
+				SinceUpdateAt: updatedValue2.UpdateAt,
+				PerPage:       10,
+			})
+			require.NoError(t, err)
+			require.Len(t, results, 1)
+			require.Equal(t, updatedValue2.ID, results[0].ID)
+		})
+
+		t.Run("SinceUpdateAt with very recent timestamp", func(t *testing.T) {
+			results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+				GroupID:       groupID,
+				SinceUpdateAt: model.GetMillis(),
+				PerPage:       10,
+			})
+			require.NoError(t, err)
+			require.Len(t, results, 0)
+		})
+
+		t.Run("same-millisecond rows are paged correctly via (UpdateAt, Id) cursor", func(t *testing.T) {
+			// Three rows share an UpdateAt (Update assigns one
+			// GetMillis() to the whole batch) so the cursor must use
+			// (UpdateAt, Id) to disambiguate.
+			tieGroup := model.NewId()
+			tieValues := make([]*model.PropertyValue, 0, 3)
+			for i := range 3 {
+				v, cerr := ss.PropertyValue().Create(&model.PropertyValue{
+					GroupID:    tieGroup,
+					TargetID:   model.NewId(),
+					TargetType: "test_type",
+					FieldID:    model.NewId(),
+					Value:      json.RawMessage(`"v` + string(rune('0'+i)) + `"`),
+				})
+				require.NoError(t, cerr)
+				tieValues = append(tieValues, v)
+				time.Sleep(2 * time.Millisecond)
+			}
+
+			for _, v := range tieValues {
+				v.Value = json.RawMessage(`"bumped"`)
+			}
+			updated, err := ss.PropertyValue().Update("", tieValues)
+			require.NoError(t, err)
+			require.Len(t, updated, 3)
+			tieUpdateAt := updated[0].UpdateAt
+			require.Equal(t, tieUpdateAt, updated[1].UpdateAt)
+			require.Equal(t, tieUpdateAt, updated[2].UpdateAt)
+
+			page1, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+				GroupID:       tieGroup,
+				SinceUpdateAt: tieUpdateAt,
+				PerPage:       2,
+			})
+			require.NoError(t, err)
+			require.Len(t, page1, 2, "boundary row + one more must come back on the first page")
+
+			last := page1[len(page1)-1]
+			page2, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+				GroupID:       tieGroup,
+				SinceUpdateAt: tieUpdateAt,
+				Cursor: model.PropertyValueSearchCursor{
+					PropertyValueID: last.ID,
+					UpdateAt:        last.UpdateAt,
+				},
+				PerPage: 2,
+			})
+			require.NoError(t, err)
+			require.Len(t, page2, 1)
+
+			seen := map[string]bool{}
+			for _, r := range append(page1, page2...) {
+				seen[r.ID] = true
+			}
+			require.Len(t, seen, 3)
+			for _, v := range tieValues {
+				require.True(t, seen[v.ID], "all tied rows must be returned exactly once across pagination")
+			}
+		})
+	})
+
+	t.Run("DeltaMode", func(t *testing.T) {
+		// Fresh fixtures so the tombstone subtest does not poison the Since
+		// block above. value2 is later Update'd to push it past value3, then
+		// value3 is soft-deleted to verify tombstone auto-inclusion.
+		groupID := model.NewId()
+
+		value1, err := ss.PropertyValue().Create(&model.PropertyValue{
+			GroupID:    groupID,
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"v1"`),
+		})
+		require.NoError(t, err)
+		time.Sleep(10 * time.Millisecond)
+
+		value2, err := ss.PropertyValue().Create(&model.PropertyValue{
+			GroupID:    groupID,
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"v2"`),
+		})
+		require.NoError(t, err)
+		time.Sleep(10 * time.Millisecond)
+
+		value3, err := ss.PropertyValue().Create(&model.PropertyValue{
+			GroupID:    groupID,
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"v3"`),
+		})
+		require.NoError(t, err)
+
+		time.Sleep(10 * time.Millisecond)
+		value2.Value = json.RawMessage(`"v2-updated"`)
+		updated, err := ss.PropertyValue().Update("", []*model.PropertyValue{value2})
+		require.NoError(t, err)
+		require.Len(t, updated, 1)
+		value2 = updated[0]
+
+		idsOf := func(values []*model.PropertyValue) []string {
+			ids := make([]string, len(values))
+			for i, v := range values {
+				ids[i] = v.ID
+			}
+			return ids
 		}
-		require.ElementsMatch(t, []string{value2.ID, value3.ID}, resultIDs)
-	})
 
-	t.Run("SinceUpdateAt with boundary condition", func(t *testing.T) {
-		// Get values updated after value3's timestamp
-		// Should get both value2 (updated) and value3, so expect 2 results
-		results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
-			GroupID:       groupID,
-			SinceUpdateAt: value3.UpdateAt - 1, // Slightly before value3's timestamp
-			PerPage:       10,
+		t.Run("orders by UpdateAt ASC, Id ASC", func(t *testing.T) {
+			results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+				GroupID:       groupID,
+				SinceUpdateAt: value1.UpdateAt,
+				PerPage:       10,
+			})
+			require.NoError(t, err)
+			// `>=` semantics: value1 is included at the boundary, then
+			// value3 (UpdateAt=t3), then value2 (UpdateAt=t4, bumped
+			// by Update).
+			require.Equal(t, []string{value1.ID, value3.ID, value2.ID}, idsOf(results))
 		})
-		require.NoError(t, err)
-		require.Len(t, results, 2)
 
-		resultIDs := make([]string, len(results))
-		for i, result := range results {
-			resultIDs[i] = result.ID
-		}
-		// Should get both value2 (updated with new timestamp) and value3
-		require.ElementsMatch(t, []string{value2.ID, value3.ID}, resultIDs)
-	})
+		t.Run("auto-includes tombstones", func(t *testing.T) {
+			require.NoError(t, ss.PropertyValue().Delete("", value3.ID))
 
-	t.Run("SinceUpdateAt after all updates", func(t *testing.T) {
-		// Get values updated after the most recent update
-		results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
-			GroupID:       groupID,
-			SinceUpdateAt: updatedValue2.UpdateAt, // After the update
-			PerPage:       10,
+			results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+				GroupID:       groupID,
+				SinceUpdateAt: value1.UpdateAt,
+				PerPage:       10,
+			})
+			require.NoError(t, err)
+			// value3 must remain visible after soft-delete — the client
+			// needs the tombstone to apply locally. Delete only sets
+			// DeleteAt, so its UpdateAt is unchanged and still
+			// precedes value2. `>=` adds value1 at the boundary.
+			require.Equal(t, []string{value1.ID, value3.ID, value2.ID}, idsOf(results))
+			for _, r := range results {
+				if r.ID == value3.ID {
+					require.NotZero(t, r.DeleteAt, "value3 should be returned with DeleteAt set")
+				}
+			}
 		})
-		require.NoError(t, err)
-		require.Len(t, results, 0) // Should be empty
-	})
 
-	t.Run("SinceUpdateAt with very recent timestamp", func(t *testing.T) {
-		// Get values updated since current time
-		results, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
-			GroupID:       groupID,
-			SinceUpdateAt: model.GetMillis(),
-			PerPage:       10,
+		t.Run("paginates with cursor UpdateAt", func(t *testing.T) {
+			// `>=` semantics: first page is value1 (the boundary row),
+			// cursored to value3, then value2.
+			first, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+				GroupID:       groupID,
+				SinceUpdateAt: value1.UpdateAt,
+				PerPage:       1,
+			})
+			require.NoError(t, err)
+			require.Equal(t, []string{value1.ID}, idsOf(first))
+
+			second, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+				GroupID:       groupID,
+				SinceUpdateAt: value1.UpdateAt,
+				Cursor: model.PropertyValueSearchCursor{
+					PropertyValueID: first[0].ID,
+					UpdateAt:        first[0].UpdateAt,
+				},
+				PerPage: 1,
+			})
+			require.NoError(t, err)
+			require.Equal(t, []string{value3.ID}, idsOf(second))
+
+			third, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+				GroupID:       groupID,
+				SinceUpdateAt: value1.UpdateAt,
+				Cursor: model.PropertyValueSearchCursor{
+					PropertyValueID: second[0].ID,
+					UpdateAt:        second[0].UpdateAt,
+				},
+				PerPage: 1,
+			})
+			require.NoError(t, err)
+			require.Equal(t, []string{value2.ID}, idsOf(third))
 		})
-		require.NoError(t, err)
-		require.Len(t, results, 0)
+
+		t.Run("directory mode rejects cursor_update_at", func(t *testing.T) {
+			_, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+				GroupID: groupID,
+				Cursor: model.PropertyValueSearchCursor{
+					PropertyValueID: value1.ID,
+					UpdateAt:        value1.UpdateAt,
+				},
+				PerPage: 10,
+			})
+			require.Error(t, err)
+		})
+
+		t.Run("delta mode rejects cursor_create_at", func(t *testing.T) {
+			_, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+				GroupID:       groupID,
+				SinceUpdateAt: value1.UpdateAt,
+				Cursor: model.PropertyValueSearchCursor{
+					PropertyValueID: value1.ID,
+					CreateAt:        value1.CreateAt,
+				},
+				PerPage: 10,
+			})
+			require.Error(t, err)
+		})
 	})
 }
 

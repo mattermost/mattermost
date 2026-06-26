@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/cespare/xxhash/v2"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 )
@@ -28,9 +29,8 @@ func BenchmarkLRUStriped(b *testing.B) {
 	}
 
 	cache, err := cache.NewLRUStriped(&opts)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(b, err)
+
 	// prepare keys and initial cache values and set routine
 	keys := make([]string, 0, m)
 	// bucketKeys is to demonstrate that splitted locks is working correctly

@@ -6,10 +6,9 @@ import type {MouseEvent, KeyboardEvent} from 'react';
 import {useIntl} from 'react-intl';
 
 import {PencilOutlineIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {getDateForTimezone} from 'mattermost-redux/utils/timezone_utils';
-
-import WithTooltip from 'components/with_tooltip';
 
 import Constants from 'utils/constants';
 import {isSameDay, isWithinLastWeek, isYesterday} from 'utils/datetime';
@@ -28,10 +27,10 @@ const PostEditedIndicator = ({postId, isMilitaryTime, timeZone, editedAt = 0, po
     let date;
     switch (true) {
     case isSameDay(editedDate):
-        date = formatMessage({id: 'datetime.today', defaultMessage: 'today '});
+        date = formatMessage({id: 'datetime.today', defaultMessage: 'today'});
         break;
     case isYesterday(editedDate):
-        date = formatMessage({id: 'datetime.yesterday', defaultMessage: 'yesterday '});
+        date = formatMessage({id: 'datetime.yesterday', defaultMessage: 'yesterday'});
         break;
     case isWithinLastWeek(editedDate):
         date = formatDate(editedDate, {weekday: 'long'});

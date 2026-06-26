@@ -17,7 +17,6 @@ import (
 func TestCreateScheme(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
 
@@ -155,7 +154,7 @@ func TestCreateScheme(t *testing.T) {
 	// Create scheme with a Professional SKU license but no explicit 'custom_permissions_schemes' license feature.
 	lic := &model.License{
 		Features: &model.Features{
-			CustomPermissionsSchemes: model.NewPointer(false),
+			CustomPermissionsSchemes: new(false),
 		},
 		Customer: &model.Customer{
 			Name:  "TestName",
@@ -180,7 +179,7 @@ func TestCreateScheme(t *testing.T) {
 	err = th.App.SetPhase2PermissionsMigrationStatus(false)
 	require.NoError(t, err)
 
-	th.LoginSystemAdmin()
+	th.LoginSystemAdmin(t)
 	th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
 
 	scheme7 := &model.Scheme{
@@ -195,8 +194,7 @@ func TestCreateScheme(t *testing.T) {
 
 func TestGetScheme(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
 
@@ -263,8 +261,7 @@ func TestGetScheme(t *testing.T) {
 
 func TestGetSchemes(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
 
@@ -332,8 +329,7 @@ func TestGetSchemes(t *testing.T) {
 
 func TestGetTeamsForScheme(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
 
@@ -428,10 +424,68 @@ func TestGetTeamsForScheme(t *testing.T) {
 	CheckNotImplementedStatus(t, ri6)
 }
 
+func TestGetTeamsForScheme_SanitizesPrivilegedFieldsForUserManager(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
+
+	err := th.App.SetPhase2PermissionsMigrationStatus(true)
+	require.NoError(t, err)
+
+	scheme := &model.Scheme{
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SchemeScopeTeam,
+	}
+	scheme, _, err = th.SystemAdminClient.CreateScheme(context.Background(), scheme)
+	require.NoError(t, err)
+
+	knownInviteID := model.NewId()
+	knownEmail := th.GenerateTestEmail()
+
+	privateTeam := &model.Team{
+		Name:        GenerateTestTeamName(),
+		DisplayName: "Private Scheme Team",
+		Type:        model.TeamInvite,
+		InviteId:    knownInviteID,
+		Email:       knownEmail,
+	}
+	privateTeam, err = th.App.Srv().Store().Team().Save(privateTeam)
+	require.NoError(t, err)
+	require.Equal(t, knownInviteID, privateTeam.InviteId)
+	require.Equal(t, knownEmail, privateTeam.Email)
+
+	privateTeam.SchemeId = &scheme.Id
+	privateTeam, err = th.App.Srv().Store().Team().Update(privateTeam)
+	require.NoError(t, err)
+	require.Equal(t, knownInviteID, privateTeam.InviteId)
+	require.Equal(t, knownEmail, privateTeam.Email)
+
+	th.LoginSystemManager(t)
+
+	t.Run("system manager response is sanitized", func(t *testing.T) {
+		teams, _, err := th.SystemManagerClient.GetTeamsForScheme(context.Background(), scheme.Id, 0, 100)
+		require.NoError(t, err)
+		require.Len(t, teams, 1)
+		assert.Equal(t, privateTeam.Id, teams[0].Id)
+		assert.Empty(t, teams[0].InviteId)
+	})
+
+	t.Run("system admin response is not sanitized", func(t *testing.T) {
+		teams, _, err := th.SystemAdminClient.GetTeamsForScheme(context.Background(), scheme.Id, 0, 100)
+		require.NoError(t, err)
+		require.Len(t, teams, 1)
+		assert.Equal(t, privateTeam.Id, teams[0].Id)
+		assert.Equal(t, knownInviteID, teams[0].InviteId)
+		assert.Equal(t, knownEmail, teams[0].Email)
+	})
+}
+
 func TestGetChannelsForScheme(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
 
@@ -531,7 +585,6 @@ func TestGetChannelsForScheme(t *testing.T) {
 func TestPatchScheme(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
 
@@ -632,7 +685,7 @@ func TestPatchScheme(t *testing.T) {
 	// Patch scheme with a Professional SKU license but no explicit 'custom_permissions_schemes' license feature.
 	lic := &model.License{
 		Features: &model.Features{
-			CustomPermissionsSchemes: model.NewPointer(false),
+			CustomPermissionsSchemes: new(false),
 		},
 		Customer: &model.Customer{
 			Name:  "TestName",
@@ -650,7 +703,7 @@ func TestPatchScheme(t *testing.T) {
 	err = th.App.SetPhase2PermissionsMigrationStatus(false)
 	require.NoError(t, err)
 
-	th.LoginSystemAdmin()
+	th.LoginSystemAdmin(t)
 	th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
 
 	_, r12, _ := th.SystemAdminClient.PatchScheme(context.Background(), s6.Id, schemePatch)
@@ -660,7 +713,6 @@ func TestPatchScheme(t *testing.T) {
 func TestDeleteScheme(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	t.Run("ValidTeamScheme", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
@@ -851,7 +903,7 @@ func TestDeleteScheme(t *testing.T) {
 		// Delete scheme with a Professional SKU license but no explicit 'custom_permissions_schemes' license feature.
 		lic := &model.License{
 			Features: &model.Features{
-				CustomPermissionsSchemes: model.NewPointer(false),
+				CustomPermissionsSchemes: new(false),
 			},
 			Customer: &model.Customer{
 				Name:  "TestName",
@@ -879,18 +931,17 @@ func TestDeleteScheme(t *testing.T) {
 
 func TestUpdateTeamSchemeWithTeamMembers(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("Correctly invalidates team member cache", func(t *testing.T) {
 		err := th.App.SetPhase2PermissionsMigrationStatus(true)
 		require.NoError(t, err)
 
-		team := th.CreateTeam()
+		team := th.CreateTeam(t)
 		_, _, appErr := th.App.AddUserToTeam(th.Context, team.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
 		require.Nil(t, appErr)
 
-		teamScheme := th.SetupTeamScheme()
+		teamScheme := th.SetupTeamScheme(t)
 
 		teamUserRole, appErr := th.App.GetRoleByName(th.Context, teamScheme.DefaultTeamUserRole)
 		require.Nil(t, appErr)
@@ -898,7 +949,7 @@ func TestUpdateTeamSchemeWithTeamMembers(t *testing.T) {
 		_, appErr = th.App.UpdateRole(teamUserRole)
 		require.Nil(t, appErr)
 
-		th.LoginBasic()
+		th.LoginBasic(t)
 
 		_, _, err = th.Client.CreateChannel(context.Background(), &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id})
 		require.NoError(t, err)

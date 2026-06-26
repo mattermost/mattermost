@@ -49,7 +49,7 @@ export type TableOptions = {
     filterRole?: AdminConsoleUserManagementTableProperties['filterRole'];
     filterStatus?: AdminConsoleUserManagementTableProperties['filterStatus'];
     dateRange?: ReportDuration;
-}
+};
 
 type UserReportWithError = UserReport & {error?: ServerError};
 
@@ -59,7 +59,7 @@ const messages = defineMessages({
     title: {id: 'admin.system_users.title', defaultMessage: '{siteName} Users'},
 });
 
-export const searchableStrings: Array<string|MessageDescriptor|[MessageDescriptor, {[key: string]: any}]> = [[messages.title, {siteName: ''}]];
+export const searchableStrings: Array<string | MessageDescriptor | [MessageDescriptor, {[key: string]: any}]> = [[messages.title, {siteName: ''}]];
 
 function SystemUsers(props: Props) {
     const {formatMessage} = useIntl();
@@ -319,7 +319,7 @@ function SystemUsers(props: Props) {
             },
             {
                 id: ColumnNames.lastLoginAt,
-                accessorKey: 'last_login_at',
+                accessorKey: 'last_login',
                 header: formatMessage({
                     id: 'admin.system_users.list.lastLoginAt',
                     defaultMessage: 'Last login',
@@ -376,6 +376,21 @@ function SystemUsers(props: Props) {
                     defaultMessage: 'Messages posted',
                 }),
                 cell: (info: CellContext<UserReport, number | undefined>) => info.getValue() || null,
+                meta: {
+                    isNumeric: true,
+                },
+                enableHiding: true,
+                enablePinning: false,
+                enableSorting: false,
+            },
+            {
+                id: ColumnNames.channelCount,
+                accessorKey: 'channel_count',
+                header: formatMessage({
+                    id: 'admin.system_users.list.channelCount',
+                    defaultMessage: 'Channel count',
+                }),
+                cell: (info: CellContext<UserReport, number | undefined>) => info.getValue() ?? null,
                 meta: {
                     isNumeric: true,
                 },

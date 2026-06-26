@@ -27,7 +27,7 @@ type supervisor struct {
 	pluginID     string
 	appDriver    AppDriver
 	client       *plugin.Client
-	hooks        Hooks
+	hooks        *hooksTimerLayer
 	implemented  [TotalHooksID]bool
 	hooksClient  *hooksRPCClient
 	isReattached bool
@@ -146,7 +146,7 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver AppDriver, 
 		sup.hooksClient = c
 	}
 
-	sup.hooks = &hooksTimerLayer{pluginInfo.Manifest.Id, raw.(Hooks), metrics}
+	sup.hooks = &hooksTimerLayer{pluginInfo.Manifest.Id, raw.(Hooks), raw.(HooksWithRPCErr), metrics}
 
 	impl, err := sup.hooks.Implemented()
 	if err != nil {
@@ -198,7 +198,13 @@ func (sup *supervisor) Hooks() Hooks {
 	return sup.hooks
 }
 
-// PerformHealthCheck checks the plugin through an an RPC ping.
+func (sup *supervisor) HooksWithRPCErr() HooksWithRPCErr {
+	sup.lock.RLock()
+	defer sup.lock.RUnlock()
+	return sup.hooks
+}
+
+// PerformHealthCheck checks the plugin through an RPC ping.
 func (sup *supervisor) PerformHealthCheck() error {
 	// No need for a lock here because Ping is read-locked.
 	if pingErr := sup.Ping(); pingErr != nil {

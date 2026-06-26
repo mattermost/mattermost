@@ -9,24 +9,17 @@ import useCWSAvailabilityCheck, {CSWAvailabilityCheckTypes} from './useCWSAvaila
 export type UseOpenPricingModalReturn = {
     openPricingModal: () => void;
     isAirGapped: boolean;
-}
+};
 
 export default function useOpenPricingModal(): UseOpenPricingModalReturn {
     const cwsAvailability = useCWSAvailabilityCheck();
     const [externalLink] = useExternalLink('https://mattermost.com/pricing');
 
     const isAirGapped = cwsAvailability === CSWAvailabilityCheckTypes.Unavailable;
-    const canAccessExternalPricing = cwsAvailability === CSWAvailabilityCheckTypes.Available ||
-                                     cwsAvailability === CSWAvailabilityCheckTypes.NotApplicable;
 
     const openPricingModal = useCallback(() => {
-        if (canAccessExternalPricing) {
-            // Redirect to external pricing page
-            window.open(externalLink, '_blank', 'noopener,noreferrer');
-        }
-
-        // For air-gapped instances, we don't open anything since the pricing modal has been removed
-    }, [canAccessExternalPricing]);
+        window.open(externalLink, '_blank', 'noopener,noreferrer');
+    }, [externalLink]);
 
     return {
         openPricingModal,

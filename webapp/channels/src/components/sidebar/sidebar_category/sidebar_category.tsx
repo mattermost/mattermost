@@ -7,6 +7,7 @@ import type {MouseEvent, KeyboardEvent} from 'react';
 import {Draggable, Droppable} from 'react-beautiful-dnd';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import {CategorySorting} from '@mattermost/types/channel_categories';
 import type {PreferenceType} from '@mattermost/types/preferences';
@@ -17,7 +18,6 @@ import {localizeMessage} from 'mattermost-redux/utils/i18n_utils';
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import WithTooltip from 'components/with_tooltip';
 
 import Constants, {A11yCustomEventTypes, DraggingStateTypes, DraggingStates} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
@@ -51,7 +51,8 @@ type Props = {
 
 type State = {
     isMenuOpen: boolean;
-}
+    isManagedCategoryCollapsed: boolean;
+};
 
 export default class SidebarCategory extends React.PureComponent<Props, State> {
     categoryTitleRef: React.RefObject<HTMLButtonElement>;
@@ -67,6 +68,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
 
         this.state = {
             isMenuOpen: false,
+            isManagedCategoryCollapsed: false,
         };
 
         this.a11yKeyDownRegistered = false;
@@ -113,22 +115,28 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
 
     renderChannel = (channelId: string, index: number) => {
         const {setChannelRef, category, draggingState} = this.props;
+        const isManaged = category.type === CategoryTypes.MANAGED;
         return (
             <SidebarChannel
                 key={channelId}
                 channelIndex={index}
                 channelId={channelId}
-                isDraggable={true}
+                isDraggable={!isManaged}
                 setChannelRef={setChannelRef}
-                isCategoryCollapsed={category.collapsed}
+                isCategoryCollapsed={isManaged ? this.state.isManagedCategoryCollapsed : category.collapsed}
                 isCategoryDragged={draggingState.type === DraggingStateTypes.CATEGORY && draggingState.id === category.id}
-                isAutoSortedCategory={category.sorting === CategorySorting.Alphabetical || category.sorting === CategorySorting.Recency}
+                isAutoSortedCategory={isManaged || category.sorting === CategorySorting.Alphabetical || category.sorting === CategorySorting.Recency}
             />
         );
     };
 
     handleCollapse = () => {
         const {category} = this.props;
+
+        if (category.type === CategoryTypes.MANAGED) {
+            this.setState({isManagedCategoryCollapsed: !this.state.isManagedCategoryCollapsed});
+            return;
+        }
 
         this.props.actions.setCategoryCollapsed(category.id, !category.collapsed);
     };
@@ -145,8 +153,27 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
         this.props.handleOpenMoreDirectChannelsModal(event.nativeEvent);
     };
 
+    isChannelDragOverManagedCategory = () => {
+        const {draggingState} = this.props;
+        if (!draggingState.state || !draggingState.type) {
+            return false;
+        }
+        switch (draggingState.type) {
+        case DraggingStateTypes.CHANNEL:
+        case DraggingStateTypes.DM:
+        case DraggingStateTypes.MIXED_CHANNELS:
+            return true;
+        default:
+            return false;
+        }
+    };
+
     isDropDisabled = () => {
         const {draggingState, category} = this.props;
+
+        if (category.type === CategoryTypes.MANAGED) {
+            return true;
+        }
 
         if (category.type === CategoryTypes.DIRECT_MESSAGES) {
             return draggingState.type === DraggingStateTypes.CHANNEL;
@@ -258,7 +285,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
 
             categoryMenu = <SidebarCategoryMenu category={category}/>;
         } else if (category.type === CategoryTypes.DIRECT_MESSAGES) {
-            const addHelpLabel = localizeMessage({id: 'sidebar.createDirectMessage', defaultMessage: 'Create new direct message'});
+            const addHelpLabel = localizeMessage({id: 'sidebar.createDirectMessage', defaultMessage: 'Write a direct message'});
 
             categoryMenu = (
                 <>
@@ -293,14 +320,46 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
             if (!channelIds || !channelIds.length) {
                 isCollapsible = false;
             }
-        } else {
+        } else if (category.type !== CategoryTypes.MANAGED) {
             categoryMenu = <SidebarCategoryMenu category={category}/>;
         }
 
         let displayName = category.display_name;
-        if (category.type !== CategoryTypes.CUSTOM) {
+        if (category.type !== CategoryTypes.CUSTOM && category.type !== CategoryTypes.MANAGED) {
             const message = categoryNames[category.type as keyof typeof categoryNames];
             displayName = localizeMessage({id: message.id, defaultMessage: message.defaultMessage});
+        }
+
+        if (category.type === CategoryTypes.MANAGED) {
+            return (
+                <div
+                    className={classNames('SidebarChannelGroup a11y__section', {
+                        'SidebarChannelGroup--managedDropRejected': this.isChannelDragOverManagedCategory(),
+                        menuIsOpen: this.state.isMenuOpen,
+                        isCollapsed: this.state.isManagedCategoryCollapsed,
+                    })}
+                >
+                    <div>
+                        <SidebarCategoryHeader
+                            ref={this.categoryTitleRef}
+                            displayName={displayName}
+                            dragHandleProps={undefined}
+                            isCollapsed={this.state.isManagedCategoryCollapsed}
+                            isCollapsible={isCollapsible}
+                            isDragging={false}
+                            isDraggingOver={false}
+                            isManaged={true}
+                            muted={category.muted}
+                            onClick={this.handleCollapse}
+                        />
+                        <div className={classNames('SidebarChannelGroup_content')}>
+                            <ul className='NavGroupContent'>
+                                {renderedChannels}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            );
         }
 
         return (

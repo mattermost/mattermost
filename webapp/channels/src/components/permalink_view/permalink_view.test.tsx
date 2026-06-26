@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import nock from 'nock';
 import React from 'react';
 import type {ComponentProps} from 'react';
@@ -18,8 +17,7 @@ import {focusPost} from 'components/permalink_view/actions';
 import PermalinkView from 'components/permalink_view/permalink_view';
 
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {act, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, waitFor} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
 import {joinPrivateChannelPrompt} from 'utils/channel_utils';
@@ -94,7 +92,7 @@ jest.mock('utils/channel_utils', () => ({
 describe('components/PermalinkView', () => {
     const baseProps: ComponentProps<typeof PermalinkView> = {
         channelId: 'channel_id',
-        match: {params: {postid: 'post_id'}} as match<{ postid: string }>,
+        match: {params: {postid: 'post_id'}} as match<{postid: string}>,
         returnTo: 'return_to',
         teamName: 'team_name',
         actions: {
@@ -104,51 +102,54 @@ describe('components/PermalinkView', () => {
     };
 
     test('should match snapshot', async () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <PermalinkView {...baseProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should call baseProps.actions.focusPost on doPermalinkEvent', async () => {
-        mountWithIntl(
+        renderWithContext(
             <PermalinkView {...baseProps}/>,
         );
 
         await waitFor(() => {
             expect(baseProps.actions.focusPost).toHaveBeenCalledTimes(1);
-            expect(baseProps.actions.focusPost).toBeCalledWith(baseProps.match.params.postid, baseProps.returnTo, baseProps.currentUserId);
+            expect(baseProps.actions.focusPost).toHaveBeenCalledWith(baseProps.match.params.postid, baseProps.returnTo, baseProps.currentUserId);
         });
     });
 
     test('should call baseProps.actions.focusPost when postid changes', async () => {
-        const wrapper = mountWithIntl(
+        const {rerender} = renderWithContext(
             <PermalinkView {...baseProps}/>,
         );
 
         const newPostid = `${baseProps.match.params.postid}_new`;
 
-        act(() => {
-            wrapper.setProps({...baseProps, match: {params: {postid: newPostid}}} as any);
-        });
+        rerender(
+            <PermalinkView
+                {...baseProps}
+                match={{params: {postid: newPostid}} as match<{postid: string}>}
+            />,
+        );
 
         await waitFor(() => {
             expect(baseProps.actions.focusPost).toHaveBeenCalledTimes(2);
-            expect(baseProps.actions.focusPost).toBeCalledWith(newPostid, baseProps.returnTo, baseProps.currentUserId);
+            expect(baseProps.actions.focusPost).toHaveBeenCalledWith(newPostid, baseProps.returnTo, baseProps.currentUserId);
         });
     });
 
     test('should match snapshot with archived channel', async () => {
         const props = {...baseProps, channelIsArchived: true};
 
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <PermalinkView {...props}/>,
         );
 
         await waitFor(() => {});
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     describe('actions', () => {
@@ -391,7 +392,7 @@ describe('components/PermalinkView', () => {
                     {type: 'MOCK_LOAD_CHANNELS_FOR_CURRENT_USER'},
                     {type: 'MOCK_GET_CHANNEL_STATS', args: ['channelid1']},
                 ]);
-                expect(getHistory().replace).not.toBeCalled();
+                expect(getHistory().replace).not.toHaveBeenCalled();
             });
 
             describe('focusPost - with prompt', () => {

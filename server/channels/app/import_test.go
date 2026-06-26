@@ -69,7 +69,6 @@ func AssertChannelCount(t *testing.T, a *App, channelType model.ChannelType, exp
 func TestImportImportLine(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	// Try import line with an invalid type.
 	line := imports.LineImportData{
@@ -118,7 +117,6 @@ func TestImportImportLine(t *testing.T) {
 func TestStopOnError(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	assert.True(t, stopOnError(th.Context, imports.LineImportWorkerError{
 		Error:      model.NewAppError("test", "app.import.attachment.bad_file.error", nil, "", http.StatusBadRequest),
@@ -149,7 +147,6 @@ func TestStopOnError(t *testing.T) {
 func TestImportBulkImport(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
 
@@ -288,7 +285,7 @@ func TestImportProcessImportDataFileVersionLine(t *testing.T) {
 	mainHelper.Parallel(t)
 	data := imports.LineImportData{
 		Type:    "version",
-		Version: model.NewPointer(1),
+		Version: new(1),
 	}
 	version, err := processImportDataFileVersionLine(data)
 	require.Nil(t, err, "Expected no error")
@@ -338,7 +335,7 @@ func TestProcessAttachmentPaths(t *testing.T) {
 	t.Run("missing file in map", func(t *testing.T) {
 		attachments := &[]imports.AttachmentImportData{
 			{
-				Path: model.NewPointer("file.jpg"),
+				Path: new("file.jpg"),
 			},
 		}
 
@@ -354,25 +351,25 @@ func TestProcessAttachmentPaths(t *testing.T) {
 	t.Run("valid paths", func(t *testing.T) {
 		attachments := &[]imports.AttachmentImportData{
 			{
-				Path: model.NewPointer("file.jpg"),
+				Path: new("file.jpg"),
 			},
 			{
-				Path: model.NewPointer("somedir/file.jpg"),
+				Path: new("somedir/file.jpg"),
 			},
 			{
-				Path: model.NewPointer("./someotherdir/file.jpg"),
+				Path: new("./someotherdir/file.jpg"),
 			},
 		}
 
 		expected := &[]imports.AttachmentImportData{
 			{
-				Path: model.NewPointer("data/file.jpg"),
+				Path: new("data/file.jpg"),
 			},
 			{
-				Path: model.NewPointer("data/somedir/file.jpg"),
+				Path: new("data/somedir/file.jpg"),
 			},
 			{
-				Path: model.NewPointer("data/someotherdir/file.jpg"),
+				Path: new("data/someotherdir/file.jpg"),
 			},
 		}
 
@@ -384,19 +381,19 @@ func TestProcessAttachmentPaths(t *testing.T) {
 	t.Run("uncleaned paths", func(t *testing.T) {
 		attachments := &[]imports.AttachmentImportData{
 			{
-				Path: model.NewPointer("../dir/invalid.txt"),
+				Path: new("../dir/invalid.txt"),
 			},
 			{
-				Path: model.NewPointer("somedir/./normal-file.jpg"),
+				Path: new("somedir/./normal-file.jpg"),
 			},
 		}
 
 		expected := &[]imports.AttachmentImportData{
 			{
-				Path: model.NewPointer("/path/to/import/dir/invalid.txt"),
+				Path: new("/path/to/import/dir/invalid.txt"),
 			},
 			{
-				Path: model.NewPointer("/path/to/import/dir/somedir/normal-file.jpg"),
+				Path: new("/path/to/import/dir/somedir/normal-file.jpg"),
 			},
 		}
 
@@ -408,19 +405,19 @@ func TestProcessAttachmentPaths(t *testing.T) {
 	t.Run("paths outside base path", func(t *testing.T) {
 		attachments := &[]imports.AttachmentImportData{
 			{
-				Path: model.NewPointer("../../invalid.txt"),
+				Path: new("../../invalid.txt"),
 			},
 			{
-				Path: model.NewPointer("../../../invalid.txt"),
+				Path: new("../../../invalid.txt"),
 			},
 		}
 
 		expected := &[]imports.AttachmentImportData{
 			{
-				Path: model.NewPointer(""),
+				Path: new(""),
 			},
 			{
-				Path: model.NewPointer(""),
+				Path: new(""),
 			},
 		}
 
@@ -432,19 +429,19 @@ func TestProcessAttachmentPaths(t *testing.T) {
 	t.Run("mix of valid and invalid paths", func(t *testing.T) {
 		attachments := &[]imports.AttachmentImportData{
 			{
-				Path: model.NewPointer("../../invalid.txt"),
+				Path: new("../../invalid.txt"),
 			},
 			{
-				Path: model.NewPointer("valid/path/to/file"),
+				Path: new("valid/path/to/file"),
 			},
 		}
 
 		expected := &[]imports.AttachmentImportData{
 			{
-				Path: model.NewPointer(""),
+				Path: new(""),
 			},
 			{
-				Path: model.NewPointer("data/valid/path/to/file"),
+				Path: new("data/valid/path/to/file"),
 			},
 		}
 
@@ -461,10 +458,10 @@ func TestProcessAttachments(t *testing.T) {
 	genAttachments := func() *[]imports.AttachmentImportData {
 		return &[]imports.AttachmentImportData{
 			{
-				Path: model.NewPointer("file.jpg"),
+				Path: new("file.jpg"),
 			},
 			{
-				Path: model.NewPointer("somedir/file.jpg"),
+				Path: new("somedir/file.jpg"),
 			},
 		}
 	}
@@ -487,7 +484,7 @@ func TestProcessAttachments(t *testing.T) {
 		Type: "user",
 		User: &imports.UserImportData{
 			Avatar: imports.Avatar{
-				ProfileImage: model.NewPointer("profile.jpg"),
+				ProfileImage: new("profile.jpg"),
 			},
 		},
 	}
@@ -495,17 +492,17 @@ func TestProcessAttachments(t *testing.T) {
 	emojiLine := imports.LineImportData{
 		Type: "emoji",
 		Emoji: &imports.EmojiImportData{
-			Image: model.NewPointer("emoji.png"),
+			Image: new("emoji.png"),
 		},
 	}
 
 	t.Run("empty path", func(t *testing.T) {
 		expected := &[]imports.AttachmentImportData{
 			{
-				Path: model.NewPointer("file.jpg"),
+				Path: new("file.jpg"),
 			},
 			{
-				Path: model.NewPointer("somedir/file.jpg"),
+				Path: new("somedir/file.jpg"),
 			},
 		}
 
@@ -520,10 +517,10 @@ func TestProcessAttachments(t *testing.T) {
 	t.Run("valid path", func(t *testing.T) {
 		expected := &[]imports.AttachmentImportData{
 			{
-				Path: model.NewPointer("tmp/file.jpg"),
+				Path: new("tmp/file.jpg"),
 			},
 			{
-				Path: model.NewPointer("tmp/somedir/file.jpg"),
+				Path: new("tmp/somedir/file.jpg"),
 			},
 		}
 
@@ -607,7 +604,6 @@ func TestProcessAttachments(t *testing.T) {
 
 func BenchmarkBulkImport(b *testing.B) {
 	th := Setup(b)
-	defer th.TearDown()
 
 	testsDir, _ := fileutils.FindDir("tests")
 
@@ -638,7 +634,6 @@ func BenchmarkBulkImport(b *testing.B) {
 func TestImportBulkImportWithAttachments(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	testsDir, _ := fileutils.FindDir("tests")
 
@@ -655,7 +650,7 @@ func TestImportBulkImportWithAttachments(t *testing.T) {
 
 	var jsonFile io.ReadCloser
 	for _, f := range importZipReader.File {
-		if filepath.Ext(f.Name) != ".jsonl" {
+		if !imports.IsRootJsonlFile(f.Name) {
 			continue
 		}
 
@@ -666,7 +661,7 @@ func TestImportBulkImportWithAttachments(t *testing.T) {
 	}
 	require.NotNil(t, jsonFile)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = model.NewPointer(1000) })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = new(1000) })
 
 	_, appErr := th.App.BulkImportWithPath(th.Context, jsonFile, importZipReader, false, true, 1, model.ExportDataDir)
 	require.Nil(t, appErr)
@@ -678,9 +673,42 @@ func TestImportBulkImportWithAttachments(t *testing.T) {
 	require.Len(t, files, 11)
 }
 
+func TestImportBulkImportWithNestedJsonl(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	testsDir, _ := fileutils.FindDir("tests")
+
+	importFile, err := os.Open(testsDir + "/export_test_with_nested_jsonl.zip")
+	require.NoError(t, err)
+	defer importFile.Close()
+
+	info, err := importFile.Stat()
+	require.NoError(t, err)
+
+	importZipReader, err := zip.NewReader(importFile, info.Size())
+	require.NoError(t, err)
+	require.NotNil(t, importZipReader)
+
+	var jsonFile io.ReadCloser
+	for _, f := range importZipReader.File {
+		if !imports.IsRootJsonlFile(f.Name) {
+			continue
+		}
+
+		jsonFile, err = f.Open()
+		require.NoError(t, err)
+		defer jsonFile.Close()
+		break
+	}
+	require.NotNil(t, jsonFile)
+
+	_, appErr := th.App.BulkImportWithPath(th.Context, jsonFile, importZipReader, false, true, 1, model.ExportDataDir)
+	require.Nil(t, appErr)
+}
+
 func TestDeleteImport(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	importDir := filepath.Join(th.tempWorkspace, "data", "import")
 	err := os.MkdirAll(importDir, os.ModePerm)

@@ -18,7 +18,9 @@ import ShowMore from 'components/post_view/show_more';
 import type {AttachmentTextOverflowType} from 'components/post_view/show_more/show_more';
 
 import Pluggable from 'plugins/pluggable';
+import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
 import {PostTypes} from 'utils/constants';
+import {getPostTranslatedMessage, getPostTranslation} from 'utils/post_utils';
 import type {TextFormattingOptions} from 'utils/text_formatting';
 import * as Utils from 'utils/utils';
 
@@ -35,8 +37,6 @@ type Props = {
     options?: TextFormattingOptions; /* Options specific to text formatting */
     compactDisplay?: boolean; /* Set to render post body compactly */
     isRHS?: boolean; /* Flags if the post_message_view is for the RHS (Reply). */
-    isRHSOpen?: boolean; /* Whether or not the RHS is visible */
-    isRHSExpanded?: boolean; /* Whether or not the RHS is expanded */
     theme: Theme; /* Logged in user's theme */
     pluginPostTypes?: {
         [postType: string]: PostPluginComponent;
@@ -46,13 +46,15 @@ type Props = {
     maxHeight?: number; /* The max height used by the show more component */
     showPostEditedIndicator?: boolean; /* Whether or not to render the post edited indicator */
     sharedChannelsPluginsEnabled?: boolean;
-}
+    isChannelAutotranslated: boolean;
+    userLanguage: string;
+};
 
 type State = {
     collapse: boolean;
     hasOverflow: boolean;
     checkOverflow: number;
-}
+};
 
 export default class PostMessageView extends React.PureComponent<Props, State> {
     private imageProps: any;
@@ -134,12 +136,14 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
         if (pluginPostTypes && Object.hasOwn(pluginPostTypes, postType)) {
             const PluginComponent = pluginPostTypes[postType].component;
             return (
-                <PluginComponent
-                    post={post}
-                    compactDisplay={compactDisplay}
-                    isRHS={isRHS}
-                    theme={theme}
-                />
+                <PluggableErrorBoundary pluginId={pluginPostTypes[postType].pluginId}>
+                    <PluginComponent
+                        post={post}
+                        compactDisplay={compactDisplay}
+                        isRHS={isRHS}
+                        theme={theme}
+                    />
+                </PluggableErrorBoundary>
             );
         }
 
@@ -148,6 +152,12 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
         if (compactDisplay && isEphemeral) {
             const visibleMessage = Utils.localizeMessage({id: 'post_info.message.visible.compact', defaultMessage: ' (Only visible to you)'});
             message = message.concat(visibleMessage);
+        }
+
+        // Use translation if channel is autotranslated and translation is available
+        const translation = getPostTranslation(post, this.props.userLanguage);
+        if (this.props.isChannelAutotranslated && post.type === '' && translation?.state === 'ready') {
+            message = getPostTranslatedMessage(message, translation);
         }
 
         const id = isRHS ? `rhsPostMessageText_${post.id}` : `postMessageText_${post.id}`;

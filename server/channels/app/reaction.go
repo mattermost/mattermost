@@ -7,17 +7,30 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func (a *App) SaveReactionForPost(rctx request.CTX, reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+	reaction.EmojiName = strings.ToLower(reaction.EmojiName)
 	post, err := a.GetSinglePost(rctx, reaction.PostId, false)
 	if err != nil {
 		return nil, err
+	}
+
+	if post.Type == model.PostTypeBurnOnRead && post.UserId != reaction.UserId {
+		receipt, err := a.Srv().Store().ReadReceipt().Get(rctx, post.Id, reaction.UserId)
+		if err != nil && !store.IsErrNotFound(err) {
+			return nil, model.NewAppError("SaveReactionForPost", "app.reaction.save.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		if receipt == nil || receipt.ExpireAt < model.GetMillis() {
+			return nil, model.NewAppError("SaveReactionForPost", "api.reaction.save.burn_on_read.app_error", nil, "", http.StatusForbidden)
+		}
 	}
 
 	// Check whether this is a valid emoji
@@ -142,6 +155,7 @@ func populateEmptyReactions(postIDs []string, reactions map[string][]*model.Reac
 }
 
 func (a *App) DeleteReactionForPost(rctx request.CTX, reaction *model.Reaction) *model.AppError {
+	reaction.EmojiName = strings.ToLower(reaction.EmojiName)
 	post, err := a.GetSinglePost(rctx, reaction.PostId, false)
 	if err != nil {
 		return err
@@ -154,7 +168,7 @@ func (a *App) DeleteReactionForPost(rctx request.CTX, reaction *model.Reaction) 
 
 	restrictDM, appErr := a.CheckIfChannelIsRestrictedDM(rctx, channel)
 	if appErr != nil {
-		return err
+		return appErr
 	}
 
 	if restrictDM {
@@ -194,5 +208,11 @@ func (a *App) sendReactionEvent(rctx request.CTX, event model.WebsocketEventType
 		rctx.Logger().Warn("Failed to encode reaction to JSON", mlog.Err(err))
 	}
 	message.Add("reaction", string(reactionJSON))
+
+	// For burn-on-read posts, filter recipients based on read receipts
+	if post.Type == model.PostTypeBurnOnRead {
+		useBurnOnReadReactionHook(message, post.UserId, post.Id)
+	}
+
 	a.Publish(message)
 }

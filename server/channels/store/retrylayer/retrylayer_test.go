@@ -9,6 +9,7 @@ import (
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
 
+	"github.com/lib/pq/pqerror"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
@@ -18,6 +19,7 @@ func genStore() *mocks.Store {
 	mock.On("Audit").Return(&mocks.AuditStore{})
 	mock.On("Bot").Return(&mocks.BotStore{})
 	mock.On("Channel").Return(&mocks.ChannelStore{})
+	mock.On("ChannelGuard").Return(&mocks.ChannelGuardStore{})
 	mock.On("ChannelMemberHistory").Return(&mocks.ChannelMemberHistoryStore{})
 	mock.On("ChannelBookmark").Return(&mocks.ChannelBookmarkStore{})
 	mock.On("ClusterDiscovery").Return(&mocks.ClusterDiscoveryStore{})
@@ -45,6 +47,7 @@ func genStore() *mocks.Store {
 	mock.On("Role").Return(&mocks.RoleStore{})
 	mock.On("Scheme").Return(&mocks.SchemeStore{})
 	mock.On("Session").Return(&mocks.SessionStore{})
+	mock.On("SessionAttribute").Return(&mocks.SessionAttributeStore{})
 	mock.On("Status").Return(&mocks.StatusStore{})
 	mock.On("System").Return(&mocks.SystemStore{})
 	mock.On("Team").Return(&mocks.TeamStore{})
@@ -67,7 +70,13 @@ func genStore() *mocks.Store {
 	mock.On("PropertyValue").Return(&mocks.PropertyValueStore{})
 	mock.On("AccessControlPolicy").Return(&mocks.AccessControlPolicyStore{})
 	mock.On("Attributes").Return(&mocks.AttributesStore{})
+	mock.On("AutoTranslation").Return(&mocks.AutoTranslationStore{})
 	mock.On("ContentFlagging").Return(&mocks.ContentFlaggingStore{})
+	mock.On("ReadReceipt").Return(&mocks.ReadReceiptStore{})
+	mock.On("Recap").Return(&mocks.RecapStore{})
+	mock.On("TemporaryPost").Return(&mocks.TemporaryPostStore{})
+	mock.On("View").Return(&mocks.ViewStore{})
+	mock.On("ChannelJoinRequest").Return(&mocks.ChannelJoinRequestStore{})
 	return mock
 }
 
@@ -96,7 +105,7 @@ func TestRetry(t *testing.T) {
 			t.Run("error "+errCode, func(t *testing.T) {
 				mock := genStore()
 				mockBotStore := mock.Bot().(*mocks.BotStore)
-				pqErr := pq.Error{Code: pq.ErrorCode(errCode)}
+				pqErr := pq.Error{Code: pqerror.Code(errCode)}
 				mockBotStore.On("Get", "test", false).Return(nil, errors.Wrap(&pqErr, "test-error")).Times(3)
 				mock.On("Bot").Return(&mockBotStore)
 				layer := New(mock)

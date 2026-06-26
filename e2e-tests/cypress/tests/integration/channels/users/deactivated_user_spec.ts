@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @system_console @user_management
 
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 describe('Deactivated user', () => {
     let testUser: UserProfile;
@@ -65,7 +65,7 @@ describe('Deactivated user', () => {
 
             // # Generate a personal access token via API
             cy.apiAccessToken(testUser.id, tokenName).then((token) => {
-                personalAccessToken = token.token;
+                personalAccessToken = token.token!;
 
                 // # Replace the auth cookie with the PAT
                 cy.setCookie('MMAUTHTOKEN', personalAccessToken);

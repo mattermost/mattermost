@@ -7,6 +7,7 @@ import type {OnChangeValue} from 'react-select';
 
 import {BellOffOutlineIcon} from '@mattermost/compass-icons/components';
 import {GenericModal} from '@mattermost/components';
+import {Button} from '@mattermost/shared/components/button';
 import type {Channel, ChannelMembership, ChannelNotifyProps} from '@mattermost/types/channels';
 import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 
@@ -138,7 +139,7 @@ export default function ChannelNotificationsModal(props: Props) {
                 }
                 description={formatMessage({
                     id: 'channel_notifications.muteChannelDesc',
-                    defaultMessage: 'Turns off notifications for this channel. You\'ll still see badges if you\'re mentioned.',
+                    defaultMessage: 'Turns off notifications for this channel. You’ll still see badges if you’re mentioned.',
                 })}
                 inputFieldValue={settings.mark_unread === 'mention'}
                 inputFieldData={utils.MuteChannelInputFieldData}
@@ -193,7 +194,7 @@ export default function ChannelNotificationsModal(props: Props) {
                     inputFieldTitle={
                         <FormattedMessage
                             id='channel_notifications.checkbox.threadsReplyTitle'
-                            defaultMessage="Notify me about replies to threads I\'m following"
+                            defaultMessage='Notify me about replies to threads I’m following'
                         />
                     }
                     handleChange={(e) => handleChange({desktop_threads: e ? 'all' : 'mention'})}
@@ -262,7 +263,7 @@ export default function ChannelNotificationsModal(props: Props) {
                             inputFieldTitle={
                                 <FormattedMessage
                                     id='channel_notifications.checkbox.threadsReplyTitle'
-                                    defaultMessage="Notify me about replies to threads I\'m following"
+                                    defaultMessage='Notify me about replies to threads I’m following'
                                 />
                             }
                             inputFieldValue={settings.push_threads === 'all'}
@@ -367,24 +368,26 @@ export default function ChannelNotificationsModal(props: Props) {
                 {serverError}
             </span>
             }
-            <button
-                className='btn btn-tertiary btn-md'
+            <Button
+                emphasis='tertiary'
+                size='md'
                 onClick={handleHide}
             >
                 <FormattedMessage
                     id='generic_btn.cancel'
                     defaultMessage='Cancel'
                 />
-            </button>
-            <button
-                className='btn btn-primary btn-md'
+            </Button>
+            <Button
+                emphasis='primary'
+                size='md'
                 onClick={handleSave}
             >
                 <FormattedMessage
                     id='generic_btn.save'
                     defaultMessage='Save'
                 />
-            </button>
+            </Button>
         </footer>
     );
 

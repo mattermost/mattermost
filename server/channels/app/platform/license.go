@@ -81,9 +81,11 @@ func (ps *PlatformService) LoadLicense() {
 	}
 
 	licenseId := ""
-	props, nErr := ps.Store.System().Get()
+	// Read from master: SaveLicense writes the active license ID then calls
+	// LoadLicense, so a replica read can return a stale ID and revert the license.
+	activeLicense, nErr := ps.Store.System().GetByNameWithContext(sqlstore.RequestContextWithMaster(c), model.SystemActiveLicenseId)
 	if nErr == nil {
-		licenseId = props[model.SystemActiveLicenseId]
+		licenseId = activeLicense.Value
 	}
 
 	if !model.IsValidId(licenseId) {
@@ -151,8 +153,14 @@ func (ps *PlatformService) SaveLicense(licenseBytes []byte) (*model.License, *mo
 		return nil, model.NewAppError("addLicense", "api.license.add_license.invalid_count.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	if uniqueUserCount > int64(*license.Features.Users) {
-		return nil, model.NewAppError("addLicense", "api.license.add_license.unique_users.app_error", map[string]any{"Users": *license.Features.Users, "Count": uniqueUserCount}, "", http.StatusBadRequest)
+	// Single-channel guests are free and should not count against licensed seats.
+	effectiveUserCount := uniqueUserCount
+	if scgCount, scgErr := ps.Store.User().AnalyticsGetSingleChannelGuestCount(); scgErr == nil {
+		effectiveUserCount = max(uniqueUserCount-scgCount, 0)
+	}
+
+	if effectiveUserCount > int64(*license.Features.Users) {
+		return nil, model.NewAppError("addLicense", "api.license.add_license.unique_users.app_error", map[string]any{"Users": *license.Features.Users, "Count": effectiveUserCount}, "", http.StatusBadRequest)
 	}
 
 	if license.IsExpired() {

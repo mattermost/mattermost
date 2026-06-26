@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, screen, waitFor} from '@testing-library/react';
 import React from 'react';
 import * as reactRedux from 'react-redux';
 
 import type {Subscription, PreviewModalContentData} from '@mattermost/types/cloud';
 import type {TeamType} from '@mattermost/types/teams';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import CloudPreviewModal from './cloud_preview_modal_controller';
 import {modalContent} from './preview_modal_content_data';
@@ -44,19 +43,6 @@ jest.mock('components/async_load', () => ({
         Component.displayName = displayName;
         return Component;
     },
-}));
-
-// Mock WithTooltip to avoid complex tooltip testing
-jest.mock('components/with_tooltip', () => ({
-    __esModule: true,
-    default: ({children, title}: {children: React.ReactNode; title: string}) => (
-        <div
-            data-testid='with-tooltip'
-            title={title}
-        >
-            {children}
-        </div>
-    ),
 }));
 
 describe('CloudPreviewModal', () => {
@@ -258,13 +244,13 @@ describe('CloudPreviewModal', () => {
 
         // Click close button
         const closeButton = screen.getByText('Close');
-        fireEvent.click(closeButton);
+        await userEvent.click(closeButton);
 
         // Check that dispatch was called (savePreferences action)
         expect(dummyDispatch).toHaveBeenCalled();
     });
 
-    it('should reset preference and reopen modal when FAB is clicked', () => {
+    it('should reset preference and reopen modal when FAB is clicked', async () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
@@ -280,7 +266,7 @@ describe('CloudPreviewModal', () => {
         // Click the FAB button
         const button = fabButton.querySelector('button');
         expect(button).toBeInTheDocument();
-        fireEvent.click(button!);
+        await userEvent.click(button!);
 
         // Check that dispatch was called to reset the preference
         expect(dummyDispatch).toHaveBeenCalled();
@@ -302,7 +288,7 @@ describe('CloudPreviewModal', () => {
         expect(screen.queryByTestId('cloud-preview-fab')).not.toBeInTheDocument();
     });
 
-    it('should have proper tooltip on FAB button', () => {
+    it('should have proper tooltip on FAB button', async () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
@@ -311,8 +297,13 @@ describe('CloudPreviewModal', () => {
             stateWithModalShown,
         );
 
-        const tooltip = screen.getByTestId('with-tooltip');
-        expect(tooltip).toHaveAttribute('title', 'Open overview');
+        const button = screen.getByLabelText('Open cloud preview overview');
+
+        await userEvent.hover(button);
+
+        await waitFor(() => {
+            expect(button).toHaveAttribute('aria-describedby');
+        });
     });
 
     it('should have proper accessibility attributes on FAB button', () => {

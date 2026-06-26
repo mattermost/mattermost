@@ -1,0 +1,22 @@
+{"Time":"2025-03-20T10:00:00Z","Action":"pass","Package":"github.com/mattermost/mattermost/server/v8/channels/api4","Test":"TestGetChannel","Elapsed":45.2}
+{"Time":"2025-03-20T10:00:00Z","Action":"pass","Package":"github.com/mattermost/mattermost/server/v8/channels/api4","Test":"TestCreatePost","Elapsed":38.1}
+{"Time":"2025-03-20T10:00:00Z","Action":"pass","Package":"github.com/mattermost/mattermost/server/v8/channels/api4","Test":"TestUpdateChannel","Elapsed":22.5}
+{"Time":"2025-03-20T10:00:00Z","Action":"pass","Package":"github.com/mattermost/mattermost/server/v8/channels/api4","Test":"TestDeleteChannel","Elapsed":18.3}
+{"Time":"2025-03-20T10:00:00Z","Action":"pass","Package":"github.com/mattermost/mattermost/server/v8/channels/api4","Test":"TestGetChannelMembers","Elapsed":15.7}
+{"Time":"2025-03-20T10:00:00Z","Action":"pass","Package":"github.com/mattermost/mattermost/server/v8/channels/api4","Test":"TestSearchChannels","Elapsed":12.4}
+{"Time":"2025-03-20T10:00:00Z","Action":"pass","Package":"github.com/mattermost/mattermost/server/v8/channels/app","Test":"TestCreateUser","Elapsed":25.6}
+{"Time":"2025-03-20T10:00:00Z","Action":"pass","Package":"github.com/mattermost/mattermost/server/v8/channels/app","Test":"TestUpdateUser","Elapsed":20.3}
+{"Time":"2025-03-20T10:00:00Z","Action":"pass","Package":"github.com/mattermost/mattermost/server/v8/channels/app","Test":"TestDeleteUser","Elapsed":15.8}
+{"Time":"2025-03-20T10:00:00Z","Action":"pass","Package":"github.com/mattermost/mattermost/server/v8/channels/app","Test":"TestGetUser","Elapsed":10.2}
+{"Time":"2025-03-20T10:00:00Z","Action":"pass","Package":"github.com/mattermost/mattermost/server/v8/channels/app","Test":"TestSearchUsers","Elapsed":8.5}
+{"Time":"2025-03-20T10:00:00Z","Action":"pass","Package":"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore","Test":"TestChannelStore","Elapsed":35.0}
+{"Time":"2025-03-20T10:00:00Z","Action":"pass","Package":"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore","Test":"TestPostStore","Elapsed":28.0}
+{"Time":"2025-03-20T10:00:00Z","Action":"pass","Package":"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore","Test":"TestUserStore","Elapsed":22.0}
+{"Time":"2025-03-20T10:00:00Z","Action":"pass","Package":"github.com/mattermost/mattermost/server/v8/config","Test":"TestConfigStore","Elapsed":5.0}
+{"Time":"2025-03-20T10:00:00Z","Action":"pass","Package":"github.com/mattermost/mattermost/server/v8/config","Test":"TestConfigMigrate","Elapsed":3.0}
+{"Time":"2025-03-20T10:00:00Z","Action":"pass","Package":"github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch","Test":"TestSearchPosts","Elapsed":8.0}
+{"Time":"2025-03-20T10:00:00Z","Action":"pass","Package":"github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch","Test":"TestIndexPosts","Elapsed":6.0}
+{"Time":"2025-03-20T10:00:00Z","Action":"pass","Package":"github.com/mattermost/mattermost/server/v8/enterprise/compliance","Test":"TestExportCompliance","Elapsed":4.0}
+{"Time":"2025-03-20T10:00:00Z","Action":"pass","Package":"github.com/mattermost/mattermost/server/public/model","Test":"TestModelValidation","Elapsed":2.0}
+{"Time":"2025-03-20T10:00:00Z","Action":"pass","Package":"github.com/mattermost/mattermost/server/public/model","Test":"TestModelSerialization","Elapsed":1.5}
+{"Time":"2025-03-20T10:00:00Z","Action":"output","Package":"github.com/mattermost/mattermost/server/v8/channels/api4","Test":"TestGetChannel","Output":"--- PASS: TestGetChannel (45.20s)\n"}

@@ -43,6 +43,7 @@ func MakeWorker(jobServer *jobs.JobServer, store store.Store, app ExportUsersToC
 			"LastPostDate",
 			"DaysActive",
 			"TotalPosts",
+			"ChannelCount",
 			"DeletedAt",
 		},
 		getData(app),
@@ -90,6 +91,7 @@ func parseJobMetadata(data model.StringMap) (*model.UserReportOptions, error) {
 		HideActive:   hideActive,
 		Role:         data["role"],
 		Team:         data["team"],
+		GuestFilter:  data["guest_filter"],
 	}
 
 	return &options, nil
@@ -112,7 +114,7 @@ func getData(app ExportUsersToCSVAppIFace) func(jobData model.StringMap) ([]mode
 
 		users, appErr := app.GetUsersForReporting(filter)
 		if appErr != nil {
-			return nil, nil, false, errors.Wrapf(err, "failed to get the next batch (column_value=%v, user_id=%v)", filter.FromColumnValue, filter.FromId)
+			return nil, nil, false, errors.Wrapf(appErr, "failed to get the next batch (column_value=%v, user_id=%v)", filter.FromColumnValue, filter.FromId)
 		}
 
 		if len(users) == 0 {

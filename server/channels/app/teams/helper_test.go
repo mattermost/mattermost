@@ -61,16 +61,21 @@ func setupTestHelper(s store.Store, includeCacheLayer bool, tb testing.TB) *Test
 	*config.TeamSettings.MaxUsersPerTeam = 50
 	*config.RateLimitSettings.Enable = false
 	*config.TeamSettings.EnableOpenServer = true
-	// Disable strict password requirements for test
-	*config.PasswordSettings.MinimumLength = 5
-	*config.PasswordSettings.Lowercase = false
-	*config.PasswordSettings.Uppercase = false
-	*config.PasswordSettings.Symbol = false
-	*config.PasswordSettings.Number = false
 	_, _, err = configStore.Set(config)
 	require.NoError(tb, err)
 
 	buffer := &bytes.Buffer{}
+
+	tb.Cleanup(func() {
+		err := configStore.Close()
+		require.NoError(tb, err)
+
+		s.Close()
+
+		if tempWorkspace != "" {
+			os.RemoveAll(tempWorkspace)
+		}
+	})
 
 	return &TestHelper{
 		service: &TeamService{
@@ -88,16 +93,6 @@ func setupTestHelper(s store.Store, includeCacheLayer bool, tb testing.TB) *Test
 		dbStore:     s,
 		LogBuffer:   buffer,
 		workspace:   tempWorkspace,
-	}
-}
-
-func (th *TestHelper) TearDown() {
-	th.configStore.Close()
-
-	th.dbStore.Close()
-
-	if th.workspace != "" {
-		os.RemoveAll(th.workspace)
 	}
 }
 

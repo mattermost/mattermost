@@ -20,7 +20,6 @@ import (
 func TestConfigListener(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	originalSiteName := th.Service.Config().TeamSettings.SiteName
 
@@ -58,12 +57,11 @@ func TestConfigSave(t *testing.T) {
 	cm := &mocks.ClusterInterface{}
 	cm.On("SendClusterMessage", mock.AnythingOfType("*model.ClusterMessage")).Return(nil)
 	th := SetupWithCluster(t, cm)
-	defer th.TearDown()
 
 	t.Run("trigger a config changed event for the cluster", func(t *testing.T) {
 		oldCfg := th.Service.Config()
 		newCfg := oldCfg.Clone()
-		newCfg.ServiceSettings.SiteURL = model.NewPointer("http://newhost.me")
+		newCfg.ServiceSettings.SiteURL = new("http://newhost.me")
 
 		sanitizedOldCfg := th.Service.configStore.RemoveEnvironmentOverrides(oldCfg)
 		sanitizedNewCfg := th.Service.configStore.RemoveEnvironmentOverrides(newCfg)
@@ -78,7 +76,6 @@ func TestConfigSave(t *testing.T) {
 
 	t.Run("do not restart the metrics server on a different type of config change", func(t *testing.T) {
 		th := Setup(t, StartMetrics())
-		defer th.TearDown()
 
 		metricsMock := &mocks.MetricsInterface{}
 		metricsMock.On("IncrementWebsocketEvent", model.WebsocketEventConfigChanged).Return()
@@ -89,18 +86,18 @@ func TestConfigSave(t *testing.T) {
 
 		// Change a random config setting
 		cfg := th.Service.Config().Clone()
-		cfg.ThemeSettings.EnableThemeSelection = model.NewPointer(!*cfg.ThemeSettings.EnableThemeSelection)
+		cfg.ThemeSettings.EnableThemeSelection = new(!*cfg.ThemeSettings.EnableThemeSelection)
 		_, _, appErr := th.Service.SaveConfig(cfg, false)
 		require.Nil(t, appErr)
 		metricsMock.AssertNumberOfCalls(t, "Register", 0)
 
 		// Disable metrics
-		cfg.MetricsSettings.Enable = model.NewPointer(false)
+		cfg.MetricsSettings.Enable = new(false)
 		_, _, appErr = th.Service.SaveConfig(cfg, false)
 		require.Nil(t, appErr)
 
 		// Change the metrics setting
-		cfg.MetricsSettings.Enable = model.NewPointer(true)
+		cfg.MetricsSettings.Enable = new(true)
 		_, _, appErr = th.Service.SaveConfig(cfg, false)
 		require.Nil(t, appErr)
 		metricsMock.AssertNumberOfCalls(t, "Register", 1)
@@ -110,7 +107,6 @@ func TestConfigSave(t *testing.T) {
 func TestIsFirstUserAccount(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 	storeMock := th.Service.Store.(*smocks.Store)
 	userStoreMock := &smocks.UserStore{}
 	storeMock.On("User").Return(userStoreMock)
@@ -153,7 +149,6 @@ func TestIsFirstUserAccount(t *testing.T) {
 func TestIsFirstUserAccountThunderingHerd(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 	storeMock := th.Service.Store.(*smocks.Store)
 	userStoreMock := &smocks.UserStore{}
 	storeMock.On("User").Return(userStoreMock)
@@ -186,12 +181,9 @@ func TestIsFirstUserAccountThunderingHerd(t *testing.T) {
 
 			var wg sync.WaitGroup
 			for i := 0; i < te.concurrentRequest; i++ {
-				wg.Add(1)
-
-				go func() {
-					defer wg.Done()
+				wg.Go(func() {
 					require.Equal(t, te.result, th.Service.IsFirstUserAccount())
-				}()
+				})
 			}
 
 			wg.Wait()

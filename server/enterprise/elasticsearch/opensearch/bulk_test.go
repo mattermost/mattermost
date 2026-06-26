@@ -17,7 +17,7 @@ import (
 )
 
 // setupBulkClient creates a test bulk client with common setup
-func setupBulkClient(t *testing.T, flushBytes int, flushNumReqs int, flushInterval time.Duration) (*Bulk, *api4.TestHelper) {
+func setupBulkClient(t *testing.T, flushBytes int, flushNumReqs int, flushInterval time.Duration) *Bulk {
 	th := api4.SetupEnterprise(t)
 
 	if os.Getenv("IS_CI") == "true" {
@@ -48,7 +48,7 @@ func setupBulkClient(t *testing.T, flushBytes int, flushNumReqs int, flushInterv
 		time.Duration(*th.App.Config().ElasticsearchSettings.RequestTimeoutSeconds)*time.Second,
 		th.Server.Platform().Log())
 
-	return bulk, th
+	return bulk
 }
 
 // createTestPost creates a test post for indexing
@@ -56,14 +56,13 @@ func createTestPost(t *testing.T, message string) *common.ESPost {
 	post, err := common.ESPostFromPost(&model.Post{
 		Id:      model.NewId(),
 		Message: message,
-	}, "myteam")
+	}, "myteam", "O")
 	require.NoError(t, err)
 	return post
 }
 
 func TestBulkProcessor(t *testing.T) {
-	bulk, th := setupBulkClient(t, 0, 10, 0)
-	defer th.TearDown()
+	bulk := setupBulkClient(t, 0, 10, 0)
 	defer func() {
 		if os.Getenv("IS_CI") == "true" {
 			os.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", "http://elasticsearch:9201")
@@ -74,8 +73,8 @@ func TestBulkProcessor(t *testing.T) {
 	post := createTestPost(t, "hello world")
 
 	err := bulk.IndexOp(&types.IndexOperation{
-		Index_: model.NewPointer("myindex"),
-		Id_:    model.NewPointer(post.Id),
+		Index_: new("myindex"),
+		Id_:    new(post.Id),
 	}, post)
 	require.NoError(t, err)
 
@@ -88,8 +87,7 @@ func TestBulkProcessor(t *testing.T) {
 }
 
 func TestNewBulk(t *testing.T) {
-	bulk, th := setupBulkClient(t, 1024, 10, 0)
-	defer th.TearDown()
+	bulk := setupBulkClient(t, 1024, 10, 0)
 	defer func() {
 		if os.Getenv("IS_CI") == "true" {
 			os.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", "http://elasticsearch:9201")
@@ -108,8 +106,7 @@ func TestNewBulk(t *testing.T) {
 	})
 
 	t.Run("creates bulk client with periodic flusher", func(t *testing.T) {
-		bulkWithTimer, th2 := setupBulkClient(t, 1024, 10, 100*time.Millisecond)
-		defer th2.TearDown()
+		bulkWithTimer := setupBulkClient(t, 1024, 10, 100*time.Millisecond)
 		defer func() {
 			if os.Getenv("IS_CI") == "true" {
 				os.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", "http://elasticsearch:9201")
@@ -129,8 +126,7 @@ func TestNewBulk(t *testing.T) {
 }
 
 func TestIndexOp(t *testing.T) {
-	bulk, th := setupBulkClient(t, 0, 10, 0)
-	defer th.TearDown()
+	bulk := setupBulkClient(t, 0, 10, 0)
 	defer func() {
 		if os.Getenv("IS_CI") == "true" {
 			os.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", "http://elasticsearch:9201")
@@ -142,8 +138,8 @@ func TestIndexOp(t *testing.T) {
 		post := createTestPost(t, "test message")
 
 		err := bulk.IndexOp(&types.IndexOperation{
-			Index_: model.NewPointer("testindex"),
-			Id_:    model.NewPointer(post.Id),
+			Index_: new("testindex"),
+			Id_:    new(post.Id),
 		}, post)
 		require.NoError(t, err)
 		require.Equal(t, 1, bulk.pendingRequests)
@@ -158,8 +154,8 @@ func TestIndexOp(t *testing.T) {
 		data := []byte(`{"message": "test byte slice"}`)
 
 		err := bulk.IndexOp(&types.IndexOperation{
-			Index_: model.NewPointer("testindex"),
-			Id_:    model.NewPointer(docId),
+			Index_: new("testindex"),
+			Id_:    new(docId),
 		}, data)
 		require.NoError(t, err)
 		require.Equal(t, initialRequests+1, bulk.pendingRequests)
@@ -171,8 +167,8 @@ func TestIndexOp(t *testing.T) {
 		jsonData := []byte(`{"message": "test raw message"}`)
 
 		err := bulk.IndexOp(&types.IndexOperation{
-			Index_: model.NewPointer("testindex"),
-			Id_:    model.NewPointer(docId),
+			Index_: new("testindex"),
+			Id_:    new(docId),
 		}, jsonData)
 		require.NoError(t, err)
 		require.Equal(t, initialRequests+1, bulk.pendingRequests)
@@ -184,8 +180,8 @@ func TestIndexOp(t *testing.T) {
 		for i := range 5 {
 			post := createTestPost(t, fmt.Sprintf("test message %d", i))
 			err := bulk.IndexOp(&types.IndexOperation{
-				Index_: model.NewPointer("testindex"),
-				Id_:    model.NewPointer(post.Id),
+				Index_: new("testindex"),
+				Id_:    new(post.Id),
 			}, post)
 			require.NoError(t, err)
 		}
@@ -195,8 +191,7 @@ func TestIndexOp(t *testing.T) {
 
 	t.Run("auto flush on request threshold", func(t *testing.T) {
 		// Create a new client with low flush threshold
-		bulk2, th2 := setupBulkClient(t, 0, 2, 0)
-		defer th2.TearDown()
+		bulk2 := setupBulkClient(t, 0, 2, 0)
 		defer func() {
 			if os.Getenv("IS_CI") == "true" {
 				os.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", "http://elasticsearch:9201")
@@ -206,16 +201,16 @@ func TestIndexOp(t *testing.T) {
 
 		post1 := createTestPost(t, "first message")
 		err := bulk2.IndexOp(&types.IndexOperation{
-			Index_: model.NewPointer("testindex"),
-			Id_:    model.NewPointer(post1.Id),
+			Index_: new("testindex"),
+			Id_:    new(post1.Id),
 		}, post1)
 		require.NoError(t, err)
 		require.Equal(t, 1, bulk2.pendingRequests)
 
 		post2 := createTestPost(t, "second message")
 		err = bulk2.IndexOp(&types.IndexOperation{
-			Index_: model.NewPointer("testindex"),
-			Id_:    model.NewPointer(post2.Id),
+			Index_: new("testindex"),
+			Id_:    new(post2.Id),
 		}, post2)
 		require.NoError(t, err)
 		require.Equal(t, 2, bulk2.pendingRequests)
@@ -223,8 +218,8 @@ func TestIndexOp(t *testing.T) {
 		// Third operation should trigger flush
 		post3 := createTestPost(t, "third message")
 		err = bulk2.IndexOp(&types.IndexOperation{
-			Index_: model.NewPointer("testindex"),
-			Id_:    model.NewPointer(post3.Id),
+			Index_: new("testindex"),
+			Id_:    new(post3.Id),
 		}, post3)
 		require.NoError(t, err)
 		require.Equal(t, 0, bulk2.pendingRequests)
@@ -238,8 +233,7 @@ func TestIndexOp(t *testing.T) {
 }
 
 func TestDeleteOp(t *testing.T) {
-	bulk, th := setupBulkClient(t, 0, 10, 0)
-	defer th.TearDown()
+	bulk := setupBulkClient(t, 0, 10, 0)
 	defer func() {
 		if os.Getenv("IS_CI") == "true" {
 			os.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", "http://elasticsearch:9201")
@@ -251,8 +245,8 @@ func TestDeleteOp(t *testing.T) {
 		docId := model.NewId()
 
 		err := bulk.DeleteOp(&types.DeleteOperation{
-			Index_: model.NewPointer("testindex"),
-			Id_:    model.NewPointer(docId),
+			Index_: new("testindex"),
+			Id_:    new(docId),
 		})
 		require.NoError(t, err)
 		require.Equal(t, 1, bulk.pendingRequests)
@@ -267,8 +261,8 @@ func TestDeleteOp(t *testing.T) {
 		for range 3 {
 			docId := model.NewId()
 			err := bulk.DeleteOp(&types.DeleteOperation{
-				Index_: model.NewPointer("testindex"),
-				Id_:    model.NewPointer(docId),
+				Index_: new("testindex"),
+				Id_:    new(docId),
 			})
 			require.NoError(t, err)
 		}
@@ -278,8 +272,7 @@ func TestDeleteOp(t *testing.T) {
 
 	t.Run("auto flush on request threshold", func(t *testing.T) {
 		// Create a new client with low flush threshold
-		bulk2, th2 := setupBulkClient(t, 0, 2, 0)
-		defer th2.TearDown()
+		bulk2 := setupBulkClient(t, 0, 2, 0)
 		defer func() {
 			if os.Getenv("IS_CI") == "true" {
 				os.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", "http://elasticsearch:9201")
@@ -291,8 +284,8 @@ func TestDeleteOp(t *testing.T) {
 		for range 2 {
 			docId := model.NewId()
 			err := bulk2.DeleteOp(&types.DeleteOperation{
-				Index_: model.NewPointer("testindex"),
-				Id_:    model.NewPointer(docId),
+				Index_: new("testindex"),
+				Id_:    new(docId),
 			})
 			require.NoError(t, err)
 		}
@@ -301,8 +294,8 @@ func TestDeleteOp(t *testing.T) {
 		// Third operation should trigger flush
 		docId := model.NewId()
 		err := bulk2.DeleteOp(&types.DeleteOperation{
-			Index_: model.NewPointer("testindex"),
-			Id_:    model.NewPointer(docId),
+			Index_: new("testindex"),
+			Id_:    new(docId),
 		})
 		require.NoError(t, err)
 		require.Equal(t, 0, bulk2.pendingRequests)
@@ -316,8 +309,7 @@ func TestDeleteOp(t *testing.T) {
 }
 
 func TestFlush(t *testing.T) {
-	bulk, th := setupBulkClient(t, 0, 10, 0)
-	defer th.TearDown()
+	bulk := setupBulkClient(t, 0, 10, 0)
 	defer func() {
 		if os.Getenv("IS_CI") == "true" {
 			os.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", "http://elasticsearch:9201")
@@ -329,8 +321,8 @@ func TestFlush(t *testing.T) {
 		post := createTestPost(t, "test message")
 
 		err := bulk.IndexOp(&types.IndexOperation{
-			Index_: model.NewPointer("testindex"),
-			Id_:    model.NewPointer(post.Id),
+			Index_: new("testindex"),
+			Id_:    new(post.Id),
 		}, post)
 		require.NoError(t, err)
 		require.Equal(t, 1, bulk.pendingRequests)
@@ -357,8 +349,7 @@ func TestFlush(t *testing.T) {
 
 func TestStop(t *testing.T) {
 	t.Run("stop with pending operations", func(t *testing.T) {
-		bulk, th := setupBulkClient(t, 0, 10, 0)
-		defer th.TearDown()
+		bulk := setupBulkClient(t, 0, 10, 0)
 		defer func() {
 			if os.Getenv("IS_CI") == "true" {
 				os.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", "http://elasticsearch:9201")
@@ -369,8 +360,8 @@ func TestStop(t *testing.T) {
 		post := createTestPost(t, "test message")
 
 		err := bulk.IndexOp(&types.IndexOperation{
-			Index_: model.NewPointer("testindex"),
-			Id_:    model.NewPointer(post.Id),
+			Index_: new("testindex"),
+			Id_:    new(post.Id),
 		}, post)
 		require.NoError(t, err)
 		require.Equal(t, 1, bulk.pendingRequests)
@@ -381,8 +372,7 @@ func TestStop(t *testing.T) {
 	})
 
 	t.Run("stop with no pending operations", func(t *testing.T) {
-		bulk, th := setupBulkClient(t, 0, 10, 0)
-		defer th.TearDown()
+		bulk := setupBulkClient(t, 0, 10, 0)
 		defer func() {
 			if os.Getenv("IS_CI") == "true" {
 				os.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", "http://elasticsearch:9201")
@@ -398,8 +388,7 @@ func TestStop(t *testing.T) {
 	})
 
 	t.Run("stop with periodic flusher", func(t *testing.T) {
-		bulk, th := setupBulkClient(t, 0, 10, 100*time.Millisecond)
-		defer th.TearDown()
+		bulk := setupBulkClient(t, 0, 10, 100*time.Millisecond)
 		defer func() {
 			if os.Getenv("IS_CI") == "true" {
 				os.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", "http://elasticsearch:9201")
@@ -410,8 +399,8 @@ func TestStop(t *testing.T) {
 		post := createTestPost(t, "test message")
 
 		err := bulk.IndexOp(&types.IndexOperation{
-			Index_: model.NewPointer("testindex"),
-			Id_:    model.NewPointer(post.Id),
+			Index_: new("testindex"),
+			Id_:    new(post.Id),
 		}, post)
 		require.NoError(t, err)
 		require.Equal(t, 1, bulk.pendingRequests)
@@ -426,8 +415,7 @@ func TestStop(t *testing.T) {
 func TestFlushThresholds(t *testing.T) {
 	t.Run("flush on bytes threshold", func(t *testing.T) {
 		// Create a client with very small byte threshold
-		bulk, th := setupBulkClient(t, 100, 0, 0) // 100 bytes threshold
-		defer th.TearDown()
+		bulk := setupBulkClient(t, 100, 0, 0) // 100 bytes threshold
 		defer func() {
 			if os.Getenv("IS_CI") == "true" {
 				os.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", "http://elasticsearch:9201")
@@ -439,8 +427,8 @@ func TestFlushThresholds(t *testing.T) {
 		for range 5 {
 			post := createTestPost(t, "This is a long message that should help us exceed the byte threshold for testing")
 			err := bulk.IndexOp(&types.IndexOperation{
-				Index_: model.NewPointer("testindex"),
-				Id_:    model.NewPointer(post.Id),
+				Index_: new("testindex"),
+				Id_:    new(post.Id),
 			}, post)
 			require.NoError(t, err)
 		}
@@ -453,8 +441,7 @@ func TestFlushThresholds(t *testing.T) {
 	})
 
 	t.Run("no flush when thresholds not met", func(t *testing.T) {
-		bulk, th := setupBulkClient(t, 100000, 10, 0) // High thresholds
-		defer th.TearDown()
+		bulk := setupBulkClient(t, 100000, 10, 0) // High thresholds
 		defer func() {
 			if os.Getenv("IS_CI") == "true" {
 				os.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", "http://elasticsearch:9201")
@@ -466,8 +453,8 @@ func TestFlushThresholds(t *testing.T) {
 		for range 3 {
 			post := createTestPost(t, "short")
 			err := bulk.IndexOp(&types.IndexOperation{
-				Index_: model.NewPointer("testindex"),
-				Id_:    model.NewPointer(post.Id),
+				Index_: new("testindex"),
+				Id_:    new(post.Id),
 			}, post)
 			require.NoError(t, err)
 			fmt.Println("PENDING REQS:", bulk.pendingRequests)

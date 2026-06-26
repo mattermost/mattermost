@@ -2,8 +2,6 @@
 // See LICENSE.txt for license information.
 
 import icon50 from 'images/icon50x50.png';
-import iconWS from 'images/icon_WS.png';
-import * as UserAgent from 'utils/user_agent';
 
 import type {ThunkActionFunc} from 'types/store';
 
@@ -11,7 +9,7 @@ export type NotificationResult = {
     status: 'error' | 'not_sent' | 'success' | 'unsupported';
     reason?: string;
     data?: string;
-}
+};
 
 let requestedNotificationPermission = Boolean('Notification' in window && Notification.permission !== 'default');
 
@@ -45,11 +43,6 @@ export function showNotification(
     },
 ): ThunkActionFunc<Promise<NotificationResult & {callback: () => void}>> {
     return async () => {
-        let icon = icon50;
-        if (UserAgent.isEdge()) {
-            icon = iconWS;
-        }
-
         if (!isNotificationAPISupported()) {
             throw new Error('Notification API is not supported');
         }
@@ -79,7 +72,7 @@ export function showNotification(
         const notification = new Notification(title, {
             body,
             tag: body,
-            icon,
+            icon: icon50,
             requireInteraction,
             silent,
         });
@@ -121,7 +114,7 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
     try {
         const notificationPermission = await Notification.requestPermission();
         return notificationPermission;
-    } catch (error) {
+    } catch {
         return null;
     }
 }

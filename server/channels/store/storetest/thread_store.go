@@ -5,7 +5,6 @@ package storetest
 
 import (
 	"context"
-	"sort"
 	"testing"
 	"time"
 
@@ -68,8 +67,8 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 			o.Metadata = &model.PostMetadata{
 				Priority: &model.PostPriority{
 					Priority:                model.NewPointer(model.PostPriorityUrgent),
-					RequestedAck:            model.NewPointer(false),
-					PersistentNotifications: model.NewPointer(false),
+					RequestedAck:            new(false),
+					PersistentNotifications: new(false),
 				},
 			}
 		}
@@ -419,8 +418,29 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		}
 	})
 	t.Run("Get unread reply counts for thread", func(t *testing.T) {
-		t.Skip("MM-41797")
+		// MM-41797: makeSomePosts can assign the same CreateAt millisecond to every post,
+		// so MarkAsRead(root.CreateAt) treats replies as read. Space reply timestamps
+		// strictly after the root. Anchor posts in the past so MaintainMembership's
+		// LastViewed (= now) is always greater than every post CreateAt; second offsets
+		// of +1000ms made replies appear unread before the membership was updated.
 		newPosts := makeSomePosts(false)
+
+		anchorTime := model.GetMillis() - 10000
+		newPosts[0].CreateAt = anchorTime
+		_, sErr := ss.Post().Overwrite(rctx, newPosts[0])
+		require.NoError(t, sErr, "failed to update root post timestamp")
+
+		var replyOffset int64 = 1
+		for i := 1; i < len(newPosts); i++ {
+			if newPosts[i].RootId == "" {
+				continue
+			}
+			newPosts[i].CreateAt = anchorTime + replyOffset
+			replyOffset++
+			_, sErr = ss.Post().Overwrite(rctx, newPosts[i])
+			require.NoError(t, sErr, "failed to update post timestamp")
+		}
+
 		opts := store.ThreadMembershipOpts{
 			Following:             true,
 			IncrementMentions:     false,
@@ -523,7 +543,7 @@ func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, rctx 
 	channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      "DisplayName",
-			PostDurationDays: model.NewPointer(int64(30)),
+			PostDurationDays: new(int64(30)),
 		},
 		ChannelIDs: []string{channel.Id},
 	})
@@ -549,7 +569,7 @@ func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, rctx 
 	teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      "DisplayName",
-			PostDurationDays: model.NewPointer(int64(20)),
+			PostDurationDays: new(int64(20)),
 		},
 		TeamIDs: []string{team.Id},
 	})
@@ -622,7 +642,7 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      "DisplayName",
-			PostDurationDays: model.NewPointer(int64(30)),
+			PostDurationDays: new(int64(30)),
 		},
 		ChannelIDs: []string{channel.Id},
 	})
@@ -645,7 +665,7 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      "DisplayName",
-			PostDurationDays: model.NewPointer(int64(20)),
+			PostDurationDays: new(int64(20)),
 		},
 		TeamIDs: []string{team.Id},
 	})
@@ -717,6 +737,12 @@ func testGetTeamsUnreadForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 		Type:        model.ChannelTypeOpen,
 	}, -1)
 	require.NoError(t, err)
+	_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+		ChannelId:   channel1.Id,
+		UserId:      userID,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.NoError(t, err)
 	post, err := ss.Post().Save(rctx, &model.Post{
 		ChannelId: channel1.Id,
 		UserId:    userID,
@@ -759,6 +785,12 @@ func testGetTeamsUnreadForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 		Type:        model.ChannelTypeOpen,
 	}, -1)
 	require.NoError(t, err)
+	_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+		ChannelId:   channel2.Id,
+		UserId:      userID,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.NoError(t, err)
 
 	post2, err := ss.Post().Save(rctx, &model.Post{
 		ChannelId: channel2.Id,
@@ -767,8 +799,8 @@ func testGetTeamsUnreadForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 		Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
 				Priority:                model.NewPointer(model.PostPriorityUrgent),
-				RequestedAck:            model.NewPointer(false),
-				PersistentNotifications: model.NewPointer(false),
+				RequestedAck:            new(false),
+				PersistentNotifications: new(false),
 			},
 		},
 	})
@@ -796,12 +828,6 @@ func testGetTeamsUnreadForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	assert.Equal(t, int64(1), teamsUnread[team2.Id].ThreadMentionCount)
 	assert.Equal(t, int64(1), teamsUnread[team2.Id].ThreadUrgentMentionCount)
 }
-
-type byPostId []*model.Post
-
-func (a byPostId) Len() int           { return len(a) }
-func (a byPostId) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a byPostId) Less(i, j int) bool { return a[i].Id < a[j].Id }
 
 func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 	createThreadMembership := func(userID, postID string, isMention bool) {
@@ -869,6 +895,12 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 		Type:        model.ChannelTypeOpen,
 	}, -1)
 	require.NoError(t, err)
+	_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+		ChannelId:   team1channel1.Id,
+		UserId:      user1ID,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.NoError(t, err)
 
 	team2channel1, err := ss.Channel().Save(rctx, &model.Channel{
 		TeamId:      team2.Id,
@@ -876,6 +908,12 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 		Name:        "channel" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
 	}, -1)
+	require.NoError(t, err)
+	_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+		ChannelId:   team2channel1.Id,
+		UserId:      user1ID,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
 	require.NoError(t, err)
 
 	dm1, err := ss.Channel().CreateDirectChannel(rctx, &model.User{Id: user1ID}, &model.User{Id: user2ID})
@@ -909,8 +947,8 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 		Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
 				Priority:                model.NewPointer(model.PostPriorityUrgent),
-				RequestedAck:            model.NewPointer(false),
-				PersistentNotifications: model.NewPointer(false),
+				RequestedAck:            new(false),
+				PersistentNotifications: new(false),
 			},
 		},
 	})
@@ -944,8 +982,8 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 		Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
 				Priority:                model.NewPointer(model.PostPriorityUrgent),
-				RequestedAck:            model.NewPointer(false),
-				PersistentNotifications: model.NewPointer(false),
+				RequestedAck:            new(false),
+				PersistentNotifications: new(false),
 			},
 		},
 	})
@@ -1163,7 +1201,6 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 			require.True(t, ok, "failed to find actual %s in post names", thread.PostId)
 			actualPostNames = append(actualPostNames, postName)
 		}
-		sort.Strings(actualPostNames)
 
 		expectedPostNames := make([]string, 0, len(expectedPosts))
 		for _, post := range expectedPosts {
@@ -1171,20 +1208,9 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 			require.True(t, ok, "failed to find expected %s in post names", post.Id)
 			expectedPostNames = append(expectedPostNames, postName)
 		}
-		sort.Strings(expectedPostNames)
 
-		assert.Equal(t, expectedPostNames, actualPostNames)
-
-		// Check posts themselves
-		sort.Sort(byPostId(expectedPosts))
-		sort.Sort(byPostId(actualPosts))
-		if assert.Len(t, actualPosts, len(expectedPosts)) {
-			for i := range actualPosts {
-				assert.Equal(t, expectedPosts[i], actualPosts[i], "mismatch comparing expected post %s with actual post %s", postNames[expectedPosts[i].Id], postNames[actualPosts[i].Id])
-			}
-		} else {
-			assert.Equal(t, expectedPosts, actualPosts)
-		}
+		assert.ElementsMatch(t, expectedPostNames, actualPostNames)
+		assert.ElementsMatch(t, expectedPosts, actualPosts)
 
 		// Check common fields between threads and posts.
 		for _, thread := range threads {
@@ -1344,6 +1370,17 @@ func testMarkAllAsReadByChannels(t *testing.T, rctx request.CTX, ss store.Store)
 		Type:        model.ChannelTypeOpen,
 	}, -1)
 	require.NoError(t, err)
+
+	for _, ch := range []*model.Channel{channel1, channel2} {
+		for _, uid := range []string{userAID, userBID} {
+			_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+				ChannelId:   ch.Id,
+				UserId:      uid,
+				NotifyProps: model.GetDefaultChannelNotifyProps(),
+			})
+			require.NoError(t, err)
+		}
+	}
 
 	createThreadMembership := func(userID, postID string) {
 		t.Helper()
@@ -1534,6 +1571,17 @@ func testMarkAllAsReadByTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 		Type:        model.ChannelTypeOpen,
 	}, -1)
 	require.NoError(t, err)
+
+	for _, ch := range []*model.Channel{team1channel1, team1channel2, team2channel1, team2channel2} {
+		for _, uid := range []string{userAID, userBID} {
+			_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+				ChannelId:   ch.Id,
+				UserId:      uid,
+				NotifyProps: model.GetDefaultChannelNotifyProps(),
+			})
+			require.NoError(t, err)
+		}
+	}
 
 	team1channel1post1, err := ss.Post().Save(rctx, &model.Post{
 		ChannelId: team1channel1.Id,
@@ -2110,6 +2158,13 @@ func testUpdateTeamIdForChannelThreads(t *testing.T, rctx request.CTX, ss store.
 		})
 		require.NoError(t, err)
 
+		_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+			ChannelId:   channel1.Id,
+			UserId:      userA.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, err)
+
 		_, clean := createThreadMembership(userA.Id, rootPost1.Id, true)
 		defer clean()
 
@@ -2131,6 +2186,13 @@ func testUpdateTeamIdForChannelThreads(t *testing.T, rctx request.CTX, ss store.
 			Username: model.NewId(),
 			Email:    MakeEmail(),
 			Password: model.NewId(),
+		})
+		require.NoError(t, err)
+
+		_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+			ChannelId:   channel1.Id,
+			UserId:      userA.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
 		require.NoError(t, err)
 

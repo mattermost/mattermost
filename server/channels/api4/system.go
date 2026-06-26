@@ -47,7 +47,9 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.APIRoot.Handle("/notifications/test", api.APISessionRequired(testNotifications)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/email/test", api.APISessionRequired(testEmail)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/site_url/test", api.APISessionRequired(testSiteURL)).Methods(http.MethodPost)
-	api.BaseRoutes.APIRoot.Handle("/file/s3_test", api.APISessionRequired(testS3)).Methods(http.MethodPost)
+	api.BaseRoutes.APIRoot.Handle("/file/test", api.APISessionRequired(testFileStore)).Methods(http.MethodPost)
+	// Deprecated: use /file/test instead. Kept as a thin compatibility wrapper.
+	api.BaseRoutes.APIRoot.Handle("/file/s3_test", api.APISessionRequired(testFileStore)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/database/recycle", api.APISessionRequired(databaseRecycle)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/caches/invalidate", api.APISessionRequired(invalidateCaches)).Methods(http.MethodPost)
 
@@ -87,6 +89,9 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord(model.AuditEventGenerateSupportPacket, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+
 	// We support the existing API hence the logs are always included
 	// if nothing specified.
 	includeLogs := true
@@ -97,6 +102,9 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 		IncludeLogs:   includeLogs,
 		PluginPackets: r.Form["plugin_packets"],
 	}
+
+	auditRec.AddMeta("include_logs", supportPacketOptions.IncludeLogs)
+	auditRec.AddMeta("plugin_packets", supportPacketOptions.PluginPackets)
 
 	// Checking to see if the server has a e10 or e20 license (this feature is only permitted for servers with licenses)
 	if c.App.Channels().License() == nil {
@@ -116,6 +124,9 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.unable_to_create_zip_file", nil, "", http.StatusForbidden).Wrap(err)
 		return
 	}
+
+	auditRec.Success()
+	auditRec.AddMeta("filename", outputZipFilename)
 
 	// Prevent caching so support packets are always fresh
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -467,6 +478,8 @@ func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
 	fields := []mlog.Field{
 		mlog.String("type", "client_message"),
 		mlog.String("user_agent", c.AppContext.UserAgent()),
+		mlog.String("session_id", c.AppContext.Session().Id),
+		mlog.String("user_id", c.AppContext.Session().UserId),
 	}
 
 	if !forceToDebug && lvl == "ERROR" {
@@ -551,7 +564,7 @@ func getSupportedTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
+func testFileStore(c *Context, w http.ResponseWriter, r *http.Request) {
 	var cfg *model.Config
 	err := json.NewDecoder(r.Body).Decode(&cfg)
 	if err != nil {
@@ -561,28 +574,53 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 		cfg = c.App.Config()
 	}
 
-	if checkHasNilFields(&cfg.FileSettings) {
-		c.Err = model.NewAppError("testS3", "api.file.test_connection_s3_settings_nil.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
+	// PermissionTestS3 is kept for backwards compatibility -- it was named
+	// after the only supported test endpoint at the time it was introduced.
+	// The new /file/test endpoint is backend-agnostic but reuses the same
+	// permission to avoid a role migration.
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestS3) {
 		c.SetPermissionError(model.PermissionTestS3)
 		return
 	}
 
-	appErr := c.App.CheckMandatoryS3Fields(&cfg.FileSettings)
-	if appErr != nil {
-		c.Err = appErr
+	if checkHasNilFields(&cfg.FileSettings) {
+		c.Err = model.NewAppError("testFileStore", "api.file.test_connection_settings_nil.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
-	if *cfg.FileSettings.AmazonS3SecretAccessKey == model.FakeSetting {
-		cfg.FileSettings.AmazonS3SecretAccessKey = c.App.Config().FileSettings.AmazonS3SecretAccessKey
+	// Validate mandatory fields per driver. TestFileStoreConnectionWithConfig
+	// will catch missing fields by failing to construct the backend, but a
+	// dedicated validation step lets us surface a clearer error.
+	//
+	// When the dedicated export filestore is active the backend that is
+	// actually built and tested is the export backend, so we have to dispatch
+	// on ExportDriverName -- otherwise a primary=S3 / export=Azure deployment
+	// would run the S3 field check while testing the Azure backend.
+	driver := c.App.ResolvedFileStoreDriverName(&cfg.FileSettings)
+	switch driver {
+	case model.ImageDriverLocal:
+		// Local driver has no mandatory fields beyond the directory, which has a default.
+	case model.ImageDriverS3:
+		if appErr := c.App.CheckMandatoryS3Fields(&cfg.FileSettings); appErr != nil {
+			c.Err = appErr
+			return
+		}
+	case model.ImageDriverAzure:
+		if appErr := c.App.CheckMandatoryAzureFields(&cfg.FileSettings); appErr != nil {
+			c.Err = appErr
+			return
+		}
+	default:
+		c.Err = model.NewAppError("testFileStore", "api.file.test_connection_unsupported_driver.app_error", map[string]any{"Driver": driver}, "", http.StatusBadRequest)
+		return
 	}
 
-	appErr = c.App.TestFileStoreConnectionWithConfig(&cfg.FileSettings)
-	if appErr != nil {
+	// A client editing the admin UI and clicking Test Connection without
+	// re-entering the secret would send the FakeSetting placeholder back, so we
+	// need to desanitize this first.
+	config.Desanitize(c.App.Config(), cfg)
+
+	if appErr := c.App.TestFileStoreConnectionWithConfig(&cfg.FileSettings); appErr != nil {
 		c.Err = appErr
 		return
 	}
@@ -703,7 +741,7 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	c.AppContext.WithLogger(c.AppContext.Logger().With(
+	c.AppContext = c.AppContext.WithLogFields(
 		mlog.String("type", model.NotificationTypePush),
 		mlog.String("ack_id", ack.Id),
 		mlog.String("push_type", ack.NotificationType),
@@ -711,7 +749,7 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 		mlog.String("ack_type", ack.NotificationType),
 		mlog.String("device_type", ack.ClientPlatform),
 		mlog.Int("received_at", ack.ClientReceivedAt),
-	))
+	)
 	err := c.App.SendAckToPushProxy(c.AppContext, &ack)
 	if ack.IsIdLoaded {
 		if err != nil {
@@ -726,7 +764,9 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		// Return post data only when PostId is passed.
 		if ack.PostId != "" && ack.NotificationType == model.PushTypeMessage {
-			if _, appErr := c.App.GetPostIfAuthorized(c.AppContext, ack.PostId, c.AppContext.Session(), false); appErr != nil {
+			var isMember bool
+			var appErr *model.AppError
+			if _, appErr, isMember = c.App.GetPostIfAuthorized(c.AppContext, ack.PostId, c.AppContext.Session(), false); appErr != nil {
 				c.Err = appErr
 				return
 			}
@@ -745,6 +785,14 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 			if err2 := json.NewEncoder(w).Encode(msg); err2 != nil {
 				c.Logger.Warn("Error while writing response", mlog.Err(err2))
+			}
+
+			auditRec := c.MakeAuditRecord(model.AuditEventNotificationAck, model.AuditStatusSuccess)
+			defer c.LogAuditRec(auditRec)
+			model.AddEventParameterToAuditRec(auditRec, "post_id", ack.PostId)
+
+			if !isMember {
+				model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 			}
 		}
 
@@ -1078,9 +1126,8 @@ func checkHasNilFields(value any) bool {
 		return false
 	}
 
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Field(i)
-		if field.Kind() == reflect.Ptr && field.IsNil() {
+	for _, field := range v.Fields() {
+		if field.Kind() == reflect.Pointer && field.IsNil() {
 			return true
 		}
 	}

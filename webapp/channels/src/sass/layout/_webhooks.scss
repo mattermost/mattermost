@@ -101,13 +101,17 @@
             }
         }
 
+        &.attachment--prevent-click,
+        &.attachment--prevent-click:hover {
+            cursor: default;
+        }
+
         .attachment__content {
             border-width: 1px;
             border-style: solid;
             border-radius: 0 4px 4px 0;
             border-left: none;
             margin: 5px 0 5px 20px;
-            background: var(--center-channel-bg);
 
             &.permalink--opengraph {
                 margin: 5px 0 0 20px;

@@ -4,6 +4,7 @@
 import React, {memo, useCallback} from 'react';
 import styled, {css} from 'styled-components';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {PostAction, PostActionOption} from '@mattermost/types/integration_actions';
 
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
@@ -35,7 +36,7 @@ type Props = {
     theme: Theme;
     actionExecuting?: boolean;
     actionExecutingMessage?: string;
-}
+};
 
 const ActionButton = ({
     action,
@@ -59,25 +60,30 @@ const ActionButton = ({
     const name = action.name || action.id || '';
 
     return (
-        <ActionBtn
-            data-action-id={action.id}
-            data-action-cookie={action.cookie}
-            disabled={disabled}
-            key={action.id}
-            onClick={handleActionClick}
-            className='btn btn-sm'
-            hexColor={hexColor}
+        <WithTooltip
+            title={action.tooltip}
+            disabled={!action.tooltip}
         >
-            <LoadingWrapper
-                loading={actionExecuting}
-                text={actionExecutingMessage}
+            <ActionBtn
+                data-action-id={action.id}
+                data-action-cookie={action.cookie}
+                disabled={disabled}
+                key={action.id}
+                onClick={handleActionClick}
+                className='btn btn-sm'
+                hexColor={hexColor}
             >
-                <Markdown
-                    message={name}
-                    options={markdownOptions}
-                />
-            </LoadingWrapper>
-        </ActionBtn>
+                <LoadingWrapper
+                    loading={actionExecuting}
+                    text={actionExecutingMessage}
+                >
+                    <Markdown
+                        message={name}
+                        options={markdownOptions}
+                    />
+                </LoadingWrapper>
+            </ActionBtn>
+        </WithTooltip>
     );
 };
 

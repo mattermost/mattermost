@@ -16,6 +16,7 @@ import type {GlobalState} from 'types/store';
 
 import {
     useUserPropertyFields,
+    ValidationWarningNameInvalidCEL,
     ValidationWarningNameRequired,
     ValidationWarningNameTaken,
     ValidationWarningNameUnique,
@@ -50,12 +51,17 @@ describe('useUserPropertyFields', () => {
 
     const baseField: UserPropertyField = {
         id: 'test-id',
-        name: 'Test Field',
+        name: 'test_field',
         type: 'text' as const,
         group_id: 'custom_profile_attributes',
         create_at: 1736541716295,
         delete_at: 0,
         update_at: 0,
+        created_by: '',
+        updated_by: '',
+        target_id: '',
+        target_type: '',
+        object_type: '',
         attrs: {
             sort_order: 0,
             visibility: 'when_set' as const,
@@ -63,10 +69,10 @@ describe('useUserPropertyFields', () => {
         },
     };
 
-    const field0: UserPropertyField = {...baseField, id: 'test-id-0', name: 'test attribute 0', attrs: {...baseField.attrs, sort_order: 0}};
-    const field1: UserPropertyField = {...baseField, id: 'test-id-1', name: 'test attribute 1', attrs: {...baseField.attrs, sort_order: 1}};
-    const field2: UserPropertyField = {...baseField, id: 'test-id-2', name: 'test attribute 2', attrs: {...baseField.attrs, sort_order: 2}};
-    const field3: UserPropertyField = {...baseField, id: 'test-id-3', name: 'test attribute 3', attrs: {...baseField.attrs, sort_order: 3}};
+    const field0: UserPropertyField = {...baseField, id: 'test-id-0', name: 'test_attribute_0', attrs: {...baseField.attrs, sort_order: 0}};
+    const field1: UserPropertyField = {...baseField, id: 'test-id-1', name: 'test_attribute_1', attrs: {...baseField.attrs, sort_order: 1}};
+    const field2: UserPropertyField = {...baseField, id: 'test-id-2', name: 'test_attribute_2', attrs: {...baseField.attrs, sort_order: 2}};
+    const field3: UserPropertyField = {...baseField, id: 'test-id-3', name: 'test_attribute_3', attrs: {...baseField.attrs, sort_order: 3}};
 
     getFields.mockResolvedValue([field0, field1, field2, field3]);
 
@@ -78,7 +84,7 @@ describe('useUserPropertyFields', () => {
         const [fields1, read1] = result.current;
         expect(read1.loading).toBe(true);
         expect(read1.error).toBe(undefined);
-        expect(getFields).toBeCalledTimes(1);
+        expect(getFields).toHaveBeenCalledTimes(1);
         expect(fields1.data).toEqual({});
         expect(fields1.order).toEqual([]);
 
@@ -116,12 +122,12 @@ describe('useUserPropertyFields', () => {
         const [fields2,,, ops2] = result.current;
 
         act(() => {
-            ops2.update({...fields2.data[field1.id], name: 'changed attribute value'});
+            ops2.update({...fields2.data[field1.id], name: 'changed_attribute_value'});
         });
         rerender();
 
         const [fields3, readIO3, pendingIO3] = result.current;
-        expect(fields3.data[field1.id].name).toBe('changed attribute value');
+        expect(fields3.data[field1.id].name).toBe('changed_attribute_value');
         expect(pendingIO3.hasChanges).toBe(true);
 
         patchField.mockResolvedValue({...fields3.data[field1.id]});
@@ -140,12 +146,12 @@ describe('useUserPropertyFields', () => {
             expect(pending.saving).toBe(false);
         });
 
-        expect(patchField).toHaveBeenCalledWith(field1.id, {type: 'text', name: 'changed attribute value', attrs: {sort_order: 1, value_type: '', visibility: 'when_set'}});
+        expect(patchField).toHaveBeenCalledWith(field1.id, {type: 'text', name: 'changed_attribute_value', attrs: {sort_order: 1, value_type: '', visibility: 'when_set'}});
 
         const [fields4,, pendingIO4] = result.current;
         expect(pendingIO4.hasChanges).toBe(false);
         expect(pendingIO4.error).toBe(undefined);
-        expect(fields4.data[field1.id].name).toBe('changed attribute value');
+        expect(fields4.data[field1.id].name).toBe('changed_attribute_value');
     });
 
     it('should successfully handle reordering', async () => {
@@ -192,8 +198,8 @@ describe('useUserPropertyFields', () => {
             expect(pending.saving).toBe(false);
         });
 
-        expect(patchField).toHaveBeenCalledWith(field1.id, {type: 'text', name: 'test attribute 1', attrs: {sort_order: 0, value_type: '', visibility: 'when_set'}});
-        expect(patchField).toHaveBeenCalledWith(field0.id, {type: 'text', name: 'test attribute 0', attrs: {sort_order: 1, value_type: '', visibility: 'when_set'}});
+        expect(patchField).toHaveBeenCalledWith(field1.id, {type: 'text', name: 'test_attribute_1', attrs: {sort_order: 0, value_type: '', visibility: 'when_set'}});
+        expect(patchField).toHaveBeenCalledWith(field0.id, {type: 'text', name: 'test_attribute_0', attrs: {sort_order: 1, value_type: '', visibility: 'when_set'}});
 
         const [fields4,, pendingIO4] = result.current;
         expect(pendingIO4.hasChanges).toBe(false);
@@ -289,11 +295,11 @@ describe('useUserPropertyFields', () => {
             expect(pendingIO4.saving).toBe(false);
         });
 
-        expect(createField).toHaveBeenCalledWith({type: 'text', name: 'Text', attrs: {sort_order: 4, value_type: '', visibility: 'when_set'}});
+        expect(createField).toHaveBeenCalledWith({type: 'text', name: '', attrs: {sort_order: 4, value_type: '', visibility: 'when_set'}});
 
         const [fields4,,,] = result.current;
         expect(Object.values(fields4.data)).toEqual(expect.arrayContaining([
-            expect.objectContaining({name: 'Text'}),
+            expect.objectContaining({name: ''}),
         ]));
 
         expect(fields4.order).toEqual(expect.arrayContaining(Object.keys(fields4.data)));
@@ -316,12 +322,12 @@ describe('useUserPropertyFields', () => {
 
         act(() => {
             const [fields,,, ops] = result.current;
-            ops.update({...fields.data[field0.id], name: 'test attribute 1'});
+            ops.update({...fields.data[field0.id], name: 'test_attribute_1'});
         });
         rerender();
 
         const [fields,, pendingIO3] = result.current;
-        expect(fields.data[field0.id].name).toBe('test attribute 1');
+        expect(fields.data[field0.id].name).toBe('test_attribute_1');
         expect(pendingIO3.hasChanges).toBe(true);
         expect(fields.warnings).toEqual(expect.objectContaining({
             [field0.id]: {name: ValidationWarningNameUnique},
@@ -347,8 +353,8 @@ describe('useUserPropertyFields', () => {
         act(() => {
             const [fields,,, ops] = result.current;
 
-            ops.update({...fields.data[field0.id], name: 'test attribute 1'});
-            ops.update({...fields.data[field1.id], name: 'Test something else'});
+            ops.update({...fields.data[field0.id], name: 'test_attribute_1'});
+            ops.update({...fields.data[field1.id], name: 'Test_something_else'});
         });
         rerender();
 
@@ -396,5 +402,224 @@ describe('useUserPropertyFields', () => {
         expect(fields.warnings).toEqual(expect.objectContaining({
             [field0.id]: {name: ValidationWarningNameRequired},
         }));
+    });
+
+    it('should NOT trigger Required warning for a freshly-created untouched field', async () => {
+        const {result, rerender} = renderHookWithContext(() => useUserPropertyFields(), getBaseState());
+
+        act(() => {
+            jest.runAllTimers();
+        });
+        rerender();
+
+        await waitFor(() => {
+            const [, read] = result.current;
+            expect(read.loading).toBe(false);
+        });
+
+        act(() => {
+            const [,,, ops] = result.current;
+            ops.create();
+        });
+        rerender();
+
+        const [fields] = result.current;
+        const createdId = fields.order[fields.order.length - 1];
+
+        expect(fields.data[createdId].create_at).toBe(0);
+        expect(fields.data[createdId].name).toBe('');
+        expect(fields.data[createdId].attrs?.display_name).toBeUndefined();
+        expect(fields.warnings?.[createdId]).toBeUndefined();
+    });
+
+    it('should preserve required warning precedence when multiple names are empty', async () => {
+        const {result, rerender} = renderHookWithContext(() => {
+            return useUserPropertyFields();
+        }, getBaseState());
+
+        act(() => {
+            jest.runAllTimers();
+        });
+        rerender();
+
+        await waitFor(() => {
+            const [, read] = result.current;
+            expect(read.loading).toBe(false);
+        });
+
+        act(() => {
+            const [fields,,, ops] = result.current;
+            ops.update({...fields.data[field0.id], name: ''});
+            ops.update({...fields.data[field1.id], name: ''});
+        });
+        rerender();
+
+        const [fields] = result.current;
+        expect(fields.warnings).toEqual(expect.objectContaining({
+            [field0.id]: {name: ValidationWarningNameRequired},
+            [field1.id]: {name: ValidationWarningNameRequired},
+        }));
+    });
+
+    it('should flag CEL invalid name on new field', async () => {
+        const {result, rerender} = renderHookWithContext(() => useUserPropertyFields(), getBaseState());
+
+        act(() => {
+            jest.runAllTimers();
+        });
+        rerender();
+
+        await waitFor(() => {
+            const [, read] = result.current;
+            expect(read.loading).toBe(false);
+        });
+
+        act(() => {
+            const [,,, ops] = result.current;
+            ops.create({name: 'My Field'});
+        });
+        rerender();
+
+        const [fields] = result.current;
+        const createdId = fields.order[fields.order.length - 1];
+        expect(fields.warnings).toEqual(expect.objectContaining({
+            [createdId]: {name: ValidationWarningNameInvalidCEL},
+        }));
+    });
+
+    it('should flag reserved word name', async () => {
+        const {result, rerender} = renderHookWithContext(() => useUserPropertyFields(), getBaseState());
+
+        act(() => {
+            jest.runAllTimers();
+        });
+        rerender();
+
+        await waitFor(() => {
+            const [, read] = result.current;
+            expect(read.loading).toBe(false);
+        });
+
+        act(() => {
+            const [fields,,, ops] = result.current;
+            ops.update({...fields.data[field0.id], name: 'in'});
+        });
+        rerender();
+
+        const [fields] = result.current;
+        expect(fields.warnings).toEqual(expect.objectContaining({
+            [field0.id]: {name: ValidationWarningNameInvalidCEL},
+        }));
+    });
+
+    it('should NOT flag CEL error when name is unchanged (grandfather)', async () => {
+        const legacyField = {...field0, name: 'My Legacy Field'};
+        getFields.mockResolvedValueOnce([legacyField, field1, field2, field3]);
+
+        const {result, rerender} = renderHookWithContext(() => useUserPropertyFields(), getBaseState());
+
+        act(() => {
+            jest.runAllTimers();
+        });
+        rerender();
+
+        await waitFor(() => {
+            const [, read] = result.current;
+            expect(read.loading).toBe(false);
+        });
+
+        act(() => {
+            const [fields,,, ops] = result.current;
+            ops.update({
+                ...fields.data[legacyField.id],
+                attrs: {
+                    ...fields.data[legacyField.id].attrs,
+                    display_name: 'My Legacy Label',
+                },
+            });
+        });
+        rerender();
+
+        const [fields] = result.current;
+        expect(fields.warnings?.[legacyField.id]?.name).not.toBe(ValidationWarningNameInvalidCEL);
+    });
+
+    it('should flag CEL error when renaming a legacy invalid-named field to another invalid name', async () => {
+        const legacyField = {...field0, name: 'My Legacy Field'};
+        getFields.mockResolvedValueOnce([legacyField, field1, field2, field3]);
+
+        const {result, rerender} = renderHookWithContext(() => useUserPropertyFields(), getBaseState());
+
+        act(() => {
+            jest.runAllTimers();
+        });
+        rerender();
+
+        await waitFor(() => {
+            const [, read] = result.current;
+            expect(read.loading).toBe(false);
+        });
+
+        act(() => {
+            const [fields,,, ops] = result.current;
+            ops.update({...fields.data[legacyField.id], name: '7invalid'});
+        });
+        rerender();
+
+        const [fields] = result.current;
+        expect(fields.warnings).toEqual(expect.objectContaining({
+            [legacyField.id]: {name: ValidationWarningNameInvalidCEL},
+        }));
+    });
+
+    it('should accept a valid rename of a legacy invalid-named field', async () => {
+        const legacyField = {...field0, name: 'My Legacy Field'};
+        getFields.mockResolvedValueOnce([legacyField, field1, field2, field3]);
+
+        const {result, rerender} = renderHookWithContext(() => useUserPropertyFields(), getBaseState());
+
+        act(() => {
+            jest.runAllTimers();
+        });
+        rerender();
+
+        await waitFor(() => {
+            const [, read] = result.current;
+            expect(read.loading).toBe(false);
+        });
+
+        act(() => {
+            const [fields,,, ops] = result.current;
+            ops.update({...fields.data[legacyField.id], name: 'my_legacy_field'});
+        });
+        rerender();
+
+        const [fields] = result.current;
+        expect(fields.warnings?.[legacyField.id]?.name).not.toBe(ValidationWarningNameInvalidCEL);
+    });
+
+    it('should use CEL-safe collision suffixes for created field names', async () => {
+        const {result, rerender} = renderHookWithContext(() => useUserPropertyFields(), getBaseState());
+
+        act(() => {
+            jest.runAllTimers();
+        });
+        rerender();
+
+        await waitFor(() => {
+            const [, read] = result.current;
+            expect(read.loading).toBe(false);
+        });
+
+        act(() => {
+            const [,,, ops] = result.current;
+            ops.create({name: 'Text'});
+            ops.create({name: 'Text'});
+        });
+        rerender();
+
+        const [fields] = result.current;
+        const pendingNames = fields.order.slice(-2).map((id) => fields.data[id].name);
+        expect(pendingNames).toEqual(['Text', 'Text_2']);
     });
 });

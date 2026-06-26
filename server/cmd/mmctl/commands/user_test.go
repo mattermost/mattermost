@@ -561,43 +561,6 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 	})
 }
 
-func (s *MmctlUnitTestSuite) TestDeleteAllUsersCmd() {
-	s.Run("Delete all users", func() {
-		printer.Clean()
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("confirm", true, "")
-
-		s.client.
-			EXPECT().
-			PermanentDeleteAllUsers(context.TODO()).
-			Return(&model.Response{StatusCode: http.StatusOK}, nil).
-			Times(1)
-
-		err := deleteAllUsersCmdF(s.client, cmd, []string{})
-		s.Require().Nil(err)
-		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Len(printer.GetErrorLines(), 0)
-		s.Require().Equal(printer.GetLines()[0], "All users successfully deleted")
-	})
-
-	s.Run("Delete all users call fails", func() {
-		printer.Clean()
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("confirm", true, "")
-
-		s.client.
-			EXPECT().
-			PermanentDeleteAllUsers(context.TODO()).
-			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
-			Times(1)
-
-		err := deleteAllUsersCmdF(s.client, cmd, []string{})
-		s.Require().NotNil(err)
-		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 0)
-	})
-}
-
 func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 	s.Run("Search for an existing user", func() {
 		emailArg := "example@example.com"
@@ -636,7 +599,7 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 	s.Run("Search for a user with authData", func() {
 		printer.Clean()
 		emailArg := "example@example.com"
-		mockUser := &model.User{Username: "ExampleUser", Email: emailArg, AuthData: model.NewPointer("1234"), AuthService: model.UserAuthServiceLdap}
+		mockUser := &model.User{Username: "ExampleUser", Email: emailArg, AuthData: new("1234"), AuthService: model.UserAuthServiceLdap}
 
 		s.client.
 			EXPECT().
@@ -2013,6 +1976,72 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		s.Require().Equal(&mockUser1, printer.GetLines()[0])
 		s.Require().Equal(&mockUser2, printer.GetLines()[1])
 	})
+
+	s.Run("Listing users for given role", func() {
+		printer.Clean()
+
+		email1 := "example1@example.com"
+		_ = model.User{Username: "ExampleUser1", Email: email1, Roles: "system_user"}
+		email2 := "example2@example.com"
+		mockUser2 := model.User{Username: "ExampleUser2", Email: email2, Roles: "system_user system_admin"}
+
+		role := "system_admin"
+
+		cmd := ResetListUsersCmd(s.T())
+		s.Require().NoError(cmd.Flags().Set("page", "0"))
+		s.Require().NoError(cmd.Flags().Set("per-page", "5"))
+		s.Require().NoError(cmd.Flags().Set("role", role))
+
+		s.client.
+			EXPECT().
+			GetUsersWithCustomQueryParameters(context.TODO(), 0, 5, "role="+role, "").
+			Return([]*model.User{&mockUser2}, &model.Response{}, nil).
+			Times(1)
+
+		err := listUsersCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(&mockUser2, printer.GetLines()[0])
+	})
+
+	s.Run("Listing all users for given role", func() {
+		printer.Clean()
+
+		email1 := "example1@example.com"
+		mockUser1 := model.User{Username: "ExampleUser1", Email: email1, Roles: "system_user"}
+		email2 := "example2@example.com"
+		mockUser2 := model.User{Username: "ExampleUser2", Email: email2, Roles: "system_user system_admin"}
+
+		role := "system_user"
+
+		cmd := ResetListUsersCmd(s.T())
+		s.Require().NoError(cmd.Flags().Set("page", "0"))
+		s.Require().NoError(cmd.Flags().Set("per-page", "1"))
+		s.Require().NoError(cmd.Flags().Set("role", role))
+		s.Require().NoError(cmd.Flags().Set("all", "true"))
+
+		s.client.
+			EXPECT().
+			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "role="+role, "").
+			Return([]*model.User{&mockUser1}, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetUsersWithCustomQueryParameters(context.TODO(), 1, 1, "role="+role, "").
+			Return([]*model.User{&mockUser2}, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetUsersWithCustomQueryParameters(context.TODO(), 2, 1, "role="+role, "").
+			Return([]*model.User{}, &model.Response{}, nil).
+			Times(1)
+
+		err := listUsersCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 2)
+		s.Require().Equal(&mockUser1, printer.GetLines()[0])
+		s.Require().Equal(&mockUser2, printer.GetLines()[1])
+	})
 }
 
 func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
@@ -2392,9 +2421,9 @@ func (s *MmctlUnitTestSuite) TestUserConvertCmd() {
 		mockBotUser := model.User{Id: "example", Username: userNameArg, IsBot: true}
 
 		userPatch := model.UserPatch{
-			Email:    model.NewPointer("example@example.com"),
-			Password: model.NewPointer("password"),
-			Username: model.NewPointer("example-user"),
+			Email:    new("example@example.com"),
+			Password: new("password"),
+			Username: new("example-user"),
 		}
 
 		cmd := &cobra.Command{}
@@ -2467,9 +2496,9 @@ func (s *MmctlUnitTestSuite) TestUserConvertCmd() {
 		mockBotUser := model.User{Id: "example", Username: userNameArg, IsBot: true}
 
 		userPatch := model.UserPatch{
-			Email:    model.NewPointer("example@example.com"),
-			Password: model.NewPointer("password"),
-			Username: model.NewPointer("example-user"),
+			Email:    new("example@example.com"),
+			Password: new("password"),
+			Username: new("example-user"),
 		}
 
 		cmd := &cobra.Command{}

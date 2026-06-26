@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/SettingItemMax should match snapshot 1`] = `
 <DocumentFragment>
@@ -216,7 +216,7 @@ exports[`components/SettingItemMax should match snapshot, with new saveTextButto
             role="alert"
           />
           <button
-            class="btn btn-primary "
+            class="btn btn-primary"
             data-testid="saveSetting"
             id="saveSetting"
             type="submit"

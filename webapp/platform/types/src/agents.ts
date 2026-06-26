@@ -7,10 +7,7 @@ export type Agent = {
     username: string;
     service_id: string;
     service_type: string;
-};
-
-export type AgentsResponse = {
-    agents: Agent[];
+    is_default?: boolean;
 };
 
 export type LLMService = {
@@ -18,8 +15,3 @@ export type LLMService = {
     name: string;
     type: string;
 };
-
-export type ServicesResponse = {
-    services: LLMService[];
-};
-

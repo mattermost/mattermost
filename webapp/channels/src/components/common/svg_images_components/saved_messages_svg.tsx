@@ -14,7 +14,7 @@ export function SavedMessagesSVG(props: React.HTMLAttributes<HTMLSpanElement>) {
                 viewBox='0 0 97 87'
                 fill='none'
                 role='img'
-                aria-label={formatMessage({id: 'generic_icons.flag', defaultMessage: 'Flag Icon'})}
+                aria-label={formatMessage({id: 'generic_icons.flag', defaultMessage: 'Save Icon'})}
             >
                 <g clipPath='url(#clip0_4210_81120)'>
                     <path

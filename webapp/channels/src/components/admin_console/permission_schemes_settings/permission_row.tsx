@@ -21,7 +21,7 @@ type Props = {
     value: string;
     onChange: (id: string) => void;
     additionalValues: Record<string, any>;
-}
+};
 
 const PermissionRow = ({
     additionalValues,
@@ -46,7 +46,7 @@ const PermissionRow = ({
     if (permissionRolesStrings[id]) {
         description = (
             <FormattedMessage
-                id={permissionRolesStrings[id].description.id}
+                {...permissionRolesStrings[id].description}
                 values={additionalValues}
             />
         );
