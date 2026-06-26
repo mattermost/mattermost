@@ -199,7 +199,6 @@
         max-height: 100%;
         flex: 1;
         flex-direction: column;
-        padding-bottom: 60px;
         gap: 16px;
         overflow-y: auto;
     }
@@ -396,11 +395,18 @@
         flex-direction: column;
         gap: 8px;
 
-        /* Vertically centre the help text and the test-access-rule button —
-         * the TableEditor's default rule sets justify-content: space-between
-         * but no align-items, so the help text (which can wrap to two lines)
-         * leaves the button hanging at the top. Centering keeps both anchored
-         * to the row's mid-line. */
+        // Match the neutral gray hover used by the other policy editors
+        .table-editor__cell {
+            button {
+                color: var(--center-channel-color) !important;
+
+                &:hover {
+                    background-color: rgba(var(--center-channel-color-rgb), 0.08) !important;
+                }
+            }
+        }
+
+        // Vertically center the help text with the test-access-rule button
         .table-editor__actions-row {
             align-items: center;
             gap: 16px;

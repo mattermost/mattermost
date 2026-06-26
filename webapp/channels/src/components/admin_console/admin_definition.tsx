@@ -2750,7 +2750,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     featureName: 'mobile_ephemeral_mode',
                                     title: defineMessage({id: 'admin.mobileSecurity.ephemeralMode_feature_discovery.title', defaultMessage: 'Control mobile data persistence with Mobile Ephemeral Mode'}),
                                     description: defineMessage({id: 'admin.mobileSecurity.ephemeralMode_feature_discovery.description', defaultMessage: 'With Mattermost Enterprise Advanced, you can enable Mobile Ephemeral Mode to enforce data persistence policies on mobile devices. Configure disconnection timeouts, offline data retention, and automatic cache cleanup.'}),
-                                    learnMoreURL: 'https://docs.mattermost.com',
+                                    learnMoreURL: 'https://docs.mattermost.com/configure/environment-configuration-settings.html#mobile-security',
                                 },
                             },
                             isHidden: it.configIsFalse('FeatureFlags', 'MobileEphemeralMode'),
@@ -2764,7 +2764,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     type: 'bool',
                                     key: 'MobileEphemeralModeSettings.Enable',
                                     label: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.enableTitle', defaultMessage: 'Enable Mobile Ephemeral Mode:'}),
-                                    help_text: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.enableDescription', defaultMessage: 'When enabled, mobile clients will follow the server-configured ephemeral data policies. Disconnected devices will clean up cached data based on the configured timers.'}),
+                                    help_text: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.enableDescription', defaultMessage: 'When enabled, mobile clients will follow the server-configured ephemeral data policies. Devices automatically clean up cached data on schedule. Admins can trigger an immediate wipe by revoking a user\'s session.'}),
                                 },
                                 {
                                     type: 'number',
@@ -3123,7 +3123,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'number',
                             key: 'TeamSettings.MaxUsersPerTeam',
                             label: defineMessage({id: 'admin.team.maxUsersTitle', defaultMessage: 'Max Users Per Team:'}),
-                            help_text: defineMessage({id: 'admin.team.maxUsersDescription', defaultMessage: 'Maximum total number of users per team, including both active and inactive users.'}),
+                            help_text: defineMessage({id: 'admin.team.maxUsersDescription', defaultMessage: 'Maximum number of active users per team. Deactivated users are not counted toward this limit.'}),
                             placeholder: defineMessage({id: 'admin.team.maxUsersExample', defaultMessage: 'E.g.: "25"'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                         },
@@ -4294,7 +4294,7 @@ const AdminDefinition: AdminDefinitionType = {
             ip_filtering: {
                 url: 'site_config/ip_filtering',
                 title: adminDefinitionMessages.ip_filtering_title,
-                isHidden: it.not(it.all(it.configIsTrue('FeatureFlags', 'CloudIPFiltering'), it.minLicenseTier(LicenseSkus.Enterprise))),
+                isHidden: it.not(it.all(it.licensedForFeature('Cloud'), it.minLicenseTier(LicenseSkus.Enterprise))),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.IP_FILTERING)),
                 searchableStrings: [adminDefinitionMessages.ip_filtering_title],
                 schema: {

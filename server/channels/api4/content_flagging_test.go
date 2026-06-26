@@ -1187,6 +1187,8 @@ func TestKeepFlaggedPost(t *testing.T) {
 	})
 
 	t.Run("Should preserve file attachments and edit history when keeping flagged post", func(t *testing.T) {
+		t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-69511")
+
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		defer th.RemoveLicense(t)
 

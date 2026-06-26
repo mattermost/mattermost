@@ -37,6 +37,14 @@ func NewTypeChangeValueCleanupHook(ps *PropertyService) *TypeChangeValueCleanupH
 	return &TypeChangeValueCleanupHook{propertyService: ps}
 }
 
+// isSelectRankTransition reports whether a type change is between select and
+// rank. Both types store values as a single option-ID string, so existing
+// values remain valid after the transition and do not need to be cleared.
+func isSelectRankTransition(from, to model.PropertyFieldType) bool {
+	return (from == model.PropertyFieldTypeSelect || from == model.PropertyFieldTypeRank) &&
+		(to == model.PropertyFieldTypeSelect || to == model.PropertyFieldTypeRank)
+}
+
 // PostUpdatePropertyFields returns the IDs of fields whose dependent values
 // were cleared. The caller publishes the corresponding WS events. Linked-
 // property propagation cannot trigger a type change (blocked upstream), so
@@ -48,6 +56,9 @@ func (h *TypeChangeValueCleanupHook) PostUpdatePropertyFields(rctx request.CTX, 
 			continue
 		}
 		if prev[i].Type == u.Type {
+			continue
+		}
+		if isSelectRankTransition(prev[i].Type, u.Type) {
 			continue
 		}
 		if err := h.propertyService.deletePropertyValuesForField(groupID, u.ID); err != nil {
