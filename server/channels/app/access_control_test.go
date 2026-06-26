@@ -28,10 +28,9 @@ func celSafeName() string {
 func storeMockWithMaskingOff(tb testing.TB) *TestHelper {
 	tb.Helper()
 	th := SetupWithStoreMock(tb)
-	th.ConfigStore.SetReadOnlyFF(false)
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.FeatureFlags.AttributeValueMasking = false
-	})
+	// Mutate in place — UpdateConfig persists config and triggers
+	// listeners that call Store.Post(), which the mock store lacks.
+	th.App.Config().FeatureFlags.AttributeValueMasking = false
 	return th
 }
 
