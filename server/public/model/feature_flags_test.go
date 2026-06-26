@@ -25,6 +25,11 @@ func TestFeatureFlagsSetDefaults(t *testing.T) {
 		m = f.ToMap()
 		require.Equal(t, "false", m["ClassificationMarkings"])
 	})
+
+	t.Run("MmBlocksEnabled defaults to true", func(t *testing.T) {
+		require.True(t, f.MmBlocksEnabled)
+		require.Equal(t, "true", f.ToMap()["MmBlocksEnabled"])
+	})
 }
 
 func TestFeatureFlagsToMap(t *testing.T) {

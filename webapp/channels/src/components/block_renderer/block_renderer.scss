@@ -1,0 +1,522 @@
+// Interactive Messages (mm_blocks) layout — buttons/selects use global .btn / .form-control.
+
+$mm-blocks-border-strong: rgba(var(--center-channel-color-rgb), 0.12);
+$mm-blocks-border-subtle: rgba(var(--center-channel-color-rgb), 0.08);
+$mm-blocks-surface-subtle: rgba(var(--center-channel-color-rgb), 0.04);
+$mm-blocks-text-muted: rgba(var(--center-channel-color-rgb), 0.75);
+
+$mm-blocks-accent-colors: (
+    default: rgba(var(--button-bg-rgb), 0.32),
+    primary: rgb(var(--button-bg-rgb)),
+    good: rgb(var(--semantic-color-success)),
+    warning: rgb(var(--semantic-color-warning)),
+    danger: rgb(var(--semantic-color-danger)),
+);
+
+$mm-blocks-container-gaps: (
+    none: 0,
+    small: 8px,
+    medium: 12px,
+    large: 16px,
+    xlarge: 20px,
+);
+
+$mm-blocks-container-max-heights: (
+    small: 160px,
+    medium: 240px,
+    large: 320px,
+);
+@mixin mm-blocks-capped-width {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.mm-blocks {
+    display: flex;
+    min-width: 0;
+    max-width: 700px;
+    min-height: 0;
+    flex-direction: column;
+    margin-bottom: 8px;
+    gap: 12px;
+
+    // Reset the margin on the first paragraph of a text block.
+    // Removes the style added by bootstrap.
+    p {
+        margin: 0;
+    }
+
+    p + p {
+        margin: 0.5em 0 0;
+    }
+
+    button {
+        align-self: flex-start;
+
+        //override global .btn padding and font size:
+        &.btn {
+            height: 36px;
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        .LoadingSpinner .spinner {
+            margin-right: 0px;
+        }
+    }
+
+    .mm-blocks-container {
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+
+        // 700px cap when the container shows a border or accent bar.
+        &--accent {
+            @include mm-blocks-capped-width;
+
+            padding: 16px;
+            border-top: none;
+            border-right: none;
+            border-bottom: none;
+            border-left-width: 4px;
+            border-left-style: solid;
+            border-left-color: var(--sidebar-header-bg);
+
+            @each $name, $color in $mm-blocks-accent-colors {
+                &.mm-blocks-container--accent-#{$name} {
+                    border-left-color: $color;
+                }
+            }
+
+            &.mm-blocks-container--accent-custom {
+                border-left-color: var(--mm-blocks-accent-color, var(--sidebar-header-bg));
+            }
+
+            // `border: true` with `accent_color` — outer top/right/bottom frame on the same element.
+            &.mm-blocks-container--accent-border {
+                border-radius: var(--radius-s);
+                border-top: 1px solid $mm-blocks-border-strong;
+                border-right: 1px solid $mm-blocks-border-strong;
+                border-bottom: 1px solid $mm-blocks-border-strong;
+                background-color: var(--center-channel-bg);
+                box-shadow: var(--elevation-1);
+            }
+        }
+
+        // `border: true` on the block (no accent_color).
+        &--border {
+            @include mm-blocks-capped-width;
+
+            padding: 16px;
+            border: 1px solid $mm-blocks-border-strong;
+            border-radius: var(--radius-s);
+            background-color: var(--center-channel-bg);
+            box-shadow: var(--elevation-1);
+        }
+
+        &--bg-gray {
+            background: $mm-blocks-surface-subtle;
+        }
+
+        &--flow-horizontal {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            align-items: flex-start;
+        }
+
+        // Nested scroll + flex: override min-height:auto on items (same idea as .mm-blocks-column min-width).
+        &--flow-vertical {
+            display: flex;
+            min-height: 0;
+            flex-direction: column;
+
+            > * {
+                min-height: 0;
+            }
+        }
+
+        @each $name, $gap in $mm-blocks-container-gaps {
+            &--gap-#{$name} {
+                gap: $gap;
+            }
+        }
+
+        // Scrollport: cap height and scroll; flex children keep content-sized main axis (see flow rules below).
+        // `max_height: none` uses `mm-blocks-container--max-height-none` (no extra rules).
+        @each $name, $height in $mm-blocks-container-max-heights {
+            &--max-height-#{$name} {
+                min-height: 0;
+                max-height: $height;
+                flex-shrink: 0;
+                overflow-y: auto;
+                scrollbar-width: thin;
+            }
+        }
+    }
+
+    @each $name, $height in $mm-blocks-container-max-heights {
+        .mm-blocks-container--flow-vertical.mm-blocks-container--max-height-#{$name},
+        .mm-blocks-container--flow-horizontal.mm-blocks-container--max-height-#{$name} {
+            > * {
+                flex-shrink: 0;
+            }
+        }
+    }
+
+    // `AutocompleteSelector` / `SuggestionBox` use `.select-suggestion-container`, which has global
+    // `margin: 8px 8px 0 0` (_select.scss). Drop that for mm_blocks dropdowns so height matches siblings.
+    .mm-blocks-select {
+        width: 100%;
+        min-width: 0;
+        max-width: 22rem;
+        height: 36px;
+
+        .select-suggestion-container {
+            width: 100%;
+            margin: 0;
+
+            &::after {
+                top: 9px;
+                right: 12px;
+                font-size: 18px;
+            }
+
+            .form-control {
+                width: 100%;
+                height: 36px;
+                padding: 8px 24px 8px 12px;
+                border-radius: var(--radius-s);
+                font-size: 14px;
+                text-overflow: ellipsis;
+                
+                &:hover {
+                    border-color: rgba(var(--center-channel-color-rgb), 0.48);
+                }
+
+                &::placeholder {
+                    color: rgba(var(--center-channel-color-rgb), 0.64);
+                    opacity: 1;
+                    text-overflow: ellipsis;
+                }
+            }
+        }
+
+        .suggestion-list__content {
+            padding: 8px 0;
+
+            .suggestion-list__item {
+                &:hover,
+                &.suggestion--selected {
+                    background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                }
+            }
+        }
+    }
+
+    // AutocompleteSelector uses `.form-group` for the dropdown container, which adds a bottom margin.
+    // This removes such margin.
+    .form-group {
+        margin: 0;
+    }
+
+    // Button styles automatically add a margin between button siblings.
+    // We handle this with flex gap, so we remove this margin.
+    .btn + .btn {
+        margin-left: 0px;
+    }
+
+    // Legacy attachment action colors (`ActionButton` STATUS_COLORS).
+    .mm-blocks-button--good,
+    .mm-blocks-button--success {
+        background-color: rgba(var(--semantic-color-success), 0.08) !important;
+        color: rgb(var(--semantic-color-success)) !important;
+
+        &:hover:not(:disabled),
+        &:focus:not(:disabled) {
+            background-color: rgba(var(--semantic-color-success), 0.12) !important;
+            color: rgb(var(--semantic-color-success)) !important;
+        }
+
+        &:active:not(:disabled) {
+            background-color: rgba(var(--semantic-color-success), 0.16) !important;
+        }
+    }
+
+    .mm-blocks-button--warning {
+        background-color: rgba(var(--semantic-color-warning), 0.08) !important;
+        color: rgb(var(--semantic-color-warning)) !important;
+
+        &:hover:not(:disabled),
+        &:focus:not(:disabled) {
+            background-color: rgba(var(--semantic-color-warning), 0.12) !important;
+            color: rgb(var(--semantic-color-warning)) !important;
+        }
+
+        &:active:not(:disabled) {
+            background-color: rgba(var(--semantic-color-warning), 0.16) !important;
+        }
+    }
+
+    // Avoid global `.app__body .btn.btn-danger` (filled red + white text), which overrides
+    // `.btn.btn-tertiary.btn-danger`. Matches legacy `ActionButton` danger styling.
+    .mm-blocks-button--danger {
+        background-color: rgba(var(--semantic-color-danger), 0.08) !important;
+        color: rgb(var(--semantic-color-danger)) !important;
+
+        &:hover:not(:disabled),
+        &:focus:not(:disabled) {
+            background-color: rgba(var(--semantic-color-danger), 0.12) !important;
+            color: rgb(var(--semantic-color-danger)) !important;
+        }
+
+        &:active:not(:disabled) {
+            background-color: rgba(var(--semantic-color-danger), 0.16) !important;
+            color: rgb(var(--semantic-color-danger)) !important;
+        }
+    }
+
+    .mm-blocks-image {
+        &__frame {
+            display: block;
+            overflow: hidden;
+            max-width: 100%;
+            line-height: 0;
+
+            // `SizeAwareImage` nests `inline-block` wrappers; cap them so percentage widths
+            // on the img do not expand to the image's intrinsic size.
+            .file-preview__button {
+                display: block;
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+
+            figure.image-loaded-container {
+                display: block;
+                max-width: 100%;
+                margin: 0;
+            }
+
+            .image-loading__container {
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+        }
+
+        &__img {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            border: 1px solid transparent;
+        }
+
+        &__img--person {
+            border-radius: 50%;
+            aspect-ratio: 1;
+            object-fit: cover;
+        }
+    }
+
+    .mm-blocks-text {
+        font-size: 14px;
+        line-height: 20px;
+        word-break: break-word;
+
+        p:first-child {
+            margin-top: 0;
+        }
+
+        &--subtle {
+            color: $mm-blocks-text-muted;
+        }
+
+        &--small {
+            font-size: 12px;
+            line-height: 16px;
+        }
+    }
+
+    .mm-blocks-divider {
+        width: 100%;
+        align-self: stretch;
+        border: 0;
+        border-top: 1px solid $mm-blocks-border-subtle;
+        margin: 0;
+
+        &--vertical {
+            width: 0;
+            flex-shrink: 0;
+            align-self: stretch;
+            border-top: 0;
+            border-left: 1px solid $mm-blocks-border-subtle;
+        }
+    }
+
+    // Nested framed containers: subtle borders and no elevation when inside a bordered
+    // parent (`--border` / `--accent-border`), column set/column, or collapsible.
+    .mm-blocks-container--border,
+    .mm-blocks-container--accent.mm-blocks-container--accent-border,
+    .mm-blocks-column-set,
+    .mm-blocks-column {
+        .mm-blocks-container.mm-blocks-container--border,
+        .mm-blocks-container.mm-blocks-container--accent.mm-blocks-container--accent-border {
+            padding: 12px;
+            box-shadow: none;
+        }
+
+        .mm-blocks-container.mm-blocks-container--border {
+            border-color: $mm-blocks-border-subtle;
+        }
+
+        .mm-blocks-container.mm-blocks-container--accent.mm-blocks-container--accent-border {
+            border-top-color: $mm-blocks-border-subtle;
+            border-right-color: $mm-blocks-border-subtle;
+            border-bottom-color: $mm-blocks-border-subtle;
+        }
+
+        .mm-blocks-container.mm-blocks-container--accent:not(.mm-blocks-container--accent-border) {
+            padding: 12px;
+            box-shadow: none;
+        }
+    }
+
+    .mm-blocks-container--border,
+    .mm-blocks-container--accent.mm-blocks-container--accent-border {
+        .mm-blocks-collapsible {
+            box-shadow: none;
+        }
+    }
+
+    .mm-blocks-column-set {
+        display: flex;
+        width: 100%;
+        flex-wrap: wrap;
+
+        @each $name, $gap in $mm-blocks-container-gaps {
+            &--gap-#{$name} {
+                gap: $gap;
+            }
+        }
+    }
+
+    .mm-blocks-column {
+        min-width: min(120px, max-content);
+
+        &--auto {
+            flex: 0 1 auto;
+        }
+
+        &--stretch {
+            flex: 1 1 120px;
+        }
+    }
+
+    .mm-blocks-collapsible {
+        border: 1px solid $mm-blocks-border-subtle;
+        border-radius: var(--radius-s);
+        background-color: var(--center-channel-bg);
+        box-shadow: var(--elevation-1);
+
+        .mm-blocks-container.mm-blocks-container--border,
+        .mm-blocks-container.mm-blocks-container--accent.mm-blocks-container--accent-border {
+            padding: 12px;
+            box-shadow: none;
+        }
+
+        .mm-blocks-container.mm-blocks-container--border {
+            border-color: $mm-blocks-border-subtle;
+        }
+
+        .mm-blocks-container.mm-blocks-container--accent.mm-blocks-container--accent-border {
+            border-top-color: $mm-blocks-border-subtle;
+            border-right-color: $mm-blocks-border-subtle;
+            border-bottom-color: $mm-blocks-border-subtle;
+        }
+
+        &-header {
+            display: flex;
+            width: 100%;
+            align-items: center;
+            padding: 8px 10px;
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+            gap: 4px;
+            text-align: left;
+
+            .mm-blocks-column-set {
+                align-items: center;
+            }
+
+            &:hover {
+                background: $mm-blocks-surface-subtle;
+            }
+
+            &__toggle {
+                display: flex;
+                flex-shrink: 0;
+                align-items: center;
+                align-self: stretch;
+                padding: 0;
+            }
+
+            &__body {
+                min-width: 0;
+                flex: 1 1 auto;
+                cursor: pointer;
+            }
+
+            &__chevron {
+                display: flex;
+                width: 16px;
+                flex-shrink: 0;
+                align-items: center;
+                justify-content: center;
+                color: $mm-blocks-text-muted;
+
+                .icon {
+                    font-size: 18px;
+                    line-height: 1;
+                    transition: transform 0.25s ease;
+                }
+            }
+        }
+
+        &--expanded {
+            .mm-blocks-collapsible-header__chevron .icon {
+                transform: rotate(90deg);
+            }
+
+            .mm-blocks-collapsible-content {
+                max-height: none;
+
+                // Collapse animation needs overflow clipping; allow autocomplete dropdowns to escape when open.
+                &:focus-within {
+                    overflow: visible;
+
+                    .mm-blocks-collapsible-content__inner {
+                        overflow: visible;
+                    }
+                }
+            }
+        }
+
+        &-content {
+            overflow: hidden;
+            transition: max-height 0.25s ease;
+
+            &__inner {
+                overflow: hidden;
+                min-height: 0;
+                padding: 10px 12px 12px 12px;
+            }
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .mm-blocks-collapsible {
+            &-header__chevron .icon,
+            &-content {
+                transition: none;
+            }
+        }
+    }
+}

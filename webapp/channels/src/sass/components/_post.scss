@@ -1843,14 +1843,6 @@
             overflow: hidden;
         }
 
-        .post-message--collapsed.post-message-preview--overflow .post-message__text {
-            display: -webkit-box;
-            overflow: hidden;
-            -webkit-box-orient: vertical;
-            -webkit-line-clamp: 4;
-            text-overflow: ellipsis;
-        }
-
         .post-preview-collapse__show-more-button {
             padding: 0;
             border: none;
@@ -2020,6 +2012,32 @@
 
     .post-collapse__show-more {
         bottom: 10px;
+    }
+}
+
+// Permalink previews and other ellipsis ShowMore surfaces: soften the hard clip
+// with a bottom fade so truncated content reads as "more below".
+.post-message--collapsed.post-message-preview--overflow {
+    .post-message__text-container {
+        position: relative;
+
+        &::after {
+            position: absolute;
+            z-index: 1;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            height: 40%;
+            min-height: 28px;
+            max-height: 64px;
+            background: linear-gradient(
+                to bottom,
+                rgba(var(--center-channel-bg-rgb), 0) 0%,
+                var(--center-channel-bg) 100%
+            );
+            content: '';
+            pointer-events: none;
+        }
     }
 }
 

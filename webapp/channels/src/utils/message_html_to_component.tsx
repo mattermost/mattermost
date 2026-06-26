@@ -5,6 +5,8 @@ import {Parser, ProcessNodeDefinitions} from 'html-to-react';
 import type {AllHTMLAttributes} from 'react';
 import React from 'react';
 
+import type {PostActionIntegrationFormat} from '@mattermost/types/integration_actions';
+
 import AtMention from 'components/at_mention';
 import CodeBlock from 'components/code_block/code_block';
 import InlineActionButton from 'components/inline_action_button';
@@ -41,6 +43,12 @@ export type Options = Partial<{
      * users automatically for all posts.
      */
     fetchMissingUsers: boolean;
+
+    /** Encrypted mm_blocks_actions cookie (ephemeral posts). */
+    mmBlocksActionCookie: string;
+
+    /** integration_format when using mmBlocksActionCookie. */
+    integrationFormat: PostActionIntegrationFormat;
 }>;
 
 type ProcessingInstruction = {
@@ -162,6 +170,8 @@ export default function messageHtmlToComponent(html: string, options: Options = 
                     key={`inline-action-${index}`}
                     href={node.attribs.href}
                     postId={options.postId || ''}
+                    mmBlocksActionCookie={options.mmBlocksActionCookie}
+                    integrationFormat={options.integrationFormat}
                 >
                     {children}
                 </InlineActionButton>

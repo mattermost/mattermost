@@ -9,14 +9,23 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {General} from 'mattermost-redux/constants';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import InteractiveMessages from 'components/post_view/interactive_messages';
+
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import PostMessagePreview from './post_message_preview';
 import type {Props} from './post_message_preview';
 
+const MockedInteractiveMessages = InteractiveMessages as jest.MockedFunction<typeof InteractiveMessages>;
+
 jest.mock('components/properties_card_view/propertyValueRenderer/post_preview_property_renderer/post_preview_property_renderer', () => {
     return jest.fn(() => <div data-testid='post-preview-property-renderer-mock'>{'PostPreviewPropertyRenderer Mock'}</div>);
 });
+
+jest.mock('components/post_view/interactive_messages', () => ({
+    __esModule: true,
+    default: jest.fn(() => <div data-testid='interactive-messages-preview'/>),
+}));
 
 describe('PostMessagePreview', () => {
     const previewPost = {
@@ -106,9 +115,61 @@ describe('PostMessagePreview', () => {
         },
     };
 
+    beforeEach(() => {
+        MockedInteractiveMessages.mockClear();
+    });
+
     test('should render correctly', () => {
         const {container} = renderWithContext(<PostMessagePreview {...baseProps}/>, baseState);
         expect(container).toMatchSnapshot();
+    });
+
+    test('renders interactive messages with interactions disabled when mm blocks are present', () => {
+        const postPreview = {
+            ...previewPost,
+            props: {
+                mm_blocks: [{type: 'button', text: 'Go', action_id: 'go'}],
+            },
+        } as Post;
+
+        renderWithContext(
+            <PostMessagePreview
+                {...baseProps}
+                previewPost={postPreview}
+                mmBlocksEnabled={true}
+            />,
+            baseState,
+        );
+
+        expect(MockedInteractiveMessages).toHaveBeenCalledWith(
+            expect.objectContaining({
+                post: postPreview,
+                interactionsDisabled: true,
+            }),
+            expect.anything(),
+        );
+        expect(screen.getByTestId('interactive-messages-preview')).toBeInTheDocument();
+    });
+
+    test('does not render interactive messages when mm blocks flag is off', () => {
+        const postPreview = {
+            ...previewPost,
+            props: {
+                mm_blocks: [{type: 'button', text: 'Go', action_id: 'go'}],
+            },
+        } as Post;
+
+        renderWithContext(
+            <PostMessagePreview
+                {...baseProps}
+                previewPost={postPreview}
+                mmBlocksEnabled={false}
+            />,
+            baseState,
+        );
+
+        expect(MockedInteractiveMessages).not.toHaveBeenCalled();
+        expect(screen.queryByTestId('interactive-messages-preview')).toBeNull();
     });
 
     test('should render without preview', () => {

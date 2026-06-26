@@ -62,6 +62,24 @@ type IncomingWebhookRequest struct {
 	Priority    *PostPriority        `json:"priority"`
 }
 
+// HasInteractiveMessageProps reports whether props contain post content beyond the
+// message field. Legacy props.attachments always count. mm_blocks, blocks, and cards
+// count only when mmBlocksEnabled is true (Interactive Messages feature flag).
+func (r *IncomingWebhookRequest) HasInteractiveMessageProps(mmBlocksEnabled bool) bool {
+	if r == nil || len(r.Props) == 0 {
+		return false
+	}
+	if interactivePropJSONArrayNonEmpty(r.Props[PostPropsAttachments]) {
+		return true
+	}
+	if !mmBlocksEnabled {
+		return false
+	}
+	return interactivePropJSONArrayNonEmpty(r.Props[PostPropsMmBlocks]) ||
+		interactivePropJSONArrayNonEmpty(r.Props[PostPropsBlockKitBlocks]) ||
+		interactivePropJSONArrayNonEmpty(r.Props[PostPropsAdaptiveCards])
+}
+
 type IncomingWebhooksWithCount struct {
 	Webhooks   []*IncomingWebhook `json:"incoming_webhooks"`
 	TotalCount int64              `json:"total_count"`

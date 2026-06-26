@@ -114,3 +114,10 @@ export const collectionRemoveItem = <T extends {id: string}>(collection: IDMappe
 export const idMappedObjectsFromArr = <T extends {id: string}>(items: T[], current?: IDMappedObjects<T>) => {
     return items.reduce((r, item) => ({...r, [item.id]: item}), {...current} as IDMappedObjects<T>);
 };
+
+export function ensureString(v: unknown): string {
+    if (!v || typeof v !== 'string') {
+        return '';
+    }
+    return v;
+}

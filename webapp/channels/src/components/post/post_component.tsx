@@ -398,7 +398,7 @@ function PostComponent(props: Props) {
 
     // When adding clickable targets within a root post to exclude from post's on click to open thread,
     // please add to/maintain the selector below
-    const isEligibleForClick = useMemo(() => makeIsEligibleForClick('.post-image__column, .embed-responsive-item, .attachment, .hljs, code'), []);
+    const isEligibleForClick = useMemo(() => makeIsEligibleForClick('.post-image__column, .embed-responsive-item, .attachment, .hljs, code, .suggestion-list, .select-suggestion-container, .post-attachment-dropdown, .mm-blocks-select'), []);
 
     const handlePostClick = useCallback((e: MouseEvent<HTMLDivElement>) => {
         if (!post || props.channelIsArchived) {

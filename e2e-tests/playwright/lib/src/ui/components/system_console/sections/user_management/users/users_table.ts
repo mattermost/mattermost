@@ -1,10 +1,35 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 
 import {UserActionMenu} from './user_action_menu';
+
+const USERS_REPORT_RESPONSE_TIMEOUT_MS = 10_000;
+
+/**
+ * Resolves when GET /api/v4/reports/users completes. Start this promise before the
+ * action that triggers the fetch (click, search, etc.) so Playwright does not sit
+ * on the timeout when the response already finished.
+ */
+export function waitForUsersReportResponse(page: Page) {
+    return page.waitForResponse(
+        (response) =>
+            response.url().includes('/api/v4/reports/users') &&
+            !response.url().includes('/count') &&
+            response.request().method() === 'GET' &&
+            response.ok(),
+        {timeout: USERS_REPORT_RESPONSE_TIMEOUT_MS},
+    );
+}
+
+function expectedSortDirection(previousSort: string | null): 'ascending' | 'descending' {
+    if (previousSort === 'ascending') {
+        return 'descending';
+    }
+    return 'ascending';
+}
 
 /**
  * Users table component
@@ -91,43 +116,28 @@ export class UsersTable {
      * @param columnName - The display name of the column
      * @returns The new sort direction after clicking
      */
-    async sortByColumn(columnName: string): Promise<'ascending' | 'descending' | 'none'> {
+    async sortByColumn(columnName: string): Promise<'ascending' | 'descending'> {
         const header = this.getColumnHeader(columnName);
+        await expect(header).toBeEnabled();
 
-        // Get current sort direction
-        const currentSort = await header.getAttribute('aria-sort');
+        const previousSort = await header.getAttribute('aria-sort');
+        const expectedSort = expectedSortDirection(previousSort);
 
-        // Click to sort
-        await header.click();
+        await Promise.all([waitForUsersReportResponse(this.container.page()), header.click()]);
 
-        // Wait for sort direction to change (or for it to be set if it wasn't before)
-        if (currentSort) {
-            // Wait for the attribute to change
-            await expect(header).not.toHaveAttribute('aria-sort', currentSort);
-        } else {
-            // Wait for the attribute to be set
-            await expect(header).toHaveAttribute('aria-sort');
-        }
+        // aria-sort updates with Redux; disabled={loading} on the header clears when the fetch ends
+        await expect(header).toHaveAttribute('aria-sort', expectedSort);
+        await expect(header).toBeEnabled();
 
-        // Wait for table to stabilize
-        await this.waitForLoadingComplete();
-
-        // Return the new sort direction
-        const newSort = await header.getAttribute('aria-sort');
-        return (newSort as 'ascending' | 'descending' | 'none') ?? 'none';
+        return expectedSort;
     }
 
     /**
-     * Wait for the table to finish loading (spinner to disappear)
+     * Read all visible email cells in one pass (avoids torn reads while the table re-renders).
      */
-    async waitForLoadingComplete() {
-        // Wait for any loading spinners to disappear
-        const loadingSpinner = this.container.locator('.loading-screen, .LoadingSpinner');
-        await loadingSpinner.waitFor({state: 'detached', timeout: 10000}).catch(() => {
-            // Spinner may not appear for fast loads, ignore timeout
-        });
-        // Also wait for at least one row to be visible
-        await this.bodyRows.first().waitFor({state: 'visible'});
+    async getVisibleEmails(): Promise<string[]> {
+        const texts = await this.bodyRows.locator('.emailColumn').allTextContents();
+        return texts.map((text) => text.trim()).filter(Boolean);
     }
 }
 

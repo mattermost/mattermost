@@ -234,15 +234,104 @@ func (a *App) doOutgoingWebhookRequest(url string, body io.Reader, contentType s
 	return &hookResp, nil
 }
 
-func splitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.AppError) {
+func webhookSplitDeferredProp(key string) bool {
+	switch key {
+	case model.PostPropsAttachments,
+		model.PostPropsMmBlocks,
+		model.PostPropsBlockKitBlocks,
+		model.PostPropsAdaptiveCards,
+		model.PostPropsMmBlocksActions:
+		return true
+	default:
+		return false
+	}
+}
+
+func webhookPropsJSONArray(raw any) ([]any, bool) {
+	arr, ok := raw.([]any)
+	return arr, ok
+}
+
+func splitWebhookPostPropsTooLarge() *model.AppError {
+	return model.NewAppError("splitWebhookPost", "web.incoming_webhook.split_props_length.app_error", map[string]any{"Max": model.PostPropsMaxUserRunes}, "", http.StatusBadRequest)
+}
+
+func refreshSplitInteractiveActions(split *model.Post, allActions any) {
+	if allActions == nil {
+		return
+	}
+	model.RefreshInteractiveActionsOnPost(split, allActions)
+}
+
+// cloneWebhookSplitPost returns a split post with a deep-copied props map. Post.Clone only
+// shallow-copies Props, so message chunks must not share one map when refresh updates actions.
+func cloneWebhookSplitPost(p *model.Post) *model.Post {
+	split := p.Clone()
+	if props := p.GetProps(); len(props) > 0 {
+		newProps := make(map[string]any, len(props))
+		maps.Copy(newProps, props)
+		split.SetProps(newProps)
+	} else {
+		split.SetProps(make(map[string]any))
+	}
+	return split
+}
+
+// distributeWebhookJSONArrayProp appends each element of a JSON array prop onto webhook post
+// splits, mirroring message attachment distribution.
+func distributeWebhookJSONArrayProp(splits []*model.Post, base *model.Post, propKey string, items []any, allActions any) ([]*model.Post, *model.AppError) {
+	for _, item := range items {
+		for {
+			lastSplit := splits[len(splits)-1]
+			newProps := make(map[string]any)
+			maps.Copy(newProps, lastSplit.GetProps())
+			orig, _ := newProps[propKey].([]any)
+			newProps[propKey] = append(orig, item)
+			candidate := lastSplit.Clone()
+			candidate.SetProps(newProps)
+			refreshSplitInteractiveActions(candidate, allActions)
+			if utf8.RuneCountInString(model.StringInterfaceToJSON(candidate.GetProps())) <= model.PostPropsMaxUserRunes {
+				lastSplit.SetProps(candidate.GetProps())
+				break
+			}
+
+			if len(orig) > 0 {
+				splits = append(splits, cloneWebhookSplitPost(base))
+				continue
+			}
+
+			return nil, splitWebhookPostPropsTooLarge()
+		}
+	}
+	return splits, nil
+}
+
+func validateWebhookPostInteractiveActions(post *model.Post) *model.AppError {
+	if err := model.ValidateInteractiveActionsForWebhook(post); err != nil {
+		return model.NewAppError("CreateWebhookPost", "api.context.invalid_body.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+	return nil
+}
+
+func splitWebhookPost(post *model.Post, maxPostSize int, mmBlocksEnabled bool) ([]*model.Post, *model.AppError) {
+	// Fast path: message and full props already fit one post. Pairing was validated
+	// before split, so mm_blocks_actions need not be subset/refreshed here.
+	if utf8.RuneCountInString(post.Message) <= maxPostSize {
+		if utf8.RuneCountInString(model.StringInterfaceToJSON(post.GetProps())) <= model.PostPropsMaxUserRunes {
+			return []*model.Post{post.Clone()}, nil
+		}
+	}
+
 	splits := make([]*model.Post, 0)
 	remainingText := post.Message
+
+	mmBlocksActions := post.GetProp(model.PostPropsMmBlocksActions)
 
 	base := post.Clone()
 	base.Message = ""
 	base.SetProps(make(map[string]any))
 	for k, v := range post.GetProps() {
-		if k != model.PostPropsAttachments {
+		if !webhookSplitDeferredProp(k) {
 			base.AddProp(k, v)
 		}
 	}
@@ -252,7 +341,7 @@ func splitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 	}
 
 	for utf8.RuneCountInString(remainingText) > maxPostSize {
-		split := base.Clone()
+		split := cloneWebhookSplitPost(base)
 		x := 0
 		for index := range remainingText {
 			x++
@@ -262,11 +351,19 @@ func splitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 				break
 			}
 		}
+		refreshSplitInteractiveActions(split, mmBlocksActions)
+		if utf8.RuneCountInString(model.StringInterfaceToJSON(split.GetProps())) > model.PostPropsMaxUserRunes {
+			return nil, splitWebhookPostPropsTooLarge()
+		}
 		splits = append(splits, split)
 	}
 
-	split := base.Clone()
+	split := cloneWebhookSplitPost(base)
 	split.Message = remainingText
+	refreshSplitInteractiveActions(split, mmBlocksActions)
+	if utf8.RuneCountInString(model.StringInterfaceToJSON(split.GetProps())) > model.PostPropsMaxUserRunes {
+		return nil, splitWebhookPostPropsTooLarge()
+	}
 	splits = append(splits, split)
 
 	attachments, _ := post.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
@@ -287,8 +384,7 @@ func splitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 			}
 
 			if len(origAttachments) > 0 {
-				newSplit := base.Clone()
-				splits = append(splits, newSplit)
+				splits = append(splits, cloneWebhookSplitPost(base))
 				continue
 			}
 
@@ -307,6 +403,19 @@ func splitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 			}
 			lastSplit.SetProps(newProps)
 			break
+		}
+	}
+	if !mmBlocksEnabled {
+		return splits, nil
+	}
+
+	for _, propKey := range []string{model.PostPropsMmBlocks, model.PostPropsBlockKitBlocks, model.PostPropsAdaptiveCards} {
+		if items, ok := webhookPropsJSONArray(post.GetProp(propKey)); ok && len(items) > 0 {
+			var err *model.AppError
+			splits, err = distributeWebhookJSONArrayProp(splits, base, propKey, items, mmBlocksActions)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -367,30 +476,38 @@ func (a *App) CreateWebhookPost(rctx request.CTX, userID string, channel *model.
 				model.PostPropsOverrideUsername,
 				model.PostPropsFromWebhook:
 			// Do nothing
-			case model.PostPropsMmBlocksActions:
-				// Webhook payloads are user-controlled even when the
-				// webhook is bound to a bot user, so the bot-author
-				// signal in CreatePost's strip rule cannot distinguish
-				// them. Drop here so mm_blocks_actions never reaches
-				// the post object.
 			default:
 				post.AddProp(key, val)
 			}
 		}
 	}
 
-	splits, err := splitWebhookPost(post, a.MaxPostSize())
+	mmBlocksEnabled := a.Config().FeatureFlags.MmBlocksEnabled
+
+	if mmBlocksEnabled {
+		if err := validateWebhookPostInteractiveActions(post); err != nil {
+			return nil, err
+		}
+	}
+
+	splits, err := splitWebhookPost(post, a.MaxPostSize(), mmBlocksEnabled)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, split := range splits {
-		if _, _, err := a.CreatePost(rctx, split, channel, model.CreatePostFlags{}); err != nil {
+	var returnPost *model.Post
+	for i, split := range splits {
+		flags := model.CreatePostFlags{AllowMmBlocksActions: split.GetProp(model.PostPropsMmBlocksActions) != nil}
+		created, _, err := a.CreatePost(rctx, split, channel, flags)
+		if err != nil {
 			return nil, model.NewAppError("CreateWebhookPost", "api.post.create_webhook_post.creating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		if i == 0 {
+			returnPost = created
 		}
 	}
 
-	return splits[0], nil
+	return returnPost, nil
 }
 
 // ValidateIncomingWebhookUser ensures a user being assigned as an incoming webhook's owner can
@@ -783,7 +900,8 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 	}
 
 	text := req.Text
-	if text == "" && req.Attachments == nil {
+	mmBlocksEnabled := a.Config().FeatureFlags.MmBlocksEnabled
+	if text == "" && req.Attachments == nil && !req.HasInteractiveMessageProps(mmBlocksEnabled) {
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.text.app_error", nil, "", http.StatusBadRequest)
 	}
 

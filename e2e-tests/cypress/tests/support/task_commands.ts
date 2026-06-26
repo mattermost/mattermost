@@ -124,8 +124,16 @@ function postIncomingWebhook({url, data, waitFor}: {
             return Boolean(textEl && data.text && textEl.textContent.includes(data.text));
         }
         case 'attachment-pretext': {
+            const pretext = data.attachments?.[0]?.pretext;
+            if (!pretext) {
+                return false;
+            }
+            const mmBlocksText = el.find('.mm-blocks-text');
+            if (mmBlocksText.length) {
+                return Array.from(mmBlocksText).some((node) => node.textContent?.includes(pretext));
+            }
             const attachmentPretextEl = el.find('.attachment__thumb-pretext > p')[0];
-            return Boolean(attachmentPretextEl && data.attachments?.[0]?.pretext && attachmentPretextEl.textContent.includes(data.attachments[0].pretext));
+            return Boolean(attachmentPretextEl && attachmentPretextEl.textContent.includes(pretext));
         }
         default:
             return false;
