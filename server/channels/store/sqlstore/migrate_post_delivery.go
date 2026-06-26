@@ -10,6 +10,7 @@ import (
 	"path"
 
 	"github.com/mattermost/mattermost/server/v8/channels/db"
+	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/morph"
 	ps "github.com/mattermost/morph/drivers/postgres"
 	mbindata "github.com/mattermost/morph/sources/embedded"
@@ -64,7 +65,7 @@ func (ss *SqlStore) initUserPostDeliveryMorph(enableLogging bool) (*morph.Morph,
 		// Independent schema: its own advisory lock and version table so it does
 		// not contend with the main DB's migrations on a shared cluster.
 		morph.WithLock("mm-user-post-delivery-lock-key"),
-		morph.SetMigrationTableName("db_migrations_user_post_delivery"),
+		morph.SetMigrationTableName(config.MigrationsTableName),
 		morph.SetStatementTimeoutInSeconds(*ss.settings.MigrationsStatementTimeoutSeconds),
 		morph.SetDryRun(false),
 	}
