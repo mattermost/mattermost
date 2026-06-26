@@ -127,10 +127,6 @@ func (s *SqlRecapStore) SaveRecapIfUnderDailyLimit(recap *model.Recap, since int
 	}
 	defer finalizeTransactionX(tx, &err)
 
-	if err = lockUserRowForUpdate(tx, recap.UserId); err != nil {
-		return nil, errors.Wrapf(err, "failed to lock user %s for recap save", recap.UserId)
-	}
-
 	count, err := s.countForUserSinceWithExecutor(tx, recap.UserId, since)
 	if err != nil {
 		return nil, err

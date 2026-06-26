@@ -80,10 +80,6 @@ func (s *SqlScheduledRecapStore) SaveIfUnderLimit(scheduledRecap *model.Schedule
 	}
 	defer finalizeTransactionX(tx, &err)
 
-	if err = lockUserRowForUpdate(tx, scheduledRecap.UserId); err != nil {
-		return nil, errors.Wrapf(err, "failed to lock user %s for scheduled recap save", scheduledRecap.UserId)
-	}
-
 	count, err := s.countForUserWithExecutor(tx, scheduledRecap.UserId)
 	if err != nil {
 		return nil, err
