@@ -116,7 +116,6 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Use build environment
         uses: ./.github/actions/load-buildenv
-        with:
 
       - name: Restore test timing data
         if: inputs.shard-total > 1
