@@ -141,6 +141,11 @@ func (jss SqlJobStore) SaveOnce(job *model.Job) (*model.Job, error) {
 	return job, nil
 }
 
+// SaveOnceByTypeAndData inserts the job only when no pending or in-progress job already exists
+// with the same type and matching data filter. Unlike SaveOnce (which dedupes per type), this
+// allows many concurrent jobs of the same type while keeping at most one queued per entity
+// identified by the data filter (e.g. one job per scheduled_recap_id). Returns (nil, nil) when a
+// matching job already exists.
 func (jss SqlJobStore) SaveOnceByTypeAndData(job *model.Job, data map[string]string) (*model.Job, error) {
 	if len(data) == 0 {
 		return nil, errors.New("data filter cannot be empty")
