@@ -1,39 +1,39 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`translatePostProps complex payloads should translate rich Adaptive Cards (columns, image, action set) 1`] = `
-[
-  {
+Array [
+  Object {
     "is_subtle": undefined,
     "text": "Customer onboarding review",
     "type": "text",
   },
-  {
+  Object {
     "is_subtle": true,
     "text": "Account AC-91822 requested enterprise provisioning with SSO and SCIM.",
     "type": "text",
   },
-  {
-    "content": [
-      {
+  Object {
+    "content": Array [
+      Object {
         "is_subtle": undefined,
         "text": "Account details",
         "type": "text",
       },
-      {
-        "columns": [
-          {
-            "items": [
-              {
+      Object {
+        "columns": Array [
+          Object {
+            "items": Array [
+              Object {
                 "is_subtle": undefined,
                 "text": "Company: Northwind Labs",
                 "type": "text",
               },
-              {
+              Object {
                 "is_subtle": true,
                 "text": "Seats: 2,500",
                 "type": "text",
               },
-              {
+              Object {
                 "is_subtle": true,
                 "text": "Plan: Enterprise Plus",
                 "type": "text",
@@ -42,19 +42,19 @@ exports[`translatePostProps complex payloads should translate rich Adaptive Card
             "type": "column",
             "width": "stretch",
           },
-          {
-            "items": [
-              {
+          Object {
+            "items": Array [
+              Object {
                 "is_subtle": undefined,
                 "text": "Region: EU-West",
                 "type": "text",
               },
-              {
+              Object {
                 "is_subtle": true,
                 "text": "Data residency: Frankfurt",
                 "type": "text",
               },
-              {
+              Object {
                 "is_subtle": true,
                 "text": "SLA: 99.95%",
                 "type": "text",
@@ -63,9 +63,9 @@ exports[`translatePostProps complex payloads should translate rich Adaptive Card
             "type": "column",
             "width": "stretch",
           },
-          {
-            "items": [
-              {
+          Object {
+            "items": Array [
+              Object {
                 "alt_text": "Account logo",
                 "image_style": "person",
                 "size": "small",
@@ -82,30 +82,30 @@ exports[`translatePostProps complex payloads should translate rich Adaptive Card
     ],
     "type": "container",
   },
-  {
-    "content": [
-      {
+  Object {
+    "content": Array [
+      Object {
         "is_subtle": undefined,
         "text": "Provisioning checklist",
         "type": "text",
       },
-      {
-        "columns": [
-          {
-            "items": [
-              {
-                "content": [
-                  {
+      Object {
+        "columns": Array [
+          Object {
+            "items": Array [
+              Object {
+                "content": Array [
+                  Object {
                     "is_subtle": undefined,
                     "text": "Identity",
                     "type": "text",
                   },
-                  {
+                  Object {
                     "is_subtle": undefined,
                     "text": "SAML metadata uploaded",
                     "type": "text",
                   },
-                  {
+                  Object {
                     "is_subtle": true,
                     "text": "SCIM token issued",
                     "type": "text",
@@ -117,21 +117,21 @@ exports[`translatePostProps complex payloads should translate rich Adaptive Card
             "type": "column",
             "width": "stretch",
           },
-          {
-            "items": [
-              {
-                "content": [
-                  {
+          Object {
+            "items": Array [
+              Object {
+                "content": Array [
+                  Object {
                     "is_subtle": undefined,
                     "text": "Infrastructure",
                     "type": "text",
                   },
-                  {
+                  Object {
                     "is_subtle": undefined,
                     "text": "Dedicated namespace created",
                     "type": "text",
                   },
-                  {
+                  Object {
                     "is_subtle": true,
                     "text": "Backup policy attached",
                     "type": "text",
@@ -146,7 +146,7 @@ exports[`translatePostProps complex payloads should translate rich Adaptive Card
         ],
         "type": "column_set",
       },
-      {
+      Object {
         "alt_text": "Provisioning diagram",
         "horizontal_alignment": "center",
         "size": "medium",
@@ -156,21 +156,21 @@ exports[`translatePostProps complex payloads should translate rich Adaptive Card
     ],
     "type": "container",
   },
-  {
-    "content": [
-      {
+  Object {
+    "content": Array [
+      Object {
         "action_id": "approve_provision",
         "style": "primary",
         "text": "Approve provisioning",
         "type": "button",
       },
-      {
+      Object {
         "action_id": "request_changes",
         "style": "default",
         "text": "Request changes",
         "type": "button",
       },
-      {
+      Object {
         "action_id": "reject_provision",
         "style": "danger",
         "text": "Reject",
@@ -180,15 +180,15 @@ exports[`translatePostProps complex payloads should translate rich Adaptive Card
     "flow": "horizontal",
     "type": "container",
   },
-  {
-    "content": [
-      {
+  Object {
+    "content": Array [
+      Object {
         "action_id": "assign_reviewer",
         "style": "default",
         "text": "Assign reviewer",
         "type": "button",
       },
-      {
+      Object {
         "action_id": "open_crm",
         "style": "default",
         "text": "Open CRM record",
@@ -202,18 +202,18 @@ exports[`translatePostProps complex payloads should translate rich Adaptive Card
 `;
 
 exports[`translatePostProps complex payloads should translate rich Block Kit (accessory, fields, image, select) 1`] = `
-[
-  {
+Array [
+  Object {
     "text": "# Release approval workflow",
     "type": "text",
   },
-  {
-    "content": [
-      {
-        "columns": [
-          {
-            "items": [
-              {
+  Object {
+    "content": Array [
+      Object {
+        "columns": Array [
+          Object {
+            "items": Array [
+              Object {
                 "text": "*Build 2.41.0-rc3* is ready for production. Review the checklist below before approving.",
                 "type": "text",
               },
@@ -221,9 +221,9 @@ exports[`translatePostProps complex payloads should translate rich Block Kit (ac
             "type": "column",
             "width": "stretch",
           },
-          {
-            "items": [
-              {
+          Object {
+            "items": Array [
+              Object {
                 "action_id": "view_build",
                 "style": "primary",
                 "text": "View build",
@@ -239,20 +239,20 @@ exports[`translatePostProps complex payloads should translate rich Block Kit (ac
     ],
     "type": "container",
   },
-  {
+  Object {
     "text": "### Validation summary
 - 1,284 unit tests passed
 - 42 e2e scenarios passed
 - 0 critical vulnerabilities",
     "type": "text",
   },
-  {
-    "content": [
-      {
-        "columns": [
-          {
-            "items": [
-              {
+  Object {
+    "content": Array [
+      Object {
+        "columns": Array [
+          Object {
+            "items": Array [
+              Object {
                 "text": "*Commit*",
                 "type": "text",
               },
@@ -260,9 +260,9 @@ exports[`translatePostProps complex payloads should translate rich Block Kit (ac
             "type": "column",
             "width": "stretch",
           },
-          {
-            "items": [
-              {
+          Object {
+            "items": Array [
+              Object {
                 "text": "\`a91f3c2\`",
                 "type": "text",
               },
@@ -273,11 +273,11 @@ exports[`translatePostProps complex payloads should translate rich Block Kit (ac
         ],
         "type": "column_set",
       },
-      {
-        "columns": [
-          {
-            "items": [
-              {
+      Object {
+        "columns": Array [
+          Object {
+            "items": Array [
+              Object {
                 "text": "*Branch*",
                 "type": "text",
               },
@@ -285,9 +285,9 @@ exports[`translatePostProps complex payloads should translate rich Block Kit (ac
             "type": "column",
             "width": "stretch",
           },
-          {
-            "items": [
-              {
+          Object {
+            "items": Array [
+              Object {
                 "text": "\`release-2.41\`",
                 "type": "text",
               },
@@ -298,11 +298,11 @@ exports[`translatePostProps complex payloads should translate rich Block Kit (ac
         ],
         "type": "column_set",
       },
-      {
-        "columns": [
-          {
-            "items": [
-              {
+      Object {
+        "columns": Array [
+          Object {
+            "items": Array [
+              Object {
                 "text": "*Artifacts*",
                 "type": "text",
               },
@@ -310,9 +310,9 @@ exports[`translatePostProps complex payloads should translate rich Block Kit (ac
             "type": "column",
             "width": "stretch",
           },
-          {
-            "items": [
-              {
+          Object {
+            "items": Array [
+              Object {
                 "text": "iOS, Android, Desktop",
                 "type": "text",
               },
@@ -323,11 +323,11 @@ exports[`translatePostProps complex payloads should translate rich Block Kit (ac
         ],
         "type": "column_set",
       },
-      {
-        "columns": [
-          {
-            "items": [
-              {
+      Object {
+        "columns": Array [
+          Object {
+            "items": Array [
+              Object {
                 "text": "*Risk score*",
                 "type": "text",
               },
@@ -335,9 +335,9 @@ exports[`translatePostProps complex payloads should translate rich Block Kit (ac
             "type": "column",
             "width": "stretch",
           },
-          {
-            "items": [
-              {
+          Object {
+            "items": Array [
+              Object {
                 "text": "Low (2 open defects)",
                 "type": "text",
               },
@@ -348,11 +348,11 @@ exports[`translatePostProps complex payloads should translate rich Block Kit (ac
         ],
         "type": "column_set",
       },
-      {
-        "columns": [
-          {
-            "items": [
-              {
+      Object {
+        "columns": Array [
+          Object {
+            "items": Array [
+              Object {
                 "text": "*Canary status*",
                 "type": "text",
               },
@@ -360,9 +360,9 @@ exports[`translatePostProps complex payloads should translate rich Block Kit (ac
             "type": "column",
             "width": "stretch",
           },
-          {
-            "items": [
-              {
+          Object {
+            "items": Array [
+              Object {
                 "text": "Green for 6h",
                 "type": "text",
               },
@@ -376,16 +376,16 @@ exports[`translatePostProps complex payloads should translate rich Block Kit (ac
     ],
     "type": "container",
   },
-  {
+  Object {
     "type": "divider",
   },
-  {
-    "content": [
-      {
-        "columns": [
-          {
-            "items": [
-              {
+  Object {
+    "content": Array [
+      Object {
+        "columns": Array [
+          Object {
+            "items": Array [
+              Object {
                 "text": "Deployment regions",
                 "type": "text",
               },
@@ -393,9 +393,9 @@ exports[`translatePostProps complex payloads should translate rich Block Kit (ac
             "type": "column",
             "width": "stretch",
           },
-          {
-            "items": [
-              {
+          Object {
+            "items": Array [
+              Object {
                 "alt_text": "World map",
                 "size": "small",
                 "title": undefined,
@@ -412,13 +412,13 @@ exports[`translatePostProps complex payloads should translate rich Block Kit (ac
     ],
     "type": "container",
   },
-  {
-    "content": [
-      {
-        "columns": [
-          {
-            "items": [
-              {
+  Object {
+    "content": Array [
+      Object {
+        "columns": Array [
+          Object {
+            "items": Array [
+              Object {
                 "text": "*US*",
                 "type": "text",
               },
@@ -426,9 +426,9 @@ exports[`translatePostProps complex payloads should translate rich Block Kit (ac
             "type": "column",
             "width": "stretch",
           },
-          {
-            "items": [
-              {
+          Object {
+            "items": Array [
+              Object {
                 "text": "Ready",
                 "type": "text",
               },
@@ -439,11 +439,11 @@ exports[`translatePostProps complex payloads should translate rich Block Kit (ac
         ],
         "type": "column_set",
       },
-      {
-        "columns": [
-          {
-            "items": [
-              {
+      Object {
+        "columns": Array [
+          Object {
+            "items": Array [
+              Object {
                 "text": "*EU*",
                 "type": "text",
               },
@@ -451,9 +451,9 @@ exports[`translatePostProps complex payloads should translate rich Block Kit (ac
             "type": "column",
             "width": "stretch",
           },
-          {
-            "items": [
-              {
+          Object {
+            "items": Array [
+              Object {
                 "text": "Ready",
                 "type": "text",
               },
@@ -464,11 +464,11 @@ exports[`translatePostProps complex payloads should translate rich Block Kit (ac
         ],
         "type": "column_set",
       },
-      {
-        "columns": [
-          {
-            "items": [
-              {
+      Object {
+        "columns": Array [
+          Object {
+            "items": Array [
+              Object {
                 "text": "*APAC*",
                 "type": "text",
               },
@@ -476,9 +476,9 @@ exports[`translatePostProps complex payloads should translate rich Block Kit (ac
             "type": "column",
             "width": "stretch",
           },
-          {
-            "items": [
-              {
+          Object {
+            "items": Array [
+              Object {
                 "text": "Pending cache warm",
                 "type": "text",
               },
@@ -492,43 +492,43 @@ exports[`translatePostProps complex payloads should translate rich Block Kit (ac
     ],
     "type": "container",
   },
-  {
+  Object {
     "alt_text": "Release timeline",
     "size": "large",
     "title": "Rollout timeline",
     "type": "image",
     "url": "https://example.com/release-timeline.png",
   },
-  {
-    "content": [
-      {
+  Object {
+    "content": Array [
+      Object {
         "action_id": "approve_release",
         "style": "primary",
         "text": "Approve",
         "type": "button",
       },
-      {
+      Object {
         "action_id": "reject_release",
         "style": "danger",
         "text": "Reject",
         "type": "button",
       },
-      {
+      Object {
         "action_id": "rollout_strategy",
-        "options": [
-          {
+        "options": Array [
+          Object {
             "text": "Immediate",
             "value": "immediate",
           },
-          {
+          Object {
             "text": "10% canary",
             "value": "canary_10",
           },
-          {
+          Object {
             "text": "25% canary",
             "value": "canary_25",
           },
-          {
+          Object {
             "text": "Blue/green",
             "value": "blue_green",
           },
@@ -540,20 +540,20 @@ exports[`translatePostProps complex payloads should translate rich Block Kit (ac
     "flow": "horizontal",
     "type": "container",
   },
-  {
-    "content": [
-      {
+  Object {
+    "content": Array [
+      Object {
         "action_id": "notify_channel",
-        "options": [
-          {
+        "options": Array [
+          Object {
             "text": "#releases",
             "value": "releases",
           },
-          {
+          Object {
             "text": "#engineering",
             "value": "engineering",
           },
-          {
+          Object {
             "text": "#support",
             "value": "support",
           },
@@ -561,13 +561,13 @@ exports[`translatePostProps complex payloads should translate rich Block Kit (ac
         "placeholder": "Notify channel",
         "type": "static_select",
       },
-      {
+      Object {
         "action_id": "schedule_release",
         "style": undefined,
         "text": "Schedule",
         "type": "button",
       },
-      {
+      Object {
         "action_id": "cancel_release",
         "style": undefined,
         "text": "Cancel",
@@ -581,18 +581,18 @@ exports[`translatePostProps complex payloads should translate rich Block Kit (ac
 `;
 
 exports[`translatePostProps complex payloads should translate rich attachments (fields, media, footer, actions, multiple cards) 1`] = `
-[
-  {
+Array [
+  Object {
     "text": "PagerDuty triggered for *production API* cluster",
     "type": "text",
   },
-  {
+  Object {
     "accent_color": "#2d81ff",
     "border": true,
-    "content": [
-      {
-        "content": [
-          {
+    "content": Array [
+      Object {
+        "content": Array [
+          Object {
             "alt_text": "Attachment author icon",
             "max_height": 20,
             "max_width": 20,
@@ -600,7 +600,7 @@ exports[`translatePostProps complex payloads should translate rich attachments (
             "type": "image",
             "url": "https://example.com/author.png",
           },
-          {
+          Object {
             "text": "[Incident Bot](https://example.com/author)",
             "type": "text",
           },
@@ -609,36 +609,36 @@ exports[`translatePostProps complex payloads should translate rich attachments (
         "gap": "small",
         "type": "container",
       },
-      {
+      Object {
         "text": "**[INC-9042: Elevated 5xx rate](https://example.com/report/9042)**",
         "type": "text",
       },
-      {
-        "columns": [
-          {
-            "items": [
-              {
+      Object {
+        "columns": Array [
+          Object {
+            "items": Array [
+              Object {
                 "text": "Error budget burn is **12%** over the last hour. Customer-facing latency p95 exceeded 2.4s.",
                 "type": "text",
               },
-              {
+              Object {
                 "alt_text": "Attachment image",
                 "size": "medium",
                 "type": "image",
                 "url": "https://example.com/error-rate-chart.png",
               },
-              {
-                "content": [
-                  {
-                    "columns": [
-                      {
+              Object {
+                "content": Array [
+                  Object {
+                    "columns": Array [
+                      Object {
                         "gap": "none",
-                        "items": [
-                          {
+                        "items": Array [
+                          Object {
                             "text": "**Severity:**",
                             "type": "text",
                           },
-                          {
+                          Object {
                             "text": "SEV-1",
                             "type": "text",
                           },
@@ -646,14 +646,14 @@ exports[`translatePostProps complex payloads should translate rich attachments (
                         "type": "column",
                         "width": "stretch",
                       },
-                      {
+                      Object {
                         "gap": "none",
-                        "items": [
-                          {
+                        "items": Array [
+                          Object {
                             "text": "**Region:**",
                             "type": "text",
                           },
-                          {
+                          Object {
                             "text": "us-east-1",
                             "type": "text",
                           },
@@ -664,16 +664,16 @@ exports[`translatePostProps complex payloads should translate rich attachments (
                     ],
                     "type": "column_set",
                   },
-                  {
-                    "columns": [
-                      {
+                  Object {
+                    "columns": Array [
+                      Object {
                         "gap": "none",
-                        "items": [
-                          {
+                        "items": Array [
+                          Object {
                             "text": "**Started:**",
                             "type": "text",
                           },
-                          {
+                          Object {
                             "text": "2026-06-11 08:14 UTC",
                             "type": "text",
                           },
@@ -681,14 +681,14 @@ exports[`translatePostProps complex payloads should translate rich attachments (
                         "type": "column",
                         "width": "stretch",
                       },
-                      {
+                      Object {
                         "gap": "none",
-                        "items": [
-                          {
+                        "items": Array [
+                          Object {
                             "text": "**Duration:**",
                             "type": "text",
                           },
-                          {
+                          Object {
                             "text": "37 minutes",
                             "type": "text",
                           },
@@ -699,13 +699,13 @@ exports[`translatePostProps complex payloads should translate rich attachments (
                     ],
                     "type": "column_set",
                   },
-                  {
-                    "content": [
-                      {
+                  Object {
+                    "content": Array [
+                      Object {
                         "text": "**Impacted services:**",
                         "type": "text",
                       },
-                      {
+                      Object {
                         "text": "API gateway, auth, search indexer",
                         "type": "text",
                       },
@@ -714,13 +714,13 @@ exports[`translatePostProps complex payloads should translate rich attachments (
                     "gap": "none",
                     "type": "container",
                   },
-                  {
-                    "content": [
-                      {
+                  Object {
+                    "content": Array [
+                      Object {
                         "text": "**Current hypothesis:**",
                         "type": "text",
                       },
-                      {
+                      Object {
                         "text": "Connection pool exhaustion on read replicas after cache stampede",
                         "type": "text",
                       },
@@ -729,13 +729,13 @@ exports[`translatePostProps complex payloads should translate rich attachments (
                     "gap": "none",
                     "type": "container",
                   },
-                  {
-                    "content": [
-                      {
+                  Object {
+                    "content": Array [
+                      Object {
                         "text": "**Customer impact:**",
                         "type": "text",
                       },
-                      {
+                      Object {
                         "text": "Delayed message delivery for ~4% of active sessions",
                         "type": "text",
                       },
@@ -744,16 +744,16 @@ exports[`translatePostProps complex payloads should translate rich attachments (
                     "gap": "none",
                     "type": "container",
                   },
-                  {
-                    "columns": [
-                      {
+                  Object {
+                    "columns": Array [
+                      Object {
                         "gap": "none",
-                        "items": [
-                          {
+                        "items": Array [
+                          Object {
                             "text": "**Next update:**",
                             "type": "text",
                           },
-                          {
+                          Object {
                             "text": "In 15 minutes or on status change",
                             "type": "text",
                           },
@@ -761,14 +761,14 @@ exports[`translatePostProps complex payloads should translate rich attachments (
                         "type": "column",
                         "width": "stretch",
                       },
-                      {
+                      Object {
                         "gap": "none",
-                        "items": [
-                          {
+                        "items": Array [
+                          Object {
                             "text": "**Commander:**",
                             "type": "text",
                           },
-                          {
+                          Object {
                             "text": "@sre-oncall",
                             "type": "text",
                           },
@@ -784,9 +784,9 @@ exports[`translatePostProps complex payloads should translate rich attachments (
                 "gap": "medium",
                 "type": "container",
               },
-              {
-                "content": [
-                  {
+              Object {
+                "content": Array [
+                  Object {
                     "alt_text": "Attachment footer icon",
                     "max_height": 16,
                     "max_width": 16,
@@ -794,7 +794,7 @@ exports[`translatePostProps complex payloads should translate rich attachments (
                     "type": "image",
                     "url": "https://example.com/footer.png",
                   },
-                  {
+                  Object {
                     "is_subtle": true,
                     "size": "small",
                     "text": "Generated by incident automation",
@@ -809,9 +809,9 @@ exports[`translatePostProps complex payloads should translate rich attachments (
             "type": "column",
             "width": "stretch",
           },
-          {
-            "items": [
-              {
+          Object {
+            "items": Array [
+              Object {
                 "alt_text": "Attachment image",
                 "size": "small",
                 "type": "image",
@@ -824,9 +824,9 @@ exports[`translatePostProps complex payloads should translate rich attachments (
         ],
         "type": "column_set",
       },
-      {
-        "content": [
-          {
+      Object {
+        "content": Array [
+          Object {
             "action_id": "ack",
             "cookie": "",
             "disabled": undefined,
@@ -835,7 +835,7 @@ exports[`translatePostProps complex payloads should translate rich attachments (
             "tooltip": "",
             "type": "button",
           },
-          {
+          Object {
             "action_id": "escalate",
             "cookie": "",
             "disabled": undefined,
@@ -844,26 +844,26 @@ exports[`translatePostProps complex payloads should translate rich attachments (
             "tooltip": "",
             "type": "button",
           },
-          {
+          Object {
             "action_id": "assignee",
             "cookie": "",
             "data_source": "",
             "disabled": undefined,
             "initial_option": "alice",
-            "options": [
-              {
+            "options": Array [
+              Object {
                 "text": "Alice Chen",
                 "value": "alice",
               },
-              {
+              Object {
                 "text": "Bob Patel",
                 "value": "bob",
               },
-              {
+              Object {
                 "text": "Carla Ruiz",
                 "value": "carla",
               },
-              {
+              Object {
                 "text": "Dana Kim",
                 "value": "dana",
               },
@@ -871,22 +871,22 @@ exports[`translatePostProps complex payloads should translate rich attachments (
             "placeholder": "Assign commander",
             "type": "static_select",
           },
-          {
+          Object {
             "action_id": "severity",
             "cookie": "",
             "data_source": "",
             "disabled": undefined,
             "initial_option": "1",
-            "options": [
-              {
+            "options": Array [
+              Object {
                 "text": "SEV-1",
                 "value": "1",
               },
-              {
+              Object {
                 "text": "SEV-2",
                 "value": "2",
               },
-              {
+              Object {
                 "text": "SEV-3",
                 "value": "3",
               },
@@ -894,7 +894,7 @@ exports[`translatePostProps complex payloads should translate rich attachments (
             "placeholder": "Severity",
             "type": "static_select",
           },
-          {
+          Object {
             "action_id": "users",
             "cookie": "",
             "data_source": "users",
@@ -904,7 +904,7 @@ exports[`translatePostProps complex payloads should translate rich attachments (
             "placeholder": "Page user",
             "type": "static_select",
           },
-          {
+          Object {
             "action_id": "channels",
             "cookie": "",
             "data_source": "channels",
@@ -922,17 +922,17 @@ exports[`translatePostProps complex payloads should translate rich attachments (
     ],
     "type": "container",
   },
-  {
+  Object {
     "text": "Follow-up investigation thread",
     "type": "text",
   },
-  {
+  Object {
     "accent_color": "#f2c744",
     "border": true,
-    "content": [
-      {
-        "content": [
-          {
+    "content": Array [
+      Object {
+        "content": Array [
+          Object {
             "alt_text": "Attachment author icon",
             "max_height": 20,
             "max_width": 20,
@@ -940,7 +940,7 @@ exports[`translatePostProps complex payloads should translate rich attachments (
             "type": "image",
             "url": "https://example.com/metrics.png",
           },
-          {
+          Object {
             "text": "Metrics Explorer",
             "type": "text",
           },
@@ -949,30 +949,30 @@ exports[`translatePostProps complex payloads should translate rich attachments (
         "gap": "small",
         "type": "container",
       },
-      {
+      Object {
         "text": "**Replica lag correlation**",
         "type": "text",
       },
-      {
-        "columns": [
-          {
-            "items": [
-              {
+      Object {
+        "columns": Array [
+          Object {
+            "items": Array [
+              Object {
                 "text": "Read replica lag climbed 8 minutes before the error spike. Cache miss ratio doubled during the same window.",
                 "type": "text",
               },
-              {
-                "content": [
-                  {
-                    "columns": [
-                      {
+              Object {
+                "content": Array [
+                  Object {
+                    "columns": Array [
+                      Object {
                         "gap": "none",
-                        "items": [
-                          {
+                        "items": Array [
+                          Object {
                             "text": "**Replica set:**",
                             "type": "text",
                           },
-                          {
+                          Object {
                             "text": "rs-prod-read-3",
                             "type": "text",
                           },
@@ -980,14 +980,14 @@ exports[`translatePostProps complex payloads should translate rich attachments (
                         "type": "column",
                         "width": "stretch",
                       },
-                      {
+                      Object {
                         "gap": "none",
-                        "items": [
-                          {
+                        "items": Array [
+                          Object {
                             "text": "**Max lag:**",
                             "type": "text",
                           },
-                          {
+                          Object {
                             "text": "18.4s",
                             "type": "text",
                           },
@@ -998,16 +998,16 @@ exports[`translatePostProps complex payloads should translate rich attachments (
                     ],
                     "type": "column_set",
                   },
-                  {
-                    "columns": [
-                      {
+                  Object {
+                    "columns": Array [
+                      Object {
                         "gap": "none",
-                        "items": [
-                          {
+                        "items": Array [
+                          Object {
                             "text": "**Cache hit ratio:**",
                             "type": "text",
                           },
-                          {
+                          Object {
                             "text": "61% → 29%",
                             "type": "text",
                           },
@@ -1015,14 +1015,14 @@ exports[`translatePostProps complex payloads should translate rich attachments (
                         "type": "column",
                         "width": "stretch",
                       },
-                      {
+                      Object {
                         "gap": "none",
-                        "items": [
-                          {
+                        "items": Array [
+                          Object {
                             "text": "**Top query:**",
                             "type": "text",
                           },
-                          {
+                          Object {
                             "text": "channel_members_by_ids",
                             "type": "text",
                           },
@@ -1033,13 +1033,13 @@ exports[`translatePostProps complex payloads should translate rich attachments (
                     ],
                     "type": "column_set",
                   },
-                  {
-                    "content": [
-                      {
+                  Object {
+                    "content": Array [
+                      Object {
                         "text": "**Suggested action:**",
                         "type": "text",
                       },
-                      {
+                      Object {
                         "text": "Scale read pool + invalidate hot cache keys",
                         "type": "text",
                       },
@@ -1053,7 +1053,7 @@ exports[`translatePostProps complex payloads should translate rich attachments (
                 "gap": "medium",
                 "type": "container",
               },
-              {
+              Object {
                 "is_subtle": true,
                 "size": "small",
                 "text": "Attached from Grafana dashboard",
@@ -1063,9 +1063,9 @@ exports[`translatePostProps complex payloads should translate rich attachments (
             "type": "column",
             "width": "stretch",
           },
-          {
-            "items": [
-              {
+          Object {
+            "items": Array [
+              Object {
                 "alt_text": "Attachment image",
                 "size": "small",
                 "type": "image",
@@ -1078,9 +1078,9 @@ exports[`translatePostProps complex payloads should translate rich attachments (
         ],
         "type": "column_set",
       },
-      {
-        "content": [
-          {
+      Object {
+        "content": Array [
+          Object {
             "action_id": "open_dashboard",
             "cookie": "",
             "disabled": undefined,
@@ -1089,7 +1089,7 @@ exports[`translatePostProps complex payloads should translate rich attachments (
             "tooltip": "",
             "type": "button",
           },
-          {
+          Object {
             "action_id": "create_ticket",
             "cookie": "",
             "disabled": undefined,
@@ -1106,15 +1106,15 @@ exports[`translatePostProps complex payloads should translate rich attachments (
     ],
     "type": "container",
   },
-  {
+  Object {
     "accent_color": undefined,
     "border": true,
-    "content": [
-      {
+    "content": Array [
+      Object {
         "text": "**Unsafe link title**",
         "type": "text",
       },
-      {
+      Object {
         "text": "Title link must not render when URL is unsafe",
         "type": "text",
       },
@@ -1125,44 +1125,44 @@ exports[`translatePostProps complex payloads should translate rich attachments (
 `;
 
 exports[`translatePostProps complex payloads should translate rich mm_blocks (container, column_set, collapsible, select) 1`] = `
-[
-  {
+Array [
+  Object {
     "accent_color": "primary",
     "background": "gray",
     "border": true,
-    "content": [
-      {
+    "content": Array [
+      Object {
         "text": "**Fleet status** across regions",
         "type": "text",
       },
-      {
+      Object {
         "type": "divider",
       },
-      {
+      Object {
         "accent_color": "good",
         "border": true,
-        "content": [
-          {
+        "content": Array [
+          Object {
             "is_subtle": true,
             "size": "small",
             "text": "Nested metrics panel",
             "type": "text",
           },
-          {
-            "columns": [
-              {
+          Object {
+            "columns": Array [
+              Object {
                 "gap": "small",
-                "items": [
-                  {
+                "items": Array [
+                  Object {
                     "text": "*North America*",
                     "type": "text",
                   },
-                  {
+                  Object {
                     "size": "small",
                     "text": "Healthy: 42",
                     "type": "text",
                   },
-                  {
+                  Object {
                     "is_subtle": true,
                     "size": "small",
                     "text": "Degraded: 2",
@@ -1172,19 +1172,19 @@ exports[`translatePostProps complex payloads should translate rich mm_blocks (co
                 "type": "column",
                 "width": "stretch",
               },
-              {
+              Object {
                 "gap": "small",
-                "items": [
-                  {
+                "items": Array [
+                  Object {
                     "text": "*Europe*",
                     "type": "text",
                   },
-                  {
+                  Object {
                     "size": "small",
                     "text": "Healthy: 37",
                     "type": "text",
                   },
-                  {
+                  Object {
                     "is_subtle": true,
                     "size": "small",
                     "text": "Degraded: 5",
@@ -1194,9 +1194,9 @@ exports[`translatePostProps complex payloads should translate rich mm_blocks (co
                 "type": "column",
                 "width": "stretch",
               },
-              {
-                "items": [
-                  {
+              Object {
+                "items": Array [
+                  Object {
                     "alt_text": "Regional heatmap",
                     "horizontal_alignment": "center",
                     "max_height": 80,
@@ -1219,26 +1219,26 @@ exports[`translatePostProps complex payloads should translate rich mm_blocks (co
         "gap": "medium",
         "type": "container",
       },
-      {
-        "columns": [
-          {
-            "items": [
-              {
+      Object {
+        "columns": Array [
+          Object {
+            "items": Array [
+              Object {
                 "collapsed": true,
-                "content": [
-                  {
-                    "content": [
-                      {
+                "content": Array [
+                  Object {
+                    "content": Array [
+                      Object {
                         "text": "INC-4412: API latency spike",
                         "type": "text",
                       },
-                      {
+                      Object {
                         "is_subtle": true,
                         "size": "small",
                         "text": "INC-4410: Replica lag",
                         "type": "text",
                       },
-                      {
+                      Object {
                         "action_id": "open_runbook",
                         "style": "primary",
                         "text": "Open runbook",
@@ -1251,8 +1251,8 @@ exports[`translatePostProps complex payloads should translate rich mm_blocks (co
                     "type": "container",
                   },
                 ],
-                "header": [
-                  {
+                "header": Array [
+                  Object {
                     "text": "Incident queue (4)",
                     "type": "text",
                   },
@@ -1263,16 +1263,16 @@ exports[`translatePostProps complex payloads should translate rich mm_blocks (co
             "type": "column",
             "width": "stretch",
           },
-          {
-            "items": [
-              {
+          Object {
+            "items": Array [
+              Object {
                 "collapsed": false,
-                "content": [
-                  {
-                    "columns": [
-                      {
-                        "items": [
-                          {
+                "content": Array [
+                  Object {
+                    "columns": Array [
+                      Object {
+                        "items": Array [
+                          Object {
                             "text": "Staging: green",
                             "type": "text",
                           },
@@ -1280,9 +1280,9 @@ exports[`translatePostProps complex payloads should translate rich mm_blocks (co
                         "type": "column",
                         "width": "stretch",
                       },
-                      {
-                        "items": [
-                          {
+                      Object {
+                        "items": Array [
+                          Object {
                             "text": "Prod: yellow",
                             "type": "text",
                           },
@@ -1293,18 +1293,18 @@ exports[`translatePostProps complex payloads should translate rich mm_blocks (co
                     ],
                     "type": "column_set",
                   },
-                  {
+                  Object {
                     "type": "divider",
                   },
-                  {
+                  Object {
                     "action_id": "rollback_prod",
                     "style": "danger",
                     "text": "Rollback",
                     "type": "button",
                   },
                 ],
-                "header": [
-                  {
+                "header": Array [
+                  Object {
                     "text": "Deploy pipeline",
                     "type": "text",
                   },
@@ -1324,27 +1324,27 @@ exports[`translatePostProps complex payloads should translate rich mm_blocks (co
     "max_height": "medium",
     "type": "container",
   },
-  {
-    "columns": [
-      {
-        "items": [
-          {
+  Object {
+    "columns": Array [
+      Object {
+        "items": Array [
+          Object {
             "action_id": "mm_env_select",
             "initial_option": "staging",
-            "options": [
-              {
+            "options": Array [
+              Object {
                 "text": "Development",
                 "value": "dev",
               },
-              {
+              Object {
                 "text": "Staging",
                 "value": "staging",
               },
-              {
+              Object {
                 "text": "Production",
                 "value": "prod",
               },
-              {
+              Object {
                 "text": "Disaster recovery",
                 "value": "dr",
               },
@@ -1356,21 +1356,21 @@ exports[`translatePostProps complex payloads should translate rich mm_blocks (co
         "type": "column",
         "width": "stretch",
       },
-      {
-        "items": [
-          {
+      Object {
+        "items": Array [
+          Object {
             "action_id": "mm_team_select",
             "initial_option": "sre",
-            "options": [
-              {
+            "options": Array [
+              Object {
                 "text": "Platform",
                 "value": "platform",
               },
-              {
+              Object {
                 "text": "Mobile",
                 "value": "mobile",
               },
-              {
+              Object {
                 "text": "SRE",
                 "value": "sre",
               },
@@ -1382,15 +1382,15 @@ exports[`translatePostProps complex payloads should translate rich mm_blocks (co
         "type": "column",
         "width": "stretch",
       },
-      {
-        "items": [
-          {
+      Object {
+        "items": Array [
+          Object {
             "action_id": "ack_all",
             "style": "primary",
             "text": "Acknowledge all",
             "type": "button",
           },
-          {
+          Object {
             "action_id": "silence_1h",
             "text": "Silence 1h",
             "type": "button",
@@ -1402,7 +1402,7 @@ exports[`translatePostProps complex payloads should translate rich mm_blocks (co
     ],
     "type": "column_set",
   },
-  {
+  Object {
     "alt_text": "Incident timeline",
     "horizontal_alignment": "left",
     "size": "large",
@@ -1413,22 +1413,22 @@ exports[`translatePostProps complex payloads should translate rich mm_blocks (co
 `;
 
 exports[`translatePostProps format priority should prefer blocks over cards and attachments when mm_blocks is absent 1`] = `
-[
-  {
-    "content": [
-      {
+Array [
+  Object {
+    "content": Array [
+      Object {
         "text": "*Hello* from Block Kit",
         "type": "text",
       },
     ],
     "type": "container",
   },
-  {
+  Object {
     "type": "divider",
   },
-  {
-    "content": [
-      {
+  Object {
+    "content": Array [
+      Object {
         "action_id": "block_kit_demo",
         "style": undefined,
         "text": "OK",
@@ -1442,8 +1442,8 @@ exports[`translatePostProps format priority should prefer blocks over cards and 
 `;
 
 exports[`translatePostProps format priority should prefer cards over attachments when mm_blocks and blocks are absent 1`] = `
-[
-  {
+Array [
+  Object {
     "is_subtle": undefined,
     "text": "Hello from an Adaptive Card",
     "type": "text",
@@ -1452,12 +1452,12 @@ exports[`translatePostProps format priority should prefer cards over attachments
 `;
 
 exports[`translatePostProps format priority should prefer mm_blocks over blocks, cards, and attachments 1`] = `
-[
-  {
+Array [
+  Object {
     "text": "Hello **from** mm blocks",
     "type": "text",
   },
-  {
+  Object {
     "action_id": "mm_blocks_demo",
     "style": "primary",
     "text": "Sample action",
@@ -1467,12 +1467,12 @@ exports[`translatePostProps format priority should prefer mm_blocks over blocks,
 `;
 
 exports[`translatePostProps malformed inputs should fall through when mm_blocks is not an array and use attachments 1`] = `
-[
-  {
+Array [
+  Object {
     "accent_color": undefined,
     "border": true,
-    "content": [
-      {
+    "content": Array [
+      Object {
         "text": "fallback attachment",
         "type": "text",
       },
@@ -1483,12 +1483,12 @@ exports[`translatePostProps malformed inputs should fall through when mm_blocks 
 `;
 
 exports[`translatePostProps malformed inputs should keep valid mm_blocks and drop invalid siblings 1`] = `
-[
-  {
+Array [
+  Object {
     "text": "Valid block",
     "type": "text",
   },
-  {
+  Object {
     "action_id": "valid_btn",
     "text": "Good",
     "type": "button",
@@ -1497,10 +1497,10 @@ exports[`translatePostProps malformed inputs should keep valid mm_blocks and dro
 `;
 
 exports[`translatePostProps malformed inputs should skip invalid Block Kit blocks and keep valid sections 1`] = `
-[
-  {
-    "content": [
-      {
+Array [
+  Object {
+    "content": Array [
+      Object {
         "text": "Kept section",
         "type": "text",
       },
@@ -1511,25 +1511,25 @@ exports[`translatePostProps malformed inputs should skip invalid Block Kit block
 `;
 
 exports[`translatePostProps malformed inputs should skip invalid attachment entries and keep partial attachment content 1`] = `
-[
-  {
+Array [
+  Object {
     "accent_color": undefined,
     "border": true,
-    "content": [
-      {
+    "content": Array [
+      Object {
         "text": "Only body survives",
         "type": "text",
       },
-      {
-        "content": [
-          {
+      Object {
+        "content": Array [
+          Object {
             "action_id": "ok_select",
             "cookie": "",
             "data_source": "",
             "disabled": undefined,
             "initial_option": "",
-            "options": [
-              {
+            "options": Array [
+              Object {
                 "text": "Good",
                 "value": "g",
               },
@@ -1549,8 +1549,8 @@ exports[`translatePostProps malformed inputs should skip invalid attachment entr
 `;
 
 exports[`translatePostProps malformed inputs should skip non-AdaptiveCard entries and partial invalid card bodies 1`] = `
-[
-  {
+Array [
+  Object {
     "is_subtle": undefined,
     "text": "Valid line",
     "type": "text",
@@ -1559,12 +1559,12 @@ exports[`translatePostProps malformed inputs should skip non-AdaptiveCard entrie
 `;
 
 exports[`translatePostProps malformed inputs should treat non-array interactive props as absent for format detection 1`] = `
-[
-  {
+Array [
+  Object {
     "accent_color": undefined,
     "border": true,
-    "content": [
-      {
+    "content": Array [
+      Object {
         "text": "uses attachments",
         "type": "text",
       },
@@ -1575,8 +1575,8 @@ exports[`translatePostProps malformed inputs should treat non-array interactive 
 `;
 
 exports[`translatePostProps simple payloads should translate Adaptive Cards 1`] = `
-[
-  {
+Array [
+  Object {
     "is_subtle": undefined,
     "text": "Hello from an Adaptive Card",
     "type": "text",
@@ -1585,22 +1585,22 @@ exports[`translatePostProps simple payloads should translate Adaptive Cards 1`] 
 `;
 
 exports[`translatePostProps simple payloads should translate Block Kit blocks 1`] = `
-[
-  {
-    "content": [
-      {
+Array [
+  Object {
+    "content": Array [
+      Object {
         "text": "*Hello* from Block Kit",
         "type": "text",
       },
     ],
     "type": "container",
   },
-  {
+  Object {
     "type": "divider",
   },
-  {
-    "content": [
-      {
+  Object {
+    "content": Array [
+      Object {
         "action_id": "block_kit_demo",
         "style": undefined,
         "text": "OK",
@@ -1614,24 +1614,24 @@ exports[`translatePostProps simple payloads should translate Block Kit blocks 1`
 `;
 
 exports[`translatePostProps simple payloads should translate legacy attachments 1`] = `
-[
-  {
+Array [
+  Object {
     "text": "Optional pretext",
     "type": "text",
   },
-  {
+  Object {
     "accent_color": "#36a64f",
     "border": true,
-    "content": [
-      {
+    "content": Array [
+      Object {
         "text": "Bot Author",
         "type": "text",
       },
-      {
+      Object {
         "text": "**[Attachment title](https://example.com)**",
         "type": "text",
       },
-      {
+      Object {
         "text": "Body *markdown* text",
         "type": "text",
       },
@@ -1642,12 +1642,12 @@ exports[`translatePostProps simple payloads should translate legacy attachments 
 `;
 
 exports[`translatePostProps simple payloads should translate native mm_blocks 1`] = `
-[
-  {
+Array [
+  Object {
     "text": "Hello **from** mm blocks",
     "type": "text",
   },
-  {
+  Object {
     "action_id": "mm_blocks_demo",
     "style": "primary",
     "text": "Sample action",
