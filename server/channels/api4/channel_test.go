@@ -1992,32 +1992,6 @@ func TestCreateDirectChannel(t *testing.T) {
 	_, resp, err = client.CreateDirectChannel(context.Background(), model.NewId(), user2.Id)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
-
-	t.Run("Create a direct channel in local mode", func(t *testing.T) {
-		dm, resp, err := th.LocalClient.CreateDirectChannel(context.Background(), user1.Id, user2.Id)
-		require.NoError(t, err)
-		CheckCreatedStatus(t, resp)
-
-		channelName := ""
-		if user2.Id > user1.Id {
-			channelName = user1.Id + "__" + user2.Id
-		} else {
-			channelName = user2.Id + "__" + user1.Id
-		}
-		require.Equal(t, channelName, dm.Name)
-	})
-
-	t.Run("Create a direct channel in local mode with invalid user id", func(t *testing.T) {
-		_, resp, err := th.LocalClient.CreateDirectChannel(context.Background(), "junk", user2.Id)
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
-	})
-
-	t.Run("Create a direct channel in local mode for nonexistent user", func(t *testing.T) {
-		_, resp, err := th.LocalClient.CreateDirectChannel(context.Background(), model.NewId(), user2.Id)
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
-	})
 }
 
 func TestCreateDirectChannelAsGuest(t *testing.T) {

@@ -80,7 +80,6 @@ func init() {
 	PostCreateCmd.Flags().StringP("message", "m", "", "Message for the post")
 	PostCreateCmd.Flags().StringP("reply-to", "r", "", "Post id to reply to")
 	PostCreateCmd.Flags().BoolP("burn-on-read", "b", false, "Message will be deleted after a certain time after being read")
-	PostCreateCmd.Flags().String("user", "", "User to act as when running in local mode (username, email, or ID)")
 
 	PostListCmd.Flags().IntP("number", "n", 20, "Number of messages to list")
 	PostListCmd.Flags().BoolP("show-ids", "i", false, "Show posts ids")
@@ -101,26 +100,13 @@ func init() {
 }
 
 func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	if viper.GetBool("local") {
+		return errors.New("creating posts is not supported in local mode")
+	}
+
 	message, _ := cmd.Flags().GetString("message")
 	if message == "" {
 		return errors.New("message cannot be empty")
-	}
-
-	userArg, _ := cmd.Flags().GetString("user")
-	if userArg != "" && !viper.GetBool("local") {
-		return errors.New("the --user flag can only be used when running in local mode")
-	}
-
-	var actingUser *model.User
-	if viper.GetBool("local") {
-		if userArg == "" {
-			return errors.New("the --user flag is required when running in local mode")
-		}
-		var err error
-		actingUser, err = getUserFromArg(c, userArg)
-		if err != nil {
-			return err
-		}
 	}
 
 	replyTo, _ := cmd.Flags().GetString("reply-to")
@@ -134,7 +120,7 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	channelID, err := getPostChannelID(c, args[0], actingUser)
+	channelID, err := getPostChannelID(c, args[0])
 	if err != nil {
 		return err
 	}
@@ -143,9 +129,6 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		ChannelId: channelID,
 		Message:   message,
 		RootId:    replyTo,
-	}
-	if actingUser != nil {
-		post.UserId = actingUser.Id
 	}
 
 	if burnOnRead, _ := cmd.Flags().GetBool("burn-on-read"); burnOnRead {
@@ -164,9 +147,9 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func getPostChannelID(c client.Client, arg string, actingUser *model.User) (string, error) {
+func getPostChannelID(c client.Client, arg string) (string, error) {
 	if username, ok := strings.CutPrefix(arg, directMessagePrefix); ok {
-		channel, err := getDirectChannel(c, username, actingUser)
+		channel, err := getDirectChannel(c, username)
 		if err != nil {
 			return "", err
 		}
@@ -180,21 +163,15 @@ func getPostChannelID(c client.Client, arg string, actingUser *model.User) (stri
 	return channel.Id, nil
 }
 
-func getDirectChannel(c client.Client, username string, actingUser *model.User) (*model.Channel, error) {
+func getDirectChannel(c client.Client, username string) (*model.Channel, error) {
 	user, err := getUserFromArg(c, username)
 	if err != nil {
 		return nil, err
 	}
 
-	var me *model.User
-	if actingUser != nil {
-		me = actingUser
-	} else {
-		var getMeErr error
-		me, _, getMeErr = c.GetMe(context.TODO(), "")
-		if getMeErr != nil {
-			return nil, fmt.Errorf("could not retrieve the current user: %w", getMeErr)
-		}
+	me, _, err := c.GetMe(context.TODO(), "")
+	if err != nil {
+		return nil, fmt.Errorf("could not retrieve the current user: %w", err)
 	}
 
 	channel, _, err := c.CreateDirectChannel(context.TODO(), me.Id, user.Id)

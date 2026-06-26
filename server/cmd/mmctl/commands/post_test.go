@@ -107,7 +107,7 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		s.Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("local mode requires --user flag", func() {
+	s.Run("create a post in local mode should fail", func() {
 		msgArg := "some text"
 		channelArg := "example-channel"
 
@@ -118,60 +118,7 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		defer viper.Set("local", prevLocal)
 
 		err := postCreateCmdF(s.client, cmd, []string{channelArg})
-		s.Require().EqualError(err, "the --user flag is required when running in local mode")
-	})
-
-	s.Run("--user flag requires local mode", func() {
-		msgArg := "some text"
-		channelArg := "example-channel"
-		userArg := "acting-user"
-
-		cmd := &cobra.Command{}
-		cmd.Flags().String("message", msgArg, "")
-		cmd.Flags().String("user", userArg, "")
-
-		err := postCreateCmdF(s.client, cmd, []string{channelArg})
-		s.Require().EqualError(err, "the --user flag can only be used when running in local mode")
-	})
-
-	s.Run("create a post in local mode", func() {
-		msgArg := "some text"
-		channelArg := "example-channel"
-		userArg := "acting-user"
-		actingUserID := "acting-user-id"
-		mockChannel := model.Channel{Name: channelArg, Id: "channel-id"}
-		mockUser := model.User{Id: actingUserID, Username: userArg}
-		mockPost := model.Post{Message: msgArg, ChannelId: mockChannel.Id, UserId: actingUserID}
-		data, err := mockPost.ToJSON()
-		s.Require().NoError(err)
-
-		cmd := &cobra.Command{}
-		cmd.Flags().String("message", msgArg, "")
-		cmd.Flags().String("user", userArg, "")
-		prevLocal := viper.GetBool("local")
-		viper.Set("local", true)
-		defer viper.Set("local", prevLocal)
-
-		s.client.
-			EXPECT().
-			GetUserByUsername(context.TODO(), userArg, "").
-			Return(&mockUser, &model.Response{}, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetChannel(context.TODO(), channelArg).
-			Return(&mockChannel, &model.Response{}, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			DoAPIPost(context.TODO(), "/posts?set_online=false", data).
-			Return(nil, nil).
-			Times(1)
-
-		err = postCreateCmdF(s.client, cmd, []string{channelArg})
-		s.Require().Nil(err)
+		s.Require().EqualError(err, "creating posts is not supported in local mode")
 	})
 
 	s.Run("create a direct message", func() {

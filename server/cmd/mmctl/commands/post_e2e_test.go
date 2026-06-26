@@ -138,7 +138,7 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 		s.Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Create a post for Local Client without --user should fail", func() {
+	s.Run("Create a post for Local Client should fail", func() {
 		printer.Clean()
 
 		msgArg := "some text"
@@ -151,37 +151,8 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 
 		err := postCreateCmdF(s.th.LocalClient, cmd, []string{s.th.BasicTeam.Name + ":" + s.th.BasicChannel.Name})
 		s.Require().NotNil(err)
-		s.Require().Contains(err.Error(), "--user flag is required")
+		s.Require().Contains(err.Error(), "creating posts is not supported in local mode")
 		s.Len(printer.GetErrorLines(), 0)
-	})
-
-	s.Run("Create a post for Local Client with --user should succeed", func() {
-		printer.Clean()
-
-		msgArg := model.NewRandomString(15)
-
-		cmd := &cobra.Command{}
-		cmd.Flags().String("message", msgArg, "")
-		cmd.Flags().String("user", s.th.BasicUser.Username, "")
-		prevLocal := viper.GetBool("local")
-		viper.Set("local", true)
-		defer viper.Set("local", prevLocal)
-
-		err := postCreateCmdF(s.th.LocalClient, cmd, []string{s.th.BasicTeam.Name + ":" + s.th.BasicChannel.Name})
-		s.Require().Nil(err)
-		s.Len(printer.GetErrorLines(), 0)
-
-		posts, appErr := s.th.App.GetPosts(s.th.Context, s.th.BasicChannel.Id, 0, 10)
-		s.Require().Nil(appErr)
-
-		var matched []*model.Post
-		for _, post := range posts.Posts {
-			if post.Message == msgArg {
-				matched = append(matched, post)
-			}
-		}
-		s.Require().Len(matched, 1)
-		s.Require().Equal(s.th.BasicUser.Id, matched[0].UserId)
 	})
 
 	s.Run("Send a direct message for System Admin Client", func() {
@@ -242,7 +213,7 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 		s.Require().Equal(dmChannel.Id, matched[0].ChannelId)
 	})
 
-	s.Run("Send a direct message for Local Client without --user should fail", func() {
+	s.Run("Send a direct message for Local Client should fail", func() {
 		printer.Clean()
 
 		msgArg := model.NewRandomString(15)
@@ -255,41 +226,8 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 
 		err := postCreateCmdF(s.th.LocalClient, cmd, []string{"@" + s.th.BasicUser2.Username})
 		s.Require().NotNil(err)
-		s.Require().Contains(err.Error(), "--user flag is required")
+		s.Require().Contains(err.Error(), "creating posts is not supported in local mode")
 		s.Len(printer.GetErrorLines(), 0)
-	})
-
-	s.Run("Send a direct message for Local Client with --user should succeed", func() {
-		printer.Clean()
-
-		msgArg := model.NewRandomString(15)
-
-		cmd := &cobra.Command{}
-		cmd.Flags().String("message", msgArg, "")
-		cmd.Flags().String("user", s.th.BasicUser.Username, "")
-		prevLocal := viper.GetBool("local")
-		viper.Set("local", true)
-		defer viper.Set("local", prevLocal)
-
-		err := postCreateCmdF(s.th.LocalClient, cmd, []string{"@" + s.th.BasicUser2.Username})
-		s.Require().Nil(err)
-		s.Len(printer.GetErrorLines(), 0)
-
-		dmChannel, appErr := s.th.App.GetOrCreateDirectChannel(s.th.Context, s.th.BasicUser.Id, s.th.BasicUser2.Id)
-		s.Require().Nil(appErr)
-
-		posts, appErr := s.th.App.GetPosts(s.th.Context, dmChannel.Id, 0, 10)
-		s.Require().Nil(appErr)
-
-		var matched []*model.Post
-		for _, post := range posts.Posts {
-			if post.Message == msgArg {
-				matched = append(matched, post)
-			}
-		}
-		s.Require().Len(matched, 1, "expected exactly one direct message with the sent text")
-		s.Require().Equal(s.th.BasicUser.Id, matched[0].UserId)
-		s.Require().Equal(dmChannel.Id, matched[0].ChannelId)
 	})
 
 	s.Run("Send a direct message to a non-existing user should fail", func() {
@@ -335,7 +273,7 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 		s.Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Reply to a an existing post for Local Client without --user should fail", func() {
+	s.Run("Reply to a an existing post for Local Client should fail", func() {
 		printer.Clean()
 
 		msgArg := "some text"
@@ -349,25 +287,7 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 
 		err := postCreateCmdF(s.th.LocalClient, cmd, []string{s.th.BasicTeam.Name + ":" + s.th.BasicChannel.Name})
 		s.Require().NotNil(err)
-		s.Require().Contains(err.Error(), "--user flag is required")
-		s.Len(printer.GetErrorLines(), 0)
-	})
-
-	s.Run("Reply to a an existing post for Local Client with --user should succeed", func() {
-		printer.Clean()
-
-		msgArg := model.NewRandomString(15)
-
-		cmd := &cobra.Command{}
-		cmd.Flags().String("message", msgArg, "")
-		cmd.Flags().String("reply-to", s.th.BasicPost.Id, "")
-		cmd.Flags().String("user", s.th.BasicUser.Username, "")
-		prevLocal := viper.GetBool("local")
-		viper.Set("local", true)
-		defer viper.Set("local", prevLocal)
-
-		err := postCreateCmdF(s.th.LocalClient, cmd, []string{s.th.BasicTeam.Name + ":" + s.th.BasicChannel.Name})
-		s.Require().Nil(err)
+		s.Require().Contains(err.Error(), "creating posts is not supported in local mode")
 		s.Len(printer.GetErrorLines(), 0)
 	})
 }

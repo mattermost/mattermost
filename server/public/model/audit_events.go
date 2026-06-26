@@ -93,7 +93,6 @@ const (
 	AuditEventGetPinnedPosts                     = "getPinnedPosts"                     // get pinned posts
 	AuditEventLocalAddChannelMember              = "localAddChannelMember"              // add channel member locally
 	AuditEventLocalCreateChannel                 = "localCreateChannel"                 // create channel locally
-	AuditEventLocalCreateDirectChannel           = "localCreateDirectChannel"           // create direct message channel locally
 	AuditEventLocalDeleteChannel                 = "localDeleteChannel"                 // delete channel locally
 	AuditEventLocalMoveChannel                   = "localMoveChannel"                   // move channel locally
 	AuditEventLocalPatchChannel                  = "localPatchChannel"                  // patch channel locally
@@ -305,7 +304,6 @@ const (
 	AuditEventGetPostThread                      = "getPostThread"                      // get post thread
 	AuditEventGetPostsByIds                      = "getPostsByIds"                      // get posts by ids
 	AuditEventGetThreadForUser                   = "getThreadForUser"                   // get thread for user
-	AuditEventLocalCreatePost                    = "localCreatePost"                    // create post locally
 	AuditEventLocalDeletePost                    = "localDeletePost"                    // delete post locally
 	AuditEventMoveThread                         = "moveThread"                         // move thread and replies to different channel
 	AuditEventNotificationAck                    = "notificationAck"                    // notification ack

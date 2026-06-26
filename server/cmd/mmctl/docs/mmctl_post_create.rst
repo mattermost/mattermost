@@ -32,7 +32,6 @@ Options
   -h, --help              help for create
   -m, --message string    Message for the post
   -r, --reply-to string   Post id to reply to
-      --user string       User to act as when running in local mode (username, email, or ID)
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
