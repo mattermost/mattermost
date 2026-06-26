@@ -266,10 +266,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 			return nil, errors.Wrap(err, "failed to apply database migrations")
 		}
 
-		// Migrate the post-delivery-tracking schema on its own pool (dedicated DB
-		// or the primary DB on fallback). It uses an independent version table and
-		// advisory lock, so it never collides with the main migration set.
-		if store.userPostDeliveryX != nil {
+		if store.userPostDeliveryDedicated {
 			err = store.migrateUserPostDelivery(migrationsDirectionUp, !store.disableMorphLogging)
 			if err != nil {
 				return nil, errors.Wrap(err, "failed to apply post-delivery-tracking database migrations")
@@ -417,12 +414,6 @@ func (ss *SqlStore) initConnection() error {
 		}
 	}
 
-	// Set up the post-delivery-tracking pool. Enable=false leaves it nil (the
-	// sub-store is a no-op). Enable=true with a DataSource opens a dedicated pool
-	// (plus optional read replicas); Enable=true with an empty DataSource falls
-	// back to the primary pool. Toggling Enable later requires a restart so the
-	// pool can open and its migration can run.
-	// Flag off means no pool, so the migration is skipped and the sub-store is a no-op.
 	if ss.dtSettings != nil && ss.dtSettings.Enable != nil && *ss.dtSettings.Enable && ss.getFeatureFlags().PostDeliveryTracking {
 		if err := ss.initUserPostDeliveryConnection(); err != nil {
 			return errors.Wrap(err, "failed to setup post-delivery-tracking connection")

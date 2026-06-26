@@ -20,10 +20,10 @@ import (
 const userPostDeliveryMigrationsDir = "postgres_user_post_delivery"
 
 // initUserPostDeliveryMorph builds a morph engine for the post-delivery-tracking
-// schema. It is bound to the delivery pool, which is either a dedicated second DB
-// or — on the fallback path — the primary DB. A distinct migration-version table
-// and advisory lock keep this independent schema from contending with the main
-// migration set, so it can safely coexist on the primary DB during fallback.
+// schema on a dedicated second DB. (On the primary-DB fallback the table is
+// provided by the main migration set instead, and this engine is not invoked.)
+// A distinct migration-version table and advisory lock keep this independent
+// schema from contending with the main migration set on a shared cluster.
 func (ss *SqlStore) initUserPostDeliveryMorph(enableLogging bool) (*morph.Morph, error) {
 	assets := db.Assets()
 
@@ -62,10 +62,8 @@ func (ss *SqlStore) initUserPostDeliveryMorph(enableLogging bool) (*morph.Morph,
 	opts := []morph.EngineOption{
 		morph.WithLogger(log.New(logWriter, "", log.Lshortfile)),
 		// Independent schema: its own advisory lock and version table so it does
-		// not collide with the main DB's migrations when running on the primary
-		// pool (fallback) or contend with them on a shared cluster.
+		// not contend with the main DB's migrations on a shared cluster.
 		morph.WithLock("mm-user-post-delivery-lock-key"),
-		morph.SetMigrationTableName("db_migrations_user_post_delivery"),
 		morph.SetStatementTimeoutInSeconds(*ss.settings.MigrationsStatementTimeoutSeconds),
 		morph.SetDryRun(false),
 	}
