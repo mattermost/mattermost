@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import type {CSSProperties} from 'react';
 import {useIntl} from 'react-intl';
 
@@ -25,9 +25,10 @@ type Props = {
 const POSTER_SEEK_SECONDS = 0.1;
 
 // Generate the poster client-side to avoid a server-side ffmpeg dependency.
-function useFirstFramePoster(src: string): {poster: string | null; failed: boolean} {
+function useFirstFramePoster(src: string): {poster: string | null; failed: boolean; duration: number | null} {
     const [poster, setPoster] = useState<string | null>(null);
     const [failed, setFailed] = useState(false);
+    const [duration, setDuration] = useState<number | null>(null);
 
     useEffect(() => {
         let cancelled = false;
@@ -44,6 +45,9 @@ function useFirstFramePoster(src: string): {poster: string | null; failed: boole
         };
 
         const onLoadedMetadata = () => {
+            if (Number.isFinite(video.duration)) {
+                setDuration(video.duration);
+            }
             try {
                 video.currentTime = Math.min(POSTER_SEEK_SECONDS, video.duration || POSTER_SEEK_SECONDS);
             } catch {
@@ -92,7 +96,7 @@ function useFirstFramePoster(src: string): {poster: string | null; failed: boole
         };
     }, [src]);
 
-    return {poster, failed};
+    return {poster, failed, duration};
 }
 
 function formatDuration(seconds: number): string {
@@ -110,9 +114,7 @@ function formatDuration(seconds: number): string {
 const VideoTile = ({fileInfo, index, total, width, height, enablePublicLink, onClick}: Props) => {
     const {formatMessage} = useIntl();
     const fileUrl = getFileUrl(fileInfo.id);
-    const {poster, failed} = useFirstFramePoster(fileUrl);
-    const videoRef = useRef<HTMLVideoElement | null>(null);
-    const [duration, setDuration] = useState<number | null>(null);
+    const {poster, failed, duration} = useFirstFramePoster(fileUrl);
 
     const handleActivate = useCallback(() => {
         onClick(index);
@@ -124,13 +126,6 @@ const VideoTile = ({fileInfo, index, total, width, height, enablePublicLink, onC
             handleActivate();
         }
     }, [handleActivate]);
-
-    const handleLoadedMetadata = useCallback(() => {
-        const node = videoRef.current;
-        if (node && Number.isFinite(node.duration)) {
-            setDuration(node.duration);
-        }
-    }, []);
 
     const label = formatMessage(
         {id: 'media_gallery.video_label', defaultMessage: 'Video {current} of {total}: {name}. Press Enter or Space to play.'},
@@ -169,21 +164,10 @@ const VideoTile = ({fileInfo, index, total, width, height, enablePublicLink, onC
                     style={mediaStyle}
                 />
             )}
-            {!poster && failed && (
+            {!poster && (
                 <div className='MediaGallery__tile__video_placeholder'>
-                    <PlayIcon size={32}/>
+                    {failed && <PlayIcon size={32}/>}
                 </div>
-            )}
-            {!poster && !failed && (
-                <video
-                    ref={videoRef}
-                    src={fileUrl}
-                    preload='metadata'
-                    muted={true}
-                    playsInline={true}
-                    style={mediaStyle}
-                    onLoadedMetadata={handleLoadedMetadata}
-                />
             )}
 
             <span
