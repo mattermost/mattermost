@@ -63,6 +63,7 @@ func setupConnection(logger mlog.LoggerIFace, connType, dataSource, driverName s
 		err = db.PingContext(ctx)
 		if err != nil {
 			if attempt == attempts {
+				db.Close()
 				return nil, err
 			}
 			logger.Error("Failed to ping DB", mlog.Float("retrying in seconds", DBConnRetrySleep.Seconds()), mlog.Err(err))

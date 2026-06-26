@@ -126,6 +126,7 @@ services:
     environment:
       - "MM_SQLSETTINGS_DRIVERNAME=postgres"
       - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable&connect_timeout=10"
+      - "MM_DELIVERYTRACKINGSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres-userpostdelivery/mattermost_userpostdelivery?sslmode=disable&connect_timeout=10"
       - "MM_NO_DOCKER=true"
       - "RUN_SERVER_IN_BACKGROUND=false"
       - "MM_CLUSTERSETTINGS_ENABLE=true"
@@ -160,6 +161,7 @@ services:
     environment:
       - "MM_SQLSETTINGS_DRIVERNAME=postgres"
       - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable&connect_timeout=10"
+      - "MM_DELIVERYTRACKINGSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres-userpostdelivery/mattermost_userpostdelivery?sslmode=disable&connect_timeout=10"
       - "MM_NO_DOCKER=true"
       - "RUN_SERVER_IN_BACKGROUND=false"
       - "MM_CLUSTERSETTINGS_ENABLE=true"
@@ -194,6 +196,7 @@ services:
     environment:
       - "MM_SQLSETTINGS_DRIVERNAME=postgres"
       - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable&connect_timeout=10"
+      - "MM_DELIVERYTRACKINGSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres-userpostdelivery/mattermost_userpostdelivery?sslmode=disable&connect_timeout=10"
       - "MM_NO_DOCKER=true"
       - "RUN_SERVER_IN_BACKGROUND=false"
       - "MM_CLUSTERSETTINGS_ENABLE=true"

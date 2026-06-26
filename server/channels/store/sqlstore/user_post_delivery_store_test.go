@@ -94,6 +94,18 @@ func TestUserPostDeliveryStore(t *testing.T) {
 		require.Len(t, rowsByPost(t, postID), 2)
 	})
 
+	t.Run("long plugin target_id round-trips (needs varchar(190))", func(t *testing.T) {
+		postID := model.NewId()
+		pluginID := "com.mattermost.plugin-incident-collaboration" // 44 chars, > the old VARCHAR(26)
+		require.NoError(t, s.MarkBulk(ctx, []model.UserPostDelivery{
+			{PostID: postID, TargetID: pluginID, TargetType: model.DeliveryTargetPlugin, Mechanism: model.DeliveryMechPlugin},
+		}))
+		got := rowsByPost(t, postID)
+		require.Len(t, got, 1)
+		require.Equal(t, pluginID, got[0].TargetID)
+		require.Equal(t, model.DeliveryTargetPlugin, got[0].TargetType)
+	})
+
 	t.Run("DeleteByPost removes all rows for the post", func(t *testing.T) {
 		postID := model.NewId()
 		require.NoError(t, s.MarkBulk(ctx, []model.UserPostDelivery{
