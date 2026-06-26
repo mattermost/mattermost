@@ -4,6 +4,7 @@
 package email
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -114,7 +115,9 @@ func TestSendInviteEmails(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	th.ConfigureInbucketMail(t)
 
-	emailTo := "test@example.com"
+	emailTo := strings.ToLower(model.NewId()) + "@example.com"
+	err := mail.DeleteMailBox(emailTo)
+	require.NoError(t, err, "Failed to delete mailbox")
 
 	retrieveEmail := func(t *testing.T) mail.JSONMessageInbucket {
 		t.Helper()
