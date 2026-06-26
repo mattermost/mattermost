@@ -22,7 +22,6 @@ import {
 
 import {getRandomId} from '@/utils';
 
-
 describe('Guest Account - Guest User Invitation Flow', () => {
     let testTeam: Cypress.Team;
     let newUser: Cypress.UserProfile;

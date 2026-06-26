@@ -83,7 +83,7 @@ export const RESOURCE_KEYS = {
         DEVELOPER: 'environment.developer',
         MOBILE_SECURITY: 'environment.mobile_security',
     },
-};
+} as const;
 
 export const ResourceToSysConsolePermissionsTable: Record<string, string[]> = {
     [RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE]: [Permissions.SYSCONSOLE_READ_ABOUT_EDITION_AND_LICENSE, Permissions.SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE],

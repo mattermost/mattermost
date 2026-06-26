@@ -18,7 +18,7 @@ const componentMap = {
     'Section Notice': SectionNoticeComponentLibrary,
 };
 
-type ComponentName = keyof typeof componentMap
+type ComponentName = keyof typeof componentMap;
 const defaultComponent = Object.keys(componentMap)[0] as ComponentName;
 
 type ThemeName = keyof typeof Preferences.THEMES;

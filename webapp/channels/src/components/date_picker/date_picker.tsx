@@ -30,7 +30,7 @@ type Props = {
     label?: string;
     icon?: React.ReactNode;
     value?: string;
-}
+};
 
 const DatePicker = ({children, datePickerProps, isPopperOpen, handlePopperOpenState, locale, label, icon, value}: Props) => {
     const [loadedLocales, setLoadedLocales] = useState<Record<string, Locale>>({});

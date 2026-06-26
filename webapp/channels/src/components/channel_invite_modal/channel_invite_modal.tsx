@@ -81,10 +81,10 @@ export type Props = {
         loadStatusesForProfilesList: (users: UserProfile[]) => void;
         searchProfiles: (term: string, options: any) => Promise<ActionResult>;
         closeModal: (modalId: string) => void;
-        searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined, opts: GroupSearchParams) => Promise<ActionResult>;
+        searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string, opts: GroupSearchParams) => Promise<ActionResult>;
         getTeamMembersByIds: (teamId: string, userIds: string[]) => Promise<ActionResult>;
     };
-}
+};
 
 // Helper function to check if an option is a user
 const isUser = (option: UserProfileValue | GroupValue): option is UserProfileValue => {
@@ -229,9 +229,7 @@ const ChannelInviteModalComponent = (props: Props) => {
         let users: UserProfileValue[];
         if (isPolicyEnforcedPrivate) {
             const sourceList =
-                term.trim().length > 0 ?
-                    (privateAbacSearchHits ?? []) :
-                    abacFilteredUsers;
+                term.trim().length > 0 ? (privateAbacSearchHits ?? []) : abacFilteredUsers;
             users = filterOutDeletedAndExcludedAndNotInTeamUsers(sourceList, excludedAndNotInTeamUserIds);
         } else {
             // Non-ABAC or advisory (public policy): full team list.
@@ -372,7 +370,7 @@ const ChannelInviteModalComponent = (props: Props) => {
         try {
             const ids = new Set<string>();
             let cursorId = '';
-            // eslint-disable-next-line no-constant-condition
+
             while (true) {
                 // eslint-disable-next-line no-await-in-loop
                 const profiles = await Client4.getProfilesMatchingChannelPolicy(
@@ -422,16 +420,14 @@ const ChannelInviteModalComponent = (props: Props) => {
             // getOptions() reads from. Routing through Redux here would
             // populate profilesNotInCurrentChannel which getOptions ignores
             // on the strict-gate path, leaving subsequent pages invisible.
-            const fetchPage = isPolicyEnforcedPrivate ?
-                fetchAbacUsers(page + 1, USERS_PER_PAGE, cursorId) :
-                props.actions.getProfilesNotInChannel(
-                    props.channel.team_id,
-                    props.channel.id,
-                    props.channel.group_constrained,
-                    page + 1,
-                    USERS_PER_PAGE,
-                    cursorId,
-                );
+            const fetchPage = isPolicyEnforcedPrivate ? fetchAbacUsers(page + 1, USERS_PER_PAGE, cursorId) : props.actions.getProfilesNotInChannel(
+                props.channel.team_id,
+                props.channel.id,
+                props.channel.group_constrained,
+                page + 1,
+                USERS_PER_PAGE,
+                cursorId,
+            );
 
             fetchPage.then((result) => {
                 // Store the cursor for the next page (ID of the last user)
@@ -761,33 +757,15 @@ const ChannelInviteModalComponent = (props: Props) => {
     }, []);
 
     // Render the component
+    const {channel} = props;
+
     const buttonSubmitText = defineMessage({id: 'multiselect.add', defaultMessage: 'Add'});
     const buttonSubmitLoadingText = defineMessage({id: 'multiselect.adding', defaultMessage: 'Adding...'});
 
-    const closeMembersInviteModal = () => {
-        props.actions.closeModal(ModalIdentifiers.CHANNEL_INVITE);
-    };
-
-    const InviteModalLink = (props: {inviteAsGuest?: boolean; children: React.ReactNode; id?: string; abacChannelPolicyEnforced?: boolean}) => {
-        return (
-            <ToggleModalButton
-                className={`${props.inviteAsGuest ? 'invite-as-guest' : ''} btn btn-link`}
-                modalId={ModalIdentifiers.INVITATION}
-                dialogType={InvitationModal}
-                dialogProps={{
-                    channelToInvite: channel,
-                    initialValue: term,
-                    inviteAsGuest: props.inviteAsGuest,
-                    focusOriginElement: 'customNoOptionsMessageLink',
-                    canInviteGuests: Boolean(!props.abacChannelPolicyEnforced),
-                }}
-                onClick={closeMembersInviteModal}
-                id={props.id}
-            >
-                {props.children}
-            </ToggleModalButton>
-        );
-    };
+    const {closeModal} = props.actions;
+    const closeMembersInviteModal = useCallback(() => {
+        closeModal(ModalIdentifiers.CHANNEL_INVITE);
+    }, [closeModal]);
 
     const customNoOptionsMessage = (
         <div
@@ -801,6 +779,10 @@ const ChannelInviteModalComponent = (props: Props) => {
                         <InviteModalLink
                             id='customNoOptionsMessageLink'
                             abacChannelPolicyEnforced={isPolicyEnforcedPrivate}
+                            channel={channel}
+                            closeMembersInviteModal={closeMembersInviteModal}
+                            inviteAsGuest={false}
+                            term={term}
                         >
                             {chunks}
                         </InviteModalLink>
@@ -840,15 +822,20 @@ const ChannelInviteModalComponent = (props: Props) => {
     );
 
     const inviteGuestLink = (
-        <InviteModalLink inviteAsGuest={true}>
+        <InviteModalLink
+            id='inviteAsGuestLink'
+            abacChannelPolicyEnforced={false}
+            channel={channel}
+            closeMembersInviteModal={closeMembersInviteModal}
+            inviteAsGuest={true}
+            term={term}
+        >
             <FormattedMessage
                 id='channel_invite.invite_guest'
                 defaultMessage='Invite as a Guest'
             />
         </InviteModalLink>
     );
-
-    const {channel} = props;
 
     return (
         <GenericModal
@@ -914,6 +901,44 @@ const ChannelInviteModalComponent = (props: Props) => {
                 </div>
             </div>
         </GenericModal>
+    );
+};
+
+interface InviteModalLinkProps extends Pick<Props, 'channel'> {
+    abacChannelPolicyEnforced: boolean;
+    children: React.ReactNode;
+    closeMembersInviteModal: () => void;
+    id: string;
+    inviteAsGuest: boolean;
+    term: string;
+}
+
+const InviteModalLink = ({
+    abacChannelPolicyEnforced,
+    channel,
+    children,
+    closeMembersInviteModal,
+    id,
+    inviteAsGuest,
+    term,
+}: InviteModalLinkProps) => {
+    return (
+        <ToggleModalButton
+            className={`${inviteAsGuest ? 'invite-as-guest' : ''} btn btn-link`}
+            modalId={ModalIdentifiers.INVITATION}
+            dialogType={InvitationModal}
+            dialogProps={{
+                channelToInvite: channel,
+                initialValue: term,
+                inviteAsGuest,
+                focusOriginElement: id,
+                canInviteGuests: Boolean(!abacChannelPolicyEnforced),
+            }}
+            onClick={closeMembersInviteModal}
+            id={id}
+        >
+            {children}
+        </ToggleModalButton>
     );
 };
 

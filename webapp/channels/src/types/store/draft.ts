@@ -10,7 +10,7 @@ import {PostTypes} from 'utils/constants';
 export type DraftInfo = {
     id: string;
     type: 'channel' | 'thread';
-}
+};
 
 export type PostDraft = {
     message: string;
@@ -28,7 +28,7 @@ export type PostDraft = {
     type?: PostType;
     metadata?: {
         priority?: {
-            priority: PostPriority|'';
+            priority: PostPriority | '';
             requested_ack?: boolean;
             persistent_notifications?: boolean;
         };

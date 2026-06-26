@@ -105,6 +105,12 @@ func deauthorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if c.AppContext.Session().IsOAuth {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		c.Err.DetailedError += ", attempted access by oauth app"
+		return
+	}
+
 	auditRec := c.MakeAuditRecord(model.AuditEventDeauthorizeOAuthApp, model.AuditStatusFail)
 	auditRec.AddMeta("client_id", clientId)
 	defer c.LogAuditRec(auditRec)
@@ -413,7 +419,10 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		isOAuthUser := user.IsOAuthUser()
 
-		session, err := c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, isOAuthUser, false)
+		session, err := c.App.DoLogin(c.AppContext, w, r, user, model.LoginOptions{
+			IsMobile:    isMobile,
+			IsOAuthUser: isOAuthUser,
+		})
 		if err != nil {
 			err.Translate(c.AppContext.T)
 			c.Logger.Error(err.Error())
@@ -646,6 +655,11 @@ func loginByIntune(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.VoIPDeviceId != "" && !model.IsValidVoIPDeviceId(req.VoIPDeviceId) {
+		c.SetInvalidParam("voip_device_id")
+		return
+	}
+
 	auditRec := c.MakeAuditRecord("login_by_intune", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
@@ -660,8 +674,14 @@ func loginByIntune(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("obtained_user_id", user.Id)
 	c.LogAuditWithUserId(user.Id, "obtained user")
 
-	isMobile := req.DeviceId != ""
-	session, err := c.App.DoLogin(c.AppContext, w, r, user, req.DeviceId, isMobile, true, false)
+	model.AddEventParameterToAuditRec(auditRec, "device_id", req.DeviceId)
+	model.AddEventParameterToAuditRec(auditRec, "voip_device_id", req.VoIPDeviceId)
+
+	session, err := c.App.DoLogin(c.AppContext, w, r, user, model.LoginOptions{
+		DeviceId:     req.DeviceId,
+		VoIPDeviceId: req.VoIPDeviceId,
+		IsOAuthUser:  true,
+	})
 	if err != nil {
 		c.Err = err
 		return

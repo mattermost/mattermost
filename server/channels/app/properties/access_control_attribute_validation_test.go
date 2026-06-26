@@ -1121,3 +1121,314 @@ func TestAccessControlAttributeValidationHookManagedAuthorization(t *testing.T) 
 		assert.Contains(t, createErr.Error(), "managed=admin")
 	})
 }
+
+// TestAccessControlAttributeValidationHookRankOptions exercises the rank-field
+// option validation in sanitizeAndValidateOptions: rank-typed fields require a
+// positive, unique rank on every option, while non-rank fields must have
+// any stray rank values stripped before the options are persisted.
+func TestAccessControlAttributeValidationHookRankOptions(t *testing.T) {
+	th := Setup(t)
+
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_rank_validation", Version: model.PropertyGroupVersionV2})
+	require.NoError(t, err)
+
+	hook := NewAccessControlAttributeValidationHook(th.service, nil, group.ID)
+	th.service.AddHook(hook)
+
+	rankField := func(options []any) *model.PropertyField {
+		return &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeRank,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: options,
+			},
+		}
+	}
+
+	// optionRank reads the rank stored on the option at the given index of a
+	// persisted field's canonical []any options, reporting whether the key was
+	// present at all (JSON numbers decode as float64).
+	optionRank := func(t *testing.T, field *model.PropertyField, idx int) (float64, bool) {
+		t.Helper()
+		opts, ok := field.Attrs[model.PropertyFieldAttributeOptions].([]any)
+		require.True(t, ok, "options should be []any, got %T", field.Attrs[model.PropertyFieldAttributeOptions])
+		require.Greater(t, len(opts), idx)
+		m, ok := opts[idx].(map[string]any)
+		require.True(t, ok, "option should be map[string]any, got %T", opts[idx])
+		raw, present := m["rank"]
+		if !present || raw == nil {
+			return 0, false
+		}
+		f, ok := raw.(float64)
+		require.True(t, ok, "rank should decode as float64, got %T", raw)
+		return f, true
+	}
+
+	t.Run("valid rank options pass and persist their ranks", func(t *testing.T) {
+		created, createErr := th.service.CreatePropertyField(th.Context, rankField([]any{
+			map[string]any{"name": "UNCLASSIFIED", "rank": 1},
+			map[string]any{"name": "SECRET", "rank": 2},
+			map[string]any{"name": "TOP SECRET", "rank": 3},
+		}))
+		require.NoError(t, createErr)
+
+		for i, want := range []float64{1, 2, 3} {
+			got, present := optionRank(t, created, i)
+			assert.True(t, present, "option %d should retain its rank", i)
+			assert.Equal(t, want, got, "option %d rank", i)
+		}
+	})
+
+	t.Run("zero rank is rejected", func(t *testing.T) {
+		_, createErr := th.service.CreatePropertyField(th.Context, rankField([]any{
+			map[string]any{"name": "BASE", "rank": 0},
+			map[string]any{"name": "HIGHER", "rank": 5},
+		}))
+		require.Error(t, createErr)
+		assert.Contains(t, createErr.Error(), "positive")
+	})
+
+	t.Run("option missing rank is rejected", func(t *testing.T) {
+		_, createErr := th.service.CreatePropertyField(th.Context, rankField([]any{
+			map[string]any{"name": "HAS_RANK", "rank": 1},
+			map[string]any{"name": "NO_RANK"},
+		}))
+		require.Error(t, createErr)
+		assert.Contains(t, createErr.Error(), "missing rank")
+	})
+
+	t.Run("negative rank is rejected", func(t *testing.T) {
+		_, createErr := th.service.CreatePropertyField(th.Context, rankField([]any{
+			map[string]any{"name": "NEGATIVE", "rank": -1},
+		}))
+		require.Error(t, createErr)
+		assert.Contains(t, createErr.Error(), "positive")
+	})
+
+	t.Run("duplicate rank is rejected", func(t *testing.T) {
+		_, createErr := th.service.CreatePropertyField(th.Context, rankField([]any{
+			map[string]any{"name": "FIRST", "rank": 2},
+			map[string]any{"name": "SECOND", "rank": 2},
+		}))
+		require.Error(t, createErr)
+		assert.Contains(t, createErr.Error(), "duplicate")
+	})
+
+	t.Run("non-rank field strips stray rank values", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "A", "color": "#fff", "rank": 7},
+					map[string]any{"name": "B", "color": "#000", "rank": 9},
+				},
+			},
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+
+		for i := range []int{0, 1} {
+			_, present := optionRank(t, created, i)
+			assert.False(t, present, "select-field option %d should not persist a rank", i)
+		}
+	})
+}
+
+func TestAccessControlAttributeValidationHookSync(t *testing.T) {
+	th := Setup(t)
+
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_sync", Version: model.PropertyGroupVersionV2})
+	require.NoError(t, err)
+
+	adminUserID := model.NewId()
+	permChecker := func(userID string, perm *model.Permission) bool {
+		return userID == adminUserID && perm.Id == model.PermissionManageSystem.Id
+	}
+
+	hook := NewAccessControlAttributeValidationHook(th.service, permChecker, group.ID)
+	th.service.AddHook(hook)
+
+	adminRctx := RequestContextWithCallerID(th.Context, adminUserID)
+
+	t.Run("user-editable text field keeps the ldap sync attr", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrLDAP: "employeeID",
+			},
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+		assert.Equal(t, "employeeID", created.Attrs[model.PropertyFieldAttrLDAP])
+	})
+
+	t.Run("admin-managed text field keeps the ldap sync attr", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrManaged: "admin",
+				model.PropertyFieldAttrLDAP:    "employeeID",
+			},
+		}
+		created, createErr := th.service.CreatePropertyField(adminRctx, field)
+		require.NoError(t, createErr)
+		assert.Equal(t, "employeeID", created.Attrs[model.PropertyFieldAttrLDAP])
+		assert.Equal(t, "admin", created.Attrs[model.PropertyFieldAttrManaged])
+	})
+
+	t.Run("admin-managed text field keeps the saml sync attr", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrManaged: "admin",
+				model.PropertyFieldAttrSAML:    "position",
+			},
+		}
+		created, createErr := th.service.CreatePropertyField(adminRctx, field)
+		require.NoError(t, createErr)
+		assert.Equal(t, "position", created.Attrs[model.PropertyFieldAttrSAML])
+	})
+
+	t.Run("linking an existing admin-managed field keeps the ldap sync attr on update", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrManaged: "admin",
+			},
+		}
+		created, createErr := th.service.CreatePropertyField(adminRctx, field)
+		require.NoError(t, createErr)
+		require.Empty(t, created.Attrs[model.PropertyFieldAttrLDAP])
+
+		created.Attrs[model.PropertyFieldAttrLDAP] = "employeeID"
+		updated, _, updateErr := th.service.UpdatePropertyField(adminRctx, group.ID, created)
+		require.NoError(t, updateErr)
+		assert.Equal(t, "employeeID", updated.Attrs[model.PropertyFieldAttrLDAP])
+	})
+
+	t.Run("adding managed to an ldap-synced field keeps the ldap sync attr on update", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrLDAP: "employeeID",
+			},
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+
+		created.Attrs[model.PropertyFieldAttrManaged] = "admin"
+		updated, _, updateErr := th.service.UpdatePropertyField(adminRctx, group.ID, created)
+		require.NoError(t, updateErr)
+		assert.Equal(t, "employeeID", updated.Attrs[model.PropertyFieldAttrLDAP])
+		assert.Equal(t, "admin", updated.Attrs[model.PropertyFieldAttrManaged])
+	})
+
+	t.Run("clearing ldap on an unmanaged field keeps managed unset", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrLDAP: "employeeID",
+			},
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+
+		created.Attrs[model.PropertyFieldAttrLDAP] = ""
+		updated, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, created)
+		require.NoError(t, updateErr)
+		assert.Equal(t, "", updated.Attrs[model.PropertyFieldAttrLDAP])
+		assert.NotContains(t, updated.Attrs, model.PropertyFieldAttrManaged)
+	})
+
+	t.Run("clearing ldap on an admin-managed field keeps managed admin", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrManaged: "admin",
+				model.PropertyFieldAttrLDAP:    "employeeID",
+			},
+		}
+		created, createErr := th.service.CreatePropertyField(adminRctx, field)
+		require.NoError(t, createErr)
+
+		created.Attrs[model.PropertyFieldAttrLDAP] = ""
+		updated, _, updateErr := th.service.UpdatePropertyField(adminRctx, group.ID, created)
+		require.NoError(t, updateErr)
+		assert.Equal(t, "", updated.Attrs[model.PropertyFieldAttrLDAP])
+		assert.Equal(t, "admin", updated.Attrs[model.PropertyFieldAttrManaged])
+	})
+
+	t.Run("linking an existing admin-managed field keeps the saml sync attr on update", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrManaged: "admin",
+			},
+		}
+		created, createErr := th.service.CreatePropertyField(adminRctx, field)
+		require.NoError(t, createErr)
+		require.Empty(t, created.Attrs[model.PropertyFieldAttrSAML])
+
+		created.Attrs[model.PropertyFieldAttrSAML] = "position"
+		updated, _, updateErr := th.service.UpdatePropertyField(adminRctx, group.ID, created)
+		require.NoError(t, updateErr)
+		assert.Equal(t, "position", updated.Attrs[model.PropertyFieldAttrSAML])
+	})
+
+	t.Run("non-text field strips ldap and saml sync attrs", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrLDAP: "employeeID",
+				model.PropertyFieldAttrSAML: "position",
+			},
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+		assert.NotContains(t, created.Attrs, model.PropertyFieldAttrLDAP)
+		assert.NotContains(t, created.Attrs, model.PropertyFieldAttrSAML)
+	})
+}

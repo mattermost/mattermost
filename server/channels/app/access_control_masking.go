@@ -5,9 +5,7 @@ package app
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -68,7 +66,9 @@ func (a *App) fetchConditionFields(rctx request.CTX, conditions []model.Conditio
 
 	fields := make(map[string]*model.PropertyField, len(seen))
 	for name := range seen {
-		field, appErr := a.GetPropertyFieldByName(rctx, cpaGroupID, "", name)
+		// Scope to user CPA fields so a name shared across object types in this
+		// group resolves deterministically.
+		field, appErr := a.GetPropertyFieldByNameForObjectType(rctx, cpaGroupID, "", model.PropertyFieldObjectTypeUser, name)
 		if appErr != nil {
 			rctx.Logger().Warn("Failed to look up field for masking, failing closed",
 				mlog.String("field_name", name),
@@ -81,29 +81,63 @@ func (a *App) fetchConditionFields(rctx request.CTX, conditions []model.Conditio
 	return fields
 }
 
-// requireAllFieldsResolved returns the generic invalid-value error if any condition
-// references a field name missing from fieldsByName. Write-path callers use this to refuse
-// the save rather than silently strip hidden values from conditions whose fields could not
-// be resolved. We return the same generic 400 used by the rest of write-path validation so
-// unknown/deleted fields don't leak an enumeration signal distinct from hidden-value
-// rejection — the actual field name is logged for operator diagnostics instead.
-func requireAllFieldsResolved(rctx request.CTX, conditions []model.Condition, fieldsByName map[string]*model.PropertyField) *model.AppError {
-	for _, c := range conditions {
-		if c.ValueType == model.AttrValue {
-			continue
-		}
-		name := extractFieldName(c.Attribute)
-		if name == "" {
-			continue
-		}
-		if _, ok := fieldsByName[name]; !ok {
-			rctx.Logger().Warn("Field referenced by condition could not be resolved during write-path validation",
-				mlog.String("field_name", name),
-			)
-			return invalidValueError()
-		}
+// appMaskingResolver implements model.MaskingFieldResolver for the app layer,
+// caching resolved fields to avoid N+1 DB lookups within a single request.
+type appMaskingResolver struct {
+	app            *App
+	rctxWithCaller request.CTX
+	cpaGroupID     string
+	callerID       string
+	cache          map[string]*model.MaskingFieldInfo
+}
+
+func newMaskingResolver(a *App, rctx request.CTX, callerID string) (*appMaskingResolver, *model.AppError) {
+	cpaGroup, appErr := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	if appErr != nil {
+		return nil, appErr
 	}
-	return nil
+	return &appMaskingResolver{
+		app:            a,
+		rctxWithCaller: RequestContextWithCallerID(rctx, callerID),
+		cpaGroupID:     cpaGroup.ID,
+		callerID:       callerID,
+		cache:          make(map[string]*model.MaskingFieldInfo),
+	}, nil
+}
+
+func (r *appMaskingResolver) Resolve(fieldName string) (*model.MaskingFieldInfo, error) {
+	if info, ok := r.cache[fieldName]; ok {
+		return info, nil
+	}
+	// Scope to user CPA fields so a name shared across object types in this
+	// group resolves deterministically.
+	field, appErr := r.app.GetPropertyFieldByNameForObjectType(r.rctxWithCaller, r.cpaGroupID, "", model.PropertyFieldObjectTypeUser, fieldName)
+	if appErr != nil {
+		return nil, appErr
+	}
+	info := r.fieldToMaskingInfo(field)
+	r.cache[fieldName] = info
+	return info, nil
+}
+
+func (r *appMaskingResolver) fieldToMaskingInfo(field *model.PropertyField) *model.MaskingFieldInfo {
+	info := &model.MaskingFieldInfo{}
+	switch field.GetAccessMode() {
+	case model.PropertyAccessModePublic:
+		info.Access = model.MaskingFieldAccessPublic
+	case model.PropertyAccessModeSourceOnly:
+		info.Access = model.MaskingFieldAccessSourceOnly
+	case model.PropertyAccessModeSharedOnly:
+		info.Access = model.MaskingFieldAccessSharedOnly
+		if field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeMultiselect {
+			info.VisibleValues = extractVisibleOptionNames(field)
+		} else {
+			info.VisibleValues = r.app.getCallerTextValues(r.rctxWithCaller, r.callerID, field, r.cpaGroupID)
+		}
+	default:
+		info.Access = model.MaskingFieldAccessUnknown
+	}
+	return info
 }
 
 // maskConditionValues applies masking to a single condition in place.
@@ -143,7 +177,7 @@ func (a *App) maskConditionValues(rctx request.CTX, callerID string, condition *
 		condition.Value = nil
 		condition.HasMaskedValues = true
 	case model.PropertyAccessModeSharedOnly:
-		if field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeMultiselect {
+		if field.Type.SupportsOptions() {
 			filterConditionValues(condition, extractVisibleOptionNames(field))
 		} else {
 			filterConditionValues(condition, a.getCallerTextValues(rctx, callerID, field, cpaGroupID))
@@ -276,467 +310,51 @@ func filterConditionValues(condition *model.Condition, visibleNames map[string]s
 	}
 }
 
-// getHiddenValues returns the subset of stored condition values not visible to callerID.
-// fieldsByName is pre-fetched by the caller to avoid N+1 lookups; a missing entry is
-// treated as fail-closed (no hidden values injected for that condition).
-func (a *App) getHiddenValues(rctx request.CTX, callerID string, stored *model.Condition, cpaGroupID string, fieldsByName map[string]*model.PropertyField) []string {
-	if stored.ValueType == model.AttrValue {
-		return nil
-	}
+// maskedTokenValue is a terse local alias for model.MaskingTokenValue, the
+// single source of truth for the masked-value sentinel shared with the
+// canonical CEL walker. Never a valid attribute value.
+const maskedTokenValue = model.MaskingTokenValue
 
-	fieldName := extractFieldName(stored.Attribute)
-	if fieldName == "" {
-		return nil
-	}
-
-	field, ok := fieldsByName[fieldName]
-	if !ok {
-		return nil
-	}
-
-	switch field.GetAccessMode() {
-	case model.PropertyAccessModeSourceOnly:
-		return extractStringValues(stored.Value)
-	case model.PropertyAccessModeSharedOnly:
-		var visibleNames map[string]struct{}
-		if field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeMultiselect {
-			visibleNames = extractVisibleOptionNames(field)
-		} else {
-			visibleNames = a.getCallerTextValues(rctx, callerID, field, cpaGroupID)
+// rejectMaskedTokens rejects any rule expression that still contains the masked
+// token after merge — it is a response-only placeholder (server-generated, never
+// a real attribute value) that must never reach the store.
+//
+// The fail-closed sentinel (maskFailClosedSentinel, "false") is deliberately NOT
+// rejected here: "false" is also a legitimate, author-written deny-all expression,
+// and persisting it is harmless (deny is the safe direction). The dangerous case —
+// round-tripping the sentinel back over a stored rule whose values the caller
+// could not see — is caught on the update path by the canonical merge, which
+// fails closed (ErrMergeNodeDeleted / ErrMergeShapeMismatch → 403) when the
+// submitted node can't be paired with the masked stored node.
+func rejectMaskedTokens(policy *model.AccessControlPolicy) *model.AppError {
+	for _, rule := range policy.Rules {
+		if strings.Contains(rule.Expression, maskedTokenValue) {
+			return model.NewAppError("CreateOrUpdateAccessControlPolicy",
+				"app.pap.save_policy.masked_token_in_expression", nil,
+				"expression contains a masked token that could not be resolved to a stored value",
+				http.StatusBadRequest)
 		}
-		var hidden []string
-		for _, val := range extractStringValues(stored.Value) {
-			if _, visible := visibleNames[val]; !visible {
-				hidden = append(hidden, val)
-			}
-		}
-		return hidden
-	default:
-		return nil
 	}
+	return nil
 }
-
-// isScalarOperator reports whether the operator expects a single value (not a list).
-// Used by merge-on-save to normalize the value shape after restoring the stored operator.
-func isScalarOperator(op string) bool {
-	switch op {
-	case "==", "!=", ">", ">=", "<", "<=", "contains", "startsWith", "endsWith":
-		return true
-	}
-	return false
-}
-
-// mergeConditionValues appends hiddenValues into the submitted condition's values,
-// deduplicating. A nil submitted value is restored from hidden values alone.
-func mergeConditionValues(submitted model.Condition, hiddenValues []string) model.Condition {
-	if len(hiddenValues) == 0 {
-		return submitted
-	}
-
-	merged := submitted
-
-	switch v := submitted.Value.(type) {
-	case []any:
-		// Strip the masked-token sentinel from submitted values: it's the
-		// server's own placeholder for hidden values (from a masked GET),
-		// not a real value, and we're about to re-inject the actual stored
-		// hidden values from hiddenValues.
-		seen := make(map[string]struct{})
-		cleaned := make([]any, 0, len(v))
-		for _, item := range v {
-			if s, ok := item.(string); ok {
-				if s == maskedTokenValue {
-					continue
-				}
-				seen[s] = struct{}{}
-			}
-			cleaned = append(cleaned, item)
-		}
-		result := make([]any, 0, len(cleaned)+len(hiddenValues))
-		result = append(result, cleaned...)
-		for _, hidden := range hiddenValues {
-			if _, exists := seen[hidden]; !exists {
-				result = append(result, hidden)
-			}
-		}
-		merged.Value = result
-
-	case string:
-		// For scalar conditions the caller cannot edit a value they cannot see.
-		// Always restore the stored hidden value regardless of what was submitted,
-		// preventing a crafted save from overwriting a hidden stored value with a
-		// different caller-visible string that passes validateConditionValues.
-		if len(hiddenValues) > 0 {
-			merged.Value = hiddenValues[0]
-		}
-
-	case nil:
-		if len(hiddenValues) == 1 {
-			merged.Value = hiddenValues[0]
-		} else if len(hiddenValues) > 1 {
-			result := make([]any, 0, len(hiddenValues))
-			for _, h := range hiddenValues {
-				result = append(result, h)
-			}
-			merged.Value = result
-		}
-	}
-
-	return merged
-}
-
-// containsNonStringLiteral reports whether the condition value contains any
-// non-string element (numeric, boolean, etc.). Used by the write-path to reject
-// type-mismatched literals on property-backed conditions — without this guard,
-// extractStringValues would silently drop such elements and let invalid CEL
-// bypass the source_only / shared_only checks.
-func containsNonStringLiteral(value any) bool {
-	switch v := value.(type) {
-	case nil, string:
-		return false
-	case []any:
-		for _, item := range v {
-			if _, ok := item.(string); !ok {
-				return true
-			}
-		}
-		return false
-	default:
-		// numeric, boolean, etc.
-		return true
-	}
-}
-
-// extractStringValues converts a condition's Value to a slice of strings.
-// Non-string elements are silently dropped — write-path callers should pair
-// this with containsNonStringLiteral to reject type-mismatched literals first.
-func extractStringValues(value any) []string {
-	switch v := value.(type) {
-	case []any:
-		var result []string
-		for _, item := range v {
-			if s, ok := item.(string); ok {
-				result = append(result, s)
-			}
-		}
-		return result
-	case string:
-		return []string{v}
-	default:
-		return nil
-	}
-}
-
-// buildCELFromConditions reconstructs a CEL expression from conditions, joined with " && ".
-func buildCELFromConditions(conditions []model.Condition) string {
-	if len(conditions) == 0 {
-		return "true"
-	}
-
-	parts := make([]string, 0, len(conditions))
-	for _, cond := range conditions {
-		cel := conditionToCEL(cond)
-		if cel != "" {
-			parts = append(parts, cel)
-		}
-	}
-
-	if len(parts) == 0 {
-		return "true"
-	}
-
-	return strings.Join(parts, " && ")
-}
-
-// isVisualASTRepresentable reports whether buildCELFromConditions(ast) round-trips
-// back to originalExpr. False means merging would silently rewrite the shape
-// (typically || or grouping that the AST flattens into ANDs). Stopgap until the
-// canonical AST walker lands.
-func isVisualASTRepresentable(originalExpr string, ast *model.VisualExpression) bool {
-	if ast == nil || len(ast.Conditions) == 0 {
-		return originalExpr == "" || originalExpr == "true"
-	}
-	return normalizedEqual(originalExpr, buildCELFromConditions(ast.Conditions))
-}
-
-// normalizedEqual compares two CEL expressions modulo whitespace and quote style.
-// Unbalanced quotes on either side count as not-equal (fail-closed).
-func normalizedEqual(a, b string) bool {
-	na, okA := normalizeForComparison(a)
-	if !okA {
-		return false
-	}
-	nb, okB := normalizeForComparison(b)
-	if !okB {
-		return false
-	}
-	return na == nb
-}
-
-// normalizeForComparison strips whitespace outside string literals and rewrites
-// single quotes to double. String contents are preserved verbatim. Returns
-// ok=false on unbalanced quotes.
-func normalizeForComparison(s string) (string, bool) {
-	var b strings.Builder
-	b.Grow(len(s))
-	var quote byte // 0 outside string literal; '"' or '\'' inside
-	for i := 0; i < len(s); i++ {
-		c := s[i]
-		switch {
-		case quote == 0 && (c == '"' || c == '\''):
-			quote = c
-			b.WriteByte('"')
-		case quote != 0 && c == '\\' && i+1 < len(s):
-			// keep escapes verbatim
-			b.WriteByte(c)
-			b.WriteByte(s[i+1])
-			i++
-		case quote != 0 && c == quote:
-			b.WriteByte('"')
-			quote = 0
-		case quote == 0 && (c == ' ' || c == '\t' || c == '\n' || c == '\r'):
-			// drop whitespace outside strings
-		default:
-			b.WriteByte(c)
-		}
-	}
-	if quote != 0 {
-		return "", false
-	}
-	return b.String(), true
-}
-
-// conditionToCEL converts a single Condition to its CEL string representation.
-func conditionToCEL(cond model.Condition) string {
-	attr := cond.Attribute
-
-	switch cond.Operator {
-	case "==", "!=", ">", ">=", "<", "<=":
-		if cond.Value == nil {
-			return ""
-		}
-		return attr + " " + cond.Operator + " " + celValueLiteral(cond.Value)
-
-	case "in":
-		values := extractStringValues(cond.Value)
-		if len(values) == 0 {
-			return ""
-		}
-		if cond.AttributeType == "multiselect" {
-			// multiselect: "v1" in attr && "v2" in attr
-			inParts := make([]string, 0, len(values))
-			for _, v := range values {
-				inParts = append(inParts, celStringLiteral(v)+" in "+attr)
-			}
-			return strings.Join(inParts, " && ")
-		}
-		// select: attr in ["v1", "v2"]
-		valLiterals := make([]string, 0, len(values))
-		for _, v := range values {
-			valLiterals = append(valLiterals, celStringLiteral(v))
-		}
-		return attr + " in [" + strings.Join(valLiterals, ", ") + "]"
-
-	case "hasAnyOf":
-		values := extractStringValues(cond.Value)
-		if len(values) == 0 {
-			return ""
-		}
-		orParts := make([]string, 0, len(values))
-		for _, v := range values {
-			orParts = append(orParts, celStringLiteral(v)+" in "+attr)
-		}
-		if len(orParts) == 1 {
-			// When the sole value is the masked-token sentinel, duplicate it into a
-			// two-branch OR so that the parser can recover hasAnyOf on the next read.
-			// A standalone "tok in attr" is promoted to hasAllOf by
-			// mergeMultiselectConditions, which would display the wrong operator in the UI.
-			if values[0] == maskedTokenValue {
-				return "(" + orParts[0] + " || " + orParts[0] + ")"
-			}
-			return orParts[0]
-		}
-		return "(" + strings.Join(orParts, " || ") + ")"
-
-	case "hasAllOf":
-		values := extractStringValues(cond.Value)
-		if len(values) == 0 {
-			return ""
-		}
-		andParts := make([]string, 0, len(values))
-		for _, v := range values {
-			andParts = append(andParts, celStringLiteral(v)+" in "+attr)
-		}
-		return strings.Join(andParts, " && ")
-
-	case "contains", "startsWith", "endsWith":
-		if cond.Value == nil {
-			return ""
-		}
-		return attr + "." + cond.Operator + "(" + celValueLiteral(cond.Value) + ")"
-
-	default:
-		if cond.Value == nil {
-			return ""
-		}
-		return attr + " " + cond.Operator + " " + celValueLiteral(cond.Value)
-	}
-}
-
-// celStringLiteral wraps s in a CEL-compatible double-quoted string literal.
-// strconv.Quote produces Go syntax that overlaps with CEL's escape grammar
-// (backslash, double quote, \a \b \f \n \r \t \v, \xHH, \uHHHH, \UHHHHHHHH),
-// so it safely round-trips strings containing control characters, embedded
-// quotes, or non-ASCII content — none of which the previous naive ReplaceAll
-// handled. Attribute values that legitimately contain newlines or tabs would
-// have produced broken CEL otherwise.
-func celStringLiteral(s string) string {
-	return strconv.Quote(s)
-}
-
-// celValueLiteral returns the CEL literal for a condition value.
-func celValueLiteral(value any) string {
-	switch v := value.(type) {
-	case string:
-		return celStringLiteral(v)
-	case float64:
-		// 'g' with precision -1 produces the shortest representation that
-		// round-trips back to v exactly. Avoids the precision loss from
-		// fmt.Sprintf("%f") which rounds to six fractional digits.
-		return strconv.FormatFloat(v, 'g', -1, 64)
-	case int:
-		return fmt.Sprintf("%d", v)
-	case int64:
-		return fmt.Sprintf("%d", v)
-	case bool:
-		if v {
-			return "true"
-		}
-		return "false"
-	case nil:
-		return "null"
-	default:
-		return fmt.Sprintf("%v", v)
-	}
-}
-
-// maskedTokenValue is the sentinel the frontend uses for masked values; never a valid attribute value.
-const maskedTokenValue = "--------"
 
 // validatePolicyExpressionValues checks that all submitted literal values are held by the caller.
-func (a *App) validatePolicyExpressionValues(rctx request.CTX, policy *model.AccessControlPolicy, callerID string) *model.AppError {
-	cpaGroup, appErr := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
-	if appErr != nil {
-		return model.NewAppError("validatePolicyExpressionValues", "app.pap.validate_expression_values.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+// Returns the same generic error for every rejection to prevent value enumeration.
+func (a *App) validatePolicyExpressionValues(rctx request.CTX, policy *model.AccessControlPolicy, resolver model.MaskingFieldResolver) *model.AppError {
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return nil
 	}
-	cpaGroupID := cpaGroup.ID
 
-	rctxWithCaller := RequestContextWithCallerID(rctx, callerID)
-
-	// Parse all rule ASTs first and collect every referenced field so we can
-	// pre-fetch in a single pass, avoiding N+1 lookups across conditions.
-	rulesASTs := make([]*model.VisualExpression, 0, len(policy.Rules))
-	var allConditions []model.Condition
 	for _, rule := range policy.Rules {
 		if rule.Expression == "" || rule.Expression == "true" {
 			continue
 		}
-		visualAST, appErr := a.ExpressionToVisualAST(rctx, rule.Expression)
-		if appErr != nil {
+		if appErr := acs.ValidateExpressionValuesForCaller(rctx, rule.Expression, resolver); appErr != nil {
 			return appErr
 		}
-		rulesASTs = append(rulesASTs, visualAST)
-		allConditions = append(allConditions, visualAST.Conditions...)
 	}
-
-	fieldsByName := a.fetchConditionFields(rctxWithCaller, allConditions, cpaGroupID)
-	if appErr := requireAllFieldsResolved(rctxWithCaller, allConditions, fieldsByName); appErr != nil {
-		return appErr
-	}
-
-	for _, visualAST := range rulesASTs {
-		for _, cond := range visualAST.Conditions {
-			if appErr := a.validateConditionValues(rctxWithCaller, &cond, cpaGroupID, fieldsByName); appErr != nil {
-				return appErr
-			}
-		}
-	}
-
 	return nil
-}
-
-// invalidValueError returns the same generic 400 for all write-path rejections (no enumeration leakage).
-func invalidValueError() *model.AppError {
-	return model.NewAppError("validatePolicyExpressionValues", "app.pap.save_policy.invalid_value", nil, "Invalid value.", http.StatusBadRequest)
-}
-
-// validateConditionValues checks that all literal values in a single condition are held by the caller.
-// fieldsByName is pre-fetched by the caller to avoid N+1 lookups; a missing entry means the field
-// could not be resolved (deleted, or DB error at prefetch time) — rejected with the generic error.
-func (a *App) validateConditionValues(rctx request.CTX, cond *model.Condition, cpaGroupID string, fieldsByName map[string]*model.PropertyField) *model.AppError {
-	if cond.ValueType == model.AttrValue {
-		return nil
-	}
-
-	// The masked-token sentinel is what the server itself emits when masking the
-	// raw CEL of policy GET / search responses. If the frontend round-trips a GET
-	// response back to us unchanged (e.g. the admin only modified channel
-	// assignment, not the rules), it will appear here. Skip it during validation;
-	// mergeConditionValues will strip it from the merged result and re-inject the
-	// actual hidden values from the stored policy.
-	values := extractStringValues(cond.Value)
-	nonTokenValues := make([]string, 0, len(values))
-	for _, v := range values {
-		if v != maskedTokenValue {
-			nonTokenValues = append(nonTokenValues, v)
-		}
-	}
-
-	fieldName := extractFieldName(cond.Attribute)
-	if fieldName == "" {
-		return nil
-	}
-
-	field, ok := fieldsByName[fieldName]
-	if !ok {
-		return invalidValueError() // reject unknown fields to prevent probing
-	}
-
-	// Property-backed conditions must use string literals. Numeric / boolean values
-	// would be silently dropped by extractStringValues above, letting them bypass the
-	// source_only / shared_only checks. Reject them with the same generic error.
-	if containsNonStringLiteral(cond.Value) {
-		return invalidValueError()
-	}
-
-	switch field.GetAccessMode() {
-	case model.PropertyAccessModePublic:
-		return nil
-	case model.PropertyAccessModeSourceOnly:
-		if len(nonTokenValues) > 0 {
-			return invalidValueError()
-		}
-		return nil
-	case model.PropertyAccessModeSharedOnly:
-		var visibleNames map[string]struct{}
-		if field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeMultiselect {
-			visibleNames = extractVisibleOptionNames(field)
-		} else {
-			callerID, _ := CallerIDFromRequestContext(rctx)
-			visibleNames = a.getCallerTextValues(rctx, callerID, field, cpaGroupID)
-		}
-		for _, v := range nonTokenValues {
-			if _, visible := visibleNames[v]; !visible {
-				return invalidValueError()
-			}
-		}
-		return nil
-	default:
-		if len(nonTokenValues) > 0 {
-			return invalidValueError()
-		}
-		return nil
-	}
 }
 
 func (a *App) GetMaskedExpression(rctx request.CTX, expression string, callerID string) (string, *model.AppError) {
@@ -744,104 +362,21 @@ func (a *App) GetMaskedExpression(rctx request.CTX, expression string, callerID 
 		return expression, nil
 	}
 
-	visualAST, appErr := a.ExpressionToVisualAST(rctx, expression)
-	if appErr != nil {
-		return "", appErr
-	}
-
-	cpaGroup, appErr := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
-	if appErr != nil {
-		return "", appErr
-	}
-	cpaGroupID := cpaGroup.ID
-
-	rctxWithCaller := RequestContextWithCallerID(rctx, callerID)
-	fieldsByName := a.fetchConditionFields(rctxWithCaller, visualAST.Conditions, cpaGroupID)
-
-	hasMasked := false
-	for i := range visualAST.Conditions {
-		if a.maskConditionValuesWithToken(rctxWithCaller, callerID, &visualAST.Conditions[i], cpaGroupID, fieldsByName) {
-			hasMasked = true
-		}
-	}
-	if !hasMasked {
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
 		return expression, nil
 	}
 
-	return buildCELFromConditions(visualAST.Conditions), nil
-}
-
-// maskConditionValuesWithToken replaces non-held values with the masked token in place,
-// preserving expression structure so the visual AST endpoint can still parse it.
-// fieldsByName is pre-fetched by the caller to avoid N+1 lookups; a missing entry
-// is treated as fail-closed (whole value masked). Returns true if any value was masked.
-func (a *App) maskConditionValuesWithToken(rctx request.CTX, callerID string, condition *model.Condition, cpaGroupID string, fieldsByName map[string]*model.PropertyField) bool {
-	if condition.ValueType == model.AttrValue {
-		return false
+	resolver, appErr := newMaskingResolver(a, rctx, callerID)
+	if appErr != nil {
+		return "", appErr
 	}
 
-	fieldName := extractFieldName(condition.Attribute)
-	if fieldName == "" {
-		return false
+	masked, _, appErr := acs.MaskExpressionForCaller(rctx, expression, resolver)
+	if appErr != nil {
+		return "", appErr
 	}
-
-	field, ok := fieldsByName[fieldName]
-	if !ok {
-		condition.Value = maskedTokenValue // fail closed
-		return true
-	}
-
-	switch field.GetAccessMode() {
-	case model.PropertyAccessModePublic:
-		return false
-	case model.PropertyAccessModeSourceOnly:
-		condition.Value = maskedTokenValue
-		return true
-	case model.PropertyAccessModeSharedOnly:
-		var visibleNames map[string]struct{}
-		if field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeMultiselect {
-			visibleNames = extractVisibleOptionNames(field)
-		} else {
-			visibleNames = a.getCallerTextValues(rctx, callerID, field, cpaGroupID)
-		}
-		return replaceHiddenValuesWithToken(condition, visibleNames)
-	default:
-		condition.Value = maskedTokenValue
-		return true
-	}
-}
-
-// replaceHiddenValuesWithToken keeps visible values and appends a single masked token if any were hidden.
-// One token regardless of count prevents count-based inference about the number of hidden values.
-// Returns true if any value was replaced.
-func replaceHiddenValuesWithToken(condition *model.Condition, visibleNames map[string]struct{}) bool {
-	switch v := condition.Value.(type) {
-	case []any:
-		var result []any
-		hasMasked := false
-		for _, val := range v {
-			if strVal, ok := val.(string); ok {
-				if _, visible := visibleNames[strVal]; visible {
-					result = append(result, val)
-				} else {
-					hasMasked = true
-				}
-			} else {
-				result = append(result, val)
-			}
-		}
-		if hasMasked {
-			result = append(result, maskedTokenValue)
-		}
-		condition.Value = result
-		return hasMasked
-	case string:
-		if _, visible := visibleNames[v]; !visible {
-			condition.Value = maskedTokenValue
-			return true
-		}
-	}
-	return false
+	return masked, nil
 }
 
 // MaskSimulationPolicyLiteralsForCaller re-applies attribute-value
@@ -877,7 +412,11 @@ func (a *App) MaskSimulationPolicyLiteralsForCaller(rctx request.CTX, resp *mode
 		return
 	}
 
-	cpaGroup, appErr := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	if a.Srv().ch.AccessControl == nil {
+		return
+	}
+
+	resolver, appErr := newMaskingResolver(a, rctx, callerID)
 	if appErr != nil {
 		rctx.Logger().Warn(
 			"MaskSimulationPolicyLiteralsForCaller: failed to resolve CPA group, clearing every simulation literal as fail-closed default",
@@ -888,10 +427,10 @@ func (a *App) MaskSimulationPolicyLiteralsForCaller(rctx request.CTX, resp *mode
 	}
 
 	mc := &simulationMaskContext{
-		cpaGroupID:     cpaGroup.ID,
-		rctxWithCaller: RequestContextWithCallerID(rctx, callerID),
+		cpaGroupID:     resolver.cpaGroupID,
+		rctxWithCaller: resolver.rctxWithCaller,
 		callerID:       callerID,
-		fieldsByName:   map[string]*model.PropertyField{},
+		resolver:       resolver,
 	}
 
 	for i := range resp.Results {
@@ -909,64 +448,34 @@ func (a *App) MaskSimulationPolicyLiteralsForCaller(rctx request.CTX, resp *mode
 }
 
 // simulationMaskContext is the per-request mask cache shared across
-// every expression in a single simulate response. The CPA group ID
-// and the request context (with callerID embedded so the property
-// service applies per-caller read access control) are stable for the
-// life of the call; fieldsByName grows lazily as new field names are
-// encountered, so each unique field is fetched at most once even
-// across hundreds of tree nodes.
+// every expression in a single simulate response. resolver caches
+// MaskingFieldInfo per field name so each unique field is resolved
+// at most once across the entire trace.
 type simulationMaskContext struct {
 	cpaGroupID     string
 	rctxWithCaller request.CTX
 	callerID       string
-	fieldsByName   map[string]*model.PropertyField
+	resolver       model.MaskingFieldResolver
 }
 
-// maskExpressionWithCache parses `expression` through the Visual AST,
-// hydrates any newly-referenced fields into mc.fieldsByName, and
-// rewrites every literal value through maskConditionValuesWithToken
-// using the shared cache. Returns "" on any parse / lookup failure
-// so the caller can drop the surface entirely (fail-closed).
-//
-// Visual-AST flattening (||, !, nested parens collapse to a flat
-// AND of conditions) is the same trade-off GetMaskedExpression
-// already makes for the policy GET path — we re-use it here so that
-// the masking contract is identical end-to-end. Callers that need
-// to preserve compound structure (e.g. the tree-root rebuild for
-// Blame.Expression) should source their text from
-// maskSimulationEvaluationTree's child-rebuilt Expression instead.
+// maskExpressionWithCache masks literal values in `expression` using the
+// canonical CEL AST walker, sharing the resolver cache from mc. Returns ""
+// on any parse or lookup failure so the caller can drop the surface
+// entirely (fail-closed). Preserves ||/!/grouping structure — no Visual
+// AST flattening.
 func (a *App) maskExpressionWithCache(expression string, mc *simulationMaskContext) string {
 	if expression == "" || expression == "true" {
 		return expression
 	}
-	visualAST, appErr := a.ExpressionToVisualAST(mc.rctxWithCaller, expression)
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return ""
+	}
+	masked, _, appErr := acs.MaskExpressionForCaller(mc.rctxWithCaller, expression, mc.resolver)
 	if appErr != nil {
 		return ""
 	}
-	for _, c := range visualAST.Conditions {
-		if c.ValueType == model.AttrValue {
-			continue
-		}
-		name := extractFieldName(c.Attribute)
-		if name == "" {
-			continue
-		}
-		if _, ok := mc.fieldsByName[name]; ok {
-			continue
-		}
-		field, appErr := a.GetPropertyFieldByName(mc.rctxWithCaller, mc.cpaGroupID, "", name)
-		if appErr != nil {
-			// Leave the entry absent so maskConditionValuesWithToken's
-			// fail-closed branch overrides the value below — same
-			// semantics as fetchConditionFields' Warn-and-omit path.
-			continue
-		}
-		mc.fieldsByName[name] = field
-	}
-	for i := range visualAST.Conditions {
-		a.maskConditionValuesWithToken(mc.rctxWithCaller, mc.callerID, &visualAST.Conditions[i], mc.cpaGroupID, mc.fieldsByName)
-	}
-	return buildCELFromConditions(visualAST.Conditions)
+	return masked
 }
 
 // maskSimulationDecisionLiterals masks every Expression and per-leaf
@@ -981,10 +490,7 @@ func (a *App) maskSimulationDecisionLiterals(dec *model.PolicySimulationActionDe
 		// Expression preserves the original OR / NOT structure so
 		// when we backfill Blame.Expression from it below the
 		// caller-visible CEL keeps the same boolean shape the rule
-		// author wrote. Without this we'd fall through to the
-		// Visual-AST-flattening branch and "A || B" would surface as
-		// "A && --------" — same security outcome but a misleading
-		// trace.
+		// author wrote.
 		if b.EvaluationTree != nil {
 			a.maskSimulationEvaluationTree(b.EvaluationTree, mc)
 		}
@@ -1018,11 +524,10 @@ func (a *App) maskSimulationDecisionLiterals(dec *model.PolicySimulationActionDe
 // ExpectedValue overwritten with the sentinel whenever the masker
 // hid at least one literal in the leaf. Compound nodes (and / or /
 // not) rebuild their Expression from the already-masked children's
-// Expressions, preserving the original boolean shape — the
-// Visual-AST flatten that maskExpressionWithCache uses on a leaf
-// expression is harmless (a leaf has no inner OR / NOT to lose),
-// but at the compound level it would collapse OR/NOT to AND and
-// misrepresent the rule's logic to the caller.
+// Expressions, preserving the original boolean shape. Leaf masking
+// (canonical CEL walker) handles a single comparison; the compound
+// rebuild stitches those masked leaves back together so the caller-
+// visible CEL faithfully reflects the rule's || / ! structure.
 func (a *App) maskSimulationEvaluationTree(node *model.PolicySimulationEvaluationNode, mc *simulationMaskContext) {
 	if node == nil {
 		return
@@ -1080,56 +585,21 @@ func (a *App) maskSimulationEvaluationTree(node *model.PolicySimulationEvaluatio
 	}
 }
 
-// maskLeafActualValue replaces `node.ActualValue` with the masked
-// token whenever the caller is not allowed to see that value for
-// the leaf's underlying CPA field. Skips when the attribute path is
-// not a user-attribute reference (e.g. function-call leaves with a
-// non-attribute LHS). Fails closed by masking when the field can't
-// be resolved.
+// maskLeafActualValue replaces node.ActualValue with the masked token when the
+// caller cannot see that value. Uses mc.resolver so field info is cached across
+// all leaves in the trace — no per-leaf DB calls. Fails closed on resolver error.
 func (a *App) maskLeafActualValue(node *model.PolicySimulationEvaluationNode, mc *simulationMaskContext) {
 	fieldName := extractFieldName(node.Attribute)
 	if fieldName == "" {
 		return
 	}
-	field, ok := mc.fieldsByName[fieldName]
-	if !ok {
-		fetched, appErr := a.GetPropertyFieldByName(mc.rctxWithCaller, mc.cpaGroupID, "", fieldName)
-		if appErr != nil {
-			node.ActualValue = maskedTokenValue
-			return
-		}
-		mc.fieldsByName[fieldName] = fetched
-		field = fetched
-	}
-	if !a.callerCanSeeFieldValue(field, node.ActualValue, mc) {
+	info, err := mc.resolver.Resolve(fieldName)
+	if err != nil {
 		node.ActualValue = maskedTokenValue
+		return
 	}
-}
-
-// callerCanSeeFieldValue reports whether the caller is allowed to
-// see `value` for `field` under AVM semantics. Mirrors the per-
-// access-mode logic that maskConditionValuesWithToken applies to
-// rule literals so the simulator's user-data surfaces (ActualValue)
-// stay in lockstep with the rule-literal surfaces (ExpectedValue /
-// Expression). Unknown access modes fail closed to "not visible"
-// so a new mode added later doesn't silently bypass the masker.
-func (a *App) callerCanSeeFieldValue(field *model.PropertyField, value string, mc *simulationMaskContext) bool {
-	switch field.GetAccessMode() {
-	case model.PropertyAccessModePublic:
-		return true
-	case model.PropertyAccessModeSourceOnly:
-		return false
-	case model.PropertyAccessModeSharedOnly:
-		var visibleNames map[string]struct{}
-		if field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeMultiselect {
-			visibleNames = extractVisibleOptionNames(field)
-		} else {
-			visibleNames = a.getCallerTextValues(mc.rctxWithCaller, mc.callerID, field, mc.cpaGroupID)
-		}
-		_, visible := visibleNames[value]
-		return visible
-	default:
-		return false
+	if info.IsValueHidden(node.ActualValue) {
+		node.ActualValue = maskedTokenValue
 	}
 }
 
@@ -1222,7 +692,12 @@ const maskFailClosedSentinel = "false"
 // MaskPolicyExpressions masks non-held literal values in all policy rule expressions, in place.
 // Fails closed (sets a rule to maskFailClosedSentinel) if its expression cannot be parsed or masked.
 func (a *App) MaskPolicyExpressions(rctx request.CTX, policy *model.AccessControlPolicy, callerID string) {
-	cpaGroup, appErr := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return
+	}
+
+	resolver, appErr := newMaskingResolver(a, rctx, callerID)
 	if appErr != nil {
 		rctx.Logger().Warn("MaskPolicyExpressions: failed to resolve CPA group, masking all rules closed",
 			mlog.Err(appErr),
@@ -1235,41 +710,19 @@ func (a *App) MaskPolicyExpressions(rctx request.CTX, policy *model.AccessContro
 		}
 		return
 	}
-	cpaGroupID := cpaGroup.ID
 
-	rctxWithCaller := RequestContextWithCallerID(rctx, callerID)
-
-	// Parse each rule's AST once and collect all conditions so we can pre-fetch
-	// every referenced field in a single pass, avoiding N+1 lookups across rules.
-	asts := make([]*model.VisualExpression, len(policy.Rules))
-	var allConditions []model.Condition
 	for i, rule := range policy.Rules {
 		if rule.Expression == "" || rule.Expression == "true" {
 			continue
 		}
-		ast, appErr := a.ExpressionToVisualAST(rctx, rule.Expression)
+		masked, _, appErr := acs.MaskExpressionForCaller(rctx, rule.Expression, resolver)
 		if appErr != nil {
-			policy.Rules[i].Expression = maskFailClosedSentinel // fail closed: deny-all sentinel, response-only
+			rctx.Logger().Warn("MaskPolicyExpressions: failed to mask rule expression, failing closed",
+				mlog.Err(appErr),
+			)
+			policy.Rules[i].Expression = maskFailClosedSentinel
 			continue
 		}
-		asts[i] = ast
-		allConditions = append(allConditions, ast.Conditions...)
-	}
-
-	fieldsByName := a.fetchConditionFields(rctxWithCaller, allConditions, cpaGroupID)
-
-	for i, ast := range asts {
-		if ast == nil {
-			continue
-		}
-		hasMasked := false
-		for j := range ast.Conditions {
-			if a.maskConditionValuesWithToken(rctxWithCaller, callerID, &ast.Conditions[j], cpaGroupID, fieldsByName) {
-				hasMasked = true
-			}
-		}
-		if hasMasked {
-			policy.Rules[i].Expression = buildCELFromConditions(ast.Conditions)
-		}
+		policy.Rules[i].Expression = masked
 	}
 }

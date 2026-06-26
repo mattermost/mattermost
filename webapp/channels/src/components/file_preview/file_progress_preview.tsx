@@ -16,7 +16,7 @@ type Props = {
     handleRemove: (id: string) => void;
     clientId: string;
     fileInfo: FilePreviewInfo;
-}
+};
 
 export default class FileProgressPreview extends React.PureComponent<Props> {
     handleRemove = () => {

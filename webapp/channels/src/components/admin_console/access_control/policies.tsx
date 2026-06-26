@@ -98,7 +98,7 @@ export default function PolicyList(props: Props): JSX.Element {
             }
             props.onPoliciesLoaded?.(newTotal);
             return true;
-        } catch (error) {
+        } catch {
             setLoading(false);
             setSearchErrored(true);
             return false;
@@ -146,8 +146,10 @@ export default function PolicyList(props: Props): JSX.Element {
     };
 
     const getResources = (policy: AccessControlPolicy) => {
-        const childIds = policy.props?.child_ids as string[];
-        if (!childIds || childIds.length === 0) {
+        const channelCount = (policy.props?.channel_count as unknown as number) || 0;
+        const teamCount = (policy.props?.team_count as unknown as number) || 0;
+
+        if (channelCount === 0 && teamCount === 0) {
             return (
                 <FormattedMessage
                     id='admin.access_control.policies.resources.none'
@@ -156,14 +158,37 @@ export default function PolicyList(props: Props): JSX.Element {
             );
         }
 
+        const parts: React.ReactNode[] = [];
+        if (channelCount > 0) {
+            parts.push(
+                <FormattedMessage
+                    key='channels'
+                    id='admin.access_control.policies.resources.channels'
+                    defaultMessage='{count, number} {count, plural, one {channel} other {channels}}'
+                    values={{count: channelCount}}
+                />,
+            );
+        }
+        if (teamCount > 0) {
+            parts.push(
+                <FormattedMessage
+                    key='teams'
+                    id='admin.access_control.policies.resources.teams'
+                    defaultMessage='{count, number} {count, plural, one {team} other {teams}}'
+                    values={{count: teamCount}}
+                />,
+            );
+        }
+
         return (
-            <FormattedMessage
-                id='admin.access_control.policies.resources.channels'
-                defaultMessage='{count, number} {count, plural, one {channel} other {channels}}'
-                values={{
-                    count: childIds.length,
-                }}
-            />
+            <>
+                {parts.map((part, index) => (
+                    <React.Fragment key={index}>
+                        {index > 0 && ', '}
+                        {part}
+                    </React.Fragment>
+                ))}
+            </>
         );
     };
 

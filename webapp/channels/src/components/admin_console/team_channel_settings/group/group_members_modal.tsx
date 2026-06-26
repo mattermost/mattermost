@@ -14,7 +14,7 @@ type Props = {
     group: Group;
     onExited: () => void;
     onLoad?: () => void;
-}
+};
 
 const GroupMembersModal: React.FC<Props> = ({
     group, onExited, onLoad,

@@ -34,8 +34,6 @@ type FeatureFlags struct {
 	// AppsEnabled toggles the Apps framework functionalities both in server and client side
 	AppsEnabled bool
 
-	PermalinkPreviews bool
-
 	NormalizeLdapDNs bool
 
 	// Enable WYSIWYG text editor
@@ -43,18 +41,12 @@ type FeatureFlags struct {
 
 	OnboardingTourTips bool
 
-	DeprecateCloudFree bool
-
 	EnableExportDirectDownload bool
 
 	MoveThreadsEnabled bool
 
 	StreamlinedMarketplace bool
 
-	CloudIPFiltering bool
-	ConsumePostHook  bool
-
-	CloudAnnualRenewals    bool
 	CloudDedicatedExportUI bool
 
 	ChannelBookmarks bool
@@ -150,6 +142,15 @@ type FeatureFlags struct {
 
 	// Enable Mobile Ephemeral Mode for controlling data persistence on mobile devices
 	MobileEphemeralMode bool
+
+	// FEATURE_FLAG_REMOVAL: PropertyFieldRank - Remove this when the feature is GA.
+	// Gates the "rank" custom profile attribute type: when off, the app layer
+	// rejects creating a rank property field or converting an existing field to
+	// rank, and the admin console hides the rank type option.
+	PropertyFieldRank bool
+
+	// Requires AttributeBasedAccessControl to also be enabled.
+	TeamMembershipAccessControl bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -162,15 +163,11 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableSharedChannelsPlugins = true
 	f.AppsEnabled = false
 	f.NormalizeLdapDNs = false
-	f.DeprecateCloudFree = false
 	f.WysiwygEditor = false
 	f.OnboardingTourTips = true
 	f.EnableExportDirectDownload = false
 	f.MoveThreadsEnabled = false
 	f.StreamlinedMarketplace = true
-	f.CloudIPFiltering = false
-	f.ConsumePostHook = false
-	f.CloudAnnualRenewals = false
 	f.CloudDedicatedExportUI = false
 	f.ChannelBookmarks = true
 	f.WebSocketEventScope = true
@@ -180,6 +177,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AttributeBasedAccessControl = true
 	f.AttributeValueMasking = false
 	f.PermissionPolicies = false
+	f.TeamMembershipAccessControl = false
 	f.ChannelPermissionPolicies = false
 	f.PolicySimulation = false
 	f.ContentFlagging = true
@@ -202,7 +200,7 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.IntegratedBoards = false
 
-	f.CJKSearch = false
+	f.CJKSearch = true
 
 	f.AggregatePluginMetrics = false
 
@@ -213,6 +211,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.DiscoverableChannels = false
 
 	f.MobileEphemeralMode = false
+
+	f.PropertyFieldRank = false
 }
 
 // IsChannelPermissionPoliciesEnabled reports whether channel-scope

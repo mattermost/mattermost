@@ -11,10 +11,8 @@ import {
     updateUserAttributes,
 } from '@mattermost/playwright-lib';
 
-import {
-    CustomProfileAttribute,
-    setupCustomProfileAttributeFields,
-} from '../../../channels/custom_profile_attributes/helpers';
+import type {CustomProfileAttribute} from '../../../channels/custom_profile_attributes/helpers';
+import {setupCustomProfileAttributeFields} from '../../../channels/custom_profile_attributes/helpers';
 import {
     createUserForABAC,
     createPrivateChannelForABAC,
@@ -76,7 +74,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         await enableABAC(systemConsolePage.page);
 
         const policy1Name = `Engineering Access NoAutoAdd ${pw.random.id()}`;
-        const __jobId1 = await createBasicPolicy(systemConsolePage.page, {
+        const jobId1 = await createBasicPolicy(systemConsolePage.page, {
             name: policy1Name,
             attribute: 'Department',
             operator: '==',
@@ -91,7 +89,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         expect(initialInChannel).toBe(true);
 
         // Get policy ID and activate
-        await waitForLatestSyncJob(systemConsolePage.page, undefined, __jobId1);
+        await waitForLatestSyncJob(systemConsolePage.page, undefined, jobId1);
         const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
         await searchInput.waitFor({state: 'visible', timeout: 5000});
         const idMatch = policy1Name.match(/([a-z0-9]+)$/i);
@@ -119,8 +117,8 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         });
 
         // Run sync job
-        const __syncJob1 = await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page, undefined, __syncJob1);
+        const syncJob1 = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, undefined, syncJob1);
 
         // Wait for membership updates to apply
         await systemConsolePage.page.waitForTimeout(1000);
@@ -158,7 +156,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         await navigateToABACPage(systemConsolePage.page);
 
         const policy2Name = `Engineering Access WithAutoAdd ${pw.random.id()}`;
-        const __jobId2 = await createBasicPolicy(systemConsolePage.page, {
+        const jobId2 = await createBasicPolicy(systemConsolePage.page, {
             name: policy2Name,
             attribute: 'Department',
             operator: '==',
@@ -168,7 +166,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         });
 
         // Activate and run sync to auto-add user
-        await waitForLatestSyncJob(systemConsolePage.page, undefined, __jobId2);
+        await waitForLatestSyncJob(systemConsolePage.page, undefined, jobId2);
         await searchInput.fill(policy2Name.match(/([a-z0-9]+)$/i)?.[1] || policy2Name);
         await systemConsolePage.page.waitForTimeout(1000);
 
@@ -187,8 +185,8 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
             AccessControlSettings: {EnableAttributeBasedAccessControl: true},
         });
 
-        const __syncJob2 = await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page, undefined, __syncJob2);
+        const syncJob2 = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, undefined, syncJob2);
 
         const userAutoAdded = await verifyUserInChannel(adminClient, testUser.id, channel2.id);
         expect(userAutoAdded).toBe(true);
@@ -204,8 +202,8 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         });
 
         // Run sync
-        const __syncJob3 = await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page, undefined, __syncJob3);
+        const syncJob3 = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, undefined, syncJob3);
 
         // Small delay for channel membership update
         await systemConsolePage.page.waitForTimeout(1000);

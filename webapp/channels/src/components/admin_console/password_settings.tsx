@@ -49,7 +49,7 @@ const messages = defineMessages({
     passwordRequirements: {id: 'passwordRequirements', defaultMessage: 'Password Requirements:'},
 });
 
-export const searchableStrings: Array<string|MessageDescriptor|[MessageDescriptor, {[key: string]: any}]> = [
+export const searchableStrings: Array<string | MessageDescriptor | [MessageDescriptor, {[key: string]: any}]> = [
     [messages.minimumLength, {max: '', min: ''}],
     [messages.minimumLengthDescription, {max: '', min: ''}],
     messages.passwordMinLength,

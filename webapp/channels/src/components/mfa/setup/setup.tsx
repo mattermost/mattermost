@@ -5,7 +5,10 @@ import React from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
+import type {MfaSecret} from '@mattermost/types/mfa';
 import type {UserProfile} from '@mattermost/types/users';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
 
@@ -14,33 +17,23 @@ type Props = {
     siteName?: string;
     enforceMultifactorAuthentication: boolean;
     actions: {
-        activateMfa: (code: string) => Promise<{
-            error?: {
-                server_error_id: string;
-                message: string;
-            };
-        }>;
-        generateMfaSecret: () => Promise<{
-            data: {
-                secret: string;
-                qr_code: string;
-            };
-            error?: {
-                message: string;
-            };
-        }>;
+        activateMfa: (code: string) => Promise<ActionResult<unknown, {
+            server_error_id: string;
+            message: string;
+        }>>;
+        generateMfaSecret: () => Promise<ActionResult<MfaSecret>>;
     };
     history: {
         push(path: string): void;
     };
-}
+};
 
 type State = {
     secret: string;
     qrCode: string;
     error: React.ReactNode;
     serverError?: string;
-}
+};
 
 export default class Setup extends React.PureComponent<Props, State> {
     input: React.RefObject<HTMLInputElement>;
@@ -73,8 +66,8 @@ export default class Setup extends React.PureComponent<Props, State> {
             }
 
             this.setState({
-                secret: data.secret,
-                qrCode: data.qr_code,
+                secret: data!.secret,
+                qrCode: data!.qr_code,
             });
         });
     }
