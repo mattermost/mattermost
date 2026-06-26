@@ -8,12 +8,12 @@ import type {Dispatch} from 'redux';
 import type {PostPreviewMetadata} from '@mattermost/types/posts';
 
 import {General} from 'mattermost-redux/constants';
-import {isMyChannelAutotranslated, makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getDirectTeammate, isMyChannelAutotranslated} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, isPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getPost, isPostPriorityEnabled} from 'mattermost-redux/selectors/entities/posts';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
-import {getUser} from 'mattermost-redux/selectors/entities/users';
+import {getUser, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
 
 import {toggleEmbedVisibility} from 'actions/post_actions';
 import {isEmbedVisible} from 'selectors/posts';
@@ -32,7 +32,7 @@ export type OwnProps = {
 };
 
 function makeMapStateToProps() {
-    const getChannel = makeGetChannel();
+    const getDisplayName = makeGetDisplayName();
 
     return (state: GlobalState, ownProps: OwnProps) => {
         const config = getConfig(state);
@@ -50,7 +50,8 @@ function makeMapStateToProps() {
         }
 
         if (ownProps.metadata.channel_type === General.DM_CHANNEL) {
-            channelDisplayName = getChannel(state, ownProps.metadata.channel_id)?.display_name || '';
+            const teammate = getDirectTeammate(state, ownProps.metadata.channel_id);
+            channelDisplayName = getDisplayName(state, teammate?.id ?? '');
         }
 
         return {
