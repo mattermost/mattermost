@@ -37,23 +37,21 @@ runs:
       run: |
         if docker manifest inspect "${CANONICAL}" > /dev/null 2>&1; then
           echo "artifact-name=" >> "${GITHUB_OUTPUT}"
-          echo "build-needed=false" >> "${GITHUB_OUTPUT}"
         else
           echo "artifact-name=${{ inputs.artifact-name }}" >> "${GITHUB_OUTPUT}"
-          echo "build-needed=true" >> "${GITHUB_OUTPUT}"
         fi
     - name: Build image
-      if: ${{ steps.resolve.outputs.build-needed == 'true' }}
+      if: ${{ steps.resolve.outputs.artifact-name != '' }}
       shell: bash
       run: docker build -t "${{ inputs.canonical-image }}" - < "${{ inputs.dockerfile }}"
     - name: Save image
-      if: ${{ steps.resolve.outputs.build-needed == 'true' }}
+      if: ${{ steps.resolve.outputs.artifact-name != '' }}
       shell: bash
       run: |
         mkdir -p /tmp/buildenv-save
         docker save "${{ inputs.canonical-image }}" | gzip > /tmp/buildenv-save/image.tar.gz
     - name: Upload image artifact
-      if: ${{ steps.resolve.outputs.build-needed == 'true' }}
+      if: ${{ steps.resolve.outputs.artifact-name != '' }}
       uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
       with:
         name: ${{ inputs.artifact-name }}
