@@ -869,6 +869,35 @@ func (a *App) buildIdLoadedPushNotificationMessage(rctx request.CTX, channel *mo
 	return msg
 }
 
+func PriorityNotificationTitle(priority *model.PostPriority, rootID string, channelType model.ChannelType, channelName string, userLocale i18n.TranslateFunc) string {
+	if rootID != "" || priority == nil || priority.Priority == nil {
+		return ""
+	}
+
+	switch *priority.Priority {
+	case model.PostPriorityImportant:
+		switch channelType {
+		case model.ChannelTypeDirect:
+			return userLocale("api.push_notification.title.important_dm")
+		case model.ChannelTypeGroup:
+			return userLocale("api.push_notification.title.important_gm")
+		default:
+			return userLocale("api.push_notification.title.important_channel", map[string]any{"channelName": channelName})
+		}
+	case model.PostPriorityUrgent:
+		switch channelType {
+		case model.ChannelTypeDirect:
+			return userLocale("api.push_notification.title.urgent_dm")
+		case model.ChannelTypeGroup:
+			return userLocale("api.push_notification.title.urgent_gm")
+		default:
+			return userLocale("api.push_notification.title.urgent_channel", map[string]any{"channelName": channelName})
+		}
+	default:
+		return ""
+	}
+}
+
 func (a *App) buildFullPushNotificationMessage(rctx request.CTX, contentsConfig string, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
 	explicitMention bool, channelWideMention bool, replyToThreadType string,
 ) *model.PushNotification {
@@ -889,6 +918,9 @@ func (a *App) buildFullPushNotificationMessage(rctx request.CTX, contentsConfig 
 	cfg := a.Config()
 	if contentsConfig != model.GenericNoChannelNotification || channel.Type == model.ChannelTypeDirect {
 		msg.ChannelName = channelName
+		if priorityTitle := PriorityNotificationTitle(post.GetPriority(), post.RootId, channel.Type, channelName, userLocale); priorityTitle != "" {
+			msg.ChannelName = priorityTitle
+		}
 	}
 
 	if a.IsCRTEnabledForUser(rctx, user.Id) {
