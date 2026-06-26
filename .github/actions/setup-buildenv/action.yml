@@ -24,6 +24,7 @@ runs:
       env:
         GO_VERSION: ${{ inputs.go-version }}
       run: |
+        echo "GO_VERSION=${GO_VERSION}" >> "${GITHUB_ENV}"
         CANONICAL="mattermost/mattermost-build-server:${GO_VERSION}"
         if docker manifest inspect "${CANONICAL}" > /dev/null 2>&1; then
           echo "artifact-name=" >> "${GITHUB_OUTPUT}"
@@ -33,14 +34,10 @@ runs:
     - name: Build regular image
       if: ${{ steps.resolve.outputs.artifact-name != '' }}
       shell: bash
-      env:
-        GO_VERSION: ${{ inputs.go-version }}
       run: docker build -t "mattermost/mattermost-build-server:${GO_VERSION}" - < server/build/Dockerfile.buildenv
     - name: Save and upload regular image
       if: ${{ steps.resolve.outputs.artifact-name != '' }}
       shell: bash
-      env:
-        GO_VERSION: ${{ inputs.go-version }}
       run: |
         mkdir -p /tmp/buildenv-save
         docker save "mattermost/mattermost-build-server:${GO_VERSION}" | gzip > /tmp/buildenv-save/image.tar.gz
@@ -67,8 +64,6 @@ runs:
       id: resolve-fips
       if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
       shell: bash
-      env:
-        GO_VERSION: ${{ inputs.go-version }}
       run: |
         CANONICAL="mattermost/mattermost-build-server-fips:${GO_VERSION}"
         if docker manifest inspect "${CANONICAL}" > /dev/null 2>&1; then
@@ -79,14 +74,10 @@ runs:
     - name: Build FIPS image
       if: ${{ steps.resolve-fips.outputs.artifact-name != '' }}
       shell: bash
-      env:
-        GO_VERSION: ${{ inputs.go-version }}
       run: docker build -t "mattermost/mattermost-build-server-fips:${GO_VERSION}" - < server/build/Dockerfile.buildenv-fips
     - name: Save and upload FIPS image
       if: ${{ steps.resolve-fips.outputs.artifact-name != '' }}
       shell: bash
-      env:
-        GO_VERSION: ${{ inputs.go-version }}
       run: |
         mkdir -p /tmp/buildenv-fips-save
         docker save "mattermost/mattermost-build-server-fips:${GO_VERSION}" | gzip > /tmp/buildenv-fips-save/image.tar.gz
