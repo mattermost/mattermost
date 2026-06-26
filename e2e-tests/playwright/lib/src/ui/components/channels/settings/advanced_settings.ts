@@ -15,8 +15,13 @@ export default class AdvancedSettings {
     readonly ctrlEnterEditButton;
     readonly postFormattingEditButton;
     readonly joinLeaveEditButton;
+    readonly autoStatusUpdateEditButton;
     readonly scrollPositionEditButton;
     readonly syncDraftsEditButton;
+
+    readonly autoStatusUpdateOnRadio;
+    readonly autoStatusUpdateOffRadio;
+    readonly saveButton;
 
     constructor(container: Locator) {
         this.container = container;
@@ -28,11 +33,29 @@ export default class AdvancedSettings {
         this.ctrlEnterEditButton = container.locator('#advancedCtrlSendEdit');
         this.postFormattingEditButton = container.locator('#formattingEdit');
         this.joinLeaveEditButton = container.locator('#joinLeaveEdit');
+        this.autoStatusUpdateEditButton = container.locator('#autoStatusUpdateEdit');
         this.scrollPositionEditButton = container.locator('#unread_scroll_positionEdit');
         this.syncDraftsEditButton = container.locator('#syncDraftsEdit');
+
+        // Automatic status updates section controls
+        this.autoStatusUpdateOnRadio = container.locator('#autoStatusUpdateOn');
+        this.autoStatusUpdateOffRadio = container.locator('#autoStatusUpdateOff');
+        this.saveButton = container.locator('#saveSetting');
     }
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
+    }
+
+    async setAutoStatusUpdate(enabled: boolean) {
+        await expect(this.autoStatusUpdateEditButton).toBeVisible();
+        await this.autoStatusUpdateEditButton.click();
+
+        const radio = enabled ? this.autoStatusUpdateOnRadio : this.autoStatusUpdateOffRadio;
+        await expect(radio).toBeVisible();
+        await radio.check();
+
+        await this.saveButton.click();
+        await expect(this.autoStatusUpdateEditButton).toBeVisible();
     }
 }

@@ -46,6 +46,7 @@ describe('components/logged_in/LoggedIn', () => {
         currentUser: {} as UserProfile,
         mfaRequired: false,
         customProfileAttributesEnabled: false,
+        autoStatusUpdateEnabled: true,
         actions: {
             autoUpdateTimezone: jest.fn(),
             getChannelURLAction: jest.fn(),
