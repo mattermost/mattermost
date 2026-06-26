@@ -4,9 +4,12 @@
 package model
 
 import (
+	"slices"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestChannelModeratedPermissionsChangedByPatch(t *testing.T) {
@@ -302,6 +305,172 @@ func TestAddAncillaryPermissions(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			permissions := AddAncillaryPermissions(tc.Permissions)
 			assert.Equal(t, permissions, tc.Expected)
+		})
+	}
+}
+
+func TestMakeDefaultRolesContainsNewManagerRoles(t *testing.T) {
+	roles := MakeDefaultRoles()
+
+	t.Run("system_admin includes manage_oauth by default", func(t *testing.T) {
+		role, ok := roles[SystemAdminRoleId]
+		require.True(t, ok, "system_admin role should exist in MakeDefaultRoles")
+		assert.True(t, slices.Contains(role.Permissions, PermissionManageOAuth.Id),
+			"system_admin should include manage_oauth")
+		assert.True(t, slices.ContainsFunc(AllPermissions, func(permission *Permission) bool {
+			return permission.Id == PermissionManageOAuth.Id
+		}), "manage_oauth should be part of AllPermissions")
+		assert.False(t, slices.ContainsFunc(DeprecatedPermissions, func(permission *Permission) bool {
+			return permission.Id == PermissionManageOAuth.Id
+		}), "manage_oauth should not remain deprecated")
+	})
+}
+
+func TestRoleIsValidWithoutId(t *testing.T) {
+	validRole := func() *Role {
+		return &Role{
+			Name:        "test_role",
+			DisplayName: "Test Role",
+			Description: "A test role.",
+			Permissions: []string{PermissionCreatePost.Id},
+		}
+	}
+
+	t.Run("valid role returns true", func(t *testing.T) {
+		assert.True(t, validRole().IsValidWithoutId())
+	})
+
+	t.Run("empty name", func(t *testing.T) {
+		r := validRole()
+		r.Name = ""
+		assert.False(t, r.IsValidWithoutId())
+	})
+
+	t.Run("name too long", func(t *testing.T) {
+		r := validRole()
+		r.Name = strings.Repeat("a", RoleNameMaxLength+1)
+		assert.False(t, r.IsValidWithoutId())
+	})
+
+	t.Run("name with invalid characters", func(t *testing.T) {
+		r := validRole()
+		r.Name = "invalid-name"
+		assert.False(t, r.IsValidWithoutId())
+	})
+
+	t.Run("empty display name", func(t *testing.T) {
+		r := validRole()
+		r.DisplayName = ""
+		assert.False(t, r.IsValidWithoutId())
+	})
+
+	t.Run("display name too long", func(t *testing.T) {
+		r := validRole()
+		r.DisplayName = strings.Repeat("a", RoleDisplayNameMaxLength+1)
+		assert.False(t, r.IsValidWithoutId())
+	})
+
+	t.Run("description too long", func(t *testing.T) {
+		r := validRole()
+		r.Description = strings.Repeat("a", RoleDescriptionMaxLength+1)
+		assert.False(t, r.IsValidWithoutId())
+	})
+
+	t.Run("unknown permission", func(t *testing.T) {
+		r := validRole()
+		r.Permissions = []string{"not_a_real_permission"}
+		assert.False(t, r.IsValidWithoutId())
+	})
+
+	t.Run("no permissions is valid", func(t *testing.T) {
+		r := validRole()
+		r.Permissions = nil
+		assert.True(t, r.IsValidWithoutId())
+	})
+}
+
+func TestRoleIsValid(t *testing.T) {
+	validRole := func() *Role {
+		return &Role{
+			Id:          NewId(),
+			Name:        "test_role",
+			DisplayName: "Test Role",
+			Permissions: []string{PermissionCreatePost.Id},
+		}
+	}
+
+	t.Run("valid role returns true", func(t *testing.T) {
+		assert.True(t, validRole().IsValid())
+	})
+
+	t.Run("empty id", func(t *testing.T) {
+		r := validRole()
+		r.Id = ""
+		assert.False(t, r.IsValid())
+	})
+
+	t.Run("invalid id", func(t *testing.T) {
+		r := validRole()
+		r.Id = "not-a-valid-id!"
+		assert.False(t, r.IsValid())
+	})
+
+	t.Run("propagates IsValidWithoutId result", func(t *testing.T) {
+		r := validRole()
+		r.DisplayName = ""
+		assert.False(t, r.IsValid())
+	})
+}
+
+func TestIsValidChannelMemberRoles(t *testing.T) {
+	tests := []struct {
+		name  string
+		roles string
+		valid bool
+	}{
+		{name: "channel user only", roles: ChannelUserRoleId, valid: true},
+		{name: "channel user and admin", roles: ChannelUserRoleId + " " + ChannelAdminRoleId, valid: true},
+		{name: "channel guest only", roles: ChannelGuestRoleId, valid: true},
+		{name: "custom role with channel user", roles: ChannelUserRoleId + " custom_role", valid: true},
+		{name: "prefixed custom team role with channel user", roles: ChannelUserRoleId + " team_custom", valid: true},
+		{name: "prefixed custom system role with channel user", roles: ChannelUserRoleId + " system_custom", valid: true},
+		{name: "team user with channel user", roles: ChannelUserRoleId + " " + TeamUserRoleId, valid: false},
+		{name: "team post all with channel user", roles: ChannelUserRoleId + " " + TeamPostAllRoleId, valid: false},
+		{name: "system user with channel user", roles: ChannelUserRoleId + " " + SystemUserRoleId, valid: false},
+		{name: "system manager with channel user", roles: ChannelUserRoleId + " " + SystemManagerRoleId, valid: false},
+		{name: "system post all with channel user", roles: ChannelUserRoleId + " " + SystemPostAllRoleId, valid: false},
+		{name: "system read only admin with channel user", roles: ChannelUserRoleId + " " + SystemReadOnlyAdminRoleId, valid: false},
+		{name: "custom group user with channel user", roles: ChannelUserRoleId + " " + CustomGroupUserRoleId, valid: false},
+		{name: "system custom group admin with channel user", roles: ChannelUserRoleId + " " + SystemCustomGroupAdminRoleId, valid: false},
+		{name: "invalid role name", roles: "invalid-role", valid: false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.valid, IsValidChannelMemberRoles(tc.roles))
+		})
+	}
+}
+
+func TestIsBuiltInRole(t *testing.T) {
+	tests := []struct {
+		name     string
+		roleName string
+		builtIn  bool
+	}{
+		{name: "channel user", roleName: ChannelUserRoleId, builtIn: true},
+		{name: "system manager", roleName: SystemManagerRoleId, builtIn: true},
+		{name: "system custom group admin", roleName: SystemCustomGroupAdminRoleId, builtIn: true},
+		// custom_group_user is built-in even though its role.BuiltIn flag is false.
+		{name: "custom group user", roleName: CustomGroupUserRoleId, builtIn: true},
+		{name: "custom role", roleName: "custom_role", builtIn: false},
+		{name: "prefixed custom system role", roleName: "system_custom", builtIn: false},
+		{name: "empty", roleName: "", builtIn: false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.builtIn, IsBuiltInRole(tc.roleName))
 		})
 	}
 }
