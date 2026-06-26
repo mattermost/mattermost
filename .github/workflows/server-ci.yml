@@ -30,8 +30,8 @@ permissions:
   contents: read
 
 jobs:
-  go:
-    name: Compute Go Version
+  buildenv:
+    name: Build Environment
     runs-on: ubuntu-22.04
     permissions:
       contents: read
@@ -75,7 +75,7 @@ jobs:
           go-version: ${{ steps.calculate.outputs.GO_VERSION }}
   check-mocks:
     name: Check mocks
-    needs: go
+    needs: buildenv
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout mattermost project
@@ -94,7 +94,7 @@ jobs:
           fi
   check-go-mod-tidy:
     name: Check go mod tidy
-    needs: go
+    needs: buildenv
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout mattermost project
@@ -113,7 +113,7 @@ jobs:
           fi
   check-style:
     name: check-style
-    needs: go
+    needs: buildenv
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout mattermost project
@@ -125,7 +125,7 @@ jobs:
           run: make check-style
   check-gen-serialized:
     name: Check serialization methods for hot structs
-    needs: go
+    needs: buildenv
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout mattermost project
@@ -144,7 +144,7 @@ jobs:
           fi
   check-mattermost-vet-api:
     name: Vet API
-    needs: go
+    needs: buildenv
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout mattermost project
@@ -156,7 +156,7 @@ jobs:
           run: make vet-api
   check-migrations:
     name: Check migration files
-    needs: go
+    needs: buildenv
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout mattermost project
@@ -175,7 +175,7 @@ jobs:
           fi
   check-email-templates:
     name: Generate email templates
-    needs: go
+    needs: buildenv
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout mattermost project
@@ -194,7 +194,7 @@ jobs:
           fi
   check-store-layers:
     name: Check store layers
-    needs: go
+    needs: buildenv
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout mattermost project
@@ -213,7 +213,7 @@ jobs:
           fi
   check-default-roles-permissions:
     name: Check default roles permissions
-    needs: go
+    needs: buildenv
     runs-on: ubuntu-22.04
     permissions:
       contents: read
@@ -251,7 +251,7 @@ jobs:
           fi
   check-mmctl-docs:
     name: Check mmctl docs
-    needs: go
+    needs: buildenv
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout mattermost-server
@@ -275,7 +275,7 @@ jobs:
   # -- Sharded into 4 parallel runners for ~88% wall-time improvement --
   test-postgres-normal:
     name: Postgres (shard ${{ matrix.shard }})
-    needs: go
+    needs: buildenv
     strategy:
       fail-fast: false # Let all shards complete so we get full test results
       matrix:
@@ -293,9 +293,9 @@ jobs:
       # Each shard gets a unique artifact name so they don't collide
       logsartifact: "postgres-server-test-logs-shard-${{ matrix.shard }}"
       enablecoverage: ${{ github.event_name != 'pull_request' || !startsWith(github.event.pull_request.base.ref, 'release-') }}
-      go-version: ${{ needs.go.outputs.version }}
+      go-version: ${{ needs.buildenv.outputs.version }}
       fips-enabled: false
-      build-image: ${{ needs.go.outputs.image }}
+      build-image: ${{ needs.buildenv.outputs.image }}
       shard-index: ${{ matrix.shard }}
       shard-total: 4
   # -- Merge test results (handles both single-run and future sharded runs) --
@@ -315,7 +315,7 @@ jobs:
 
   test-elasticsearch-v8:
     name: Elasticsearch v8 Compatibility
-    needs: go
+    needs: buildenv
     permissions:
       contents: read
       actions: write
@@ -325,15 +325,15 @@ jobs:
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: elasticsearch-v8-server-test-logs
-      go-version: ${{ needs.go.outputs.version }}
+      go-version: ${{ needs.buildenv.outputs.version }}
       fips-enabled: false
-      build-image: ${{ needs.go.outputs.image }}
+      build-image: ${{ needs.buildenv.outputs.image }}
       elasticsearch-version: "8.9.0"
       test-target: "test-server-elasticsearch"
 
   test-opensearch-v2:
     name: OpenSearch v2 Compatibility
-    needs: go
+    needs: buildenv
     permissions:
       contents: read
       actions: write
@@ -343,18 +343,18 @@ jobs:
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: opensearch-v2-server-test-logs
-      go-version: ${{ needs.go.outputs.version }}
+      go-version: ${{ needs.buildenv.outputs.version }}
       fips-enabled: false
-      build-image: ${{ needs.go.outputs.image }}
+      build-image: ${{ needs.buildenv.outputs.image }}
       opensearch-version: "2.19.0"
       test-target: "test-server-opensearch"
 
   # FIPS tests: run on PRs when go.mod changed or branch name contains "fips".
   # Sharded for fast iteration. Weekly workflow provides regular full coverage.
   test-postgres-normal-fips:
-    if: contains(github.head_ref, 'fips') || needs.go.outputs.gomod-changed == 'true'
+    if: contains(github.head_ref, 'fips') || needs.buildenv.outputs.gomod-changed == 'true'
     name: "Postgres FIPS (shard ${{ matrix.shard }})"
-    needs: go
+    needs: buildenv
     strategy:
       fail-fast: false
       matrix:
@@ -371,9 +371,9 @@ jobs:
       datasource: postgres://mmuser:mostest-fips-test@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: "postgres-server-fips-test-logs-shard-${{ matrix.shard }}"
-      go-version: ${{ needs.go.outputs.version }}
+      go-version: ${{ needs.buildenv.outputs.version }}
       fips-enabled: true
-      build-image: ${{ needs.go.outputs.image-fips }}
+      build-image: ${{ needs.buildenv.outputs.image-fips }}
       shard-index: ${{ matrix.shard }}
       shard-total: 4
   merge-postgres-fips-test-results:
@@ -390,7 +390,7 @@ jobs:
 
   test-mmctl:
     name: Run mmctl tests
-    needs: go
+    needs: buildenv
     permissions:
       contents: read
       actions: write
@@ -402,13 +402,13 @@ jobs:
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: mmctl-test-logs
-      go-version: ${{ needs.go.outputs.version }}
+      go-version: ${{ needs.buildenv.outputs.version }}
       fips-enabled: false
-      build-image: ${{ needs.go.outputs.image }}
+      build-image: ${{ needs.buildenv.outputs.image }}
   test-mmctl-fips:
-    if: contains(github.head_ref, 'fips') || needs.go.outputs.gomod-changed == 'true'
+    if: contains(github.head_ref, 'fips') || needs.buildenv.outputs.gomod-changed == 'true'
     name: Run mmctl tests (FIPS)
-    needs: go
+    needs: buildenv
     permissions:
       contents: read
       actions: write
@@ -422,13 +422,13 @@ jobs:
       datasource: postgres://mmuser:mostest-fips-test@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: mmctl-fips-test-logs
-      go-version: ${{ needs.go.outputs.version }}
+      go-version: ${{ needs.buildenv.outputs.version }}
       fips-enabled: true
-      build-image: ${{ needs.go.outputs.image-fips }}
+      build-image: ${{ needs.buildenv.outputs.image-fips }}
 
   build-mattermost-server:
     name: Build mattermost server app
-    needs: go
+    needs: buildenv
     permissions:
       contents: read
       actions: write
