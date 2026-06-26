@@ -1,0 +1,14 @@
+// Rename this file (and remove comments) to e2etest.config.json to force some server settings to e2e engine
+//
+// Note that e2etest.config.json will be ignored in git.
+//
+// Example: you can use the following json to enable logging (disabled by default due
+// to excesive noise)
+{
+    "LogSettings": {
+        "ConsoleLevel": "INFO",
+        "EnableConsole": true,
+        "ConsoleJson": true,
+        "EnableFile": false
+    }
+}
