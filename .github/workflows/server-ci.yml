@@ -62,14 +62,7 @@ jobs:
         with:
           files: |
             **/go.mod
-      - name: Setup regular build environment
-        id: buildenv
-        uses: ./.github/actions/setup-buildenv
-        with:
-          go-version: ${{ steps.calculate.outputs.GO_VERSION }}
-      - name: Setup FIPS build environment
-        id: buildenv-fips
-        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+      - name: Setup build environment
         uses: ./.github/actions/setup-buildenv
         with:
           go-version: ${{ steps.calculate.outputs.GO_VERSION }}
