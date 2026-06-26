@@ -1398,7 +1398,10 @@ func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID strin
 		}
 
 		if !role.SchemeManaged {
-			// The role is not scheme-managed, so it's OK to apply it to the explicit roles field.
+			if model.IsBuiltInRole(roleName) && !model.IsChannelScopedBuiltInRole(roleName) {
+				err = model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.scheme_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
+				return nil, err
+			}
 			newExplicitRoles = append(newExplicitRoles, roleName)
 		} else {
 			// The role is scheme-managed, so need to check if it is part of the scheme for this channel or not.
@@ -2320,7 +2323,23 @@ func (s *Server) getChannelsForTeamForUser(rctx request.CTX, teamID string, user
 }
 
 func (a *App) GetChannelsForTeamForUser(rctx request.CTX, teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
-	return a.Srv().getChannelsForTeamForUser(rctx, teamID, userID, opts)
+	channels, appErr := a.Srv().getChannelsForTeamForUser(rctx, teamID, userID, opts)
+	if appErr != nil {
+		return nil, appErr
+	}
+	// Hydrate the policy action set so the frontend can distinguish a
+	// membership policy from a permission-only one (e.g. file upload) without
+	// a second round-trip. Without this the guest-invite picker reads the bare
+	// PolicyEnforced flag and wrongly hides permission-only channels. No-op for
+	// channels without an attached policy, keeping the no-policy path free.
+	if appErr := a.HydrateChannelsPolicyActions(rctx, channels); appErr != nil {
+		rctx.Logger().Warn("Failed to hydrate channel policy actions for team channels; returning channels without action map",
+			mlog.String("team_id", teamID),
+			mlog.String("user_id", userID),
+			mlog.Err(appErr),
+		)
+	}
+	return channels, nil
 }
 
 func (a *App) GetChannelsForUser(rctx request.CTX, userID string, includeDeleted bool, lastDeleteAt, pageSize int, fromChannelID string) (model.ChannelList, *model.AppError) {
@@ -3371,6 +3390,17 @@ func (a *App) SearchChannels(rctx request.CTX, teamID string, term string) (mode
 		return nil, model.NewAppError("SearchChannels", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// Hydrate policy actions so search results carry the same action map as the
+	// bootstrap channel list; otherwise a search would overwrite a hydrated
+	// channel in the frontend store with an unhydrated copy. No-op without a
+	// policy attached.
+	if appErr := a.HydrateChannelsPolicyActions(rctx, channelList); appErr != nil {
+		rctx.Logger().Warn("Failed to hydrate channel policy actions for search results; returning channels without action map",
+			mlog.String("team_id", teamID),
+			mlog.Err(appErr),
+		)
+	}
+
 	return channelList, nil
 }
 
@@ -3382,6 +3412,18 @@ func (a *App) SearchChannelsForUser(rctx request.CTX, userID, teamID, term strin
 	channelList, err := a.Srv().Store().Channel().SearchForUserInTeam(userID, teamID, term, includeDeleted)
 	if err != nil {
 		return nil, model.NewAppError("SearchChannelsForUser", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Hydrate policy actions so search results carry the same action map as the
+	// bootstrap channel list; otherwise a search would overwrite a hydrated
+	// channel in the frontend store with an unhydrated copy. No-op without a
+	// policy attached.
+	if appErr := a.HydrateChannelsPolicyActions(rctx, channelList); appErr != nil {
+		rctx.Logger().Warn("Failed to hydrate channel policy actions for user search results; returning channels without action map",
+			mlog.String("team_id", teamID),
+			mlog.String("user_id", userID),
+			mlog.Err(appErr),
+		)
 	}
 
 	return channelList, nil
