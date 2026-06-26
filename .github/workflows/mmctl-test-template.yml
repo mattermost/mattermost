@@ -26,11 +26,6 @@ on:
         required: false
         type: string
         default: ""
-      build-image-artifact:
-        description: "Workflow artifact name containing the saved build image tarball. Empty = pull from registry."
-        required: false
-        type: string
-        default: ""
     secrets:
       # Only if fips-enabled is true
       DOCKERHUB_USERNAME:
@@ -72,7 +67,6 @@ jobs:
       - name: Use build environment
         uses: ./.github/actions/load-buildenv
         with:
-          artifact-name: ${{ inputs.build-image-artifact }}
       - name: Setup BUILD_IMAGE
         id: build
         env:

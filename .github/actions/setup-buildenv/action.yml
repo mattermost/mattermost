@@ -1,76 +1,99 @@
 name: Setup build environment
 description: >
-  Resolves the build-server Docker image for this workflow run. If the
-  canonical version-tagged image already exists on Docker Hub, it is used
-  as-is. If not (e.g. in-flight Go version bump), the image is built from the
-  Dockerfile, saved as a workflow artifact, and the artifact name is returned
-  so downstream jobs can load it via load-buildenv.
+  Resolves the build-server Docker images for this workflow run. If the
+  canonical version-tagged images (mattermost-build-server and
+  mattermost-build-server-fips) already exist on Docker Hub, nothing is
+  built. If not (e.g. in-flight Go version bump), the missing images are
+  built from their Dockerfiles and uploaded as workflow artifacts for
+  load-buildenv to consume in downstream jobs. The FIPS image requires
+  Docker Hub and Chainguard authentication and is skipped on fork PRs
+  where those credentials are unavailable.
 
 inputs:
   go-version:
     description: "Go version (e.g. 1.26.3)"
     required: true
-  fips-enabled:
-    description: "Set to 'true' to use the FIPS_ENABLED build image"
-    required: false
-    default: "false"
-
-outputs:
-  artifact-name:
-    description: "Artifact name for load-buildenv in downstream jobs; empty if canonical image was used"
-    value: ${{ steps.resolve.outputs.artifact-name }}
 
 runs:
   using: composite
   steps:
+    # ── Regular ────────────────────────────────────────────────────────
+    - name: Resolve regular image
+      id: resolve
+      shell: bash
+      env:
+        GO_VERSION: ${{ inputs.go-version }}
+      run: |
+        CANONICAL="mattermost/mattermost-build-server:${GO_VERSION}"
+        if docker manifest inspect "${CANONICAL}" > /dev/null 2>&1; then
+          echo "artifact-name=" >> "${GITHUB_OUTPUT}"
+        else
+          echo "artifact-name=buildenv-image" >> "${GITHUB_OUTPUT}"
+        fi
+    - name: Build regular image
+      if: ${{ steps.resolve.outputs.artifact-name != '' }}
+      shell: bash
+      env:
+        GO_VERSION: ${{ inputs.go-version }}
+      run: docker build -t "mattermost/mattermost-build-server:${GO_VERSION}" - < server/build/Dockerfile.buildenv
+    - name: Save and upload regular image
+      if: ${{ steps.resolve.outputs.artifact-name != '' }}
+      shell: bash
+      env:
+        GO_VERSION: ${{ inputs.go-version }}
+      run: |
+        mkdir -p /tmp/buildenv-save
+        docker save "mattermost/mattermost-build-server:${GO_VERSION}" | gzip > /tmp/buildenv-save/image.tar.gz
+    - name: Upload regular image artifact
+      if: ${{ steps.resolve.outputs.artifact-name != '' }}
+      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+      with:
+        name: buildenv-image
+        path: /tmp/buildenv-save/image.tar.gz
+        retention-days: 1
+    # ── FIPS (skipped on fork PRs) ─────────────────────────────────────
     - name: Docker Hub login
-      if: ${{ inputs.fips-enabled == 'true' }}
+      if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
       uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
       with:
         username: ${{ env.DOCKERHUB_USERNAME }}
         password: ${{ env.DOCKERHUB_TOKEN }}
     - name: Setup Chainctl
-      if: ${{ inputs.fips-enabled == 'true' }}
+      if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
       uses: chainguard-dev/setup-chainctl@c125f765e82b09a42af3185f3214465314d75c5d # v0.5.0
       with:
         identity: ${{ env.CHAINCTL_IDENTITY }}
-    - name: Resolve image
-      id: resolve
+    - name: Resolve FIPS image
+      id: resolve-fips
+      if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
       shell: bash
       env:
         GO_VERSION: ${{ inputs.go-version }}
-        FIPS_ENABLED: ${{ inputs.fips-enabled }}
       run: |
-        if [[ "${FIPS_ENABLED}" == 'true' ]]; then
-          CANONICAL="mattermost/mattermost-build-server-fips:${GO_VERSION}"
-          ARTIFACT_NAME="buildenv-fips-image"
-          DOCKERFILE="server/build/Dockerfile.buildenv-fips"
-        else
-          CANONICAL="mattermost/mattermost-build-server:${GO_VERSION}"
-          ARTIFACT_NAME="buildenv-image"
-          DOCKERFILE="server/build/Dockerfile.buildenv"
-        fi
-        echo "canonical=${CANONICAL}" >> "${GITHUB_OUTPUT}"
-        echo "dockerfile=${DOCKERFILE}" >> "${GITHUB_OUTPUT}"
+        CANONICAL="mattermost/mattermost-build-server-fips:${GO_VERSION}"
         if docker manifest inspect "${CANONICAL}" > /dev/null 2>&1; then
           echo "artifact-name=" >> "${GITHUB_OUTPUT}"
         else
-          echo "artifact-name=${ARTIFACT_NAME}" >> "${GITHUB_OUTPUT}"
+          echo "artifact-name=buildenv-fips-image" >> "${GITHUB_OUTPUT}"
         fi
-    - name: Build image
-      if: ${{ steps.resolve.outputs.artifact-name != '' }}
+    - name: Build FIPS image
+      if: ${{ steps.resolve-fips.outputs.artifact-name != '' }}
       shell: bash
-      run: docker build -t "${{ steps.resolve.outputs.canonical }}" - < "${{ steps.resolve.outputs.dockerfile }}"
-    - name: Save image
-      if: ${{ steps.resolve.outputs.artifact-name != '' }}
+      env:
+        GO_VERSION: ${{ inputs.go-version }}
+      run: docker build -t "mattermost/mattermost-build-server-fips:${GO_VERSION}" - < server/build/Dockerfile.buildenv-fips
+    - name: Save and upload FIPS image
+      if: ${{ steps.resolve-fips.outputs.artifact-name != '' }}
       shell: bash
+      env:
+        GO_VERSION: ${{ inputs.go-version }}
       run: |
-        mkdir -p /tmp/buildenv-save
-        docker save "${{ steps.resolve.outputs.canonical }}" | gzip > /tmp/buildenv-save/image.tar.gz
-    - name: Upload image artifact
-      if: ${{ steps.resolve.outputs.artifact-name != '' }}
+        mkdir -p /tmp/buildenv-fips-save
+        docker save "mattermost/mattermost-build-server-fips:${GO_VERSION}" | gzip > /tmp/buildenv-fips-save/image.tar.gz
+    - name: Upload FIPS image artifact
+      if: ${{ steps.resolve-fips.outputs.artifact-name != '' }}
       uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
       with:
-        name: ${{ steps.resolve.outputs.artifact-name }}
-        path: /tmp/buildenv-save/image.tar.gz
+        name: buildenv-fips-image
+        path: /tmp/buildenv-fips-save/image.tar.gz
         retention-days: 1

@@ -10,10 +10,6 @@ inputs:
   image:
     description: "Docker image reference"
     required: true
-  artifact-name:
-    description: "Artifact name from setup-buildenv. Empty = pull from registry."
-    required: false
-    default: ""
   run:
     description: "Bash script to execute inside the container"
     required: true
@@ -22,8 +18,6 @@ runs:
   using: composite
   steps:
     - uses: ./.github/actions/load-buildenv
-      with:
-        artifact-name: ${{ inputs.artifact-name }}
     - shell: bash
       env:
         IMAGE: ${{ inputs.image }}
