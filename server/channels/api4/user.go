@@ -2649,7 +2649,7 @@ func revokeAllSessionsAllUsers(c *Context, w http.ResponseWriter, r *http.Reques
 	auditRec := c.MakeAuditRecord(model.AuditEventRevokeAllSessionsAllUsers, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
-	if err := c.App.RevokeSessionsFromAllUsers(); err != nil {
+	if err := c.App.RevokeSessionsFromAllUsers(c.AppContext); err != nil {
 		c.Err = err
 		return
 	}
