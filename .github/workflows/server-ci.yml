@@ -17,8 +17,6 @@ on:
       - ".github/workflows/server-test-template.yml"
       - ".github/workflows/server-test-merge-template.yml"
       - ".github/workflows/mmctl-test-template.yml"
-      - "!server/build/Dockerfile.buildenv"
-      - "!server/build/Dockerfile.buildenv-fips"
       - "tools/mattermost-govet/**"
       - "!server/**/*.md"
       - "!server/NOTICE.txt"
@@ -38,9 +36,17 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
+      actions: write
+      id-token: write    # for chainguard (FIPS base image pull)
     outputs:
       version: ${{ steps.calculate.outputs.GO_VERSION }}
       gomod-changed: ${{ steps.changed-files.outputs.any_changed }}
+      image: ${{ steps.buildenv.outputs.image }}
+      image-fips: ${{ steps.buildenv-fips.outputs.image }}
+      image-artifact: ${{ steps.buildenv.outputs.artifact-name }}
+      image-fips-artifact: ${{ steps.buildenv-fips.outputs.artifact-name }}
+    env:
+      CHAINCTL_IDENTITY: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -56,24 +62,45 @@ jobs:
         with:
           files: |
             **/go.mod
+      - name: Setup regular build environment
+        id: buildenv
+        uses: ./.github/actions/setup-buildenv
+        with:
+          canonical-image: mattermost/mattermost-build-server:${{ steps.calculate.outputs.GO_VERSION }}
+          dev-image: mattermost/mattermost-build-server-dev:${{ github.sha }}
+          artifact-name: buildenv-image
+          dockerfile: server/build/Dockerfile.buildenv
+          is-fork: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
+          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Setup FIPS build environment
+        id: buildenv-fips
+        uses: ./.github/actions/setup-buildenv
+        with:
+          canonical-image: mattermost/mattermost-build-server-fips:${{ steps.calculate.outputs.GO_VERSION }}
+          dev-image: mattermost/mattermost-build-server-fips-dev:${{ github.sha }}
+          artifact-name: buildenv-fips-image
+          dockerfile: server/build/Dockerfile.buildenv-fips
+          is-fork: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
+          chainctl-identity: ${{ env.CHAINCTL_IDENTITY }}
+          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
   check-mocks:
     name: Check mocks
     needs: go
     runs-on: ubuntu-22.04
-    container: mattermost/mattermost-build-server:${{ needs.go.outputs.version }}
-    defaults:
-      run:
-        working-directory: server
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - name: Generate mocks
-        run: make mocks
+      - uses: ./.github/actions/run-in-buildenv
+        with:
+          image: ${{ needs.go.outputs.image }}
+          artifact-name: ${{ needs.go.outputs.image-artifact }}
+          run: make mocks
       - name: Check mocks
         run: |
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           if [ -n "$(git status --porcelain)" ]; then
             echo "Please update the mocks using 'make mocks'"
             git diff
@@ -83,20 +110,18 @@ jobs:
     name: Check go mod tidy
     needs: go
     runs-on: ubuntu-22.04
-    container: mattermost/mattermost-build-server:${{ needs.go.outputs.version }}
-    defaults:
-      run:
-        working-directory: server
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - name: Run go mod tidy
-        run: make modules-tidy
+      - uses: ./.github/actions/run-in-buildenv
+        with:
+          image: ${{ needs.go.outputs.image }}
+          artifact-name: ${{ needs.go.outputs.image-artifact }}
+          run: make modules-tidy
       - name: Check modules
         run: |
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           if [ -n "$(git status --porcelain)" ]; then
             echo "Please tidy up the Go modules using make modules-tidy"
             git diff
@@ -106,35 +131,32 @@ jobs:
     name: check-style
     needs: go
     runs-on: ubuntu-22.04
-    container: mattermost/mattermost-build-server:${{ needs.go.outputs.version }}
-    defaults:
-      run:
-        working-directory: server
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - name: Run golangci
-        run: make check-style
+      - uses: ./.github/actions/run-in-buildenv
+        with:
+          image: ${{ needs.go.outputs.image }}
+          artifact-name: ${{ needs.go.outputs.image-artifact }}
+          run: make check-style
   check-gen-serialized:
     name: Check serialization methods for hot structs
     needs: go
     runs-on: ubuntu-22.04
-    container: mattermost/mattermost-build-server:${{ needs.go.outputs.version }}
-    defaults:
-      run:
-        working-directory: server
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - name: Run make-gen-serialized
-        run: make gen-serialized
+      - uses: ./.github/actions/run-in-buildenv
+        with:
+          image: ${{ needs.go.outputs.image }}
+          artifact-name: ${{ needs.go.outputs.image-artifact }}
+          run: make gen-serialized
       - name: Check serialized
         run: |
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           if [ -n "$(git status --porcelain)" ]; then
             echo "Please update the serialized files using 'make gen-serialized'"
             git diff
@@ -144,35 +166,32 @@ jobs:
     name: Vet API
     needs: go
     runs-on: ubuntu-22.04
-    container: mattermost/mattermost-build-server:${{ needs.go.outputs.version }}
-    defaults:
-      run:
-        working-directory: server
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - name: Run mattermost-vet-api
-        run: make vet-api
+      - uses: ./.github/actions/run-in-buildenv
+        with:
+          image: ${{ needs.go.outputs.image }}
+          artifact-name: ${{ needs.go.outputs.image-artifact }}
+          run: make vet-api
   check-migrations:
     name: Check migration files
     needs: go
     runs-on: ubuntu-22.04
-    container: mattermost/mattermost-build-server:${{ needs.go.outputs.version }}
-    defaults:
-      run:
-        working-directory: server
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - name: Extract migrations files
-        run: make migrations-extract
+      - uses: ./.github/actions/run-in-buildenv
+        with:
+          image: ${{ needs.go.outputs.image }}
+          artifact-name: ${{ needs.go.outputs.image-artifact }}
+          run: make migrations-extract
       - name: Check migration files
         run: |
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           if [ -n "$(git status --porcelain)" ]; then
             echo "Please update the migrations using make migrations-extract"
             git diff
@@ -182,22 +201,18 @@ jobs:
     name: Generate email templates
     needs: go
     runs-on: ubuntu-22.04
-    container: mattermost/mattermost-build-server:${{ needs.go.outputs.version }}
-    defaults:
-      run:
-        working-directory: server
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - name: Generate email templates
-        run: |
-          npm install -g mjml@4.9.0
-          make build-templates
+      - uses: ./.github/actions/run-in-buildenv
+        with:
+          image: ${{ needs.go.outputs.image }}
+          artifact-name: ${{ needs.go.outputs.image-artifact }}
+          run: npm install -g mjml@4.9.0 && make build-templates
       - name: Check generated email templates
         run: |
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           if [ -n "$(git status --porcelain)" ]; then
             echo "Please update the email templates using 'make build-templates'"
             git diff
@@ -207,20 +222,18 @@ jobs:
     name: Check store layers
     needs: go
     runs-on: ubuntu-22.04
-    container: mattermost/mattermost-build-server:${{ needs.go.outputs.version }}
-    defaults:
-      run:
-        working-directory: server
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - name: Generate store layers
-        run: make store-layers
+      - uses: ./.github/actions/run-in-buildenv
+        with:
+          image: ${{ needs.go.outputs.image }}
+          artifact-name: ${{ needs.go.outputs.image-artifact }}
+          run: make store-layers
       - name: Check generated code
         run: |
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           if [ -n "$(git status --porcelain)" ]; then
             echo "Please update the store layers using make store-layers"
             git diff
@@ -230,7 +243,6 @@ jobs:
     name: Check default roles permissions
     needs: go
     runs-on: ubuntu-22.04
-    container: mattermost/mattermost-build-server:${{ needs.go.outputs.version }}
     permissions:
       contents: read
     services:
@@ -239,6 +251,8 @@ jobs:
         env:
           POSTGRES_USER: mmuser
           POSTGRES_PASSWORD: mostest
+        ports:
+          - 5432:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 5s
@@ -252,13 +266,19 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
+      - name: Setup Go
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+        with:
+          go-version: ${{ needs.go.outputs.version }}
+      - name: Run setup-go-work
+        run: make setup-go-work
       - name: Generate default roles permissions
         env:
           IS_CI: "true"
+          TEST_DATABASE_POSTGRESQL_DSN: postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10
         run: make default-roles-permissions
       - name: Check generated code
         run: |
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           if [ -n "$(git status --porcelain)" ]; then
             echo "Please update the default roles permissions using make default-roles-permissions"
             git diff
@@ -268,20 +288,18 @@ jobs:
     name: Check mmctl docs
     needs: go
     runs-on: ubuntu-22.04
-    container: mattermost/mattermost-build-server:${{ needs.go.outputs.version }}
-    defaults:
-      run:
-        working-directory: server
     steps:
       - name: Checkout mattermost-server
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
+      - uses: ./.github/actions/run-in-buildenv
+        with:
+          image: ${{ needs.go.outputs.image }}
+          artifact-name: ${{ needs.go.outputs.image-artifact }}
+          run: make mmctl-docs
       - name: Check docs
         run: |
-          echo "Making sure docs are updated"
-          make mmctl-docs
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           if [ -n "$(git status --porcelain)" ]; then
             echo "Please update the mmctl docs using make mmctl-docs"
             git diff
@@ -314,6 +332,8 @@ jobs:
       enablecoverage: ${{ github.event_name != 'pull_request' || !startsWith(github.event.pull_request.base.ref, 'release-') }}
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
+      build-image: ${{ needs.go.outputs.image }}
+      build-image-artifact: ${{ needs.go.outputs.image-artifact }}
       shard-index: ${{ matrix.shard }}
       shard-total: 4
   # -- Merge test results (handles both single-run and future sharded runs) --
@@ -345,6 +365,8 @@ jobs:
       logsartifact: elasticsearch-v8-server-test-logs
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
+      build-image: ${{ needs.go.outputs.image }}
+      build-image-artifact: ${{ needs.go.outputs.image-artifact }}
       elasticsearch-version: "8.9.0"
       test-target: "test-server-elasticsearch"
 
@@ -362,6 +384,8 @@ jobs:
       logsartifact: opensearch-v2-server-test-logs
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
+      build-image: ${{ needs.go.outputs.image }}
+      build-image-artifact: ${{ needs.go.outputs.image-artifact }}
       opensearch-version: "2.19.0"
       test-target: "test-server-opensearch"
 
@@ -389,6 +413,8 @@ jobs:
       logsartifact: "postgres-server-fips-test-logs-shard-${{ matrix.shard }}"
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: true
+      build-image: ${{ needs.go.outputs.image-fips }}
+      build-image-artifact: ${{ needs.go.outputs.image-fips-artifact }}
       shard-index: ${{ matrix.shard }}
       shard-total: 4
   merge-postgres-fips-test-results:
@@ -419,6 +445,8 @@ jobs:
       logsartifact: mmctl-test-logs
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
+      build-image: ${{ needs.go.outputs.image }}
+      build-image-artifact: ${{ needs.go.outputs.image-artifact }}
   test-mmctl-fips:
     if: contains(github.head_ref, 'fips') || needs.go.outputs.gomod-changed == 'true'
     name: Run mmctl tests (FIPS)
@@ -438,6 +466,8 @@ jobs:
       logsartifact: mmctl-fips-test-logs
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: true
+      build-image: ${{ needs.go.outputs.image-fips }}
+      build-image-artifact: ${{ needs.go.outputs.image-fips-artifact }}
 
   build-mattermost-server:
     name: Build mattermost server app
@@ -446,29 +476,20 @@ jobs:
       contents: read
       actions: write
     runs-on: ubuntu-22.04
-    container: mattermost/mattermost-build-server:${{ needs.go.outputs.version }}
-    defaults:
-      run:
-        working-directory: server
-    env:
-      BUILD_NUMBER: "${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}"
-      FIPS_ENABLED: false
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - name: ci/setup-node
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
-        with:
-          node-version-file: ".nvmrc"
-          cache: "npm"
-          cache-dependency-path: "webapp/package-lock.json"
       - name: Build
-        run: |
-          make config-reset
-          make build-cmd
-          make package
+        uses: ./.github/actions/run-in-buildenv
+        with:
+          image: ${{ needs.go.outputs.image }}
+          artifact-name: ${{ needs.go.outputs.image-artifact }}
+          run: |
+            export BUILD_NUMBER="${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}"
+            export FIPS_ENABLED=false
+            make config-reset && make build-cmd && make package
       - name: Persist dist artifacts
         if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0

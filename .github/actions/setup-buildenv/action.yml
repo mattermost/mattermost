@@ -1,0 +1,98 @@
+name: Setup build environment
+description: >
+  Resolves the build-server Docker image for this workflow run. If the
+  canonical version-tagged image already exists on Docker Hub, it is used
+  as-is. If not (in-flight Go version bump), the image is built from the
+  provided Dockerfile, saved as a workflow artifact, and the artifact name
+  is returned so downstream jobs can load it via use-buildenv.
+
+inputs:
+  canonical-image:
+    description: "Version-tagged image to check first (e.g. mattermost/mattermost-build-server:1.26.3)"
+    required: true
+  dev-image:
+    description: "Image tag to use when building locally (e.g. mattermost/mattermost-build-server-dev:abc123)"
+    required: true
+  artifact-name:
+    description: "Workflow artifact name to use when uploading a freshly built image"
+    required: true
+  dockerfile:
+    description: "Path to Dockerfile to build when the canonical image doesn't exist"
+    required: true
+  is-fork:
+    description: "Set to 'true' for fork PRs where secrets are unavailable"
+    required: false
+    default: "false"
+  chainctl-identity:
+    description: "Chainguard identity for private FIPS base images"
+    required: false
+    default: ""
+  dockerhub-username:
+    description: "Docker Hub username for authenticated manifest inspection"
+    required: false
+    default: ""
+  dockerhub-token:
+    description: "Docker Hub token"
+    required: false
+    default: ""
+
+outputs:
+  image:
+    description: "Resolved image reference — canonical if it existed, dev tag if built locally"
+    value: ${{ steps.resolve.outputs.image }}
+  artifact-name:
+    description: "Artifact name for use-buildenv in downstream jobs; empty if canonical image was used"
+    value: ${{ steps.resolve.outputs.artifact-name }}
+
+runs:
+  using: composite
+  steps:
+    - name: Docker Hub login
+      if: ${{ inputs.is-fork != 'true' }}
+      uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
+      with:
+        username: ${{ inputs.dockerhub-username }}
+        password: ${{ inputs.dockerhub-token }}
+    - name: Resolve image
+      id: resolve
+      shell: bash
+      env:
+        CANONICAL: ${{ inputs.canonical-image }}
+        DEV_IMAGE: ${{ inputs.dev-image }}
+        IS_FORK: ${{ inputs.is-fork }}
+      run: |
+        if docker manifest inspect "${CANONICAL}" > /dev/null 2>&1; then
+          echo "image=${CANONICAL}" >> "${GITHUB_OUTPUT}"
+          echo "artifact-name=" >> "${GITHUB_OUTPUT}"
+          echo "build-needed=false" >> "${GITHUB_OUTPUT}"
+        elif [[ "${IS_FORK}" != 'true' ]]; then
+          echo "image=${DEV_IMAGE}" >> "${GITHUB_OUTPUT}"
+          echo "artifact-name=${{ inputs.artifact-name }}" >> "${GITHUB_OUTPUT}"
+          echo "build-needed=true" >> "${GITHUB_OUTPUT}"
+        else
+          echo "image=${CANONICAL}" >> "${GITHUB_OUTPUT}"
+          echo "artifact-name=" >> "${GITHUB_OUTPUT}"
+          echo "build-needed=false" >> "${GITHUB_OUTPUT}"
+        fi
+    - name: Setup Chainctl
+      if: ${{ inputs.chainctl-identity != '' && steps.resolve.outputs.build-needed == 'true' }}
+      uses: chainguard-dev/setup-chainctl@c125f765e82b09a42af3185f3214465314d75c5d # v0.5.0
+      with:
+        identity: ${{ inputs.chainctl-identity }}
+    - name: Build image
+      if: ${{ steps.resolve.outputs.build-needed == 'true' }}
+      shell: bash
+      run: docker build -t "${{ steps.resolve.outputs.image }}" - < "${{ inputs.dockerfile }}"
+    - name: Save image
+      if: ${{ steps.resolve.outputs.build-needed == 'true' }}
+      shell: bash
+      run: |
+        mkdir -p /tmp/buildenv-save
+        docker save "${{ steps.resolve.outputs.image }}" | gzip > /tmp/buildenv-save/image.tar.gz
+    - name: Upload image artifact
+      if: ${{ steps.resolve.outputs.build-needed == 'true' }}
+      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: /tmp/buildenv-save/image.tar.gz
+        retention-days: 1

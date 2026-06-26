@@ -1,0 +1,50 @@
+name: Run in build environment
+description: >
+  Loads the build-server image (from a workflow artifact or Docker Hub) then
+  runs the given bash script inside it, with the repository mounted at
+  /mattermost and the working directory set to /mattermost/server.
+  All GITHUB_* environment variables from the runner are forwarded into the
+  container so scripts can reference GITHUB_HEAD_REF, GITHUB_RUN_ID, etc.
+
+inputs:
+  image:
+    description: "Docker image reference (from setup-buildenv outputs)"
+    required: true
+  artifact-name:
+    description: "Artifact name from setup-buildenv. Empty = pull from registry."
+    required: false
+    default: ""
+  run:
+    description: "Bash script to execute inside the container"
+    required: true
+  dockerhub-username:
+    description: "Docker Hub username (required for private FIPS image)"
+    required: false
+    default: ""
+  dockerhub-token:
+    description: "Docker Hub token"
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - uses: ./.github/actions/use-buildenv
+      with:
+        artifact-name: ${{ inputs.artifact-name }}
+        dockerhub-username: ${{ inputs.dockerhub-username }}
+        dockerhub-token: ${{ inputs.dockerhub-token }}
+    - shell: bash
+      env:
+        IMAGE: ${{ inputs.image }}
+        CMD: ${{ inputs.run }}
+      run: |
+        GITHUB_ENV_FILE=$(mktemp)
+        env | grep '^GITHUB_' > "${GITHUB_ENV_FILE}" || true
+        docker run --rm \
+          -v "$PWD:/mattermost" \
+          -w /mattermost/server \
+          --env-file "${GITHUB_ENV_FILE}" \
+          "${IMAGE}" \
+          bash -c "${CMD}"
+        rm -f "${GITHUB_ENV_FILE}"
