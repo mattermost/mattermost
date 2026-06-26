@@ -5027,10 +5027,8 @@ func TestUpdateAccessControlPoliciesActive_MaskingGuard(t *testing.T) {
 	t.Run("activation always allowed even when caller has masked values", func(t *testing.T) {
 		// The guard skips Active=true updates, so no property store access is needed.
 		thMock := SetupWithStoreMock(t)
-		thMock.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.FeatureFlags.AttributeBasedAccessControl = true
-			cfg.FeatureFlags.AttributeValueMasking = true
-		})
+		thMock.App.Config().FeatureFlags.AttributeBasedAccessControl = true
+		thMock.App.Config().FeatureFlags.AttributeValueMasking = true
 
 		callerID := model.NewId()
 		thMock.Context = thMock.Context.WithSession(&model.Session{UserId: callerID, Id: model.NewId()}).(*request.Context)
@@ -5068,7 +5066,7 @@ func TestUpdateAccessControlPoliciesActive_MaskingGuard(t *testing.T) {
 	})
 
 	t.Run("deactivation allowed when masking flag is off", func(t *testing.T) {
-		thMock := SetupWithStoreMock(t)
+		thMock := storeMockWithMaskingOff(t)
 		thMock.Context = thMock.Context.WithSession(&model.Session{UserId: model.NewId(), Id: model.NewId()}).(*request.Context)
 
 		channelID := model.NewId()
