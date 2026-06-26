@@ -92,11 +92,20 @@ func (l *LicenseValidatorImpl) ValidateLicense(signed []byte) (string, error) {
 	d := h.Sum(nil)
 
 	if err := verifyLicenseSignature(primaryKey, d, signature); err != nil {
+		// Only a genuine signature mismatch should trigger the wrong-environment
+		// fallback. Any other failure (e.g. malformed key material) means the
+		// current environment's key is broken, so surface it unchanged.
+		if !errors.Is(err, rsa.ErrVerification) {
+			return "", err
+		}
+
 		// The license did not verify against this environment's key. If it verifies
 		// against the other environment's key, the license is genuine but was signed
 		// for a different service environment, so report which way the mismatch goes.
 		if altErr := verifyLicenseSignature(alternateKey, d, signature); altErr == nil {
 			return "", wrongEnvironmentError(model.GetServiceEnvironment())
+		} else if !errors.Is(altErr, rsa.ErrVerification) {
+			return "", altErr
 		}
 		return "", fmt.Errorf("Invalid signature: %w", err)
 	}

@@ -118,6 +118,36 @@ func TestValidateLicense(t *testing.T) {
 		require.Empty(t, str)
 		require.Contains(t, err.Error(), "failed to decode public key PEM block")
 	})
+
+	t.Run("broken primary key is surfaced and not misreported as a wrong-environment license", func(t *testing.T) {
+		// t.Setenv prevents t.Parallel — env var has no config equivalent
+		t.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentTest)
+
+		// Corrupt the primary (test) key so its verification fails for a non-signature
+		// reason, while standing in a generated key as the alternate (production) key
+		// and signing a license with it. The broken primary key must be surfaced
+		// rather than the license being misreported as wrong-environment.
+		priv, err := rsa.GenerateKey(rand.Reader, 2048)
+		require.NoError(t, err)
+
+		originalTestKey := testPublicKey
+		originalProductionKey := productionPublicKey
+		defer func() {
+			testPublicKey = originalTestKey
+			productionPublicKey = originalProductionKey
+		}()
+		testPublicKey = []byte("not a valid PEM block")
+		productionPublicKey = marshalPublicKeyPEM(t, &priv.PublicKey)
+
+		signed := signLicense(t, priv, []byte(`{"id":"emulated-production-license"}`))
+
+		str, err := LicenseValidator.ValidateLicense(signed)
+		require.Error(t, err)
+		require.Empty(t, str)
+		require.NotErrorIs(t, err, ErrLicenseProductionInTestEnvironment)
+		require.NotErrorIs(t, err, ErrLicenseTestInProductionEnvironment)
+		require.Contains(t, err.Error(), "failed to decode public key PEM block")
+	})
 }
 
 func TestLicenseFromBytesEnvironmentMismatch(t *testing.T) {
