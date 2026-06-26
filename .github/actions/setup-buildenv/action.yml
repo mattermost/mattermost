@@ -6,6 +6,10 @@ description: >
   provided Dockerfile, saved as a workflow artifact, and the artifact name
   is returned so downstream jobs can load it via use-buildenv.
 
+  The caller is responsible for authenticating Docker Hub and Chainguard
+  before invoking this action so that manifest inspection and image builds
+  work correctly.
+
 inputs:
   canonical-image:
     description: "Version-tagged image to check first (e.g. mattermost/mattermost-build-server:1.26.3)"
@@ -19,22 +23,6 @@ inputs:
   dockerfile:
     description: "Path to Dockerfile to build when the canonical image doesn't exist"
     required: true
-  is-fork:
-    description: "Set to 'true' for fork PRs where secrets are unavailable"
-    required: false
-    default: "false"
-  chainctl-identity:
-    description: "Chainguard identity for private FIPS base images"
-    required: false
-    default: ""
-  dockerhub-username:
-    description: "Docker Hub username for authenticated manifest inspection"
-    required: false
-    default: ""
-  dockerhub-token:
-    description: "Docker Hub token"
-    required: false
-    default: ""
 
 outputs:
   image:
@@ -47,38 +35,22 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Docker Hub login
-      if: ${{ inputs.is-fork != 'true' }}
-      uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
-      with:
-        username: ${{ inputs.dockerhub-username }}
-        password: ${{ inputs.dockerhub-token }}
     - name: Resolve image
       id: resolve
       shell: bash
       env:
         CANONICAL: ${{ inputs.canonical-image }}
         DEV_IMAGE: ${{ inputs.dev-image }}
-        IS_FORK: ${{ inputs.is-fork }}
       run: |
         if docker manifest inspect "${CANONICAL}" > /dev/null 2>&1; then
           echo "image=${CANONICAL}" >> "${GITHUB_OUTPUT}"
           echo "artifact-name=" >> "${GITHUB_OUTPUT}"
           echo "build-needed=false" >> "${GITHUB_OUTPUT}"
-        elif [[ "${IS_FORK}" != 'true' ]]; then
+        else
           echo "image=${DEV_IMAGE}" >> "${GITHUB_OUTPUT}"
           echo "artifact-name=${{ inputs.artifact-name }}" >> "${GITHUB_OUTPUT}"
           echo "build-needed=true" >> "${GITHUB_OUTPUT}"
-        else
-          echo "image=${CANONICAL}" >> "${GITHUB_OUTPUT}"
-          echo "artifact-name=" >> "${GITHUB_OUTPUT}"
-          echo "build-needed=false" >> "${GITHUB_OUTPUT}"
         fi
-    - name: Setup Chainctl
-      if: ${{ inputs.chainctl-identity != '' && steps.resolve.outputs.build-needed == 'true' }}
-      uses: chainguard-dev/setup-chainctl@c125f765e82b09a42af3185f3214465314d75c5d # v0.5.0
-      with:
-        identity: ${{ inputs.chainctl-identity }}
     - name: Build image
       if: ${{ steps.resolve.outputs.build-needed == 'true' }}
       shell: bash

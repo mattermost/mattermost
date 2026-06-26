@@ -62,6 +62,17 @@ jobs:
         with:
           files: |
             **/go.mod
+      - name: Docker Hub login
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Setup Chainctl
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: chainguard-dev/setup-chainctl@c125f765e82b09a42af3185f3214465314d75c5d # v0.5.0
+        with:
+          identity: ${{ env.CHAINCTL_IDENTITY }}
       - name: Setup regular build environment
         id: buildenv
         uses: ./.github/actions/setup-buildenv
@@ -70,9 +81,6 @@ jobs:
           dev-image: mattermost/mattermost-build-server-dev:${{ github.sha }}
           artifact-name: buildenv-image
           dockerfile: server/build/Dockerfile.buildenv
-          is-fork: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
-          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
-          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Setup FIPS build environment
         id: buildenv-fips
         uses: ./.github/actions/setup-buildenv
@@ -81,10 +89,6 @@ jobs:
           dev-image: mattermost/mattermost-build-server-fips-dev:${{ github.sha }}
           artifact-name: buildenv-fips-image
           dockerfile: server/build/Dockerfile.buildenv-fips
-          is-fork: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
-          chainctl-identity: ${{ env.CHAINCTL_IDENTITY }}
-          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
-          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
   check-mocks:
     name: Check mocks
     needs: go
