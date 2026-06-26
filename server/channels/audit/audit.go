@@ -10,14 +10,17 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
-const DefMaxQueueSize = 1000
+const DefMaxQueueSize = 10000
 
 type Audit struct {
 	logger *mlog.Logger
 
+	Factories *mlog.Factories
+
 	// OnQueueFull is called on an attempt to add an audit record to a full queue.
-	// Return true to drop record, or false to block until there is room in queue.
-	OnQueueFull func(qname string, maxQueueSize int) bool
+	// level is the level of the record being added, so callers can scope the decision.
+	// Return true to drop the record, or false to block until there is room in the queue.
+	OnQueueFull func(qname string, level mlog.Level, maxQueueSize int) bool
 
 	// OnError is called when an error occurs while writing an audit record.
 	OnError func(err error)
@@ -48,7 +51,7 @@ func (a *Audit) LogRecord(level mlog.Level, rec model.AuditRecord) {
 
 // Configure sets zero or more target to output audit logs to.
 func (a *Audit) Configure(cfg mlog.LoggerConfiguration) error {
-	return a.logger.ConfigureTargets(cfg, nil)
+	return a.logger.ConfigureTargets(cfg, a.Factories)
 }
 
 // Flush attempts to write all queued audit records to all targets.
@@ -71,7 +74,7 @@ func (a *Audit) Shutdown() error {
 
 func (a *Audit) onQueueFull(rec *mlog.LogRec, maxQueueSize int) bool {
 	if a.OnQueueFull != nil {
-		return a.OnQueueFull("main", maxQueueSize)
+		return a.OnQueueFull("main", rec.Level(), maxQueueSize)
 	}
 	mlog.Error("Audit logging queue full, dropping record.", mlog.Int("queueSize", maxQueueSize))
 	return true
@@ -79,7 +82,7 @@ func (a *Audit) onQueueFull(rec *mlog.LogRec, maxQueueSize int) bool {
 
 func (a *Audit) onTargetQueueFull(target mlog.Target, rec *mlog.LogRec, maxQueueSize int) bool {
 	if a.OnQueueFull != nil {
-		return a.OnQueueFull(fmt.Sprintf("%v", target), maxQueueSize)
+		return a.OnQueueFull(fmt.Sprintf("%v", target), rec.Level(), maxQueueSize)
 	}
 	mlog.Error("Audit logging queue full for target, dropping record.", mlog.Any("target", target), mlog.Int("queueSize", maxQueueSize))
 	return true

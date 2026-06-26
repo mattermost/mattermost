@@ -77,6 +77,7 @@ type RetryLayer struct {
 	UploadSessionStore              store.UploadSessionStore
 	UserStore                       store.UserStore
 	UserAccessTokenStore            store.UserAccessTokenStore
+	UserPostDeliveryStore           store.UserPostDeliveryStore
 	UserTermsOfServiceStore         store.UserTermsOfServiceStore
 	ViewStore                       store.ViewStore
 	WebhookStore                    store.WebhookStore
@@ -308,6 +309,10 @@ func (s *RetryLayer) User() store.UserStore {
 
 func (s *RetryLayer) UserAccessToken() store.UserAccessTokenStore {
 	return s.UserAccessTokenStore
+}
+
+func (s *RetryLayer) UserPostDelivery() store.UserPostDeliveryStore {
+	return s.UserPostDeliveryStore
 }
 
 func (s *RetryLayer) UserTermsOfService() store.UserTermsOfServiceStore {
@@ -604,6 +609,11 @@ type RetryLayerUserStore struct {
 
 type RetryLayerUserAccessTokenStore struct {
 	store.UserAccessTokenStore
+	Root *RetryLayer
+}
+
+type RetryLayerUserPostDeliveryStore struct {
+	store.UserPostDeliveryStore
 	Root *RetryLayer
 }
 
@@ -18252,6 +18262,48 @@ func (s *RetryLayerUserAccessTokenStore) UpdateTokenEnable(tokenID string) error
 
 }
 
+func (s *RetryLayerUserPostDeliveryStore) DeleteByPost(ctx context.Context, postID string) error {
+
+	tries := 0
+	for {
+		err := s.UserPostDeliveryStore.DeleteByPost(ctx, postID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerUserPostDeliveryStore) MarkBulk(ctx context.Context, records []model.UserPostDelivery) error {
+
+	tries := 0
+	for {
+		err := s.UserPostDeliveryStore.MarkBulk(ctx, records)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerUserTermsOfServiceStore) Delete(userID string, termsOfServiceID string) error {
 
 	tries := 0
@@ -19114,6 +19166,7 @@ func New(childStore store.Store) *RetryLayer {
 	newStore.UploadSessionStore = &RetryLayerUploadSessionStore{UploadSessionStore: childStore.UploadSession(), Root: &newStore}
 	newStore.UserStore = &RetryLayerUserStore{UserStore: childStore.User(), Root: &newStore}
 	newStore.UserAccessTokenStore = &RetryLayerUserAccessTokenStore{UserAccessTokenStore: childStore.UserAccessToken(), Root: &newStore}
+	newStore.UserPostDeliveryStore = &RetryLayerUserPostDeliveryStore{UserPostDeliveryStore: childStore.UserPostDelivery(), Root: &newStore}
 	newStore.UserTermsOfServiceStore = &RetryLayerUserTermsOfServiceStore{UserTermsOfServiceStore: childStore.UserTermsOfService(), Root: &newStore}
 	newStore.ViewStore = &RetryLayerViewStore{ViewStore: childStore.View(), Root: &newStore}
 	newStore.WebhookStore = &RetryLayerWebhookStore{WebhookStore: childStore.Webhook(), Root: &newStore}

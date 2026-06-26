@@ -1602,6 +1602,116 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 	}
 }
 
+// DeliveryTrackingSettings configures the independent PostgreSQL pool used by
+// the post-delivery-tracking sub-store. The pool and credentials are separate
+// from SqlSettings so a failure in a dedicated DB cannot affect the main DB.
+// Disabled by default. DataSource defaults to empty: when Enable is true but
+// DataSource is left unset, the sub-store falls back to the primary DB.
+type DeliveryTrackingSettings struct {
+	Enable                      *bool    `access:"environment_database,write_restrictable,cloud_restrictable"`
+	DriverName                  *string  `access:"environment_database,write_restrictable,cloud_restrictable"`
+	DataSource                  *string  `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
+	DataSourceReplicas          []string `access:"environment_database,write_restrictable,cloud_restrictable"`
+	DataSourceSearchReplicas    []string `access:"environment_database,write_restrictable,cloud_restrictable"`
+	MaxIdleConns                *int     `access:"environment_database,write_restrictable,cloud_restrictable"`
+	ConnMaxLifetimeMilliseconds *int     `access:"environment_database,write_restrictable,cloud_restrictable"`
+	ConnMaxIdleTimeMilliseconds *int     `access:"environment_database,write_restrictable,cloud_restrictable"`
+	MaxOpenConns                *int     `access:"environment_database,write_restrictable,cloud_restrictable"`
+	Trace                       *bool    `access:"environment_database,write_restrictable,cloud_restrictable"`
+	QueryTimeout                *int     `access:"environment_database,write_restrictable,cloud_restrictable"`
+}
+
+func (s *DeliveryTrackingSettings) SetDefaults() {
+	if s.Enable == nil {
+		s.Enable = new(false)
+	}
+
+	if s.DriverName == nil {
+		s.DriverName = new(DatabaseDriverPostgres)
+	}
+
+	if s.DataSource == nil {
+		// Empty selects the primary-DB fallback. A dedicated second DB is opt-in
+		// by setting DataSource explicitly.
+		s.DataSource = new("")
+	}
+
+	if s.DataSourceReplicas == nil {
+		s.DataSourceReplicas = []string{}
+	}
+
+	if s.DataSourceSearchReplicas == nil {
+		s.DataSourceSearchReplicas = []string{}
+	}
+
+	if s.MaxIdleConns == nil {
+		s.MaxIdleConns = new(50)
+	}
+
+	if s.MaxOpenConns == nil {
+		// Higher than the main pool: this is a write-heavy workload with many
+		// concurrent batched inserts from the delivery target's shard workers.
+		s.MaxOpenConns = new(200)
+	}
+
+	if s.ConnMaxLifetimeMilliseconds == nil {
+		s.ConnMaxLifetimeMilliseconds = new(3600000)
+	}
+
+	if s.ConnMaxIdleTimeMilliseconds == nil {
+		s.ConnMaxIdleTimeMilliseconds = new(300000)
+	}
+
+	if s.Trace == nil {
+		s.Trace = new(false)
+	}
+
+	if s.QueryTimeout == nil {
+		s.QueryTimeout = new(30)
+	}
+}
+
+func (s *DeliveryTrackingSettings) isValid() *AppError {
+	if !SafeDereference(s.Enable) {
+		return nil
+	}
+
+	if *s.DriverName != DatabaseDriverPostgres {
+		return NewAppError("Config.IsValid", "model.config.is_valid.delivery_tracking_driver.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// An empty DataSource is allowed: it selects the primary-DB fallback.
+
+	if *s.MaxIdleConns <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.delivery_tracking_idle.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.MaxOpenConns <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.delivery_tracking_max_conn.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.ConnMaxLifetimeMilliseconds < 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.delivery_tracking_conn_max_lifetime_milliseconds.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.ConnMaxIdleTimeMilliseconds < 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.delivery_tracking_conn_max_idle_time_milliseconds.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.QueryTimeout <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.delivery_tracking_query_timeout.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+// PostDeliveryTrackingEnabled reports whether the PostDeliveryTracking feature
+// flag and the admin DeliveryTrackingSettings.Enable are both on.
+func (o *Config) PostDeliveryTrackingEnabled() bool {
+	return o.FeatureFlags != nil && o.FeatureFlags.PostDeliveryTracking &&
+		SafeDereference(o.DeliveryTrackingSettings.Enable)
+}
+
 type LogSettings struct {
 	EnableConsole          *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"`
 	ConsoleLevel           *string         `access:"environment_logging,write_restrictable,cloud_restrictable"`
@@ -4172,6 +4282,7 @@ type Config struct {
 	TeamSettings                TeamSettings
 	ClientRequirements          ClientRequirements
 	SqlSettings                 SqlSettings
+	DeliveryTrackingSettings    DeliveryTrackingSettings
 	LogSettings                 LogSettings
 	ExperimentalAuditSettings   ExperimentalAuditSettings
 	PasswordSettings            PasswordSettings
@@ -4288,6 +4399,7 @@ func (o *Config) SetDefaults() {
 	}
 
 	o.SqlSettings.SetDefaults(isUpdate)
+	o.DeliveryTrackingSettings.SetDefaults()
 	o.FileSettings.SetDefaults(isUpdate)
 	o.EmailSettings.SetDefaults(isUpdate)
 	o.PrivacySettings.setDefaults()
@@ -4368,6 +4480,12 @@ func (o *Config) IsValid() *AppError {
 
 	if appErr := o.SqlSettings.isValid(); appErr != nil {
 		return appErr
+	}
+
+	if o.FeatureFlags != nil && o.FeatureFlags.PostDeliveryTracking {
+		if appErr := o.DeliveryTrackingSettings.isValid(); appErr != nil {
+			return appErr
+		}
 	}
 
 	if appErr := o.FileSettings.isValid(); appErr != nil {
@@ -5383,6 +5501,18 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
 
 	if o.SqlSettings.AtRestEncryptKey != nil {
 		*o.SqlSettings.AtRestEncryptKey = FakeSetting
+	}
+
+	if o.DeliveryTrackingSettings.DataSource != nil {
+		*o.DeliveryTrackingSettings.DataSource = sanitizeDataSourceField(*o.DeliveryTrackingSettings.DataSource, "DeliveryTrackingSettings.DataSource")
+	}
+
+	for i := range o.DeliveryTrackingSettings.DataSourceReplicas {
+		o.DeliveryTrackingSettings.DataSourceReplicas[i] = sanitizeDataSourceField(o.DeliveryTrackingSettings.DataSourceReplicas[i], "DeliveryTrackingSettings.DataSourceReplicas")
+	}
+
+	for i := range o.DeliveryTrackingSettings.DataSourceSearchReplicas {
+		o.DeliveryTrackingSettings.DataSourceSearchReplicas[i] = sanitizeDataSourceField(o.DeliveryTrackingSettings.DataSourceSearchReplicas[i], "DeliveryTrackingSettings.DataSourceSearchReplicas")
 	}
 
 	if o.ElasticsearchSettings.Password != nil {

@@ -72,6 +72,26 @@ func Desanitize(actual, target *model.Config) {
 		target.SqlSettings.AtRestEncryptKey = actual.SqlSettings.AtRestEncryptKey
 	}
 
+	if target.DeliveryTrackingSettings.DataSource != nil && *target.DeliveryTrackingSettings.DataSource == model.FakeSetting && actual.DeliveryTrackingSettings.DataSource != nil {
+		*target.DeliveryTrackingSettings.DataSource = *actual.DeliveryTrackingSettings.DataSource
+	}
+
+	if len(target.DeliveryTrackingSettings.DataSourceReplicas) == len(actual.DeliveryTrackingSettings.DataSourceReplicas) {
+		for i, value := range target.DeliveryTrackingSettings.DataSourceReplicas {
+			if value == model.FakeSetting {
+				target.DeliveryTrackingSettings.DataSourceReplicas[i] = actual.DeliveryTrackingSettings.DataSourceReplicas[i]
+			}
+		}
+	}
+
+	if len(target.DeliveryTrackingSettings.DataSourceSearchReplicas) == len(actual.DeliveryTrackingSettings.DataSourceSearchReplicas) {
+		for i, value := range target.DeliveryTrackingSettings.DataSourceSearchReplicas {
+			if value == model.FakeSetting {
+				target.DeliveryTrackingSettings.DataSourceSearchReplicas[i] = actual.DeliveryTrackingSettings.DataSourceSearchReplicas[i]
+			}
+		}
+	}
+
 	if target.ElasticsearchSettings.Password != nil && *target.ElasticsearchSettings.Password == model.FakeSetting && actual.ElasticsearchSettings.Password != nil {
 		*target.ElasticsearchSettings.Password = *actual.ElasticsearchSettings.Password
 	}

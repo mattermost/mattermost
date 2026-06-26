@@ -399,3 +399,7 @@ channels/db/migrations/postgres/000201_create_property_fields_groupid_updateat_i
 channels/db/migrations/postgres/000201_create_property_fields_groupid_updateat_id_index.up.sql
 channels/db/migrations/postgres/000202_create_property_values_groupid_updateat_id_index.down.sql
 channels/db/migrations/postgres/000202_create_property_values_groupid_updateat_id_index.up.sql
+channels/db/migrations/postgres/000203_create_user_post_delivery.down.sql
+channels/db/migrations/postgres/000203_create_user_post_delivery.up.sql
+channels/db/migrations/postgres_user_post_delivery/000001_create_user_post_delivery.down.sql
+channels/db/migrations/postgres_user_post_delivery/000001_create_user_post_delivery.up.sql

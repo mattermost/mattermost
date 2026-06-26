@@ -120,6 +120,7 @@ type SqlStoreStores struct {
 	readReceipt                store.ReadReceiptStore
 	temporaryPost              store.TemporaryPostStore
 	channelJoinRequest         store.ChannelJoinRequestStore
+	userPostDelivery           store.UserPostDeliveryStore
 }
 
 type SqlStore struct {
@@ -135,13 +136,24 @@ type SqlStore struct {
 	searchReplicaXs []*atomic.Pointer[sqlxDBWrapper]
 
 	replicaLagHandles []*sql.DB
-	stores            SqlStoreStores
-	settings          *model.SqlSettings
-	lockedToMaster    bool
-	license           *model.License
-	licenseMutex      sync.RWMutex
-	logger            mlog.LoggerIFace
-	metrics           einterfaces.MetricsInterface
+
+	// userPostDeliveryX is the write pool for the post-delivery-tracking store.
+	// It is a dedicated second-DB pool when DeliveryTrackingSettings.DataSource
+	// is set, aliases masterX on the primary-DB fallback path, or stays nil when
+	// the feature is disabled (the sub-store is then a no-op).
+	userPostDeliveryX *sqlxDBWrapper
+	// userPostDeliveryDedicated is true when userPostDeliveryX is a pool we own
+	// (and must Close), false when it aliases masterX (fallback).
+	userPostDeliveryDedicated bool
+	dtSettings                *model.DeliveryTrackingSettings
+
+	stores         SqlStoreStores
+	settings       *model.SqlSettings
+	lockedToMaster bool
+	license        *model.License
+	licenseMutex   sync.RWMutex
+	logger         mlog.LoggerIFace
+	metrics        einterfaces.MetricsInterface
 
 	isBinaryParam             bool
 	pgDefaultTextSearchConfig string
@@ -183,6 +195,17 @@ func DisableMorphLogging() Option {
 func WithFeatureFlags(fn func() *model.FeatureFlags) Option {
 	return func(s *SqlStore) error {
 		s.featureFlagsFn = fn
+		return nil
+	}
+}
+
+// WithDeliveryTrackingSettings configures the independent post-delivery-tracking
+// pool. If omitted (or Enable=false), Store().UserPostDelivery() is a no-op
+// store. When Enable=true with an empty DataSource, the sub-store falls back to
+// the primary DB.
+func WithDeliveryTrackingSettings(dt model.DeliveryTrackingSettings) Option {
+	return func(s *SqlStore) error {
+		s.dtSettings = &dt
 		return nil
 	}
 }
@@ -241,6 +264,13 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 		err = store.migrate(migrationsDirectionUp, false, !store.disableMorphLogging)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to apply database migrations")
+		}
+
+		if store.userPostDeliveryDedicated {
+			err = store.migrateUserPostDelivery(migrationsDirectionUp, !store.disableMorphLogging)
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to apply post-delivery-tracking database migrations")
+			}
 		}
 	}
 
@@ -314,6 +344,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.readReceipt = newSqlReadReceiptStore(store, metrics)
 	store.stores.temporaryPost = newSqlTemporaryPostStore(store, metrics)
 	store.stores.channelJoinRequest = newSqlChannelJoinRequestStore(store)
+	store.stores.userPostDelivery = newSqlUserPostDeliveryStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -382,6 +413,41 @@ func (ss *SqlStore) initConnection() error {
 			ss.replicaLagHandles = append(ss.replicaLagHandles, replicaLagHandle)
 		}
 	}
+
+	if ss.dtSettings != nil && ss.dtSettings.Enable != nil && *ss.dtSettings.Enable && ss.getFeatureFlags().PostDeliveryTracking {
+		if err := ss.initUserPostDeliveryConnection(); err != nil {
+			return errors.Wrap(err, "failed to setup post-delivery-tracking connection")
+		}
+	}
+
+	return nil
+}
+
+// initUserPostDeliveryConnection opens the delivery pool. An empty DataSource
+// selects the primary-DB fallback (reuse masterX); a non-empty DataSource opens
+// a dedicated pool plus any configured read replicas.
+func (ss *SqlStore) initUserPostDeliveryConnection() error {
+	dataSource := *ss.dtSettings.DataSource
+
+	if dataSource == "" {
+		// Fallback: reuse the primary pool. No dedicated handle to Close.
+		ss.userPostDeliveryX = ss.masterX
+		ss.userPostDeliveryDedicated = false
+		return nil
+	}
+
+	handle, err := sqlUtils.SetupDeliveryTrackingConnection(ss.Logger(), "user-post-delivery", dataSource, ss.dtSettings, DBPingAttempts)
+	if err != nil {
+		return err
+	}
+	ss.userPostDeliveryX = newSqlxDBWrapper(sqlx.NewDb(handle, *ss.dtSettings.DriverName),
+		time.Duration(*ss.dtSettings.QueryTimeout)*time.Second,
+		*ss.dtSettings.Trace)
+	ss.userPostDeliveryDedicated = true
+	if ss.metrics != nil {
+		ss.metrics.RegisterDBCollector(ss.userPostDeliveryX.DB().DB, "user-post-delivery")
+	}
+
 	return nil
 }
 
@@ -732,6 +798,12 @@ func (ss *SqlStore) Close() {
 	for _, replica := range ss.replicaLagHandles {
 		replica.Close()
 	}
+
+	// Close the delivery pool only when it is dedicated; on the fallback path it
+	// aliases masterX, which was already closed above.
+	if ss.userPostDeliveryDedicated && ss.userPostDeliveryX != nil {
+		ss.userPostDeliveryX.Close()
+	}
 }
 
 func (ss *SqlStore) LockToMaster() {
@@ -972,6 +1044,10 @@ func (ss *SqlStore) TemporaryPost() store.TemporaryPostStore {
 
 func (ss *SqlStore) ChannelJoinRequest() store.ChannelJoinRequestStore {
 	return ss.stores.channelJoinRequest
+}
+
+func (ss *SqlStore) UserPostDelivery() store.UserPostDeliveryStore {
+	return ss.stores.userPostDelivery
 }
 
 func (ss *SqlStore) DropAllTables() {

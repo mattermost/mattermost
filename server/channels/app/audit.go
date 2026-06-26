@@ -19,8 +19,11 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
+	audittargets "github.com/mattermost/mattermost/server/v8/channels/audit/targets"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/config"
+
+	"github.com/mattermost/logr/v2"
 )
 
 // Audit level aliases for convenient access within the app package.
@@ -32,10 +35,11 @@ import (
 // [github.com/mattermost/mattermost/server/public/shared/mlog.LvlAuditCLI]
 // for detailed documentation on when to use each level.
 var (
-	LevelAPI     = mlog.LvlAuditAPI
-	LevelContent = mlog.LvlAuditContent
-	LevelPerms   = mlog.LvlAuditPerms
-	LevelCLI     = mlog.LvlAuditCLI
+	LevelAPI      = mlog.LvlAuditAPI
+	LevelContent  = mlog.LvlAuditContent
+	LevelPerms    = mlog.LvlAuditPerms
+	LevelCLI      = mlog.LvlAuditCLI
+	LevelDelivery = mlog.LvlAuditPostDelivery
 )
 
 const (
@@ -128,6 +132,26 @@ func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) er
 	adt.OnQueueFull = s.onAuditTargetQueueFull
 	adt.OnError = s.onAuditError
 
+	adt.Factories = &mlog.Factories{
+		TargetFactory: func(targetType string, _ json.RawMessage) (logr.Target, error) {
+			switch strings.ToLower(targetType) {
+			case audittargets.DeliveryDBTargetType:
+				return audittargets.NewUserPostDeliveryTarget(s.Store().UserPostDelivery(), s.Log()), nil
+			}
+			return nil, fmt.Errorf("audit target type %q is unrecognized", targetType)
+		},
+
+		// The delivery target reads fields directly off the LogRec and ignores the
+		// formatted bytes, so a real formatter (e.g. "json") would just burn CPU on
+		// the target's single host goroutine. NoopFormatter skips it.
+		FormatterFactory: func(format string, _ json.RawMessage) (logr.Formatter, error) {
+			if strings.ToLower(format) == audittargets.DeliveryNoopFormat {
+				return audittargets.NoopFormatter{}, nil
+			}
+			return nil, fmt.Errorf("audit formatter %q is unrecognized", format)
+		},
+	}
+
 	var logConfigSrc config.LogConfigSrc
 	dsn := s.platform.Config().ExperimentalAuditSettings.GetAdvancedLoggingConfig()
 	if bAllowAdvancedLogging {
@@ -162,7 +186,13 @@ func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) er
 	return adt.Configure(cfg)
 }
 
-func (s *Server) onAuditTargetQueueFull(qname string, maxQSize int) bool {
+func (s *Server) onAuditTargetQueueFull(qname string, level mlog.Level, maxQSize int) bool {
+	// Block (lossless) only for delivery-tracking records; all other audit records
+	// still drop on overflow so unrelated audit logging never stalls the request path.
+	if level == mlog.LvlAuditPostDelivery && s.platform.Config().PostDeliveryTrackingEnabled() {
+		s.Log().Warn("Audit queue full; blocking until drain (delivery tracking enabled).", mlog.String("qname", qname), mlog.Int("queueSize", maxQSize))
+		return false // block, do not drop
+	}
 	s.Log().Error("Audit queue full, dropping record.", mlog.String("qname", qname), mlog.Int("queueSize", maxQSize))
 	return true // drop it
 }
