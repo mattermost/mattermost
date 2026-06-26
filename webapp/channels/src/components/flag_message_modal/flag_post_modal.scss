@@ -83,9 +83,9 @@
     }
 
     .modal-body {
+        overflow: auto;
         min-height: 0;
         max-height: none;
         flex: 1 1 auto;
-        overflow: auto;
     }
 }
