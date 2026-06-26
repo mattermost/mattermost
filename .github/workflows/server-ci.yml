@@ -77,16 +77,13 @@ jobs:
         id: buildenv
         uses: ./.github/actions/setup-buildenv
         with:
-          canonical-image: mattermost/mattermost-build-server:${{ steps.calculate.outputs.GO_VERSION }}
-          artifact-name: buildenv-image
-          dockerfile: server/build/Dockerfile.buildenv
+          go-version: ${{ steps.calculate.outputs.GO_VERSION }}
       - name: Setup FIPS build environment
         id: buildenv-fips
         uses: ./.github/actions/setup-buildenv
         with:
-          canonical-image: mattermost/mattermost-build-server-fips:${{ steps.calculate.outputs.GO_VERSION }}
-          artifact-name: buildenv-fips-image
-          dockerfile: server/build/Dockerfile.buildenv-fips
+          go-version: ${{ steps.calculate.outputs.GO_VERSION }}
+          fips-enabled: "true"
   check-mocks:
     name: Check mocks
     needs: go

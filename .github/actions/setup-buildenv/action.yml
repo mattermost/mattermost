@@ -3,23 +3,21 @@ description: >
   Resolves the build-server Docker image for this workflow run. If the
   canonical version-tagged image already exists on Docker Hub, it is used
   as-is. If not (in-flight Go version bump), the image is built from the
-  provided Dockerfile, saved as a workflow artifact, and the artifact name
-  is returned so downstream jobs can load it via use-buildenv.
+  Dockerfile, saved as a workflow artifact, and the artifact name is returned
+  so downstream jobs can load it via use-buildenv.
 
   The caller is responsible for authenticating Docker Hub and Chainguard
   before invoking this action so that manifest inspection and image builds
   work correctly.
 
 inputs:
-  canonical-image:
-    description: "Version-tagged image to check first (e.g. mattermost/mattermost-build-server:1.26.3)"
+  go-version:
+    description: "Go version (e.g. 1.26.3)"
     required: true
-  artifact-name:
-    description: "Workflow artifact name to use when uploading a freshly built image"
-    required: true
-  dockerfile:
-    description: "Path to Dockerfile to build when the canonical image doesn't exist"
-    required: true
+  fips-enabled:
+    description: "Set to 'true' to use the FIPS build image"
+    required: false
+    default: "false"
 
 outputs:
   artifact-name:
@@ -33,27 +31,39 @@ runs:
       id: resolve
       shell: bash
       env:
-        CANONICAL: ${{ inputs.canonical-image }}
+        GO_VERSION: ${{ inputs.go-version }}
+        FIPS: ${{ inputs.fips-enabled }}
       run: |
+        if [[ "${FIPS}" == 'true' ]]; then
+          CANONICAL="mattermost/mattermost-build-server-fips:${GO_VERSION}"
+          ARTIFACT_NAME="buildenv-fips-image"
+          DOCKERFILE="server/build/Dockerfile.buildenv-fips"
+        else
+          CANONICAL="mattermost/mattermost-build-server:${GO_VERSION}"
+          ARTIFACT_NAME="buildenv-image"
+          DOCKERFILE="server/build/Dockerfile.buildenv"
+        fi
+        echo "canonical=${CANONICAL}" >> "${GITHUB_OUTPUT}"
+        echo "dockerfile=${DOCKERFILE}" >> "${GITHUB_OUTPUT}"
         if docker manifest inspect "${CANONICAL}" > /dev/null 2>&1; then
           echo "artifact-name=" >> "${GITHUB_OUTPUT}"
         else
-          echo "artifact-name=${{ inputs.artifact-name }}" >> "${GITHUB_OUTPUT}"
+          echo "artifact-name=${ARTIFACT_NAME}" >> "${GITHUB_OUTPUT}"
         fi
     - name: Build image
       if: ${{ steps.resolve.outputs.artifact-name != '' }}
       shell: bash
-      run: docker build -t "${{ inputs.canonical-image }}" - < "${{ inputs.dockerfile }}"
+      run: docker build -t "${{ steps.resolve.outputs.canonical }}" - < "${{ steps.resolve.outputs.dockerfile }}"
     - name: Save image
       if: ${{ steps.resolve.outputs.artifact-name != '' }}
       shell: bash
       run: |
         mkdir -p /tmp/buildenv-save
-        docker save "${{ inputs.canonical-image }}" | gzip > /tmp/buildenv-save/image.tar.gz
+        docker save "${{ steps.resolve.outputs.canonical }}" | gzip > /tmp/buildenv-save/image.tar.gz
     - name: Upload image artifact
       if: ${{ steps.resolve.outputs.artifact-name != '' }}
       uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
       with:
-        name: ${{ inputs.artifact-name }}
+        name: ${{ steps.resolve.outputs.artifact-name }}
         path: /tmp/buildenv-save/image.tar.gz
         retention-days: 1
