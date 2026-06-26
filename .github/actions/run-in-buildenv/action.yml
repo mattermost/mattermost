@@ -36,7 +36,8 @@ runs:
         else
           echo "IMAGE=mattermost/mattermost-build-server:${GO_VERSION}" >> "${GITHUB_ENV}"
         fi
-    - shell: bash
+    - name: Run in buildenv
+      shell: bash
       env:
         CMD: ${{ inputs.run }}
         NETWORK: ${{ inputs.network }}
