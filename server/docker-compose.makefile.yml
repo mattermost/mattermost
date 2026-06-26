@@ -9,16 +9,16 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: postgres
-  postgres-userpostdelivery:
+  postgres-audit:
     restart: 'no'
-    container_name: mattermost-postgres-userpostdelivery
+    container_name: mattermost-postgres-audit
     ports:
       - "5433:5432"
     volumes:
-     - "postgres-userpostdelivery-data:/var/lib/postgresql/data"
+     - "postgres-audit-data:/var/lib/postgresql/data"
     extends:
         file: build/docker-compose.common.yml
-        service: postgres-userpostdelivery
+        service: postgres-audit
   minio:
     restart: 'no'
     container_name: mattermost-minio
@@ -136,4 +136,4 @@ networks:
 
 volumes:
   postgres-14-data:
-  postgres-userpostdelivery-data:
+  postgres-audit-data:
