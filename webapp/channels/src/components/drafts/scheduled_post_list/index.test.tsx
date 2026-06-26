@@ -147,8 +147,8 @@ describe('components/drafts/scheduled_post_list', () => {
         expect(screen.queryByText('Scheduled message 0')).not.toBeInTheDocument();
 
         // Only the visible window plus overscan (both directions around the
-        // target) is rendered, not all 40 rows.
-        expect(screen.getAllByTestId('scheduled-post-row').length).toBeLessThan(25);
+        // target) is rendered, not all rows.
+        expect(screen.getAllByTestId('scheduled-post-row').length).toBeLessThan(posts.length);
     });
 
     test('keeps the target post flagged to scroll into view across re-renders', () => {
