@@ -7428,10 +7428,6 @@
     "translation": " "
   },
   {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": " "
-  },
-  {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": " "
   },
