@@ -376,9 +376,12 @@
             }
 
             button {
+                max-width: 100%;
                 margin-top: 8px;
                 background: rgba(var(--center-channel-color-rgb), 0.08);
                 color: var(--center-channel-color);
+                overflow-wrap: anywhere;
+                white-space: normal;
 
                 &:hover {
                     background: rgba(var(--center-channel-color-rgb), 0.16);
