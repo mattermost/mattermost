@@ -7,6 +7,7 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
+import type {Group} from '@mattermost/types/groups';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 import {getDefaultAgent} from 'mattermost-redux/selectors/entities/agents';
@@ -16,6 +17,7 @@ import {makeGetProfilesForThread} from 'mattermost-redux/selectors/entities/post
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {autocompleteChannels} from 'actions/channel_actions';
 import {autocompleteUsersInChannel} from 'actions/views/channel';
@@ -111,7 +113,7 @@ const WysiwygSuggestionList = ({editor, channelId, rootId}: Props) => {
                 autocompleteUsersInChannel: (prefix: string) => dispatch(autocompleteUsersInChannel(prefix, channelId)),
                 useChannelMentions: true,
                 autocompleteGroups,
-                searchAssociatedGroupsForReference: (prefix: string) => dispatch(searchAssociatedGroupsForReference(prefix, currentTeamId, channelId)),
+                searchAssociatedGroupsForReference: (prefix: string) => dispatch(searchAssociatedGroupsForReference(prefix, currentTeamId, channelId)) as Promise<ActionResult<Group[]>>,
                 priorityProfiles,
                 defaultAgent,
             }),
