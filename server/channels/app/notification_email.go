@@ -255,7 +255,7 @@ func (a *App) sendNotificationEmail(rctx request.CTX, notification *PostNotifica
 	}
 
 	if a.shouldTrackDelivery(channel, post) {
-		a.RecordPostDelivery(user.Id, post.Id, model.DeliveryTargetUser, model.DeliveryMechEmail)
+		a.RecordPostDelivery(user.Id, post.Id, model.DeliveryTargetUser, model.DeliveryMechanismEmail)
 	}
 
 	a.Srv().Go(func() {

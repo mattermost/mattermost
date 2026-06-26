@@ -24,7 +24,7 @@ const AuditEventPostDelivery = "post_delivered"
 const deliveryChunkSize = 5000
 
 func (a *App) deliveryTrackingEnabled() bool {
-	return model.SafeDereference(a.Config().DeliveryTrackingSettings.Enable)
+	return a.Config().PostDeliveryTrackingEnabled()
 }
 
 // shouldTrackDelivery reports whether deliveries of post in channel should be

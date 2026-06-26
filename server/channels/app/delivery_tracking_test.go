@@ -57,28 +57,28 @@ func TestChunkDeliveryIDs(t *testing.T) {
 
 func TestDeliveryMeta(t *testing.T) {
 	t.Run("user target type is omitted (target defaults to user)", func(t *testing.T) {
-		meta := deliveryMeta(model.DeliveryTargetUser, model.DeliveryMechProduct)
-		require.Equal(t, model.DeliveryMechProduct, meta["mechanism"])
+		meta := deliveryMeta(model.DeliveryTargetUser, model.DeliveryMechanismProduct)
+		require.Equal(t, model.DeliveryMechanismProduct, meta["mechanism"])
 		_, ok := meta["target_type"]
 		require.False(t, ok, "target_type should be omitted for the default user type")
 	})
 
 	t.Run("empty target type is omitted", func(t *testing.T) {
-		meta := deliveryMeta("", model.DeliveryMechPush)
+		meta := deliveryMeta("", model.DeliveryMechanismPush)
 		_, ok := meta["target_type"]
 		require.False(t, ok)
 	})
 
 	t.Run("non-user target type is written", func(t *testing.T) {
-		meta := deliveryMeta(model.DeliveryTargetWebhook, model.DeliveryMechOutgoingWebhook)
+		meta := deliveryMeta(model.DeliveryTargetWebhook, model.DeliveryMechanismOutgoingWebhook)
 		require.Equal(t, model.DeliveryTargetWebhook, meta["target_type"])
-		require.Equal(t, model.DeliveryMechOutgoingWebhook, meta["mechanism"])
+		require.Equal(t, model.DeliveryMechanismOutgoingWebhook, meta["mechanism"])
 	})
 
 	t.Run("mechanism is stored as int16 for the target's type assertion", func(t *testing.T) {
-		meta := deliveryMeta(model.DeliveryTargetPlugin, model.DeliveryMechPlugin)
+		meta := deliveryMeta(model.DeliveryTargetPlugin, model.DeliveryMechanismPlugin)
 		v, ok := meta["mechanism"].(int16)
 		require.True(t, ok, "mechanism must be int16 so the audit target can assert it")
-		require.Equal(t, model.DeliveryMechPlugin, v)
+		require.Equal(t, model.DeliveryMechanismPlugin, v)
 	})
 }

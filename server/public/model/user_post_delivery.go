@@ -4,12 +4,12 @@
 package model
 
 const (
-	DeliveryMechUnknown         int16 = 0
-	DeliveryMechProduct         int16 = 1 // viewed within the Mattermost product (web/desktop/mobile UI or API)
-	DeliveryMechEmail           int16 = 2 // email notification
-	DeliveryMechPush            int16 = 3 // push notification
-	DeliveryMechOutgoingWebhook int16 = 4 // outgoing webhook payload
-	DeliveryMechPlugin          int16 = 5 // delivered to a server plugin
+	DeliveryMechanismUnknown         int16 = 0
+	DeliveryMechanismProduct         int16 = 1 // viewed within the Mattermost product (web/desktop/mobile UI or API)
+	DeliveryMechanismEmail           int16 = 2 // email notification
+	DeliveryMechanismPush            int16 = 3 // push notification
+	DeliveryMechanismOutgoingWebhook int16 = 4 // outgoing webhook payload
+	DeliveryMechanismPlugin          int16 = 5 // delivered to a server plugin
 )
 
 const (

@@ -85,17 +85,17 @@ func TestUserPostDeliveryTarget_WritesAndDedups(t *testing.T) {
 
 	// Same row three times must collapse to a single persisted row.
 	for range 3 {
-		enqueueMeta(t, tgt, map[string]any{"post_id": "post1", "target_id": "user1", "target_type": model.DeliveryTargetUser, "mechanism": model.DeliveryMechProduct})
+		enqueueMeta(t, tgt, map[string]any{"post_id": "post1", "target_id": "user1", "target_type": model.DeliveryTargetUser, "mechanism": model.DeliveryMechanismProduct})
 	}
 	// A distinct row.
-	enqueueMeta(t, tgt, map[string]any{"post_id": "post1", "target_id": "user2", "target_type": model.DeliveryTargetUser, "mechanism": model.DeliveryMechProduct})
+	enqueueMeta(t, tgt, map[string]any{"post_id": "post1", "target_id": "user2", "target_type": model.DeliveryTargetUser, "mechanism": model.DeliveryMechanismProduct})
 
 	require.NoError(t, tgt.Shutdown())
 
 	rows, _ := fake.snapshot()
 	require.Len(t, rows, 2)
-	require.Equal(t, 1, rows[rec("post1", "user1", model.DeliveryTargetUser, model.DeliveryMechProduct)])
-	require.Equal(t, 1, rows[rec("post1", "user2", model.DeliveryTargetUser, model.DeliveryMechProduct)])
+	require.Equal(t, 1, rows[rec("post1", "user1", model.DeliveryTargetUser, model.DeliveryMechanismProduct)])
+	require.Equal(t, 1, rows[rec("post1", "user2", model.DeliveryTargetUser, model.DeliveryMechanismProduct)])
 }
 
 func TestUserPostDeliveryTarget_FanOutArray(t *testing.T) {
@@ -106,14 +106,14 @@ func TestUserPostDeliveryTarget_FanOutArray(t *testing.T) {
 		"target_ids":  []string{"u1", "u2", "u3", ""}, // empty filtered out
 		"target_type": model.DeliveryTargetUser,
 		"post_id":     "post9",
-		"mechanism":   model.DeliveryMechProduct,
+		"mechanism":   model.DeliveryMechanismProduct,
 	})
 	require.NoError(t, tgt.Shutdown())
 
 	rows, _ := fake.snapshot()
 	require.Len(t, rows, 3)
 	for _, u := range []string{"u1", "u2", "u3"} {
-		require.Equal(t, 1, rows[rec("post9", u, model.DeliveryTargetUser, model.DeliveryMechProduct)])
+		require.Equal(t, 1, rows[rec("post9", u, model.DeliveryTargetUser, model.DeliveryMechanismProduct)])
 	}
 }
 
@@ -124,7 +124,7 @@ func TestUserPostDeliveryTarget_FanInArray(t *testing.T) {
 	enqueueMeta(t, tgt, map[string]any{
 		"target_id": "u1",
 		"post_ids":  []string{"p1", "p2", ""}, // empty filtered out
-		"mechanism": model.DeliveryMechProduct,
+		"mechanism": model.DeliveryMechanismProduct,
 	})
 	require.NoError(t, tgt.Shutdown())
 
@@ -132,7 +132,7 @@ func TestUserPostDeliveryTarget_FanInArray(t *testing.T) {
 	require.Len(t, rows, 2)
 	// target_type omitted -> defaults to "user".
 	for _, p := range []string{"p1", "p2"} {
-		require.Equal(t, 1, rows[rec(p, "u1", model.DeliveryTargetUser, model.DeliveryMechProduct)])
+		require.Equal(t, 1, rows[rec(p, "u1", model.DeliveryTargetUser, model.DeliveryMechanismProduct)])
 	}
 }
 
@@ -141,36 +141,36 @@ func TestUserPostDeliveryTarget_RetriesOnFailureNoDrop(t *testing.T) {
 	fake.failFirst = 2 // first two flushes fail; the row must survive and be retried
 	tgt := newTestTarget(t, fake)
 
-	enqueueMeta(t, tgt, map[string]any{"post_id": "post1", "target_id": "user1", "target_type": model.DeliveryTargetUser, "mechanism": model.DeliveryMechProduct})
+	enqueueMeta(t, tgt, map[string]any{"post_id": "post1", "target_id": "user1", "target_type": model.DeliveryTargetUser, "mechanism": model.DeliveryMechanismProduct})
 	require.NoError(t, tgt.Shutdown())
 
 	rows, calls := fake.snapshot()
 	require.Greater(t, calls, 2, "should have retried past the failing calls")
-	require.Equal(t, 1, rows[rec("post1", "user1", model.DeliveryTargetUser, model.DeliveryMechProduct)])
+	require.Equal(t, 1, rows[rec("post1", "user1", model.DeliveryTargetUser, model.DeliveryMechanismProduct)])
 }
 
 func TestUserPostDeliveryTarget_ExtractShapes(t *testing.T) {
 	tgt := NewUserPostDeliveryTarget(newFakeUserPostDeliveryStore(), nil)
 
 	t.Run("single", func(t *testing.T) {
-		items, ok := tgt.extractItems(metaFields(map[string]any{"post_id": "e", "target_id": "t", "target_type": model.DeliveryTargetWebhook, "mechanism": model.DeliveryMechOutgoingWebhook}))
+		items, ok := tgt.extractItems(metaFields(map[string]any{"post_id": "e", "target_id": "t", "target_type": model.DeliveryTargetWebhook, "mechanism": model.DeliveryMechanismOutgoingWebhook}))
 		require.True(t, ok)
-		require.Equal(t, []deliveryItem{{postID: "e", targetID: "t", targetType: model.DeliveryTargetWebhook, mechanism: model.DeliveryMechOutgoingWebhook}}, items)
+		require.Equal(t, []deliveryItem{{postID: "e", targetID: "t", targetType: model.DeliveryTargetWebhook, mechanism: model.DeliveryMechanismOutgoingWebhook}}, items)
 	})
 	t.Run("single defaults target_type to user", func(t *testing.T) {
-		items, ok := tgt.extractItems(metaFields(map[string]any{"post_id": "e", "target_id": "t", "mechanism": model.DeliveryMechProduct}))
+		items, ok := tgt.extractItems(metaFields(map[string]any{"post_id": "e", "target_id": "t", "mechanism": model.DeliveryMechanismProduct}))
 		require.True(t, ok)
-		require.Equal(t, []deliveryItem{{postID: "e", targetID: "t", targetType: model.DeliveryTargetUser, mechanism: model.DeliveryMechProduct}}, items)
+		require.Equal(t, []deliveryItem{{postID: "e", targetID: "t", targetType: model.DeliveryTargetUser, mechanism: model.DeliveryMechanismProduct}}, items)
 	})
 	t.Run("fan-in (one target, many posts)", func(t *testing.T) {
-		items, ok := tgt.extractItems(metaFields(map[string]any{"target_id": "u", "post_ids": []string{"a", "b"}, "mechanism": model.DeliveryMechProduct}))
+		items, ok := tgt.extractItems(metaFields(map[string]any{"target_id": "u", "post_ids": []string{"a", "b"}, "mechanism": model.DeliveryMechanismProduct}))
 		require.True(t, ok)
-		require.ElementsMatch(t, []deliveryItem{{"a", "u", model.DeliveryTargetUser, model.DeliveryMechProduct}, {"b", "u", model.DeliveryTargetUser, model.DeliveryMechProduct}}, items)
+		require.ElementsMatch(t, []deliveryItem{{"a", "u", model.DeliveryTargetUser, model.DeliveryMechanismProduct}, {"b", "u", model.DeliveryTargetUser, model.DeliveryMechanismProduct}}, items)
 	})
 	t.Run("fan-out (one post, many targets)", func(t *testing.T) {
-		items, ok := tgt.extractItems(metaFields(map[string]any{"post_id": "p", "target_ids": []string{"a", "b"}, "mechanism": model.DeliveryMechProduct}))
+		items, ok := tgt.extractItems(metaFields(map[string]any{"post_id": "p", "target_ids": []string{"a", "b"}, "mechanism": model.DeliveryMechanismProduct}))
 		require.True(t, ok)
-		require.ElementsMatch(t, []deliveryItem{{"p", "a", model.DeliveryTargetUser, model.DeliveryMechProduct}, {"p", "b", model.DeliveryTargetUser, model.DeliveryMechProduct}}, items)
+		require.ElementsMatch(t, []deliveryItem{{"p", "a", model.DeliveryTargetUser, model.DeliveryMechanismProduct}, {"p", "b", model.DeliveryTargetUser, model.DeliveryMechanismProduct}}, items)
 	})
 	t.Run("missing ids", func(t *testing.T) {
 		_, ok := tgt.extractItems(metaFields(map[string]any{"target_id": "u"}))

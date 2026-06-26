@@ -354,7 +354,7 @@ func (a *App) SanitizePostMetadataForUser(rctx request.CTX, post *model.Post, us
 				} else if !previewPost.Post.IsSystemMessage() {
 					// The previewed post's content is delivered to this user via the
 					// permalink embed, even if it lives in a channel not otherwise tracked.
-					a.RecordPostDelivery(userID, previewPost.Post.Id, model.DeliveryTargetUser, model.DeliveryMechProduct)
+					a.RecordPostDelivery(userID, previewPost.Post.Id, model.DeliveryTargetUser, model.DeliveryMechanismProduct)
 				}
 			}
 		}

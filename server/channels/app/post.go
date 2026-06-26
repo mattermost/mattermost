@@ -410,7 +410,7 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 			// One fan-out record: the post was delivered to each plugin that
 			// received the hook. The target is the plugin (its id), not a user.
 			if len(pluginIDs) > 0 {
-				a.RecordPostDeliveryFanOut(pluginPost.Id, pluginIDs, model.DeliveryTargetPlugin, model.DeliveryMechPlugin)
+				a.RecordPostDeliveryFanOut(pluginPost.Id, pluginIDs, model.DeliveryTargetPlugin, model.DeliveryMechanismPlugin)
 			}
 		})
 	}

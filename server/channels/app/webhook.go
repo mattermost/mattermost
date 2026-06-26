@@ -114,7 +114,7 @@ func (a *App) TriggerWebhook(rctx request.CTX, payload *model.OutgoingWebhookPay
 	// Mechanism: the post left the channel via an outgoing webhook. The target is
 	// the webhook integration (its id), not a user.
 	if a.shouldTrackDelivery(channel, post) {
-		a.RecordPostDelivery(hook.Id, post.Id, model.DeliveryTargetWebhook, model.DeliveryMechOutgoingWebhook)
+		a.RecordPostDelivery(hook.Id, post.Id, model.DeliveryTargetWebhook, model.DeliveryMechanismOutgoingWebhook)
 	}
 
 	var wg sync.WaitGroup

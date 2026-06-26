@@ -67,9 +67,9 @@ func TestUserPostDeliveryStore(t *testing.T) {
 		postID := model.NewId()
 		u1, u2 := model.NewId(), model.NewId()
 		recs := []model.UserPostDelivery{
-			{PostID: postID, TargetID: u1, TargetType: model.DeliveryTargetUser, Mechanism: model.DeliveryMechProduct},
-			{PostID: postID, TargetID: u1, TargetType: model.DeliveryTargetUser, Mechanism: model.DeliveryMechProduct}, // in-batch dup
-			{PostID: postID, TargetID: u2, TargetType: model.DeliveryTargetUser, Mechanism: model.DeliveryMechProduct},
+			{PostID: postID, TargetID: u1, TargetType: model.DeliveryTargetUser, Mechanism: model.DeliveryMechanismProduct},
+			{PostID: postID, TargetID: u1, TargetType: model.DeliveryTargetUser, Mechanism: model.DeliveryMechanismProduct}, // in-batch dup
+			{PostID: postID, TargetID: u2, TargetType: model.DeliveryTargetUser, Mechanism: model.DeliveryMechanismProduct},
 		}
 		require.NoError(t, s.MarkBulk(ctx, recs))
 		// A second flush of the same rows must be a no-op (ON CONFLICT DO NOTHING).
@@ -88,8 +88,8 @@ func TestUserPostDeliveryStore(t *testing.T) {
 		postID := model.NewId()
 		target := model.NewId()
 		require.NoError(t, s.MarkBulk(ctx, []model.UserPostDelivery{
-			{PostID: postID, TargetID: target, TargetType: model.DeliveryTargetUser, Mechanism: model.DeliveryMechProduct},
-			{PostID: postID, TargetID: target, TargetType: model.DeliveryTargetUser, Mechanism: model.DeliveryMechEmail},
+			{PostID: postID, TargetID: target, TargetType: model.DeliveryTargetUser, Mechanism: model.DeliveryMechanismProduct},
+			{PostID: postID, TargetID: target, TargetType: model.DeliveryTargetUser, Mechanism: model.DeliveryMechanismEmail},
 		}))
 		require.Len(t, rowsByPost(t, postID), 2)
 	})
@@ -97,7 +97,7 @@ func TestUserPostDeliveryStore(t *testing.T) {
 	t.Run("DeleteByPost removes all rows for the post", func(t *testing.T) {
 		postID := model.NewId()
 		require.NoError(t, s.MarkBulk(ctx, []model.UserPostDelivery{
-			{PostID: postID, TargetID: model.NewId(), TargetType: model.DeliveryTargetUser, Mechanism: model.DeliveryMechEmail},
+			{PostID: postID, TargetID: model.NewId(), TargetType: model.DeliveryTargetUser, Mechanism: model.DeliveryMechanismEmail},
 		}))
 		require.NoError(t, s.DeleteByPost(ctx, postID))
 		require.Empty(t, rowsByPost(t, postID))

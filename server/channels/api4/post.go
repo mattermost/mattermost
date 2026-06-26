@@ -340,7 +340,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.App.RecordPostListDelivery(c.AppContext.Session().UserId, clientPostList, model.DeliveryMechProduct)
+	c.App.RecordPostListDelivery(c.AppContext.Session().UserId, clientPostList, model.DeliveryMechanismProduct)
 
 	if err := clientPostList.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -423,7 +423,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 		return
 	}
 
-	c.App.RecordPostListDelivery(c.AppContext.Session().UserId, clientPostList, model.DeliveryMechProduct)
+	c.App.RecordPostListDelivery(c.AppContext.Session().UserId, clientPostList, model.DeliveryMechanismProduct)
 
 	if etag != "" {
 		w.Header().Set(model.HeaderEtagServer, etag)
@@ -527,7 +527,7 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	c.App.RecordPostListDelivery(c.AppContext.Session().UserId, clientPostList, model.DeliveryMechProduct)
+	c.App.RecordPostListDelivery(c.AppContext.Session().UserId, clientPostList, model.DeliveryMechanismProduct)
 
 	auditRec := c.MakeAuditRecord(model.AuditEventGetFlaggedPosts, model.AuditStatusSuccess)
 	defer c.LogAuditRec(auditRec)
@@ -578,7 +578,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !post.IsSystemMessage() {
-		c.App.RecordPostDelivery(c.AppContext.Session().UserId, post.Id, model.DeliveryTargetUser, model.DeliveryMechProduct)
+		c.App.RecordPostDelivery(c.AppContext.Session().UserId, post.Id, model.DeliveryTargetUser, model.DeliveryMechanismProduct)
 	}
 
 	if c.HandleEtag(post.Etag(), "Get Post", w, r) {
@@ -661,7 +661,7 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		posts = append(posts, post)
 	}
 
-	c.App.RecordPostsDelivery(c.AppContext.Session().UserId, posts, model.DeliveryMechProduct)
+	c.App.RecordPostsDelivery(c.AppContext.Session().UserId, posts, model.DeliveryMechanismProduct)
 
 	w.Header().Set(model.HeaderFirstInaccessiblePostTime, strconv.FormatInt(firstInaccessiblePostTime, 10))
 
@@ -911,7 +911,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.App.RecordPostListDelivery(c.AppContext.Session().UserId, clientPostList, model.DeliveryMechProduct)
+	c.App.RecordPostListDelivery(c.AppContext.Session().UserId, clientPostList, model.DeliveryMechanismProduct)
 
 	w.Header().Set(model.HeaderEtagServer, clientPostList.Etag())
 
@@ -1021,7 +1021,7 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId stri
 		}
 	}
 
-	c.App.RecordPostListDelivery(c.AppContext.Session().UserId, clientPostList, model.DeliveryMechProduct)
+	c.App.RecordPostListDelivery(c.AppContext.Session().UserId, clientPostList, model.DeliveryMechanismProduct)
 
 	results = model.MakePostSearchResults(clientPostList, results.Matches)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "search_results", results)

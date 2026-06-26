@@ -305,7 +305,7 @@ func NewServer(options ...Option) (*Server, error) {
 	// has no audit access) can record deliveries through the app's audit logger.
 	// The hub no-ops recording until this is set, so wiring it after Start is safe.
 	s.platform.SetPostDeliveryRecorder(func(postID string, userIDs []string) {
-		app.RecordPostDeliveryFanOut(postID, userIDs, model.DeliveryTargetUser, model.DeliveryMechProduct)
+		app.RecordPostDeliveryFanOut(postID, userIDs, model.DeliveryTargetUser, model.DeliveryMechanismProduct)
 	})
 
 	// Register property-service hooks AFTER s.ch is populated. The
