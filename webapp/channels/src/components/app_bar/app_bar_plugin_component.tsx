@@ -61,6 +61,7 @@ const AppBarPluginComponent = (props: PluginComponentProps) => {
         <div
             role='button'
             tabIndex={0}
+            aria-label={tooltipText}
             className='app-bar__icon-inner'
         >
             <img
@@ -79,6 +80,7 @@ const AppBarPluginComponent = (props: PluginComponentProps) => {
             <div
                 role='button'
                 tabIndex={0}
+                aria-label={tooltipText}
                 className={classNames('app-bar__old-icon app-bar__icon-inner app-bar__icon-inner--centered', {'app-bar__old-icon--active': isButtonActive})}
             >
                 {component.icon}
