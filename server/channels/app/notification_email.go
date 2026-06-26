@@ -254,6 +254,10 @@ func (a *App) sendNotificationEmail(rctx request.CTX, notification *PostNotifica
 		references = referencesVal
 	}
 
+	if a.shouldTrackDelivery(channel, post) {
+		a.RecordPostDelivery(user.Id, post.Id, model.DeliveryTargetUser, model.DeliveryMechanismEmail)
+	}
+
 	a.Srv().Go(func() {
 		if nErr := a.Srv().EmailService.SendMailWithEmbeddedFiles(user.Email, html.UnescapeString(emailNotification.Subject), bodyText, embeddedFiles, messageID, inReplyTo, references, "Notification"); nErr != nil {
 			rctx.Logger().Error("Error while sending the email", mlog.String("user_email", user.Email), mlog.Err(nErr))

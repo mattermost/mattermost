@@ -156,6 +156,15 @@ type WebsocketBroadcast struct {
 	// be sent through the cluster using the reliable, TCP backed channel.
 	ReliableClusterSend bool `json:"-"`
 
+	// RecordPostDeliveryID, when non-empty, is the id of the post this broadcast
+	// delivers. The hub records a Product-mechanism post delivery for every user
+	// it actually sends this broadcast to (see Hub.processBroadcast). It is set
+	// only for trackable "posted" events and is omitempty, so untracked
+	// broadcasts carry no extra bytes. It is json-tagged (not json:"-") on
+	// purpose: in an HA cluster every node must see it so each records the
+	// connections it serves, not only the originating node.
+	RecordPostDeliveryID string `json:"record_post_delivery_id,omitempty"`
+
 	// BroadcastHooks is a slice of hooks IDs used to process events before sending them on individual connections. The
 	// IDs should be understood by the WebSocket code.
 	//
@@ -184,6 +193,7 @@ func (wb *WebsocketBroadcast) copy() *WebsocketBroadcast {
 	c.OmitConnectionId = wb.OmitConnectionId
 	c.ContainsSanitizedData = wb.ContainsSanitizedData
 	c.ContainsSensitiveData = wb.ContainsSensitiveData
+	c.RecordPostDeliveryID = wb.RecordPostDeliveryID
 	c.BroadcastHooks = wb.BroadcastHooks
 	c.BroadcastHookArgs = wb.BroadcastHookArgs
 

@@ -1708,8 +1708,7 @@ func (s *DeliveryTrackingSettings) isValid() *AppError {
 // PostDeliveryTrackingEnabled reports whether the PostDeliveryTracking feature
 // flag and the admin DeliveryTrackingSettings.Enable are both on.
 func (o *Config) PostDeliveryTrackingEnabled() bool {
-	return o.FeatureFlags != nil && o.FeatureFlags.PostDeliveryTracking &&
-		SafeDereference(o.DeliveryTrackingSettings.Enable)
+	return o.FeatureFlags != nil && o.FeatureFlags.PostDeliveryTracking && SafeDereference(o.DeliveryTrackingSettings.Enable)
 }
 
 type LogSettings struct {

@@ -1102,6 +1102,8 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	c.App.RecordPostListDelivery(c.AppContext.Session().UserId, clientPostList, model.DeliveryMechanismProduct)
+
 	w.Header().Set(model.HeaderEtagServer, clientPostList.Etag())
 	if err := clientPostList.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
