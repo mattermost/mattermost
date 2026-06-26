@@ -60,7 +60,10 @@ func TestCreateRecap(t *testing.T) {
 			cfg.AIRecapSettings.DefaultLimits.CooldownMinutes = model.NewPointer(2)
 		})
 
-		lastCreateAt := model.GetMillis() - int64(30*1000)
+		// Place the last recap 1s ago so the remaining cooldown sits near the top of the
+		// 2-minute band (~119s). This still exercises ceiling rounding while leaving ~59s of
+		// slack, so a slow/loaded CI run can't flip the rounded value down to "1 minute".
+		lastCreateAt := model.GetMillis() - int64(1*1000)
 		lastManualRecap := &model.Recap{
 			Id:                model.NewId(),
 			UserId:            th.BasicUser.Id,
