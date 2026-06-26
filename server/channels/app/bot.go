@@ -188,17 +188,13 @@ func (a *App) GetOrCreateSystemOwnedBot(rctx request.CTX, botUsername, botDispla
 		return nil, model.NewAppError("GetSystemBot", "app.bot.get_system_bot.empty_admin_list.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	systemBot := &model.Bot{
+	botDef := &model.Bot{
 		Username:    botUsername,
 		DisplayName: botDisplayName,
 		Description: "",
 		OwnerId:     sysAdminList[0].Id,
 	}
 
-	return a.getOrCreateBot(rctx, systemBot)
-}
-
-func (a *App) getOrCreateBot(rctx request.CTX, botDef *model.Bot) (*model.Bot, *model.AppError) {
 	botUser, appErr := a.GetUserByUsername(botDef.Username)
 	if appErr != nil {
 		if appErr.StatusCode != http.StatusNotFound {
@@ -223,9 +219,9 @@ func (a *App) getOrCreateBot(rctx request.CTX, botDef *model.Bot) (*model.Bot, *
 				default:
 					code = "app.user.save.existing.app_error"
 				}
-				return nil, model.NewAppError("getOrCreateBot", code, nil, "", http.StatusBadRequest).Wrap(nErr)
+				return nil, model.NewAppError("GetOrCreateSystemOwnedBot", code, nil, "", http.StatusBadRequest).Wrap(nErr)
 			default:
-				return nil, model.NewAppError("getOrCreateBot", "app.user.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+				return nil, model.NewAppError("GetOrCreateSystemOwnedBot", "app.user.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
 		}
 		botDef.UserId = user.Id
@@ -241,23 +237,30 @@ func (a *App) getOrCreateBot(rctx request.CTX, botDef *model.Bot) (*model.Bot, *
 			case errors.As(nErr, &nAppErr): // in case we haven't converted to plain error.
 				return nil, nAppErr
 			default: // last fallback in case it doesn't map to an existing app error.
-				return nil, model.NewAppError("getOrCreateBot", "app.bot.createbot.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+				return nil, model.NewAppError("GetOrCreateSystemOwnedBot", "app.bot.createbot.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
 		}
 		return savedBot, nil
 	}
 
 	if botUser == nil {
-		return nil, model.NewAppError("getOrCreateBot", "app.bot.createbot.internal_error", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("GetOrCreateSystemOwnedBot", "app.bot.createbot.internal_error", nil, "", http.StatusInternalServerError)
 	}
 
-	//return the bot for this user
-	savedBot, appErr := a.GetBot(rctx, botUser.Id, false)
+	// Bot user exists; fetch including disabled.
+	bot, appErr := a.GetBot(rctx, botUser.Id, true)
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	return savedBot, nil
+	// Auto-heal: re-enable the bot if it was disabled (e.g. its owner was deactivated).
+	// UpdateBotActive routes protected bots through the admission-check-free
+	// reactivation path, so recovery succeeds even at the user cap.
+	if bot.DeleteAt != 0 {
+		return a.UpdateBotActive(rctx, bot.UserId, true)
+	}
+
+	return bot, nil
 }
 
 // PatchBot applies the given patch to the bot and corresponding user.
@@ -395,6 +398,24 @@ func (a *App) IsBotExemptFromDMRestrictions(rctx request.CTX, userID string) (bo
 
 // UpdateBotActive marks a bot as active or inactive, along with its corresponding user.
 func (a *App) UpdateBotActive(rctx request.CTX, botUserId string, active bool) (*model.Bot, *model.AppError) {
+	bot, nErr := a.Srv().Store().Bot().Get(botUserId, true)
+	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(nErr, &nfErr):
+			return nil, model.MakeBotNotFoundError("SqlBotStore.Get", nfErr.ID).Wrap(nErr)
+		default:
+			return nil, model.NewAppError("UpdateBotActive", "app.bot.getbot.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
+	}
+
+	// System-owned bots must never be disabled. This is the single choke point
+	// for both direct API calls and the disableUserBots owner-deactivation path.
+	_, protected := model.ProtectedBotUsernames[bot.Username]
+	if protected && !active {
+		return nil, model.NewAppError("UpdateBotActive", "app.bot.update_bot_active.protected_bot.app_error", nil, "", http.StatusForbidden)
+	}
+
 	user, nErr := a.Srv().Store().User().Get(context.Background(), botUserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
@@ -406,19 +427,14 @@ func (a *App) UpdateBotActive(rctx request.CTX, botUserId string, active bool) (
 		}
 	}
 
-	if _, err := a.UpdateActive(rctx, user, active); err != nil {
-		return nil, err
-	}
-
-	bot, nErr := a.Srv().Store().Bot().Get(botUserId, true)
-	if nErr != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(nErr, &nfErr):
-			return nil, model.MakeBotNotFoundError("SqlBotStore.Get", nfErr.ID).Wrap(nErr)
-		default: // last fallback in case it doesn't map to an existing app error.
-			return nil, model.NewAppError("UpdateBotActive", "app.bot.getbot.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+	if protected && active {
+		// Re-enabling a protected bot bypasses the active-user/license admission
+		// checks so recovery is always possible, even at the user cap.
+		if _, err := a.updateActive(rctx, user, true); err != nil {
+			return nil, err
 		}
+	} else if _, err := a.UpdateActive(rctx, user, active); err != nil {
+		return nil, err
 	}
 
 	changed := true

@@ -1217,6 +1217,14 @@ func (a *App) UpdateActive(rctx request.CTX, user *model.User, active bool) (*mo
 		}
 	}
 
+	return a.updateActive(rctx, user, active)
+}
+
+// updateActive performs the user activation/deactivation work without the
+// active-user/license admission checks done by UpdateActive. Protected
+// system-owned bots use it directly so they can always be recovered, even when
+// the instance is at the user cap.
+func (a *App) updateActive(rctx request.CTX, user *model.User, active bool) (*model.User, *model.AppError) {
 	user.UpdateAt = model.GetMillis()
 	if active {
 		user.DeleteAt = 0

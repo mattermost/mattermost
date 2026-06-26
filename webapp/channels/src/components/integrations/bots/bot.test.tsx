@@ -5,7 +5,7 @@ import React from 'react';
 
 import {generateId} from 'mattermost-redux/utils/helpers';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper as UtilsTestHelper} from 'utils/test_helper';
 
 import Bot from './bot';
@@ -177,6 +177,66 @@ describe('components/integrations/bots/Bot', () => {
         expect(screen.getByText('Create New Token')).toBeInTheDocument();
         expect(screen.getByText('Edit')).toBeInTheDocument();
         expect(screen.getByText('Disable')).toBeInTheDocument();
+    });
+
+    it.each(['system-bot', 'content-review'])('protected system bot %s hides Edit and Disable but keeps token management', (username) => {
+        const bot = UtilsTestHelper.getBotMock({user_id: '1', owner_id: '1', username});
+        const owner = UtilsTestHelper.getUserMock({id: bot.owner_id});
+        const user = UtilsTestHelper.getUserMock({id: bot.user_id});
+        renderWithContext(
+            <Bot
+                bot={bot}
+                owner={owner}
+                user={user}
+                accessTokens={{}}
+                team={team}
+                actions={actions}
+                fromApp={false}
+            />,
+        );
+
+        // Token management remains available for system-owned bots.
+        expect(screen.getByText('Create New Token')).toBeInTheDocument();
+
+        // Edit and Disable must be hidden so the bot cannot be disabled from the UI.
+        expect(screen.queryByText('Edit')).not.toBeInTheDocument();
+        expect(screen.queryByText(/^Disable$/)).not.toBeInTheDocument();
+
+        // An active bot should not offer Enable.
+        expect(screen.queryByText(/^Enable$/)).not.toBeInTheDocument();
+
+        // System-owned bots are surfaced as managed by Mattermost rather than by
+        // the system admin that happens to own them.
+        expect(screen.getByText('Managed by Mattermost')).toBeInTheDocument();
+        expect(screen.queryByText(`Managed by ${owner.username}`)).not.toBeInTheDocument();
+    });
+
+    it('disabled protected system bot still offers a working Enable control for recovery', () => {
+        const bot = UtilsTestHelper.getBotMock({user_id: 'protected-user-id', owner_id: '1', username: 'system-bot'});
+        bot.delete_at = 100; // disabled
+        const owner = UtilsTestHelper.getUserMock({id: bot.owner_id});
+        const user = UtilsTestHelper.getUserMock({id: bot.user_id});
+        renderWithContext(
+            <Bot
+                bot={bot}
+                owner={owner}
+                user={user}
+                accessTokens={{}}
+                team={team}
+                actions={actions}
+                fromApp={false}
+            />,
+        );
+
+        // Protection must not remove the Enable control, otherwise a disabled
+        // protected bot could never be recovered from the UI.
+        const enableButton = screen.getByText('Enable');
+        expect(enableButton).toBeInTheDocument();
+        expect(screen.queryByText('Edit')).not.toBeInTheDocument();
+        expect(screen.queryByText(/^Disable$/)).not.toBeInTheDocument();
+
+        fireEvent.click(enableButton);
+        expect(actions.enableBot).toHaveBeenCalledWith('protected-user-id');
     });
 
     it('bot with access tokens', () => {
