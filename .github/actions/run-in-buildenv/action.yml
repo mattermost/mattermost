@@ -8,7 +8,7 @@ description: >
 
 inputs:
   image:
-    description: "Docker image reference (from setup-buildenv outputs)"
+    description: "Docker image reference"
     required: true
   artifact-name:
     description: "Artifact name from setup-buildenv. Empty = pull from registry."
@@ -17,14 +17,6 @@ inputs:
   run:
     description: "Bash script to execute inside the container"
     required: true
-  dockerhub-username:
-    description: "Docker Hub username (required for private FIPS image)"
-    required: false
-    default: ""
-  dockerhub-token:
-    description: "Docker Hub token"
-    required: false
-    default: ""
 
 runs:
   using: composite
@@ -32,8 +24,6 @@ runs:
     - uses: ./.github/actions/use-buildenv
       with:
         artifact-name: ${{ inputs.artifact-name }}
-        dockerhub-username: ${{ inputs.dockerhub-username }}
-        dockerhub-token: ${{ inputs.dockerhub-token }}
     - shell: bash
       env:
         IMAGE: ${{ inputs.image }}
