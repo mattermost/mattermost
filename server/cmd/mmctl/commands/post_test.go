@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
+	"github.com/spf13/viper"
 )
 
 func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
@@ -104,6 +105,214 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		err = postCreateCmdF(s.client, cmd, []string{channelArg, msgArg})
 		s.Require().Nil(err)
 		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("create a post in local mode should fail", func() {
+		msgArg := "some text"
+		channelArg := "example-channel"
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("message", msgArg, "")
+		prevLocal := viper.GetBool("local")
+		viper.Set("local", true)
+		defer viper.Set("local", prevLocal)
+
+		err := postCreateCmdF(s.client, cmd, []string{channelArg})
+		s.Require().EqualError(err, "creating posts is not supported in local mode")
+	})
+
+	s.Run("create a direct message", func() {
+		printer.Clean()
+		msgArg := "some text"
+		username := "target-user"
+		meID := "my-user-id"
+		targetUserID := "target-user-id"
+		dmChannelID := "dm-channel-id"
+
+		mockTargetUser := model.User{Id: targetUserID, Username: username}
+		mockMe := model.User{Id: meID}
+		mockChannel := model.Channel{Id: dmChannelID, Type: model.ChannelTypeDirect}
+		mockPost := model.Post{Message: msgArg, ChannelId: dmChannelID}
+		data, err := mockPost.ToJSON()
+		s.Require().NoError(err)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("message", msgArg, "")
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), username, "").
+			Return(&mockTargetUser, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetMe(context.TODO(), "").
+			Return(&mockMe, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			CreateDirectChannel(context.TODO(), meID, targetUserID).
+			Return(&mockChannel, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			DoAPIPost(context.TODO(), "/posts?set_online=false", data).
+			Return(nil, nil).
+			Times(1)
+
+		err = postCreateCmdF(s.client, cmd, []string{"@" + username})
+		s.Require().Nil(err)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("create a direct message with reply-to and burn-on-read", func() {
+		printer.Clean()
+		msgArg := "some text"
+		username := "target-user"
+		meID := "my-user-id"
+		targetUserID := "target-user-id"
+		dmChannelID := "dm-channel-id"
+		replyToArg := "reply-to-post"
+		rootID := "root-post-id"
+
+		mockTargetUser := model.User{Id: targetUserID, Username: username}
+		mockMe := model.User{Id: meID}
+		mockChannel := model.Channel{Id: dmChannelID, Type: model.ChannelTypeDirect}
+		mockReplyTo := model.Post{RootId: rootID}
+		mockPost := model.Post{Message: msgArg, ChannelId: dmChannelID, RootId: rootID, Type: model.PostTypeBurnOnRead}
+		data, err := mockPost.ToJSON()
+		s.Require().NoError(err)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("message", msgArg, "")
+		cmd.Flags().String("reply-to", replyToArg, "")
+		cmd.Flags().Bool("burn-on-read", true, "")
+
+		s.client.
+			EXPECT().
+			GetPost(context.TODO(), replyToArg, "").
+			Return(&mockReplyTo, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), username, "").
+			Return(&mockTargetUser, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetMe(context.TODO(), "").
+			Return(&mockMe, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			CreateDirectChannel(context.TODO(), meID, targetUserID).
+			Return(&mockChannel, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			DoAPIPost(context.TODO(), "/posts?set_online=false", data).
+			Return(nil, nil).
+			Times(1)
+
+		err = postCreateCmdF(s.client, cmd, []string{"@" + username})
+		s.Require().Nil(err)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("direct message to a non-existing user", func() {
+		printer.Clean()
+		msgArg := "some text"
+		username := "ghost"
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("message", msgArg, "")
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), username, "").
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUser(context.TODO(), username, "").
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		err := postCreateCmdF(s.client, cmd, []string{"@" + username})
+		var nfErr ErrEntityNotFound
+		s.Require().ErrorAs(err, &nfErr)
+		s.Require().Equal("user", nfErr.Type)
+		s.Require().Equal(username, nfErr.ID)
+	})
+
+	s.Run("direct message fails to resolve the current user", func() {
+		printer.Clean()
+		msgArg := "some text"
+		username := "target-user"
+		targetUserID := "target-user-id"
+		mockTargetUser := model.User{Id: targetUserID, Username: username}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("message", msgArg, "")
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), username, "").
+			Return(&mockTargetUser, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetMe(context.TODO(), "").
+			Return(nil, &model.Response{}, errors.New("some-error")).
+			Times(1)
+
+		err := postCreateCmdF(s.client, cmd, []string{"@" + username})
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "could not retrieve the current user")
+	})
+
+	s.Run("direct message fails to create the direct channel", func() {
+		printer.Clean()
+		msgArg := "some text"
+		username := "target-user"
+		meID := "my-user-id"
+		targetUserID := "target-user-id"
+		mockTargetUser := model.User{Id: targetUserID, Username: username}
+		mockMe := model.User{Id: meID}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("message", msgArg, "")
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), username, "").
+			Return(&mockTargetUser, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetMe(context.TODO(), "").
+			Return(&mockMe, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			CreateDirectChannel(context.TODO(), meID, targetUserID).
+			Return(nil, &model.Response{}, errors.New("some-error")).
+			Times(1)
+
+		err := postCreateCmdF(s.client, cmd, []string{"@" + username})
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "could not create direct channel with 'target-user'")
 	})
 
 	s.Run("reply to an existing post", func() {
