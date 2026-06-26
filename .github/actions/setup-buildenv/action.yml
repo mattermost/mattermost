@@ -97,11 +97,11 @@ runs:
         GO_VERSION: ${{ inputs.go-version }}
       run: |
         mkdir -p "${BUILDENV_TMPDIR}"
-        docker save "${BUILDENV_FIPS_IMAGE}:${GO_VERSION}" | gzip > "${BUILDENV_TMPDIR}/image.tar.gz"
+        docker save "${BUILDENV_FIPS_IMAGE}:${GO_VERSION}" | gzip > "${BUILDENV_TMPDIR}/image-fips.tar.gz"
     - name: Upload FIPS image artifact
       if: ${{ steps.resolve-fips.outputs.artifact-name != '' }}
       uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
       with:
         name: ${{ env.BUILDENV_FIPS_ARTIFACT }}
-        path: ${{ env.BUILDENV_TMPDIR }}/image.tar.gz
+        path: ${{ env.BUILDENV_TMPDIR }}/image-fips.tar.gz
         retention-days: 1

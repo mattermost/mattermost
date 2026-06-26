@@ -41,11 +41,15 @@ runs:
         CMD: ${{ inputs.run }}
         NETWORK: ${{ inputs.network }}
       run: |
+        SCRIPT=$(mktemp)
+        printf '%s\n' "${CMD}" > "${SCRIPT}"
         NETWORK_ARGS=()
         [[ -n "${NETWORK}" ]] && NETWORK_ARGS=(--network "${NETWORK}")
         docker run --rm \
           "${NETWORK_ARGS[@]}" \
           -v "$PWD:/mattermost" \
+          -v "${SCRIPT}:/run-script.sh" \
           -w /mattermost/server \
           "${IMAGE}" \
-          bash -c "${CMD}"
+          bash /run-script.sh
+        rm -f "${SCRIPT}"

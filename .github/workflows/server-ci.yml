@@ -43,8 +43,6 @@ jobs:
       gomod-changed: ${{ steps.changed-files.outputs.any_changed }}
       image: mattermost/mattermost-build-server:${{ steps.calculate.outputs.GO_VERSION }}
       image-fips: mattermost/mattermost-build-server-fips:${{ steps.calculate.outputs.GO_VERSION }}
-      image-artifact: ${{ steps.buildenv.outputs.artifact-name }}
-      image-fips-artifact: ${{ steps.buildenv-fips.outputs.artifact-name }}
     env:
       CHAINCTL_IDENTITY: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -75,7 +73,6 @@ jobs:
         uses: ./.github/actions/setup-buildenv
         with:
           go-version: ${{ steps.calculate.outputs.GO_VERSION }}
-          fips-enabled: "true"
   check-mocks:
     name: Check mocks
     needs: go
@@ -242,6 +239,7 @@ jobs:
         with:
           network: host
           run: |
+            export IS_CI=true
             export TEST_DATABASE_POSTGRESQL_DSN=postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10
             make default-roles-permissions
       - name: Check generated code
@@ -298,7 +296,6 @@ jobs:
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
       build-image: ${{ needs.go.outputs.image }}
-      build-image-artifact: ${{ needs.go.outputs.image-artifact }}
       shard-index: ${{ matrix.shard }}
       shard-total: 4
   # -- Merge test results (handles both single-run and future sharded runs) --
@@ -331,7 +328,6 @@ jobs:
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
       build-image: ${{ needs.go.outputs.image }}
-      build-image-artifact: ${{ needs.go.outputs.image-artifact }}
       elasticsearch-version: "8.9.0"
       test-target: "test-server-elasticsearch"
 
@@ -350,7 +346,6 @@ jobs:
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
       build-image: ${{ needs.go.outputs.image }}
-      build-image-artifact: ${{ needs.go.outputs.image-artifact }}
       opensearch-version: "2.19.0"
       test-target: "test-server-opensearch"
 
@@ -379,7 +374,6 @@ jobs:
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: true
       build-image: ${{ needs.go.outputs.image-fips }}
-      build-image-artifact: ${{ needs.go.outputs.image-fips-artifact }}
       shard-index: ${{ matrix.shard }}
       shard-total: 4
   merge-postgres-fips-test-results:
@@ -411,7 +405,6 @@ jobs:
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
       build-image: ${{ needs.go.outputs.image }}
-      build-image-artifact: ${{ needs.go.outputs.image-artifact }}
   test-mmctl-fips:
     if: contains(github.head_ref, 'fips') || needs.go.outputs.gomod-changed == 'true'
     name: Run mmctl tests (FIPS)
@@ -432,7 +425,6 @@ jobs:
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: true
       build-image: ${{ needs.go.outputs.image-fips }}
-      build-image-artifact: ${{ needs.go.outputs.image-fips-artifact }}
 
   build-mattermost-server:
     name: Build mattermost server app

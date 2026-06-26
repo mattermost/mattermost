@@ -38,4 +38,4 @@ runs:
     - name: Load buildenv-fips from artifact
       if: steps.download-fips.outcome == 'success'
       shell: bash
-      run: docker load -i "${BUILDENV_TMPDIR}/image.tar.gz"
+      run: docker load -i "${BUILDENV_TMPDIR}/image-fips.tar.gz"
