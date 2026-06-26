@@ -5,12 +5,12 @@ import React from 'react';
 import type {ComponentProps} from 'react';
 import {Link} from 'react-router-dom';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {isMobile} from '@mattermost/shared/utils/user_agent';
 
 import * as GlobalActions from 'actions/global_actions';
 
 import Timestamp from 'components/timestamp';
-import WithTooltip from 'components/with_tooltip';
 
 import {Locations} from 'utils/constants';
 
@@ -38,7 +38,7 @@ type Props = {
     postId: string;
     teamUrl: string;
     timestampProps?: ComponentProps<typeof Timestamp>;
-}
+};
 
 export default class PostTime extends React.PureComponent<Props> {
     static defaultProps: Partial<Props> = {

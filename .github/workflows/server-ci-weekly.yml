@@ -30,6 +30,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Calculate version
         id: calculate
         working-directory: server/
@@ -38,8 +40,10 @@ jobs:
   test-postgres-binary:
     name: Postgres with binary parameters
     needs: go
+    permissions:
+      contents: read
+      actions: write
     uses: ./.github/workflows/server-test-template.yml
-    secrets: inherit
     with:
       name: Postgres with binary parameters
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes
@@ -47,12 +51,21 @@ jobs:
       logsartifact: postgres-binary-server-test-logs
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
+      # Unsharded run on a single 8-core runner: fullyparallel=true causes
+      # resource exhaustion (too many server instances, WebSocket hubs, and
+      # DB connections) and crashes the hosted runner. See #35995.
+      fullyparallel: false
 
   test-postgres-normal-fips:
     name: Postgres FIPS
     needs: go
+    permissions:
+      contents: read
+      actions: write
     uses: ./.github/workflows/server-test-template.yml
-    secrets: inherit
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
     with:
       name: Postgres FIPS
       datasource: postgres://mmuser:mostest-fips-test@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
@@ -60,12 +73,20 @@ jobs:
       logsartifact: postgres-server-fips-test-logs
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: true
+      # Unsharded run on a single 8-core runner: see note on test-postgres-binary.
+      fullyparallel: false
 
   test-mmctl-fips:
     name: Run mmctl tests (FIPS)
     needs: go
+    permissions:
+      contents: read
+      actions: write
     uses: ./.github/workflows/mmctl-test-template.yml
-    secrets: inherit
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+      MM_E2E_ZEPHYR_API_KEY: ${{ secrets.MM_E2E_ZEPHYR_API_KEY }}
     with:
       name: mmctl
       datasource: postgres://mmuser:mostest-fips-test@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10

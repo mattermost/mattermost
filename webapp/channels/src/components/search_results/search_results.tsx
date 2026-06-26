@@ -24,6 +24,7 @@ import NoResultsIndicator from 'components/no_results_indicator/no_results_indic
 import {NoResultsVariant} from 'components/no_results_indicator/types';
 import DateSeparator from 'components/post_view/date_separator';
 import {getSearchPopoutTitle} from 'components/rhs_search_popout/title';
+import type {SearchFilterType} from 'components/search/types';
 import SearchHint from 'components/search_hint/search_hint';
 import SearchResultsHeader from 'components/search_results_header';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
@@ -38,11 +39,32 @@ import FilesFilterMenu from './files_filter_menu';
 import MessageOrFileSelector from './messages_or_files_selector';
 import PostSearchResultsItem from './post_search_results_item';
 import SearchLimitsBanner from './search_limits_banner';
-import type {Props} from './types';
+
+import type {OwnProps, PropsFromRedux} from './index';
 
 import './search_results.scss';
 
 const GET_MORE_BUFFER = 30;
+
+export type Props = OwnProps & PropsFromRedux & {
+    channelDisplayName?: string;
+    crossTeamSearchEnabled: boolean;
+    isCard?: boolean;
+    isChannelFiles: boolean;
+    isFlaggedPosts: boolean;
+    isMentionSearch: boolean;
+    isOpened?: boolean;
+    isSideBarExpanded: boolean;
+    searchFilterType: SearchFilterType;
+    searchType: SearchType;
+
+    getMoreFilesForSearch: () => void;
+    getMorePostsForSearch: () => void;
+    handleSearchHintSelection?: () => void;
+    setSearchFilterType: (filterType: SearchFilterType) => void;
+    updateSearchTeam: (teamId: string) => void;
+    updateSearchTerms: (terms: string) => void;
+};
 
 interface NoResultsProps {
     variant: NoResultsVariant;
@@ -150,6 +172,13 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
 
     const noResults = (!results || !Array.isArray(results) || results.length === 0);
     const noFileResults = (!fileResults || !Array.isArray(fileResults) || fileResults.length === 0);
+
+    // The `results` prop is typed as `Array<Post | string>`. Strings are
+    // non-Post entries (date separators injected by
+    // makeAddDateSeparatorsForSearchResults), so the messages counter only
+    // counts the non-string entries. Otherwise the count is inflated by one
+    // per date group (see MM-67904).
+    const messagesCount = Array.isArray(results) ? results.filter((item) => typeof item !== 'string').length : 0;
     const isLoading = isSearchingTerm || isSearchingFlaggedPost || isSearchingPinnedPost || !isOpened;
     const isAtEnd = (searchType === DataSearchTypes.MESSAGES_SEARCH_TYPE && isSearchAtEnd) || (searchType === DataSearchTypes.FILES_SEARCH_TYPE && isSearchFilesAtEnd);
     const showLoadMore = !isAtEnd && !isChannelFiles && !isFlaggedPosts && !isPinnedPosts;
@@ -324,7 +353,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
             sortedResults = fileResults;
         }
 
-        contentItems = sortedResults.map((item: string|Post|FileSearchResultItemType, index: number) => {
+        contentItems = sortedResults.map((item: string | Post | FileSearchResultItemType, index: number) => {
             if (searchType === DataSearchTypes.MESSAGES_SEARCH_TYPE && !props.isChannelFiles) {
                 if (typeof item === 'string' && isDateLine(item)) {
                     const date = getDateForDateLine(item);
@@ -390,7 +419,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                     selected={searchType}
                     selectedFilter={searchFilterType}
                     isFileAttachmentsEnabled={isFileAttachmentsEnabled(config)}
-                    messagesCounter={isSearchAtEnd || props.searchPage === 0 ? `${results.length}` : `${results.length}+`}
+                    messagesCounter={isSearchAtEnd || props.searchPage === 0 ? `${messagesCount}` : `${messagesCount}+`}
                     filesCounter={isSearchFilesAtEnd || props.searchPage === 0 ? `${fileResults.length}` : `${fileResults.length}+`}
                     onChange={setSearchType}
                     onFilter={setSearchFilterType}

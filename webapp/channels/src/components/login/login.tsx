@@ -64,7 +64,7 @@ const MOBILE_SCREEN_WIDTH = 1200;
 
 type LoginProps = {
     onCustomizeHeader?: CustomizeHeaderType;
-}
+};
 
 const Login = ({onCustomizeHeader}: LoginProps) => {
     const {formatMessage} = useIntl();

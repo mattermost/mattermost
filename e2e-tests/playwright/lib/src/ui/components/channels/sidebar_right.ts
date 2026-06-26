@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 import ChannelsPostCreate from './post_create';
 import ChannelsPostEdit from './post_edit';
@@ -89,8 +90,8 @@ export default class ChannelsSidebarRight {
         await expect(this.container).not.toBeVisible();
     }
 
-    async toContainText(text: string) {
-        await expect(this.container).toContainText(text);
+    async toContainText(text: string, timeout?: number) {
+        await expect(this.container).toContainText(text, {timeout});
     }
 
     async verifyCurrentVersionPostMessage(postID: string | null, postMessageContent: string) {

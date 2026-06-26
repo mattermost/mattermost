@@ -13,7 +13,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
           class="fa fa-angle-left back"
           href="/admin_console/system_attributes/membership_policies"
         />
-        Edit Access Control Policy
+        Edit Membership Policy
       </div>
     </div>
     <div
@@ -34,7 +34,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
               data-testid="admin.access_control.policy.edit_policy.policyNamelabel"
               for="admin.access_control.policy.edit_policy.policyName"
             >
-              Access control policy name:
+              Membership policy name:
             </label>
             <div
               class="col-sm-8"
@@ -65,12 +65,12 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
               <div
                 class="text-top"
               >
-                Attribute-based access rules
+                Attribute-based membership rules
               </div>
               <div
                 class="text-bottom"
               >
-                Select user attributes and values as rules to restrict channel membership.
+                Select user attributes and values that qualifying users must have
               </div>
             </div>
             <button
@@ -87,99 +87,8 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
             style="height: 0px;"
           >
             <div
-              class="table-editor"
-            >
-              <table
-                class="table-editor__table"
-              >
-                <thead>
-                  <tr
-                    class="table-editor__header-row"
-                  >
-                    <th
-                      class="table-editor__column-header"
-                    >
-                      Attribute
-                    </th>
-                    <th
-                      class="table-editor__column-header"
-                    >
-                      Operator
-                    </th>
-                    <th
-                      class="table-editor__column-header"
-                    >
-                      <span
-                        class="table-editor__column-header-value"
-                      >
-                        Values
-                      </span>
-                    </th>
-                    <th
-                      class="table-editor__column-header-actions"
-                    />
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td
-                      class="table-editor__blank-state"
-                      colspan="4"
-                    >
-                      <span>
-                        Select a user attribute and values to create a rule
-                      </span>
-                    </td>
-                  </tr>
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <td
-                      class="table-editor__add-button-container"
-                      colspan="4"
-                    >
-                      <button
-                        class="btn btn-sm btn-tertiary"
-                        disabled=""
-                      >
-                        <i
-                          class="icon icon-plus"
-                        />
-                        Add attribute
-                      </button>
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
-              <div
-                class="table-editor__actions-row"
-              >
-                <div
-                  class="editor__help-text"
-                >
-                  <p>
-                    Each row is a single condition that must be met for a user to comply with the policy. All rules are combined with logical AND operator (
-                    <span
-                      class="codespan__pre-wrap"
-                    >
-                      <code>
-                        &&
-                      </code>
-                    </span>
-                    ).
-                  </p>
-                </div>
-                <button
-                  class="btn btn-sm btn-tertiary"
-                  disabled=""
-                >
-                  <i
-                    class="icon icon-lock-outline"
-                  />
-                  Test access rule
-                </button>
-              </div>
-            </div>
+              data-testid="table-editor"
+            />
           </div>
         </div>
         <div
@@ -197,7 +106,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
               <div
                 class="text-bottom"
               >
-                Add channels that this attribute-based access policy will apply to.
+                Add channels that this membership policy will apply to.
               </div>
             </div>
             <button
@@ -508,7 +417,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
           class="fa fa-angle-left back"
           href="/admin_console/system_attributes/membership_policies"
         />
-        Edit Access Control Policy
+        Edit Membership Policy
       </div>
     </div>
     <div
@@ -529,7 +438,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
               data-testid="admin.access_control.policy.edit_policy.policyNamelabel"
               for="admin.access_control.policy.edit_policy.policyName"
             >
-              Access control policy name:
+              Membership policy name:
             </label>
             <div
               class="col-sm-8"
@@ -560,12 +469,12 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
               <div
                 class="text-top"
               >
-                Attribute-based access rules
+                Attribute-based membership rules
               </div>
               <div
                 class="text-bottom"
               >
-                Select user attributes and values as rules to restrict channel membership.
+                Select user attributes and values that qualifying users must have
               </div>
             </div>
             <button
@@ -582,99 +491,8 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
             style="height: 0px;"
           >
             <div
-              class="table-editor"
-            >
-              <table
-                class="table-editor__table"
-              >
-                <thead>
-                  <tr
-                    class="table-editor__header-row"
-                  >
-                    <th
-                      class="table-editor__column-header"
-                    >
-                      Attribute
-                    </th>
-                    <th
-                      class="table-editor__column-header"
-                    >
-                      Operator
-                    </th>
-                    <th
-                      class="table-editor__column-header"
-                    >
-                      <span
-                        class="table-editor__column-header-value"
-                      >
-                        Values
-                      </span>
-                    </th>
-                    <th
-                      class="table-editor__column-header-actions"
-                    />
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td
-                      class="table-editor__blank-state"
-                      colspan="4"
-                    >
-                      <span>
-                        Select a user attribute and values to create a rule
-                      </span>
-                    </td>
-                  </tr>
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <td
-                      class="table-editor__add-button-container"
-                      colspan="4"
-                    >
-                      <button
-                        class="btn btn-sm btn-tertiary"
-                        disabled=""
-                      >
-                        <i
-                          class="icon icon-plus"
-                        />
-                        Add attribute
-                      </button>
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
-              <div
-                class="table-editor__actions-row"
-              >
-                <div
-                  class="editor__help-text"
-                >
-                  <p>
-                    Each row is a single condition that must be met for a user to comply with the policy. All rules are combined with logical AND operator (
-                    <span
-                      class="codespan__pre-wrap"
-                    >
-                      <code>
-                        &&
-                      </code>
-                    </span>
-                    ).
-                  </p>
-                </div>
-                <button
-                  class="btn btn-sm btn-tertiary"
-                  disabled=""
-                >
-                  <i
-                    class="icon icon-lock-outline"
-                  />
-                  Test access rule
-                </button>
-              </div>
-            </div>
+              data-testid="table-editor"
+            />
           </div>
         </div>
         <div
@@ -692,7 +510,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
               <div
                 class="text-bottom"
               >
-                Add channels that this attribute-based access policy will apply to.
+                Add channels that this membership policy will apply to.
               </div>
             </div>
             <button

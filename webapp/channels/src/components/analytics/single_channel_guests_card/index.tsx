@@ -5,9 +5,9 @@ import React from 'react';
 import {defineMessage, defineMessages, useIntl} from 'react-intl';
 
 import {AlertOutlineIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import StatisticCount from 'components/analytics/statistic_count';
-import WithTooltip from 'components/with_tooltip';
 
 export const messages = defineMessages({
     singleChannelGuests: {id: 'analytics.system.singleChannelGuests', defaultMessage: 'Single-channel Guests'},
@@ -15,7 +15,7 @@ export const messages = defineMessages({
 
 type TitleProps = {
     isOverLimit: boolean;
-}
+};
 
 const Title = ({isOverLimit}: TitleProps) => {
     const intl = useIntl();
@@ -52,7 +52,7 @@ const Title = ({isOverLimit}: TitleProps) => {
 type SingleChannelGuestsCardProps = {
     singleChannelGuestsCount: number | undefined;
     singleChannelGuestLimit: number;
-}
+};
 
 const SingleChannelGuestsCard = ({singleChannelGuestsCount, singleChannelGuestLimit}: SingleChannelGuestsCardProps) => {
     const isOverLimit = singleChannelGuestsCount !== undefined && singleChannelGuestLimit > 0 && singleChannelGuestsCount > singleChannelGuestLimit;

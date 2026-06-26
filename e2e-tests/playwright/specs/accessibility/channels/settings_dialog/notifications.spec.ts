@@ -52,6 +52,10 @@ test(
         await page.keyboard.press('Tab');
         await pw.toBeFocusedWithFocusVisible(notificationsSettings.emailEditButton);
 
+        // # Press Tab to move focus to Auto-follow threads on channel-wide mentions button
+        await page.keyboard.press('Tab');
+        await pw.toBeFocusedWithFocusVisible(notificationsSettings.channelMentionAutoFollowEditButton);
+
         // # Press Tab to move focus to Keywords that trigger notifications button
         await page.keyboard.press('Tab');
         await pw.toBeFocusedWithFocusVisible(notificationsSettings.keywordsTriggerNotificationsEditButton);
@@ -110,6 +114,9 @@ test(
             - text: "\\"Bing\\" for messages"
             - heading "Email notifications" [level=4]
             - button "Email notifications Edit"
+            - heading "Auto-follow threads on channel-wide mentions" [level=4]
+            - button "Auto-follow threads on channel-wide mentions Edit"
+            - text: "On"
             - heading "Keywords that trigger notifications" [level=4]
             - button "Keywords that trigger notifications Edit"
             - text: "\\"@${user.username}\\", \\"@channel\\", \\"@all\\", \\"@here\\""

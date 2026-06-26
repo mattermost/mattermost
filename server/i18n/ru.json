@@ -6556,10 +6556,6 @@
     "translation": "Невозможно получить каналы."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Невозможно получить количество каналов."
-  },
-  {
     "id": "app.team.update.updating.app_error",
     "translation": "Возникла ошибка обновления команды."
   },
@@ -7804,14 +7800,6 @@
     "translation": "Типы заданий, которые вы пытаетесь получить, не содержат разрешений"
   },
   {
-    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
-    "translation": "Убедитесь в доступности козины Amazon S3 и проверьте разрешения на доступ."
-  },
-  {
-    "id": "api.file.test_connection_s3_auth.app_error",
-    "translation": "Невозможно подключиться к S3. Проверьте параметры авторизации и настройки аутентификации подключения Amazon S3."
-  },
-  {
     "id": "ent.data_retention.policies.invalid_policy",
     "translation": "Политика некорректна."
   },
@@ -8254,10 +8242,6 @@
   {
     "id": "api.getThreadsForUser.bad_only_params",
     "translation": "Параметры OnlyThreads и OnlyTotals для getThreadsForUser являются взаимоисключающими"
-  },
-  {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "В настройках хранилища файлов есть незаданные значения."
   },
   {
     "id": "api.file.test_connection_email_settings_nil.app_error",
@@ -9764,26 +9748,6 @@
     "translation": "Не удалось отменить приглашение дистанционного пользователя на канал"
   },
   {
-    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
-    "translation": "Невозможно зарегистрировать группу свойств \"Атрибуты пользовательского профиля\""
-  },
-  {
-    "id": "app.custom_profile_attributes.get_property_field.app_error",
-    "translation": "Невозможно получить поле \"Атрибут пользовательского профиля\""
-  },
-  {
-    "id": "app.custom_profile_attributes.limit_reached.app_error",
-    "translation": "Достигнут лимит поля \"Атрибуты пользовательского профиля\""
-  },
-  {
-    "id": "app.custom_profile_attributes.list_property_values.app_error",
-    "translation": "Невозможно получить значения пользовательских атрибутов профиля"
-  },
-  {
-    "id": "api.custom_profile_attributes.license_error",
-    "translation": "Ваша лицензия не поддерживает пользовательские атрибуты профиля."
-  },
-  {
     "id": "api.file.zip_file_reader.app_error",
     "translation": "Невозможно получить программу для чтения zip-файлов."
   },
@@ -9814,10 +9778,6 @@
   {
     "id": "api.context.get_session.app_error",
     "translation": "Сеанс не найден."
-  },
-  {
-    "id": "app.custom_profile_attributes.count_property_fields.app_error",
-    "translation": "Невозможно подсчитать количество полей для группы атрибутов пользовательского профиля"
   },
   {
     "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
@@ -9984,36 +9944,12 @@
     "translation": "Запланированное сообщение не существует."
   },
   {
-    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
-    "translation": "Невозможно вставить пользовательские поля атрибутов профиля"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_delete.app_error",
-    "translation": "Невозможно удалить поле Атрибут пользовательского профиля"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
-    "translation": "Поле Атрибут пользовательского профиля не найдено"
-  },
-  {
-    "id": "app.custom_profile_attributes.search_property_fields.app_error",
-    "translation": "Невозможно выполнить поиск по полям пользовательских атрибутов профиля"
-  },
-  {
     "id": "api.user.reset_password_failed_attempts.ldap_and_email_only.app_error",
     "translation": "Служба аутентификации пользователей должна быть LDAP или Email."
   },
   {
     "id": "api.user.reset_password_failed_attempts.permissions.app_error",
     "translation": "У вас нет разрешения на обновление этого ресурса."
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_update.app_error",
-    "translation": "Невозможно обновить поле Атрибут пользовательского профиля"
-  },
-  {
-    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
-    "translation": "Неверное значение свойства Атрибут : {{.AttributeName}} ({{.Reason}})."
   },
   {
     "id": "api.admin.add_certificate.multiple_files.app_error",
@@ -10576,26 +10512,6 @@
     "translation": "Указанное ключевое слово триггера уже существует."
   },
   {
-    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
-    "translation": "Невозможно удалить пользовательские значения атрибутов профиля для пользователя"
-  },
-  {
-    "id": "app.custom_profile_attributes.patch_field.app_error",
-    "translation": "Невозможно исправить поле \"Атрибут пользовательского профиля\""
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
-    "translation": "Невозможно обновить значение для поля Атрибут пользовательского профиля, управляемого администратором"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
-    "translation": "Невозможно обновить значение для синхронизированного поля Атрибут пользовательского профиля"
-  },
-  {
-    "id": "app.custom_profile_attributes.validate_value.app_error",
-    "translation": "Не удалось проверить значение свойства"
-  },
-  {
     "id": "app.data_spillage.assign_reviewer.no_reviewer_field.app_error",
     "translation": "Не найдено поле свойств идентификатора рецензента."
   },
@@ -10750,5 +10666,9 @@
   {
     "id": "app.plugin.seek.app_error",
     "translation": "Невозможно сбросить позицию чтения к началу пакета плагинов."
+  },
+  {
+    "id": "shared_channel.system_message.no_longer_shared_unknown",
+    "translation": "Этот канал больше не используется совместно с другим рабочим пространством."
   }
 ]

@@ -22,7 +22,7 @@ type Props = {
     showIp: boolean;
     showSession: boolean;
     channelObj?: Channel | null;
-}
+};
 
 export default function ChannelCreateDirectRow({
     audit,

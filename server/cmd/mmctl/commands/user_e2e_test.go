@@ -160,7 +160,7 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 	ldapUser, appErr := s.th.App.CreateUser(s.th.Context, &model.User{
 		Email:       s.th.GenerateTestEmail(),
 		Username:    model.NewUsername(),
-		AuthData:    model.NewPointer("1234"),
+		AuthData:    new("1234"),
 		AuthService: model.UserAuthServiceLdap,
 	})
 	s.Require().Nil(appErr)
@@ -919,86 +919,6 @@ func (s *MmctlE2ETestSuite) TestUserConvertCmdF() {
 	})
 }
 
-func (s *MmctlE2ETestSuite) TestDeleteAllUserCmd() {
-	s.SetupTestHelper().InitBasic(s.T())
-
-	s.Run("Delete all user as unpriviliged user should not work", func() {
-		printer.Clean()
-
-		cmd := &cobra.Command{}
-		confirm := true
-		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
-
-		err := deleteAllUsersCmdF(s.th.Client, cmd, []string{})
-		s.Require().NotNil(err)
-		s.Len(printer.GetLines(), 0)
-		s.Len(printer.GetErrorLines(), 0)
-
-		// expect users not deleted
-		users, err := s.th.App.GetUsersPage(&model.UserGetOptions{
-			Page:    0,
-			PerPage: 10,
-		}, true)
-		s.Require().Nil(err)
-		s.Require().NotZero(len(users))
-	})
-
-	s.Run("Delete all user as system admin through the port API should not work", func() {
-		printer.Clean()
-
-		cmd := &cobra.Command{}
-		confirm := true
-		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
-
-		err := deleteAllUsersCmdF(s.th.SystemAdminClient, cmd, []string{})
-		s.Require().NotNil(err)
-		s.Len(printer.GetLines(), 0)
-		s.Len(printer.GetErrorLines(), 0)
-
-		// expect users not deleted
-		users, err := s.th.App.GetUsersPage(&model.UserGetOptions{
-			Page:    0,
-			PerPage: 10,
-		}, true)
-		s.Require().Nil(err)
-		s.Require().NotZero(len(users))
-	})
-
-	s.Run("Delete all users through local mode should work correctly", func() {
-		printer.Clean()
-
-		// populate with some user
-		for range 10 {
-			userData := model.User{
-				Username: "fakeuser" + model.NewRandomString(10),
-				Password: model.NewTestPassword(),
-				Email:    s.th.GenerateTestEmail(),
-			}
-			_, err := s.th.App.CreateUser(s.th.Context, &userData)
-			s.Require().Nil(err)
-		}
-
-		cmd := &cobra.Command{}
-		confirm := true
-		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
-
-		// delete all users only works on local mode
-		err := deleteAllUsersCmdF(s.th.LocalClient, cmd, []string{})
-		s.Require().Nil(err)
-		s.Len(printer.GetLines(), 1)
-		s.Len(printer.GetErrorLines(), 0)
-		s.Require().Equal(printer.GetLines()[0], "All users successfully deleted")
-
-		// expect users deleted
-		users, err := s.th.App.GetUsersPage(&model.UserGetOptions{
-			Page:    0,
-			PerPage: 10,
-		}, true)
-		s.Require().Nil(err)
-		s.Require().Zero(len(users))
-	})
-}
-
 func (s *MmctlE2ETestSuite) TestPromoteGuestToUserCmd() {
 	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 
@@ -1070,7 +990,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 	ldapUser, appErr := s.th.App.CreateUser(s.th.Context, &model.User{
 		Email:       s.th.GenerateTestEmail(),
 		Username:    model.NewId(),
-		AuthData:    model.NewPointer("test.user.1"),
+		AuthData:    new("test.user.1"),
 		AuthService: model.UserAuthServiceLdap,
 	})
 	s.Require().Nil(appErr)
@@ -1078,7 +998,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 	samlUser, appErr := s.th.App.CreateUser(s.th.Context, &model.User{
 		Email:       "success+devone@simulator.amazonses.com",
 		Username:    "dev.one",
-		AuthData:    model.NewPointer("dev.one"),
+		AuthData:    new("dev.one"),
 		AuthService: model.UserAuthServiceSaml,
 	})
 	s.Require().Nil(appErr)
@@ -1107,7 +1027,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 		s.Require().NoError(err)
 		defer func() {
 			_, appErr := s.th.App.UpdateUserAuth(s.th.Context, ldapUser.Id, &model.UserAuth{
-				AuthData:    model.NewPointer("test.user.1"),
+				AuthData:    new("test.user.1"),
 				AuthService: model.UserAuthServiceLdap,
 			})
 			s.Require().Nil(appErr)
@@ -1136,7 +1056,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 		s.Require().NoError(err)
 		defer func() {
 			_, appErr := s.th.App.UpdateUserAuth(s.th.Context, samlUser.Id, &model.UserAuth{
-				AuthData:    model.NewPointer("dev.one"),
+				AuthData:    new("dev.one"),
 				AuthService: model.UserAuthServiceSaml,
 			})
 			s.Require().Nil(appErr)
@@ -1806,7 +1726,7 @@ func (s *MmctlE2ETestSuite) TestUserEditAuthdataCmd() {
 	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{
 		Email:       s.th.GenerateTestEmail(),
 		Username:    model.NewUsername(),
-		AuthData:    model.NewPointer("existingauthdata"),
+		AuthData:    new("existingauthdata"),
 		AuthService: model.UserAuthServiceLdap,
 	})
 	s.Require().Nil(appErr)

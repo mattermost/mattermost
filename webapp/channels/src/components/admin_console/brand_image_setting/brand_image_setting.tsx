@@ -4,14 +4,16 @@
 import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
 import {Client4} from 'mattermost-redux/client';
 
-import {uploadBrandImage, deleteBrandImage} from 'actions/admin_actions.jsx';
+import {uploadBrandImage, deleteBrandImage} from 'actions/admin_actions';
 
 import SettingSet from 'components/admin_console/setting_set';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import FormError from 'components/form_error';
-import WithTooltip from 'components/with_tooltip';
 
 import {Constants} from 'utils/constants';
 
@@ -55,7 +57,7 @@ const BrandImageSetting = ({
     const imageRef = useRef<HTMLImageElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const [brandImage, setBrandImage] = useState<Blob | undefined>();
+    const [brandImage, setBrandImage] = useState<File | undefined>();
     const [shouldDeleteBrandImage, setShouldDeleteBrandImage] = useState(false);
     const [brandImageExists, setBrandImageExists] = useState(false);
     const [brandImageTimestamp, setBrandImageTimestamp] = useState(Date.now());
@@ -125,7 +127,7 @@ const BrandImageSetting = ({
             const img = imageRef.current;
             reader.onload = (e) => {
                 const src =
-                e.target?.result instanceof ArrayBuffer ? e.target?.result.toString() : e.target?.result;
+                    e.target?.result instanceof ArrayBuffer ? e.target?.result.toString() : e.target?.result;
 
                 if (src) {
                     img.setAttribute('src', src);
@@ -240,9 +242,9 @@ const BrandImageSetting = ({
                 <div className='remove-image'>{img}</div>
             </div>
             <div className='file__upload mt-5'>
-                <button
+                <Button
                     type='button'
-                    className='btn btn-tertiary'
+                    emphasis='tertiary'
                     disabled={disabled}
                     onClick={handleSelectClick}
                 >
@@ -250,7 +252,7 @@ const BrandImageSetting = ({
                         id='admin.team.chooseImage'
                         defaultMessage='Select Image'
                     />
-                </button>
+                </Button>
                 <input
                     ref={fileInputRef}
                     data-testid='file__upload-input'

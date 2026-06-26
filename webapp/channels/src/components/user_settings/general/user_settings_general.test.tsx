@@ -941,4 +941,80 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         expect(screen.getByRole('textbox', {name: normalAttribute.name})).toBeInTheDocument();
         expect(screen.queryByText('This field is managed by a plugin and cannot be edited.')).not.toBeInTheDocument();
     });
+
+    test('should render section title using display_name when collapsed', async () => {
+        const attributeWithDisplayName: UserPropertyField = {
+            ...customProfileAttribute,
+            attrs: {
+                ...customProfileAttribute.attrs,
+                display_name: 'Friendly Display Name',
+            },
+        };
+
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [attributeWithDisplayName],
+            user: {...user, custom_profile_attributes: {field1: 'FieldOneValue'}},
+            activeSection: '',
+        };
+
+        const {container} = renderWithContext(<UserSettingsGeneral {...props}/>);
+
+        expect(await screen.findByRole('button', {name: 'Friendly Display Name Edit'})).toBeInTheDocument();
+        const titleHeading = container.querySelector('#customAttribute_field1Title');
+        expect(titleHeading).not.toBeNull();
+        expect(titleHeading).toHaveTextContent('Friendly Display Name');
+        expect(screen.queryByRole('button', {name: `${attributeWithDisplayName.name} Edit`})).not.toBeInTheDocument();
+    });
+
+    test('should render SettingItemMax title using display_name when expanded', async () => {
+        const attributeWithDisplayName: UserPropertyField = {
+            ...customProfileAttribute,
+            attrs: {
+                ...customProfileAttribute.attrs,
+                display_name: 'Friendly Display Name',
+            },
+        };
+
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [attributeWithDisplayName],
+            user: {...user},
+            activeSection: 'customAttribute_field1',
+        };
+
+        const {container} = renderWithContext(<UserSettingsGeneral {...props}/>);
+
+        const maxTitle = await screen.findByRole('heading', {name: 'Friendly Display Name'});
+        expect(maxTitle).toHaveAttribute('id', 'settingTitle');
+
+        const controlLabels = container.querySelectorAll('label.control-label');
+        expect(controlLabels.length).toBeGreaterThan(0);
+        expect(Array.from(controlLabels).some((el) => el.textContent === 'Friendly Display Name')).toBe(true);
+    });
+
+    test('should set input aria-label using display_name when expanded', async () => {
+        const attributeWithDisplayName: UserPropertyField = {
+            ...customProfileAttribute,
+            attrs: {
+                ...customProfileAttribute.attrs,
+                display_name: 'Friendly Display Name',
+            },
+        };
+
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [attributeWithDisplayName],
+            user: {...user},
+            activeSection: 'customAttribute_field1',
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+
+        expect(await screen.findByRole('textbox', {name: 'Friendly Display Name'})).toBeInTheDocument();
+        expect(screen.queryByRole('textbox', {name: attributeWithDisplayName.name})).not.toBeInTheDocument();
+    });
 });

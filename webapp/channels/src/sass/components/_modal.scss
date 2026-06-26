@@ -47,6 +47,22 @@
         }
     }
 
+    #become-participant-modal {
+        .GenericModal__header {
+            h1 {
+                margin-right: 0;
+                margin-left: 0;
+                text-align: left;
+            }
+        }
+
+        .modal-body {
+            > div {
+                text-align: left;
+            }
+        }
+    }
+
     .edit-modal-body {
         overflow: visible;
 
@@ -317,7 +333,7 @@
                 background: transparent;
                 color: functions.v(center-channel-color);
                 font-size: 22px;
-                line-height: 44px;
+                line-height: 28px;
             }
         }
 
@@ -327,7 +343,7 @@
             color: functions.v(center-channel-color);
             font-size: 22px;
             font-weight: 600;
-            line-height: 44px;
+            line-height: 28px;
             word-break: break-word;
         }
     }

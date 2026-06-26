@@ -6472,10 +6472,6 @@
     "translation": "Não é possível obter canais por ids."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Não é possível obter as contagens de canais."
-  },
-  {
     "id": "app.team.update.updating.app_error",
     "translation": "Encontramos um erro ao atualizar a equipe."
   },
@@ -8004,10 +8000,6 @@
     "translation": "Erro: nenhum nome de organização foi fornecido para o onboarding auto-hospedado."
   },
   {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "As configurações de armazenamento de arquivos têm valores não definidos."
-  },
-  {
     "id": "api.getThreadsForUser.bad_only_params",
     "translation": "Os parâmetros OnlyThreads e OnlyTotals para getThreadsForUser são mutuamente exclusivos"
   },
@@ -8022,10 +8014,6 @@
   {
     "id": "api.email_batching.send_batched_email_notification.subTitle",
     "translation": "Confira abaixo um resumo de suas novas mensagens."
-  },
-  {
-    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
-    "translation": "Certifique-se de que seu bucket do Amazon S3 está disponível e verifique as permissões do bucket."
   },
   {
     "id": "api.get_site_url_error",
@@ -8178,10 +8166,6 @@
   {
     "id": "api.email_batching.send_batched_email_notification.time",
     "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
-  },
-  {
-    "id": "api.file.test_connection_s3_auth.app_error",
-    "translation": "Não foi possível conectar-se ao S3. Verifique os parâmetros de autorização de conexão do Amazon S3 e as configurações de autenticação."
   },
   {
     "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
@@ -9788,40 +9772,12 @@
     "translation": "Não é possível executar comandos em um canal deletado."
   },
   {
-    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
-    "translation": "Não é possível deletar valores de atributos de perfil personalizados para o usuário"
-  },
-  {
     "id": "api.context.get_session.app_error",
     "translation": "Sessão não encontrada."
   },
   {
-    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
-    "translation": "Não é possível registrar o grupo de propriedades Custom Profile Attributes"
-  },
-  {
-    "id": "app.custom_profile_attributes.get_property_field.app_error",
-    "translation": "Não é possível obter o campo Atributo de perfil personalizado"
-  },
-  {
-    "id": "app.custom_profile_attributes.limit_reached.app_error",
-    "translation": "O limite do campo atributos de perfil personalizado foi atingido"
-  },
-  {
-    "id": "app.custom_profile_attributes.list_property_values.app_error",
-    "translation": "Não é possível obter valores de atributos de perfil personalizados"
-  },
-  {
     "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
     "translation": "O banner do canal só pode ser configurado em canais Públicos ou Privados."
-  },
-  {
-    "id": "app.custom_profile_attributes.count_property_fields.app_error",
-    "translation": "Não é possível contar o número de campos para o grupo de atributos do perfil personalizado"
-  },
-  {
-    "id": "api.custom_profile_attributes.license_error",
-    "translation": "Sua licença não oferece suporte a Atributos de Perfil Personalizados."
   },
   {
     "id": "api.file.zip_file_reader.app_error",

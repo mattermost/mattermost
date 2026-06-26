@@ -47,6 +47,9 @@ export type WebSocketMessage = (
     Messages.ChannelBookmarkDeleted |
     Messages.ChannelBookmarkSorted |
 
+    Messages.ChannelAccessControlUpdated |
+    Messages.TeamAccessControlUpdated |
+
     Messages.Team |
     Messages.UpdateTeamScheme |
     Messages.UserAddedToTeam |
@@ -72,6 +75,9 @@ export type WebSocketMessage = (
     Messages.SidebarCategoryUpdated |
     Messages.SidebarCategoryDeleted |
     Messages.SidebarCategoryOrderUpdated |
+    Messages.PropertyFieldCreated |
+    Messages.PropertyFieldUpdated |
+    Messages.PropertyFieldDeleted |
     Messages.PropertyValuesUpdated |
 
     Messages.EmojiAdded |
@@ -95,6 +101,7 @@ export type WebSocketMessage = (
     Messages.RecapUpdated |
 
     Messages.FileDownloadRejected |
+    Messages.FileUploadRejected |
     Messages.ShowToast |
 
     Messages.Plugin |
@@ -113,11 +120,11 @@ export type BaseWebSocketMessage<Event, T = Record<string, never>> = {
     data: T;
     broadcast: WebSocketBroadcast;
     seq: number;
-}
+};
 
 export type WebSocketBroadcast = {
     omit_users: Record<string, boolean>;
     user_id: string;
     channel_id: string;
     team_id: string;
-}
+};

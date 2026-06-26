@@ -7,10 +7,11 @@ import {useDispatch, useSelector} from 'react-redux';
 import {Redirect, useHistory, useLocation} from 'react-router-dom';
 
 import {PlusIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/shared/components/button';
 
 import {getAgents} from 'mattermost-redux/actions/agents';
-import {getRecaps, getScheduledRecaps, getRecapLimitStatus as fetchRecapLimitStatus} from 'mattermost-redux/actions/recaps';
-import {getUnreadRecaps, getReadRecaps, getAllScheduledRecaps} from 'mattermost-redux/selectors/entities/recaps';
+import {getRecaps, getScheduledRecaps, getRecapLimitStatus as fetchRecapLimitStatus, markRecapsAsViewed} from 'mattermost-redux/actions/recaps';
+import {getAllRecaps, getUnreadRecaps, getReadRecaps, getAllScheduledRecaps} from 'mattermost-redux/selectors/entities/recaps';
 
 import {selectLhsItem} from 'actions/views/lhs';
 import {openModal} from 'actions/views/modals';
@@ -24,6 +25,7 @@ import {useQuery} from 'utils/http_utils';
 
 import {LhsItemType, LhsPage} from 'types/store/lhs';
 
+import AICopilotIntroSvg from './ai_copilot_intro_svg';
 import RecapUsageBadge from './recap_usage_badge';
 import RecapsList from './recaps_list';
 import ScheduledRecapsList from './scheduled_recaps_list';
@@ -47,6 +49,7 @@ const Recaps = () => {
     const [activeTab, setActiveTab] = useState<TabName>(() => {
         return isValidTab(tabParam) ? tabParam : 'unread';
     });
+    const [isLoading, setIsLoading] = useState(true);
 
     // Handle tab change: update state and URL
     const handleTabChange = useCallback((tab: TabName) => {
@@ -67,9 +70,11 @@ const Recaps = () => {
     const enableAIRecaps = useGetFeatureFlagValue('EnableAIRecaps');
     const agentsBridgeEnabled = useGetAgentsBridgeEnabled();
 
+    const allRecaps = useSelector(getAllRecaps);
     const unreadRecaps = useSelector(getUnreadRecaps);
     const readRecaps = useSelector(getReadRecaps);
     const scheduledRecaps = useSelector(getAllScheduledRecaps);
+    const hasNoRecaps = !isLoading && allRecaps.length === 0;
 
     // Sync activeTab with URL query parameter changes (e.g., when navigating via history.push)
     useEffect(() => {
@@ -79,7 +84,22 @@ const Recaps = () => {
 
     useEffect(() => {
         dispatch(selectLhsItem(LhsItemType.Page, LhsPage.Recaps));
-        dispatch(getRecaps(0, 60));
+        const fetchData = async () => {
+            try {
+                const result = await dispatch(getRecaps(0, 60));
+
+                // Only mark viewed when getRecaps succeeded. Marking after the
+                // fetch (rather than in parallel) also prevents getRecaps's
+                // response from overwriting the viewed_at timestamps the
+                // WS-driven refresh is about to set.
+                if (!result.error) {
+                    dispatch(markRecapsAsViewed());
+                }
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchData();
         dispatch(getScheduledRecaps(0, 60));
         dispatch(getAgents());
         dispatch(fetchRecapLimitStatus());
@@ -115,6 +135,40 @@ const Recaps = () => {
     };
 
     const displayedRecaps = activeTab === 'unread' ? unreadRecaps : readRecaps;
+    let recapsContent: React.ReactNode;
+    if (activeTab === 'scheduled') {
+        recapsContent = (
+            <ScheduledRecapsList
+                scheduledRecaps={scheduledRecaps}
+                onEdit={handleEditScheduledRecap}
+                onCreateClick={handleAddRecap}
+                createDisabled={!agentsBridgeEnabled.available}
+            />
+        );
+    } else if (hasNoRecaps) {
+        recapsContent = (
+            <div className='recaps-placeholder'>
+                <AICopilotIntroSvg/>
+                <h2 className='recaps-placeholder-title'>
+                    {formatMessage({id: 'recaps.placeholder.title', defaultMessage: 'Set up your recap'})}
+                </h2>
+                <p className='recaps-placeholder-description'>
+                    {formatMessage({id: 'recaps.placeholder.description', defaultMessage: 'Recaps help you get caught up quickly on discussions that are most important to you with a summarized report.'})}
+                </p>
+                <Button
+                    emphasis='primary'
+                    className='recaps-placeholder-button'
+                    onClick={handleAddRecap}
+                    disabled={!agentsBridgeEnabled.available}
+                    title={agentsBridgeEnabled.available ? undefined : formatMessage({id: 'recaps.addRecap.disabled', defaultMessage: 'Agents Bridge is not enabled'})}
+                >
+                    {formatMessage({id: 'recaps.placeholder.createRecap', defaultMessage: 'Create a recap'})}
+                </Button>
+            </div>
+        );
+    } else {
+        recapsContent = <RecapsList recaps={displayedRecaps}/>;
+    }
 
     return (
         <div className='recaps-container'>
@@ -148,28 +202,22 @@ const Recaps = () => {
                         </button>
                     </div>
                 </div>
-                <button
-                    className='btn btn-tertiary recap-add-button'
-                    onClick={handleAddRecap}
-                    disabled={!agentsBridgeEnabled.available}
-                    title={agentsBridgeEnabled.available ? undefined : formatMessage({id: 'recaps.addRecap.disabled', defaultMessage: 'Agents Bridge is not enabled'})}
-                >
-                    <PlusIcon size={12}/>
-                    {formatMessage({id: 'recaps.addRecap', defaultMessage: 'Add a recap'})}
-                </button>
+                {(activeTab === 'scheduled' || !hasNoRecaps) && (
+                    <Button
+                        emphasis='tertiary'
+                        className='recap-add-button'
+                        onClick={handleAddRecap}
+                        disabled={!agentsBridgeEnabled.available}
+                        title={agentsBridgeEnabled.available ? undefined : formatMessage({id: 'recaps.addRecap.disabled', defaultMessage: 'Agents Bridge is not enabled'})}
+                    >
+                        <PlusIcon size={12}/>
+                        {formatMessage({id: 'recaps.addRecap', defaultMessage: 'Add a recap'})}
+                    </Button>
+                )}
             </div>
 
             <div className='recaps-content'>
-                {activeTab === 'scheduled' ? (
-                    <ScheduledRecapsList
-                        scheduledRecaps={scheduledRecaps}
-                        onEdit={handleEditScheduledRecap}
-                        onCreateClick={handleAddRecap}
-                        createDisabled={!agentsBridgeEnabled.available}
-                    />
-                ) : (
-                    <RecapsList recaps={displayedRecaps}/>
-                )}
+                {recapsContent}
             </div>
         </div>
     );

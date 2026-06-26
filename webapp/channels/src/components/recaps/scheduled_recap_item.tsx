@@ -160,7 +160,7 @@ const ScheduledRecapItem = ({scheduledRecap, onEdit}: Props) => {
                     />
                 }
                 confirmButtonText={formatMessage({id: 'recaps.scheduled.delete.button', defaultMessage: 'Delete'})}
-                confirmButtonClass='btn btn-danger'
+                confirmButtonVariant='destructive'
                 onConfirm={handleDelete}
                 onCancel={() => setShowDeleteConfirm(false)}
                 onExited={() => setShowDeleteConfirm(false)}

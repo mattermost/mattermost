@@ -5,9 +5,10 @@ import classNames from 'classnames';
 import React, {useState, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {AuthChangeResponse} from '@mattermost/types/users';
 
-import {emailToOAuth} from 'actions/admin_actions.jsx';
+import {emailToOAuth} from 'actions/admin_actions';
 
 import LoginMfa from 'components/login/login_mfa';
 
@@ -18,10 +19,10 @@ import type {SubmitOptions} from './email_to_ldap';
 import ErrorLabel from './error_label';
 
 type Props = {
-    newType: string | null;
+    newType: string;
     email: string;
     siteName?: string;
-}
+};
 
 const EmailToOAuth = (props: Props) => {
     const {formatMessage} = useIntl();
@@ -125,16 +126,16 @@ const EmailToOAuth = (props: Props) => {
                     />
                 </div>
                 <ErrorLabel errorText={serverError}/>
-                <button
+                <Button
                     type='submit'
-                    className='btn btn-primary'
+                    emphasis='primary'
                 >
                     <FormattedMessage
                         id='claim.email_to_oauth.switchTo'
                         defaultMessage='Switch Account to {uiType}'
                         values={{uiType}}
                     />
-                </button>
+                </Button>
             </form>
         </>
     );

@@ -5,11 +5,10 @@ import React, {useCallback, useState} from 'react';
 import {useIntl, FormattedMessage} from 'react-intl';
 
 import {ProductChannelsIcon, LightningBoltOutlineIcon, CheckCircleIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Channel} from '@mattermost/types/channels';
 
 import Toggle from 'components/toggle';
-import WithTooltip from 'components/with_tooltip';
-
 const RECAP_NAME_MAX_LENGTH = 100;
 
 type Props = {

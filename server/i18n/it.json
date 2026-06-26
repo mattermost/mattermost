@@ -673,7 +673,11 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} è già membro del canale."
+    "translation": {
+      "many": "",
+      "one": "{{.User}} è già membro del canale.",
+      "other": ""
+    }
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -6388,10 +6392,6 @@
     "translation": "Impossibile recuperare canali per id"
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Impossibile ottenere il numero dei canali"
-  },
-  {
     "id": "app.team.update.updating.app_error",
     "translation": "Riscontrato un errore nell'aggiornamento della squadra"
   },
@@ -6629,10 +6629,6 @@
   },
   {
     "id": "app.export.marshal.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
     "translation": " "
   },
   {
@@ -7432,10 +7428,6 @@
     "translation": " "
   },
   {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": " "
-  },
-  {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": " "
   },
@@ -7669,10 +7661,6 @@
   },
   {
     "id": "api.command_remote.displayname.hint",
-    "translation": " "
-  },
-  {
-    "id": "api.file.test_connection_s3_auth.app_error",
     "translation": " "
   },
   {

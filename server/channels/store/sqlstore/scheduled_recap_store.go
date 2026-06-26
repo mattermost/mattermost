@@ -129,7 +129,7 @@ func (s *SqlScheduledRecapStore) Save(scheduledRecap *model.ScheduledRecap) (*mo
 }
 
 func (s *SqlScheduledRecapStore) SaveIfUnderLimit(scheduledRecap *model.ScheduledRecap, limit int) (*model.ScheduledRecap, error) {
-	tx, err := s.GetMaster().Beginx()
+	tx, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to begin transaction for SaveIfUnderLimit")
 	}

@@ -8,6 +8,7 @@ import {useHistory} from 'react-router-dom';
 
 import {ChevronLeftIcon, ChevronRightIcon} from '@mattermost/compass-icons/components';
 import {GenericModal} from '@mattermost/components';
+import {Button} from '@mattermost/shared/components/button';
 import type {Channel} from '@mattermost/types/channels';
 import type {ScheduledRecap, ScheduledRecapInput} from '@mattermost/types/recaps';
 
@@ -207,34 +208,42 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
         setError(null);
 
         if (runOnce) {
-            // Run once: create immediate recap (existing behavior)
-            const result = await dispatch(createRecap(recapName, selectedChannelIds, selectedBotId));
-            if (result.error) {
-                setError(result.error.message || formatMessage({id: 'recaps.modal.error.createFailed', defaultMessage: 'Failed to create recap. Please try again.'}));
+            try {
+                // Run once: create immediate recap (existing behavior)
+                const result = await dispatch(createRecap(recapName, selectedChannelIds, selectedBotId));
+                if (result.error) {
+                    setError(result.error.message || formatMessage({id: 'recaps.modal.error.createFailed', defaultMessage: 'Failed to create recap. Please try again.'}));
+                    setIsSubmitting(false);
+                    return;
+                }
+
+                // Fetch the new limit status to update the usage badge immediately
+                dispatch(fetchRecapLimitStatus());
+
+                onExited();
+                history.push(`${normalizedTeamUrl}/recaps`);
+            } catch {
+                setError(formatMessage({id: 'recaps.modal.error.createFailed', defaultMessage: 'Failed to create recap. Please try again.'}));
                 setIsSubmitting(false);
-                return;
             }
+            return;
+        }
 
-            // Fetch the new limit status to update the usage badge immediately
-            dispatch(fetchRecapLimitStatus());
+        // Create or update scheduled recap
+        const input: ScheduledRecapInput = {
+            title: recapName,
+            days_of_week: daysOfWeek,
+            time_of_day: timeOfDay,
+            timezone: userTimezone || 'UTC',
+            time_period: timePeriod,
+            channel_mode: recapType === 'all_unreads' ? 'all_unreads' : 'specific',
+            channel_ids: recapType === 'selected' ? selectedChannelIds : undefined,
+            custom_instructions: customInstructions || undefined,
+            agent_id: selectedBotId,
+            is_recurring: true,
+        };
 
-            onExited();
-            history.push(`${normalizedTeamUrl}/recaps`);
-        } else {
-            // Create or update scheduled recap
-            const input: ScheduledRecapInput = {
-                title: recapName,
-                days_of_week: daysOfWeek,
-                time_of_day: timeOfDay,
-                timezone: userTimezone || 'UTC',
-                time_period: timePeriod,
-                channel_mode: recapType === 'all_unreads' ? 'all_unreads' : 'specific',
-                channel_ids: recapType === 'selected' ? selectedChannelIds : undefined,
-                custom_instructions: customInstructions || undefined,
-                agent_id: selectedBotId,
-                is_recurring: true,
-            };
-
+        try {
             const result = isEditMode && editScheduledRecap ?
                 await dispatch(updateScheduledRecap(editScheduledRecap.id, input)) :
                 await dispatch(createScheduledRecap(input));
@@ -247,6 +256,9 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
 
             onExited();
             history.push(`${normalizedTeamUrl}/recaps?tab=scheduled`);
+        } catch {
+            setError(formatMessage({id: 'recaps.modal.error.scheduleFailed', defaultMessage: 'Failed to save scheduled recap. Please try again.'}));
+            setIsSubmitting(false);
         }
     }, [
         selectedChannelIds,
@@ -434,26 +446,26 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
             </div>
             <div className='create-recap-modal-footer-actions'>
                 {currentStep > 1 && (
-                    <button
+                    <Button
                         type='button'
-                        className='GenericModal__button btn btn-tertiary'
+                        emphasis='tertiary'
                         onClick={handlePrevious}
                         disabled={isSubmitting}
                     >
                         <ChevronLeftIcon size={16}/>
                         {formatMessage({id: 'generic_modal.previous', defaultMessage: 'Previous'})}
-                    </button>
+                    </Button>
                 )}
-                <button
+                <Button
                     type='submit'
-                    className='GenericModal__button btn btn-primary'
+                    emphasis='primary'
                     onClick={handleConfirmClick}
                     disabled={!canProceed() || isSubmitting}
                     title={currentStep === 3 && runOnce && manualLimitBlockMessage ? manualLimitBlockMessage : undefined}
                 >
                     {confirmButtonText}
                     {currentStep < 3 && <ChevronRightIcon size={16}/>}
-                </button>
+                </Button>
             </div>
         </div>
     );

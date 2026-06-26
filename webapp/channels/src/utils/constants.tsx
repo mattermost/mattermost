@@ -151,7 +151,6 @@ export const Preferences = {
     SINGLE_CHANNEL_GUEST_LIMIT_BANNER: 'sc_guest_limit_banner',
     TO_CLOUD_YEARLY_PLAN_NUDGE: 'to_cloud_yearly_plan_nudge',
     TO_PAID_PLAN_NUDGE: 'to_paid_plan_nudge',
-    CLOUD_ANNUAL_RENEWAL_BANNER: 'cloud_annual_renewal_banner',
 };
 
 // For one off things that have a special, attention-grabbing UI until you interact with them
@@ -415,6 +414,7 @@ export const ModalIdentifiers = {
     POST_DELETED_MODAL: 'post_deleted_modal',
     FILE_PREVIEW_MODAL: 'file_preview_modal',
     LEAVE_PRIVATE_CHANNEL_MODAL: 'leave_private_channel_modal',
+    MARK_ALL_AS_READ: 'mark_all_as_read',
     GET_PUBLIC_LINK_MODAL: 'get_public_link_modal',
     KEYBOARD_SHORTCUTS_MODAL: 'keyboar_shortcuts_modal',
     USERS_TO_BE_REMOVED: 'users_to_be_removed',
@@ -429,7 +429,6 @@ export const ModalIdentifiers = {
     JOIN_PUBLIC_CHANNEL_MODAL: 'join_public_channel_modal',
     CLOUD_INVOICE_PREVIEW: 'cloud_invoice_preview',
     BILLING_HISTORY: 'billing_history',
-    SUM_OF_MEMBERS_MODAL: 'sum_of_members_modal',
     RESTORE_POST_MODAL: 'restore_post',
     INFO_TOAST: 'info_toast',
     MARK_ALL_THREADS_AS_READ: 'mark_all_threads_as_read_modal',
@@ -482,6 +481,7 @@ export const ModalIdentifiers = {
     USER_PROPERTY_FIELD_DELETE: 'user_property_field_delete',
     ATTRIBUTE_MODAL_LDAP: 'attribute_modal_ldap',
     ATTRIBUTE_MODAL_SAML: 'attribute_modal_saml',
+    RANKED_SCHEMA_MODAL: 'ranked_schema_modal',
     FLAG_POST: 'flag_post',
     REMOVE_FLAGGED_POST: 'remove_flagged_post',
     CREATE_RECAP_MODAL: 'create_recap_modal',
@@ -606,7 +606,7 @@ export const A11yCustomEventTypes = {
 export type A11yFocusEventDetail = {
     target: HTMLElement | null | undefined;
     keyboardOnly: boolean;
-}
+};
 
 export function isA11yFocusEventDetail(o: unknown): o is A11yFocusEventDetail {
     return Boolean(o && typeof o === 'object' && 'keyboardOnly' in o);
@@ -699,8 +699,6 @@ export const CloudBanners = {
     THREE_DAYS_LEFT_TRIAL_MODAL_DISMISSED: 'dismiss_3_days_left_trial_modal',
     NUDGE_TO_CLOUD_YEARLY_PLAN_SNOOZED: 'nudge_to_cloud_yearly_plan_snoozed',
     NUDGE_TO_PAID_PLAN_SNOOZED: 'nudge_to_paid_plan_snoozed',
-    ANNUAL_RENEWAL_60_DAY: 'annual_renewal_60_day',
-    ANNUAL_RENEWAL_30_DAY: 'annual_renewal_30_day',
 };
 
 export const ConfigurationBanners = {
@@ -751,6 +749,7 @@ export const PostTypes = {
     CUSTOM_DATA_SPILLAGE_REPORT: 'custom_spillage_report',
     AUTO_TRANSLATION_CHANGE: 'system_autotranslation',
     BURN_ON_READ: 'burn_on_read',
+    SHARED_CHANNEL_STATE: 'system_shared_chan_state',
 };
 
 export const StatTypes = keyMirror({
@@ -812,6 +811,8 @@ export const StoragePrefixes = {
     DELINQUENCY: 'delinquency_',
     HIDE_JOINED_CHANNELS: 'hideJoinedChannels',
     HIDE_NOTIFICATION_PERMISSION_REQUEST_BANNER: 'hideNotificationPermissionRequestBanner',
+    MARK_ALL_READ_WITHOUT_CONFIRM: 'mark_all_as_read_without_confirm',
+    HAS_SEEN_FEATURE_TOAST: 'has_seen_feature_toast',
 };
 
 export const LandingPreferenceTypes = {
@@ -964,6 +965,7 @@ export const UserSettingsNotificationSections = {
     DESKTOP_AND_MOBILE: 'desktopAndMobile',
     DESKTOP_NOTIFICATION_SOUND: 'desktopNotificationSound',
     EMAIL: 'email',
+    CHANNEL_MENTION_AUTO_FOLLOW: 'channelMentionAutoFollow',
     KEYWORDS_MENTIONS: 'keywordsAndMentions',
     KEYWORDS_HIGHLIGHT: 'keywordsAndHighlight',
     REPLY_NOTIFCATIONS: 'replyNotifications',
@@ -1162,6 +1164,7 @@ export const PermissionsScope = {
     [Permissions.REMOVE_OTHERS_REACTIONS]: 'channel_scope',
     [Permissions.PERMANENT_DELETE_USER]: 'system_scope',
     [Permissions.UPLOAD_FILE]: 'channel_scope',
+    [Permissions.EDIT_FILE_ATTACHMENT]: 'channel_scope',
     [Permissions.GET_PUBLIC_LINK]: 'system_scope',
     [Permissions.MANAGE_INCOMING_WEBHOOKS]: 'team_scope',
     [Permissions.MANAGE_OWN_INCOMING_WEBHOOKS]: 'team_scope',
@@ -1264,6 +1267,7 @@ export const DefaultRolePermissions = {
         Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS,
         Permissions.DELETE_POST,
         Permissions.EDIT_POST,
+        Permissions.EDIT_FILE_ATTACHMENT,
         Permissions.USE_CHANNEL_MENTIONS,
         Permissions.USE_GROUP_MENTIONS,
         Permissions.CREATE_CUSTOM_GROUP,
@@ -1360,6 +1364,7 @@ export const DefaultRolePermissions = {
     ],
     guests: [
         Permissions.EDIT_POST,
+        Permissions.EDIT_FILE_ATTACHMENT,
         Permissions.ADD_REACTION,
         Permissions.REMOVE_REACTION,
         Permissions.USE_CHANNEL_MENTIONS,
@@ -1421,9 +1426,11 @@ export const CacheTypes = {
 
 export const ZoomSettings = {
     DEFAULT_SCALE: 1.75,
+    DEFAULT_SCALE_IMAGE: 1.0,
     SCALE_DELTA: 0.25,
     MIN_SCALE: 0.25,
     MAX_SCALE: 3.0,
+    MAX_SCALE_IMAGE: 2.0,
 };
 
 export const DataSpillagePropertyNames = {
@@ -1480,9 +1487,7 @@ export const Constants = {
     MAX_ADD_MEMBERS_BATCH: 256,
 
     SPECIAL_MENTIONS: ['all', 'channel', 'here'],
-    PLAN_MENTIONS: /Professional plan|Enterprise plan|Enterprise trial/gi,
     SPECIAL_MENTIONS_REGEX: /(?:\B|\b_+)@(channel|all|here)(?!(\.|-|_)*[^\W_])/gi,
-    SUM_OF_MEMBERS_MENTION_REGEX: /\d+ members/gi,
     ALL_MENTION_REGEX: /(?:\B|\b_+)@(all)(?!(\.|-|_)*[^\W_])/gi,
     CHANNEL_MENTION_REGEX: /(?:\B|\b_+)@(channel)(?!(\.|-|_)*[^\W_])/gi,
     HERE_MENTION_REGEX: /(?:\B|\b_+)@(here)(?!(\.|-|_)*[^\W_])/gi,

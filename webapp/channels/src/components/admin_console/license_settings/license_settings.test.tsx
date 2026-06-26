@@ -48,7 +48,6 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
             removeLicense: jest.fn(),
             upgradeToE0: jest.fn(),
             ping: jest.fn(),
-            requestTrialLicense: jest.fn(),
             restartServer: jest.fn(),
             getPrevTrialLicense: jest.fn(),
             upgradeToE0Status: jest.fn().mockImplementation(() => Promise.resolve({percentage: 0, error: null})),

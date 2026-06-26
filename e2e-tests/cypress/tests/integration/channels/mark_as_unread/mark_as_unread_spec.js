@@ -13,7 +13,6 @@ import {verifyPostNextToNewMessageSeparator, verifyTopSpaceForNewMessage, verify
 
 import {beRead, beUnread} from '@/support/assertions';
 
-
 describe('Mark as Unread', () => {
     let testUser;
     let team1;

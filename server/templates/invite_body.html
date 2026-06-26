@@ -58,12 +58,6 @@
           .mj-outlook-group-fix { width:100% !important; }
         </style>
         <![endif]-->
-  <!--[if !mso]><!-->
-  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,500,700" rel="stylesheet" type="text/css">
-  <style type="text/css">
-    @import url(https://fonts.googleapis.com/css?family=Open+Sans:300,400,500,700);
-  </style>
-  <!--<![endif]-->
   <style type="text/css">
     @media only screen and (min-width:480px) {
       .mj-column-per-100 {
@@ -110,8 +104,6 @@
     }
   </style>
   <style type="text/css">
-    @import url(https://fonts.googleapis.com/css?family=Open+Sans:300,400,500,600,700);
-
     .emailBody {
       background-color: #F3F3F3
     }
@@ -127,7 +119,7 @@
       line-height: 36px !important;
       letter-spacing: -0.01em !important;
       color: #3F4350 !important;
-      font-family: Open Sans, sans-serif !important;
+      font-family: sans-serif !important;
     }
 
     .subTitle div {
@@ -243,7 +235,7 @@
     }
 
     .senderName {
-      font-family: Open Sans, sans-serif;
+      font-family: sans-serif;
       text-align: left !important;
       font-weight: 600 !important;
       font-size: 14px !important;
@@ -252,7 +244,7 @@
     }
 
     .time {
-      font-family: Open Sans, sans-serif;
+      font-family: sans-serif;
       font-size: 12px;
       line-height: 16px;
       color: rgba(63, 67, 80, 0.56);
@@ -276,7 +268,7 @@
     }
 
     .channelName {
-      font-family: Open Sans, sans-serif;
+      font-family: sans-serif;
       font-weight: 600;
       font-size: 10px;
       line-height: 16px;
@@ -415,12 +407,12 @@
                             <tbody>
                               <tr>
                                 <td align="center" class="title" style="font-size:0px;padding:0px;word-break:break-word;">
-                                  <div style="text-align: center; font-weight: 600; font-size: 28px; line-height: 36px; letter-spacing: -0.01em; color: #3F4350; font-family: Open Sans, sans-serif;">{{.Props.Title}}</div>
+                                  <div style="text-align: center; font-weight: 600; font-size: 28px; line-height: 36px; letter-spacing: -0.01em; color: #3F4350; font-family: sans-serif;">{{.Props.Title}}</div>
                                 </td>
                               </tr>
                               <tr>
                                 <td align="center" class="subTitle" style="font-size:0px;padding:16px 24px 16px 24px;word-break:break-word;">
-                                  <div style="font-family: Open Sans, sans-serif; text-align: center; font-size: 16px; line-height: 24px; color: rgba(63, 67, 80, 0.64);">{{.Props.SubTitle}}</div>
+                                  <div style="font-family: sans-serif; text-align: center; font-size: 16px; line-height: 24px; color: rgba(63, 67, 80, 0.64);">{{.Props.SubTitle}}</div>
                                 </td>
                               </tr>
                               <tr>
@@ -428,7 +420,7 @@
                                   <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">
                                     <tr>
                                       <td align="center" bgcolor="#FFFFFF" role="presentation" style="border:none;border-radius:4px;cursor:auto;mso-padding-alt:10px 25px;background:#FFFFFF;" valign="middle">
-                                        <a href="{{.Props.ButtonURL}}" style="display: inline-block; background: #FFFFFF; font-family: Open Sans, sans-serif; margin: 0; text-transform: none; mso-padding-alt: 0px; border-radius: 4px; text-decoration: none; background-color: #1C58D9; font-weight: 600; font-size: 16px; line-height: 18px; color: #FFFFFF; padding: 15px 24px;" target="_blank">
+                                        <a href="{{.Props.ButtonURL}}" style="display: inline-block; background: #FFFFFF; font-family: sans-serif; margin: 0; text-transform: none; mso-padding-alt: 0px; border-radius: 4px; text-decoration: none; background-color: #1C58D9; font-weight: 600; font-size: 16px; line-height: 18px; color: #FFFFFF; padding: 15px 24px;" target="_blank">
                                           {{.Props.Button}}
                                         </a>
                                       </td>
@@ -483,16 +475,16 @@
                                   <tr>
                                     <td>
                                       <div class="postNameAndTime" style="display: flex; padding: 0px 0px 4px 0px;">
-                                        <div class="senderName" style="font-family: Open Sans, sans-serif; text-align: left; font-weight: 600; font-size: 14px; line-height: 20px; color: #3F4350;">{{.SenderName}}</div>
+                                        <div class="senderName" style="font-family: sans-serif; text-align: left; font-weight: 600; font-size: 14px; line-height: 20px; color: #3F4350;">{{.SenderName}}</div>
                                         {{if .Time}}
-                                        <div class="time" style="font-family: Open Sans, sans-serif; font-size: 12px; line-height: 16px; color: rgba(63, 67, 80, 0.56); padding: 2px 6px; align-items: center; float: left;">{{.Time}}</div>
+                                        <div class="time" style="font-family: sans-serif; font-size: 12px; line-height: 16px; color: rgba(63, 67, 80, 0.56); padding: 2px 6px; align-items: center; float: left;">{{.Time}}</div>
                                         {{end}}
                                         {{if .ChannelName}}
                                         <div class="channelBg" style="background: rgba(63, 67, 80, 0.08); border-radius: 4px; display: flex; padding-left: 4px;">
                                           {{if .ShowChannelIcon}}
                                           <div class="channelLogo" style="width: 10px; height: 10px; padding: 5px 4px 5px 6px; float: left;"><img src="{{$.Props.SiteURL}}/static/images/channel_icon.png" width="10px" height="10px"></div>
                                           {{end}}
-                                          <div class="channelName" style="font-family: Open Sans, sans-serif; font-weight: 600; font-size: 10px; line-height: 16px; letter-spacing: 0.01em; text-transform: uppercase; color: rgba(63, 67, 80, 0.64); padding: 2px 6px 2px 0px;">
+                                          <div class="channelName" style="font-family: sans-serif; font-weight: 600; font-size: 10px; line-height: 16px; letter-spacing: 0.01em; text-transform: uppercase; color: rgba(63, 67, 80, 0.64); padding: 2px 6px 2px 0px;">
                                             {{if .OtherChannelMembersCount}}
                                             <span class="gmChannelCount" style="background-color: rgba(63, 67, 80, 0.2); padding: 0 5px; border-radius: 2px; margin-right: 2px;">{{.OtherChannelMembersCount}}</span>
                                             {{end}}
@@ -505,7 +497,7 @@
                                   </tr>
                                   <tr>
                                     <td align="center" class="senderMessage" style="font-size:0px;padding:0px;word-break:break-word;">
-                                      <div style="font-family: Open Sans, sans-serif; text-align: left; font-size: 14px; line-height: 20px; color: #3F4350; padding: 0px;">{{.Message}}</div>
+                                      <div style="font-family: sans-serif; text-align: left; font-size: 14px; line-height: 20px; color: #3F4350; padding: 0px;">{{.Message}}</div>
                                     </td>
                                   </tr>
                                 </tbody>
@@ -521,7 +513,7 @@
                                       <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">
                                         <tr>
                                           <td align="center" bgcolor="#FFFFFF" role="presentation" style="border:none;border-radius:4px;cursor:auto;mso-padding-alt:10px 25px;background:#FFFFFF;" valign="middle">
-                                            <a href="{{.MessageURL}}" style="display: inline-block; background: #FFFFFF; font-family: Open Sans, sans-serif; margin: 0; text-transform: none; mso-padding-alt: 0px; border-radius: 4px; text-decoration: none; background-color: #FFFFFF; border: 1px solid #FFFFFF; box-sizing: border-box; color: #1C58D9; padding: 12px 20px; font-weight: 600; font-size: 14px; line-height: 14px;" target="_blank">
+                                            <a href="{{.MessageURL}}" style="display: inline-block; background: #FFFFFF; font-family: sans-serif; margin: 0; text-transform: none; mso-padding-alt: 0px; border-radius: 4px; text-decoration: none; background-color: #FFFFFF; border: 1px solid #FFFFFF; box-sizing: border-box; color: #1C58D9; padding: 12px 20px; font-weight: 600; font-size: 14px; line-height: 14px;" target="_blank">
                                               {{$.Props.MessageButton}}
                                             </a>
                                           </td>
@@ -590,17 +582,17 @@
                               <tbody>
                                 <tr>
                                   <td align="center" class="footerTitle" style="font-size:0px;padding:0px;word-break:break-word;">
-                                    <div style="font-family: Open Sans, sans-serif; text-align: center; font-weight: 600; font-size: 16px; line-height: 24px; color: #3F4350; padding: 0px 0px 4px 0px;">{{.Props.InviteFooterTitle}}</div>
+                                    <div style="font-family: sans-serif; text-align: center; font-weight: 600; font-size: 16px; line-height: 24px; color: #3F4350; padding: 0px 0px 4px 0px;">{{.Props.InviteFooterTitle}}</div>
                                   </td>
                                 </tr>
                                 <tr>
                                   <td align="center" class="footerInfo" style="font-size:0px;padding:0px;word-break:break-word;">
-                                    <div style="font-family: Open Sans, sans-serif; text-align: center; font-size: 14px; line-height: 20px; color: #3F4350; padding: 0px 48px 0px 48px;">{{.Props.InviteFooterInfo}}</div>
+                                    <div style="font-family: sans-serif; text-align: center; font-size: 14px; line-height: 20px; color: #3F4350; padding: 0px 48px 0px 48px;">{{.Props.InviteFooterInfo}}</div>
                                   </td>
                                 </tr>
                                 <tr>
                                   <td align="center" class="footerInfo" style="font-size:0px;padding:4px 0px 0px 0px;word-break:break-word;">
-                                    <div style="font-family: Open Sans, sans-serif; font-weight: 600; text-align: center; font-size: 14px; line-height: 20px; color: #3F4350; padding: 0px 48px 0px 48px;"><a href="mattermost.com" color="#1C58D9" style="text-decoration: none; color: #1C58D9;">
+                                    <div style="font-family: sans-serif; font-weight: 600; text-align: center; font-size: 14px; line-height: 20px; color: #3F4350; padding: 0px 48px 0px 48px;"><a href="mattermost.com" color="#1C58D9" style="text-decoration: none; color: #1C58D9;">
                                         {{.Props.InviteFooterLearnMore}}</a></div>
                                   </td>
                                 </tr>
@@ -625,7 +617,7 @@
                               <tbody>
                                 <tr>
                                   <td align="center" class="emailFooter" style="font-size:0px;padding:0px;word-break:break-word;">
-                                    <div style="font-family: Open Sans, sans-serif; text-align: center; font-size: 12px; line-height: 16px; color: rgba(63, 67, 80, 0.56); padding: 8px 24px 8px 24px;">{{.Props.Organization}}
+                                    <div style="font-family: sans-serif; text-align: center; font-size: 12px; line-height: 16px; color: rgba(63, 67, 80, 0.56); padding: 8px 24px 8px 24px;">{{.Props.Organization}}
                                       {{.Props.FooterV2}}
                                     </div>
                                   </td>

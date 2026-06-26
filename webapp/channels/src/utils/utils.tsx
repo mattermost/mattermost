@@ -84,7 +84,7 @@ export enum TimeInformation {
     HOURS = 'h',
     DAYS = 'd',
     FUTURE = 'f',
-    PAST = 'p'
+    PAST = 'p',
 }
 
 export type TimeUnit = Exclude<TimeInformation, TimeInformation.FUTURE | TimeInformation.PAST>;
@@ -240,7 +240,7 @@ export const getFileType = (extin: string): typeof FileTypes[keyof typeof FileTy
                 return FileTypes.IMAGE;
             }
         }
-    } catch (e) {
+    } catch {
         // Not a valid URL, just check if the string itself has an extension
         if (extin.includes('.')) {
             const extension = extin.split('.').pop()?.toLowerCase();
@@ -329,7 +329,7 @@ export function getCompassIconClassName(fileTypeIn: string, outline = true, larg
 }
 
 export function getIconClassName(fileTypeIn: string) {
-    const fileType = fileTypeIn.toLowerCase()as keyof typeof Constants.ICON_FROM_TYPE;
+    const fileType = fileTypeIn.toLowerCase() as keyof typeof Constants.ICON_FROM_TYPE;
 
     if (fileType in Constants.ICON_NAME_FROM_TYPE) {
         return Constants.ICON_NAME_FROM_TYPE[fileType];
@@ -777,6 +777,27 @@ export function offsetTopLeft(el: HTMLElement) {
     return {top: rect.top + scrollTop, left: rect.left + scrollLeft};
 }
 
+function getSuggestionBoxHorizontalBoundary(textArea: HTMLElement) {
+    const {w: viewportWidth} = getViewportSize();
+    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+    const textAreaRect = textArea.getBoundingClientRect();
+
+    let ancestor = textArea.parentElement;
+    while (ancestor) {
+        const ancestorRect = ancestor.getBoundingClientRect();
+        const ancestorStyle = getElementComputedStyle(ancestor);
+        const clipsHorizontalOverflow = ancestorStyle.overflow !== 'visible' || ancestorStyle.overflowX !== 'visible';
+
+        if (clipsHorizontalOverflow && ancestorRect.width >= textAreaRect.width) {
+            return ancestorRect.right + scrollLeft;
+        }
+
+        ancestor = ancestor.parentElement;
+    }
+
+    return viewportWidth + scrollLeft;
+}
+
 export function getSuggestionBoxAlgn(textArea: HTMLTextAreaElement, pxToSubstract = 0, alignWithTextBox = false) {
     if (!textArea || !(textArea instanceof HTMLElement)) {
         return {
@@ -786,8 +807,9 @@ export function getSuggestionBoxAlgn(textArea: HTMLTextAreaElement, pxToSubstrac
     }
 
     const {x: caretXCoordinateInTxtArea, y: caretYCoordinateInTxtArea} = getCaretXYCoordinate(textArea);
-    const {w: viewportWidth, h: viewportHeight} = getViewportSize();
+    const {h: viewportHeight} = getViewportSize();
     const {offsetWidth: textAreaWidth} = textArea;
+    const horizontalBoundary = getSuggestionBoxHorizontalBoundary(textArea);
 
     const suggestionBoxWidth = Math.min(textAreaWidth, Constants.SUGGESTION_LIST_MAXWIDTH);
 
@@ -803,8 +825,8 @@ export function getSuggestionBoxAlgn(textArea: HTMLTextAreaElement, pxToSubstrac
     if (alignWithTextBox) {
         // when the list should be aligned with the textbox just set this value to 0
         pxToTheRight = 0;
-    } else if (xBoxRightCoordinate > viewportWidth) {
-        // if the right-border edge of the suggestion box will overflow the x-axis viewport
+    } else if (xBoxRightCoordinate > horizontalBoundary) {
+        // if the right-border edge of the suggestion box will overflow the visible text area container
         // stick the suggestion list to the very right of the TextArea
         pxToTheRight = textAreaWidth - suggestionBoxWidth;
     }
@@ -1224,7 +1246,7 @@ export function clearFileInput(elm: HTMLInputElement) {
             elm.type = 'text';
             elm.type = 'file';
         }
-    } catch (e) {
+    } catch {
         // Do nothing
     }
 }
@@ -1504,9 +1526,9 @@ export function isTextSelectedInPostOrReply(e: React.KeyboardEvent | KeyboardEve
     const {id} = e.target as HTMLElement;
 
     const isTypingInValidTextbox =
-    id === AdvancedTextEditorTextboxIds.InCenter ||
-    id === AdvancedTextEditorTextboxIds.InRHSComment ||
-    id === AdvancedTextEditorTextboxIds.InEditMode;
+        id === AdvancedTextEditorTextboxIds.InCenter ||
+        id === AdvancedTextEditorTextboxIds.InRHSComment ||
+        id === AdvancedTextEditorTextboxIds.InEditMode;
 
     if (isTypingInValidTextbox === false) {
         return false;
@@ -1601,9 +1623,9 @@ export function numberToFixedDynamic(num: number, places: number): string {
 export function getDatePickerLocalesForDateFns(locale: string, loadedLocales: Record<string, Locale>) {
     if (locale && locale !== 'en' && !loadedLocales[locale]) {
         try {
-            /* eslint-disable global-require */
+            /* eslint-disable global-require, @typescript-eslint/no-require-imports */
             loadedLocales[locale] = require(`date-fns/locale/${locale}/index.js`);
-            /* eslint-disable global-require */
+            /* eslint-enable global-require, @typescript-eslint/no-require-imports */
         } catch (e) {
             console.log(e); // eslint-disable-line no-console
         }

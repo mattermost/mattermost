@@ -13,7 +13,6 @@ import {interceptFileUpload, waitUntilUploadComplete} from './helpers';
 
 import * as TIMEOUTS from '@/fixtures/timeouts';
 
-
 function simulateSubscription(subscription, currentStorageUsageBytes, planLimit) {
     cy.intercept('GET', '**/api/v4/cloud/subscription', {
         statusCode: 200,

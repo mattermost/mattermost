@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"database/sql"
 	"fmt"
 
 	sq "github.com/mattermost/squirrel"
@@ -61,7 +62,7 @@ func (s *SqlPropertyValueStore) CreateMany(values []*model.PropertyValue) ([]*mo
 		return nil, nil
 	}
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "property_value_create_many_begin_transaction")
 	}
@@ -105,6 +106,9 @@ func (s *SqlPropertyValueStore) Get(groupID, id string) (*model.PropertyValue, e
 
 	var value model.PropertyValue
 	if err := s.GetReplica().GetBuilder(&value, builder); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, store.NewErrNotFound("PropertyValue", id)
+		}
 		return nil, errors.Wrap(err, "property_value_get_select")
 	}
 
@@ -131,29 +135,44 @@ func (s *SqlPropertyValueStore) GetMany(groupID string, ids []string) ([]*model.
 }
 
 func (s *SqlPropertyValueStore) SearchPropertyValues(opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
-	if err := opts.Cursor.IsValid(); err != nil {
-		return nil, fmt.Errorf("cursor is invalid: %w", err)
+	if err := opts.IsValid(); err != nil {
+		return nil, fmt.Errorf("opts is invalid: %w", err)
 	}
 
 	if opts.PerPage < 1 {
 		return nil, errors.New("per page must be positive integer greater than zero")
 	}
 
-	builder := s.tableSelectQuery.
-		OrderBy("CreateAt ASC, Id ASC").
-		Limit(uint64(opts.PerPage))
+	deltaMode := opts.SinceUpdateAt > 0
 
-	if !opts.Cursor.IsEmpty() {
-		builder = builder.Where(sq.Or{
-			sq.Gt{"CreateAt": opts.Cursor.CreateAt},
-			sq.And{
-				sq.Eq{"CreateAt": opts.Cursor.CreateAt},
-				sq.Gt{"Id": opts.Cursor.PropertyValueID},
-			},
-		})
+	builder := s.tableSelectQuery.Limit(uint64(opts.PerPage))
+	if deltaMode {
+		builder = builder.OrderBy("UpdateAt ASC, Id ASC")
+	} else {
+		builder = builder.OrderBy("CreateAt ASC, Id ASC")
 	}
 
-	if !opts.IncludeDeleted {
+	if !opts.Cursor.IsEmpty() {
+		if deltaMode {
+			builder = builder.Where(sq.Or{
+				sq.Gt{"UpdateAt": opts.Cursor.UpdateAt},
+				sq.And{
+					sq.Eq{"UpdateAt": opts.Cursor.UpdateAt},
+					sq.Gt{"Id": opts.Cursor.PropertyValueID},
+				},
+			})
+		} else {
+			builder = builder.Where(sq.Or{
+				sq.Gt{"CreateAt": opts.Cursor.CreateAt},
+				sq.And{
+					sq.Eq{"CreateAt": opts.Cursor.CreateAt},
+					sq.Gt{"Id": opts.Cursor.PropertyValueID},
+				},
+			})
+		}
+	}
+
+	if !deltaMode && !opts.IncludeDeleted {
 		builder = builder.Where(sq.Eq{"DeleteAt": 0})
 	}
 
@@ -173,8 +192,11 @@ func (s *SqlPropertyValueStore) SearchPropertyValues(opts model.PropertyValueSea
 		builder = builder.Where(sq.Eq{"FieldID": opts.FieldID})
 	}
 
-	if opts.SinceUpdateAt > 0 {
-		builder = builder.Where(sq.Gt{"UpdateAt": opts.SinceUpdateAt})
+	if deltaMode {
+		// Inclusive boundary so rows updated at exactly `since` are
+		// returned on the first page. The cursor clause above then
+		// disambiguates same-millisecond rows by Id across pages.
+		builder = builder.Where(sq.GtOrEq{"UpdateAt": opts.SinceUpdateAt})
 	}
 
 	if opts.Value != nil {
@@ -194,7 +216,7 @@ func (s *SqlPropertyValueStore) Update(groupID string, values []*model.PropertyV
 		return nil, nil
 	}
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "property_value_update_begin_transaction")
 	}
@@ -260,7 +282,7 @@ func (s *SqlPropertyValueStore) Upsert(values []*model.PropertyValue) (_ []*mode
 		return nil, nil
 	}
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "property_value_upsert_begin_transaction")
 	}
@@ -269,6 +291,11 @@ func (s *SqlPropertyValueStore) Upsert(values []*model.PropertyValue) (_ []*mode
 	updatedValues := make([]*model.PropertyValue, len(values))
 	updateTime := model.GetMillis()
 	for i, value := range values {
+		// Pin CreateAt to updateTime so PreSave does not capture a later
+		// GetMillis() — keeping CreateAt == UpdateAt on insert.
+		if value.CreateAt == 0 {
+			value.CreateAt = updateTime
+		}
 		value.PreSave()
 		value.UpdateAt = updateTime
 

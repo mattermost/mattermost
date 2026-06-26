@@ -32,10 +32,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
-func newServer(t *testing.T) (*Server, error) {
-	return newServerWithConfig(t, func(_ *model.Config) {})
-}
-
 func newServerWithConfig(t *testing.T, f func(cfg *model.Config)) (*Server, error) {
 	configStore, err := config.NewMemoryStore()
 	require.NoError(t, err)
@@ -72,17 +68,20 @@ func TestStartServerSuccess(t *testing.T) {
 
 func TestStartServerPortUnavailable(t *testing.T) {
 	mainHelper.Parallel(t)
-	// Listen on the next available port
-	listener, err := net.Listen("tcp", "localhost:0")
+	// Pin to IPv4 so the blocked port exactly matches the address Start() will bind.
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	defer listener.Close()
+
+	_, port, err := net.SplitHostPort(listener.Addr().String())
 	require.NoError(t, err)
 
-	s, err := newServer(t)
-	require.NoError(t, err)
+	blockedAddr := net.JoinHostPort("127.0.0.1", port)
 
-	// Attempt to listen on the port used above.
-	s.platform.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.ListenAddress = listener.Addr().String()
+	s, err := newServerWithConfig(t, func(cfg *model.Config) {
+		*cfg.ServiceSettings.ListenAddress = blockedAddr
 	})
+	require.NoError(t, err)
 
 	serverErr := s.Start()
 	s.Shutdown()
@@ -110,11 +109,11 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 		DriverName:              model.NewPointer(model.ImageDriverS3),
 		AmazonS3AccessKeyId:     model.NewPointer(model.MinioAccessKey),
 		AmazonS3SecretAccessKey: model.NewPointer(model.MinioSecretKey),
-		AmazonS3Bucket:          model.NewPointer("nosuchbucket"),
-		AmazonS3Endpoint:        model.NewPointer(s3Endpoint),
-		AmazonS3Region:          model.NewPointer(""),
-		AmazonS3PathPrefix:      model.NewPointer(""),
-		AmazonS3SSL:             model.NewPointer(false),
+		AmazonS3Bucket:          new("nosuchbucket"),
+		AmazonS3Endpoint:        new(s3Endpoint),
+		AmazonS3Region:          new(""),
+		AmazonS3PathPrefix:      new(""),
+		AmazonS3SSL:             new(false),
 	}
 	*cfg.ServiceSettings.ListenAddress = "localhost:0"
 	*cfg.AnnouncementSettings.AdminNoticesEnabled = false
@@ -298,9 +297,9 @@ func TestPanicLog(t *testing.T) {
 	logger, _ := mlog.NewLogger()
 
 	logSettings := model.NewLogSettings()
-	logSettings.EnableConsole = model.NewPointer(true)
-	logSettings.ConsoleJson = model.NewPointer(true)
-	logSettings.EnableFile = model.NewPointer(true)
+	logSettings.EnableConsole = new(true)
+	logSettings.ConsoleJson = new(true)
+	logSettings.EnableFile = new(true)
 	logSettings.FileLocation = &tmpDir
 	logSettings.FileLevel = &mlog.LvlInfo.Name
 

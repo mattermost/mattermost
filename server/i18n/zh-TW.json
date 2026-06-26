@@ -671,7 +671,9 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} 已在頻道當中。"
+    "translation": {
+      "other": "{{.User}} 已在頻道當中。"
+    }
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -6448,10 +6450,6 @@
     "translation": "無法移除頻道成員。"
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "無法取得頻道數量。"
-  },
-  {
     "id": "app.channel.analytics_type_count.app_error",
     "translation": "無法取得頻道類型數量。"
   },
@@ -7580,14 +7578,6 @@
     "translation": "既有安全連線的 ID。請參見 `secure-connection`命令以新增一個安全連線。"
   },
   {
-    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
-    "translation": "請確認您的 Amazon S3 儲存貯體可供使用，並檢查您的儲存貯體權限。"
-  },
-  {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "檔案儲存空間設定有未設的選項。"
-  },
-  {
     "id": "api.getUsersForReporting.invalid_team_filter",
     "translation": "提供了無效的團隊 ID。"
   },
@@ -7922,10 +7912,6 @@
   {
     "id": "api.file.test_connection_email_settings_nil.app_error",
     "translation": "電子郵件設定有未設的值。"
-  },
-  {
-    "id": "api.file.test_connection_s3_auth.app_error",
-    "translation": "無法連線至 S3。請確認您的 Amazon S3 授權參數及認證設定。"
   },
   {
     "id": "api.file.write_file.app_error",

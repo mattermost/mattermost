@@ -216,6 +216,12 @@ func migrateCmdF(command *cobra.Command, args []string) error {
 				strings.Repeat("*", 80), fileName+".json", strings.Repeat("*", 80)))
 	}
 
+	if !dryRun {
+		if preMigrationError := migrator.PreMigrate(); preMigrationError != nil {
+			return errors.Wrap(preMigrationError, "failed to run pre-migrations")
+		}
+	}
+
 	err = migrator.MigrateWithPlan(plan, dryRun)
 	if err != nil {
 		return errors.Wrap(err, "failed to migrate with the plan")
@@ -327,6 +333,21 @@ func ConfigToFileBackendSettings(s *model.FileSettings, enableComplianceFeature 
 		return filestore.FileBackendSettings{
 			DriverName: *s.DriverName,
 			Directory:  *s.Directory,
+		}
+	}
+	if *s.DriverName == model.ImageDriverAzure {
+		return filestore.FileBackendSettings{
+			DriverName:                      *s.DriverName,
+			AzureStorageAccount:             *s.AzureStorageAccount,
+			AzureAuthMode:                   *s.AzureAuthMode,
+			AzureAccessKey:                  *s.AzureAccessKey,
+			AzureContainer:                  *s.AzureContainer,
+			AzurePathPrefix:                 *s.AzurePathPrefix,
+			AzureCloud:                      *s.AzureCloud,
+			AzureEndpoint:                   *s.AzureEndpoint,
+			AzureSSL:                        s.AzureSSL == nil || *s.AzureSSL,
+			AzureRequestTimeoutMilliseconds: *s.AzureRequestTimeoutMilliseconds,
+			SkipVerify:                      skipVerify,
 		}
 	}
 	return filestore.FileBackendSettings{

@@ -6,6 +6,7 @@ import type {ChangeEvent} from 'react';
 import {defineMessage, FormattedMessage, type MessageDescriptor} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {Command} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
@@ -64,7 +65,7 @@ type Props = {
     * The async function to run when the action button is pressed
     */
     action: (command: Command) => Promise<void>;
-}
+};
 
 type State = {
     saving: boolean;
@@ -79,7 +80,7 @@ type State = {
     autocomplete: boolean;
     autocompleteHint: string;
     autocompleteDescription: string;
-}
+};
 
 export default class AbstractCommand extends React.PureComponent<Props, State> {
     constructor(props: Props) {
@@ -678,7 +679,7 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                                 errors={[this.props.serverError, this.state.clientError]}
                             />
                             <Link
-                                className='btn btn-tertiary'
+                                className={buttonClassNames({emphasis: 'tertiary'})}
                                 to={'/' + this.props.team.name + '/integrations/commands'}
                             >
                                 <FormattedMessage
@@ -687,7 +688,6 @@ export default class AbstractCommand extends React.PureComponent<Props, State> {
                                 />
                             </Link>
                             <SpinnerButton
-                                className='btn btn-primary'
                                 type='submit'
                                 spinning={this.state.saving}
                                 spinningText={this.props.loading}

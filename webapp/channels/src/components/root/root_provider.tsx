@@ -13,7 +13,7 @@ import SharedPackageProvider from './shared_package_provider';
 
 type Props = {
     children: React.ReactNode;
-}
+};
 
 export default function RootProvider(props: Props) {
     return (

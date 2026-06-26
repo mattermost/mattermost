@@ -5,6 +5,7 @@ import React from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 
+import {Button, buttonClassNames} from '@mattermost/shared/components/button';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import type {Role} from '@mattermost/types/roles';
 
@@ -49,7 +50,7 @@ type State = {
     selectedPermission?: string;
     openRoles: Record<string, boolean>;
     urlParams: URLSearchParams;
-}
+};
 
 type RolesState = {
     system_admin: Role;
@@ -61,7 +62,7 @@ type RolesState = {
     run_member: Role;
     all_users: {name: string; display_name: string; permissions: Role['permissions']};
     guests: {name: string; display_name: string; permissions: Role['permissions']};
-}
+};
 export class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
     private rolesNeeded: string[];
 
@@ -479,7 +480,7 @@ export class PermissionSystemSchemeSettings extends React.PureComponent<Props, S
                             className='permissions-block'
                             open={this.state.openRoles.playbook_admin}
                             onToggle={() => this.toggleRole('playbook_admin')}
-                            title={defineMessage({id: 'admin.permissions.systemScheme.playbookAdmin', defaultMessage: 'Playbook Administrator'})}
+                            title={defineMessage({id: 'admin.permissions.systemScheme.playbookAdmin', defaultMessage: 'Playbook Administrators'})}
                             subtitle={defineMessage({id: 'admin.permissions.systemScheme.playbookAdminSubtitle', defaultMessage: 'Permissions granted to administrators of a playbook.'})}
                         >
                             <PermissionsTreePlaybooks
@@ -536,7 +537,7 @@ export class PermissionSystemSchemeSettings extends React.PureComponent<Props, S
                         savingMessage={this.props.intl.formatMessage({id: 'admin.saving', defaultMessage: 'Saving Config...'})}
                     />
                     <BlockableLink
-                        className='btn btn-tertiary'
+                        className={buttonClassNames({emphasis: 'tertiary'})}
                         to='/admin_console/user_management/permissions'
                         data-testid='permission-scheme-cancel-button'
                     >
@@ -545,16 +546,16 @@ export class PermissionSystemSchemeSettings extends React.PureComponent<Props, S
                             defaultMessage='Cancel'
                         />
                     </BlockableLink>
-                    <a
+                    <Button
                         data-testid='resetPermissionsToDefault'
                         onClick={() => this.setState({showResetDefaultModal: true})}
-                        className='btn btn-quaternary'
+                        emphasis='quaternary'
                     >
                         <FormattedMessage
                             id='admin.permissions.systemScheme.resetDefaultsButton'
                             defaultMessage='Reset to Defaults'
                         />
-                    </a>
+                    </Button>
                     <div className='error-message'>
                         <FormError error={this.state.serverError}/>
                     </div>

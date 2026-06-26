@@ -130,6 +130,9 @@ exports[`components/FilePreviewModal should match snapshot, loaded 1`] = `
             <div>
               File Preview Modal Header
             </div>
+            <div>
+              Popover Bar
+            </div>
           </div>
           <div
             class="file-preview-modal__content"
@@ -158,6 +161,9 @@ exports[`components/FilePreviewModal should match snapshot, loaded and showing f
           <div>
             <div>
               File Preview Modal Header
+            </div>
+            <div>
+              Popover Bar
             </div>
           </div>
           <div
@@ -275,6 +281,9 @@ exports[`components/FilePreviewModal should match snapshot, loaded with footer 1
             <div>
               File Preview Modal Header
             </div>
+            <div>
+              Popover Bar
+            </div>
           </div>
           <div
             class="file-preview-modal__content"
@@ -303,6 +312,9 @@ exports[`components/FilePreviewModal should match snapshot, loaded with image 1`
           <div>
             <div>
               File Preview Modal Header
+            </div>
+            <div>
+              Popover Bar
             </div>
           </div>
           <div

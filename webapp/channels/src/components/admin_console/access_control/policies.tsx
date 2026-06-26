@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useMemo} from 'react';
+import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {GenericModal} from '@mattermost/components';
+import {Button} from '@mattermost/shared/components/button';
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -11,10 +13,17 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
 import DataGrid from 'components/admin_console/data_grid/data_grid';
 import * as Menu from 'components/menu';
+import SectionNotice from 'components/section_notice';
 
 import {getHistory} from 'utils/browser_history';
 
+import {MASKED_VALUE_TOKEN_LITERAL} from './editors/shared';
+
 import './policies.scss';
+
+function policyHasMaskedValues(policy: AccessControlPolicy): boolean {
+    return policy.rules?.some((rule) => rule.expression?.includes(MASKED_VALUE_TOKEN_LITERAL)) ?? false;
+}
 
 type Props = {
     onPolicySelected?: (policy: AccessControlPolicy) => void;
@@ -40,6 +49,8 @@ export default function PolicyList(props: Props): JSX.Element {
     const [searchErrored, setSearchErrored] = useState(false);
     const [cursorHistory, setCursorHistory] = useState<string[]>([]);
     const [total, setTotal] = useState(0);
+    const [pendingDeletePolicy, setPendingDeletePolicy] = useState<AccessControlPolicy | null>(null);
+    const [deleteError, setDeleteError] = useState<string | null>(null);
     const intl = useIntl();
 
     const history = useMemo(() => getHistory(), []);
@@ -87,7 +98,7 @@ export default function PolicyList(props: Props): JSX.Element {
             }
             props.onPoliciesLoaded?.(newTotal);
             return true;
-        } catch (error) {
+        } catch {
             setLoading(false);
             setSearchErrored(true);
             return false;
@@ -135,8 +146,10 @@ export default function PolicyList(props: Props): JSX.Element {
     };
 
     const getResources = (policy: AccessControlPolicy) => {
-        const childIds = policy.props?.child_ids as string[];
-        if (!childIds || childIds.length === 0) {
+        const channelCount = (policy.props?.channel_count as unknown as number) || 0;
+        const teamCount = (policy.props?.team_count as unknown as number) || 0;
+
+        if (channelCount === 0 && teamCount === 0) {
             return (
                 <FormattedMessage
                     id='admin.access_control.policies.resources.none'
@@ -145,21 +158,72 @@ export default function PolicyList(props: Props): JSX.Element {
             );
         }
 
+        const parts: React.ReactNode[] = [];
+        if (channelCount > 0) {
+            parts.push(
+                <FormattedMessage
+                    key='channels'
+                    id='admin.access_control.policies.resources.channels'
+                    defaultMessage='{count, number} {count, plural, one {channel} other {channels}}'
+                    values={{count: channelCount}}
+                />,
+            );
+        }
+        if (teamCount > 0) {
+            parts.push(
+                <FormattedMessage
+                    key='teams'
+                    id='admin.access_control.policies.resources.teams'
+                    defaultMessage='{count, number} {count, plural, one {team} other {teams}}'
+                    values={{count: teamCount}}
+                />,
+            );
+        }
+
         return (
-            <FormattedMessage
-                id='admin.access_control.policies.resources.channels'
-                defaultMessage='{count, number} {count, plural, one {channel} other {channels}}'
-                values={{
-                    count: childIds.length,
-                }}
-            />
+            <>
+                {parts.map((part, index) => (
+                    <React.Fragment key={index}>
+                        {index > 0 && ', '}
+                        {part}
+                    </React.Fragment>
+                ))}
+            </>
         );
     };
 
-    const handleDelete = async (policyId: string) => {
-        await props.actions.deletePolicy(policyId);
+    const initiateDelete = useCallback((policy: AccessControlPolicy) => {
+        setPendingDeletePolicy(policy);
+        setDeleteError(null);
+    }, []);
+
+    const confirmDelete = useCallback(async () => {
+        if (!pendingDeletePolicy) {
+            return;
+        }
+        const result = await props.actions.deletePolicy(pendingDeletePolicy.id);
+        if (result?.error) {
+            // The server enforces masked-policy / permission rejections (403). Surface
+            // the message in the modal so the user sees why deletion failed instead of
+            // a silent close + stale list refresh.
+            const errorId = result.error.server_error_id;
+            if (errorId === 'app.pap.delete_policy.masked_values') {
+                setDeleteError(intl.formatMessage({
+                    id: 'admin.access_control.delete_policy.masked_values',
+                    defaultMessage: 'You cannot delete this policy because it contains attribute values you do not have permission to view.',
+                }));
+            } else {
+                setDeleteError(result.error.message || intl.formatMessage({
+                    id: 'admin.access_control.delete_policy.generic_error',
+                    defaultMessage: 'Failed to delete the policy.',
+                }));
+            }
+            return;
+        }
+        setPendingDeletePolicy(null);
+        setDeleteError(null);
         fetchPolicies(search);
-    };
+    }, [pendingDeletePolicy, search, intl]);
 
     const getRows = (): Row[] => {
         return policies.map((policy: AccessControlPolicy) => {
@@ -208,7 +272,7 @@ export default function PolicyList(props: Props): JSX.Element {
                                             if (props.onPolicySelected) {
                                                 props.onPolicySelected(policy);
                                             } else {
-                                                history.push(`/admin_console/system_attributes/attribute_based_access_control/edit_policy/${policy.id}`);
+                                                history.push(`/admin_console/system_attributes/membership_policies/edit_policy/${policy.id}`);
                                             }
                                         }}
                                         leadingElement={<i className='icon icon-pencil-outline'/>}
@@ -222,7 +286,7 @@ export default function PolicyList(props: Props): JSX.Element {
                                     {!props.hideDeleteAction && (
                                         <Menu.Item
                                             id={`policy-menu-delete-${policy.id}`}
-                                            onClick={() => handleDelete(policy.id)}
+                                            onClick={() => initiateDelete(policy)}
                                             leadingElement={<i className='icon icon-trash-can-outline'/>}
                                             labels={
                                                 <FormattedMessage
@@ -231,7 +295,12 @@ export default function PolicyList(props: Props): JSX.Element {
                                                 />
                                             }
                                             isDestructive={true}
-                                            disabled={Boolean(policy.props?.child_ids?.length)}
+
+                                            // Also disable when the policy contains values masked
+                                            // for this caller. Mirrors the policy-details Delete
+                                            // guard — server returns 403, so otherwise the modal
+                                            // flow would just round-trip an error.
+                                            disabled={Boolean(policy.props?.child_ids?.length) || policyHasMaskedValues(policy)}
                                         />
                                     )}
                                 </Menu.Container>
@@ -353,18 +422,18 @@ export default function PolicyList(props: Props): JSX.Element {
                         <h1>
                             <FormattedMessage
                                 id='admin.access_control.policies.title'
-                                defaultMessage='Access Control Policies'
+                                defaultMessage='Membership Policies'
                             />
                         </h1>
                         <p>
                             <FormattedMessage
                                 id='admin.access_control.policies.description'
-                                defaultMessage='Create policies containing attribute based access rules and the resources they apply to.'
+                                defaultMessage='Create policies containing attribute-based membership rules and the channels they apply to.'
                             />
                         </p>
                     </div>
-                    <button
-                        className='btn btn-primary'
+                    <Button
+                        emphasis='primary'
                         onClick={() => {
                             history.push('/admin_console/system_attributes/membership_policies/edit_policy');
                         }}
@@ -376,7 +445,7 @@ export default function PolicyList(props: Props): JSX.Element {
                                 defaultMessage='Add policy'
                             />
                         </span>
-                    </button>
+                    </Button>
                 </div>
             )}
             <DataGrid
@@ -403,6 +472,54 @@ export default function PolicyList(props: Props): JSX.Element {
                     </button>
                 ) : undefined}
             />
+            {pendingDeletePolicy && (
+                <GenericModal
+                    onExited={() => {
+                        setPendingDeletePolicy(null);
+                        setDeleteError(null);
+                    }}
+                    handleConfirm={confirmDelete}
+                    handleCancel={() => {
+                        setPendingDeletePolicy(null);
+                        setDeleteError(null);
+                    }}
+                    modalHeaderText={
+                        <FormattedMessage
+                            id='admin.access_control.policy.edit_policy.delete_confirmation.title'
+                            defaultMessage='Confirm Policy Deletion'
+                        />
+                    }
+                    confirmButtonText={
+                        <FormattedMessage
+                            id='admin.access_control.policy.edit_policy.delete_confirmation.confirm_button'
+                            defaultMessage='Delete Policy'
+                        />
+                    }
+                    confirmButtonVariant='destructive'
+                    compassDesign={true}
+                >
+                    <>
+                        <FormattedMessage
+                            id='admin.access_control.policy.edit_policy.delete_confirmation.message'
+                            defaultMessage='Are you sure you want to delete this policy? This action cannot be undone.'
+                        />
+                        {deleteError && (
+                            <div className='admin-console__warning-notice EditPolicy__masked-values-warning'>
+                                <SectionNotice
+                                    type='danger'
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.access_control.delete_policy.error_title'
+                                            defaultMessage='Unable to delete policy'
+                                        />
+                                    }
+                                    text={deleteError}
+                                />
+                            </div>
+                        )}
+                    </>
+                </GenericModal>
+            )}
         </div>
     );
 }

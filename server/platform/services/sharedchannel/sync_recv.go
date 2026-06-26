@@ -323,7 +323,7 @@ func (scs *Service) upsertSyncUser(rctx request.CTX, user *model.User, channel *
 		// new user.  Make sure the remoteID is correct and insert the record
 		// Preserve original remote ID before overwriting RemoteId
 		originalRemoteId := user.GetRemoteID()
-		user.RemoteId = model.NewPointer(rc.RemoteId)
+		user.RemoteId = new(rc.RemoteId)
 		if user.Props == nil || user.Props[model.UserPropsKeyOriginalRemoteId] == "" {
 			if originalRemoteId == "" {
 				originalRemoteId = rc.RemoteId // If no original RemoteId, use current sync sender
@@ -488,7 +488,7 @@ func (scs *Service) updateSyncUser(rctx request.CTX, patch *model.UserPatch, use
 func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, mentionTransforms map[string]string) (*model.Post, error) {
 	var appErr *model.AppError
 
-	post.RemoteId = model.NewPointer(rc.RemoteId)
+	post.RemoteId = new(rc.RemoteId)
 	rctx := request.EmptyContext(scs.server.Log())
 	rpost, err := scs.server.GetStore().Post().GetSingle(rctx, post.Id, true)
 	if err != nil {
@@ -524,6 +524,10 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 			)
 		}
 	} else if post.DeleteAt > 0 {
+		// make sure the post being deleted is owned by the remote
+		if rpost.GetRemoteID() != rc.RemoteId {
+			return nil, fmt.Errorf("post sync failed: %w", ErrRemoteIDMismatch)
+		}
 		// delete post
 		rpost, appErr = scs.app.DeletePost(rctx, post.Id, post.UserId)
 		if appErr == nil {
@@ -533,6 +537,10 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 			)
 		}
 	} else if post.EditAt > rpost.EditAt || post.Message != rpost.Message || post.UpdateAt > rpost.UpdateAt || post.Metadata != nil {
+		// make sure the post being edited is owned by the remote
+		if rpost.GetRemoteID() != rc.RemoteId {
+			return nil, fmt.Errorf("post sync failed: %w", ErrRemoteIDMismatch)
+		}
 		scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, mentionTransforms)
 		var priority *model.PostPriority
 		var acknowledgements []*model.PostAcknowledgement
@@ -709,7 +717,7 @@ func (scs *Service) upsertSyncReaction(reaction *model.Reaction, targetChannel *
 		if user.GetRemoteID() != rc.RemoteId {
 			return nil, fmt.Errorf("reaction sync failed: %w", ErrRemoteIDMismatch)
 		}
-		reaction.RemoteId = model.NewPointer(rc.RemoteId)
+		reaction.RemoteId = new(rc.RemoteId)
 		savedReaction, appErr = scs.app.SaveReactionForPost(request.EmptyContext(scs.server.Log()), reaction)
 	} else {
 		// make sure the reaction being deleted is owned by the remote
@@ -756,7 +764,7 @@ func (scs *Service) upsertSyncAcknowledgement(acknowledgement *model.PostAcknowl
 		if user.GetRemoteID() != rc.RemoteId {
 			return nil, fmt.Errorf("acknowledgement sync failed: %w", ErrRemoteIDMismatch)
 		}
-		acknowledgement.RemoteId = model.NewPointer(rc.RemoteId)
+		acknowledgement.RemoteId = new(rc.RemoteId)
 		acknowledgement.ChannelId = targetChannel.Id
 		savedAcknowledgement, appErr = scs.app.SaveAcknowledgementForPostWithModel(request.EmptyContext(scs.server.Log()), acknowledgement)
 	} else {

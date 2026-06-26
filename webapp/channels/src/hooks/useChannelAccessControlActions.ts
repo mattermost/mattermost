@@ -4,7 +4,7 @@
 import {useMemo} from 'react';
 import {useDispatch} from 'react-redux';
 
-import type {AccessControlVisualAST, AccessControlTestResult, AccessControlPolicy, AccessControlPolicyActiveUpdate} from '@mattermost/types/access_control';
+import type {AccessControlVisualAST, AccessControlTestResult, AccessControlPolicy, AccessControlPolicyActiveUpdate, PolicySimulationResponse, PolicySimulationByUsersParams} from '@mattermost/types/access_control';
 import type {ChannelMembership} from '@mattermost/types/channels';
 import type {JobTypeBase} from '@mattermost/types/jobs';
 import type {UserPropertyField} from '@mattermost/types/properties';
@@ -16,6 +16,7 @@ import {
     getAccessControlPolicy,
     createAccessControlPolicy,
     deleteAccessControlPolicy,
+    simulatePolicyForUsers,
     validateExpressionAgainstRequester,
     createAccessControlSyncJob,
     updateAccessControlPoliciesActive,
@@ -32,10 +33,18 @@ export interface ChannelAccessControlActions {
     saveChannelPolicy: (policy: AccessControlPolicy) => Promise<ActionResult<AccessControlPolicy>>;
     deleteChannelPolicy: (policyId: string) => Promise<ActionResult>;
     getChannelMembers: (channelId: string, page?: number, perPage?: number) => Promise<ActionResult<ChannelMembership[]>>;
-    createJob: (job: JobTypeBase & { data: any }) => Promise<ActionResult>;
+    createJob: (job: JobTypeBase & {data: any}) => Promise<ActionResult>;
     updateAccessControlPoliciesActive: (statuses: AccessControlPolicyActiveUpdate[]) => Promise<ActionResult>;
     validateExpressionAgainstRequester: (expression: string) => Promise<ActionResult<{requester_matches: boolean}>>;
     createAccessControlSyncJob: (jobData: {policy_id?: string; team_id?: string}) => Promise<ActionResult>;
+
+    /**
+     * Run the dual-lane PDP simulation against a draft policy for an
+     * explicit set of users (with optional per-user session-attribute
+     * overrides). channelId/teamId are injected from the surrounding
+     * scope so the picker only needs to supply policy + actions + users.
+     */
+    simulatePolicyForUsers: (params: Omit<PolicySimulationByUsersParams, 'channel_id' | 'team_id'>) => Promise<ActionResult<PolicySimulationResponse>>;
 }
 
 /**
@@ -76,7 +85,7 @@ export const useChannelAccessControlActions = (channelId?: string, teamId?: stri
             return dispatch(getChannelMembers(channelId, page, perPage));
         },
 
-        createJob: (job: JobTypeBase & { data: any }) => {
+        createJob: (job: JobTypeBase & {data: any}) => {
             return dispatch(createJob(job));
         },
 
@@ -90,6 +99,14 @@ export const useChannelAccessControlActions = (channelId?: string, teamId?: stri
 
         updateAccessControlPoliciesActive: (statuses: AccessControlPolicyActiveUpdate[]) => {
             return dispatch(updateAccessControlPoliciesActive(statuses, teamId));
+        },
+
+        simulatePolicyForUsers: (params: Omit<PolicySimulationByUsersParams, 'channel_id' | 'team_id'>) => {
+            return dispatch(simulatePolicyForUsers({
+                ...params,
+                channel_id: channelId,
+                team_id: teamId,
+            }));
         },
     }), [dispatch, channelId, teamId]);
 };

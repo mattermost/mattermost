@@ -4,6 +4,8 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button, buttonClassNames} from '@mattermost/shared/components/button';
+
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import CloudTrialSvg from 'components/common/svg_images_components/cloud_trial_svg';
 import PrivateCloudSvg from 'components/common/svg_images_components/private_cloud_svg';
@@ -15,7 +17,7 @@ type Props = {
     isFreeTrial: boolean;
     subscriptionPlan: string | undefined;
     onUpgradeMattermostCloud: () => void;
-}
+};
 
 const ContactSalesCard = (props: Props) => {
     const [openSalesLink, contactSalesLink] = useOpenSalesLink();
@@ -141,7 +143,7 @@ const ContactSalesCard = (props: Props) => {
                     <ExternalLink
                         location='contact_sales_card'
                         href={contactSalesLink}
-                        className='btn btn-tertiary PrivateCloudCard__actionButton'
+                        className={buttonClassNames({emphasis: 'tertiary'}, 'PrivateCloudCard__actionButton')}
                     >
                         <FormattedMessage
                             id='admin.billing.subscription.privateCloudCard.contactSales'
@@ -151,7 +153,7 @@ const ContactSalesCard = (props: Props) => {
                     </ExternalLink>
                 }
                 {(!isFreeTrial && subscriptionPlan !== CloudProducts.ENTERPRISE && subscriptionPlan !== CloudProducts.LEGACY) &&
-                    <button
+                    <Button
                         type='button'
                         onClick={() => {
                             if (subscriptionPlan === CloudProducts.STARTER) {
@@ -160,7 +162,8 @@ const ContactSalesCard = (props: Props) => {
                                 openSalesLink();
                             }
                         }}
-                        className='btn btn-tertiary PrivateCloudCard__actionButton'
+                        emphasis='tertiary'
+                        className='PrivateCloudCard__actionButton'
                     >
                         {subscriptionPlan === CloudProducts.STARTER ? (
                             <FormattedMessage
@@ -176,7 +179,7 @@ const ContactSalesCard = (props: Props) => {
 
                         }
 
-                    </button>
+                    </Button>
                 }
             </div>
             <div className='PrivateCloudCard__image'>

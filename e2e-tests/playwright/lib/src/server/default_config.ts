@@ -2,10 +2,9 @@
 // See LICENSE.txt for license information.
 
 import merge from 'deepmerge';
-import {
+import type {
     AdminConfig,
     ClusterSettings,
-    CollapsedThreads,
     EmailSettings,
     ExperimentalSettings,
     LogSettings,
@@ -14,6 +13,7 @@ import {
     ServiceSettings,
     TeamSettings,
 } from '@mattermost/types/config';
+import {CollapsedThreads} from '@mattermost/types/config';
 
 import {testConfig} from '@/test_config';
 
@@ -133,6 +133,7 @@ const defaultServerConfig: AdminConfig = {
         EnableMultifactorAuthentication: false,
         EnforceMultifactorAuthentication: false,
         EnableUserAccessTokens: false,
+        MaximumPersonalAccessTokenLifetimeDays: 0,
         AllowCorsFrom: '',
         CorsExposedHeaders: '',
         CorsAllowCredentials: false,
@@ -239,6 +240,7 @@ const defaultServerConfig: AdminConfig = {
         LockTeammateNameDisplay: false,
         ExperimentalPrimaryTeam: '',
         ExperimentalDefaultChannels: [],
+        EnableChannelCategorySorting: true,
     },
     ClientRequirements: {
         AndroidLatestVersion: '',
@@ -305,6 +307,7 @@ const defaultServerConfig: AdminConfig = {
         Directory: './data/',
         EnablePublicLink: false,
         ExtractContent: true,
+        ExtractContentTimeout: 10,
         ArchiveRecursion: false,
         PublicLinkSalt: '',
         InitialFont: 'nunito-bold.ttf',
@@ -346,7 +349,7 @@ const defaultServerConfig: AdminConfig = {
         SendEmailNotifications: true,
         UseChannelInEmailNotifications: false,
         RequireEmailVerification: false,
-        FeedbackName: '',
+        FeedbackName: 'Mattermost',
         FeedbackEmail: 'test@example.com',
         ReplyToAddress: 'test@example.com',
         FeedbackOrganization: '',
@@ -618,7 +621,6 @@ const defaultServerConfig: AdminConfig = {
         DisableWakeUpReconnectHandler: false,
         UsersStatusAndProfileFetchingPollIntervalMilliseconds: 3000,
         YoutubeReferrerPolicy: false,
-        ExperimentalChannelCategorySorting: false,
         EnableWatermark: false,
     },
     AnalyticsSettings: {
@@ -759,17 +761,12 @@ const defaultServerConfig: AdminConfig = {
         EnableSharedChannelsMemberSync: false,
         EnableSyncAllUsersForRemoteCluster: false,
         AppsEnabled: false,
-        PermalinkPreviews: false,
         NormalizeLdapDNs: false,
         WysiwygEditor: false,
         OnboardingTourTips: true,
-        DeprecateCloudFree: false,
         EnableExportDirectDownload: false,
         MoveThreadsEnabled: false,
         StreamlinedMarketplace: true,
-        CloudIPFiltering: false,
-        ConsumePostHook: false,
-        CloudAnnualRenewals: false,
         CloudDedicatedExportUI: false,
         ChannelBookmarks: true,
         WebSocketEventScope: true,
@@ -779,15 +776,18 @@ const defaultServerConfig: AdminConfig = {
         AttributeBasedAccessControl: true,
         PermissionPolicies: true,
         ContentFlagging: true,
-        InteractiveDialogAppsForm: true,
         EnableMattermostEntry: true,
         MobileSSOCodeExchange: false,
         AutoTranslation: true,
         BurnOnRead: true,
         EnableAIPluginBridge: false,
         EnableAIRecaps: false,
+        ClassificationMarkings: true,
+        PropertyFieldRank: true,
         IntegratedBoards: false,
-        CJKSearch: false,
+        CJKSearch: true,
+        ManagedChannelCategories: false,
+        MobileEphemeralMode: true,
     },
     ImportSettings: {
         Directory: './import',
@@ -816,11 +816,13 @@ const defaultServerConfig: AdminConfig = {
         MemberSyncBatchSize: 20,
     },
     AccessControlSettings: {
-        EnableAttributeBasedAccessControl: false,
-        EnableUserManagedAttributes: false,
+        EnableAttributeBasedAccessControl: true,
+        EnableUserManagedAttributes: true,
+        TrustProxyDeviceIdentityHeader: false,
+        EnforceDeviceIDConsistency: false,
     },
     ContentFlaggingSettings: {
-        EnableContentFlagging: false,
+        EnableContentFlagging: true,
         NotificationSettings: {
             EventTargetMapping: {
                 assigned: ['reviewers'],
@@ -847,7 +849,7 @@ const defaultServerConfig: AdminConfig = {
             CommonReviewers: true,
             CommonReviewerIds: [],
             TeamReviewersSetting: {},
-            SystemAdminsAsReviewers: false,
+            SystemAdminsAsReviewers: true,
             TeamAdminsAsReviewers: true,
         },
     },
@@ -884,5 +886,11 @@ const defaultServerConfig: AdminConfig = {
         EnforceTokensPerRecap: true,
         EnforcePostsPerDay: true,
         EnforceCooldown: true,
+    },
+    MobileEphemeralModeSettings: {
+        Enable: false,
+        DisconnectionTimeoutSeconds: 60,
+        OfflinePersistenceTimerHours: 24,
+        AutoCacheCleanupDays: 7,
     },
 };
