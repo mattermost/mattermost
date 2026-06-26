@@ -41,8 +41,8 @@ jobs:
     outputs:
       version: ${{ steps.calculate.outputs.GO_VERSION }}
       gomod-changed: ${{ steps.changed-files.outputs.any_changed }}
-      image: ${{ steps.buildenv.outputs.image }}
-      image-fips: ${{ steps.buildenv-fips.outputs.image }}
+      image: mattermost/mattermost-build-server:${{ steps.calculate.outputs.GO_VERSION }}
+      image-fips: mattermost/mattermost-build-server-fips:${{ steps.calculate.outputs.GO_VERSION }}
       image-artifact: ${{ steps.buildenv.outputs.artifact-name }}
       image-fips-artifact: ${{ steps.buildenv-fips.outputs.artifact-name }}
     env:
@@ -78,7 +78,6 @@ jobs:
         uses: ./.github/actions/setup-buildenv
         with:
           canonical-image: mattermost/mattermost-build-server:${{ steps.calculate.outputs.GO_VERSION }}
-          dev-image: mattermost/mattermost-build-server-dev:${{ github.sha }}
           artifact-name: buildenv-image
           dockerfile: server/build/Dockerfile.buildenv
       - name: Setup FIPS build environment
@@ -86,7 +85,6 @@ jobs:
         uses: ./.github/actions/setup-buildenv
         with:
           canonical-image: mattermost/mattermost-build-server-fips:${{ steps.calculate.outputs.GO_VERSION }}
-          dev-image: mattermost/mattermost-build-server-fips-dev:${{ github.sha }}
           artifact-name: buildenv-fips-image
           dockerfile: server/build/Dockerfile.buildenv-fips
   check-mocks:
