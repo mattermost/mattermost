@@ -9043,6 +9043,22 @@ func (s *TimerLayerReadReceiptStore) Update(rctx request.CTX, receipt *model.Rea
 	return result, err
 }
 
+func (s *TimerLayerRecapStore) CountForUserSince(userId string, since int64) (int64, error) {
+	start := time.Now()
+
+	result, err := s.RecapStore.CountForUserSince(userId, since)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RecapStore.CountForUserSince", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerRecapStore) DeleteRecap(id string) error {
 	start := time.Now()
 
@@ -9073,6 +9089,22 @@ func (s *TimerLayerRecapStore) DeleteRecapChannels(recapId string) error {
 		s.Root.Metrics.ObserveStoreMethodDuration("RecapStore.DeleteRecapChannels", success, elapsed)
 	}
 	return err
+}
+
+func (s *TimerLayerRecapStore) GetLastCompletedManualRecap(userId string) (*model.Recap, error) {
+	start := time.Now()
+
+	result, err := s.RecapStore.GetLastCompletedManualRecap(userId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RecapStore.GetLastCompletedManualRecap", success, elapsed)
+	}
+	return result, err
 }
 
 func (s *TimerLayerRecapStore) GetRecap(id string) (*model.Recap, error) {
@@ -9171,6 +9203,22 @@ func (s *TimerLayerRecapStore) SaveRecap(recap *model.Recap) (*model.Recap, erro
 	return result, err
 }
 
+func (s *TimerLayerRecapStore) SaveRecapChannel(recapChannel *model.RecapChannel) error {
+	start := time.Now()
+
+	err := s.RecapStore.SaveRecapChannel(recapChannel)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RecapStore.SaveRecapChannel", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerRecapStore) SaveRecapIfUnderDailyLimit(recap *model.Recap, since int64, limit int) (*model.Recap, error) {
 	start := time.Now()
 
@@ -9201,22 +9249,6 @@ func (s *TimerLayerRecapStore) SumTotalMessageCountForUserSince(userId string, s
 		s.Root.Metrics.ObserveStoreMethodDuration("RecapStore.SumTotalMessageCountForUserSince", success, elapsed)
 	}
 	return result, err
-}
-
-func (s *TimerLayerRecapStore) SaveRecapChannel(recapChannel *model.RecapChannel) error {
-	start := time.Now()
-
-	err := s.RecapStore.SaveRecapChannel(recapChannel)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("RecapStore.SaveRecapChannel", success, elapsed)
-	}
-	return err
 }
 
 func (s *TimerLayerRecapStore) UpdateRecap(recap *model.Recap) (*model.Recap, error) {
@@ -10065,6 +10097,22 @@ func (s *TimerLayerScheduledPostStore) UpdatedScheduledPost(scheduledPost *model
 		s.Root.Metrics.ObserveStoreMethodDuration("ScheduledPostStore.UpdatedScheduledPost", success, elapsed)
 	}
 	return err
+}
+
+func (s *TimerLayerScheduledRecapStore) CountForUser(userId string) (int64, error) {
+	start := time.Now()
+
+	result, err := s.ScheduledRecapStore.CountForUser(userId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ScheduledRecapStore.CountForUser", success, elapsed)
+	}
+	return result, err
 }
 
 func (s *TimerLayerScheduledRecapStore) Delete(id string) error {

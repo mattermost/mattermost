@@ -19,7 +19,7 @@ type Props = {
     placeholder?: string;
     defaultValue?: number;
     unlimitedLabel?: string;
-}
+};
 
 /**
  * UnlimitedNumberSetting combines a number input with an "Unlimited" checkbox.

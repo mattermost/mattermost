@@ -42,34 +42,6 @@ func (_m *RecapStore) CountForUserSince(userId string, since int64) (int64, erro
 	return r0, r1
 }
 
-// SumTotalMessageCountForUserSince provides a mock function with given fields: userId, since
-func (_m *RecapStore) SumTotalMessageCountForUserSince(userId string, since int64) (int64, error) {
-	ret := _m.Called(userId, since)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SumTotalMessageCountForUserSince")
-	}
-
-	var r0 int64
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, int64) (int64, error)); ok {
-		return rf(userId, since)
-	}
-	if rf, ok := ret.Get(0).(func(string, int64) int64); ok {
-		r0 = rf(userId, since)
-	} else {
-		r0 = ret.Get(0).(int64)
-	}
-
-	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
-		r1 = rf(userId, since)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // DeleteRecap provides a mock function with given fields: id
 func (_m *RecapStore) DeleteRecap(id string) error {
 	ret := _m.Called(id)
@@ -345,6 +317,34 @@ func (_m *RecapStore) SaveRecapIfUnderDailyLimit(recap *model.Recap, since int64
 
 	if rf, ok := ret.Get(1).(func(*model.Recap, int64, int) error); ok {
 		r1 = rf(recap, since, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SumTotalMessageCountForUserSince provides a mock function with given fields: userId, since
+func (_m *RecapStore) SumTotalMessageCountForUserSince(userId string, since int64) (int64, error) {
+	ret := _m.Called(userId, since)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SumTotalMessageCountForUserSince")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, int64) (int64, error)); ok {
+		return rf(userId, since)
+	}
+	if rf, ok := ret.Get(0).(func(string, int64) int64); ok {
+		r0 = rf(userId, since)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
+		r1 = rf(userId, since)
 	} else {
 		r1 = ret.Error(1)
 	}

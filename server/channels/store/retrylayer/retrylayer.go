@@ -11365,6 +11365,27 @@ func (s *RetryLayerReadReceiptStore) Update(rctx request.CTX, receipt *model.Rea
 
 }
 
+func (s *RetryLayerRecapStore) CountForUserSince(userId string, since int64) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.RecapStore.CountForUserSince(userId, since)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerRecapStore) DeleteRecap(id string) error {
 
 	tries := 0
@@ -11401,6 +11422,27 @@ func (s *RetryLayerRecapStore) DeleteRecapChannels(recapId string) error {
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerRecapStore) GetLastCompletedManualRecap(userId string) (*model.Recap, error) {
+
+	tries := 0
+	for {
+		result, err := s.RecapStore.GetLastCompletedManualRecap(userId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
@@ -11533,6 +11575,27 @@ func (s *RetryLayerRecapStore) SaveRecap(recap *model.Recap) (*model.Recap, erro
 
 }
 
+func (s *RetryLayerRecapStore) SaveRecapChannel(recapChannel *model.RecapChannel) error {
+
+	tries := 0
+	for {
+		err := s.RecapStore.SaveRecapChannel(recapChannel)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerRecapStore) SaveRecapIfUnderDailyLimit(recap *model.Recap, since int64, limit int) (*model.Recap, error) {
 
 	tries := 0
@@ -11569,27 +11632,6 @@ func (s *RetryLayerRecapStore) SumTotalMessageCountForUserSince(userId string, s
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerRecapStore) SaveRecapChannel(recapChannel *model.RecapChannel) error {
-
-	tries := 0
-	for {
-		err := s.RecapStore.SaveRecapChannel(recapChannel)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
@@ -12694,6 +12736,27 @@ func (s *RetryLayerScheduledPostStore) UpdatedScheduledPost(scheduledPost *model
 
 }
 
+func (s *RetryLayerScheduledRecapStore) CountForUser(userId string) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.ScheduledRecapStore.CountForUser(userId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerScheduledRecapStore) Delete(id string) error {
 
 	tries := 0
@@ -12898,27 +12961,6 @@ func (s *RetryLayerScheduledRecapStore) UpdateNextRunAt(id string, nextRunAt int
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerScheduledRecapStore) CountForUser(userId string) (int64, error) {
-
-	tries := 0
-	for {
-		result, err := s.ScheduledRecapStore.CountForUser(userId)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}

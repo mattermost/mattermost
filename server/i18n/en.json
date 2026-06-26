@@ -8681,10 +8681,6 @@
     "translation": "Failed to delete recap channels."
   },
   {
-    "id": "app.recap.fetch_posts.app_error",
-    "translation": "Failed to fetch posts for any channel in the recap."
-  },
-  {
     "id": "app.recap.get.app_error",
     "translation": "Failed to get recap."
   },
