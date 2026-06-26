@@ -4,7 +4,6 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {useSelector} from 'react-redux';
 
-import {usePluginVisibilityInSharedChannel} from 'components/common/hooks/usePluginVisibilityInSharedChannel';
 import CopyButton from 'components/copy_button';
 
 import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
@@ -20,7 +19,7 @@ type Props = {
     channelId?: string;
 };
 
-const CodeBlock: React.FC<Props> = ({code, language, searchedContent, channelId}: Props) => {
+const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) => {
     const getUsedLanguage = useCallback(() => {
         let usedLanguage = language || '';
         usedLanguage = usedLanguage.toLowerCase();
@@ -85,9 +84,7 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent, channelId}
     }
 
     const codeBlockActions = useSelector((state: GlobalState) => state.plugins.components.CodeBlockAction);
-    const pluginItemsVisible = usePluginVisibilityInSharedChannel(channelId);
-
-    const pluginItems = pluginItemsVisible ? codeBlockActions?.
+    const pluginItems = codeBlockActions?.
         map((item) => {
             if (!item.component) {
                 return null;
@@ -104,7 +101,7 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent, channelId}
                     />
                 </PluggableErrorBoundary>
             );
-        }) : [];
+        });
 
     return (
         <div className={className}>

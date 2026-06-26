@@ -27,11 +27,6 @@ const (
 // Out-of-order messages resolve naturally: if an old "add" arrives after a newer "remove",
 // the sender's next sync cycle will send a corrective "remove" because the history shows the user left.
 func (scs *Service) onReceiveMembershipChanges(syncMsg *model.SyncMsg, rc *model.RemoteCluster) error {
-	// Check if feature flag is enabled
-	if !scs.server.Config().FeatureFlags.EnableSharedChannelsMemberSync {
-		return nil
-	}
-
 	if len(syncMsg.MembershipChanges) == 0 {
 		return fmt.Errorf("onReceiveMembershipChanges: no membership changes")
 	}

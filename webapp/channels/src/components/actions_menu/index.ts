@@ -12,8 +12,7 @@ import type {Post} from '@mattermost/types/posts';
 import {Permissions} from 'mattermost-redux/constants';
 import {AppBindingLocations} from 'mattermost-redux/constants/apps';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
-import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {isMarketplaceEnabled, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {isMarketplaceEnabled} from 'mattermost-redux/selectors/entities/general';
 import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
@@ -48,9 +47,6 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
     const {post} = ownProps;
 
     const systemMessage = isSystemMessage(post);
-    const channel = getChannel(state, post.channel_id);
-    const sharedChannelsPluginsEnabled = getFeatureFlagValue(state, 'EnableSharedChannelsPlugins') === 'true';
-
     const apps = appsEnabled(state);
     const showBindings = apps && !systemMessage && !isCombinedUserActivityPost(post.id);
     let appBindings: AppBinding[] | null = emptyBindings;
@@ -60,14 +56,12 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
     const currentUser = getCurrentUser(state);
     const isSysAdmin = isSystemAdmin(currentUser.roles);
 
-    const pluginItemsVisible = !channel?.shared || sharedChannelsPluginsEnabled;
-
     return {
         appBindings,
         appsEnabled: apps,
-        pluginMenuItemComponents: pluginItemsVisible ? state.plugins.components.PostDropdownMenuItem : [],
+        pluginMenuItemComponents: state.plugins.components.PostDropdownMenuItem,
         isSysAdmin,
-        pluginMenuItems: pluginItemsVisible ? state.plugins.components.PostDropdownMenu : [],
+        pluginMenuItems: state.plugins.components.PostDropdownMenu,
         teamId: getCurrentTeamId(state),
         isMobileView: getIsMobileView(state),
         canOpenMarketplace: (
