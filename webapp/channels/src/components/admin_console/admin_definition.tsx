@@ -41,6 +41,7 @@ import {searchableStrings as teamAnalyticsSearchableStrings} from 'components/an
 import ExternalLink from 'components/external_link';
 
 import {AboutLinks, CacheTypes, Constants, DeveloperLinks, DocLinks, LicenseSkus} from 'utils/constants';
+import {getTimestampFormatOptionDisplayNameValues, resolveAdminShowTimestampSeconds} from 'utils/datetime_display_format';
 import {ID_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
 
@@ -3928,9 +3929,49 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             key: 'PostSettings.Previews',
-                            title: defineMessage({id: 'admin.posts.sections.previews.title', defaultMessage: 'Content & Previews'}),
-                            description: defineMessage({id: 'admin.posts.sections.previews.description', defaultMessage: 'Configure link previews and how advanced formatting renders.'}),
+                            title: defineMessage({id: 'admin.posts.sections.previews.title', defaultMessage: 'Content & Message Display'}),
+                            description: defineMessage({id: 'admin.posts.sections.previews.description', defaultMessage: 'Configure link previews, message formatting, and how timestamps appear on posts.'}),
                             settings: [
+                                {
+                                    type: 'dropdown',
+                                    key: 'DisplaySettings.DateTimeDisplayFormat',
+                                    label: defineMessage({id: 'admin.posts.defaultTimestampFormat.title', defaultMessage: 'Default timestamp format:'}),
+                                    help_text: defineMessage({id: 'admin.posts.defaultTimestampFormat.desc', defaultMessage: 'Sets the default format for message timestamps. Users can override this in Account Settings > Display.'}),
+                                    options: [
+                                        {
+                                            value: 'standard',
+                                            // eslint-disable-next-line formatjs/enforce-placeholders -- timeExample provided via display_name_values
+                                            display_name: defineMessage({id: 'timestamp_format.standard', defaultMessage: 'Standard (example: {timeExample})'}),
+                                            display_name_values: (config, state) => getTimestampFormatOptionDisplayNameValues({
+                                                showTimestampSeconds: resolveAdminShowTimestampSeconds(config, state),
+                                            }),
+                                        },
+                                        {
+                                            value: 'relative',
+                                            display_name: defineMessage({id: 'timestamp_format.relative', defaultMessage: 'Relative (example: 3 hours ago)'}),
+                                        },
+                                        {
+                                            value: 'date_and_time',
+                                            // eslint-disable-next-line formatjs/enforce-placeholders -- timeExample provided via display_name_values
+                                            display_name: defineMessage({id: 'timestamp_format.date_and_time', defaultMessage: 'Date and Time (example: Jun 1, {timeExample})'}),
+                                            display_name_values: (config, state) => getTimestampFormatOptionDisplayNameValues({
+                                                showTimestampSeconds: resolveAdminShowTimestampSeconds(config, state),
+                                            }),
+                                        },
+                                    ],
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'DisplaySettings.ShowTimestampSeconds',
+                                    label: defineMessage({id: 'admin.posts.showTimestampSeconds.title', defaultMessage: 'Show seconds in timestamps:'}),
+                                    help_text: defineMessage({id: 'admin.posts.showTimestampSeconds.desc', defaultMessage: 'Sets the default for showing seconds in message timestamps when using Standard or Date and Time format. Users can override this in Account Settings > Display.'}),
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                    isHidden: (config, state) => {
+                                        const format = state['DisplaySettings.DateTimeDisplayFormat'] ?? config.DisplaySettings?.DateTimeDisplayFormat;
+                                        return format === 'relative';
+                                    },
+                                },
                                 {
                                     type: 'bool',
                                     key: 'ServiceSettings.EnableLinkPreviews',

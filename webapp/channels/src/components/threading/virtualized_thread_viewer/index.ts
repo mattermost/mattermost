@@ -8,7 +8,7 @@ import type {Post} from '@mattermost/types/posts';
 import {getDirectTeammate, isMyChannelAutotranslated} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
-import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {isCollapsedThreadsEnabled, shouldShowThreadDateSeparators} from 'mattermost-redux/selectors/entities/preferences';
 
 import {measureRhsOpened} from 'actions/views/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
@@ -23,7 +23,6 @@ type OwnProps = {
     channelId: string;
     postIds: Array<Post['id'] | FakePost['id']>;
     selected: Post | FakePost;
-    useRelativeTimestamp: boolean;
     onCardClick: (post: Post) => void;
 };
 
@@ -32,18 +31,19 @@ function makeMapStateToProps() {
     const getThreadLastViewedAt = makeGetThreadLastViewedAt();
 
     return (state: GlobalState, ownProps: OwnProps) => {
-        const {postIds, useRelativeTimestamp, selected, channelId} = ownProps;
+        const {postIds, selected, channelId} = ownProps;
 
         const collapsedThreads = isCollapsedThreadsEnabled(state);
         const currentUserId = getCurrentUserId(state);
         const lastViewedAt = getThreadLastViewedAt(state, selected.id);
         const directTeammate = getDirectTeammate(state, channelId);
+        const showDate = shouldShowThreadDateSeparators(state);
 
         const lastPost = getPost(state, postIds[0]);
 
         const replyListIds = getRepliesListWithSeparators(state, {
             postIds,
-            showDate: !useRelativeTimestamp,
+            showDate,
             lastViewedAt: collapsedThreads ? lastViewedAt : undefined,
         });
         const newMessagesSeparatorActions = state.plugins.components.NewMessagesSeparatorAction;
@@ -56,6 +56,7 @@ function makeMapStateToProps() {
             replyListIds,
             newMessagesSeparatorActions,
             isChannelAutotranslated: isMyChannelAutotranslated(state, channelId),
+            showDate,
         };
     };
 }

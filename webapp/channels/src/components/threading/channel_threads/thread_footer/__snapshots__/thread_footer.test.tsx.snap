@@ -59,8 +59,13 @@ exports[`components/threading/channel_threads/thread_footer should report total 
         Follow
       </button>
       <span
-        data-testid="mock-timestamp"
-      />
+        class="Timestamp separated alt-visible"
+      >
+        Last reply 
+        <span
+          data-testid="mock-timestamp"
+        />
+      </span>
     </div>
   </div>
 </body>
@@ -110,8 +115,13 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
         Follow
       </button>
       <span
-        data-testid="mock-timestamp"
-      />
+        class="Timestamp separated alt-visible"
+      >
+        Last reply 
+        <span
+          data-testid="mock-timestamp"
+        />
+      </span>
     </div>
   </div>
 </body>

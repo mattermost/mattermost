@@ -12,7 +12,6 @@ import CombinedUserActivityPost from 'components/post_view/combined_user_activit
 import DateSeparator from 'components/post_view/date_separator';
 import NewMessageSeparator from 'components/post_view/new_message_separator/new_message_separator';
 import RootPostDivider from 'components/root_post_divider/root_post_divider';
-import type {Props as TimestampProps} from 'components/timestamp/timestamp';
 
 import {Locations} from 'utils/constants';
 
@@ -28,7 +27,6 @@ type Props = {
     listId: string;
     onCardClick: (post: Post) => void;
     previousPostId: string;
-    timestampProps?: Partial<TimestampProps>;
     threadId: string;
     newMessagesSeparatorActions: NewMessagesSeparatorActionComponent[];
     isChannelAutotranslated: boolean;
@@ -43,7 +41,6 @@ function ThreadViewerRow({
     listId,
     onCardClick,
     previousPostId,
-    timestampProps,
     threadId,
     newMessagesSeparatorActions,
     isChannelAutotranslated,
@@ -75,7 +72,6 @@ function ThreadViewerRow({
                     postId={listId}
                     isLastPost={isLastPost}
                     handleCardClick={onCardClick}
-                    timestampProps={timestampProps}
                     location={Locations.RHS_ROOT}
                     isChannelAutotranslated={isChannelAutotranslated}
                 />
@@ -103,7 +99,6 @@ function ThreadViewerRow({
                 isLastPost={isLastPost}
                 onCardClick={onCardClick}
                 previousPostId={previousPostId}
-                timestampProps={timestampProps}
                 isChannelAutotranslated={isChannelAutotranslated}
             />
         );

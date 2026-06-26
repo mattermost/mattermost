@@ -88,6 +88,7 @@ type AdminDefinitionSettingGenerated = AdminDefinitionSettingBase & {
 export type AdminDefinitionSettingDropdownOption = {
     value: string;
     display_name: string | MessageDescriptor;
+    display_name_values?: {[key: string]: any} | ((config: Partial<AdminConfig>, state: any) => {[key: string]: any});
     help_text?: string | MessageDescriptor;
     help_text_markdown?: boolean;
     help_text_values?: {[key: string]: any};

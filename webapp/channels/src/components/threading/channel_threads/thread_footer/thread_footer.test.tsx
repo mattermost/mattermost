@@ -18,7 +18,7 @@ jest.mock('components/widgets/users/avatars', () => (props: any) => {
 });
 
 let capturedTimestampProps: any = {};
-jest.mock('components/timestamp', () => (props: any) => {
+jest.mock('components/event_timestamp', () => (props: any) => {
     capturedTimestampProps = props;
     return <span data-testid='mock-timestamp'/>;
 });
@@ -220,6 +220,10 @@ describe('components/threading/channel_threads/thread_footer', () => {
             {useMockedStore: true},
         );
         expect(capturedTimestampProps).toHaveProperty('value', thread.last_reply_at);
+        expect(capturedTimestampProps).toMatchObject({
+            displayContext: 'thread_footer',
+            showTooltip: false,
+        });
     });
 
     test('should have a reply button', async () => {
