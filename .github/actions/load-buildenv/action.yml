@@ -1,0 +1,53 @@
+name: Load build environment
+description: >
+  Makes the build-server images available for docker run. Normally the
+  canonical version-tagged images (mattermost-build-server and
+  mattermost-build-server-fips) are already on Docker Hub and will be pulled
+  on demand — in which case this action is a no-op. During an in-flight Go
+  version bump, setup-buildenv will have built and uploaded the images as
+  workflow artifacts; this action detects and loads whichever artifacts are
+  present so downstream jobs use the locally-built images instead.
+
+runs:
+  using: composite
+  steps:
+    - name: Set constants
+      shell: bash
+      run: |
+        echo "BUILDENV_ARTIFACT=buildenv-image" >> "${GITHUB_ENV}"
+        echo "BUILDENV_FIPS_ARTIFACT=buildenv-fips-image" >> "${GITHUB_ENV}"
+        echo "BUILDENV_TMPDIR=/tmp/buildenv-save" >> "${GITHUB_ENV}"
+    - name: Check for buildenv artifacts
+      id: check
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        ARTIFACTS=$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts?per_page=100" \
+          --jq '[.artifacts[].name]')
+        jq -e --arg n "$BUILDENV_ARTIFACT"      'contains([$n])' <<< "$ARTIFACTS" > /dev/null \
+          && echo "has-image=true"      >> "$GITHUB_OUTPUT" \
+          || echo "has-image=false"     >> "$GITHUB_OUTPUT"
+        jq -e --arg n "$BUILDENV_FIPS_ARTIFACT" 'contains([$n])' <<< "$ARTIFACTS" > /dev/null \
+          && echo "has-fips-image=true"  >> "$GITHUB_OUTPUT" \
+          || echo "has-fips-image=false" >> "$GITHUB_OUTPUT"
+    - name: Download buildenv artifact
+      if: steps.check.outputs.has-image == 'true'
+      uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+      with:
+        name: ${{ env.BUILDENV_ARTIFACT }}
+        path: ${{ env.BUILDENV_TMPDIR }}/
+    - name: Load buildenv from artifact
+      if: steps.check.outputs.has-image == 'true'
+      shell: bash
+      run: docker load -i "${BUILDENV_TMPDIR}/image.tar.gz"
+    - name: Download buildenv-fips artifact
+      if: steps.check.outputs.has-fips-image == 'true'
+      uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+      with:
+        name: ${{ env.BUILDENV_FIPS_ARTIFACT }}
+        path: ${{ env.BUILDENV_TMPDIR }}/
+    - name: Load buildenv-fips from artifact
+      if: steps.check.outputs.has-fips-image == 'true'
+      shell: bash
+      run: docker load -i "${BUILDENV_TMPDIR}/image-fips.tar.gz"

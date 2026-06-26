@@ -64,6 +64,11 @@ on:
         required: false
         type: boolean
         default: false
+      build-image:
+        description: "The build image to use. Leave empty to derive from go-version (used by weekly/nightly callers)."
+        required: false
+        type: string
+        default: ""
     secrets:
       # Only if enablecoverage is true
       CODECOV_TOKEN:
@@ -98,18 +103,19 @@ jobs:
       INPUT_SHARD_TOTAL: ${{ inputs.shard-total }}
       INPUT_TEST_TARGET: ${{ inputs.test-target }}
     steps:
-      - name: buildenv/docker-login
-        # Only FIPS requires login for private build container. (Forks won't have credentials.)
+      - name: Checkout mattermost project
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Docker Hub login
         if: inputs.fips-enabled
         uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Checkout mattermost project
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          persist-credentials: false
+      - name: Use build environment
+        uses: ./.github/actions/load-buildenv
 
       - name: Restore test timing data
         if: inputs.shard-total > 1
@@ -133,12 +139,19 @@ jobs:
 
       - name: Setup BUILD_IMAGE
         id: build
+        env:
+          INPUT_BUILD_IMAGE: ${{ inputs.build-image }}
         run: |
-          if [[ "$INPUT_FIPS_ENABLED" == 'true' ]]; then
+          if [[ -n "${INPUT_BUILD_IMAGE}" ]]; then
+            echo "BUILD_IMAGE=${INPUT_BUILD_IMAGE}" >> "${GITHUB_OUTPUT}"
+          elif [[ "$INPUT_FIPS_ENABLED" == 'true' ]]; then
             echo "BUILD_IMAGE=mattermost/mattermost-build-server-fips:${INPUT_GO_VERSION}" >> "${GITHUB_OUTPUT}"
-            echo "LOG_ARTIFACT_NAME=${INPUT_LOGSARTIFACT}-fips" >> "${GITHUB_OUTPUT}"
           else
             echo "BUILD_IMAGE=mattermost/mattermost-build-server:${INPUT_GO_VERSION}" >> "${GITHUB_OUTPUT}"
+          fi
+          if [[ "$INPUT_FIPS_ENABLED" == 'true' ]]; then
+            echo "LOG_ARTIFACT_NAME=${INPUT_LOGSARTIFACT}-fips" >> "${GITHUB_OUTPUT}"
+          else
             echo "LOG_ARTIFACT_NAME=${INPUT_LOGSARTIFACT}" >> "${GITHUB_OUTPUT}"
           fi
 

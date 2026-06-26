@@ -1,0 +1,56 @@
+name: Run in build environment
+description: >
+  Runs a bash script inside the build-server Docker container. Normally the
+  container image is pulled from Docker Hub on demand. During an in-flight Go
+  version bump, load-buildenv ensures the locally-built image is available
+  first. The repository is mounted at /mattermost with the working directory
+  set to /mattermost/server.
+
+inputs:
+  run:
+    description: "Bash script to execute inside the container"
+    required: true
+  fips-enabled:
+    description: "Set to 'true' to use the FIPS build image"
+    required: false
+    default: "false"
+  network:
+    description: "Docker network to attach the container to (e.g. 'host')"
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - uses: ./.github/actions/load-buildenv
+    - name: Read Go version
+      shell: bash
+      run: echo "GO_VERSION=$(cat server/.go-version)" >> "${GITHUB_ENV}"
+    - name: Resolve image
+      shell: bash
+      env:
+        FIPS: ${{ inputs.fips-enabled }}
+      run: |
+        if [[ "${FIPS}" == 'true' ]]; then
+          echo "IMAGE=mattermost/mattermost-build-server-fips:${GO_VERSION}" >> "${GITHUB_ENV}"
+        else
+          echo "IMAGE=mattermost/mattermost-build-server:${GO_VERSION}" >> "${GITHUB_ENV}"
+        fi
+    - name: Run in buildenv
+      shell: bash
+      env:
+        CMD: ${{ inputs.run }}
+        NETWORK: ${{ inputs.network }}
+      run: |
+        SCRIPT=$(mktemp)
+        printf '%s\n' "${CMD}" > "${SCRIPT}"
+        NETWORK_ARGS=()
+        [[ -n "${NETWORK}" ]] && NETWORK_ARGS=(--network "${NETWORK}")
+        docker run --rm \
+          "${NETWORK_ARGS[@]}" \
+          -v "$PWD:/mattermost" \
+          -v "${SCRIPT}:/run-script.sh" \
+          -w /mattermost/server \
+          "${IMAGE}" \
+          bash /run-script.sh
+        rm -f "${SCRIPT}"
