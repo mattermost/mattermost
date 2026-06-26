@@ -69,8 +69,6 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - name: Run setup-go-work
-        run: make setup-go-work
       - name: Generate mocks
         run: make mocks
       - name: Check mocks
@@ -94,8 +92,6 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - name: Run setup-go-work
-        run: make setup-go-work
       - name: Run go mod tidy
         run: make modules-tidy
       - name: Check modules
@@ -103,31 +99,6 @@ jobs:
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           if [ -n "$(git status --porcelain)" ]; then
             echo "Please tidy up the Go modules using make modules-tidy"
-            git diff
-            exit 1
-          fi
-  check-go-fix:
-    name: Check go fix
-    needs: go
-    runs-on: ubuntu-22.04
-    container: mattermost/mattermost-build-server:${{ needs.go.outputs.version }}
-    defaults:
-      run:
-        working-directory: server
-    steps:
-      - name: Checkout mattermost project
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          persist-credentials: false
-      - name: Run setup-go-work
-        run: make setup-go-work
-      - name: Run go fix
-        run: go fix ./...
-      - name: Check go fix
-        run: |
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          if [ -n "$(git status --porcelain)" ]; then
-            echo "Please run 'go fix ./...' and commit the changes"
             git diff
             exit 1
           fi
@@ -144,8 +115,6 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - name: Run setup-go-work
-        run: make setup-go-work
       - name: Run golangci
         run: make check-style
   check-gen-serialized:
@@ -161,8 +130,6 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - name: Run setup-go-work
-        run: make setup-go-work
       - name: Run make-gen-serialized
         run: make gen-serialized
       - name: Check serialized
@@ -186,8 +153,6 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - name: Run setup-go-work
-        run: make setup-go-work
       - name: Run mattermost-vet-api
         run: make vet-api
   check-migrations:
@@ -251,8 +216,6 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - name: Run setup-go-work
-        run: make setup-go-work
       - name: Generate store layers
         run: make store-layers
       - name: Check generated code
@@ -289,8 +252,6 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - name: Run setup-go-work
-        run: make setup-go-work
       - name: Generate default roles permissions
         env:
           IS_CI: "true"
@@ -316,8 +277,6 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - name: Run setup-go-work
-        run: make setup-go-work
       - name: Check docs
         run: |
           echo "Making sure docs are updated"
@@ -505,8 +464,6 @@ jobs:
           node-version-file: ".nvmrc"
           cache: "npm"
           cache-dependency-path: "webapp/package-lock.json"
-      - name: Run setup-go-work
-        run: make setup-go-work
       - name: Build
         run: |
           make config-reset
