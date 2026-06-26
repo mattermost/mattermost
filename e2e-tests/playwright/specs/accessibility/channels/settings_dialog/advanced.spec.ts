@@ -108,7 +108,7 @@ test(
             - text: /(On for all messages|On only for code blocks starting with \`\`\`|Off)/
             - heading "Rich text editing (Beta)" [level=4]
             - button "Rich text editing (Beta) Edit"
-            - text: /(Markdown editing \(default\)|Rich text editing.*)/
+            - text: /(Markdown editing [(]default[)]|Rich text editing.*)/
             - heading "Enable Post Formatting" [level=4]
             - button "Enable Post Formatting Edit"
             - text: /(On|Off)/
