@@ -5980,7 +5980,7 @@ func (s *TimerLayerJobStore) SaveOnce(job *model.Job) (*model.Job, error) {
 	return result, err
 }
 
-func (s *TimerLayerJobStore) UpdateOptimistically(job *model.Job, currentStatus string) (bool, error) {
+func (s *TimerLayerJobStore) UpdateOptimistically(job *model.Job, currentStatus string) (*model.Job, error) {
 	start := time.Now()
 
 	result, err := s.JobStore.UpdateOptimistically(job, currentStatus)

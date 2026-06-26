@@ -49,8 +49,6 @@ type State = {
 };
 
 class JobTable extends React.PureComponent<Props, State> {
-    interval: ReturnType<typeof setInterval> | null = null;
-
     constructor(props: Props) {
         super(props);
         this.state = {
@@ -60,13 +58,6 @@ class JobTable extends React.PureComponent<Props, State> {
 
     componentDidMount() {
         this.props.actions.getJobsByType(this.props.jobType);
-        this.interval = setInterval(this.reload, 15000);
-    }
-
-    componentWillUnmount() {
-        if (this.interval) {
-            clearInterval(this.interval);
-        }
     }
 
     getExtraInfoText = (job: Job) => {

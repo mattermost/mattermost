@@ -7419,7 +7419,7 @@ func (s *RetryLayerJobStore) SaveOnce(job *model.Job) (*model.Job, error) {
 
 }
 
-func (s *RetryLayerJobStore) UpdateOptimistically(job *model.Job, currentStatus string) (bool, error) {
+func (s *RetryLayerJobStore) UpdateOptimistically(job *model.Job, currentStatus string) (*model.Job, error) {
 
 	tries := 0
 	for {

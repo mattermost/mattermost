@@ -824,7 +824,7 @@ type JobStore interface {
 	// If this method is called concurrently with another job of the same type,
 	// then nil, nil is returned.
 	SaveOnce(job *model.Job) (*model.Job, error)
-	UpdateOptimistically(job *model.Job, currentStatus string) (bool, error)
+	UpdateOptimistically(job *model.Job, currentStatus string) (*model.Job, error)
 	UpdateStatus(id string, status string) (*model.Job, error)
 	UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (*model.Job, error)
 	Get(rctx request.CTX, id string) (*model.Job, error)
