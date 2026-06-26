@@ -37,7 +37,9 @@ func TestUserPostDeliveryStore(t *testing.T) {
 	}
 	dt.SetDefaults()
 
-	ss, err := New(*settings, logger, nil, WithDeliveryTrackingSettings(dt))
+	// The feature flag must also be on (with Enable) for the real store.
+	ss, err := New(*settings, logger, nil, WithDeliveryTrackingSettings(dt),
+		WithFeatureFlags(func() *model.FeatureFlags { return &model.FeatureFlags{PostDeliveryTracking: true} }))
 	require.NoError(t, err)
 	defer func() {
 		ss.Close()

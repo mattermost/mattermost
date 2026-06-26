@@ -3457,3 +3457,33 @@ func TestElasticsearchSettingsSetDefaults(t *testing.T) {
 		require.False(t, *s.EnableSearchPublicChannelsWithoutMembership)
 	})
 }
+
+func TestConfigPostDeliveryTrackingEnabled(t *testing.T) {
+	cfg := func(flag, enable bool) *Config {
+		c := &Config{}
+		c.SetDefaults()
+		c.FeatureFlags.PostDeliveryTracking = flag
+		c.DeliveryTrackingSettings.Enable = NewPointer(enable)
+		return c
+	}
+
+	t.Run("disabled by default", func(t *testing.T) {
+		c := &Config{}
+		c.SetDefaults()
+		require.False(t, c.PostDeliveryTrackingEnabled())
+	})
+	t.Run("flag off + Enable on -> disabled", func(t *testing.T) {
+		require.False(t, cfg(false, true).PostDeliveryTrackingEnabled())
+	})
+	t.Run("flag on + Enable off -> disabled", func(t *testing.T) {
+		require.False(t, cfg(true, false).PostDeliveryTrackingEnabled())
+	})
+	t.Run("flag on + Enable on -> enabled", func(t *testing.T) {
+		require.True(t, cfg(true, true).PostDeliveryTrackingEnabled())
+	})
+	t.Run("nil FeatureFlags -> disabled", func(t *testing.T) {
+		c := cfg(true, true)
+		c.FeatureFlags = nil
+		require.False(t, c.PostDeliveryTrackingEnabled())
+	})
+}

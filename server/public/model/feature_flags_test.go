@@ -59,6 +59,14 @@ func TestFeatureFlagsSetDefaults_AttributeValueMasking(t *testing.T) {
 	require.Equal(t, "false", flags.ToMap()["AttributeValueMasking"])
 }
 
+func TestFeatureFlagsSetDefaults_PostDeliveryTracking(t *testing.T) {
+	var flags FeatureFlags
+	flags.SetDefaults()
+
+	require.False(t, flags.PostDeliveryTracking, "PostDeliveryTracking should default to false")
+	require.Equal(t, "false", flags.ToMap()["PostDeliveryTracking"])
+}
+
 // TestFeatureFlagsPermissionPoliciesDependencies pins down the
 // "sub-flag is gated by the umbrella PermissionPolicies flag"
 // contract for both ChannelPermissionPolicies and PolicySimulation.

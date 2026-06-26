@@ -1705,6 +1705,13 @@ func (s *DeliveryTrackingSettings) isValid() *AppError {
 	return nil
 }
 
+// PostDeliveryTrackingEnabled reports whether the PostDeliveryTracking feature
+// flag and the admin DeliveryTrackingSettings.Enable are both on.
+func (o *Config) PostDeliveryTrackingEnabled() bool {
+	return o.FeatureFlags != nil && o.FeatureFlags.PostDeliveryTracking &&
+		SafeDereference(o.DeliveryTrackingSettings.Enable)
+}
+
 type LogSettings struct {
 	EnableConsole          *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"`
 	ConsoleLevel           *string         `access:"environment_logging,write_restrictable,cloud_restrictable"`
@@ -4475,8 +4482,10 @@ func (o *Config) IsValid() *AppError {
 		return appErr
 	}
 
-	if appErr := o.DeliveryTrackingSettings.isValid(); appErr != nil {
-		return appErr
+	if o.FeatureFlags != nil && o.FeatureFlags.PostDeliveryTracking {
+		if appErr := o.DeliveryTrackingSettings.isValid(); appErr != nil {
+			return appErr
+		}
 	}
 
 	if appErr := o.FileSettings.isValid(); appErr != nil {

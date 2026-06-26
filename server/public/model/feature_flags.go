@@ -151,6 +151,10 @@ type FeatureFlags struct {
 
 	// Requires AttributeBasedAccessControl to also be enabled.
 	TeamMembershipAccessControl bool
+
+	// FEATURE_FLAG_REMOVAL: PostDeliveryTracking - Remove this when the feature is GA.
+	// Master switch for post-delivery tracking; off (default) fully disables it.
+	PostDeliveryTracking bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -213,6 +217,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.MobileEphemeralMode = false
 
 	f.PropertyFieldRank = false
+
+	f.PostDeliveryTracking = false
 }
 
 // IsChannelPermissionPoliciesEnabled reports whether channel-scope

@@ -422,7 +422,8 @@ func (ss *SqlStore) initConnection() error {
 	// (plus optional read replicas); Enable=true with an empty DataSource falls
 	// back to the primary pool. Toggling Enable later requires a restart so the
 	// pool can open and its migration can run.
-	if ss.dtSettings != nil && ss.dtSettings.Enable != nil && *ss.dtSettings.Enable {
+	// Flag off means no pool, so the migration is skipped and the sub-store is a no-op.
+	if ss.dtSettings != nil && ss.dtSettings.Enable != nil && *ss.dtSettings.Enable && ss.getFeatureFlags().PostDeliveryTracking {
 		if err := ss.initUserPostDeliveryConnection(); err != nil {
 			return errors.Wrap(err, "failed to setup post-delivery-tracking connection")
 		}
