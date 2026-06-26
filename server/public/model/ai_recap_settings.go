@@ -9,13 +9,13 @@ import (
 
 // RecapLimitSettings configures the limits for AI Recaps
 type RecapLimitSettings struct {
-	MaxRecapsPerDay     *int // Default: 10, -1 = unlimited
-	MaxScheduledRecaps  *int // Default: 5, -1 = unlimited
-	MaxChannelsPerRecap *int // Default: -1 (unlimited)
-	MaxPostsPerRecap    *int // Default: 500, -1 = unlimited
-	MaxTokensPerRecap   *int // Default: 100000, -1 = unlimited
-	MaxPostsPerDay      *int // Default: 5000, -1 = unlimited
-	CooldownMinutes     *int // Default: 60, 0 = no cooldown
+	MaxRecapsPerDay     *int `access:"ai_recaps"` // Default: 10, -1 = unlimited
+	MaxScheduledRecaps  *int `access:"ai_recaps"` // Default: 5, -1 = unlimited
+	MaxChannelsPerRecap *int `access:"ai_recaps"` // Default: -1 (unlimited)
+	MaxPostsPerRecap    *int `access:"ai_recaps"` // Default: 500, -1 = unlimited
+	MaxTokensPerRecap   *int `access:"ai_recaps"` // Default: 100000, -1 = unlimited
+	MaxPostsPerDay      *int `access:"ai_recaps"` // Default: 5000, -1 = unlimited
+	CooldownMinutes     *int `access:"ai_recaps"` // Default: 60, 0 = no cooldown
 }
 
 // SetDefaults sets the default values for RecapLimitSettings
@@ -88,7 +88,7 @@ type AIRecapSettings struct {
 	Enable *bool `access:"ai_recaps"` // Master toggle, default: true
 
 	// System-wide default limits
-	DefaultLimits *RecapLimitSettings
+	DefaultLimits *RecapLimitSettings `access:"ai_recaps"`
 
 	// Per-limit enforcement toggles (all default to true)
 	EnforceRecapsPerDay     *bool `access:"ai_recaps"`
