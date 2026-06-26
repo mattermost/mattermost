@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {defineMessage} from 'react-intl';
 
 import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
@@ -600,6 +601,82 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         // Verify dropdown options are available
         const dropdown = screen.getByRole('combobox', {name: /label-c/i});
         expect(dropdown).toBeInTheDocument();
+    });
+
+    const samlHelpUrl = 'http://www.w3.org/2000/09/xmldsig#rsa-sha1';
+
+    const buildDropdownOptionSchema = (option: object) => ({
+        id: 'Config',
+        name: 'config',
+        name_default: 'Configuration',
+        settings: [
+            {
+                key: 'FirstSettings.settingc',
+                label: 'label-c',
+                label_default: 'Setting Three',
+                type: 'dropdown',
+                default: 'option1',
+                options: [option],
+            },
+        ],
+    } as unknown as AdminDefinitionSubSectionSchema);
+
+    const dropdownOptionConfig = {
+        FirstSettings: {
+            settingc: 'option1',
+        },
+    } as Partial<AdminConfig>;
+
+    test('should render the selected dropdown option help text with markdown links as anchors', () => {
+        // Production help text is a MessageDescriptor (defineMessage), so render through
+        // that branch to exercise the same path the SAML settings use.
+        const {container} = renderWithContext(
+            <SchemaAdminSettings
+                {...DefaultProps}
+                config={dropdownOptionConfig}
+                environmentConfig={environmentConfig}
+                schema={buildDropdownOptionSchema({
+                    display_name: 'Option 1',
+                    value: 'option1',
+                    help_text: defineMessage({
+                        id: 'test.dropdown.option.help',
+                        defaultMessage: `See [${samlHelpUrl}](${samlHelpUrl})`,
+                    }),
+                    help_text_markdown: true,
+                })}
+                patchConfig={jest.fn()}
+            />,
+        );
+
+        const link = screen.getByRole('link', {name: samlHelpUrl});
+        expect(link).toBeInTheDocument();
+        expect(link).toHaveAttribute('href', samlHelpUrl);
+        expect(screen.getAllByRole('link')).toHaveLength(1);
+
+        // The non-link portion of the help text should remain intact.
+        expect(container.textContent).toContain('See ');
+    });
+
+    test('should render the selected dropdown option help text as plain text without help_text_markdown', () => {
+        const {container} = renderWithContext(
+            <SchemaAdminSettings
+                {...DefaultProps}
+                config={dropdownOptionConfig}
+                environmentConfig={environmentConfig}
+                schema={buildDropdownOptionSchema({
+                    display_name: 'Option 1',
+                    value: 'option1',
+                    help_text: defineMessage({
+                        id: 'test.dropdown.option.help.plain',
+                        defaultMessage: `See ${samlHelpUrl}`,
+                    }),
+                })}
+                patchConfig={jest.fn()}
+            />,
+        );
+
+        expect(screen.queryByRole('link')).not.toBeInTheDocument();
+        expect(container.textContent).toContain(`See ${samlHelpUrl}`);
     });
 
     test('should render radio button setting', () => {
