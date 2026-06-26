@@ -59,11 +59,15 @@ function isEmojiIdEqual(firstEmoji: Emoji, secondEmoji: Emoji): boolean {
 }
 
 export function getFilteredEmojis(allEmojis: Record<string, Emoji>, filter: string, recentEmojisString: string[], userSkinTone: string): Emoji[] {
+    // Normalize filter: replace spaces with underscores to match emoji aliases
+    // e.g. "umbrella with rain drops" -> "umbrella_with_rain_drops"
+    const normalizedFilter = filter.toLowerCase().replace(/\s+/g, '_');
+
     const filteredEmojisWithRecent = Object.values(allEmojis).filter((emoji) => {
         const aliases = isSystemEmoji(emoji) ? emoji.short_names : [emoji.name];
 
         for (let i = 0; i < aliases.length; i++) {
-            if (aliases[i].toLowerCase().includes(filter.toLowerCase())) {
+            if (aliases[i].toLowerCase().includes(normalizedFilter)) {
                 return true;
             }
         }
@@ -79,7 +83,7 @@ export function getFilteredEmojis(allEmojis: Record<string, Emoji>, filter: stri
     });
 
     const sortedRecentEmojis = filteredRecentEmojis.sort((firstEmoji, secondEmoji) =>
-        compareEmojis(firstEmoji, secondEmoji, filter),
+        compareEmojis(firstEmoji, secondEmoji, normalizedFilter),
     );
 
     // Seprate out recent emojis from the rest of the emoji result
@@ -88,7 +92,7 @@ export function getFilteredEmojis(allEmojis: Record<string, Emoji>, filter: stri
     });
 
     const sortedFiltertedEmojisMinusRecent = filtertedEmojisMinusRecent.sort((firstEmoji, secondEmoji) =>
-        compareEmojis(firstEmoji, secondEmoji, filter),
+        compareEmojis(firstEmoji, secondEmoji, normalizedFilter),
     );
 
     const filteredEmojis = [...sortedRecentEmojis, ...sortedFiltertedEmojisMinusRecent];
