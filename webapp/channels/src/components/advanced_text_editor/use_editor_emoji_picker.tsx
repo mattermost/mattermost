@@ -29,6 +29,7 @@ const useEditorEmojiPicker = (
     textboxId: string,
     isDisabled: boolean,
     shouldShowPreview: boolean,
+    insertWysiwygText?: (text: string) => void,
 ) => {
     const intl = useIntl();
 
@@ -43,18 +44,21 @@ const useEditorEmojiPicker = (
     }, []);
 
     const insertTextAtCaret = useCallback((text: string) => {
+        if (insertWysiwygText) {
+            insertWysiwygText(text);
+            return;
+        }
+
         const textbox = document.getElementById(textboxId) as HTMLTextAreaElement | undefined;
         if (!textbox) {
             return;
         }
 
-        // Only add a space before the inserted text if we're not at the start of the textarea and there's not already
-        // a space there, but always add a space after the inserted text
         const needsSpaceBefore = textbox.selectionStart !== 0 && !(/\s/).test(textbox.value[textbox.selectionStart - 1]);
         const textToBeAdded = needsSpaceBefore ? ` ${text} ` : `${text} `;
 
         focusAndInsertText(textbox, textToBeAdded);
-    }, [textboxId]);
+    }, [textboxId, insertWysiwygText]);
 
     const handleEmojiClick = useCallback((emoji: Emoji) => {
         if (isSystemEmoji(emoji)) {

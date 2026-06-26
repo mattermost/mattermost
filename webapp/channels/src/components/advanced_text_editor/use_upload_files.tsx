@@ -19,7 +19,6 @@ import FilePreview from 'components/file_preview';
 import type {FilePreviewInfo} from 'components/file_preview/file_preview';
 import FileUpload from 'components/file_upload';
 import type {FileUpload as FileUploadClass, TextEditorLocationType} from 'components/file_upload/file_upload';
-import type TextboxClass from 'components/textbox/textbox';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
@@ -35,7 +34,7 @@ const useUploadFiles = (
     isThreadView: boolean,
     storedDrafts: React.MutableRefObject<Record<string, PostDraft | undefined>>,
     isDisabled: boolean,
-    textboxRef: React.RefObject<TextboxClass>,
+    editorBodyRef: React.RefObject<HTMLDivElement>,
     handleDraftChange: (draft: PostDraft, options?: {instant?: boolean; show?: boolean}) => void,
     focusTextbox: (forceFocust?: boolean) => void,
     setServerError: (err: (ServerError & {submittedMessage?: string}) | null) => void,
@@ -65,8 +64,8 @@ const useUploadFiles = (
     }, [focusTextbox]);
 
     const getFileUploadTarget = useCallback(() => {
-        return (textboxRef.current?.getInputBox() as HTMLInputElement | undefined) ?? null;
-    }, [textboxRef]);
+        return (editorBodyRef.current as unknown as HTMLInputElement | null) ?? null;
+    }, [editorBodyRef]);
 
     const handleUploadProgress = useCallback((filePreviewInfo: FilePreviewInfo) => {
         setUploadsProgressPercent((prev) => ({

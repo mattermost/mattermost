@@ -163,7 +163,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableSharedChannelsPlugins = true
 	f.AppsEnabled = false
 	f.NormalizeLdapDNs = false
-	f.WysiwygEditor = false
+	f.WysiwygEditor = true
 	f.OnboardingTourTips = true
 	f.EnableExportDirectDownload = false
 	f.MoveThreadsEnabled = false

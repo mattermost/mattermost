@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Editor} from '@tiptap/react';
 import classNames from 'classnames';
 import React, {lazy, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
@@ -13,7 +14,7 @@ import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Permissions} from 'mattermost-redux/constants';
 import {getChannel, makeGetChannel, getDirectChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
-import {get, getBool, getInt} from 'mattermost-redux/selectors/entities/preferences';
+import {get, getBool, getInt, getWysiwygEditorPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
 
@@ -29,6 +30,8 @@ import {connectionErrorCount} from 'selectors/views/system';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import PostBoxIndicator from 'components/advanced_text_editor/post_box_indicator/post_box_indicator';
+import WysiwygEditor from 'components/advanced_text_editor/wysiwyg_editor/wysiwyg_editor';
+import type {WysiwygEditorHandle} from 'components/advanced_text_editor/wysiwyg_editor/wysiwyg_editor';
 import {makeAsyncComponent} from 'components/async_load';
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
@@ -57,7 +60,7 @@ import Constants, {
     AdvancedTextEditorTextboxIds,
 } from 'utils/constants';
 import {canUploadFiles as canUploadFilesAccordingToConfig} from 'utils/file_utils';
-import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
+import type {MarkdownMode} from 'utils/markdown/apply_markdown';
 import {applyMarkdown as applyMarkdownUtil} from 'utils/markdown/apply_markdown';
 import {isErrorInvalidSlashCommand} from 'utils/post_utils';
 import {allAtMentions} from 'utils/text_formatting';
@@ -73,6 +76,7 @@ import EditPostFooter from './edit_post_footer';
 import Footer from './footer';
 import FormattingBar from './formatting_bar';
 import {FormattingBarSpacer, Separator} from './formatting_bar/formatting_bar';
+import type {FormattingBarHandle} from './formatting_bar/formatting_bar';
 import MessageWithMentionsFooter from './message_with_mentions_footer';
 import SendButton from './send_button';
 import ShowFormat from './show_formatting';
@@ -213,6 +217,8 @@ const AdvancedTextEditor = ({
     const editorActionsRef = useRef<HTMLDivElement>(null);
     const editorBodyRef = useRef<HTMLDivElement>(null);
     const textboxRef = useRef<TextboxClass>(null);
+    const wysiwygRef = useRef<WysiwygEditorHandle>(null);
+    const formattingBarRef = useRef<FormattingBarHandle>(null);
     const loggedInAriaLabelTimeout = useRef<NodeJS.Timeout>();
     const saveDraftFrame = useRef<NodeJS.Timeout>();
     const draftRef = useRef(draftFromStore);
@@ -232,6 +238,9 @@ const AdvancedTextEditor = ({
     const hasDraftMessage = Boolean(draft.message);
     const showFormattingBar = !isFormattingBarHidden && !readOnlyChannel;
     const enableSharedChannelsDMs = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true');
+    const wysiwygEnabled = useSelector(getWysiwygEditorPreference);
+    const ctrlSend = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'));
+    const codeBlockOnCtrlEnter = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'code_block_ctrl_enter', true));
     const isDMOrGMRemote = isChannelShared && (channelType === Constants.DM_CHANNEL || channelType === Constants.GM_CHANNEL);
 
     const handleShowPreview = useCallback(() => {
@@ -282,15 +291,89 @@ const AdvancedTextEditor = ({
         storedDrafts.current[draftToChange.rootId || draftToChange.channelId] = draftToChange;
     }, [dispatch]);
 
-    const applyMarkdown = useCallback((params: ApplyMarkdownOptions) => {
+    const applyWysiwygFormatting = useCallback((editor: Editor, mode: MarkdownMode) => {
+        const isInlineMark = mode === 'bold' || mode === 'italic' || mode === 'strike';
+        if (isInlineMark && editor.state.selection.empty) {
+            const $from = editor.state.selection.$from;
+            const text = $from.parent.textContent;
+            const offset = $from.parentOffset;
+            if (text && offset >= 0) {
+                const isWordChar = (/\S/);
+                let start = offset;
+                while (start > 0 && isWordChar.test(text[start - 1])) {
+                    start--;
+                }
+                let end = offset;
+                while (end < text.length && isWordChar.test(text[end])) {
+                    end++;
+                }
+                if (start < end) {
+                    const parentStart = $from.pos - offset;
+                    editor.chain().focus().setTextSelection({from: parentStart + start, to: parentStart + end}).run();
+                }
+            }
+        }
+
+        const chain = editor.chain().focus();
+        switch (mode) {
+        case 'bold':
+            chain.toggleBold().run();
+            break;
+        case 'italic':
+            chain.toggleItalic().run();
+            break;
+        case 'strike':
+            chain.toggleStrike().run();
+            break;
+        case 'heading':
+            chain.toggleHeading({level: 3}).run();
+            break;
+        case 'code':
+            chain.toggleCodeBlock().run();
+            break;
+        case 'quote':
+            chain.toggleBlockquote().run();
+            break;
+        case 'ul':
+            chain.toggleBulletList().run();
+            break;
+        case 'ol':
+            chain.toggleOrderedList().run();
+            break;
+        }
+    }, []);
+
+    const applyFormatting = useCallback((mode: MarkdownMode) => {
         if (showPreview) {
             return;
         }
 
-        const res = applyMarkdownUtil(params);
+        if (wysiwygEnabled) {
+            const editor = wysiwygRef.current?.getEditor();
+            if (!editor || editor.isDestroyed) {
+                return;
+            }
+            if (mode === 'link') {
+                formattingBarRef.current?.openLinkPopover();
+                return;
+            }
+            applyWysiwygFormatting(editor, mode);
+            return;
+        }
+
+        const input = textboxRef.current?.getInputBox();
+        if (!input) {
+            return;
+        }
+        const res = applyMarkdownUtil({
+            markdownMode: mode,
+            selectionStart: input.selectionStart ?? 0,
+            selectionEnd: input.selectionEnd ?? 0,
+            message: input.value ?? '',
+        });
 
         handleDraftChange({
-            ...draft,
+            ...draftRef.current,
             message: res.message,
         });
 
@@ -300,7 +383,7 @@ const AdvancedTextEditor = ({
                 Utils.setSelectionRange(textbox, res.selectionStart, res.selectionEnd);
             }
         });
-    }, [showPreview, handleDraftChange, draft]);
+    }, [showPreview, wysiwygEnabled, handleDraftChange, applyWysiwygFormatting]);
 
     const toggleAdvanceTextEditor = useCallback(() => {
         dispatch(savePreferences(currentUserId, [{
@@ -314,7 +397,7 @@ const AdvancedTextEditor = ({
     }, [dispatch, currentUserId, getFormattingBarPreferenceName, isFormattingBarHidden]);
 
     const pluginItems = usePluginItems(draft, textboxRef, handleDraftChange, channelId);
-    const focusTextbox = useTextboxFocus(textboxRef, channelId, isRHS, canPost);
+    const focusTextbox = useTextboxFocus(textboxRef, channelId, isRHS, canPost, wysiwygRef);
     const {
         rewriteMenuProps,
         isProcessing: rewriteIsProcessing,
@@ -329,12 +412,16 @@ const AdvancedTextEditor = ({
         isThreadView,
         storedDrafts,
         isDisabled,
-        textboxRef,
+        editorBodyRef,
         handleDraftChange,
         focusTextbox,
         setServerError,
         isInEditMode,
     );
+
+    const insertWysiwygText = useCallback((text: string) => {
+        wysiwygRef.current?.insertText(text);
+    }, []);
 
     const {
         emojiPicker,
@@ -344,6 +431,7 @@ const AdvancedTextEditor = ({
         textboxId,
         isDisabled,
         showPreview,
+        wysiwygEnabled ? insertWysiwygText : undefined,
     );
     const {
         labels: priorityLabels,
@@ -445,7 +533,7 @@ const AdvancedTextEditor = ({
         textboxRef,
         showFormattingBar,
         focusTextbox,
-        applyMarkdown,
+        applyFormatting,
         handleDraftChange,
         handleSubmitWrapper,
         emitTypingEvent,
@@ -491,22 +579,31 @@ const AdvancedTextEditor = ({
         });
     }, [draft, handleDraftChange, serverError]);
 
-    /**
-     * by getting the value directly from the textbox we eliminate all unnecessary
-     * re-renders for the FormattingBar component. The previous method of always passing
-     * down the current message value that came from the parents state was not optimal,
-     * although still working as expected
-     */
-    const getCurrentValue = useCallback(() => textboxRef.current?.getInputBox()?.value ?? '', [textboxRef]);
+    const handleWysiwygChange = useCallback((markdown: string) => {
+        emitTypingEvent();
+        if (!isErrorInvalidSlashCommand(serverError)) {
+            setServerError(null);
+        }
+        handleDraftChange({
+            ...draft,
+            message: markdown,
+        });
+    }, [draft, handleDraftChange, serverError, emitTypingEvent]);
 
-    const getCurrentSelection = useCallback(() => {
+    const getSelectedText = useCallback(() => {
         const input = textboxRef.current?.getInputBox();
-
         return {
             start: input?.selectionStart ?? 0,
             end: input?.selectionEnd ?? 0,
         };
     }, [textboxRef]);
+
+    const updateText = useCallback((message: string) => {
+        handleDraftChange({
+            ...draftRef.current,
+            message,
+        });
+    }, [handleDraftChange]);
 
     const handleWidthChange = useCallback((width: number) => {
         const input = textboxRef.current?.getInputBox();
@@ -625,7 +722,7 @@ const AdvancedTextEditor = ({
         />
     );
 
-    const showFormatJSX = disableSendButton ? null : (
+    const showFormatJSX = (disableSendButton || wysiwygEnabled) ? null : (
         <ShowFormat
             onClick={handleShowPreview}
             active={showPreview}
@@ -698,21 +795,6 @@ const AdvancedTextEditor = ({
         ...(pluginItems || []),
     ].filter(Boolean), [pluginItems, priorityAdditionalControl, isInEditMode, burnOnReadAdditionalControl]);
 
-    const getSelectedText = useCallback(() => {
-        const input = textboxRef.current?.getInputBox();
-        return {
-            start: input?.selectionStart ?? 0,
-            end: input?.selectionEnd ?? 0,
-        };
-    }, [textboxRef]);
-
-    const updateText = useCallback((message: string) => {
-        handleDraftChange({
-            ...draft,
-            message,
-        });
-    }, [handleDraftChange, draft]);
-
     const aiActionsMenu = useMemo(() => {
         if (!hasAIActionsMenu) {
             return null;
@@ -736,13 +818,13 @@ const AdvancedTextEditor = ({
             showSlot={showFormattingBar ? 1 : 2}
             slot1={(
                 <FormattingBar
-                    applyMarkdown={applyMarkdown}
-                    getCurrentMessage={getCurrentValue}
-                    getCurrentSelection={getCurrentSelection}
+                    ref={formattingBarRef}
+                    applyFormatting={applyFormatting}
                     disableControls={showPreview}
                     additionalControls={additionalControls}
                     location={location}
                     aiActionsMenu={aiActionsMenu}
+                    getEditor={wysiwygEnabled ? () => wysiwygRef.current?.getEditor() ?? null : undefined}
                 />
             )}
             slot2={null}
@@ -836,31 +918,50 @@ const AdvancedTextEditor = ({
                                 />
                             </div>
                         )}
-                        <Textbox
-                            hasLabels={isInEditMode ? false : Boolean(priorityLabels || burnOnReadLabels)}
-                            suggestionList={location === Locations.RHS_COMMENT ? RhsSuggestionList : SuggestionList}
-                            onChange={handleChange}
-                            onKeyPress={postMsgKeyPress}
-                            onKeyDown={handleKeyDown}
-                            onCompositionUpdate={emitTypingEvent}
-                            onHeightChange={handleHeightChange}
-                            handlePostError={handlePostError}
-                            value={messageValue}
-                            onBlur={handleBlur}
-                            onFocus={handleFocus}
-                            emojiEnabled={enableEmojiPicker}
-                            createMessage={createMessage}
-                            channelId={channelId}
-                            id={textboxId}
-                            ref={textboxRef!}
-                            disabled={isDisabled && !rewriteIsProcessing}
-                            characterLimit={maxPostSize}
-                            preview={showPreview}
-                            badConnection={badConnection}
-                            useChannelMentions={useChannelMentions}
-                            rootId={rootId}
-                            onWidthChange={handleWidthChange}
-                        />
+                        {wysiwygEnabled ? (
+                            <WysiwygEditor
+                                ref={wysiwygRef}
+                                value={messageValue}
+                                onChange={handleWysiwygChange}
+                                onSubmit={handleSubmitWrapper}
+                                onFocus={handleFocus}
+                                onBlur={handleBlur}
+                                placeholder={createMessage}
+                                channelId={channelId}
+                                rootId={rootId}
+                                id={textboxId}
+                                disabled={isDisabled && !rewriteIsProcessing}
+                                useCtrlSend={ctrlSend}
+                                sendCodeBlockOnCtrlEnter={codeBlockOnCtrlEnter}
+                                onKeyDown={handleKeyDown as unknown as (e: React.KeyboardEvent<HTMLDivElement>) => void}
+                            />
+                        ) : (
+                            <Textbox
+                                hasLabels={isInEditMode ? false : Boolean(priorityLabels || burnOnReadLabels)}
+                                suggestionList={location === Locations.RHS_COMMENT ? RhsSuggestionList : SuggestionList}
+                                onChange={handleChange}
+                                onKeyPress={postMsgKeyPress}
+                                onKeyDown={handleKeyDown}
+                                onCompositionUpdate={emitTypingEvent}
+                                onHeightChange={handleHeightChange}
+                                handlePostError={handlePostError}
+                                value={messageValue}
+                                onBlur={handleBlur}
+                                onFocus={handleFocus}
+                                emojiEnabled={enableEmojiPicker}
+                                createMessage={createMessage}
+                                channelId={channelId}
+                                id={textboxId}
+                                ref={textboxRef!}
+                                disabled={isDisabled && !rewriteIsProcessing}
+                                characterLimit={maxPostSize}
+                                preview={showPreview}
+                                badConnection={badConnection}
+                                useChannelMentions={useChannelMentions}
+                                rootId={rootId}
+                                onWidthChange={handleWidthChange}
+                            />
+                        )}
                         {attachmentPreview}
                         {!isDisabled && (showFormattingBar || showPreview) && (
                             <TexteditorActions

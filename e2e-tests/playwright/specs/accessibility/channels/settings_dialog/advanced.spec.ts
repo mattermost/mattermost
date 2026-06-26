@@ -45,6 +45,10 @@ test(
         await page.keyboard.press('Tab');
         await pw.toBeFocusedWithFocusVisible(advancedSettings.ctrlEnterEditButton);
 
+        // # Press Tab to move focus to Rich text editing button
+        await page.keyboard.press('Tab');
+        await pw.toBeFocusedWithFocusVisible(advancedSettings.wysiwygEditorEditButton);
+
         // # Press Tab to move focus to Enable Post Formatting button
         await page.keyboard.press('Tab');
         await pw.toBeFocusedWithFocusVisible(advancedSettings.postFormattingEditButton);
@@ -102,6 +106,9 @@ test(
             - heading /Send Messages on (CTRL|⌘)\\+ENTER/ [level=4]
             - button /Send Messages on (CTRL|⌘)\\+ENTER Edit/
             - text: /(On for all messages|On only for code blocks starting with \`\`\`|Off)/
+            - heading "Rich text editing (Beta)" [level=4]
+            - button "Rich text editing (Beta) Edit"
+            - text: /(Markdown editing [(]default[)]|Rich text editing.*)/
             - heading "Enable Post Formatting" [level=4]
             - button "Enable Post Formatting Edit"
             - text: /(On|Off)/
