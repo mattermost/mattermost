@@ -146,8 +146,36 @@ describe('components/drafts/scheduled_post_list', () => {
         // because the list scrolled down to the target.
         expect(screen.queryByText('Scheduled message 0')).not.toBeInTheDocument();
 
-        // Only the visible window plus overscan is rendered, not all 40 rows.
+        // Only the visible window plus overscan (both directions around the
+        // target) is rendered, not all 40 rows.
         expect(screen.getAllByTestId('scheduled-post-row').length).toBeLessThan(25);
+    });
+
+    test('keeps the target post flagged to scroll into view across re-renders', () => {
+        const targetChannelId = 'target_channel';
+        const initialPosts = [
+            makeScheduledPost('a', 'Post A', 'channel1'),
+            makeScheduledPost('target', 'Sticky target post', targetChannelId),
+            makeScheduledPost('b', 'Post B', 'channel1'),
+        ];
+
+        const {rerender} = renderList(initialPosts, [], `?target_id=${targetChannelId}`);
+
+        const getTargetRow = () => screen.getByText('Sticky target post').closest('[data-testid="scheduled-post-row"]');
+        expect(getTargetRow()).toHaveAttribute('data-scroll-into-view', 'true');
+
+        // Re-render with an extra post. The remembered target id now flows
+        // through itemData, so the same post stays flagged via the sticky branch.
+        rerender(
+            <ScheduledPostList
+                scheduledPosts={[...initialPosts, makeScheduledPost('c', 'Post C', 'channel1')]}
+                currentUser={currentUser}
+                userDisplayName='User One'
+                userStatus='online'
+            />,
+        );
+
+        expect(getTargetRow()).toHaveAttribute('data-scroll-into-view', 'true');
     });
 
     test('scrolls to a target_id that matches a thread root_id', () => {
