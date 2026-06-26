@@ -6,9 +6,6 @@ description: >
   Dockerfile, saved as a workflow artifact, and the artifact name is returned
   so downstream jobs can load it via use-buildenv.
 
-  The caller is responsible for authenticating Docker Hub and Chainguard
-  before invoking this action so that manifest inspection and image builds
-  work correctly.
 
 inputs:
   go-version:
@@ -27,6 +24,17 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Docker Hub login
+      if: ${{ inputs.fips-enabled == 'true' }}
+      uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
+      with:
+        username: ${{ env.DOCKERHUB_USERNAME }}
+        password: ${{ env.DOCKERHUB_TOKEN }}
+    - name: Setup Chainctl
+      if: ${{ inputs.fips-enabled == 'true' }}
+      uses: chainguard-dev/setup-chainctl@c125f765e82b09a42af3185f3214465314d75c5d # v0.5.0
+      with:
+        identity: ${{ env.CHAINCTL_IDENTITY }}
     - name: Resolve image
       id: resolve
       shell: bash
