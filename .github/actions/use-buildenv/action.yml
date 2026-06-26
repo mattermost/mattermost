@@ -2,20 +2,15 @@ name: Use build environment
 description: >
   Makes the build-server Docker image available for docker run. Loads it from
   a workflow artifact when one was built during this run (in-flight Go version
-  bump); otherwise authenticates to Docker Hub so docker run can pull on demand
-  (required for the private FIPS image).
+  bump); otherwise the image will be pulled from the registry on demand when
+  docker run executes.
+
+  The caller is responsible for authenticating Docker Hub before invoking this
+  action if the image is private (e.g. the FIPS build image).
 
 inputs:
   artifact-name:
     description: "Artifact name from setup-buildenv. Empty = pull from registry on demand."
-    required: false
-    default: ""
-  dockerhub-username:
-    description: "Docker Hub username for authenticated pulls (required for private FIPS image)"
-    required: false
-    default: ""
-  dockerhub-token:
-    description: "Docker Hub token"
     required: false
     default: ""
 
@@ -32,9 +27,3 @@ runs:
       if: ${{ inputs.artifact-name != '' }}
       shell: bash
       run: docker load -i /tmp/buildenv-image/image.tar.gz
-    - name: Docker Hub login
-      if: ${{ inputs.artifact-name == '' && inputs.dockerhub-username != '' }}
-      uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
-      with:
-        username: ${{ inputs.dockerhub-username }}
-        password: ${{ inputs.dockerhub-token }}
