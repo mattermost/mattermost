@@ -6,7 +6,7 @@ import type {MmButtonBlock, MmColumnSetBlock, MmContainerBlock} from '@mattermos
 import {translateBlockKit} from './block_kit';
 
 describe('translateBlockKit section accessory button', () => {
-    it('requires a non-empty action_id', () => {
+    it('should require a non-empty action_id', () => {
         const blocks = translateBlockKit([{
             type: 'section',
             text: {type: 'plain_text', text: 'Body'},
@@ -22,7 +22,7 @@ describe('translateBlockKit section accessory button', () => {
         }]);
     });
 
-    it('keeps accessory button when action_id is present', () => {
+    it('should keep accessory button when action_id is present', () => {
         const blocks = translateBlockKit([{
             type: 'section',
             text: {type: 'plain_text', text: 'Body'},

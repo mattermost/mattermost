@@ -1,57 +1,197 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`translatePostProps complex payloads translates rich Adaptive Cards (columns, image, action set) 1`] = `
-Array [
-  Object {
+exports[`translatePostProps complex payloads should translate rich Adaptive Cards (columns, image, action set) 1`] = `
+[
+  {
     "is_subtle": undefined,
-    "text": "Deployment status",
+    "text": "Customer onboarding review",
     "type": "text",
   },
-  Object {
-    "columns": Array [
-      Object {
-        "items": Array [
-          Object {
-            "is_subtle": undefined,
-            "text": "Service: API",
-            "type": "text",
-          },
-          Object {
-            "is_subtle": true,
-            "text": "Version: 11.8",
-            "type": "text",
-          },
-        ],
-        "type": "column",
-        "width": "stretch",
+  {
+    "is_subtle": true,
+    "text": "Account AC-91822 requested enterprise provisioning with SSO and SCIM.",
+    "type": "text",
+  },
+  {
+    "content": [
+      {
+        "is_subtle": undefined,
+        "text": "Account details",
+        "type": "text",
       },
-      Object {
-        "items": Array [
-          Object {
-            "alt_text": "status",
-            "size": "small",
-            "type": "image",
-            "url": "https://example.com/status.png",
+      {
+        "columns": [
+          {
+            "items": [
+              {
+                "is_subtle": undefined,
+                "text": "Company: Northwind Labs",
+                "type": "text",
+              },
+              {
+                "is_subtle": true,
+                "text": "Seats: 2,500",
+                "type": "text",
+              },
+              {
+                "is_subtle": true,
+                "text": "Plan: Enterprise Plus",
+                "type": "text",
+              },
+            ],
+            "type": "column",
+            "width": "stretch",
+          },
+          {
+            "items": [
+              {
+                "is_subtle": undefined,
+                "text": "Region: EU-West",
+                "type": "text",
+              },
+              {
+                "is_subtle": true,
+                "text": "Data residency: Frankfurt",
+                "type": "text",
+              },
+              {
+                "is_subtle": true,
+                "text": "SLA: 99.95%",
+                "type": "text",
+              },
+            ],
+            "type": "column",
+            "width": "stretch",
+          },
+          {
+            "items": [
+              {
+                "alt_text": "Account logo",
+                "image_style": "person",
+                "size": "small",
+                "type": "image",
+                "url": "https://example.com/account-logo.png",
+              },
+            ],
+            "type": "column",
+            "width": "auto",
           },
         ],
-        "type": "column",
-        "width": "auto",
+        "type": "column_set",
       },
     ],
-    "type": "column_set",
+    "type": "container",
   },
-  Object {
-    "content": Array [
-      Object {
-        "action_id": "approve",
+  {
+    "content": [
+      {
+        "is_subtle": undefined,
+        "text": "Provisioning checklist",
+        "type": "text",
+      },
+      {
+        "columns": [
+          {
+            "items": [
+              {
+                "content": [
+                  {
+                    "is_subtle": undefined,
+                    "text": "Identity",
+                    "type": "text",
+                  },
+                  {
+                    "is_subtle": undefined,
+                    "text": "SAML metadata uploaded",
+                    "type": "text",
+                  },
+                  {
+                    "is_subtle": true,
+                    "text": "SCIM token issued",
+                    "type": "text",
+                  },
+                ],
+                "type": "container",
+              },
+            ],
+            "type": "column",
+            "width": "stretch",
+          },
+          {
+            "items": [
+              {
+                "content": [
+                  {
+                    "is_subtle": undefined,
+                    "text": "Infrastructure",
+                    "type": "text",
+                  },
+                  {
+                    "is_subtle": undefined,
+                    "text": "Dedicated namespace created",
+                    "type": "text",
+                  },
+                  {
+                    "is_subtle": true,
+                    "text": "Backup policy attached",
+                    "type": "text",
+                  },
+                ],
+                "type": "container",
+              },
+            ],
+            "type": "column",
+            "width": "stretch",
+          },
+        ],
+        "type": "column_set",
+      },
+      {
+        "alt_text": "Provisioning diagram",
+        "horizontal_alignment": "center",
+        "size": "medium",
+        "type": "image",
+        "url": "https://example.com/provisioning-diagram.png",
+      },
+    ],
+    "type": "container",
+  },
+  {
+    "content": [
+      {
+        "action_id": "approve_provision",
         "style": "primary",
-        "text": "Approve",
+        "text": "Approve provisioning",
         "type": "button",
       },
-      Object {
-        "action_id": "reject",
+      {
+        "action_id": "request_changes",
+        "style": "default",
+        "text": "Request changes",
+        "type": "button",
+      },
+      {
+        "action_id": "reject_provision",
         "style": "danger",
         "text": "Reject",
+        "type": "button",
+      },
+    ],
+    "flow": "horizontal",
+    "type": "container",
+  },
+  {
+    "content": [
+      {
+        "action_id": "assign_reviewer",
+        "style": "default",
+        "text": "Assign reviewer",
+        "type": "button",
+      },
+      {
+        "action_id": "open_crm",
+        "style": "default",
+        "text": "Open CRM record",
         "type": "button",
       },
     ],
@@ -61,28 +201,32 @@ Array [
 ]
 `;
 
-exports[`translatePostProps complex payloads translates rich Block Kit (accessory, fields, image, select) 1`] = `
-Array [
-  Object {
-    "content": Array [
-      Object {
-        "columns": Array [
-          Object {
-            "items": Array [
-              Object {
-                "text": "Section with accessory",
+exports[`translatePostProps complex payloads should translate rich Block Kit (accessory, fields, image, select) 1`] = `
+[
+  {
+    "text": "# Release approval workflow",
+    "type": "text",
+  },
+  {
+    "content": [
+      {
+        "columns": [
+          {
+            "items": [
+              {
+                "text": "*Build 2.41.0-rc3* is ready for production. Review the checklist below before approving.",
                 "type": "text",
               },
             ],
             "type": "column",
             "width": "stretch",
           },
-          Object {
-            "items": Array [
-              Object {
-                "action_id": "accessory_btn",
+          {
+            "items": [
+              {
+                "action_id": "view_build",
                 "style": "primary",
-                "text": "Accessory",
+                "text": "View build",
                 "type": "button",
               },
             ],
@@ -95,24 +239,31 @@ Array [
     ],
     "type": "container",
   },
-  Object {
-    "content": Array [
-      Object {
-        "columns": Array [
-          Object {
-            "items": Array [
-              Object {
-                "text": "*Field A*",
+  {
+    "text": "### Validation summary
+- 1,284 unit tests passed
+- 42 e2e scenarios passed
+- 0 critical vulnerabilities",
+    "type": "text",
+  },
+  {
+    "content": [
+      {
+        "columns": [
+          {
+            "items": [
+              {
+                "text": "*Commit*",
                 "type": "text",
               },
             ],
             "type": "column",
             "width": "stretch",
           },
-          Object {
-            "items": Array [
-              Object {
-                "text": "Field B",
+          {
+            "items": [
+              {
+                "text": "\`a91f3c2\`",
                 "type": "text",
               },
             ],
@@ -122,42 +273,305 @@ Array [
         ],
         "type": "column_set",
       },
-      Object {
-        "text": "Field C alone",
-        "type": "text",
+      {
+        "columns": [
+          {
+            "items": [
+              {
+                "text": "*Branch*",
+                "type": "text",
+              },
+            ],
+            "type": "column",
+            "width": "stretch",
+          },
+          {
+            "items": [
+              {
+                "text": "\`release-2.41\`",
+                "type": "text",
+              },
+            ],
+            "type": "column",
+            "width": "stretch",
+          },
+        ],
+        "type": "column_set",
+      },
+      {
+        "columns": [
+          {
+            "items": [
+              {
+                "text": "*Artifacts*",
+                "type": "text",
+              },
+            ],
+            "type": "column",
+            "width": "stretch",
+          },
+          {
+            "items": [
+              {
+                "text": "iOS, Android, Desktop",
+                "type": "text",
+              },
+            ],
+            "type": "column",
+            "width": "stretch",
+          },
+        ],
+        "type": "column_set",
+      },
+      {
+        "columns": [
+          {
+            "items": [
+              {
+                "text": "*Risk score*",
+                "type": "text",
+              },
+            ],
+            "type": "column",
+            "width": "stretch",
+          },
+          {
+            "items": [
+              {
+                "text": "Low (2 open defects)",
+                "type": "text",
+              },
+            ],
+            "type": "column",
+            "width": "stretch",
+          },
+        ],
+        "type": "column_set",
+      },
+      {
+        "columns": [
+          {
+            "items": [
+              {
+                "text": "*Canary status*",
+                "type": "text",
+              },
+            ],
+            "type": "column",
+            "width": "stretch",
+          },
+          {
+            "items": [
+              {
+                "text": "Green for 6h",
+                "type": "text",
+              },
+            ],
+            "type": "column",
+            "width": "stretch",
+          },
+        ],
+        "type": "column_set",
       },
     ],
     "type": "container",
   },
-  Object {
-    "alt_text": "diagram",
-    "size": "large",
-    "title": undefined,
-    "type": "image",
-    "url": "https://example.com/block.png",
+  {
+    "type": "divider",
   },
-  Object {
-    "content": Array [
-      Object {
-        "action_id": "cancel",
-        "style": "danger",
-        "text": "Cancel",
-        "type": "button",
-      },
-      Object {
-        "action_id": "priority",
-        "options": Array [
-          Object {
-            "text": "P1",
-            "value": "1",
+  {
+    "content": [
+      {
+        "columns": [
+          {
+            "items": [
+              {
+                "text": "Deployment regions",
+                "type": "text",
+              },
+            ],
+            "type": "column",
+            "width": "stretch",
           },
-          Object {
-            "text": "P2",
-            "value": "2",
+          {
+            "items": [
+              {
+                "alt_text": "World map",
+                "size": "small",
+                "title": undefined,
+                "type": "image",
+                "url": "https://example.com/world-map.png",
+              },
+            ],
+            "type": "column",
+            "width": "auto",
           },
         ],
-        "placeholder": "Priority",
+        "type": "column_set",
+      },
+    ],
+    "type": "container",
+  },
+  {
+    "content": [
+      {
+        "columns": [
+          {
+            "items": [
+              {
+                "text": "*US*",
+                "type": "text",
+              },
+            ],
+            "type": "column",
+            "width": "stretch",
+          },
+          {
+            "items": [
+              {
+                "text": "Ready",
+                "type": "text",
+              },
+            ],
+            "type": "column",
+            "width": "stretch",
+          },
+        ],
+        "type": "column_set",
+      },
+      {
+        "columns": [
+          {
+            "items": [
+              {
+                "text": "*EU*",
+                "type": "text",
+              },
+            ],
+            "type": "column",
+            "width": "stretch",
+          },
+          {
+            "items": [
+              {
+                "text": "Ready",
+                "type": "text",
+              },
+            ],
+            "type": "column",
+            "width": "stretch",
+          },
+        ],
+        "type": "column_set",
+      },
+      {
+        "columns": [
+          {
+            "items": [
+              {
+                "text": "*APAC*",
+                "type": "text",
+              },
+            ],
+            "type": "column",
+            "width": "stretch",
+          },
+          {
+            "items": [
+              {
+                "text": "Pending cache warm",
+                "type": "text",
+              },
+            ],
+            "type": "column",
+            "width": "stretch",
+          },
+        ],
+        "type": "column_set",
+      },
+    ],
+    "type": "container",
+  },
+  {
+    "alt_text": "Release timeline",
+    "size": "large",
+    "title": "Rollout timeline",
+    "type": "image",
+    "url": "https://example.com/release-timeline.png",
+  },
+  {
+    "content": [
+      {
+        "action_id": "approve_release",
+        "style": "primary",
+        "text": "Approve",
+        "type": "button",
+      },
+      {
+        "action_id": "reject_release",
+        "style": "danger",
+        "text": "Reject",
+        "type": "button",
+      },
+      {
+        "action_id": "rollout_strategy",
+        "options": [
+          {
+            "text": "Immediate",
+            "value": "immediate",
+          },
+          {
+            "text": "10% canary",
+            "value": "canary_10",
+          },
+          {
+            "text": "25% canary",
+            "value": "canary_25",
+          },
+          {
+            "text": "Blue/green",
+            "value": "blue_green",
+          },
+        ],
+        "placeholder": "Rollout strategy",
         "type": "static_select",
+      },
+    ],
+    "flow": "horizontal",
+    "type": "container",
+  },
+  {
+    "content": [
+      {
+        "action_id": "notify_channel",
+        "options": [
+          {
+            "text": "#releases",
+            "value": "releases",
+          },
+          {
+            "text": "#engineering",
+            "value": "engineering",
+          },
+          {
+            "text": "#support",
+            "value": "support",
+          },
+        ],
+        "placeholder": "Notify channel",
+        "type": "static_select",
+      },
+      {
+        "action_id": "schedule_release",
+        "style": undefined,
+        "text": "Schedule",
+        "type": "button",
+      },
+      {
+        "action_id": "cancel_release",
+        "style": undefined,
+        "text": "Cancel",
+        "type": "button",
       },
     ],
     "flow": "horizontal",
@@ -166,19 +580,19 @@ Array [
 ]
 `;
 
-exports[`translatePostProps complex payloads translates rich attachments (fields, media, footer, actions, multiple cards) 1`] = `
-Array [
-  Object {
-    "text": "First attachment pretext",
+exports[`translatePostProps complex payloads should translate rich attachments (fields, media, footer, actions, multiple cards) 1`] = `
+[
+  {
+    "text": "PagerDuty triggered for *production API* cluster",
     "type": "text",
   },
-  Object {
+  {
     "accent_color": "#2d81ff",
     "border": true,
-    "content": Array [
-      Object {
-        "content": Array [
-          Object {
+    "content": [
+      {
+        "content": [
+          {
             "alt_text": "Attachment author icon",
             "max_height": 20,
             "max_width": 20,
@@ -186,8 +600,8 @@ Array [
             "type": "image",
             "url": "https://example.com/author.png",
           },
-          Object {
-            "text": "[Reporter](https://example.com/author)",
+          {
+            "text": "[Incident Bot](https://example.com/author)",
             "type": "text",
           },
         ],
@@ -195,52 +609,52 @@ Array [
         "gap": "small",
         "type": "container",
       },
-      Object {
-        "text": "**[Incident report](https://example.com/report)**",
+      {
+        "text": "**[INC-9042: Elevated 5xx rate](https://example.com/report/9042)**",
         "type": "text",
       },
-      Object {
-        "columns": Array [
-          Object {
-            "items": Array [
-              Object {
-                "text": "Summary with **markdown**",
+      {
+        "columns": [
+          {
+            "items": [
+              {
+                "text": "Error budget burn is **12%** over the last hour. Customer-facing latency p95 exceeded 2.4s.",
                 "type": "text",
               },
-              Object {
+              {
                 "alt_text": "Attachment image",
                 "size": "medium",
                 "type": "image",
-                "url": "https://example.com/chart.png",
+                "url": "https://example.com/error-rate-chart.png",
               },
-              Object {
-                "content": Array [
-                  Object {
-                    "columns": Array [
-                      Object {
+              {
+                "content": [
+                  {
+                    "columns": [
+                      {
                         "gap": "none",
-                        "items": Array [
-                          Object {
+                        "items": [
+                          {
                             "text": "**Severity:**",
                             "type": "text",
                           },
-                          Object {
-                            "text": "High",
+                          {
+                            "text": "SEV-1",
                             "type": "text",
                           },
                         ],
                         "type": "column",
                         "width": "stretch",
                       },
-                      Object {
+                      {
                         "gap": "none",
-                        "items": Array [
-                          Object {
+                        "items": [
+                          {
                             "text": "**Region:**",
                             "type": "text",
                           },
-                          Object {
-                            "text": "EU",
+                          {
+                            "text": "us-east-1",
                             "type": "text",
                           },
                         ],
@@ -250,14 +664,49 @@ Array [
                     ],
                     "type": "column_set",
                   },
-                  Object {
-                    "content": Array [
-                      Object {
-                        "text": "**Details:**",
+                  {
+                    "columns": [
+                      {
+                        "gap": "none",
+                        "items": [
+                          {
+                            "text": "**Started:**",
+                            "type": "text",
+                          },
+                          {
+                            "text": "2026-06-11 08:14 UTC",
+                            "type": "text",
+                          },
+                        ],
+                        "type": "column",
+                        "width": "stretch",
+                      },
+                      {
+                        "gap": "none",
+                        "items": [
+                          {
+                            "text": "**Duration:**",
+                            "type": "text",
+                          },
+                          {
+                            "text": "37 minutes",
+                            "type": "text",
+                          },
+                        ],
+                        "type": "column",
+                        "width": "stretch",
+                      },
+                    ],
+                    "type": "column_set",
+                  },
+                  {
+                    "content": [
+                      {
+                        "text": "**Impacted services:**",
                         "type": "text",
                       },
-                      Object {
-                        "text": "Longer explanation spanning lines",
+                      {
+                        "text": "API gateway, auth, search indexer",
                         "type": "text",
                       },
                     ],
@@ -265,14 +714,79 @@ Array [
                     "gap": "none",
                     "type": "container",
                   },
+                  {
+                    "content": [
+                      {
+                        "text": "**Current hypothesis:**",
+                        "type": "text",
+                      },
+                      {
+                        "text": "Connection pool exhaustion on read replicas after cache stampede",
+                        "type": "text",
+                      },
+                    ],
+                    "flow": "vertical",
+                    "gap": "none",
+                    "type": "container",
+                  },
+                  {
+                    "content": [
+                      {
+                        "text": "**Customer impact:**",
+                        "type": "text",
+                      },
+                      {
+                        "text": "Delayed message delivery for ~4% of active sessions",
+                        "type": "text",
+                      },
+                    ],
+                    "flow": "vertical",
+                    "gap": "none",
+                    "type": "container",
+                  },
+                  {
+                    "columns": [
+                      {
+                        "gap": "none",
+                        "items": [
+                          {
+                            "text": "**Next update:**",
+                            "type": "text",
+                          },
+                          {
+                            "text": "In 15 minutes or on status change",
+                            "type": "text",
+                          },
+                        ],
+                        "type": "column",
+                        "width": "stretch",
+                      },
+                      {
+                        "gap": "none",
+                        "items": [
+                          {
+                            "text": "**Commander:**",
+                            "type": "text",
+                          },
+                          {
+                            "text": "@sre-oncall",
+                            "type": "text",
+                          },
+                        ],
+                        "type": "column",
+                        "width": "stretch",
+                      },
+                    ],
+                    "type": "column_set",
+                  },
                 ],
                 "flow": "vertical",
                 "gap": "medium",
                 "type": "container",
               },
-              Object {
-                "content": Array [
-                  Object {
+              {
+                "content": [
+                  {
                     "alt_text": "Attachment footer icon",
                     "max_height": 16,
                     "max_width": 16,
@@ -280,10 +794,10 @@ Array [
                     "type": "image",
                     "url": "https://example.com/footer.png",
                   },
-                  Object {
+                  {
                     "is_subtle": true,
                     "size": "small",
-                    "text": "Generated by CI",
+                    "text": "Generated by incident automation",
                     "type": "text",
                   },
                 ],
@@ -295,9 +809,9 @@ Array [
             "type": "column",
             "width": "stretch",
           },
-          Object {
-            "items": Array [
-              Object {
+          {
+            "items": [
+              {
                 "alt_text": "Attachment image",
                 "size": "small",
                 "type": "image",
@@ -310,9 +824,9 @@ Array [
         ],
         "type": "column_set",
       },
-      Object {
-        "content": Array [
-          Object {
+      {
+        "content": [
+          {
             "action_id": "ack",
             "cookie": "",
             "disabled": undefined,
@@ -321,33 +835,83 @@ Array [
             "tooltip": "",
             "type": "button",
           },
-          Object {
+          {
+            "action_id": "escalate",
+            "cookie": "",
+            "disabled": undefined,
+            "style": "danger",
+            "text": "Escalate",
+            "tooltip": "",
+            "type": "button",
+          },
+          {
             "action_id": "assignee",
             "cookie": "",
             "data_source": "",
             "disabled": undefined,
             "initial_option": "alice",
-            "options": Array [
-              Object {
-                "text": "Alice",
+            "options": [
+              {
+                "text": "Alice Chen",
                 "value": "alice",
               },
-              Object {
-                "text": "Bob",
+              {
+                "text": "Bob Patel",
                 "value": "bob",
               },
+              {
+                "text": "Carla Ruiz",
+                "value": "carla",
+              },
+              {
+                "text": "Dana Kim",
+                "value": "dana",
+              },
             ],
-            "placeholder": "Assign",
+            "placeholder": "Assign commander",
             "type": "static_select",
           },
-          Object {
+          {
+            "action_id": "severity",
+            "cookie": "",
+            "data_source": "",
+            "disabled": undefined,
+            "initial_option": "1",
+            "options": [
+              {
+                "text": "SEV-1",
+                "value": "1",
+              },
+              {
+                "text": "SEV-2",
+                "value": "2",
+              },
+              {
+                "text": "SEV-3",
+                "value": "3",
+              },
+            ],
+            "placeholder": "Severity",
+            "type": "static_select",
+          },
+          {
             "action_id": "users",
             "cookie": "",
             "data_source": "users",
             "disabled": undefined,
             "initial_option": "",
             "options": undefined,
-            "placeholder": "User",
+            "placeholder": "Page user",
+            "type": "static_select",
+          },
+          {
+            "action_id": "channels",
+            "cookie": "",
+            "data_source": "channels",
+            "disabled": undefined,
+            "initial_option": "",
+            "options": undefined,
+            "placeholder": "War room",
             "type": "static_select",
           },
         ],
@@ -358,15 +922,199 @@ Array [
     ],
     "type": "container",
   },
-  Object {
+  {
+    "text": "Follow-up investigation thread",
+    "type": "text",
+  },
+  {
+    "accent_color": "#f2c744",
+    "border": true,
+    "content": [
+      {
+        "content": [
+          {
+            "alt_text": "Attachment author icon",
+            "max_height": 20,
+            "max_width": 20,
+            "size": "auto",
+            "type": "image",
+            "url": "https://example.com/metrics.png",
+          },
+          {
+            "text": "Metrics Explorer",
+            "type": "text",
+          },
+        ],
+        "flow": "horizontal",
+        "gap": "small",
+        "type": "container",
+      },
+      {
+        "text": "**Replica lag correlation**",
+        "type": "text",
+      },
+      {
+        "columns": [
+          {
+            "items": [
+              {
+                "text": "Read replica lag climbed 8 minutes before the error spike. Cache miss ratio doubled during the same window.",
+                "type": "text",
+              },
+              {
+                "content": [
+                  {
+                    "columns": [
+                      {
+                        "gap": "none",
+                        "items": [
+                          {
+                            "text": "**Replica set:**",
+                            "type": "text",
+                          },
+                          {
+                            "text": "rs-prod-read-3",
+                            "type": "text",
+                          },
+                        ],
+                        "type": "column",
+                        "width": "stretch",
+                      },
+                      {
+                        "gap": "none",
+                        "items": [
+                          {
+                            "text": "**Max lag:**",
+                            "type": "text",
+                          },
+                          {
+                            "text": "18.4s",
+                            "type": "text",
+                          },
+                        ],
+                        "type": "column",
+                        "width": "stretch",
+                      },
+                    ],
+                    "type": "column_set",
+                  },
+                  {
+                    "columns": [
+                      {
+                        "gap": "none",
+                        "items": [
+                          {
+                            "text": "**Cache hit ratio:**",
+                            "type": "text",
+                          },
+                          {
+                            "text": "61% → 29%",
+                            "type": "text",
+                          },
+                        ],
+                        "type": "column",
+                        "width": "stretch",
+                      },
+                      {
+                        "gap": "none",
+                        "items": [
+                          {
+                            "text": "**Top query:**",
+                            "type": "text",
+                          },
+                          {
+                            "text": "channel_members_by_ids",
+                            "type": "text",
+                          },
+                        ],
+                        "type": "column",
+                        "width": "stretch",
+                      },
+                    ],
+                    "type": "column_set",
+                  },
+                  {
+                    "content": [
+                      {
+                        "text": "**Suggested action:**",
+                        "type": "text",
+                      },
+                      {
+                        "text": "Scale read pool + invalidate hot cache keys",
+                        "type": "text",
+                      },
+                    ],
+                    "flow": "vertical",
+                    "gap": "none",
+                    "type": "container",
+                  },
+                ],
+                "flow": "vertical",
+                "gap": "medium",
+                "type": "container",
+              },
+              {
+                "is_subtle": true,
+                "size": "small",
+                "text": "Attached from Grafana dashboard",
+                "type": "text",
+              },
+            ],
+            "type": "column",
+            "width": "stretch",
+          },
+          {
+            "items": [
+              {
+                "alt_text": "Attachment image",
+                "size": "small",
+                "type": "image",
+                "url": "https://example.com/replica-thumb.png",
+              },
+            ],
+            "type": "column",
+            "width": "auto",
+          },
+        ],
+        "type": "column_set",
+      },
+      {
+        "content": [
+          {
+            "action_id": "open_dashboard",
+            "cookie": "",
+            "disabled": undefined,
+            "style": undefined,
+            "text": "Open dashboard",
+            "tooltip": "",
+            "type": "button",
+          },
+          {
+            "action_id": "create_ticket",
+            "cookie": "",
+            "disabled": undefined,
+            "style": "primary",
+            "text": "Create ticket",
+            "tooltip": "",
+            "type": "button",
+          },
+        ],
+        "flow": "horizontal",
+        "gap": "medium",
+        "type": "container",
+      },
+    ],
+    "type": "container",
+  },
+  {
     "accent_color": undefined,
     "border": true,
-    "content": Array [
-      Object {
+    "content": [
+      {
         "text": "**Unsafe link title**",
         "type": "text",
       },
-      Object {
+      {
         "text": "Title link must not render when URL is unsafe",
         "type": "text",
       },
@@ -376,45 +1124,276 @@ Array [
 ]
 `;
 
-exports[`translatePostProps complex payloads translates rich mm_blocks (container, column_set, collapsible, select) 1`] = `
-Array [
-  Object {
-    "accent_color": "good",
+exports[`translatePostProps complex payloads should translate rich mm_blocks (container, column_set, collapsible, select) 1`] = `
+[
+  {
+    "accent_color": "primary",
+    "background": "gray",
     "border": true,
-    "content": Array [
-      Object {
-        "is_subtle": true,
-        "size": "small",
-        "text": "Nested container body",
+    "content": [
+      {
+        "text": "**Fleet status** across regions",
         "type": "text",
       },
-      Object {
+      {
         "type": "divider",
+      },
+      {
+        "accent_color": "good",
+        "border": true,
+        "content": [
+          {
+            "is_subtle": true,
+            "size": "small",
+            "text": "Nested metrics panel",
+            "type": "text",
+          },
+          {
+            "columns": [
+              {
+                "gap": "small",
+                "items": [
+                  {
+                    "text": "*North America*",
+                    "type": "text",
+                  },
+                  {
+                    "size": "small",
+                    "text": "Healthy: 42",
+                    "type": "text",
+                  },
+                  {
+                    "is_subtle": true,
+                    "size": "small",
+                    "text": "Degraded: 2",
+                    "type": "text",
+                  },
+                ],
+                "type": "column",
+                "width": "stretch",
+              },
+              {
+                "gap": "small",
+                "items": [
+                  {
+                    "text": "*Europe*",
+                    "type": "text",
+                  },
+                  {
+                    "size": "small",
+                    "text": "Healthy: 37",
+                    "type": "text",
+                  },
+                  {
+                    "is_subtle": true,
+                    "size": "small",
+                    "text": "Degraded: 5",
+                    "type": "text",
+                  },
+                ],
+                "type": "column",
+                "width": "stretch",
+              },
+              {
+                "items": [
+                  {
+                    "alt_text": "Regional heatmap",
+                    "horizontal_alignment": "center",
+                    "max_height": 80,
+                    "max_width": 120,
+                    "size": "small",
+                    "title": "Heatmap",
+                    "type": "image",
+                    "url": "https://example.com/heatmap.png",
+                  },
+                ],
+                "type": "column",
+                "width": "auto",
+              },
+            ],
+            "gap": "medium",
+            "type": "column_set",
+          },
+        ],
+        "flow": "vertical",
+        "gap": "medium",
+        "type": "container",
+      },
+      {
+        "columns": [
+          {
+            "items": [
+              {
+                "collapsed": true,
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "INC-4412: API latency spike",
+                        "type": "text",
+                      },
+                      {
+                        "is_subtle": true,
+                        "size": "small",
+                        "text": "INC-4410: Replica lag",
+                        "type": "text",
+                      },
+                      {
+                        "action_id": "open_runbook",
+                        "style": "primary",
+                        "text": "Open runbook",
+                        "tooltip": "View remediation steps",
+                        "type": "button",
+                      },
+                    ],
+                    "flow": "vertical",
+                    "gap": "small",
+                    "type": "container",
+                  },
+                ],
+                "header": [
+                  {
+                    "text": "Incident queue (4)",
+                    "type": "text",
+                  },
+                ],
+                "type": "collapsible",
+              },
+            ],
+            "type": "column",
+            "width": "stretch",
+          },
+          {
+            "items": [
+              {
+                "collapsed": false,
+                "content": [
+                  {
+                    "columns": [
+                      {
+                        "items": [
+                          {
+                            "text": "Staging: green",
+                            "type": "text",
+                          },
+                        ],
+                        "type": "column",
+                        "width": "stretch",
+                      },
+                      {
+                        "items": [
+                          {
+                            "text": "Prod: yellow",
+                            "type": "text",
+                          },
+                        ],
+                        "type": "column",
+                        "width": "stretch",
+                      },
+                    ],
+                    "type": "column_set",
+                  },
+                  {
+                    "type": "divider",
+                  },
+                  {
+                    "action_id": "rollback_prod",
+                    "style": "danger",
+                    "text": "Rollback",
+                    "type": "button",
+                  },
+                ],
+                "header": [
+                  {
+                    "text": "Deploy pipeline",
+                    "type": "text",
+                  },
+                ],
+                "type": "collapsible",
+              },
+            ],
+            "type": "column",
+            "width": "stretch",
+          },
+        ],
+        "type": "column_set",
       },
     ],
     "flow": "vertical",
-    "gap": "medium",
+    "gap": "large",
+    "max_height": "medium",
     "type": "container",
   },
-  Object {
-    "columns": Array [
-      Object {
-        "items": Array [
-          Object {
-            "text": "Column A",
-            "type": "text",
+  {
+    "columns": [
+      {
+        "items": [
+          {
+            "action_id": "mm_env_select",
+            "initial_option": "staging",
+            "options": [
+              {
+                "text": "Development",
+                "value": "dev",
+              },
+              {
+                "text": "Staging",
+                "value": "staging",
+              },
+              {
+                "text": "Production",
+                "value": "prod",
+              },
+              {
+                "text": "Disaster recovery",
+                "value": "dr",
+              },
+            ],
+            "placeholder": "Environment",
+            "type": "static_select",
           },
         ],
         "type": "column",
         "width": "stretch",
       },
-      Object {
-        "items": Array [
-          Object {
-            "alt_text": "Photo",
-            "size": "small",
-            "type": "image",
-            "url": "https://example.com/photo.png",
+      {
+        "items": [
+          {
+            "action_id": "mm_team_select",
+            "initial_option": "sre",
+            "options": [
+              {
+                "text": "Platform",
+                "value": "platform",
+              },
+              {
+                "text": "Mobile",
+                "value": "mobile",
+              },
+              {
+                "text": "SRE",
+                "value": "sre",
+              },
+            ],
+            "placeholder": "Owning team",
+            "type": "static_select",
+          },
+        ],
+        "type": "column",
+        "width": "stretch",
+      },
+      {
+        "items": [
+          {
+            "action_id": "ack_all",
+            "style": "primary",
+            "text": "Acknowledge all",
+            "type": "button",
+          },
+          {
+            "action_id": "silence_1h",
+            "text": "Silence 1h",
+            "type": "button",
           },
         ],
         "type": "column",
@@ -423,64 +1402,33 @@ Array [
     ],
     "type": "column_set",
   },
-  Object {
-    "collapsed": true,
-    "content": Array [
-      Object {
-        "text": "Collapsed details",
-        "type": "text",
-      },
-      Object {
-        "action_id": "collapsible_action",
-        "style": "danger",
-        "text": "Act inside",
-        "type": "button",
-      },
-    ],
-    "header": Array [
-      Object {
-        "text": "Expand me",
-        "type": "text",
-      },
-    ],
-    "type": "collapsible",
-  },
-  Object {
-    "action_id": "mm_select",
-    "initial_option": "a",
-    "options": Array [
-      Object {
-        "text": "Alpha",
-        "value": "a",
-      },
-      Object {
-        "text": "Beta",
-        "value": "b",
-      },
-    ],
-    "placeholder": "Choose one",
-    "type": "static_select",
+  {
+    "alt_text": "Incident timeline",
+    "horizontal_alignment": "left",
+    "size": "large",
+    "type": "image",
+    "url": "https://example.com/timeline.png",
   },
 ]
 `;
 
-exports[`translatePostProps format priority prefers blocks over cards and attachments when mm_blocks is absent 1`] = `
-Array [
-  Object {
-    "content": Array [
-      Object {
+exports[`translatePostProps format priority should prefer blocks over cards and attachments when mm_blocks is absent 1`] = `
+[
+  {
+    "content": [
+      {
         "text": "*Hello* from Block Kit",
         "type": "text",
       },
     ],
     "type": "container",
   },
-  Object {
+  {
     "type": "divider",
   },
-  Object {
-    "content": Array [
-      Object {
+  {
+    "content": [
+      {
         "action_id": "block_kit_demo",
         "style": undefined,
         "text": "OK",
@@ -493,9 +1441,9 @@ Array [
 ]
 `;
 
-exports[`translatePostProps format priority prefers cards over attachments when mm_blocks and blocks are absent 1`] = `
-Array [
-  Object {
+exports[`translatePostProps format priority should prefer cards over attachments when mm_blocks and blocks are absent 1`] = `
+[
+  {
     "is_subtle": undefined,
     "text": "Hello from an Adaptive Card",
     "type": "text",
@@ -503,13 +1451,13 @@ Array [
 ]
 `;
 
-exports[`translatePostProps format priority prefers mm_blocks over blocks, cards, and attachments 1`] = `
-Array [
-  Object {
+exports[`translatePostProps format priority should prefer mm_blocks over blocks, cards, and attachments 1`] = `
+[
+  {
     "text": "Hello **from** mm blocks",
     "type": "text",
   },
-  Object {
+  {
     "action_id": "mm_blocks_demo",
     "style": "primary",
     "text": "Sample action",
@@ -518,13 +1466,13 @@ Array [
 ]
 `;
 
-exports[`translatePostProps malformed inputs falls through when mm_blocks is not an array and uses attachments 1`] = `
-Array [
-  Object {
+exports[`translatePostProps malformed inputs should fall through when mm_blocks is not an array and use attachments 1`] = `
+[
+  {
     "accent_color": undefined,
     "border": true,
-    "content": Array [
-      Object {
+    "content": [
+      {
         "text": "fallback attachment",
         "type": "text",
       },
@@ -534,13 +1482,13 @@ Array [
 ]
 `;
 
-exports[`translatePostProps malformed inputs keeps valid mm_blocks and drops invalid siblings 1`] = `
-Array [
-  Object {
+exports[`translatePostProps malformed inputs should keep valid mm_blocks and drop invalid siblings 1`] = `
+[
+  {
     "text": "Valid block",
     "type": "text",
   },
-  Object {
+  {
     "action_id": "valid_btn",
     "text": "Good",
     "type": "button",
@@ -548,11 +1496,11 @@ Array [
 ]
 `;
 
-exports[`translatePostProps malformed inputs skips invalid Block Kit blocks and keeps valid sections 1`] = `
-Array [
-  Object {
-    "content": Array [
-      Object {
+exports[`translatePostProps malformed inputs should skip invalid Block Kit blocks and keep valid sections 1`] = `
+[
+  {
+    "content": [
+      {
         "text": "Kept section",
         "type": "text",
       },
@@ -562,26 +1510,26 @@ Array [
 ]
 `;
 
-exports[`translatePostProps malformed inputs skips invalid attachment entries and keeps partial attachment content 1`] = `
-Array [
-  Object {
+exports[`translatePostProps malformed inputs should skip invalid attachment entries and keep partial attachment content 1`] = `
+[
+  {
     "accent_color": undefined,
     "border": true,
-    "content": Array [
-      Object {
+    "content": [
+      {
         "text": "Only body survives",
         "type": "text",
       },
-      Object {
-        "content": Array [
-          Object {
+      {
+        "content": [
+          {
             "action_id": "ok_select",
             "cookie": "",
             "data_source": "",
             "disabled": undefined,
             "initial_option": "",
-            "options": Array [
-              Object {
+            "options": [
+              {
                 "text": "Good",
                 "value": "g",
               },
@@ -600,9 +1548,9 @@ Array [
 ]
 `;
 
-exports[`translatePostProps malformed inputs skips non-AdaptiveCard entries and partial invalid card bodies 1`] = `
-Array [
-  Object {
+exports[`translatePostProps malformed inputs should skip non-AdaptiveCard entries and partial invalid card bodies 1`] = `
+[
+  {
     "is_subtle": undefined,
     "text": "Valid line",
     "type": "text",
@@ -610,13 +1558,13 @@ Array [
 ]
 `;
 
-exports[`translatePostProps malformed inputs treats non-array interactive props as absent for format detection 1`] = `
-Array [
-  Object {
+exports[`translatePostProps malformed inputs should treat non-array interactive props as absent for format detection 1`] = `
+[
+  {
     "accent_color": undefined,
     "border": true,
-    "content": Array [
-      Object {
+    "content": [
+      {
         "text": "uses attachments",
         "type": "text",
       },
@@ -626,9 +1574,9 @@ Array [
 ]
 `;
 
-exports[`translatePostProps simple payloads translates Adaptive Cards 1`] = `
-Array [
-  Object {
+exports[`translatePostProps simple payloads should translate Adaptive Cards 1`] = `
+[
+  {
     "is_subtle": undefined,
     "text": "Hello from an Adaptive Card",
     "type": "text",
@@ -636,23 +1584,23 @@ Array [
 ]
 `;
 
-exports[`translatePostProps simple payloads translates Block Kit blocks 1`] = `
-Array [
-  Object {
-    "content": Array [
-      Object {
+exports[`translatePostProps simple payloads should translate Block Kit blocks 1`] = `
+[
+  {
+    "content": [
+      {
         "text": "*Hello* from Block Kit",
         "type": "text",
       },
     ],
     "type": "container",
   },
-  Object {
+  {
     "type": "divider",
   },
-  Object {
-    "content": Array [
-      Object {
+  {
+    "content": [
+      {
         "action_id": "block_kit_demo",
         "style": undefined,
         "text": "OK",
@@ -665,25 +1613,25 @@ Array [
 ]
 `;
 
-exports[`translatePostProps simple payloads translates legacy attachments 1`] = `
-Array [
-  Object {
+exports[`translatePostProps simple payloads should translate legacy attachments 1`] = `
+[
+  {
     "text": "Optional pretext",
     "type": "text",
   },
-  Object {
+  {
     "accent_color": "#36a64f",
     "border": true,
-    "content": Array [
-      Object {
+    "content": [
+      {
         "text": "Bot Author",
         "type": "text",
       },
-      Object {
+      {
         "text": "**[Attachment title](https://example.com)**",
         "type": "text",
       },
-      Object {
+      {
         "text": "Body *markdown* text",
         "type": "text",
       },
@@ -693,13 +1641,13 @@ Array [
 ]
 `;
 
-exports[`translatePostProps simple payloads translates native mm_blocks 1`] = `
-Array [
-  Object {
+exports[`translatePostProps simple payloads should translate native mm_blocks 1`] = `
+[
+  {
     "text": "Hello **from** mm blocks",
     "type": "text",
   },
-  Object {
+  {
     "action_id": "mm_blocks_demo",
     "style": "primary",
     "text": "Sample action",

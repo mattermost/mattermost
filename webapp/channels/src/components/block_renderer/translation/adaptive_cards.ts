@@ -157,6 +157,9 @@ function translateAdaptiveCardActions(actions: unknown[]) {
                 continue;
             }
             const actionId = ensureString(ac.id);
+            if (!actionId) {
+                continue;
+            }
             const rawStyle = ensureString(ac.style);
             const style = adaptiveCardStyleToMm(rawStyle);
             result.content.push({

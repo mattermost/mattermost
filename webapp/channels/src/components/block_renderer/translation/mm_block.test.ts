@@ -4,14 +4,14 @@
 import {translateMMBlocks} from './mm_block';
 
 describe('translateMMBlocks interactive blocks', () => {
-    it('rejects button blocks with empty text or action_id', () => {
+    it('should reject button blocks with empty text or action_id', () => {
         expect(translateMMBlocks([
             {type: 'button', text: '   ', action_id: 'ok'},
             {type: 'button', text: 'Go', action_id: ''},
         ])).toEqual([]);
     });
 
-    it('accepts button blocks with non-empty text and action_id', () => {
+    it('should accept button blocks with non-empty text and action_id', () => {
         expect(translateMMBlocks([
             {type: 'button', text: 'Go', action_id: 'go_action'},
         ])).toEqual([{
@@ -21,7 +21,7 @@ describe('translateMMBlocks interactive blocks', () => {
         }]);
     });
 
-    it('rejects static_select blocks with empty placeholder or action_id', () => {
+    it('should reject static_select blocks with empty placeholder or action_id', () => {
         expect(translateMMBlocks([
             {
                 type: 'static_select',
@@ -38,7 +38,7 @@ describe('translateMMBlocks interactive blocks', () => {
         ])).toEqual([]);
     });
 
-    it('accepts static_select blocks with non-empty placeholder and action_id', () => {
+    it('should accept static_select blocks with non-empty placeholder and action_id', () => {
         expect(translateMMBlocks([
             {
                 type: 'static_select',
@@ -54,7 +54,7 @@ describe('translateMMBlocks interactive blocks', () => {
         }]);
     });
 
-    it('accepts column gap and rejects invalid gap values', () => {
+    it('should accept column gap and reject invalid gap values', () => {
         expect(translateMMBlocks([
             {
                 type: 'column',
@@ -73,7 +73,7 @@ describe('translateMMBlocks interactive blocks', () => {
         }]);
     });
 
-    it('omits collapsed on collapsible blocks when the field is absent', () => {
+    it('should omit collapsed on collapsible blocks when the field is absent', () => {
         expect(translateMMBlocks([
             {
                 type: 'collapsible',
@@ -87,7 +87,7 @@ describe('translateMMBlocks interactive blocks', () => {
         }]);
     });
 
-    it('preserves explicit collapsed values on collapsible blocks', () => {
+    it('should preserve explicit collapsed values on collapsible blocks', () => {
         expect(translateMMBlocks([
             {
                 type: 'collapsible',
@@ -123,7 +123,7 @@ describe('translateMMBlocks interactive blocks', () => {
         ]);
     });
 
-    it('accepts column_set gap and rejects invalid gap values', () => {
+    it('should accept column_set gap and reject invalid gap values', () => {
         expect(translateMMBlocks([
             {
                 type: 'column_set',
