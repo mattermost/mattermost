@@ -26,7 +26,9 @@ func celSafeName() string {
 }
 
 func TestCreateOrUpdateAccessControlPolicy(t *testing.T) {
-	th := Setup(t).InitBasic(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.AttributeValueMasking = false
+	}).InitBasic(t)
 
 	t.Run("Feature not enabled", func(t *testing.T) {
 		th.App.Srv().ch.AccessControl = nil
@@ -2149,6 +2151,7 @@ func TestHasPermissionToFileAction(t *testing.T) {
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockAccessControl
 
+		th.ConfigStore.SetReadOnlyFF(false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(false)
 			cfg.FeatureFlags.PermissionPolicies = true
@@ -2162,6 +2165,7 @@ func TestHasPermissionToFileAction(t *testing.T) {
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockAccessControl
 
+		th.ConfigStore.SetReadOnlyFF(false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 			cfg.FeatureFlags.PermissionPolicies = false

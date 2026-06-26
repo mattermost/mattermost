@@ -16,8 +16,27 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// abacTestConfig enables ABAC for policy-endpoint tests that do not cover
+// attribute-value masking. Masking stays off so mocks only need the
+// access-control service calls each test exercises.
+func abacTestConfig(cfg *model.Config) {
+	cfg.FeatureFlags.AttributeBasedAccessControl = true
+	cfg.FeatureFlags.AttributeValueMasking = false
+}
+
+func allowTestFeatureFlagUpdates(t *testing.T, th *TestHelper) {
+	t.Helper()
+	th.ConfigStore.SetReadOnlyFF(false)
+}
+
+func updateTestFeatureFlags(t *testing.T, th *TestHelper, fn func(cfg *model.Config)) {
+	t.Helper()
+	allowTestFeatureFlagUpdates(t, th)
+	th.App.UpdateConfig(fn)
+}
+
 func TestCreateAccessControlPolicy(t *testing.T) {
-	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true }).InitBasic(t)
+	th := SetupConfig(t, abacTestConfig).InitBasic(t)
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       th.BasicChannel.Id,
@@ -273,7 +292,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
-		th.App.UpdateConfig(func(cfg *model.Config) {
+		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = false
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
@@ -319,7 +338,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
 		mockAccessControlService.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).Return(permissionPolicy, nil).Times(1)
 
-		th.App.UpdateConfig(func(cfg *model.Config) {
+		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = true
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
@@ -341,12 +360,12 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
-		th.App.UpdateConfig(func(cfg *model.Config) {
+		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = true
 			cfg.FeatureFlags.ChannelPermissionPolicies = false
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
-		defer th.App.UpdateConfig(func(cfg *model.Config) {
+		defer updateTestFeatureFlags(t, th, func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = false
 		})
 
@@ -381,12 +400,12 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
-		th.App.UpdateConfig(func(cfg *model.Config) {
+		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = false
 			cfg.FeatureFlags.ChannelPermissionPolicies = true
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
-		defer th.App.UpdateConfig(func(cfg *model.Config) {
+		defer updateTestFeatureFlags(t, th, func(cfg *model.Config) {
 			cfg.FeatureFlags.ChannelPermissionPolicies = false
 		})
 
@@ -443,12 +462,12 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		// other tests, so the mock returns success straight away.
 		mockAccessControlService.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).Return(channelPolicy, nil).Times(1)
 
-		th.App.UpdateConfig(func(cfg *model.Config) {
+		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = true
 			cfg.FeatureFlags.ChannelPermissionPolicies = true
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
-		defer th.App.UpdateConfig(func(cfg *model.Config) {
+		defer updateTestFeatureFlags(t, th, func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = false
 			cfg.FeatureFlags.ChannelPermissionPolicies = false
 		})
@@ -498,7 +517,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 }
 
 func TestGetAccessControlPolicy(t *testing.T) {
-	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true }).InitBasic(t)
+	th := SetupConfig(t, abacTestConfig).InitBasic(t)
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       model.NewId(),
@@ -626,7 +645,7 @@ func TestGetAccessControlPolicy(t *testing.T) {
 }
 
 func TestDeleteAccessControlPolicy(t *testing.T) {
-	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true }).InitBasic(t)
+	th := SetupConfig(t, abacTestConfig).InitBasic(t)
 
 	samplePolicyID := model.NewId()
 
@@ -702,7 +721,7 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 }
 
 func TestCheckExpression(t *testing.T) {
-	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true }).InitBasic(t)
+	th := SetupConfig(t, abacTestConfig).InitBasic(t)
 
 	t.Run("CheckExpression without license", func(t *testing.T) {
 		_, resp, err := th.SystemAdminClient.CheckExpression(context.Background(), "true")
@@ -837,7 +856,7 @@ func TestCheckExpression(t *testing.T) {
 }
 
 func TestTestExpression(t *testing.T) {
-	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true }).InitBasic(t)
+	th := SetupConfig(t, abacTestConfig).InitBasic(t)
 
 	t.Run("TestExpression without license", func(t *testing.T) {
 		_, resp, err := th.SystemAdminClient.TestExpression(context.Background(), model.QueryExpressionParams{})
@@ -884,7 +903,7 @@ func TestTestExpression(t *testing.T) {
 }
 
 func TestSearchAccessControlPolicies(t *testing.T) {
-	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true }).InitBasic(t)
+	th := SetupConfig(t, abacTestConfig).InitBasic(t)
 
 	t.Run("SearchAccessControlPolicies without license", func(t *testing.T) {
 		_, resp, err := th.SystemAdminClient.SearchAccessControlPolicies(context.Background(), model.AccessControlPolicySearch{})
@@ -935,7 +954,7 @@ func TestSearchAccessControlPolicies(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
-		th.App.UpdateConfig(func(cfg *model.Config) {
+		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = false
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
@@ -959,7 +978,7 @@ func TestSearchAccessControlPolicies(t *testing.T) {
 			Type: model.AccessControlPolicyTypePermission,
 		}).Return([]*model.AccessControlPolicy{}, int64(0), nil).Times(1)
 
-		th.App.UpdateConfig(func(cfg *model.Config) {
+		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = true
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
@@ -1058,7 +1077,7 @@ func TestSearchTeamAccessControlPolicies(t *testing.T) {
 }
 
 func TestAssignAccessPolicy(t *testing.T) {
-	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true }).InitBasic(t)
+	th := SetupConfig(t, abacTestConfig).InitBasic(t)
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       model.NewId(),
@@ -1135,7 +1154,7 @@ func TestAssignAccessPolicy(t *testing.T) {
 }
 
 func TestUnassignAccessPolicy(t *testing.T) {
-	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true }).InitBasic(t)
+	th := SetupConfig(t, abacTestConfig).InitBasic(t)
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       model.NewId(),
@@ -1208,7 +1227,7 @@ func TestUnassignAccessPolicy(t *testing.T) {
 }
 
 func TestGetChannelsForAccessControlPolicy(t *testing.T) {
-	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true }).InitBasic(t)
+	th := SetupConfig(t, abacTestConfig).InitBasic(t)
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       model.NewId(),
@@ -1266,7 +1285,7 @@ func TestGetChannelsForAccessControlPolicy(t *testing.T) {
 }
 
 func TestSearchChannelsForAccessControlPolicy(t *testing.T) {
-	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true }).InitBasic(t)
+	th := SetupConfig(t, abacTestConfig).InitBasic(t)
 
 	newSamplePolicy := func() *model.AccessControlPolicy {
 		return &model.AccessControlPolicy{
@@ -1480,7 +1499,7 @@ func TestSearchChannelsForAccessControlPolicy(t *testing.T) {
 }
 
 func TestSetActiveStatus(t *testing.T) {
-	th := Setup(t).InitBasic(t)
+	th := SetupConfig(t, abacTestConfig).InitBasic(t)
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       th.BasicChannel.Id,
@@ -1669,8 +1688,9 @@ func setupTeamAdminABAC(t *testing.T, th *TestHelper) *mocks.AccessControlServic
 	mockACS := &mocks.AccessControlServiceInterface{}
 	th.App.Srv().Channels().AccessControl = mockACS
 
-	th.App.UpdateConfig(func(cfg *model.Config) {
+	updateTestFeatureFlags(t, th, func(cfg *model.Config) {
 		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+		cfg.FeatureFlags.AttributeValueMasking = false
 	})
 
 	th.AddPermissionToRole(t, model.PermissionManageTeamAccessRules.Id, model.TeamAdminRoleId)
@@ -2652,7 +2672,7 @@ func TestScopeReconciliationCrossTeam(t *testing.T) {
 // proxies to the access-control service which we mock here so the test
 // stays focused on the API surface (auth + payload validation).
 func TestSimulatePolicyForUsers(t *testing.T) {
-	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true }).InitBasic(t)
+	th := SetupConfig(t, abacTestConfig).InitBasic(t)
 
 	t.Run("returns 501 when umbrella PermissionPolicies flag is disabled", func(t *testing.T) {
 		// Set the Enterprise Advanced license up-front so any future
@@ -2667,7 +2687,7 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok)
 
-		th.App.UpdateConfig(func(cfg *model.Config) {
+		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = false
 			cfg.FeatureFlags.PolicySimulation = true // sub-flag alone must not be enough
 		})
@@ -2695,11 +2715,11 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok)
 
-		th.App.UpdateConfig(func(cfg *model.Config) {
+		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = true
 			cfg.FeatureFlags.PolicySimulation = false
 		})
-		defer th.App.UpdateConfig(func(cfg *model.Config) {
+		defer updateTestFeatureFlags(t, th, func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = false
 		})
 
@@ -2723,11 +2743,11 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 		require.True(t, ok)
 		defer th.App.Srv().SetLicense(nil)
 
-		th.App.UpdateConfig(func(cfg *model.Config) {
+		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = true
 			cfg.FeatureFlags.PolicySimulation = true
 		})
-		defer th.App.UpdateConfig(func(cfg *model.Config) {
+		defer updateTestFeatureFlags(t, th, func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = false
 			cfg.FeatureFlags.PolicySimulation = false
 		})
@@ -2747,12 +2767,12 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok)
 
-		th.App.UpdateConfig(func(cfg *model.Config) {
+		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = true
 			cfg.FeatureFlags.PolicySimulation = true
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
 		})
-		defer th.App.UpdateConfig(func(cfg *model.Config) {
+		defer updateTestFeatureFlags(t, th, func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = false
 			cfg.FeatureFlags.PolicySimulation = false
 		})
@@ -2774,12 +2794,12 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok)
 
-		th.App.UpdateConfig(func(cfg *model.Config) {
+		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = true
 			cfg.FeatureFlags.PolicySimulation = true
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
 		})
-		defer th.App.UpdateConfig(func(cfg *model.Config) {
+		defer updateTestFeatureFlags(t, th, func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = false
 			cfg.FeatureFlags.PolicySimulation = false
 		})
@@ -2807,12 +2827,12 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok)
 
-		th.App.UpdateConfig(func(cfg *model.Config) {
+		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = true
 			cfg.FeatureFlags.PolicySimulation = true
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
 		})
-		defer th.App.UpdateConfig(func(cfg *model.Config) {
+		defer updateTestFeatureFlags(t, th, func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = false
 			cfg.FeatureFlags.PolicySimulation = false
 		})
