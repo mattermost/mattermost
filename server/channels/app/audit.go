@@ -187,7 +187,7 @@ func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) er
 }
 
 func (s *Server) onAuditTargetQueueFull(qname string, maxQSize int) bool {
-	if model.SafeDereference(s.platform.Config().DeliveryTrackingSettings.Enable) {
+	if s.platform.Config().PostDeliveryTrackingEnabled() {
 		s.Log().Warn("Audit queue full; blocking until drain (delivery tracking enabled).", mlog.String("qname", qname), mlog.Int("queueSize", maxQSize))
 		return false // block, do not drop
 	}
