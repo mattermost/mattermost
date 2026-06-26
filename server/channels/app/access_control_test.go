@@ -25,6 +25,16 @@ func celSafeName() string {
 	return "f_" + model.NewId()
 }
 
+func storeMockWithMaskingOff(tb testing.TB) *TestHelper {
+	tb.Helper()
+	th := SetupWithStoreMock(tb)
+	th.ConfigStore.SetReadOnlyFF(false)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.AttributeValueMasking = false
+	})
+	return th
+}
+
 func TestCreateOrUpdateAccessControlPolicy(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.AttributeValueMasking = false
@@ -117,7 +127,7 @@ func TestCreateOrUpdateAccessControlPolicy(t *testing.T) {
 	})
 
 	t.Run("Channel-type policy broadcasts policy enforced update", func(t *testing.T) {
-		thMock := SetupWithStoreMock(t)
+		thMock := storeMockWithMaskingOff(t)
 
 		channelID := model.NewId()
 		channelPolicy := &model.AccessControlPolicy{
@@ -159,7 +169,7 @@ func TestCreateOrUpdateAccessControlPolicy(t *testing.T) {
 	})
 
 	t.Run("Parent-type policy does not broadcast channel-only update", func(t *testing.T) {
-		thMock := SetupWithStoreMock(t)
+		thMock := storeMockWithMaskingOff(t)
 
 		parentID := model.NewId()
 		parentPolicy := &model.AccessControlPolicy{
@@ -380,9 +390,7 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 		// Belt-and-braces: with AttributeValueMasking off, the masking guard must not
 		// fire — the policy deletes normally even if the caller wouldn't have seen all
 		// values. Guards against accidentally inverting the flag condition.
-		thMock := SetupWithStoreMock(t)
-		// Note: SetupWithStoreMock doesn't take a config callback. Feature flags
-		// default to false, which is exactly the state this test wants.
+		thMock := storeMockWithMaskingOff(t)
 
 		thMock.Context = thMock.Context.WithSession(&model.Session{UserId: model.NewId(), Id: model.NewId()}).(*request.Context)
 
@@ -4539,7 +4547,7 @@ func TestPublishChannelPolicyEnforcedUpdateHydratesBroadcastPayload(t *testing.T
 	// broadcast payload so connected clients can react to action-set
 	// changes without a follow-up REST round-trip. The hydration happens
 	// after GetChannel reloads the (now-policy-enforced) channel post-save.
-	thMock := SetupWithStoreMock(t)
+	thMock := storeMockWithMaskingOff(t)
 
 	channelID := model.NewId()
 	channelPolicy := &model.AccessControlPolicy{
