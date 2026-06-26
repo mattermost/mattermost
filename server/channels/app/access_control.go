@@ -754,7 +754,8 @@ func (a *App) protectedCPAFieldNamesForCaller(rctx request.CTX) (map[string]stru
 	}
 
 	propertyFields, appErr := a.SearchPropertyFields(rctx, group.ID, model.PropertyFieldSearchOpts{
-		PerPage: model.AccessControlGroupFieldLimit + 5,
+		ObjectTypes: []string{model.PropertyFieldObjectTypeUser},
+		PerPage:     model.AccessControlGroupFieldLimit + 5,
 	})
 	if appErr != nil {
 		return nil, appErr
@@ -1658,7 +1659,7 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, channelID strin
 	for fieldName := range attributes {
 		// Read directly from the store so this security filter sees the raw
 		// access_mode, unaffected by property read hooks for the request caller.
-		field, fieldErr := a.Srv().Store().PropertyField().GetFieldByName(rctx.Context(), cpaGroup.ID, "", fieldName)
+		field, fieldErr := a.Srv().Store().PropertyField().GetFieldByNameForObjectType(rctx.Context(), cpaGroup.ID, "", model.PropertyFieldObjectTypeUser, fieldName)
 		if fieldErr != nil {
 			delete(attributes, fieldName)
 			continue
@@ -1690,6 +1691,14 @@ func (a *App) GetAccessControlFieldsAutocomplete(rctx request.CTX, after string,
 	})
 	if appErr != nil {
 		return nil, model.NewAppError("GetAccessControlAutoComplete", "app.pap.get_access_control_auto_complete.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+	}
+
+	// Native user attributes are synthetic (not persisted), so emit them once on
+	// the first page to keep the cursor-paging contract intact. The API maps an
+	// empty "after" to a 26-zero sentinel cursor (the lowest possible ID), so
+	// treat both as the first page.
+	if after == "" || after == strings.Repeat("0", 26) {
+		fields = append(model.NativeUserAttributeFields(group.ID), fields...)
 	}
 
 	return fields, nil
@@ -2300,6 +2309,10 @@ func (a *App) ValidateExpressionAgainstRequester(rctx request.CTX, expression st
 	users, _, appErr := acs.QueryUsersForExpression(rctx, expression, model.SubjectSearchOptions{
 		SubjectID: requesterID, // Only check this specific user
 		Limit:     1,           // Maximum 1 result expected
+		// Native attributes (user.email/verified/isbot/createat) describe the
+		// requester themselves, not who they can include; strip them so the
+		// self-inclusion check validates only the CPA-attribute parts.
+		ExcludeNativeAttributes: true,
 	})
 	if appErr != nil {
 		return false, appErr
@@ -2347,6 +2360,26 @@ func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles s
 			return nil, model.NewAppError("BuildAccessControlSubject", "app.access_control.build_subject.get_subject.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
 		}
 	}
+
+	// Populate Mattermost-native user attributes (user.email / user.verified /
+	// user.isbot / user.createat) for runtime PDP evaluation. a.GetUser is the
+	// cached user read and already resolves IsBot via the Bots join, so this is
+	// a single (usually cache-hit) lookup per subject build.
+	user, appErr := a.GetUser(userID)
+	if appErr != nil {
+		// Fail closed: a native-attribute policy must not silently evaluate
+		// against zero-valued natives if the user read fails. The caller
+		// treats a build error as a denial (mirrors the channel-role path).
+		rctx.Logger().Warn("Failed to load user for ABAC native attributes; aborting subject build",
+			mlog.String("user_id", userID),
+			mlog.Err(appErr),
+		)
+		return nil, appErr
+	}
+	subject.Email = user.Email
+	subject.EmailVerified = user.EmailVerified
+	subject.IsBot = user.IsBot
+	subject.CreateAt = user.CreateAt
 
 	subject.Role = roles
 	subject.SetScopedRole(model.AccessControlSubjectScopeSystem, ResolveSystemRole(roles))

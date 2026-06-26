@@ -35,6 +35,10 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
     const isFromAutoResponder = fromAutoResponder(post);
     const colorize = compactDisplay && colorizeUsernames;
 
+    // Bot/webhook posts should never show a GUEST tag, even if the underlying
+    // account (e.g. the webhook creator) has been demoted to a guest.
+    const hideGuestTag = isBot || isFromWebhook(post);
+
     let userProfile: ReactNode = null;
     let botIndicator = null;
     let colon = null;
@@ -69,6 +73,7 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
                 userId={post.user_id}
                 channelId={post.channel_id}
                 colorize={colorize}
+                hideGuestTag={hideGuestTag}
             />
         );
     }
@@ -79,6 +84,7 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
                 userId={post.user_id}
                 channelId={post.channel_id}
                 colorize={colorize}
+                hideGuestTag={hideGuestTag}
             />
         );
     } else {
@@ -87,6 +93,7 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
                 userId={post.user_id}
                 channelId={post.channel_id}
                 colorize={colorize}
+                hideGuestTag={hideGuestTag}
             />
         );
 
@@ -100,6 +107,7 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
                     userId={post.user_id}
                     channelId={post.channel_id}
                     hideStatus={true}
+                    hideGuestTag={hideGuestTag}
                     overwriteName={overwriteName}
                     colorize={colorize}
                     overwriteIcon={overwriteIcon}
@@ -138,6 +146,7 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
                     userId={post.user_id}
                     channelId={post.channel_id}
                     hideStatus={true}
+                    hideGuestTag={hideGuestTag}
                     colorize={colorize}
                 />
             );
