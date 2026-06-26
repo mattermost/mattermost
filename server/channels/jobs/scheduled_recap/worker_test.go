@@ -27,22 +27,6 @@ func (m *mockScheduledRecapApp) CreateRecapFromSchedule(rctx request.CTX, schedu
 	return args.Get(0).(*model.Recap), nil
 }
 
-func (m *mockScheduledRecapApp) GetEffectiveLimits(userID string) (*model.EffectiveRecapLimits, *model.AppError) {
-	args := m.Called(userID)
-	if args.Get(0) == nil {
-		return nil, args.Get(1).(*model.AppError)
-	}
-	return args.Get(0).(*model.EffectiveRecapLimits), nil
-}
-
-func (m *mockScheduledRecapApp) GetUser(userID string) (*model.User, *model.AppError) {
-	args := m.Called(userID)
-	if args.Get(0) == nil {
-		return nil, args.Get(1).(*model.AppError)
-	}
-	return args.Get(0).(*model.User), nil
-}
-
 func TestProcessScheduledRecapJobReturnsPersistenceErrors(t *testing.T) {
 	logger := mlog.CreateConsoleTestLogger(t)
 
@@ -57,7 +41,6 @@ func TestProcessScheduledRecapJobReturnsPersistenceErrors(t *testing.T) {
 		mockScheduledStore.On("MarkExecuted", scheduledRecap.Id, mock.AnythingOfType("int64"), mock.AnythingOfType("int64")).Return(errors.New("mark failed"))
 
 		mockApp := &mockScheduledRecapApp{}
-		mockApp.On("GetEffectiveLimits", scheduledRecap.UserId).Return(&model.EffectiveRecapLimits{MaxRecapsPerDay: model.UnlimitedValue}, nil)
 		mockApp.On("CreateRecapFromSchedule", mock.Anything, scheduledRecap).Return(&model.Recap{Id: model.NewId()}, nil)
 
 		err := processScheduledRecapJob(logger, job, mockStore, mockApp)
@@ -79,13 +62,70 @@ func TestProcessScheduledRecapJobReturnsPersistenceErrors(t *testing.T) {
 		mockScheduledStore.On("SetEnabled", scheduledRecap.Id, false).Return(errors.New("disable failed"))
 
 		mockApp := &mockScheduledRecapApp{}
-		mockApp.On("GetEffectiveLimits", scheduledRecap.UserId).Return(&model.EffectiveRecapLimits{MaxRecapsPerDay: model.UnlimitedValue}, nil)
 		mockApp.On("CreateRecapFromSchedule", mock.Anything, scheduledRecap).Return(&model.Recap{Id: model.NewId()}, nil)
 
 		err := processScheduledRecapJob(logger, job, mockStore, mockApp)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "failed to disable non-recurring scheduled recap")
 		mockScheduledStore.AssertExpectations(t)
+		mockApp.AssertExpectations(t)
+	})
+}
+
+func TestProcessScheduledRecapJobDailyLimitSkip(t *testing.T) {
+	logger := mlog.CreateConsoleTestLogger(t)
+	limitErr := model.NewAppError("CreateRecapFromSchedule", "app.recap.max_recaps_reached.app_error", nil, "", 429)
+
+	t.Run("recurring schedule advances but stays enabled", func(t *testing.T) {
+		scheduledRecap := testScheduledRecap(true)
+		job := &model.Job{Data: map[string]string{"scheduled_recap_id": scheduledRecap.Id}}
+
+		mockStore := &mocks.Store{}
+		mockScheduledStore := &mocks.ScheduledRecapStore{}
+		mockRecapStore := &mocks.RecapStore{}
+		mockStore.On("ScheduledRecap").Return(mockScheduledStore)
+		mockStore.On("Recap").Return(mockRecapStore)
+		mockScheduledStore.On("Get", scheduledRecap.Id).Return(scheduledRecap, nil)
+		mockScheduledStore.On("MarkExecuted", scheduledRecap.Id, mock.AnythingOfType("int64"), mock.AnythingOfType("int64")).Return(nil)
+		mockRecapStore.On("SaveRecap", mock.MatchedBy(func(r *model.Recap) bool {
+			return r.Status == model.RecapStatusSkipped && r.ScheduledRecapId == scheduledRecap.Id
+		})).Return(&model.Recap{}, nil)
+
+		mockApp := &mockScheduledRecapApp{}
+		mockApp.On("CreateRecapFromSchedule", mock.Anything, scheduledRecap).Return(nil, limitErr)
+
+		err := processScheduledRecapJob(logger, job, mockStore, mockApp)
+		require.NoError(t, err)
+		mockScheduledStore.AssertExpectations(t)
+		mockRecapStore.AssertExpectations(t)
+		mockApp.AssertExpectations(t)
+		// A recurring schedule must not be disabled on the skip path.
+		mockScheduledStore.AssertNotCalled(t, "SetEnabled", mock.Anything, mock.Anything)
+	})
+
+	t.Run("non recurring schedule is disabled on skip", func(t *testing.T) {
+		scheduledRecap := testScheduledRecap(false)
+		job := &model.Job{Data: map[string]string{"scheduled_recap_id": scheduledRecap.Id}}
+
+		mockStore := &mocks.Store{}
+		mockScheduledStore := &mocks.ScheduledRecapStore{}
+		mockRecapStore := &mocks.RecapStore{}
+		mockStore.On("ScheduledRecap").Return(mockScheduledStore)
+		mockStore.On("Recap").Return(mockRecapStore)
+		mockScheduledStore.On("Get", scheduledRecap.Id).Return(scheduledRecap, nil)
+		mockScheduledStore.On("MarkExecuted", scheduledRecap.Id, mock.AnythingOfType("int64"), mock.AnythingOfType("int64")).Return(nil)
+		mockScheduledStore.On("SetEnabled", scheduledRecap.Id, false).Return(nil)
+		mockRecapStore.On("SaveRecap", mock.MatchedBy(func(r *model.Recap) bool {
+			return r.Status == model.RecapStatusSkipped && r.ScheduledRecapId == scheduledRecap.Id
+		})).Return(&model.Recap{}, nil)
+
+		mockApp := &mockScheduledRecapApp{}
+		mockApp.On("CreateRecapFromSchedule", mock.Anything, scheduledRecap).Return(nil, limitErr)
+
+		err := processScheduledRecapJob(logger, job, mockStore, mockApp)
+		require.NoError(t, err)
+		mockScheduledStore.AssertExpectations(t)
+		mockRecapStore.AssertExpectations(t)
 		mockApp.AssertExpectations(t)
 	})
 }

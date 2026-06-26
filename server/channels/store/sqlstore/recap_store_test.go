@@ -72,6 +72,40 @@ func TestRecapStore(t *testing.T) {
 			assert.Len(t, recaps, 3)
 		})
 
+		t.Run("GetRecapsForUserExcludesSkipped", func(t *testing.T) {
+			userId := model.NewId()
+
+			save := func(status string) string {
+				r := &model.Recap{
+					Id:                model.NewId(),
+					UserId:            userId,
+					Title:             "Test Recap",
+					CreateAt:          model.GetMillis(),
+					UpdateAt:          model.GetMillis(),
+					TotalMessageCount: 1,
+					Status:            status,
+					BotID:             "test-bot-id",
+				}
+				_, err := ss.Recap().SaveRecap(r)
+				require.NoError(t, err)
+				return r.Id
+			}
+
+			completed := save(model.RecapStatusCompleted)
+			failed := save(model.RecapStatusFailed)
+			skipped := save(model.RecapStatusSkipped)
+
+			recaps, err := ss.Recap().GetRecapsForUser(userId, 0, 10)
+			require.NoError(t, err)
+
+			ids := make([]string, 0, len(recaps))
+			for _, r := range recaps {
+				ids = append(ids, r.Id)
+			}
+			assert.ElementsMatch(t, []string{completed, failed}, ids)
+			assert.NotContains(t, ids, skipped)
+		})
+
 		t.Run("UpdateRecapStatus", func(t *testing.T) {
 			recap := &model.Recap{
 				Id:                model.NewId(),

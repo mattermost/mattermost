@@ -182,6 +182,7 @@ func (s *SqlRecapStore) GetRecapsForUser(userId string, page, perPage int) ([]*m
 
 	query := s.recapSelectQuery.
 		Where(sq.Eq{"UserId": userId, "DeleteAt": 0}).
+		Where(sq.NotEq{"Status": model.RecapStatusSkipped}). // Skipped recaps are internal audit records, not client-facing.
 		OrderBy("CreateAt DESC").
 		Limit(uint64(perPage)).
 		Offset(uint64(offset))

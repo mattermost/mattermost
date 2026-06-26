@@ -18,8 +18,6 @@ import (
 // This interface will be implemented by the App layer in 03-02.
 type AppIface interface {
 	CreateRecapFromSchedule(rctx request.CTX, scheduledRecap *model.ScheduledRecap) (*model.Recap, *model.AppError)
-	GetEffectiveLimits(userID string) (*model.EffectiveRecapLimits, *model.AppError)
-	GetUser(userID string) (*model.User, *model.AppError)
 }
 
 // MakeWorker creates a new worker for processing scheduled recap jobs.
@@ -54,52 +52,8 @@ func processScheduledRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInst
 		return nil
 	}
 
-	// ENF-03: Check daily limit before execution
-	limits, limitsErr := app.GetEffectiveLimits(sr.UserId)
-	if limitsErr != nil {
-		logger.Error("Failed to get effective limits", mlog.Err(limitsErr))
-		return fmt.Errorf("failed to get effective limits: %w", limitsErr)
-	}
-
-	if model.IsLimitEnabled(limits.MaxRecapsPerDay) {
-		// Get user's timezone for midnight calculation
-		user, userErr := app.GetUser(sr.UserId)
-		if userErr != nil {
-			logger.Error("Failed to get user for timezone", mlog.Err(userErr))
-			return fmt.Errorf("failed to get user: %w", userErr)
-		}
-
-		// Calculate start of today in user's timezone
-		loc := user.GetTimezoneLocation()
-		now := time.Now().In(loc)
-		dayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc)
-
-		// Count recaps created today
-		count, countErr := storeInstance.Recap().CountForUserSince(sr.UserId, dayStart.UnixMilli())
-		if countErr != nil {
-			logger.Error("Failed to count daily recaps", mlog.Err(countErr))
-			return fmt.Errorf("failed to count daily recaps: %w", countErr)
-		}
-
-		if count >= int64(limits.MaxRecapsPerDay) {
-			if saveErr := saveSkippedRecap(storeInstance, sr); saveErr != nil {
-				logger.Error("Failed to save skipped recap", mlog.Err(saveErr))
-				return fmt.Errorf("failed to save skipped recap: %w", saveErr)
-			}
-			logger.Info("Scheduled recap skipped due to daily limit",
-				mlog.String("scheduled_recap_id", scheduledRecapID),
-				mlog.String("user_id", sr.UserId),
-				mlog.Int("daily_count", int(count)),
-				mlog.Int("limit", limits.MaxRecapsPerDay))
-
-			if advanceErr := advanceSchedule(logger, storeInstance, sr); advanceErr != nil {
-				return advanceErr
-			}
-			return nil
-		}
-	}
-
-	// Create the actual recap
+	// CreateRecapFromSchedule performs the atomic daily-limit check; an over-limit
+	// run surfaces as the max_recaps_reached error, which we treat as a skip.
 	rctx := request.EmptyContext(logger)
 	_, appErr := app.CreateRecapFromSchedule(rctx, sr)
 	if appErr != nil {
@@ -108,29 +62,34 @@ func processScheduledRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInst
 				logger.Error("Failed to save skipped recap", mlog.Err(saveErr))
 				return fmt.Errorf("failed to save skipped recap: %w", saveErr)
 			}
-			if advanceErr := advanceSchedule(logger, storeInstance, sr); advanceErr != nil {
-				return advanceErr
-			}
-			return nil
+			logger.Info("Scheduled recap skipped due to daily limit",
+				mlog.String("scheduled_recap_id", scheduledRecapID),
+				mlog.String("user_id", sr.UserId))
+			return finalizeSchedule(logger, storeInstance, sr)
 		}
 		return fmt.Errorf("failed to create recap from schedule: %w", appErr)
 	}
 
-	if advanceErr := advanceSchedule(logger, storeInstance, sr); advanceErr != nil {
-		return advanceErr
+	logger.Info("Scheduled recap executed successfully",
+		mlog.String("scheduled_recap_id", scheduledRecapID))
+
+	return finalizeSchedule(logger, storeInstance, sr)
+}
+
+// finalizeSchedule advances the schedule to its next run and, for non-recurring
+// recaps, disables it last so a one-shot recap is never left enabled.
+func finalizeSchedule(logger mlog.LoggerIFace, storeInstance store.Store, sr *model.ScheduledRecap) error {
+	if err := advanceSchedule(logger, storeInstance, sr); err != nil {
+		return err
 	}
 
-	// Handle non-recurring schedules
 	if !sr.IsRecurring {
 		logger.Info("Disabling non-recurring scheduled recap",
-			mlog.String("scheduled_recap_id", scheduledRecapID))
-		if setErr := storeInstance.ScheduledRecap().SetEnabled(scheduledRecapID, false); setErr != nil {
+			mlog.String("scheduled_recap_id", sr.Id))
+		if setErr := storeInstance.ScheduledRecap().SetEnabled(sr.Id, false); setErr != nil {
 			return fmt.Errorf("failed to disable non-recurring scheduled recap: %w", setErr)
 		}
 	}
-
-	logger.Info("Scheduled recap executed successfully",
-		mlog.String("scheduled_recap_id", scheduledRecapID))
 
 	return nil
 }

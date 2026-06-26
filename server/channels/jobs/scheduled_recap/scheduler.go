@@ -4,7 +4,6 @@
 package scheduled_recap
 
 import (
-	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -57,13 +56,9 @@ func (s *Scheduler) ScheduleJob(rctx request.CTX, cfg *model.Config, pendingJobs
 	}
 
 	for _, sr := range dueRecaps {
+		// The worker re-fetches the full row by ID, so the job only needs the ID.
 		jobData := model.StringMap{
-			"scheduled_recap_id":  sr.Id,
-			"user_id":             sr.UserId,
-			"channel_ids":         strings.Join(sr.ChannelIds, ","),
-			"agent_id":            sr.AgentId,
-			"time_period":         sr.TimePeriod,
-			"custom_instructions": sr.CustomInstructions,
+			"scheduled_recap_id": sr.Id,
 		}
 
 		job, jobErr := s.jobServer.CreateJobOnceByTypeAndData(

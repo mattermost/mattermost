@@ -47,8 +47,8 @@ func TestScheduleJobEnqueuesEachDueRecapAndSkipsDuplicateAtomically(t *testing.T
 		mockStore.JobStore.
 			On("SaveOnceByTypeAndData", mock.MatchedBy(func(job *model.Job) bool {
 				return job.Type == model.JobTypeScheduledRecap &&
-					job.Data["scheduled_recap_id"] == sr.Id &&
-					job.Data["time_period"] == sr.TimePeriod
+					len(job.Data) == 1 &&
+					job.Data["scheduled_recap_id"] == sr.Id
 			}), map[string]string{"scheduled_recap_id": sr.Id}).
 			Return(func(job *model.Job, data map[string]string) *model.Job { return job }, nil).
 			Once()

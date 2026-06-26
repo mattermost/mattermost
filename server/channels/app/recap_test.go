@@ -761,6 +761,80 @@ func TestProcessRecapChannel(t *testing.T) {
 	})
 }
 
+func TestProcessRecapChannelTokenLimit(t *testing.T) {
+	t.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
+
+	// 400 chars => ~100 estimated tokens per post; 5 posts => ~500 tokens.
+	longMessage := strings.Repeat("x", 400)
+	const postCount = 5
+
+	tests := []struct {
+		name             string
+		enforceTokens    bool
+		maxTokens        int
+		wantMessageCount int
+	}{
+		{
+			name:             "token limit reduces posts sent to LLM",
+			enforceTokens:    true,
+			maxTokens:        150, // room for a single ~100-token post
+			wantMessageCount: 1,
+		},
+		{
+			name:             "no enforcement keeps every post",
+			enforceTokens:    false,
+			maxTokens:        150,
+			wantMessageCount: postCount,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			bridge := &testAgentsBridge{
+				completeFn: func(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
+					return `{"highlights":["h"],"action_items":["a"]}`, nil
+				},
+			}
+
+			th := Setup(t, WithAgentsBridge(bridge)).InitBasic(t)
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.FeatureFlags.EnableAIRecaps = true
+				cfg.AIRecapSettings.EnforceTokensPerRecap = model.NewPointer(tc.enforceTokens)
+				cfg.AIRecapSettings.DefaultLimits.MaxTokensPerRecap = model.NewPointer(tc.maxTokens)
+			})
+
+			channel := th.CreateChannel(t, th.BasicTeam)
+			for range postCount {
+				th.CreateMessagePost(t, channel, longMessage)
+			}
+
+			ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+			recapID := model.NewId()
+			agentID := "test-agent"
+			_, storeErr := th.App.Srv().Store().Recap().SaveRecap(&model.Recap{
+				Id:       recapID,
+				UserId:   th.BasicUser.Id,
+				Title:    "Token limit recap",
+				CreateAt: model.GetMillis(),
+				UpdateAt: model.GetMillis(),
+				Status:   model.RecapStatusProcessing,
+				BotID:    agentID,
+			})
+			require.NoError(t, storeErr)
+
+			result, err := th.App.ProcessRecapChannel(ctx, recapID, channel.Id, th.BasicUser.Id, agentID)
+			require.Nil(t, err)
+			require.True(t, result.Success)
+			assert.Equal(t, tc.wantMessageCount, result.MessageCount)
+
+			recapChannels, storeErr := th.App.Srv().Store().Recap().GetRecapChannelsByRecapId(recapID)
+			require.NoError(t, storeErr)
+			require.Len(t, recapChannels, 1)
+			assert.Len(t, recapChannels[0].SourcePostIds, tc.wantMessageCount)
+		})
+	}
+}
+
 func TestRecapFetchStartAt(t *testing.T) {
 	now := time.Date(2026, time.April, 28, 12, 0, 0, 0, time.UTC)
 	lastViewedAt := now.Add(-2 * time.Hour).UnixMilli()
@@ -782,32 +856,6 @@ func TestRecapFetchStartAt(t *testing.T) {
 	assert.False(t, allowFallback)
 }
 
-func TestFetchAndTruncatePostsForRecap(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_ENABLEAIRECAPS")
-
-	th := Setup(t).InitBasic(t)
-
-	t.Run("returns error when every channel fetch fails", func(t *testing.T) {
-		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
-
-		postsByChannel, err := th.App.FetchAndTruncatePostsForRecap(ctx, []string{model.NewId(), model.NewId()}, th.BasicUser.Id)
-		require.NotNil(t, err)
-		assert.Nil(t, postsByChannel)
-		assert.Equal(t, "app.recap.fetch_posts.app_error", err.Id)
-	})
-
-	t.Run("returns empty success when at least one fetch succeeds", func(t *testing.T) {
-		emptyChannel := th.CreateChannel(t, th.BasicTeam)
-		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
-
-		postsByChannel, err := th.App.FetchAndTruncatePostsForRecap(ctx, []string{model.NewId(), emptyChannel.Id}, th.BasicUser.Id)
-		require.Nil(t, err)
-		require.NotNil(t, postsByChannel)
-		assert.Empty(t, postsByChannel)
-	})
-}
-
 func TestExtractPostIDs(t *testing.T) {
 	t.Run("extract post IDs from posts", func(t *testing.T) {
 		posts := []*model.Post{
@@ -827,107 +875,6 @@ func TestExtractPostIDs(t *testing.T) {
 		posts := []*model.Post{}
 		ids := extractPostIDs(posts)
 		assert.Len(t, ids, 0)
-	})
-}
-
-func TestTruncatePostsProportionally(t *testing.T) {
-	// Helper to create posts with IDs
-	makePosts := func(count int, prefix string) []*model.Post {
-		posts := make([]*model.Post, count)
-		for i := range count {
-			posts[i] = &model.Post{Id: prefix + string(rune('a'+i)), Message: "test message"}
-		}
-		return posts
-	}
-
-	t.Run("no truncation needed when under limit", func(t *testing.T) {
-		postsByChannel := map[string][]*model.Post{
-			"ch1": makePosts(5, "ch1"),
-			"ch2": makePosts(5, "ch2"),
-		}
-
-		result, wasTruncated := truncatePostsProportionally(postsByChannel, 100)
-		assert.False(t, wasTruncated)
-		assert.Len(t, result["ch1"], 5)
-		assert.Len(t, result["ch2"], 5)
-	})
-
-	t.Run("proportional distribution 60/40 split", func(t *testing.T) {
-		// 60 posts in ch1, 40 posts in ch2, limit 50
-		// Expected: ch1 gets ~30, ch2 gets ~20
-		postsByChannel := map[string][]*model.Post{
-			"ch1": makePosts(60, "ch1"),
-			"ch2": makePosts(40, "ch2"),
-		}
-
-		result, wasTruncated := truncatePostsProportionally(postsByChannel, 50)
-		assert.True(t, wasTruncated)
-		// Proportional: ch1 = 60/100 * 50 = 30, ch2 = 40/100 * 50 = 20
-		assert.Equal(t, 30, len(result["ch1"]))
-		assert.Equal(t, 20, len(result["ch2"]))
-	})
-
-	t.Run("channels with small proportions may receive zero posts", func(t *testing.T) {
-		// 3 channels: 1, 2, 100 posts, limit 10
-		// Proportional floor: ch1 = floor(1/103*10) = 0, ch2 = floor(2/103*10) = 0, ch3 = floor(100/103*10) = 9
-		postsByChannel := map[string][]*model.Post{
-			"ch1": makePosts(1, "ch1"),
-			"ch2": makePosts(2, "ch2"),
-			"ch3": makePosts(100, "ch3"),
-		}
-
-		result, wasTruncated := truncatePostsProportionally(postsByChannel, 10)
-		assert.True(t, wasTruncated)
-		assert.Equal(t, 0, len(result["ch1"]), "ch1 gets 0 posts from floor division")
-		assert.Equal(t, 0, len(result["ch2"]), "ch2 gets 0 posts from floor division")
-		assert.Equal(t, 9, len(result["ch3"]), "ch3 gets the bulk of posts")
-	})
-
-	t.Run("more channels than maxPosts enforces cap", func(t *testing.T) {
-		postsByChannel := map[string][]*model.Post{
-			"ch1": makePosts(10, "ch1"),
-			"ch2": makePosts(10, "ch2"),
-			"ch3": makePosts(10, "ch3"),
-			"ch4": makePosts(10, "ch4"),
-			"ch5": makePosts(10, "ch5"),
-		}
-
-		result, wasTruncated := truncatePostsProportionally(postsByChannel, 3)
-		assert.True(t, wasTruncated)
-		total := 0
-		for _, posts := range result {
-			total += len(posts)
-		}
-		assert.LessOrEqual(t, total, 3, "total allocated posts must not exceed maxPosts")
-	})
-
-	t.Run("handles empty channels", func(t *testing.T) {
-		postsByChannel := map[string][]*model.Post{
-			"ch1":   makePosts(50, "ch1"),
-			"empty": {},
-		}
-
-		result, wasTruncated := truncatePostsProportionally(postsByChannel, 25)
-		assert.True(t, wasTruncated)
-		assert.Len(t, result["ch1"], 25)
-		assert.Len(t, result["empty"], 0)
-	})
-
-	t.Run("takes newest posts (beginning of slice)", func(t *testing.T) {
-		posts := []*model.Post{
-			{Id: "newest", Message: "newest"},
-			{Id: "middle", Message: "middle"},
-			{Id: "oldest", Message: "oldest"},
-		}
-		postsByChannel := map[string][]*model.Post{
-			"ch1": posts,
-		}
-
-		result, wasTruncated := truncatePostsProportionally(postsByChannel, 2)
-		assert.True(t, wasTruncated)
-		assert.Len(t, result["ch1"], 2)
-		assert.Equal(t, "newest", result["ch1"][0].Id)
-		assert.Equal(t, "middle", result["ch1"][1].Id)
 	})
 }
 
@@ -965,95 +912,56 @@ func TestEstimatePostTokens(t *testing.T) {
 	})
 }
 
-func TestTruncateToTokenLimit(t *testing.T) {
-	t.Run("no truncation when under limit", func(t *testing.T) {
-		postsByChannel := map[string][]*model.Post{
-			"ch1": {{Id: "1", Message: "short"}}, // ~2 tokens
-			"ch2": {{Id: "2", Message: "short"}}, // ~2 tokens
+func TestTrimPostsToTokenLimit(t *testing.T) {
+	// 40 chars => (40+3)/4 = 10 tokens per post.
+	msg40 := strings.Repeat("x", 40)
+	makePosts := func(ids ...string) []*model.Post {
+		posts := make([]*model.Post, len(ids))
+		for i, id := range ids {
+			posts[i] = &model.Post{Id: id, Message: msg40}
 		}
+		return posts
+	}
 
-		result, wasTruncated := truncateToTokenLimit(postsByChannel, 1000)
-		assert.False(t, wasTruncated)
-		assert.Len(t, result["ch1"], 1)
-		assert.Len(t, result["ch2"], 1)
-	})
+	tests := []struct {
+		name        string
+		posts       []*model.Post
+		maxTokens   int
+		wantIDs     []string
+		wantTrimmed bool
+	}{
+		{
+			name:        "no trim when under limit",
+			posts:       makePosts("a", "b"),
+			maxTokens:   1000,
+			wantIDs:     []string{"a", "b"},
+			wantTrimmed: false,
+		},
+		{
+			name:        "keeps newest posts that fit",
+			posts:       makePosts("newest", "middle", "oldest"),
+			maxTokens:   25, // room for 2 posts (20 tokens), not 3 (30 tokens)
+			wantIDs:     []string{"newest", "middle"},
+			wantTrimmed: true,
+		},
+		{
+			name:        "drops all when first post exceeds limit",
+			posts:       makePosts("a", "b"),
+			maxTokens:   5, // single post is 10 tokens
+			wantIDs:     []string{},
+			wantTrimmed: true,
+		},
+	}
 
-	t.Run("truncates to token limit", func(t *testing.T) {
-		// Create posts with known token counts
-		// 400 chars = ~100 tokens each
-		longMessage := strings.Repeat("x", 400)
-
-		postsByChannel := map[string][]*model.Post{
-			"ch1": {
-				{Id: "1", Message: longMessage}, // ~100 tokens
-				{Id: "2", Message: longMessage}, // ~100 tokens
-			},
-			"ch2": {
-				{Id: "3", Message: longMessage}, // ~100 tokens
-				{Id: "4", Message: longMessage}, // ~100 tokens
-			},
-		}
-		// Total: ~400 tokens, limit: 200 tokens
-
-		result, wasTruncated := truncateToTokenLimit(postsByChannel, 200)
-		assert.True(t, wasTruncated)
-
-		// Should have roughly half the posts
-		totalPosts := len(result["ch1"]) + len(result["ch2"])
-		assert.LessOrEqual(t, totalPosts, 2, "Should have at most 2 posts to stay under 200 tokens")
-	})
-
-	t.Run("removes from largest channel first", func(t *testing.T) {
-		// 80 chars = ~20 tokens
-		msg80 := strings.Repeat("x", 80)
-
-		postsByChannel := map[string][]*model.Post{
-			"small": {
-				{Id: "s1", Message: msg80}, // ~20 tokens
-			},
-			"large": {
-				{Id: "l1", Message: msg80}, // ~20 tokens
-				{Id: "l2", Message: msg80}, // ~20 tokens
-				{Id: "l3", Message: msg80}, // ~20 tokens
-			},
-		}
-		// Total: ~80 tokens, limit: 60 tokens
-		// Should remove 1 post from "large" channel
-
-		result, wasTruncated := truncateToTokenLimit(postsByChannel, 60)
-		assert.True(t, wasTruncated)
-		assert.Len(t, result["small"], 1, "Small channel should keep all posts")
-		assert.Len(t, result["large"], 2, "Large channel should lose 1 post")
-	})
-
-	t.Run("handles empty channels", func(t *testing.T) {
-		msg := "test message here"
-		postsByChannel := map[string][]*model.Post{
-			"ch1":   {{Id: "1", Message: msg}},
-			"empty": {},
-		}
-
-		result, wasTruncated := truncateToTokenLimit(postsByChannel, 1000)
-		assert.False(t, wasTruncated)
-		assert.Len(t, result["ch1"], 1)
-		assert.Len(t, result["empty"], 0)
-	})
-
-	t.Run("removes oldest posts (end of slice)", func(t *testing.T) {
-		msg := "test message" // ~3 tokens
-		postsByChannel := map[string][]*model.Post{
-			"ch1": {
-				{Id: "newest", Message: msg},
-				{Id: "middle", Message: msg},
-				{Id: "oldest", Message: msg},
-			},
-		}
-		// ~9 tokens total, limit 6 tokens -> remove 1 post (oldest)
-
-		result, wasTruncated := truncateToTokenLimit(postsByChannel, 6)
-		assert.True(t, wasTruncated)
-		assert.Len(t, result["ch1"], 2)
-		assert.Equal(t, "newest", result["ch1"][0].Id)
-		assert.Equal(t, "middle", result["ch1"][1].Id)
-	})
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got, trimmed := trimPostsToTokenLimit(tc.posts, tc.maxTokens)
+			assert.Equal(t, tc.wantTrimmed, trimmed)
+			gotIDs := make([]string, len(got))
+			for i, p := range got {
+				gotIDs[i] = p.Id
+			}
+			assert.Equal(t, tc.wantIDs, gotIDs)
+		})
+	}
 }
