@@ -228,6 +228,36 @@ func (_m *UserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*mo
 	return r0, r1
 }
 
+// GetExpiringTokens provides a mock function with given fields: now, thresholds, limit
+func (_m *UserAccessTokenStore) GetExpiringTokens(now int64, thresholds []int, limit int) ([]*model.UserAccessToken, error) {
+	ret := _m.Called(now, thresholds, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetExpiringTokens")
+	}
+
+	var r0 []*model.UserAccessToken
+	var r1 error
+	if rf, ok := ret.Get(0).(func(int64, []int, int) ([]*model.UserAccessToken, error)); ok {
+		return rf(now, thresholds, limit)
+	}
+	if rf, ok := ret.Get(0).(func(int64, []int, int) []*model.UserAccessToken); ok {
+		r0 = rf(now, thresholds, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.UserAccessToken)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(int64, []int, int) error); ok {
+		r1 = rf(now, thresholds, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Save provides a mock function with given fields: token
 func (_m *UserAccessTokenStore) Save(token *model.UserAccessToken) (*model.UserAccessToken, error) {
 	ret := _m.Called(token)
@@ -288,54 +318,6 @@ func (_m *UserAccessTokenStore) Search(term string) ([]*model.UserAccessToken, e
 	return r0, r1
 }
 
-// UpdateTokenDisable provides a mock function with given fields: tokenID
-func (_m *UserAccessTokenStore) UpdateTokenDisable(tokenID string) error {
-	ret := _m.Called(tokenID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UpdateTokenDisable")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(tokenID)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// GetExpiringTokens provides a mock function with given fields: now, thresholds, limit
-func (_m *UserAccessTokenStore) GetExpiringTokens(now int64, thresholds []int, limit int) ([]*model.UserAccessToken, error) {
-	ret := _m.Called(now, thresholds, limit)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetExpiringTokens")
-	}
-
-	var r0 []*model.UserAccessToken
-	var r1 error
-	if rf, ok := ret.Get(0).(func(int64, []int, int) ([]*model.UserAccessToken, error)); ok {
-		return rf(now, thresholds, limit)
-	}
-	if rf, ok := ret.Get(0).(func(int64, []int, int) []*model.UserAccessToken); ok {
-		r0 = rf(now, thresholds, limit)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.UserAccessToken)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(int64, []int, int) error); ok {
-		r1 = rf(now, thresholds, limit)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // UpdateLastNotifiedThreshold provides a mock function with given fields: tokenID, threshold
 func (_m *UserAccessTokenStore) UpdateLastNotifiedThreshold(tokenID string, threshold int) error {
 	ret := _m.Called(tokenID, threshold)
@@ -347,6 +329,24 @@ func (_m *UserAccessTokenStore) UpdateLastNotifiedThreshold(tokenID string, thre
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, int) error); ok {
 		r0 = rf(tokenID, threshold)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UpdateTokenDisable provides a mock function with given fields: tokenID
+func (_m *UserAccessTokenStore) UpdateTokenDisable(tokenID string) error {
+	ret := _m.Called(tokenID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateTokenDisable")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(tokenID)
 	} else {
 		r0 = ret.Error(0)
 	}

@@ -14417,22 +14417,6 @@ func (s *TimerLayerUserAccessTokenStore) Search(term string) ([]*model.UserAcces
 	return result, err
 }
 
-func (s *TimerLayerUserAccessTokenStore) UpdateTokenDisable(tokenID string) error {
-	start := time.Now()
-
-	err := s.UserAccessTokenStore.UpdateTokenDisable(tokenID)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("UserAccessTokenStore.UpdateTokenDisable", success, elapsed)
-	}
-	return err
-}
-
 func (s *TimerLayerUserAccessTokenStore) UpdateLastNotifiedThreshold(tokenID string, threshold int) error {
 	start := time.Now()
 
@@ -14445,6 +14429,22 @@ func (s *TimerLayerUserAccessTokenStore) UpdateLastNotifiedThreshold(tokenID str
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UserAccessTokenStore.UpdateLastNotifiedThreshold", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerUserAccessTokenStore) UpdateTokenDisable(tokenID string) error {
+	start := time.Now()
+
+	err := s.UserAccessTokenStore.UpdateTokenDisable(tokenID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserAccessTokenStore.UpdateTokenDisable", success, elapsed)
 	}
 	return err
 }

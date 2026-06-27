@@ -18252,11 +18252,11 @@ func (s *RetryLayerUserAccessTokenStore) Search(term string) ([]*model.UserAcces
 
 }
 
-func (s *RetryLayerUserAccessTokenStore) UpdateTokenDisable(tokenID string) error {
+func (s *RetryLayerUserAccessTokenStore) UpdateLastNotifiedThreshold(tokenID string, threshold int) error {
 
 	tries := 0
 	for {
-		err := s.UserAccessTokenStore.UpdateTokenDisable(tokenID)
+		err := s.UserAccessTokenStore.UpdateLastNotifiedThreshold(tokenID, threshold)
 		if err == nil {
 			return nil
 		}
@@ -18273,11 +18273,11 @@ func (s *RetryLayerUserAccessTokenStore) UpdateTokenDisable(tokenID string) erro
 
 }
 
-func (s *RetryLayerUserAccessTokenStore) UpdateLastNotifiedThreshold(tokenID string, threshold int) error {
+func (s *RetryLayerUserAccessTokenStore) UpdateTokenDisable(tokenID string) error {
 
 	tries := 0
 	for {
-		err := s.UserAccessTokenStore.UpdateLastNotifiedThreshold(tokenID, threshold)
+		err := s.UserAccessTokenStore.UpdateTokenDisable(tokenID)
 		if err == nil {
 			return nil
 		}
