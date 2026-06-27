@@ -4493,6 +4493,34 @@ func (c *Client4) ReloadConfig(ctx context.Context) (*Response, error) {
 	return BuildResponse(r), nil
 }
 
+// ListConfigurations returns metadata for stored configuration entries.
+func (c *Client4) ListConfigurations(ctx context.Context, limit int, includeDiffs string) ([]*ConfigListItem, *Response, error) {
+	query := url.Values{}
+	if limit > 0 {
+		query.Set("limit", strconv.Itoa(limit))
+	}
+	if includeDiffs != "" {
+		query.Set("include_diffs", includeDiffs)
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.configRoute().Join("list"), query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*ConfigListItem](r)
+}
+
+// RollbackConfig restores a historical configuration by ID.
+func (c *Client4) RollbackConfig(ctx context.Context, configID string) (*Config, *Response, error) {
+	body := map[string]string{"config_id": configID}
+	r, err := c.doAPIPostJSON(ctx, c.configRoute().Join("rollback"), body)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Config](r)
+}
+
 // GetClientConfig will retrieve the parts of the server configuration needed by the client.
 func (c *Client4) GetClientConfig(ctx context.Context, etag string) (map[string]string, *Response, error) {
 	r, err := c.doAPIGet(ctx, c.configRoute().Join("client"), etag)

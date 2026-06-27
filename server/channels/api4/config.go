@@ -38,6 +38,8 @@ func (api *API) InitConfig() {
 	api.BaseRoutes.APIRoot.Handle("/config/reload", api.APISessionRequired(configReload)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/config/client", api.APIHandler(getClientConfig)).Methods(http.MethodGet)
 	api.BaseRoutes.APIRoot.Handle("/config/environment", api.APISessionRequired(getEnvironmentConfig)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/config/list", api.APISessionRequired(listConfigurations)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/config/rollback", api.APISessionRequired(rollbackConfig)).Methods(http.MethodPost)
 }
 
 func init() {
@@ -461,5 +463,87 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 
 		// with manage_system, default to allow, otherwise default not-allow
 		return c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+	}
+}
+
+func listConfigurations(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventListConfigurations, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+
+	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+	if limit <= 0 {
+		limit = 5
+	}
+	if limit > 100 {
+		limit = 100
+	}
+
+	includeDiffs := r.URL.Query().Get("include_diffs")
+
+	items, appErr := c.App.ListConfigurations(limit, includeDiffs)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if c.App.Channels().License().IsCloud() {
+		model.FilterCloudRestrictedChanges(items)
+	}
+
+	auditRec.Success()
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	if err := json.NewEncoder(w).Encode(items); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func rollbackConfig(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventRollbackConfig, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+
+	var body struct {
+		ConfigID string `json:"config_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.ConfigID == "" {
+		c.SetInvalidParamWithErr("config_id", err)
+		return
+	}
+
+	auditRec.AddMeta("config_id", body.ConfigID)
+
+	_, newCfg, appErr := c.App.RollbackConfig(body.ConfigID)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	c.App.SanitizedConfig(newCfg)
+
+	auditRec.Success()
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	if c.App.Channels().License().IsCloud() {
+		js, err := newCfg.ToJSONFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)
+		if err != nil {
+			c.Err = model.NewAppError("rollbackConfig", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return
+		}
+		if _, err := w.Write(js); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(newCfg); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

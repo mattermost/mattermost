@@ -151,6 +151,16 @@ func (ps *PlatformService) CleanUpConfig() error {
 	return ps.configStore.CleanUp()
 }
 
+// ListConfigurations delegates to the config store to retrieve configuration history.
+func (ps *PlatformService) ListConfigurations(limit int, includeDiffs string) ([]*model.ConfigListItem, error) {
+	return ps.configStore.ListConfigurations(limit, includeDiffs)
+}
+
+// GetConfigByID delegates to the config store to retrieve a configuration by its ID.
+func (ps *PlatformService) GetConfigByID(id string) (*model.Config, error) {
+	return ps.configStore.GetConfigByID(id)
+}
+
 // ConfigureLogger applies the specified configuration to a logger.
 func (ps *PlatformService) ConfigureLogger(name string, logger *mlog.Logger, logSettings *model.LogSettings, getPath func(string) string) error {
 	// Advanced logging is E20 only, however logging must be initialized before the license
