@@ -10,10 +10,14 @@ import {expect} from '@playwright/test';
 export default class EditionAndLicense {
     readonly container: Locator;
     readonly header: Locator;
+    readonly privacyPolicyLink: Locator;
+    readonly termsOfServiceLink: Locator;
 
     constructor(container: Locator) {
         this.container = container;
         this.header = container.getByText('Edition and License', {exact: true});
+        this.privacyPolicyLink = container.getByRole('link', {name: 'Privacy Policy'});
+        this.termsOfServiceLink = container.getByRole('link', {name: 'Enterprise Edition Terms of Use'});
     }
 
     async toBeVisible() {

@@ -21,6 +21,8 @@ export default class ChannelsPostCreate {
     readonly priorityButton;
     readonly suggestionList;
     readonly filePreview;
+    readonly fileInput;
+    readonly filePreviewRemoveButton;
 
     // Burn-on-Read elements
     readonly burnOnReadButton;
@@ -42,6 +44,8 @@ export default class ChannelsPostCreate {
         this.priorityButton = container.getByLabel('Message priority');
         this.suggestionList = container.getByRole('listbox', {name: 'Suggestions'});
         this.filePreview = container.locator('.file-preview__container');
+        this.fileInput = container.locator('input#fileUploadInput');
+        this.filePreviewRemoveButton = this.filePreview.locator('.file-preview__remove');
 
         // Burn-on-Read elements
         // Use a flexible locator that matches the aria-label pattern
@@ -65,6 +69,16 @@ export default class ChannelsPostCreate {
         await expect(this.input).toBeVisible();
 
         await this.input.fill(message);
+    }
+
+    /**
+     * Attaches files to the message by setting them directly on the hidden file input.
+     * Files are resolved relative to the Playwright asset directory.
+     * @param files Asset filenames to attach
+     */
+    async attachFiles(files: string[]) {
+        const filePaths = files.map((file) => path.join(assetPath, file));
+        await this.fileInput.setInputFiles(filePaths);
     }
 
     /**

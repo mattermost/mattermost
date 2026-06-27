@@ -16,6 +16,7 @@ export default class GlobalHeader {
     readonly savedMessagesButton;
     readonly settingsButton;
     readonly searchBox;
+    readonly searchClearButton;
     readonly userProfileMenu;
 
     constructor(channelsPage: ChannelsPage, container: Locator) {
@@ -28,6 +29,10 @@ export default class GlobalHeader {
         this.savedMessagesButton = container.getByRole('button', {name: 'Saved messages'});
         this.settingsButton = container.getByRole('button', {name: 'Settings'});
         this.searchBox = container.locator('#searchFormContainer');
+
+        // Clear (X) button shown in the collapsed search bar when an active search term is present
+        this.searchClearButton = this.searchBox.getByTestId('input-clear');
+
         this.userProfileMenu = container.locator('#userAccountMenuButton');
     }
 
