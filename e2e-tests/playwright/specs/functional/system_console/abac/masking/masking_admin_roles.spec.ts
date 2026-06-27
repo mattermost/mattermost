@@ -340,7 +340,7 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
             await channelsPage.toBeVisible();
 
             const channelSettings = await channelsPage.openChannelSettings();
-            const membershipPolicyTab = channelSettings.container.getByRole('tab', {name: /membership policy/i});
+            const membershipPolicyTab = channelSettings.container.getByRole('tab', {name: /Membership Rules/i});
             await membershipPolicyTab.waitFor({state: 'visible', timeout: 10000});
             await membershipPolicyTab.click();
             await page.waitForTimeout(1500);
