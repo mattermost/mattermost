@@ -3,8 +3,9 @@
 
 import React from 'react';
 
-import * as Actions from 'actions/admin_actions.jsx';
 import configureStore from 'store';
+
+import * as Actions from './admin_actions';
 
 describe('Actions.Admin', () => {
     let store;

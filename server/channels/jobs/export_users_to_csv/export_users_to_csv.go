@@ -18,6 +18,25 @@ const (
 	timeBetweenBatches = 1 * time.Second
 )
 
+// csvExportColumns defines the header row of the user CSV export. Its order must
+// match the values returned by model.UserReport.ToReport.
+var csvExportColumns = []string{
+	"Id",
+	"Username",
+	"Email",
+	"CreateAt",
+	"Name",
+	"Roles",
+	"LastLogin",
+	"LastStatusAt",
+	"LastPostDate",
+	"DaysActive",
+	"TotalPosts",
+	"ChannelCount",
+	"Teams",
+	"DeletedAt",
+}
+
 type ExportUsersToCSVAppIFace interface {
 	jobs.BatchReportWorkerAppIFace
 	GetUsersForReporting(filter *model.UserReportOptions) ([]*model.UserReport, *model.AppError)
@@ -31,21 +50,7 @@ func MakeWorker(jobServer *jobs.JobServer, store store.Store, app ExportUsersToC
 		app,
 		timeBetweenBatches,
 		"csv",
-		[]string{
-			"Id",
-			"Username",
-			"Email",
-			"CreateAt",
-			"Name",
-			"Roles",
-			"LastLogin",
-			"LastStatusAt",
-			"LastPostDate",
-			"DaysActive",
-			"TotalPosts",
-			"ChannelCount",
-			"DeletedAt",
-		},
+		csvExportColumns,
 		getData(app),
 	)
 }

@@ -2084,7 +2084,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
           >
             <div>
               <h3>
-                Playbook Administrator
+                Playbook Administrators
               </h3>
               <div
                 class="mt-2"
@@ -6068,7 +6068,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
           >
             <div>
               <h3>
-                Playbook Administrator
+                Playbook Administrators
               </h3>
               <div
                 class="mt-2"
@@ -10053,7 +10053,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
           >
             <div>
               <h3>
-                Playbook Administrator
+                Playbook Administrators
               </h3>
               <div
                 class="mt-2"
@@ -14037,7 +14037,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
           >
             <div>
               <h3>
-                Playbook Administrator
+                Playbook Administrators
               </h3>
               <div
                 class="mt-2"

@@ -38,6 +38,7 @@ var excludedPluginHooks = []string{
 	"MessageWillBePosted",
 	"MessageWillBeUpdated",
 	"MessagesWillBeConsumed",
+	"MessagesWillBeConsumedWithContext",
 	"OnActivate",
 	"PluginHTTP",
 	"ServeHTTP",

@@ -3,7 +3,7 @@
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import {FormattedDate, FormattedMessage, FormattedTime} from 'react-intl';
 
 import type {UserAccessToken, UserProfile} from '@mattermost/types/users';
 
@@ -95,6 +95,14 @@ export default class ManageTokensModal extends React.PureComponent<Props, State>
                 );
             } else {
                 tokenList = userAccessTokensList.map((token: UserAccessToken) => {
+                    const hasExpiry = Boolean(token.expires_at && token.expires_at > 0);
+                    const expired = hasExpiry && (token.expires_at as number) < Date.now();
+                    let status: 'active' | 'expired' | 'inactive' = 'active';
+                    if (!token.is_active) {
+                        status = 'inactive';
+                    } else if (expired) {
+                        status = 'expired';
+                    }
                     return (
                         <div
                             key={token.id}
@@ -107,6 +115,27 @@ export default class ManageTokensModal extends React.PureComponent<Props, State>
                                         defaultMessage='Token Description: '
                                     />
                                     {token.description}
+                                    {' '}
+                                    <span className={`setting-box__token-status setting-box__token-status--${status}`}>
+                                        {status === 'active' && (
+                                            <FormattedMessage
+                                                id='admin.manage_tokens.status.active'
+                                                defaultMessage='Active'
+                                            />
+                                        )}
+                                        {status === 'expired' && (
+                                            <FormattedMessage
+                                                id='admin.manage_tokens.status.expired'
+                                                defaultMessage='Expired'
+                                            />
+                                        )}
+                                        {status === 'inactive' && (
+                                            <FormattedMessage
+                                                id='admin.manage_tokens.status.inactive'
+                                                defaultMessage='Disabled'
+                                            />
+                                        )}
+                                    </span>
                                 </div>
                                 <div className='whitespace--nowrap overflow--ellipsis'>
                                     <FormattedMessage
@@ -114,6 +143,29 @@ export default class ManageTokensModal extends React.PureComponent<Props, State>
                                         defaultMessage='Token ID: '
                                     />
                                     {token.id}
+                                </div>
+                                <div className='whitespace--nowrap overflow--ellipsis'>
+                                    <FormattedMessage
+                                        id='admin.manage_tokens.expiry'
+                                        defaultMessage='Expires: '
+                                    />
+                                    {hasExpiry ? (
+                                        <>
+                                            <FormattedDate
+                                                value={token.expires_at}
+                                                year='numeric'
+                                                month='short'
+                                                day='2-digit'
+                                            />
+                                            {' '}
+                                            <FormattedTime value={token.expires_at}/>
+                                        </>
+                                    ) : (
+                                        <FormattedMessage
+                                            id='admin.manage_tokens.expiry.never'
+                                            defaultMessage='Never'
+                                        />
+                                    )}
                                 </div>
                             </div>
                             <div className='manage-teams__team-actions'>

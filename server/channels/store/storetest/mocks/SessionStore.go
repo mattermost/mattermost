@@ -91,6 +91,36 @@ func (_m *SessionStore) Get(rctx request.CTX, sessionIDOrToken string) (*model.S
 	return r0, r1
 }
 
+// GetAllSessionsWithActiveDeviceIds provides a mock function with no fields
+func (_m *SessionStore) GetAllSessionsWithActiveDeviceIds() ([]*model.Session, error) {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAllSessionsWithActiveDeviceIds")
+	}
+
+	var r0 []*model.Session
+	var r1 error
+	if rf, ok := ret.Get(0).(func() ([]*model.Session, error)); ok {
+		return rf()
+	}
+	if rf, ok := ret.Get(0).(func() []*model.Session); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Session)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetLRUSessions provides a mock function with given fields: rctx, userID, limit, offset
 func (_m *SessionStore) GetLRUSessions(rctx request.CTX, userID string, limit uint64, offset uint64) ([]*model.Session, error) {
 	ret := _m.Called(rctx, userID, limit, offset)

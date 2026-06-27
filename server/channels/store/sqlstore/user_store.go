@@ -2505,6 +2505,7 @@ func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.
 		"COUNT(ps.Day) AS DaysActive",
 		"SUM(ps.NumPosts) AS TotalPosts",
 		"(SELECT COUNT(*) FROM ChannelMembers cm INNER JOIN Channels c ON c.Id = cm.ChannelId AND c.DeleteAt = 0 AND c.Type IN ('O','P') WHERE cm.UserId = Users.Id) AS ChannelCount",
+		"COALESCE((SELECT string_agg(t.DisplayName, ', ' ORDER BY t.DisplayName) FROM TeamMembers tm INNER JOIN Teams t ON t.Id = tm.TeamId AND t.DeleteAt = 0 WHERE tm.UserId = Users.Id AND tm.DeleteAt = 0), '') AS Teams",
 	)
 
 	sortDirection := "ASC"
@@ -2581,7 +2582,7 @@ func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.
 		}
 
 		parentQuery = us.getQueryBuilder().
-			Select(getUsersColumnsWithName("data", "LastStatusAt", "LastPostDate", "DaysActive", "TotalPosts", "ChannelCount")...).
+			Select(getUsersColumnsWithName("data", "LastStatusAt", "LastPostDate", "DaysActive", "TotalPosts", "ChannelCount", "Teams")...).
 			FromSelect(query, "data").
 			OrderBy(filter.SortColumn+" "+reverseSortDirection, "Id")
 	}

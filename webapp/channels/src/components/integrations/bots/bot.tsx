@@ -70,6 +70,8 @@ type Props = {
      */
     fromApp: boolean;
 
+    pluginDisplayName?: string;
+
     actions: {
 
         /**
@@ -479,6 +481,45 @@ export default class Bot extends React.PureComponent<Props, State> {
             );
         }
 
+        let managedBy;
+        if (this.props.fromApp) {
+            managedBy = (
+                <FormattedMessage
+                    id='bots.managed_by.app'
+                    defaultMessage='Managed by Apps Framework'
+                />
+            );
+        } else if (this.props.owner && this.props.owner.username) {
+            managedBy = (
+                <FormattedMessage
+                    id='bots.managed_by.user'
+                    defaultMessage='Managed by {owner}'
+                    values={{owner: this.props.owner.username}}
+                />
+            );
+        } else if (this.props.bot.owner_id) {
+            managedBy = this.props.pluginDisplayName && this.props.pluginDisplayName !== this.props.bot.owner_id ? (
+                <FormattedMessage
+                    id='bots.managed_by.plugin_named'
+                    defaultMessage='Managed by {pluginName} plugin'
+                    values={{pluginName: this.props.pluginDisplayName}}
+                />
+            ) : (
+                <FormattedMessage
+                    id='bots.managed_by.plugin'
+                    defaultMessage='Managed by plugin {pluginId}'
+                    values={{pluginId: this.props.bot.owner_id}}
+                />
+            );
+        } else {
+            managedBy = (
+                <FormattedMessage
+                    id='bots.managed_by.unknown_plugin'
+                    defaultMessage='Managed by a plugin'
+                />
+            );
+        }
+
         const imageURL = Utils.imageURLForUser(this.props.user.id, this.props.user.last_picture_update);
 
         return (
@@ -501,11 +542,7 @@ export default class Bot extends React.PureComponent<Props, State> {
                         <Markdown message={description}/>
                     </div>
                     <div className='light small'>
-                        <FormattedMessage
-                            id='bots.managed_by'
-                            defaultMessage='Managed by '
-                        />
-                        {ownerUsername}
+                        {managedBy}
                     </div>
                     <div className='bot-list is-empty'>
                         {tokenList}

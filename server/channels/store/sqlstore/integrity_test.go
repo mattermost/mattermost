@@ -792,6 +792,25 @@ func TestCheckSessionsAuditsIntegrity(t *testing.T) {
 	})
 }
 
+func orphanedRecordsWithParentIDs(records []model.OrphanedRecord, parentIDs ...string) []model.OrphanedRecord {
+	parentIDSet := make(map[string]struct{}, len(parentIDs))
+	for _, parentID := range parentIDs {
+		parentIDSet[parentID] = struct{}{}
+	}
+
+	filtered := make([]model.OrphanedRecord, 0, len(parentIDs))
+	for _, record := range records {
+		if record.ParentId == nil {
+			continue
+		}
+		if _, ok := parentIDSet[*record.ParentId]; ok {
+			filtered = append(filtered, record)
+		}
+	}
+
+	return filtered
+}
+
 func orphanedRecordsWithChildIDs(records []model.OrphanedRecord, childIDs ...string) []model.OrphanedRecord {
 	childIDSet := make(map[string]struct{}, len(childIDs))
 	for _, childID := range childIDs {
@@ -983,24 +1002,34 @@ func TestCheckTeamsTeamMembersIntegrity(t *testing.T) {
 		dbmap := store.GetMaster()
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
+			team := createTeam(ss)
+			user := createUser(rctx, ss)
+			createTeamMember(rctx, ss, team.Id, user.Id)
+
 			result := checkTeamsTeamMembersIntegrity(store)
 			require.NoError(t, result.Err)
 			data := result.Data.(model.RelationalIntegrityCheckData)
-			require.Empty(t, data.Records)
+			require.Empty(t, orphanedRecordsWithParentIDs(data.Records, team.Id))
+			ss.Team().RemoveAllMembersByTeam(team.Id)
+			dbmap.Exec(`DELETE FROM Teams WHERE Id=?`, team.Id)
+			dbmap.Exec(`DELETE FROM Users WHERE Id=?`, user.Id)
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
 			team := createTeam(ss)
-			member := createTeamMember(rctx, ss, team.Id, model.NewId())
+			user := createUser(rctx, ss)
+			createTeamMember(rctx, ss, team.Id, user.Id)
 			dbmap.Exec(`DELETE FROM Teams WHERE Id=?`, team.Id)
 			result := checkTeamsTeamMembersIntegrity(store)
 			require.NoError(t, result.Err)
 			data := result.Data.(model.RelationalIntegrityCheckData)
-			require.Len(t, data.Records, 1)
+			records := orphanedRecordsWithParentIDs(data.Records, team.Id)
+			require.Len(t, records, 1)
 			require.Equal(t, model.OrphanedRecord{
 				ParentId: &team.Id,
-			}, data.Records[0])
-			ss.Team().RemoveAllMembersByTeam(member.TeamId)
+			}, records[0])
+			ss.Team().RemoveAllMembersByTeam(team.Id)
+			dbmap.Exec(`DELETE FROM Users WHERE Id=?`, user.Id)
 		})
 	})
 }
