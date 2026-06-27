@@ -5469,6 +5469,8 @@
   "integrations.outgoingWebhook.description": "Outgoing webhooks allow external integrations to receive and respond to messages",
   "integrations.outgoingWebhook.title": "Outgoing Webhooks",
   "integrations.successful": "Setup Successful",
+  "interactive_dialog.action_button.error": "Action failed",
+  "interactive_dialog.action_button.loading": "Loading...",
   "interactive_dialog.cancel": "Cancel",
   "interactive_dialog.element.optional": "(optional)",
   "interactive_dialog.error.after_max_date": "Selected time is after the maximum allowed date.",

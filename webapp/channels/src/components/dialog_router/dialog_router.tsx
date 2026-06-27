@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useState} from 'react';
 
 import InteractiveDialogAdapter from './interactive_dialog_adapter';
 
@@ -14,7 +14,11 @@ type Props = OptionalPropsFromRedux & {
 };
 
 const DialogRouter: React.FC<Props> = (props) => {
-    const {hasUrl} = props;
+    // Snapshot dialog data at mount — subsequent Redux RECEIVED_DIALOG dispatches
+    // for child dialogs won't affect this instance's data
+    const [dialogData] = useState(() => props);
+
+    const {hasUrl} = dialogData;
 
     // URL-less dialog = configuration error
     if (!hasUrl) {
@@ -23,7 +27,7 @@ const DialogRouter: React.FC<Props> = (props) => {
         return null; // Let calling code show ephemeral error
     }
 
-    return <InteractiveDialogAdapter {...props}/>;
+    return <InteractiveDialogAdapter {...dialogData}/>;
 };
 
 export default DialogRouter;

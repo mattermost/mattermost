@@ -17,6 +17,7 @@ export const DialogElementTypes = {
     RADIO: 'radio',
     DATE: 'date',
     DATETIME: 'datetime',
+    ACTION_BUTTON: 'action_button',
 } as const;
 
 // Dialog element length limits (server-side validation constraints)
@@ -231,6 +232,8 @@ export function getFieldType(element: DialogElement): string | null {
         return AppFieldTypes.DATE;
     case DialogElementTypes.DATETIME:
         return AppFieldTypes.DATETIME;
+    case DialogElementTypes.ACTION_BUTTON:
+        return AppFieldTypes.ACTION_BUTTON;
     default:
         return null; // Skip unknown field types
     }
@@ -318,6 +321,9 @@ export function getDefaultValue(element: DialogElement): AppFormValue {
         return defaultValue === null ? null : String(defaultValue);
     }
 
+    case DialogElementTypes.ACTION_BUTTON:
+        return null;
+
     case DialogElementTypes.DATE:
     case DialogElementTypes.DATETIME: {
         // Date and datetime values should be passed through as strings (ISO format)
@@ -403,7 +409,7 @@ export function convertElement(element: DialogElement, options: ConversionOption
         label: String(element.display_name),
         description: element.help_text ? String(element.help_text) : undefined,
         hint: element.placeholder ? String(element.placeholder) : undefined,
-        is_required: !element.optional,
+        is_required: element.type === DialogElementTypes.ACTION_BUTTON ? false : !element.optional,
         readonly: false,
         value: getDefaultValue(element),
     };
@@ -452,6 +458,14 @@ export function convertElement(element: DialogElement, options: ConversionOption
     if (element.type === DialogElementTypes.BOOL) {
         if (element.refresh !== undefined) {
             appField.refresh = element.refresh;
+        }
+    }
+
+    // Add action button specific properties
+    if (element.type === DialogElementTypes.ACTION_BUTTON) {
+        if (element.action_button) {
+            appField.action_button_url = element.action_button.url;
+            appField.action_button_context = element.action_button.context;
         }
     }
 
@@ -683,6 +697,13 @@ export function convertAppFormValuesToDialogSubmission(
     }
 
     elements.forEach((element) => {
+        // Action buttons are non-input elements — they never contribute a
+        // submission value, so skip them before the required/null validation
+        // (otherwise an unset action_button could raise a false required error).
+        if (element.type === DialogElementTypes.ACTION_BUTTON) {
+            return;
+        }
+
         const value = values[element.name];
 
         if (value === null || value === undefined) {
@@ -796,6 +817,8 @@ export function convertAppFormValuesToDialogSubmission(
         case DialogElementTypes.DATETIME:
             // Date and datetime values should be passed through as strings (ISO format)
             submission[element.name] = String(value);
+            break;
+        case DialogElementTypes.ACTION_BUTTON:
             break;
         default:
             submission[element.name] = String(value);

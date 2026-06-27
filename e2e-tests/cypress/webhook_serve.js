@@ -31,6 +31,8 @@ server.post('/dynamic_select_dialog_request', onDynamicSelectDialogRequest);
 server.post('/dynamic_select_source', onDynamicSelectSource);
 server.post('/dialog/field-refresh', onFieldRefreshDialogRequest);
 server.post('/dialog/multistep', onMultistepDialogRequest);
+server.post('/dialog/action_button_request', onActionButtonDialogRequest);
+server.post('/dialog/open_child', onOpenChildDialog);
 server.post('/field_refresh_source', onFieldRefreshSource);
 server.post('/datetime_dialog_request', onDateTimeDialogRequest);
 server.post('/datetime_dialog_submit', onDateTimeDialogSubmit);
@@ -61,6 +63,8 @@ function ping(req, res) {
             'POST /dynamic_select_source',
             'POST /dialog/field-refresh',
             'POST /dialog/multistep',
+            'POST /dialog/action_button_request',
+            'POST /dialog/open_child',
             'POST /field_refresh_source',
             'POST /datetime_dialog_request',
             'POST /datetime_dialog_submit',
@@ -173,11 +177,25 @@ function postMessageMenus(req, res) {
 }
 
 async function openDialog(dialog) {
-    await axios({
-        method: 'post',
-        url: `${baseUrl}/api/v4/actions/dialogs/open`,
-        data: dialog,
-    });
+    // Callers invoke this fire-and-forget (no await/catch), so any rejection here
+    // would become an unhandled rejection and crash the whole webhook process.
+    // Guard against a missing baseUrl (set by /setup) and swallow request errors.
+    if (!baseUrl) {
+        console.error('openDialog called before /setup ran — baseUrl is not set; skipping dialog open');
+        return;
+    }
+
+    try {
+        await axios({
+            method: 'post',
+            url: `${baseUrl}/api/v4/actions/dialogs/open`,
+            data: dialog,
+        });
+    } catch (err) {
+        const status = err.response && err.response.status;
+        const body = err.response && err.response.data;
+        console.error('openDialog request failed:', status || err.code || err.message, body ? JSON.stringify(body) : '');
+    }
 }
 
 function onDialogRequest(req, res) {
@@ -513,6 +531,38 @@ function onMultistepDialogRequest(req, res) {
 
     res.setHeader('Content-Type', 'application/json');
     return res.json({text: 'Multistep dialog triggered via slash command!'});
+}
+
+function onActionButtonDialogRequest(req, res) {
+    const {body} = req;
+    if (body.trigger_id) {
+        const dialog = webhookUtils.getActionButtonParentDialog(body.trigger_id, webhookBaseUrl);
+        openDialog(dialog);
+    }
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.json({text: 'Action button dialog triggered!'});
+}
+
+async function onOpenChildDialog(req, res) {
+    const {body} = req;
+
+    // context.source identifies which action button on the parent dialog was
+    // pressed; it is forwarded by the server in the PostActionIntegrationRequest.
+    const source = (body.context && body.context.source) || 'Unknown';
+    console.log('onOpenChildDialog called with trigger_id:', body.trigger_id, 'source:', source);
+    if (body.trigger_id) {
+        const childDialog = webhookUtils.getActionButtonChildDialog(body.trigger_id, webhookBaseUrl, source);
+
+        // Await the dialog open before responding. The server's /execute call
+        // (DoActionRequest) waits for this response, so awaiting here ensures the
+        // child's WS open_dialog event is published before the browser's
+        // executeDialogAction promise resolves — removing the render race in tests.
+        await openDialog(childDialog);
+    }
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.json({});
 }
 
 function onFieldRefreshSource(req, res) {

@@ -2978,3 +2978,203 @@ func TestPostActionRetainsFromBotAndFromPlugin(t *testing.T) {
 	assert.Equal(t, "true", stored.GetProp(model.PostPropsFromPlugin), "from_plugin must be retained across plugin update response")
 	assert.Equal(t, "AA", stored.GetProp("A"), "plugin-supplied prop applied")
 }
+
+func TestExecuteDialogAction(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	t.Run("happy path — returns non-empty trigger ID and integration receives dialog_action request", func(t *testing.T) {
+		var received model.PostActionIntegrationRequest
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			err := json.NewDecoder(r.Body).Decode(&received)
+			require.NoError(t, err)
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		req := model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: th.BasicChannel.Id,
+			TeamId:    th.BasicTeam.Id,
+			Context:   map[string]string{"key": "value"},
+		}
+
+		triggerId, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
+		require.Nil(t, appErr)
+		assert.NotEmpty(t, triggerId)
+		assert.Len(t, triggerId, 26)
+
+		assert.Equal(t, "dialog_action", received.Type)
+		assert.Equal(t, th.BasicUser.Id, received.UserId)
+		assert.Equal(t, th.BasicUser.Username, received.UserName)
+		assert.Equal(t, th.BasicChannel.Id, received.ChannelId)
+		assert.Equal(t, th.BasicTeam.Id, received.TeamId)
+		assert.Equal(t, "value", received.Context["key"])
+		assert.NotEmpty(t, received.TriggerId)
+	})
+
+	t.Run("empty TeamId works — no error for DM/GM channels", func(t *testing.T) {
+		user1 := th.CreateUser(t)
+		dmChannel := th.CreateDmChannel(t, user1)
+
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		req := model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: dmChannel.Id,
+			TeamId:    "",
+		}
+
+		triggerId, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
+		require.Nil(t, appErr)
+		assert.NotEmpty(t, triggerId)
+	})
+
+	t.Run("oversized context is rejected with 400", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		oversizedContext := make(map[string]string, model.MaxActionQueryEntries+1)
+		for i := range model.MaxActionQueryEntries + 1 {
+			oversizedContext[fmt.Sprintf("k%d", i)] = "v"
+		}
+
+		req := model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: th.BasicChannel.Id,
+			TeamId:    th.BasicTeam.Id,
+			Context:   oversizedContext,
+		}
+
+		_, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("context key exceeding max length is rejected with 400", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		req := model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: th.BasicChannel.Id,
+			TeamId:    th.BasicTeam.Id,
+			Context:   map[string]string{strings.Repeat("k", model.MaxActionQueryKeyLength+1): "v"},
+		}
+
+		_, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("context value exceeding max length is rejected with 400", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		req := model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: th.BasicChannel.Id,
+			TeamId:    th.BasicTeam.Id,
+			Context:   map[string]string{"k": strings.Repeat("v", model.MaxActionQueryValueLength+1)},
+		}
+
+		_, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("invalid URL returns 400", func(t *testing.T) {
+		req := model.ExecuteDialogActionRequest{
+			URL:       "not-a-valid-url",
+			ChannelId: th.BasicChannel.Id,
+			TeamId:    th.BasicTeam.Id,
+		}
+
+		_, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("empty URL returns 400", func(t *testing.T) {
+		req := model.ExecuteDialogActionRequest{
+			URL:       "",
+			ChannelId: th.BasicChannel.Id,
+			TeamId:    th.BasicTeam.Id,
+		}
+
+		_, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("non-existent channel returns error", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		req := model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: model.NewId(), // valid-format but non-existent
+			TeamId:    th.BasicTeam.Id,
+		}
+
+		_, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
+		require.NotNil(t, appErr)
+	})
+
+	t.Run("non-existent team returns 500", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		// The api4 handler overwrites TeamId with channel.TeamId before calling
+		// ExecuteDialogAction, so the only way to exercise the app-layer team
+		// lookup error branch is via a direct call with a bogus TeamId and a
+		// valid channel whose TeamId is empty (DM channel, so the handler would
+		// set TeamId="" and skip the lookup).  Here we call the app layer directly
+		// with a real channel but a synthetic non-existent TeamId so the store
+		// lookup fails.
+		req := model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: th.BasicChannel.Id,
+			TeamId:    model.NewId(), // valid-format but non-existent
+		}
+
+		_, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+	})
+
+	t.Run("integration returns 500 — DoActionRequest non-200 path drains body and returns error", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+		}))
+		defer ts.Close()
+
+		req := model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: th.BasicChannel.Id,
+			TeamId:    th.BasicTeam.Id,
+		}
+
+		_, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
+		require.NotNil(t, appErr)
+		// DoActionRequest maps non-200 upstream responses to a 400 AppError.
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+}

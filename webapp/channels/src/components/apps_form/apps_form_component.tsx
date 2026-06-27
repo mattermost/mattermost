@@ -219,6 +219,9 @@ const initFormValues = (form: AppForm, timezone?: string): AppFormValues => {
 
         // Work with sanitized copies for safe usage
         form.fields.forEach((originalField) => {
+            if (originalField.type === AppFieldTypes.ACTION_BUTTON) {
+                return;
+            }
             const field = createSanitizedField(originalField);
 
             let defaultValue: AppFormValue = null;
@@ -814,7 +817,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
 }
 
 function fieldsAsElements(fields?: AppField[]): DialogElement[] {
-    return fields?.map((f) => ({
+    return fields?.filter((f) => f.type !== AppFieldTypes.ACTION_BUTTON).map((f) => ({
         name: f.name,
         type: f.type,
         subtype: f.subtype,

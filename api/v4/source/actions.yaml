@@ -9,6 +9,11 @@
         https://docs.mattermost.com/developer/interactive-dialogs.html for more
         information on interactive dialogs.
 
+
+        Up to 3 interactive dialogs may be open at once (minimum server version
+        11.10). Additional `open_dialog` events beyond this limit are silently
+        ignored by the client.
+
         __Minimum server version: 5.6__
       operationId: OpenInteractiveDialog
       requestBody:
@@ -46,8 +51,17 @@
                       description: Markdown formatted introductory paragraph
                     elements:
                       type: array
-                      description: Input elements, see
-                        https://docs.mattermost.com/developer/interactive-dialogs.html#elements
+                      description: >
+                        Input elements, see
+                        https://docs.mattermost.com/developer/interactive-dialogs.html#elements.
+                        Supported element types include `text`, `textarea`, `select`,
+                        `radio`, `bool`, and `action_button`. An `action_button` element
+                        (minimum server version 11.10) renders a clickable button — fields:
+                        `name`, `display_name`, `type` set to "action_button", and an
+                        `action_button` object with a required `url` (must be a valid lookup
+                        URL) and optional `context` (string map). Clicking it calls
+                        `POST /api/v4/actions/dialogs/execute`. `action_button` elements are
+                        not included in the dialog submission payload.
                       items:
                         type: object
                     submit_label:
@@ -92,7 +106,6 @@
                 - url
                 - submission
                 - channel_id
-                - team_id
               properties:
                 url:
                   type: string
@@ -102,7 +115,10 @@
                   description: Channel ID the user submitted the dialog from
                 team_id:
                   type: string
-                  description: Team ID the user submitted the dialog from
+                  description: >
+                    Optional. The server resolves the authoritative team from the
+                    channel, so a client-supplied value is ignored. Empty for DM/GM
+                    channels (which have no team).
                 submission:
                   type: object
                   description: String map where keys are element names and values are the
@@ -152,7 +168,6 @@
                 - url
                 - submission
                 - channel_id
-                - team_id
               properties:
                 url:
                   type: string
@@ -162,7 +177,10 @@
                   description: Channel ID the user is performing the lookup from
                 team_id:
                   type: string
-                  description: Team ID the user is performing the lookup from
+                  description: >
+                    Optional. The server resolves the authoritative team from the
+                    channel, so a client-supplied value is ignored. Empty for DM/GM
+                    channels (which have no team).
                 submission:
                   type: object
                   description: String map where keys are element names and values are the
@@ -195,6 +213,78 @@
                         value:
                           type: string
                           description: Value for the option
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /api/v4/actions/dialogs/execute:
+    post:
+      tags:
+        - integration_actions
+      summary: Execute a dialog action button
+      description: >
+        Endpoint used by the Mattermost clients when a user clicks an
+        `action_button` element inside an interactive dialog. The server
+        generates a new trigger ID and forwards the button's context to the
+        integration URL; the integration can then open a child (stacked) dialog
+        with that trigger ID. See
+        https://docs.mattermost.com/developer/interactive-dialogs.html for more
+        information on interactive dialogs.
+
+
+        This request is always processed server-side. The client caps the number
+        of simultaneously open interactive dialogs at 3, so if the resulting
+        `open_dialog` event would exceed that limit the client silently skips
+        rendering the additional dialog.
+
+
+        __Minimum server version: 11.10__
+      operationId: ExecuteDialogAction
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - url
+                - channel_id
+              properties:
+                url:
+                  type: string
+                  description: The action button URL to send the action payload to.
+                    Must be a valid lookup URL.
+                context:
+                  type: object
+                  description: String map of context values configured on the action
+                    button, forwarded to the integration
+                channel_id:
+                  type: string
+                  description: Channel ID the user clicked the action button from
+                team_id:
+                  type: string
+                  description: >
+                    Optional. The server resolves the authoritative team from the
+                    channel, so a client-supplied value is ignored. Empty for DM/GM
+                    channels (which have no team).
+        description: Dialog action button execution data
+        required: true
+      responses:
+        "200":
+          description: Dialog action executed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: Status of the request ("OK")
+                  trigger_id:
+                    type: string
+                    description: New trigger ID the integration can use to open a child
+                      dialog
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":

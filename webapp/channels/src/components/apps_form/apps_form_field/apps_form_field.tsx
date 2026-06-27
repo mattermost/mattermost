@@ -21,6 +21,7 @@ import type {InputTypes} from 'components/widgets/settings/text_setting';
 
 import AppsFormSelectField from './apps_form_select_field';
 
+import AppsFormActionButton from '../apps_form_action_button';
 import AppsFormDateField from '../apps_form_date_field';
 import AppsFormDateTimeField from '../apps_form_datetime_field';
 
@@ -239,6 +240,15 @@ export default class AppsFormField extends React.PureComponent<Props> {
                         </div>
                     )}
                 </div>
+            );
+        }
+        case AppFieldTypes.ACTION_BUTTON: {
+            return (
+                <AppsFormActionButton
+                    label={field.label || field.name}
+                    url={field.action_button_url || ''}
+                    context={field.action_button_context}
+                />
             );
         }
         }

@@ -218,6 +218,12 @@ export type DialogElement = {
 
     /** @deprecated Use datetime_config.time_interval instead. Kept for backward compatibility. */
     time_interval?: number;
+
+    // Action button configuration (type "action_button")
+    action_button?: {
+        url: string;
+        context?: Record<string, string>;
+    };
 };
 
 export type SubmitDialogResponse = {

@@ -109,6 +109,10 @@ function validateDateTimeValue(value: string, elem: DialogElement): DialogError 
 }
 
 export function checkDialogElementForError(elem: DialogElement, value: any): DialogError | undefined | null {
+    if (elem.type === 'action_button') {
+        return null;
+    }
+
     // Check if value is empty (handles arrays for multiselect)
     let isEmpty;
     if (value === 0) {
