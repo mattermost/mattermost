@@ -6,7 +6,8 @@ import isEmpty from 'lodash/isEmpty';
 import {useMemo} from 'react';
 
 import type {ClientError} from '@mattermost/client';
-import {supportsOptions, type FieldValueType, type FieldVisibility, type UserPropertyField, type UserPropertyFieldGroupID, type UserPropertyFieldPatch} from '@mattermost/types/properties';
+import {supportsOptions, type FieldValueType, type FieldVisibility} from '@mattermost/types/properties';
+import type {UserPropertyField, UserPropertyFieldGroupID, UserPropertyFieldPatch} from '@mattermost/types/properties_user';
 import {collectionAddItem, collectionFromArray, collectionRemoveItem, collectionReplaceItem, collectionToArray} from '@mattermost/types/utilities';
 import type {IDMappedCollection, IDMappedObjects} from '@mattermost/types/utilities';
 
@@ -16,12 +17,10 @@ import {insertWithoutDuplicates} from 'mattermost-redux/utils/array_utils';
 import {validateCPAFieldName} from 'utils/properties';
 import {generateId} from 'utils/utils';
 
-import type {CollectionIO} from './section_utils';
+import type {CollectionIO, PendingOps} from './section_utils';
 import {useThing, usePendingThing, BatchProcessingError} from './section_utils';
 
 export type UserPropertyFields = IDMappedCollection<UserPropertyField>;
-
-type PendingOps<T extends {id: string}> = {[op: string]: T[]};
 
 export const useUserPropertyFields = () => {
     // current fields

@@ -10,7 +10,8 @@ import {css} from 'styled-components';
 
 import {CheckIcon, ChevronDownCircleOutlineIcon, EmailOutlineIcon, FormatListBulletedIcon, LinkVariantIcon, MenuVariantIcon, PoundIcon, SortAscendingIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
-import type {FieldType, FieldValueType, UserPropertyField} from '@mattermost/types/properties';
+import type {FieldType, FieldValueType} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
@@ -80,8 +81,11 @@ const SelectType = (props: Props) => {
                 disabled: isDisabled,
             }}
             menu={{
-                id: 'type-selector-menu',
-                'aria-label': 'Select type',
+                id: `type-selector-menu-${props.field.id}`,
+                'aria-label': formatMessage({
+                    id: 'admin.system_properties.user_properties.type_menu.label',
+                    defaultMessage: 'Select type',
+                }),
                 className: 'select-type-mui-menu',
             }}
         >

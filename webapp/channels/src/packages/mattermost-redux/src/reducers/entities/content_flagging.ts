@@ -7,10 +7,7 @@ import type {
     ContentFlaggingConfig,
     ContentFlaggingState,
 } from '@mattermost/types/content_flagging';
-import type {
-    NameMappedPropertyFields,
-    PropertyValue,
-} from '@mattermost/types/properties';
+import type {NameMappedPropertyFields, PropertyValue} from '@mattermost/types/properties';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {ContentFlaggingTypes, UserTypes} from 'mattermost-redux/action_types';

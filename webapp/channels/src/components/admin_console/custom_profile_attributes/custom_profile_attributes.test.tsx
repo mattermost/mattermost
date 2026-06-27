@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import type {UserPropertyField, UserPropertyFieldGroupID, UserPropertyFieldType} from '@mattermost/types/properties';
+import type {UserPropertyField, UserPropertyFieldGroupID, UserPropertyFieldType} from '@mattermost/types/properties_user';
 
 import {Client4} from 'mattermost-redux/client';
 

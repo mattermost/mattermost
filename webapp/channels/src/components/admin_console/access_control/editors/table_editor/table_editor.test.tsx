@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import type {AccessControlVisualAST} from '@mattermost/types/access_control';
-import type {FieldType, UserPropertyField} from '@mattermost/types/properties';
+import type {FieldType} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {isSimpleExpression, isSimpleCondition, isMultiselectOrGroup} from 'components/admin_console/access_control/editors/shared';
 import {parseExpression, findFirstAvailableAttributeFromList, rowToCEL, celStringLiteral} from 'components/admin_console/access_control/editors/table_editor/table_editor';

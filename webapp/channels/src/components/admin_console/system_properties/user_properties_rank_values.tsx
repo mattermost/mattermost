@@ -9,7 +9,8 @@ import {components} from 'react-select';
 import {css} from 'styled-components';
 
 import {CheckIcon, ChevronRightIcon} from '@mattermost/compass-icons/components';
-import type {PropertyFieldOption, UserPropertyField} from '@mattermost/types/properties';
+import type {PropertyFieldOption} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import * as Menu from 'components/menu';
 import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';

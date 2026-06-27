@@ -11,7 +11,8 @@
 
 import type {Client4} from '@mattermost/client';
 import type {UserProfile} from '@mattermost/types/users';
-import type {UserPropertyField, PropertyFieldOption} from '@mattermost/types/properties';
+import type {PropertyFieldOption} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {expect, getRandomId, test} from '@mattermost/playwright-lib';
 

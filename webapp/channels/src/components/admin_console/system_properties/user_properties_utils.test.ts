@@ -3,7 +3,7 @@
 
 import {act} from '@testing-library/react';
 
-import type {UserPropertyField, UserPropertyFieldPatch} from '@mattermost/types/properties';
+import type {UserPropertyField, UserPropertyFieldPatch} from '@mattermost/types/properties_user';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Client4} from 'mattermost-redux/client';

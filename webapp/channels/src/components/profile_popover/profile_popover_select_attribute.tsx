@@ -3,7 +3,8 @@
 
 import React from 'react';
 
-import type {PropertyFieldOption, UserPropertyField} from '@mattermost/types/properties';
+import type {PropertyFieldOption} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {UserProfile} from '@mattermost/types/users';
 
 type Props = {

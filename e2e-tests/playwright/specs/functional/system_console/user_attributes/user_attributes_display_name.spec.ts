@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {Client4} from '@mattermost/client';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {expect, test, testConfig} from '@mattermost/playwright-lib';

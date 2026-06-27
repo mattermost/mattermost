@@ -56,6 +56,7 @@ import BillingHistory, {searchableStrings as billingHistorySearchableStrings} fr
 import BillingSubscriptions, {searchableStrings as billingSubscriptionSearchableStrings} from './billing/billing_subscriptions';
 import CompanyInfo, {searchableStrings as billingCompanyInfoSearchableStrings} from './billing/company_info';
 import CompanyInfoEdit from './billing/company_info_edit';
+import BoardAttributes, {searchableStrings as boardAttributesSearchableStrings} from './board_attributes';
 import BrandImageSetting from './brand_image_setting/brand_image_setting';
 import ClassificationMarkings, {searchableStrings as classificationMarkingsSearchableStrings} from './classification_markings';
 import ClientSideUserIdsSetting from './client_side_userids_setting';
@@ -663,6 +664,16 @@ const AdminDefinition: AdminDefinitionType = {
                     ],
                 },
                 restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.EnterpriseAdvanced),
+            },
+            board_attributes: {
+                url: 'system_attributes/board_attributes',
+                title: defineMessage({id: 'admin.sidebar.board_attributes', defaultMessage: 'Board Attributes'}),
+                searchableStrings: boardAttributesSearchableStrings,
+                isHidden: it.not(it.configIsTrue('FeatureFlags', 'IntegratedBoards')),
+                schema: {
+                    id: 'BoardAttributes',
+                    component: BoardAttributes,
+                },
             },
             attribute_based_access_control: {
                 url: 'system_attributes/attribute_based_access_control',
