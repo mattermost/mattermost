@@ -6,6 +6,7 @@ import max from 'lodash/max';
 import type {
     Channel,
     ChannelBanner,
+    ChannelJoinRequest,
     ChannelMemberCountsByGroup,
     ChannelMembership,
     ChannelMessageCount,
@@ -1531,4 +1532,36 @@ export function hasAutotranslationBecomeEnabled(state: GlobalState, channelOrMem
     const isTranslating = autotranslationEnabled && newChannel?.autotranslation && !newMember?.autotranslation_disabled;
 
     return !wasTranslating && isTranslating;
+}
+
+// -----------------------------------------------------------------------------
+// Discoverable Private Channels — join request selectors
+// -----------------------------------------------------------------------------
+
+export function getMyPendingJoinRequest(state: GlobalState, channelId: string): ChannelJoinRequest | undefined {
+    return state.entities.channels.joinRequests.myPendingByChannel[channelId];
+}
+
+export function getMyPendingJoinRequestsByChannel(state: GlobalState): Record<string, ChannelJoinRequest> {
+    return state.entities.channels.joinRequests.myPendingByChannel;
+}
+
+export function hasMyPendingJoinRequest(state: GlobalState, channelId: string): boolean {
+    return Boolean(state.entities.channels.joinRequests.myPendingByChannel[channelId]);
+}
+
+export function getChannelJoinRequests(state: GlobalState, channelId: string): ChannelJoinRequest[] {
+    return state.entities.channels.joinRequests.byChannel[channelId] ?? [];
+}
+
+export function getPendingChannelJoinRequests(state: GlobalState, channelId: string): ChannelJoinRequest[] {
+    return (state.entities.channels.joinRequests.byChannel[channelId] ?? []).filter((r) => r.status === 'pending');
+}
+
+export function getPendingJoinRequestsCount(state: GlobalState, channelId: string): number {
+    return state.entities.channels.joinRequests.countsByChannel[channelId] ?? 0;
+}
+
+export function getMyPendingJoinRequestList(state: GlobalState): ChannelJoinRequest[] {
+    return state.entities.channels.joinRequests.myList.filter((r) => r.status === 'pending');
 }

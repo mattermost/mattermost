@@ -7,6 +7,8 @@ import {combineReducers} from 'redux';
 
 import type {
     Channel,
+    ChannelJoinRequest,
+    ChannelJoinRequestsState,
     ChannelMembership,
     ChannelStats,
     ChannelMemberCountByGroup,
@@ -958,6 +960,139 @@ function restrictedDMs(state: ChannelsState['restrictedDMs'] = {}, action: MMRed
     }
 }
 
+// Discoverable Private Channels — join requests reducer.
+//
+// One slice tracks four orthogonal projections of the same underlying rows:
+// - myPendingByChannel: the user's own pending row per channel (drives Browse
+//   row state machine + Request to Join modal pending state).
+// - byChannel: full admin-queue listings keyed by channel id (drives the
+//   admin queue UI in PR 4).
+// - countsByChannel: lightweight pending count per channel (drives the
+//   indicator triad).
+// - myList: the user's pending requests across channels (drives the My
+//   Pending Requests tab in PR 4).
+//
+// WebSocket events (channel_join_request_created / _updated) and the local
+// action thunks both feed this slice. Terminal status transitions
+// (approved / denied / withdrawn) clear the myPending entry but keep the row
+// in byChannel so the admin's Past tab can show it.
+const initialJoinRequestsState: ChannelJoinRequestsState = {
+    myPendingByChannel: {},
+    byChannel: {},
+    countsByChannel: {},
+    myList: [],
+};
+
+function isTerminal(status: ChannelJoinRequest['status']) {
+    return status === 'approved' || status === 'denied' || status === 'withdrawn';
+}
+
+export function joinRequests(state: ChannelJoinRequestsState = initialJoinRequestsState, action: MMReduxAction): ChannelJoinRequestsState {
+    switch (action.type) {
+    case ChannelTypes.RECEIVED_MY_CHANNEL_JOIN_REQUEST: {
+        const req: ChannelJoinRequest = action.data;
+        if (isTerminal(req.status)) {
+            const rest = {...state.myPendingByChannel};
+            Reflect.deleteProperty(rest, req.channel_id);
+            return {...state, myPendingByChannel: rest};
+        }
+        return {
+            ...state,
+            myPendingByChannel: {...state.myPendingByChannel, [req.channel_id]: req},
+        };
+    }
+
+    case ChannelTypes.RECEIVED_MY_CHANNEL_JOIN_REQUESTS: {
+        const rows: ChannelJoinRequest[] = action.data.requests ?? [];
+        const myPending: Record<string, ChannelJoinRequest> = {};
+        rows.forEach((req) => {
+            if (req.status === 'pending') {
+                myPending[req.channel_id] = req;
+            }
+        });
+        return {
+            ...state,
+            myList: rows,
+            myPendingByChannel: {...state.myPendingByChannel, ...myPending},
+        };
+    }
+
+    case ChannelTypes.RECEIVED_CHANNEL_JOIN_REQUESTS: {
+        const {channel_id: channelId, list} = action.data;
+        return {
+            ...state,
+            byChannel: {...state.byChannel, [channelId]: list.requests ?? []},
+        };
+    }
+
+    case ChannelTypes.RECEIVED_CHANNEL_JOIN_REQUEST_COUNT: {
+        const {channel_id: channelId, count} = action.data;
+        return {
+            ...state,
+            countsByChannel: {...state.countsByChannel, [channelId]: count},
+        };
+    }
+
+    case ChannelTypes.CHANNEL_JOIN_REQUEST_CREATED: {
+        const req: ChannelJoinRequest = action.data;
+        const existing = state.byChannel[req.channel_id] ?? [];
+        const dedup = existing.filter((r) => r.id !== req.id);
+        return {
+            ...state,
+            byChannel: {...state.byChannel, [req.channel_id]: [req, ...dedup]},
+            countsByChannel: {...state.countsByChannel, [req.channel_id]: (state.countsByChannel[req.channel_id] ?? 0) + 1},
+        };
+    }
+
+    case ChannelTypes.CHANNEL_JOIN_REQUEST_UPDATED: {
+        const req: ChannelJoinRequest = action.data;
+        const existing = state.byChannel[req.channel_id] ?? [];
+        const replaced = existing.map((r) => (r.id === req.id ? req : r));
+        const myPending = {...state.myPendingByChannel};
+        if (isTerminal(req.status)) {
+            delete myPending[req.channel_id];
+        }
+        const myList = state.myList.map((r) => (r.id === req.id ? req : r));
+
+        // Decrement the pending count when a row leaves the pending state. A
+        // CREATED event already bumped the count when the row was first
+        // inserted; without the isTerminal guard we'd double-count.
+        let counts = state.countsByChannel;
+        if (isTerminal(req.status)) {
+            const next = (counts[req.channel_id] ?? 0) - 1;
+            counts = {...counts, [req.channel_id]: Math.max(0, next)};
+        }
+        return {
+            ...state,
+            byChannel: {...state.byChannel, [req.channel_id]: replaced},
+            myPendingByChannel: myPending,
+            myList,
+            countsByChannel: counts,
+        };
+    }
+
+    case ChannelTypes.CHANNEL_JOIN_REQUEST_REMOVED: {
+        const {channel_id: channelId, request_id: requestId} = action.data;
+        const rest = {...state.myPendingByChannel};
+        Reflect.deleteProperty(rest, channelId);
+        const filtered = requestId ? (state.byChannel[channelId] ?? []).filter((r) => r.id !== requestId) : state.byChannel[channelId];
+        const myList = requestId ? state.myList.filter((r) => r.id !== requestId) : state.myList;
+        return {
+            ...state,
+            myPendingByChannel: rest,
+            byChannel: filtered ? {...state.byChannel, [channelId]: filtered} : state.byChannel,
+            myList,
+        };
+    }
+
+    case UserTypes.LOGOUT_SUCCESS:
+        return initialJoinRequestsState;
+
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
 
     // the current selected channel
@@ -1001,4 +1136,7 @@ export default combineReducers({
     channelsMemberCount,
 
     restrictedDMs,
+
+    // Discoverable Private Channels — join requests slice
+    joinRequests,
 });

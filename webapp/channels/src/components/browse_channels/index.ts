@@ -7,10 +7,21 @@ import type {Dispatch} from 'redux';
 
 import type {Channel} from '@mattermost/types/channels';
 
-import {getChannels, getArchivedChannels, getRecommendedChannelsForUser, joinChannel, getChannelsMemberCount, searchAllChannels} from 'mattermost-redux/actions/channels';
+import {
+    getChannels,
+    getArchivedChannels,
+    getRecommendedChannelsForUser,
+    joinChannel,
+    getChannelsMemberCount,
+    searchAllChannels,
+    getMyChannelJoinRequests,
+    requestJoinChannel,
+    withdrawMyChannelJoinRequest,
+} from 'mattermost-redux/actions/channels';
 import {RequestStatus} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getChannelsInCurrentTeam, getMyChannelMemberships, getChannelsMemberCount as getChannelsMemberCountSelector} from 'mattermost-redux/selectors/entities/channels';
+import {getChannelsInCurrentTeam, getMyChannelMemberships, getChannelsMemberCount as getChannelsMemberCountSelector, getMyPendingJoinRequestsByChannel} from 'mattermost-redux/selectors/entities/channels';
+import {isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeam, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
@@ -63,6 +74,10 @@ function mapStateToProps(state: GlobalState) {
         rhsOpen: getIsRhsOpen(state),
         channelsMemberCount: getChannelsMemberCountSelector(state),
         accessControlEnabled: isChannelAccessControlEnabled(state),
+
+        // Discoverable Private Channels — feed the per-row state machine.
+        discoverableFeatureEnabled: isDiscoverableChannelsEnabled(state),
+        myPendingJoinRequests: getMyPendingJoinRequestsByChannel(state),
     };
 }
 
@@ -79,6 +94,9 @@ function mapDispatchToProps(dispatch: Dispatch) {
             setGlobalItem,
             closeRightHandSide,
             getChannelsMemberCount,
+            getMyChannelJoinRequests,
+            requestJoinChannel,
+            withdrawMyChannelJoinRequest,
         }, dispatch),
     };
 }
