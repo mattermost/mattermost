@@ -4285,6 +4285,35 @@ func TestInviteUsersToTeam(t *testing.T) {
 	}, "rate limits")
 }
 
+func TestLocalInviteUsersToTeamDeactivatedUser(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableEmailInvitations = true
+	})
+
+	_, appErr := th.App.UpdateActive(th.Context, th.BasicUser2, false)
+	require.Nil(t, appErr)
+	t.Cleanup(func() {
+		_, _ = th.App.UpdateActive(th.Context, th.BasicUser2, true)
+	})
+
+	t.Run("non-graceful local invite returns error for deactivated user", func(t *testing.T) {
+		_, err := th.LocalClient.InviteUsersToTeam(context.Background(), th.BasicTeam.Id, []string{th.BasicUser2.Email})
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.team.invite_members.account_deactivated.app_error")
+	})
+
+	t.Run("graceful local invite returns error for deactivated user", func(t *testing.T) {
+		invitesWithErrors, _, err := th.LocalClient.InviteUsersToTeamGracefully(context.Background(), th.BasicTeam.Id, []string{th.BasicUser2.Email})
+		require.NoError(t, err)
+		require.Len(t, invitesWithErrors, 1)
+		require.NotNil(t, invitesWithErrors[0].Error)
+		CheckErrorID(t, invitesWithErrors[0].Error, "api.team.invite_members.account_deactivated.app_error")
+	})
+}
+
 func TestInviteGuestsToTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
