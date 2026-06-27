@@ -60,6 +60,21 @@
             }
         }
 
+        .SystemUserDetail__email-verification {
+            display: block;
+            margin-top: 6px;
+            font-size: 12px;
+            font-weight: 600;
+
+            &.verified {
+                color: var(--online-indicator);
+            }
+
+            &.unverified {
+                color: var(--away-indicator);
+            }
+        }
+
         .cpa-field {
             position: relative;
         }

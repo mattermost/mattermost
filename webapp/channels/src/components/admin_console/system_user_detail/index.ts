@@ -9,7 +9,7 @@ import type {GlobalState} from '@mattermost/types/store';
 import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {getUserPreferences} from 'mattermost-redux/actions/preferences';
 import {addUserToTeam} from 'mattermost-redux/actions/teams';
-import {updateUserActive, updateUserAuth, getUser, patchUser, updateUserMfa, getCustomProfileAttributeValues, saveCustomProfileAttribute} from 'mattermost-redux/actions/users';
+import {updateUserActive, updateUserAuth, getUser, patchUser, updateUserMfa, verifyUserEmailWithoutToken, getCustomProfileAttributeValues, saveCustomProfileAttribute} from 'mattermost-redux/actions/users';
 import {getConfig, getCustomProfileAttributes, getLicense, isCustomProfileAttributesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
@@ -46,6 +46,7 @@ const mapDispatchToProps = {
     updateUserAuth,
     updateUserActive,
     updateUserMfa,
+    verifyUserEmailWithoutToken,
     addUserToTeam,
     setNavigationBlocked,
     openModal,

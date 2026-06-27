@@ -1138,6 +1138,39 @@ func TestGetUser(t *testing.T) {
 	require.NotEmpty(t, ruser.LastName, "last name should not be blank")
 }
 
+func TestGetUserEmailVerified(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// CreateUser via the helper verifies the user's email.
+	verifiedUser := th.CreateUser(t)
+
+	// Create a user directly through the API client, which leaves the email unverified.
+	unverifiedUser, _, err := th.Client.CreateUser(context.Background(), &model.User{
+		Email:    th.GenerateTestEmail(),
+		Username: GenerateTestUsername(),
+		Password: model.NewTestPassword(),
+	})
+	require.NoError(t, err)
+	require.False(t, unverifiedUser.EmailVerified, "newly created user should be unverified")
+
+	t.Run("system admin sees email_verified for other users", func(t *testing.T) {
+		ruser, _, err := th.SystemAdminClient.GetUser(context.Background(), verifiedUser.Id, "")
+		require.NoError(t, err)
+		require.True(t, ruser.EmailVerified, "verified user should report email_verified=true to admin")
+
+		ruser, _, err = th.SystemAdminClient.GetUser(context.Background(), unverifiedUser.Id, "")
+		require.NoError(t, err)
+		require.False(t, ruser.EmailVerified, "unverified user should report email_verified=false to admin")
+	})
+
+	t.Run("regular users do not receive email_verified for other users", func(t *testing.T) {
+		ruser, _, err := th.Client.GetUser(context.Background(), verifiedUser.Id, "")
+		require.NoError(t, err)
+		require.False(t, ruser.EmailVerified, "non-admin should never receive email_verified for another user")
+	})
+}
+
 func TestGetUserWithAcceptedTermsOfServiceForOtherUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
@@ -7566,9 +7599,17 @@ func TestVerifyUserEmailWithoutToken(t *testing.T) {
 		ruser, _, err := th.Client.CreateUser(context.Background(), &user)
 		require.NoError(t, err)
 
+		require.False(t, ruser.EmailVerified, "user should start unverified")
+
 		vuser, _, err := client.VerifyUserEmailWithoutToken(context.Background(), ruser.Id)
 		require.NoError(t, err)
 		require.Equal(t, ruser.Id, vuser.Id)
+		require.True(t, vuser.EmailVerified, "response should report the user as verified")
+
+		// Confirm a system admin can read the updated verification status via GetUser.
+		fetched, _, err := th.SystemAdminClient.GetUser(context.Background(), ruser.Id, "")
+		require.NoError(t, err)
+		require.True(t, fetched.EmailVerified, "system admin should see the verified status")
 	}, "Should verify a new user")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
