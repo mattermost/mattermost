@@ -1515,6 +1515,21 @@ func (a *App) prepareInviteNewUsersToTeam(teamID, senderId string, channelIds []
 	return user, team, channels, nil
 }
 
+func (a *App) inviteEmailErrorForDeactivatedUser(email string) *model.AppError {
+	user, err := a.Srv().Store().User().GetByEmail(email)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(err, &nfErr) {
+			return nil
+		}
+		return model.NewAppError("inviteEmailErrorForDeactivatedUser", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if user.DeleteAt > 0 {
+		return model.NewAppError("inviteEmailErrorForDeactivatedUser", "api.team.invite_members.deactivated_user.app_error", map[string]any{"Email": email}, "", http.StatusBadRequest)
+	}
+	return nil
+}
+
 func (a *App) InviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *model.MemberInvite, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableEmailInvitations {
 		return nil, model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -1540,7 +1555,7 @@ func (a *App) InviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *mod
 		}
 		if !teams.IsEmailAddressAllowed(email, allowedDomains) {
 			invite.Error = model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": email}, "", http.StatusBadRequest)
-		} else {
+		} else if invite.Error = a.inviteEmailErrorForDeactivatedUser(email); invite.Error == nil {
 			goodEmails = append(goodEmails, email)
 		}
 		inviteListWithErrors = append(inviteListWithErrors, invite)
@@ -1690,7 +1705,7 @@ func (a *App) InviteGuestsToChannelsGracefully(rctx request.CTX, teamID string, 
 		}
 		if !users.CheckEmailDomain(email, *a.Config().GuestAccountsSettings.RestrictCreationToDomains) {
 			invite.Error = model.NewAppError("InviteGuestsToChannelsGracefully", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": email}, "", http.StatusBadRequest)
-		} else {
+		} else if invite.Error = a.inviteEmailErrorForDeactivatedUser(email); invite.Error == nil {
 			goodEmails = append(goodEmails, email)
 		}
 		inviteListWithErrors = append(inviteListWithErrors, invite)
@@ -1750,6 +1765,8 @@ func (a *App) InviteNewUsersToTeam(rctx request.CTX, emailList []string, teamID,
 	for _, email := range emailList {
 		if !teams.IsEmailAddressAllowed(email, allowedDomains) {
 			invalidEmailList = append(invalidEmailList, email)
+		} else if appErr := a.inviteEmailErrorForDeactivatedUser(email); appErr != nil {
+			return appErr
 		}
 	}
 
@@ -1788,6 +1805,8 @@ func (a *App) InviteGuestsToChannels(rctx request.CTX, teamID string, guestsInvi
 	for _, email := range guestsInvite.Emails {
 		if !users.CheckEmailDomain(email, *a.Config().GuestAccountsSettings.RestrictCreationToDomains) {
 			invalidEmailList = append(invalidEmailList, email)
+		} else if appErr := a.inviteEmailErrorForDeactivatedUser(email); appErr != nil {
+			return appErr
 		}
 	}
 
