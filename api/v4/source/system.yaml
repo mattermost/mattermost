@@ -1010,20 +1010,9 @@
 
         No permission required but having the `manage_system` permission returns more information.
       operationId: GetClientLicense
-      parameters:
-        - name: format
-          in: query
-          required: true
-          description: Must be `old`, other formats not implemented yet
-          schema:
-            type: string
       responses:
         "200":
           description: License retrieval successful
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
   /api/v4/license/load_metric:
     get:
       tags:
