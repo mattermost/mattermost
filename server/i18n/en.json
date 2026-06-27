@@ -7905,6 +7905,14 @@
     "translation": "Could not update active status of access control policies."
   },
   {
+    "id": "app.pat_expiry_notify.dm",
+    "translation": "Your personal access token \"{{.Description}}\" will expire in {{.Days}} day(s) or less. Open **Profile > Security** to create a new token before this one stops working."
+  },
+  {
+    "id": "app.pat_expiry_notify.unnamed_token",
+    "translation": "(no description)"
+  },
+  {
     "id": "app.pdp.access_evaluation.app_error",
     "translation": "Failed evaluate access control policy."
   },
@@ -9685,6 +9693,10 @@
   {
     "id": "app.user_access_token.get_by_user.app_error",
     "translation": "Unable to get the personal access tokens by user."
+  },
+  {
+    "id": "app.user_access_token.get_expiring.app_error",
+    "translation": "Unable to retrieve expiring personal access tokens."
   },
   {
     "id": "app.user_access_token.invalid_or_missing",

@@ -33,6 +33,7 @@ func newSqlUserAccessTokenStore(sqlStore *SqlStore) store.UserAccessTokenStore {
 			"UserAccessTokens.Description",
 			"UserAccessTokens.IsActive",
 			"UserAccessTokens.ExpiresAt",
+			"UserAccessTokens.LastNotifiedThreshold",
 		).
 		From("UserAccessTokens")
 
@@ -268,6 +269,68 @@ func (s SqlUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*m
 	}
 
 	return tokens, nil
+}
+
+// GetExpiringTokens returns active, non-bot tokens belonging to non-deactivated
+// users whose non-zero ExpiresAt falls within the window (now, now+horizon],
+// up to the given limit. Bot tokens are excluded because bot accounts are exempt
+// from the expiry policy and have no human inbox to notify.
+//
+// The LastNotifiedThreshold filter (IS NULL OR > 1) is a cheap pre-filter that
+// drops tokens already at the terminal 1-day warning; the worker still computes
+// each token's exact warning bucket and applies the precise dedup check. The
+// secret Token column is intentionally NOT selected — callers use the returned
+// rows for metadata (notification, marker update) only.
+//
+// A non-positive limit returns an empty slice without hitting the DB rather than
+// relying on the int -> uint64 cast (which would otherwise wrap a negative value
+// into an enormous unsigned limit and effectively disable the bound).
+func (s SqlUserAccessTokenStore) GetExpiringTokens(now int64, horizon int64, limit int) ([]*model.UserAccessToken, error) {
+	tokens := []*model.UserAccessToken{}
+
+	if limit <= 0 {
+		return tokens, nil
+	}
+
+	query := s.getQueryBuilder().
+		Select(
+			"UserAccessTokens.Id",
+			"UserAccessTokens.UserId",
+			"UserAccessTokens.Description",
+			"UserAccessTokens.IsActive",
+			"UserAccessTokens.ExpiresAt",
+			"UserAccessTokens.LastNotifiedThreshold",
+		).
+		From("UserAccessTokens").
+		InnerJoin("Users ON Users.Id = UserAccessTokens.UserId").
+		LeftJoin("Bots ON Bots.UserId = UserAccessTokens.UserId").
+		Where(sq.Eq{"UserAccessTokens.IsActive": true}).
+		Where(sq.Gt{"UserAccessTokens.ExpiresAt": now}).
+		Where(sq.LtOrEq{"UserAccessTokens.ExpiresAt": now + horizon}).
+		Where(sq.Eq{"Users.DeleteAt": 0}).
+		Where(sq.Eq{"Bots.UserId": nil}).
+		Where(sq.Or{
+			sq.Eq{"UserAccessTokens.LastNotifiedThreshold": nil},
+			sq.Gt{"UserAccessTokens.LastNotifiedThreshold": 1},
+		}).
+		OrderBy("UserAccessTokens.ExpiresAt ASC").
+		Limit(uint64(limit))
+
+	if err := s.GetReplica().SelectBuilder(&tokens, query); err != nil {
+		return nil, errors.Wrap(err, "failed to find expiring UserAccessTokens")
+	}
+
+	return tokens, nil
+}
+
+// UpdateLastNotifiedThreshold records the warning bucket (in days) for which the
+// token owner was most recently notified, so the hourly pat_expiry_notify job
+// does not re-send the same warning on subsequent runs.
+func (s SqlUserAccessTokenStore) UpdateLastNotifiedThreshold(tokenId string, threshold int) error {
+	if _, err := s.GetMaster().Exec("UPDATE UserAccessTokens SET LastNotifiedThreshold = ? WHERE Id = ?", threshold, tokenId); err != nil {
+		return errors.Wrapf(err, "failed to update LastNotifiedThreshold for UserAccessToken with id=%s", tokenId)
+	}
+	return nil
 }
 
 // DeleteByIds deletes the tokens identified by tokenIDs along with any sessions
