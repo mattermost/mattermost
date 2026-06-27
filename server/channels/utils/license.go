@@ -11,6 +11,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"io"
 	"maps"
@@ -23,6 +24,16 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
+
+// ErrLicenseProductionInTestEnvironment indicates the license signature is valid against
+// the production key, but this server is running in a test or development service
+// environment (i.e. a production license uploaded to a test/dev server).
+var ErrLicenseProductionInTestEnvironment = errors.New("license is a production license but the server is running in a test or development service environment")
+
+// ErrLicenseTestInProductionEnvironment indicates the license signature is valid against
+// the test key, but this server is running in a production service environment (i.e. a
+// test/dev license uploaded to a production server).
+var ErrLicenseTestInProductionEnvironment = errors.New("license is a test or development license but the server is running in a production service environment")
 
 var LicenseValidator LicenseValidatorIface
 
@@ -43,7 +54,7 @@ type LicenseValidatorImpl struct {
 func (l *LicenseValidatorImpl) LicenseFromBytes(licenseBytes []byte) (*model.License, *model.AppError) {
 	licenseStr, err := l.ValidateLicense(licenseBytes)
 	if err != nil {
-		return nil, model.NewAppError("LicenseFromBytes", model.InvalidLicenseError, nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, NewLicenseValidationAppError("LicenseFromBytes", err)
 	}
 
 	var license model.License
@@ -74,35 +85,90 @@ func (l *LicenseValidatorImpl) ValidateLicense(signed []byte) (string, error) {
 	plaintext := decoded[:len(decoded)-256]
 	signature := decoded[len(decoded)-256:]
 
-	var publicKey []byte
-	switch model.GetServiceEnvironment() {
-	case model.ServiceEnvironmentProduction:
-		publicKey = productionPublicKey
-	case model.ServiceEnvironmentTest, model.ServiceEnvironmentDev:
-		publicKey = testPublicKey
-	}
-	block, _ := pem.Decode(publicKey)
-	if block == nil {
-		return "", fmt.Errorf("failed to decode public key PEM block for environment %q", model.GetServiceEnvironment())
-	}
-
-	public, err := x509.ParsePKIXPublicKey(block.Bytes)
-	if err != nil {
-		return "", fmt.Errorf("Encountered error signing license: %w", err)
-	}
-
-	rsaPublic := public.(*rsa.PublicKey)
+	primaryKey, alternateKey := licenseKeysForEnvironment(model.GetServiceEnvironment())
 
 	h := sha512.New()
 	h.Write(plaintext)
 	d := h.Sum(nil)
 
-	err = rsa.VerifyPKCS1v15(rsaPublic, crypto.SHA512, d, signature)
-	if err != nil {
+	if err := verifyLicenseSignature(primaryKey, d, signature); err != nil {
+		// Only a genuine signature mismatch should trigger the wrong-environment
+		// fallback. Any other failure (e.g. malformed key material) means the
+		// current environment's key is broken, so surface it unchanged.
+		if !errors.Is(err, rsa.ErrVerification) {
+			return "", err
+		}
+
+		// The license did not verify against this environment's key. If it verifies
+		// against the other environment's key, the license is genuine but was signed
+		// for a different service environment, so report which way the mismatch goes.
+		if altErr := verifyLicenseSignature(alternateKey, d, signature); altErr == nil {
+			return "", wrongEnvironmentError(model.GetServiceEnvironment())
+		} else if !errors.Is(altErr, rsa.ErrVerification) {
+			return "", altErr
+		}
 		return "", fmt.Errorf("Invalid signature: %w", err)
 	}
 
 	return string(plaintext), nil
+}
+
+// wrongEnvironmentError returns the sentinel describing a license that is genuine but
+// signed for the opposite service environment from the one this server runs in.
+func wrongEnvironmentError(environment string) error {
+	if environment == model.ServiceEnvironmentProduction {
+		// Running production, but the license verified against the test key.
+		return ErrLicenseTestInProductionEnvironment
+	}
+	// Running test/dev, but the license verified against the production key.
+	return ErrLicenseProductionInTestEnvironment
+}
+
+// licenseKeysForEnvironment returns the public key for the given service environment
+// (primary) along with the public key for the other environment (alternate).
+func licenseKeysForEnvironment(environment string) (primary, alternate []byte) {
+	switch environment {
+	case model.ServiceEnvironmentProduction:
+		return productionPublicKey, testPublicKey
+	case model.ServiceEnvironmentTest, model.ServiceEnvironmentDev:
+		return testPublicKey, productionPublicKey
+	default:
+		return nil, nil
+	}
+}
+
+// verifyLicenseSignature verifies the RSA PKCS1v15 signature of a license digest against
+// the provided PEM-encoded public key.
+func verifyLicenseSignature(publicKey, digest, signature []byte) error {
+	block, _ := pem.Decode(publicKey)
+	if block == nil {
+		return fmt.Errorf("failed to decode public key PEM block")
+	}
+
+	public, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		return fmt.Errorf("encountered error parsing public key: %w", err)
+	}
+
+	rsaPublic, ok := public.(*rsa.PublicKey)
+	if !ok {
+		return fmt.Errorf("public key is not an RSA key")
+	}
+
+	return rsa.VerifyPKCS1v15(rsaPublic, crypto.SHA512, digest, signature)
+}
+
+// NewLicenseValidationAppError converts a license validation error returned by
+// ValidateLicense into a user-facing AppError, distinguishing a license signed for the
+// wrong service environment from a generally invalid license.
+func NewLicenseValidationAppError(where string, err error) *model.AppError {
+	switch {
+	case errors.Is(err, ErrLicenseProductionInTestEnvironment):
+		return model.NewAppError(where, model.WrongEnvironmentProductionLicenseError, nil, "", http.StatusBadRequest).Wrap(err)
+	case errors.Is(err, ErrLicenseTestInProductionEnvironment):
+		return model.NewAppError(where, model.WrongEnvironmentTestLicenseError, nil, "", http.StatusBadRequest).Wrap(err)
+	}
+	return model.NewAppError(where, model.InvalidLicenseError, nil, "", http.StatusBadRequest).Wrap(err)
 }
 
 func GetAndValidateLicenseFileFromDisk(location string) (*model.License, []byte, error) {

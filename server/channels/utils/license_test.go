@@ -5,7 +5,15 @@ package utils
 
 import (
 	"bytes"
+	"crypto"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/sha512"
+	"crypto/x509"
 	"encoding/base64"
+	"encoding/pem"
+	"fmt"
+	"net/http"
 	"os"
 	"testing"
 
@@ -90,6 +98,7 @@ func TestValidateLicense(t *testing.T) {
 
 		str, err := LicenseValidator.ValidateLicense(validTestLicense)
 		require.Error(t, err)
+		require.ErrorIs(t, err, ErrLicenseTestInProductionEnvironment)
 		require.Empty(t, str)
 	})
 
@@ -109,6 +118,131 @@ func TestValidateLicense(t *testing.T) {
 		require.Empty(t, str)
 		require.Contains(t, err.Error(), "failed to decode public key PEM block")
 	})
+
+	t.Run("broken primary key is surfaced and not misreported as a wrong-environment license", func(t *testing.T) {
+		// t.Setenv prevents t.Parallel — env var has no config equivalent
+		t.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentTest)
+
+		// Corrupt the primary (test) key so its verification fails for a non-signature
+		// reason, while standing in a generated key as the alternate (production) key
+		// and signing a license with it. The broken primary key must be surfaced
+		// rather than the license being misreported as wrong-environment.
+		priv, err := rsa.GenerateKey(rand.Reader, 2048)
+		require.NoError(t, err)
+
+		originalTestKey := testPublicKey
+		originalProductionKey := productionPublicKey
+		defer func() {
+			testPublicKey = originalTestKey
+			productionPublicKey = originalProductionKey
+		}()
+		testPublicKey = []byte("not a valid PEM block")
+		productionPublicKey = marshalPublicKeyPEM(t, &priv.PublicKey)
+
+		signed := signLicense(t, priv, []byte(`{"id":"emulated-production-license"}`))
+
+		str, err := LicenseValidator.ValidateLicense(signed)
+		require.Error(t, err)
+		require.Empty(t, str)
+		require.NotErrorIs(t, err, ErrLicenseProductionInTestEnvironment)
+		require.NotErrorIs(t, err, ErrLicenseTestInProductionEnvironment)
+		require.Contains(t, err.Error(), "failed to decode public key PEM block")
+	})
+}
+
+func TestLicenseFromBytesEnvironmentMismatch(t *testing.T) {
+	t.Run("test license uploaded to a production server returns the wrong-environment error", func(t *testing.T) {
+		t.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentProduction)
+
+		license, appErr := LicenseValidator.LicenseFromBytes(validTestLicense)
+		require.Nil(t, license)
+		require.NotNil(t, appErr)
+		require.Equal(t, model.WrongEnvironmentTestLicenseError, appErr.Id)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("production license uploaded to a test/dev server returns the wrong-environment error", func(t *testing.T) {
+		t.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentTest)
+
+		// We cannot sign with the real production key, so stand in a generated key as
+		// the production key and sign a license with it to emulate a production license
+		// arriving at a test server.
+		priv, err := rsa.GenerateKey(rand.Reader, 2048)
+		require.NoError(t, err)
+
+		originalProductionKey := productionPublicKey
+		defer func() { productionPublicKey = originalProductionKey }()
+		productionPublicKey = marshalPublicKeyPEM(t, &priv.PublicKey)
+
+		signed := signLicense(t, priv, []byte(`{"id":"emulated-production-license"}`))
+
+		license, appErr := LicenseValidator.LicenseFromBytes(signed)
+		require.Nil(t, license)
+		require.NotNil(t, appErr)
+		require.Equal(t, model.WrongEnvironmentProductionLicenseError, appErr.Id)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("genuinely corrupt license returns the generic invalid error", func(t *testing.T) {
+		t.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentTest)
+
+		// A blob long enough to pass the length check but signed by no known key.
+		priv, err := rsa.GenerateKey(rand.Reader, 2048)
+		require.NoError(t, err)
+		corrupt := signLicense(t, priv, []byte(`{"id":"corrupt-license"}`))
+
+		license, appErr := LicenseValidator.LicenseFromBytes(corrupt)
+		require.Nil(t, license)
+		require.NotNil(t, appErr)
+		require.Equal(t, model.InvalidLicenseError, appErr.Id)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+}
+
+func TestNewLicenseValidationAppError(t *testing.T) {
+	t.Run("maps the production-in-test sentinel to WrongEnvironmentProductionLicenseError", func(t *testing.T) {
+		appErr := NewLicenseValidationAppError("Test", fmt.Errorf("wrap: %w", ErrLicenseProductionInTestEnvironment))
+		require.Equal(t, model.WrongEnvironmentProductionLicenseError, appErr.Id)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		require.ErrorIs(t, appErr, ErrLicenseProductionInTestEnvironment)
+	})
+
+	t.Run("maps the test-in-production sentinel to WrongEnvironmentTestLicenseError", func(t *testing.T) {
+		appErr := NewLicenseValidationAppError("Test", fmt.Errorf("wrap: %w", ErrLicenseTestInProductionEnvironment))
+		require.Equal(t, model.WrongEnvironmentTestLicenseError, appErr.Id)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		require.ErrorIs(t, appErr, ErrLicenseTestInProductionEnvironment)
+	})
+
+	t.Run("maps any other error to InvalidLicenseError", func(t *testing.T) {
+		appErr := NewLicenseValidationAppError("Test", fmt.Errorf("Invalid signature"))
+		require.Equal(t, model.InvalidLicenseError, appErr.Id)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		require.NotErrorIs(t, appErr, ErrLicenseProductionInTestEnvironment)
+		require.NotErrorIs(t, appErr, ErrLicenseTestInProductionEnvironment)
+	})
+}
+
+func signLicense(t *testing.T, priv *rsa.PrivateKey, payload []byte) []byte {
+	t.Helper()
+
+	h := sha512.New()
+	h.Write(payload)
+	digest := h.Sum(nil)
+
+	signature, err := rsa.SignPKCS1v15(rand.Reader, priv, crypto.SHA512, digest)
+	require.NoError(t, err)
+
+	raw := append(append([]byte{}, payload...), signature...)
+	return []byte(base64.StdEncoding.EncodeToString(raw))
+}
+
+func marshalPublicKeyPEM(t *testing.T, pub *rsa.PublicKey) []byte {
+	t.Helper()
+
+	der, err := x509.MarshalPKIXPublicKey(pub)
+	require.NoError(t, err)
+	return pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: der})
 }
 
 func TestGetLicenseFileLocation(t *testing.T) {
