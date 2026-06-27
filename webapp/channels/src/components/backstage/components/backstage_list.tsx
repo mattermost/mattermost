@@ -26,6 +26,7 @@ type Props = {
     helpText?: ReactNode;
     loading: boolean;
     searchPlaceholder?: string;
+    onFilterChange?: (filter: string) => void;
     nextPage?: () => void;
     previousPage?: () => void;
     page?: number;
@@ -55,7 +56,11 @@ const BackstageList = (remainingProps: Props) => {
     const {formatMessage} = useIntl();
 
     const [filter, setFilter] = useState('');
-    const updateFilter = (e: ChangeEvent<HTMLInputElement>) => setFilter(e.target.value);
+    const updateFilter = (e: ChangeEvent<HTMLInputElement>) => {
+        const nextFilter = e.target.value;
+        setFilter(nextFilter);
+        remainingProps.onFilterChange?.(nextFilter);
+    };
     const filterLowered = filter.toLowerCase();
 
     let searchPlaceholder;

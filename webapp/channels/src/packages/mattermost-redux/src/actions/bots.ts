@@ -41,13 +41,14 @@ export function loadBot(botUserId: string) {
     });
 }
 
-export function loadBots(page = 0, perPage = BOTS_PER_PAGE_DEFAULT) {
+export function loadBots(page = 0, perPage = BOTS_PER_PAGE_DEFAULT, search = '') {
     return bindClientFunc({
         clientFunc: Client4.getBotsIncludeDeleted,
         onSuccess: BotTypes.RECEIVED_BOT_ACCOUNTS,
         params: [
             page,
             perPage,
+            search,
         ],
     });
 }

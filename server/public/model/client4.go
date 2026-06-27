@@ -2115,9 +2115,27 @@ func (c *Client4) GetBotIncludeDeleted(ctx context.Context, userId string, etag 
 
 // GetBots fetches the given page of bots, excluding deleted.
 func (c *Client4) GetBots(ctx context.Context, page, perPage int, etag string) ([]*Bot, *Response, error) {
+	return c.getBots(ctx, page, perPage, false, false, "", etag)
+}
+
+// GetBotsWithSearch fetches the given page of bots matching search, excluding deleted.
+func (c *Client4) GetBotsWithSearch(ctx context.Context, page, perPage int, search string, etag string) ([]*Bot, *Response, error) {
+	return c.getBots(ctx, page, perPage, false, false, search, etag)
+}
+
+func (c *Client4) getBots(ctx context.Context, page, perPage int, includeDeleted, onlyOrphaned bool, search string, etag string) ([]*Bot, *Response, error) {
 	values := url.Values{}
 	values.Set("page", strconv.Itoa(page))
 	values.Set("per_page", strconv.Itoa(perPage))
+	if includeDeleted {
+		values.Set("include_deleted", c.boolString(true))
+	}
+	if onlyOrphaned {
+		values.Set("only_orphaned", c.boolString(true))
+	}
+	if search != "" {
+		values.Set("search", search)
+	}
 	r, err := c.doAPIGetWithQuery(ctx, c.botsRoute(), values, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -2128,30 +2146,17 @@ func (c *Client4) GetBots(ctx context.Context, page, perPage int, etag string) (
 
 // GetBotsIncludeDeleted fetches the given page of bots, including deleted.
 func (c *Client4) GetBotsIncludeDeleted(ctx context.Context, page, perPage int, etag string) ([]*Bot, *Response, error) {
-	values := url.Values{}
-	values.Set("page", strconv.Itoa(page))
-	values.Set("per_page", strconv.Itoa(perPage))
-	values.Set("include_deleted", c.boolString(true))
-	r, err := c.doAPIGetWithQuery(ctx, c.botsRoute(), values, etag)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[BotList](r)
+	return c.getBots(ctx, page, perPage, true, false, "", etag)
+}
+
+// GetBotsIncludeDeletedWithSearch fetches the given page of bots matching search, including deleted.
+func (c *Client4) GetBotsIncludeDeletedWithSearch(ctx context.Context, page, perPage int, search string, etag string) ([]*Bot, *Response, error) {
+	return c.getBots(ctx, page, perPage, true, false, search, etag)
 }
 
 // GetBotsOrphaned fetches the given page of bots, only including orphaned bots.
 func (c *Client4) GetBotsOrphaned(ctx context.Context, page, perPage int, etag string) ([]*Bot, *Response, error) {
-	values := url.Values{}
-	values.Set("page", strconv.Itoa(page))
-	values.Set("per_page", strconv.Itoa(perPage))
-	values.Set("only_orphaned", c.boolString(true))
-	r, err := c.doAPIGetWithQuery(ctx, c.botsRoute(), values, etag)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[BotList](r)
+	return c.getBots(ctx, page, perPage, false, true, "", etag)
 }
 
 // DisableBot disables the given bot in the system.

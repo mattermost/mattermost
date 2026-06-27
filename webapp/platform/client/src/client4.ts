@@ -4409,9 +4409,9 @@ export default class Client4 {
         );
     };
 
-    getBotsIncludeDeleted = (page = 0, perPage = PER_PAGE_DEFAULT) => {
+    getBotsIncludeDeleted = (page = 0, perPage = PER_PAGE_DEFAULT, search = '') => {
         return this.doFetch<Bot[]>(
-            `${this.getBotsRoute()}${buildQueryString({include_deleted: true, page, per_page: perPage})}`,
+            `${this.getBotsRoute()}${buildQueryString({include_deleted: true, page, per_page: perPage, search: search || undefined})}`,
             {method: 'get'},
         );
     };

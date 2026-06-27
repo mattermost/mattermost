@@ -59,7 +59,7 @@ type Props = {
         /**
          * Ensure we have bot accounts
          */
-        loadBots: (page?: number, perPage?: number) => Promise<ActionResult<BotType[]>>;
+        loadBots: (page?: number, perPage?: number, search?: string) => Promise<ActionResult<BotType[]>>;
 
         /**
         * Load access tokens for bot accounts
@@ -107,6 +107,8 @@ type State = {
 };
 
 export default class Bots extends React.PureComponent<Props, State> {
+    private latestSearchTerm = '';
+
     public constructor(props: Props) {
         super(props);
 
@@ -116,33 +118,43 @@ export default class Bots extends React.PureComponent<Props, State> {
     }
 
     public componentDidMount(): void {
-        this.props.actions.loadBots(
-            Constants.Integrations.START_PAGE_NUM,
-            Constants.Integrations.PAGE_SIZE,
-        ).then(
-            (result) => {
-                if (result.data) {
-                    const promises = [];
-
-                    for (const bot of result.data) {
-                        // We don't need to wait for this and we need to accept failure in the case where bot.owner_id is a plugin id
-                        this.props.actions.getUser(bot.owner_id);
-
-                        // We want to wait for these.
-                        promises.push(this.props.actions.getUser(bot.user_id));
-                        promises.push(this.props.actions.getUserAccessTokensForUser(bot.user_id));
-                    }
-
-                    Promise.all(promises).then(() => {
-                        this.setState({loading: false});
-                    });
-                }
-            },
-        );
+        this.loadBots();
         if (this.props.appsEnabled) {
             this.props.actions.fetchAppsBotIDs();
         }
     }
+
+    loadBots = (searchTerm = ''): void => {
+        this.latestSearchTerm = searchTerm;
+        this.setState({loading: true});
+        this.props.actions.loadBots(
+            Constants.Integrations.START_PAGE_NUM,
+            Constants.Integrations.PAGE_SIZE,
+            searchTerm,
+        ).then(
+            (result) => {
+                if (this.latestSearchTerm !== searchTerm) {
+                    return;
+                }
+                const promises = [];
+
+                for (const bot of result.data || []) {
+                    // We don't need to wait for this and we need to accept failure in the case where bot.owner_id is a plugin id
+                    this.props.actions.getUser(bot.owner_id);
+
+                    // We want to wait for these.
+                    promises.push(this.props.actions.getUser(bot.user_id));
+                    promises.push(this.props.actions.getUserAccessTokensForUser(bot.user_id));
+                }
+
+                Promise.all(promises).then(() => {
+                    if (this.latestSearchTerm === searchTerm) {
+                        this.setState({loading: false});
+                    }
+                });
+            },
+        );
+    };
 
     DisabledSection(props: {hasDisabled: boolean; disabledBots: JSX.Element[]; filter?: string}): JSX.Element | null {
         if (!props.hasDisabled) {
@@ -275,6 +287,7 @@ export default class Bots extends React.PureComponent<Props, State> {
                     </>
                 }
                 searchPlaceholder={Utils.localizeMessage({id: 'bots.manage.search', defaultMessage: 'Search Bot Accounts'})}
+                onFilterChange={this.loadBots}
                 loading={this.state.loading}
             >
                 {this.bots}
