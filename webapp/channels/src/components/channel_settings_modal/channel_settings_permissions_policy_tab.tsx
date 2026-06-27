@@ -600,6 +600,7 @@ function ChannelSettingsPermissionsPolicyTab({
 
         return (
             <PermissionRuleEditor
+                key={editingKey}
                 initial={initial}
                 isNew={isNew}
                 channelId={channel.id}
@@ -921,13 +922,13 @@ function PermissionRuleEditor({
     policySimulationEnabled,
 }: PermissionRuleEditorProps) {
     const {formatMessage} = useIntl();
+
+    // Seed once on mount. The parent passes a stable `key` so switching
+    // rules remounts and re-seeds here. Re-seeding from an effect keyed on
+    // `initial` instead would wipe in-progress edits on any parent re-render
+    // that rebuilds `initial` (e.g. surfacing a validation error on save).
     const [draft, setDraft] = useState<EditableRule>(initial);
     const [showTest, setShowTest] = useState(false);
-
-    // Re-seed when the editor is opened on a different rule.
-    useEffect(() => {
-        setDraft(initial);
-    }, [initial]);
 
     const actionLabels = useMemo(() => {
         const labels: Record<string, string> = {};
