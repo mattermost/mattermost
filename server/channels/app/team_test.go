@@ -2145,6 +2145,65 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		require.Len(t, res, 1)
 		require.Nil(t, res[0].Error)
 	})
+
+	t.Run("it rejects deactivated accounts while still inviting valid and active existing emails", func(t *testing.T) {
+		deactivatedUser := th.CreateUser(t)
+		_, appErr := th.App.UpdateActive(th.Context, deactivatedUser, false)
+		require.Nil(t, appErr)
+
+		// An existing, still-active account must not be rejected.
+		activeUser := th.CreateUser(t)
+
+		validEmail := "idontexist@mattermost.com"
+		goodEmails := []string{validEmail, activeUser.Email}
+		memberInvite := &model.MemberInvite{
+			Emails: []string{deactivatedUser.Email, validEmail, activeUser.Email},
+		}
+
+		emailServiceMock := emailmocks.ServiceInterface{}
+		emailServiceMock.On("SendInviteEmails",
+			mock.Anything,
+			mock.AnythingOfType("*model.Team"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"),
+			goodEmails,
+			"",
+			mock.Anything,
+			true,
+			false,
+			false,
+		).Once().Return(nil)
+		emailServiceMock.On("Stop").Once().Return()
+		th.App.Srv().EmailService = &emailServiceMock
+
+		res, err := th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
+		require.Nil(t, err)
+		require.Len(t, res, 3)
+
+		require.Equal(t, deactivatedUser.Email, res[0].Email)
+		require.NotNil(t, res[0].Error)
+		require.Equal(t, "api.team.invite_members.deactivated_email.app_error", res[0].Error.Id)
+
+		require.Equal(t, validEmail, res[1].Email)
+		require.Nil(t, res[1].Error)
+
+		require.Equal(t, activeUser.Email, res[2].Email)
+		require.Nil(t, res[2].Error)
+
+		// The deactivated email must be filtered out of the actual send.
+		emailServiceMock.AssertCalled(t, "SendInviteEmails",
+			mock.Anything,
+			mock.AnythingOfType("*model.Team"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"),
+			goodEmails,
+			"",
+			mock.Anything,
+			true,
+			false,
+			false,
+		)
+	})
 }
 
 func TestInviteGuestsToChannelsGracefully(t *testing.T) {

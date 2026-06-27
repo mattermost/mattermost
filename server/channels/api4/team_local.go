@@ -144,6 +144,12 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 			if !isEmailAddressAllowed(email, allowedDomains) {
 				invite.Error = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": email}, "", http.StatusBadRequest)
 				errList = append(errList, model.EmailInviteWithErrorToString(invite))
+			} else if deactivated, dErr := isEmailDeactivated(c, email); dErr != nil {
+				c.Err = dErr
+				return
+			} else if deactivated {
+				invite.Error = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.deactivated_email.app_error", map[string]any{"Addresses": email}, "", http.StatusBadRequest)
+				errList = append(errList, model.EmailInviteWithErrorToString(invite))
 			} else {
 				goodEmails = append(goodEmails, email)
 			}
@@ -184,15 +190,31 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 		}
 	} else {
 		var invalidEmailList []string
+		var deactivatedEmailList []string
 
 		for _, email := range emailList {
 			if !isEmailAddressAllowed(email, allowedDomains) {
 				invalidEmailList = append(invalidEmailList, email)
+				continue
+			}
+
+			deactivated, dErr := isEmailDeactivated(c, email)
+			if dErr != nil {
+				c.Err = dErr
+				return
+			}
+			if deactivated {
+				deactivatedEmailList = append(deactivatedEmailList, email)
 			}
 		}
 		if len(invalidEmailList) > 0 {
 			s := strings.Join(invalidEmailList, ", ")
 			c.Err = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": s}, "", http.StatusBadRequest)
+			return
+		}
+		if len(deactivatedEmailList) > 0 {
+			s := strings.Join(deactivatedEmailList, ", ")
+			c.Err = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.deactivated_email.app_error", map[string]any{"Addresses": s}, "", http.StatusBadRequest)
 			return
 		}
 		err := c.App.Srv().EmailService.SendInviteEmails(c.AppContext, team, "Administrator", "mmctl "+model.NewId(), emailList, *c.App.Config().ServiceSettings.SiteURL, nil, false, true, false)
@@ -210,6 +232,20 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 		ReturnStatusOK(w)
 	}
 	auditRec.Success()
+}
+
+// isEmailDeactivated reports whether the email belongs to an existing account
+// that has been deactivated. A missing account is not considered deactivated.
+func isEmailDeactivated(c *Context, email string) (bool, *model.AppError) {
+	user, appErr := c.App.GetUserByEmail(email)
+	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			return false, nil
+		}
+		return false, appErr
+	}
+
+	return user.DeleteAt != 0, nil
 }
 
 func isEmailAddressAllowed(email string, allowedDomains []string) bool {
