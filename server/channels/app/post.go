@@ -567,8 +567,9 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 		// This includes public channels and private channels where creator is a member
 		// Prevents information disclosure while supporting private channel mentions for members
 		for _, mentioned := range mentionedChannels {
-			// Resolve the channel mention if the post creator may see the channel's name/link.
-			if a.HasPermissionToResolveChannelMention(rctx, post.UserId, mentioned) {
+			// Check if post creator has permission to read this channel
+			// HasPermissionToReadChannel returns (hasPermission, isMember) for audit logging
+			if hasPermission, _ := a.HasPermissionToReadChannel(rctx, post.UserId, mentioned); hasPermission {
 				team, err := a.Srv().Store().Team().Get(mentioned.TeamId)
 				if err != nil {
 					rctx.Logger().Warn("Failed to get team of the channel mention", mlog.String("team_id", channel.TeamId), mlog.String("channel_id", channel.Id), mlog.Err(err))
@@ -988,6 +989,50 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 	appErr = a.publishWebsocketEventForPost(rctx, rpost, message)
 	if appErr != nil {
 		return nil, false, appErr
+	}
+
+	// Notify users who were newly @mentioned by the edit (issue #34859).
+	// The original CreatePost flow runs SendNotifications once; UpdatePost
+	// otherwise never does, so adding a mention via edit reaches only
+	// clients currently rendering the channel. Compare the @-mentions in
+	// the old and new message bodies and run SendNotifications against a
+	// synthetic post that contains only the newly added mention tokens.
+	if rpost.Message != oldPost.Message {
+		mentionRegex := regexp.MustCompile(`(?i)\B@([a-z0-9.\-_]+)`)
+		oldMentions := map[string]bool{}
+		for _, m := range mentionRegex.FindAllStringSubmatch(oldPost.Message, -1) {
+			oldMentions[strings.ToLower(m[1])] = true
+		}
+		var addedMentions []string
+		for _, m := range mentionRegex.FindAllStringSubmatch(rpost.Message, -1) {
+			if !oldMentions[strings.ToLower(m[1])] {
+				addedMentions = append(addedMentions, "@"+m[1])
+			}
+		}
+		if len(addedMentions) > 0 {
+			// DM/GM channels have no team, so fall back to an empty Team
+			// the way handlePostEvents does for the create path.
+			editTeam := &model.Team{}
+			if channel.TeamId != "" {
+				if t, teamErr := a.GetTeam(channel.TeamId); teamErr == nil {
+					editTeam = t
+				} else {
+					rctx.Logger().Warn("Failed to get team for edited post mentions", mlog.String("channel_id", channel.Id), mlog.Err(teamErr))
+					editTeam = nil
+				}
+			}
+			if editTeam != nil {
+				if editSender, userErr := a.GetUser(rpost.UserId); userErr == nil {
+					editNotifyPost := rpost.Clone()
+					editNotifyPost.Message = strings.Join(addedMentions, " ")
+					a.Srv().Go(func() {
+						if _, sendErr := a.SendNotifications(rctx, editNotifyPost, editTeam, channel, editSender, nil, true); sendErr != nil {
+							rctx.Logger().Warn("Failed to send notifications for edited post mentions", mlog.String("post_id", rpost.Id), mlog.Err(sendErr))
+						}
+					})
+				}
+			}
+		}
 	}
 
 	a.invalidateCacheForChannelPosts(rpost.ChannelId)
