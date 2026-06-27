@@ -13,6 +13,7 @@ exports[`components/app_bar/app_bar should match snapshot on mount 1`] = `
         id="app-bar-icon-playbooks"
       >
         <div
+          aria-label="Playbooks Tooltip"
           class="app-bar__old-icon app-bar__icon-inner app-bar__icon-inner--centered"
           role="button"
           tabindex="0"
@@ -52,6 +53,7 @@ exports[`components/app_bar/app_bar should match snapshot on mount when App Bar 
         id="app-bar-icon-playbooks"
       >
         <div
+          aria-label="Playbooks Tooltip"
           class="app-bar__old-icon app-bar__icon-inner app-bar__icon-inner--centered"
           role="button"
           tabindex="0"
