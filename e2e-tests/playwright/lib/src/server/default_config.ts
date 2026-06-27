@@ -807,8 +807,8 @@ const defaultServerConfig: AdminConfig = {
         MoveThreadFromGroupMessageChannelEnable: false,
     },
     ConnectedWorkspacesSettings: {
-        EnableSharedChannels: false,
-        EnableRemoteClusterService: false,
+        EnableSharedChannels: true,
+        EnableRemoteClusterService: true,
         DisableSharedChannelsStatusSync: false,
         SyncUsersOnConnectionOpen: false,
         GlobalUserSyncBatchSize: 25,

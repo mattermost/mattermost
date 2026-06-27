@@ -818,6 +818,80 @@ func TestDeleteRemoteClusterUnsharesOrphanSharedChannels(t *testing.T) {
 	require.False(t, chAfter.IsShared())
 }
 
+func TestDeleteRemoteClusterDeletesSharedChannelInvitations(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupForSharedChannels(t).InitBasic(t)
+
+	rc, appErr := th.App.AddRemoteCluster(&model.RemoteCluster{
+		Name:        "delete-invitations-remote",
+		DisplayName: "delete-invitations-remote",
+		SiteURL:     "http://delete-invitations.example.com",
+		Token:       model.NewId(),
+		CreatorId:   th.SystemAdminUser.Id,
+	})
+	require.Nil(t, appErr)
+
+	otherRC, appErr := th.App.AddRemoteCluster(&model.RemoteCluster{
+		Name:        "delete-invitations-other-remote",
+		DisplayName: "delete-invitations-other-remote",
+		SiteURL:     "http://delete-invitations-other.example.com",
+		Token:       model.NewId(),
+		CreatorId:   th.SystemAdminUser.Id,
+	})
+	require.Nil(t, appErr)
+
+	channel := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypeOpen, th.BasicTeam.Id)
+	sc := &model.SharedChannel{
+		ChannelId: channel.Id,
+		TeamId:    channel.TeamId,
+		Home:      true,
+		ShareName: "delete_invitations_chan",
+		CreatorId: th.SystemAdminUser.Id,
+		RemoteId:  model.NewId(),
+	}
+	_, err := th.App.ShareChannel(th.Context, sc)
+	require.NoError(t, err)
+
+	for _, remote := range []*model.RemoteCluster{rc, otherRC} {
+		scr := &model.SharedChannelRemote{
+			ChannelId:         channel.Id,
+			CreatorId:         th.SystemAdminUser.Id,
+			RemoteId:          remote.RemoteId,
+			IsInviteConfirmed: true,
+		}
+		_, err = th.App.Srv().Store().SharedChannel().SaveRemote(scr)
+		require.NoError(t, err)
+	}
+
+	inv, err := th.App.Srv().Store().SharedChannelInvitation().Save(&model.SharedChannelInvitation{
+		ChannelId: channel.Id,
+		RemoteId:  rc.RemoteId,
+		Direction: model.SharedChannelInvitationDirectionSent,
+		Status:    model.SharedChannelInvitationStatusFailed,
+		CreatorId: th.SystemAdminUser.Id,
+	})
+	require.NoError(t, err)
+
+	otherInv, err := th.App.Srv().Store().SharedChannelInvitation().Save(&model.SharedChannelInvitation{
+		ChannelId: channel.Id,
+		RemoteId:  otherRC.RemoteId,
+		Direction: model.SharedChannelInvitationDirectionSent,
+		Status:    model.SharedChannelInvitationStatusFailed,
+		CreatorId: th.SystemAdminUser.Id,
+	})
+	require.NoError(t, err)
+
+	deleted, appErr := th.App.DeleteRemoteCluster(rc.RemoteId)
+	require.Nil(t, appErr)
+	require.True(t, deleted)
+
+	_, err = th.App.Srv().Store().SharedChannelInvitation().Get(inv.Id)
+	require.Error(t, err, "invitations for deleted remote should be removed")
+
+	_, err = th.App.Srv().Store().SharedChannelInvitation().Get(otherInv.Id)
+	require.NoError(t, err, "invitations for remaining remotes should be kept")
+}
+
 func TestDeleteRemoteClusterKeepsSharedChannelWhenOtherRemoteRemains(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := setupForSharedChannels(t).InitBasic(t)

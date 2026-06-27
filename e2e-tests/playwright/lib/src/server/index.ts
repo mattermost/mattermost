@@ -34,3 +34,25 @@ export {
     updateUserAttributes,
 } from './abac_helpers';
 export {installAndEnablePlugin, isPluginActive, getPluginStatus} from './plugin';
+export {
+    MockRemoteClusterServer,
+    SHARED_CHANNEL_MSG_TOPICS,
+    REMOTE_CLUSTER_HEADERS,
+    REMOTE_CLUSTER_RESPONSE_STATUS,
+    buildRemoteClusterMsgOkResponse,
+    type MockOutboundPeer,
+    type MockRemoteClusterInboundRecord,
+    type MockRemoteClusterServerOptions,
+    type NextConfirmInviteDecision,
+    type NextRemoteClusterMsgDecision,
+    type RemoteClusterFrameWire,
+    type RemoteClusterMsgResponseWire,
+} from './mock_remote_cluster_server';
+export {
+    mattermostNewId,
+    decryptRemoteClusterInviteFromBase64,
+    postRemoteClusterConfirmInviteFromPeer,
+    type DecryptedRemoteClusterInvite,
+    type PostRemoteClusterConfirmInviteFromPeerParams,
+    type PostRemoteClusterConfirmInviteFromPeerResult,
+} from './remote_cluster_peer_confirm';

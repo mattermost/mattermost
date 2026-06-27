@@ -189,6 +189,69 @@ func (a *App) GetSharedChannelRemotesStatus(channelID string) ([]*model.SharedCh
 	return a.Srv().Store().SharedChannel().GetRemotesStatus(channelID)
 }
 
+func (a *App) GetSharedChannelInvitationsByRemote(remoteID string, page, perPage int) ([]*model.SharedChannelInvitation, error) {
+	offset := page * perPage
+	opts := model.SharedChannelInvitationFilterOpts{RemoteId: remoteID}
+
+	// We get from master to make sure we get the latest data
+	// just after we create a new invitation.
+	return a.Srv().Store().SharedChannelInvitation().GetAllFromMaster(opts, offset, perPage)
+}
+
+func (a *App) GetSharedChannelInvitationsByChannel(channelID string, page, perPage int) ([]*model.SharedChannelInvitation, error) {
+	offset := page * perPage
+	opts := model.SharedChannelInvitationFilterOpts{ChannelId: channelID}
+
+	// We get from master to make sure we get the latest data
+	// just after we create a new invitation.
+	return a.Srv().Store().SharedChannelInvitation().GetAllFromMaster(opts, offset, perPage)
+}
+
+// RemoveSharedChannelInvitation removes a stored invitation for the given remote.
+// Failed or rejected rows are deleted from the database only.
+// Pending rows withdraw the share for that remote (same as uninvite) when a link exists; otherwise the orphan row is deleted.
+func (a *App) RemoveSharedChannelInvitation(remoteID, invitationID string) error {
+	inv, err := a.Srv().Store().SharedChannelInvitation().Get(invitationID)
+	if err != nil {
+		if isNotFoundError(err) {
+			return model.NewAppError("RemoveSharedChannelInvitation", "api.shared_channel.delete_invitation.not_found", nil, "", http.StatusNotFound).Wrap(err)
+		}
+		return model.NewAppError("RemoveSharedChannelInvitation", "api.shared_channel.delete_invitation.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if inv.RemoteId != remoteID {
+		return model.NewAppError("RemoveSharedChannelInvitation", "api.shared_channel.delete_invitation.remote_mismatch", nil, "invitation_remote_id="+inv.RemoteId, http.StatusBadRequest)
+	}
+
+	switch inv.Status {
+	case model.SharedChannelInvitationStatusFailed, model.SharedChannelInvitationStatusRejected:
+		if err := a.Srv().Store().SharedChannelInvitation().Delete(invitationID); err != nil {
+			return model.NewAppError("RemoveSharedChannelInvitation", "api.shared_channel.delete_invitation.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		return nil
+	case model.SharedChannelInvitationStatusPending:
+		switch inv.Direction {
+		case model.SharedChannelInvitationDirectionSent:
+			return a.UninviteRemoteFromChannel(inv.ChannelId, inv.RemoteId)
+		case model.SharedChannelInvitationDirectionReceived:
+			hasRemote, hasErr := a.HasRemote(inv.ChannelId, inv.RemoteId)
+			if hasErr != nil {
+				return model.NewAppError("RemoveSharedChannelInvitation", "api.shared_channel.has_remote_error", nil, "", http.StatusInternalServerError).Wrap(hasErr)
+			}
+			if hasRemote {
+				return a.UninviteRemoteFromChannel(inv.ChannelId, inv.RemoteId)
+			}
+			if err := a.Srv().Store().SharedChannelInvitation().Delete(invitationID); err != nil {
+				return model.NewAppError("RemoveSharedChannelInvitation", "api.shared_channel.delete_invitation.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		default:
+			return model.NewAppError("RemoveSharedChannelInvitation", "api.shared_channel.delete_invitation.invalid_direction", nil, "direction="+inv.Direction, http.StatusBadRequest)
+		}
+	default:
+		return model.NewAppError("RemoveSharedChannelInvitation", "api.shared_channel.delete_invitation.invalid_status", nil, "status="+inv.Status, http.StatusBadRequest)
+	}
+}
+
 // SharedChannelUsers
 
 func (a *App) NotifySharedChannelUserUpdate(user *model.User) {

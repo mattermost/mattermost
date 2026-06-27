@@ -19,6 +19,9 @@ func (api *API) InitSharedChannels() {
 	api.BaseRoutes.SharedChannels.Handle("/users/{user_id:[A-Za-z0-9]+}/can_dm/{other_user_id:[A-Za-z0-9]+}", api.APISessionRequired(canUserDirectMessage)).Methods(http.MethodGet)
 
 	api.BaseRoutes.SharedChannelRemotes.Handle("", api.APISessionRequired(getSharedChannelRemotesByRemoteCluster)).Methods(http.MethodGet)
+	api.BaseRoutes.SharedChannelInvitations.Handle("", api.APISessionRequired(getSharedChannelInvitationsByRemoteCluster)).Methods(http.MethodGet)
+	api.BaseRoutes.SharedChannelInvitations.Handle("/{shared_channel_invitation_id:[A-Za-z0-9]+}", api.APISessionRequired(deleteSharedChannelInvitation)).Methods(http.MethodDelete)
+	api.BaseRoutes.Channel.Handle("/shared_channel_invitations", api.APISessionRequired(getSharedChannelInvitationsForChannel)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelForRemote.Handle("/invite", api.APISessionRequired(inviteRemoteClusterToChannel)).Methods(http.MethodPost)
 	api.BaseRoutes.ChannelForRemote.Handle("/uninvite", api.APISessionRequired(uninviteRemoteClusterToChannel)).Methods(http.MethodPost)
 }
@@ -138,6 +141,123 @@ func getSharedChannelRemotesByRemoteCluster(c *Context, w http.ResponseWriter, r
 	if err := json.NewEncoder(w).Encode(sharedChannelRemotes); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+func getSharedChannelInvitationsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	c.RequirePermissionToManageSecureConnectionsOrSharedChannels()
+	if c.Err != nil {
+		return
+	}
+
+	if _, appErr := c.App.GetRemoteClusterService(); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if _, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	invitations, err := c.App.GetSharedChannelInvitationsByChannel(c.Params.ChannelId, c.Params.Page, c.Params.PerPage)
+	if err != nil {
+		c.Err = model.NewAppError("getSharedChannelInvitationsForChannel", "api.shared_channel.get_invitations.error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(invitations); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func getSharedChannelInvitationsByRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireRemoteId()
+	if c.Err != nil {
+		return
+	}
+
+	c.RequirePermissionToManageSecureConnectionsOrSharedChannels()
+	if c.Err != nil {
+		return
+	}
+
+	if _, appErr := c.App.GetRemoteClusterService(); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if _, appErr := c.App.GetRemoteCluster(c.Params.RemoteId, true); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	invitations, err := c.App.GetSharedChannelInvitationsByRemote(c.Params.RemoteId, c.Params.Page, c.Params.PerPage)
+	if err != nil {
+		c.Err = model.NewAppError("getSharedChannelInvitationsByRemoteCluster", "api.shared_channel.get_invitations.error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(invitations); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func deleteSharedChannelInvitation(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireRemoteId().RequireSharedChannelInvitationId()
+	if c.Err != nil {
+		return
+	}
+
+	c.RequirePermissionToManageSecureConnectionsOrSharedChannels()
+	if c.Err != nil {
+		return
+	}
+
+	if _, appErr := c.App.GetRemoteClusterService(); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if _, appErr := c.App.GetRemoteCluster(c.Params.RemoteId, true); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	var invitation *model.SharedChannelInvitation
+	if inv, invErr := c.App.Srv().Store().SharedChannelInvitation().Get(c.Params.SharedChannelInvitationId); invErr == nil {
+		invitation = inv
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventSharedChannelInvitationDeleted, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "remote_id", c.Params.RemoteId)
+	model.AddEventParameterToAuditRec(auditRec, "shared_channel_invitation_id", c.Params.SharedChannelInvitationId)
+	model.AddEventParameterToAuditRec(auditRec, "user_id", c.AppContext.Session().UserId)
+
+	if err := c.App.RemoveSharedChannelInvitation(c.Params.RemoteId, c.Params.SharedChannelInvitationId); err != nil {
+		if appErr, ok := err.(*model.AppError); ok {
+			c.Err = appErr
+		} else {
+			c.Err = model.NewAppError("deleteSharedChannelInvitation", "api.shared_channel.delete_invitation.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		return
+	}
+
+	if invitation != nil {
+		auditRec.AddEventResultState(invitation)
+		auditRec.AddEventObjectType("shared_channel_invitation")
+		if ch, chAppErr := c.App.GetChannel(c.AppContext, invitation.ChannelId); chAppErr == nil && ch != nil {
+			auditRec.AddEventPriorState(ch)
+		}
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
 }
 
 func inviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.Request) {
