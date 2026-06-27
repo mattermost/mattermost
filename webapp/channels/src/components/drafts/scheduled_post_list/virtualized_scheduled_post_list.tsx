@@ -19,8 +19,25 @@ const TARGET_ID_QUERY_PARAM = 'target_id';
 const OVERSCAN_ROW_COUNT = 10; // no. of rows
 const ROW_HEIGHT_CHANGE_TOLERANCE = 2; // in px
 
+// Estimate used for rows that haven't been measured yet. Providing a non-zero
+// estimate lets react-window compute approximate offsets so it can scroll to a
+// target post that is far down the list (target_id navigation) before that row
+// has been rendered and measured.
+const ESTIMATED_ROW_HEIGHT = 91; // in px
+
 const FRAME_RATE = 60; // in Hz
 const RESIZE_DEBOUNCE_TIME = Math.round(1000 / FRAME_RATE); // in ms
+
+// Approximate scroll offset that centers the target row on mount using the
+// estimated row height. The exact position is corrected by useScrollOnRender
+// once the target row renders and its real height is known.
+function getInitialScrollOffset(targetIndex: number, viewportHeight: number) {
+    if (targetIndex <= 0) {
+        return 0;
+    }
+
+    return Math.max(0, ((targetIndex * ESTIMATED_ROW_HEIGHT) - (viewportHeight / 2)) + (ESTIMATED_ROW_HEIGHT / 2));
+}
 
 type Props = {
     scheduledPosts: ScheduledPost[];
@@ -54,7 +71,10 @@ export default function ScheduledPostList(props: Props) {
 
     const getItemSize = useCallback((index: number) => {
         const postId = index < props.scheduledPosts.length ? props.scheduledPosts[index].id : '';
-        return postId ? (itemHeightCacheMap.current.get(postId) || 0) : 0;
+        if (!postId) {
+            return 0;
+        }
+        return itemHeightCacheMap.current.get(postId) || ESTIMATED_ROW_HEIGHT;
     }, [props.scheduledPosts]);
 
     // Update cached sizes when list items change
@@ -80,24 +100,31 @@ export default function ScheduledPostList(props: Props) {
         }
     }, [props.scheduledPosts]);
 
-    // Find the target post index for scrolling
+    // Index of the post the target_id query param points to: the first
+    // non-errored scheduled post in the target channel or thread.
+    const targetIndex = useMemo(() => {
+        if (!scheduledPostTargetId) {
+            return -1;
+        }
+
+        return props.scheduledPosts.findIndex((post) => {
+            const isInTargetChannelOrThread = post.channel_id === scheduledPostTargetId || post.root_id === scheduledPostTargetId;
+            const hasError = Boolean(post.error_code);
+            return isInTargetChannelOrThread && !hasError;
+        });
+    }, [props.scheduledPosts, scheduledPostTargetId]);
+
+    // Scroll the target post into view when posts arrive or change after the
+    // list has mounted. The very first mount is handled by initialScrollOffset
+    // below, since the list ref isn't available until AutoSizer has measured.
     useEffect(() => {
-        if (!scheduledPostTargetId || !listRef.current) {
+        if (targetIndex === -1 || !listRef.current || targetScheduledPostId.current) {
             return;
         }
 
-        // Find the target post index
-        const targetIndex = props.scheduledPosts.findIndex((post) => {
-            const isInTargetChannelOrThread = post.channel_id === scheduledPostTargetId || post.root_id === scheduledPostTargetId;
-            const hasError = Boolean(post.error_code);
-            return isInTargetChannelOrThread && !hasError && !targetScheduledPostId.current;
-        });
-
-        if (targetIndex !== -1) {
-            targetScheduledPostId.current = props.scheduledPosts[targetIndex].id;
-            listRef.current.scrollToItem(targetIndex, 'center');
-        }
-    }, [props.scheduledPosts, scheduledPostTargetId]);
+        targetScheduledPostId.current = props.scheduledPosts[targetIndex].id;
+        listRef.current.scrollToItem(targetIndex, 'center');
+    }, [props.scheduledPosts, targetIndex]);
 
     const itemData = useMemo(() => ({
         scheduledPosts: props.scheduledPosts,
@@ -110,21 +137,25 @@ export default function ScheduledPostList(props: Props) {
     }), [props.scheduledPosts, props.userDisplayName, props.currentUser, props.userStatus, setRowHeight, scheduledPostTargetId]);
 
     return (
-        <AutoSizer>
-            {({height, width}) => (
-                <VariableSizeList
-                    ref={listRef}
-                    height={height}
-                    width={width}
-                    itemCount={props.scheduledPosts.length}
-                    itemSize={getItemSize}
-                    itemData={itemData}
-                    overscanCount={OVERSCAN_ROW_COUNT}
-                >
-                    {Row}
-                </VariableSizeList>
-            )}
-        </AutoSizer>
+        <div className='ScheduledPostList__main'>
+            <AutoSizer>
+                {({height, width}) => (
+                    <VariableSizeList
+                        ref={listRef}
+                        height={height}
+                        width={width}
+                        itemCount={props.scheduledPosts.length}
+                        itemSize={getItemSize}
+                        estimatedItemSize={ESTIMATED_ROW_HEIGHT}
+                        initialScrollOffset={getInitialScrollOffset(targetIndex, height)}
+                        itemData={itemData}
+                        overscanCount={OVERSCAN_ROW_COUNT}
+                    >
+                        {Row}
+                    </VariableSizeList>
+                )}
+            </AutoSizer>
+        </div>
     );
 }
 
