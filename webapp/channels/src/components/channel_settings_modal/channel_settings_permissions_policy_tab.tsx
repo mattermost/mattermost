@@ -587,7 +587,7 @@ function ChannelSettingsPermissionsPolicyTab({
             key: '__new__',
             name: '',
             role: ACCESS_CONTROL_CHANNEL_ROLE_USER,
-            actions: [ACCESS_CONTROL_ACTION_UPLOAD_FILE],
+            actions: [],
             expression: '',
         } : rules.find((r) => r.key === editingKey);
 
