@@ -157,6 +157,30 @@ func TestCommandResponseFromJSON(t *testing.T) {
 			false,
 		},
 		{
+			"invalid response type should fail validation",
+			`{"text": "hello","response_type": "shliapa_type"}`,
+			nil,
+			true,
+		},
+		{
+			"text exceeding length limits should fail validation",
+			`{"text": "` + strings.Repeat("a", 65536) + `", "response_type": "in_channel"}`,
+			nil,
+			true,
+		},
+		{
+			"invalid response type inside extra_responses should fail validation",
+			`{
+                "text": "main ok",
+                "response_type": "in_channel",
+                "extra_responses": [
+                    {"text": "nested bad", "response_type": "invalid_nested_type"}
+                ]
+            }`,
+			nil,
+			true,
+		},
+		{
 			"multiple responses returned, with attachments",
 			`
 			{
@@ -209,6 +233,7 @@ func TestCommandResponseFromJSON(t *testing.T) {
 
 			response, err := CommandResponseFromJSON(strings.NewReader(testCase.Json))
 			if testCase.ShouldError {
+				assert.Error(t, err)
 				assert.Nil(t, response)
 			} else {
 				assert.NoError(t, err)
