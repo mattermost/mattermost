@@ -272,24 +272,43 @@ func (s SqlUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*m
 }
 
 // GetExpiringTokens returns active, non-bot tokens belonging to non-deactivated
-// users whose non-zero ExpiresAt falls within the window (now, now+horizon],
-// up to the given limit. Bot tokens are excluded because bot accounts are exempt
-// from the expiry policy and have no human inbox to notify.
+// users that need a pre-expiry warning for one of the given day thresholds
+// (e.g. 7/3/1), ordered most-urgent first, up to the given limit. Bot tokens are
+// excluded because bot accounts are exempt from the expiry policy and have no
+// human inbox to notify.
 //
-// The LastNotifiedThreshold filter (IS NULL OR > 1) is a cheap pre-filter that
-// drops tokens already at the terminal 1-day warning; the worker still computes
-// each token's exact warning bucket and applies the precise dedup check. The
-// secret Token column is intentionally NOT selected — callers use the returned
-// rows for metadata (notification, marker update) only.
+// Only *actionable* rows are returned: for each threshold T a token qualifies
+// when it has entered the T-day bucket (ExpiresAt <= now + T days) and has not
+// yet been notified at T or a more urgent bucket (LastNotifiedThreshold IS NULL
+// OR > T). OR-ing this across every threshold yields exactly the tokens whose
+// current (most urgent) bucket is still un-notified, so tokens already warned at
+// their current bucket never consume a result slot — without this, a backlog of
+// already-warned tokens ordered ahead of a less-urgent unnotified token could
+// starve it past the limit on every run. The worker still recomputes each
+// token's bucket and re-checks the marker as a guard against races. The secret
+// Token column is intentionally NOT selected — callers use the returned rows for
+// metadata (notification, marker update) only.
 //
-// A non-positive limit returns an empty slice without hitting the DB rather than
-// relying on the int -> uint64 cast (which would otherwise wrap a negative value
-// into an enormous unsigned limit and effectively disable the bound).
-func (s SqlUserAccessTokenStore) GetExpiringTokens(now int64, horizon int64, limit int) ([]*model.UserAccessToken, error) {
+// A non-positive limit or empty thresholds returns an empty slice without
+// hitting the DB rather than relying on the int -> uint64 cast (which would
+// otherwise wrap a negative value into an enormous unsigned limit and
+// effectively disable the bound).
+func (s SqlUserAccessTokenStore) GetExpiringTokens(now int64, thresholds []int, limit int) ([]*model.UserAccessToken, error) {
 	tokens := []*model.UserAccessToken{}
 
-	if limit <= 0 {
+	if limit <= 0 || len(thresholds) == 0 {
 		return tokens, nil
+	}
+
+	actionable := sq.Or{}
+	for _, t := range thresholds {
+		actionable = append(actionable, sq.And{
+			sq.LtOrEq{"UserAccessTokens.ExpiresAt": now + int64(t)*model.DayInMilliseconds},
+			sq.Or{
+				sq.Eq{"UserAccessTokens.LastNotifiedThreshold": nil},
+				sq.Gt{"UserAccessTokens.LastNotifiedThreshold": t},
+			},
+		})
 	}
 
 	query := s.getQueryBuilder().
@@ -306,13 +325,9 @@ func (s SqlUserAccessTokenStore) GetExpiringTokens(now int64, horizon int64, lim
 		LeftJoin("Bots ON Bots.UserId = UserAccessTokens.UserId").
 		Where(sq.Eq{"UserAccessTokens.IsActive": true}).
 		Where(sq.Gt{"UserAccessTokens.ExpiresAt": now}).
-		Where(sq.LtOrEq{"UserAccessTokens.ExpiresAt": now + horizon}).
 		Where(sq.Eq{"Users.DeleteAt": 0}).
 		Where(sq.Eq{"Bots.UserId": nil}).
-		Where(sq.Or{
-			sq.Eq{"UserAccessTokens.LastNotifiedThreshold": nil},
-			sq.Gt{"UserAccessTokens.LastNotifiedThreshold": 1},
-		}).
+		Where(actionable).
 		OrderBy("UserAccessTokens.ExpiresAt ASC").
 		Limit(uint64(limit))
 

@@ -18189,11 +18189,11 @@ func (s *RetryLayerUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit in
 
 }
 
-func (s *RetryLayerUserAccessTokenStore) GetExpiringTokens(now int64, horizon int64, limit int) ([]*model.UserAccessToken, error) {
+func (s *RetryLayerUserAccessTokenStore) GetExpiringTokens(now int64, thresholds []int, limit int) ([]*model.UserAccessToken, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserAccessTokenStore.GetExpiringTokens(now, horizon, limit)
+		result, err := s.UserAccessTokenStore.GetExpiringTokens(now, thresholds, limit)
 		if err == nil {
 			return result, nil
 		}

@@ -306,9 +306,9 @@ func (_m *UserAccessTokenStore) UpdateTokenDisable(tokenID string) error {
 	return r0
 }
 
-// GetExpiringTokens provides a mock function with given fields: now, horizon, limit
-func (_m *UserAccessTokenStore) GetExpiringTokens(now int64, horizon int64, limit int) ([]*model.UserAccessToken, error) {
-	ret := _m.Called(now, horizon, limit)
+// GetExpiringTokens provides a mock function with given fields: now, thresholds, limit
+func (_m *UserAccessTokenStore) GetExpiringTokens(now int64, thresholds []int, limit int) ([]*model.UserAccessToken, error) {
+	ret := _m.Called(now, thresholds, limit)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetExpiringTokens")
@@ -316,19 +316,19 @@ func (_m *UserAccessTokenStore) GetExpiringTokens(now int64, horizon int64, limi
 
 	var r0 []*model.UserAccessToken
 	var r1 error
-	if rf, ok := ret.Get(0).(func(int64, int64, int) ([]*model.UserAccessToken, error)); ok {
-		return rf(now, horizon, limit)
+	if rf, ok := ret.Get(0).(func(int64, []int, int) ([]*model.UserAccessToken, error)); ok {
+		return rf(now, thresholds, limit)
 	}
-	if rf, ok := ret.Get(0).(func(int64, int64, int) []*model.UserAccessToken); ok {
-		r0 = rf(now, horizon, limit)
+	if rf, ok := ret.Get(0).(func(int64, []int, int) []*model.UserAccessToken); ok {
+		r0 = rf(now, thresholds, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.UserAccessToken)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(int64, int64, int) error); ok {
-		r1 = rf(now, horizon, limit)
+	if rf, ok := ret.Get(1).(func(int64, []int, int) error); ok {
+		r1 = rf(now, thresholds, limit)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -361,7 +361,7 @@ func testUserAccessTokenExpiry(t *testing.T, rctx request.CTX, ss store.Store) {
 
 func testUserAccessTokenGetExpiring(t *testing.T, rctx request.CTX, ss store.Store) {
 	now := model.GetMillis()
-	horizon := int64(7) * dayMillisTest
+	thresholds := []int{1, 3, 7}
 
 	activeUser, err := ss.User().Save(rctx, &model.User{Email: MakeEmail(), Username: model.NewUsername()})
 	require.NoError(t, err)
@@ -429,7 +429,7 @@ func testUserAccessTokenGetExpiring(t *testing.T, rctx request.CTX, ss store.Sto
 		_ = ss.User().PermanentDelete(rctx, deletedUser.Id)
 	})
 
-	rows, err := ss.UserAccessToken().GetExpiringTokens(now, horizon, 100)
+	rows, err := ss.UserAccessToken().GetExpiringTokens(now, thresholds, 100)
 	require.NoError(t, err)
 
 	got := make(map[string]*model.UserAccessToken)
@@ -451,13 +451,37 @@ func testUserAccessTokenGetExpiring(t *testing.T, rctx request.CTX, ss store.Sto
 	require.NotNil(t, got[stillNotify.Id].LastNotifiedThreshold)
 	require.Equal(t, 7, *got[stillNotify.Id].LastNotifiedThreshold)
 
-	// Non-positive limits short-circuit.
-	zero, err := ss.UserAccessToken().GetExpiringTokens(now, horizon, 0)
+	// Results must be ordered by ExpiresAt ascending (most urgent first); the
+	// worker relies on this to drain a batch in expiry order. stillNotify (2d)
+	// must come before inWindow (5d), and the slice must be non-decreasing.
+	var prev int64
+	for i, row := range rows {
+		if i > 0 {
+			require.GreaterOrEqual(t, row.ExpiresAt, prev, "GetExpiringTokens must return rows in ExpiresAt ascending order")
+		}
+		prev = row.ExpiresAt
+	}
+	require.Less(t, indexOfToken(rows, stillNotify.Id), indexOfToken(rows, inWindow.Id), "sooner-expiring token must be returned first")
+
+	// Non-positive limit and empty thresholds short-circuit.
+	zero, err := ss.UserAccessToken().GetExpiringTokens(now, thresholds, 0)
 	require.NoError(t, err)
 	require.Empty(t, zero)
-	neg, err := ss.UserAccessToken().GetExpiringTokens(now, horizon, -3)
+	neg, err := ss.UserAccessToken().GetExpiringTokens(now, thresholds, -3)
 	require.NoError(t, err)
 	require.Empty(t, neg)
+	none, err := ss.UserAccessToken().GetExpiringTokens(now, nil, 100)
+	require.NoError(t, err)
+	require.Empty(t, none)
+}
+
+func indexOfToken(tokens []*model.UserAccessToken, id string) int {
+	for i, token := range tokens {
+		if token.Id == id {
+			return i
+		}
+	}
+	return -1
 }
 
 func testUserAccessTokenUpdateLastNotifiedThreshold(t *testing.T, rctx request.CTX, ss store.Store) {

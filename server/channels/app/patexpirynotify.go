@@ -12,15 +12,11 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-const (
-	// patExpiryNotifyHorizonDays is the look-ahead window for the pre-expiry
-	// warning. It matches the largest warning bucket, so a token is fetched as
-	// soon as it enters the cascade.
-	patExpiryNotifyHorizonDays = 7
-
-	// patExpiryNotifyBatchLimit bounds the number of tokens processed per run.
-	patExpiryNotifyBatchLimit = 1000
-)
+// patExpiryNotifyBatchLimit bounds the number of tokens processed per run.
+// GetExpiringTokens returns only actionable rows (most urgent first), so this
+// caps work per run while a backlog larger than the limit drains across
+// subsequent hourly runs without starving the least-urgent tokens.
+const patExpiryNotifyBatchLimit = 1000
 
 // patExpiryThresholds is the pre-expiry warning cascade, in days, ordered from
 // most to least urgent. A token owner is warned once as the token crosses into
@@ -47,9 +43,8 @@ func (a *App) NotifyPersonalAccessTokensExpiring() error {
 	rctx := request.EmptyContext(a.Log().With(mlog.String("component", "pat_expiry_notify")))
 
 	now := model.GetMillis()
-	horizon := int64(patExpiryNotifyHorizonDays) * model.DayInMilliseconds
 
-	tokens, err := a.Srv().Store().UserAccessToken().GetExpiringTokens(now, horizon, patExpiryNotifyBatchLimit)
+	tokens, err := a.Srv().Store().UserAccessToken().GetExpiringTokens(now, patExpiryThresholds, patExpiryNotifyBatchLimit)
 	if err != nil {
 		return model.NewAppError("NotifyPersonalAccessTokensExpiring", "app.user_access_token.get_expiring.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
