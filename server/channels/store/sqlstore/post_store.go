@@ -2173,10 +2173,12 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	).From("Posts q2").
 		Where("q2.DeleteAt = 0").
 		Where(fmt.Sprintf("q2.Type NOT LIKE '%s%%'", model.PostSystemMessagePrefix)).
-		// FIXME(IntegratedBoardMVP): Temporarily excluded
-		Where(sq.NotEq{"q2.Type": model.PostTypeCard}).
 		OrderByClause("q2.CreateAt DESC").
 		Limit(100)
+
+	if !s.getFeatureFlags().IntegratedBoards {
+		baseQuery = baseQuery.Where(sq.NotEq{"q2.Type": model.PostTypeCard})
+	}
 
 	var err error
 	baseQuery, err = s.buildSearchPostFilterClause(teamId, params.FromUsers, params.ExcludedUsers, userByUsername, baseQuery)
