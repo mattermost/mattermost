@@ -695,15 +695,8 @@ function channelsForAccessControlPolicy(state: Record<string, string[]> = {}, ac
         }
         return state;
     case AdminTypes.ASSIGN_CHANNELS_TO_ACCESS_CONTROL_POLICY_SUCCESS:
-        return {
-            ...state,
-            [action.data.policyId]: action.data.channelIds,
-        };
     case AdminTypes.UNASSIGN_CHANNELS_FROM_ACCESS_CONTROL_POLICY_SUCCESS:
-        return {
-            ...state,
-            [action.data.policyId]: action.data.channelIds,
-        };
+        return state;
     case UserTypes.LOGOUT_SUCCESS:
         return {};
     default:

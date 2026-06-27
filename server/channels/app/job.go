@@ -226,6 +226,18 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 		model.JobTypeExtractContent,
 		model.JobTypeCleanupExpiredAccessTokens:
 		return a.SessionHasPermissionTo(session, model.PermissionManageJobs), model.PermissionManageJobs
+	case model.JobTypeAccessControlTeamSync:
+		if a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
+			return true, model.PermissionManageSystem
+		}
+		// Team-type policies use the team ID as the policy ID.
+		// Allow a team admin to trigger a sync job for their own team's policy.
+		if policyID, ok := job.Data["policy_id"]; ok && policyID != "" && model.IsValidId(policyID) {
+			if a.SessionHasPermissionToTeam(session, policyID, model.PermissionManageTeamAccessRules) {
+				return true, model.PermissionManageTeamAccessRules
+			}
+		}
+		return false, model.PermissionManageSystem
 	case model.JobTypeAccessControlSync:
 		// Allow system admins to create access control sync jobs
 		hasSystemPermission := a.SessionHasPermissionTo(session, model.PermissionManageSystem)
@@ -300,6 +312,16 @@ func (a *App) SessionHasPermissionToManageJob(session model.Session, job *model.
 		permission = model.PermissionManageJobs
 	case model.JobTypeAccessControlSync:
 		permission = model.PermissionManageSystem
+	case model.JobTypeAccessControlTeamSync:
+		if a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
+			return true, model.PermissionManageSystem
+		}
+		if policyID, ok := job.Data["policy_id"]; ok && policyID != "" && model.IsValidId(policyID) {
+			if a.SessionHasPermissionToTeam(session, policyID, model.PermissionManageTeamAccessRules) {
+				return true, model.PermissionManageTeamAccessRules
+			}
+		}
+		return false, model.PermissionManageSystem
 	}
 
 	if permission == nil {
@@ -338,6 +360,11 @@ func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType strin
 		return a.SessionHasPermissionTo(session, model.PermissionReadJobs), model.PermissionReadJobs
 	case model.JobTypeAccessControlSync:
 		return a.SessionHasPermissionTo(session, model.PermissionManageSystem), model.PermissionManageSystem
+	case model.JobTypeAccessControlTeamSync:
+		if a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
+			return true, model.PermissionManageSystem
+		}
+		return a.SessionHasPermissionTo(session, model.PermissionManageTeamAccessRules), model.PermissionManageTeamAccessRules
 	}
 
 	return false, nil

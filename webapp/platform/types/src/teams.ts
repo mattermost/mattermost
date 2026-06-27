@@ -57,6 +57,13 @@ export type Team = {
      */
     policy_actions?: Record<string, boolean>;
     policy_is_active?: boolean;
+
+    /**
+     * Transient, per-viewer hint set by the server on public, policy-enforced
+     * teams the requesting user qualifies to join and is not already a member of.
+     * Never set on private teams; carries no policy detail.
+     */
+    recommended?: boolean;
 };
 
 export type TeamsState = {

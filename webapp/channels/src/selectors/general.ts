@@ -39,3 +39,13 @@ export function isChannelAccessControlEnabled(state: GlobalState): boolean {
     // Permission system (MANAGE_CHANNEL_ACCESS_RULES) handles granular access
     return accessControlSettings.EnableAttributeBasedAccessControl;
 }
+
+// Team-membership ABAC requires both the main ABAC toggle and the
+// dedicated team kill-switch flag. The team flag ships dark so team
+// enforcement can roll out independently of channel ABAC (already GA).
+export function isTeamMembershipAccessControlEnabled(state: GlobalState): boolean {
+    const accessControlSettings = getAccessControlSettings(state);
+    const config = getConfig(state);
+    return accessControlSettings.EnableAttributeBasedAccessControl &&
+        config?.FeatureFlagTeamMembershipAccessControl === 'true';
+}

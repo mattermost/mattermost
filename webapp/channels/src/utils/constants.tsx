@@ -730,6 +730,8 @@ export const PostTypes = {
     LEAVE_TEAM: 'system_leave_team',
     ADD_TO_TEAM: 'system_add_to_team',
     REMOVE_FROM_TEAM: 'system_remove_from_team',
+    ACCESS_CONTROL_TEAM_REMOVAL: 'system_team_abac_removal',
+    ACCESS_CONTROL_TEAM_ADDITION: 'system_team_abac_addition',
     HEADER_CHANGE: 'system_header_change',
     DISPLAYNAME_CHANGE: 'system_displayname_change',
     CONVERT_CHANNEL: 'system_convert_channel',

@@ -326,6 +326,103 @@ func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
 	})
 }
 
+func TestSessionHasPermissionToTeamSyncJob(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	teamSyncJob := model.Job{
+		Id:   model.NewId(),
+		Type: model.JobTypeAccessControlTeamSync,
+	}
+
+	t.Run("system admin can create team sync job", func(t *testing.T) {
+		adminSession := model.Session{
+			UserId: th.SystemAdminUser.Id,
+			Roles:  model.SystemUserRoleId + " " + model.SystemAdminRoleId,
+		}
+
+		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(adminSession, &teamSyncJob)
+		assert.True(t, hasPermission)
+		require.NotNil(t, permissionRequired)
+		assert.Equal(t, model.PermissionManageSystem.Id, permissionRequired.Id)
+	})
+
+	t.Run("team admin cannot create team sync job", func(t *testing.T) {
+		teamAdmin := th.CreateUser(t)
+		th.LinkUserToTeam(t, teamAdmin, th.BasicTeam)
+		_, appErr := th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, "team_user team_admin")
+		require.Nil(t, appErr)
+
+		teamAdminSession := model.Session{
+			UserId: teamAdmin.Id,
+			Roles:  model.SystemUserRoleId,
+			TeamMembers: []*model.TeamMember{
+				{TeamId: th.BasicTeam.Id, UserId: teamAdmin.Id, Roles: "team_user team_admin"},
+			},
+		}
+
+		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(teamAdminSession, &teamSyncJob)
+		assert.False(t, hasPermission)
+		require.NotNil(t, permissionRequired)
+		assert.Equal(t, model.PermissionManageSystem.Id, permissionRequired.Id)
+	})
+
+	t.Run("regular user cannot create team sync job", func(t *testing.T) {
+		regularUser := th.CreateUser(t)
+		regularSession := model.Session{
+			UserId: regularUser.Id,
+			Roles:  model.SystemUserRoleId,
+		}
+
+		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(regularSession, &teamSyncJob)
+		assert.False(t, hasPermission)
+		require.NotNil(t, permissionRequired)
+		assert.Equal(t, model.PermissionManageSystem.Id, permissionRequired.Id)
+	})
+
+	t.Run("only system admin can read team sync job", func(t *testing.T) {
+		adminSession := model.Session{
+			UserId: th.SystemAdminUser.Id,
+			Roles:  model.SystemUserRoleId + " " + model.SystemAdminRoleId,
+		}
+		regularSession := model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  model.SystemUserRoleId,
+		}
+
+		hasPermission, permissionRequired := th.App.SessionHasPermissionToReadJob(adminSession, model.JobTypeAccessControlTeamSync)
+		assert.True(t, hasPermission)
+		require.NotNil(t, permissionRequired)
+		assert.Equal(t, model.PermissionManageSystem.Id, permissionRequired.Id)
+
+		hasPermission, permissionRequired = th.App.SessionHasPermissionToReadJob(regularSession, model.JobTypeAccessControlTeamSync)
+		assert.False(t, hasPermission)
+		require.NotNil(t, permissionRequired)
+		assert.Equal(t, model.PermissionManageTeamAccessRules.Id, permissionRequired.Id)
+	})
+
+	t.Run("only system admin can manage team sync job", func(t *testing.T) {
+		adminSession := model.Session{
+			UserId: th.SystemAdminUser.Id,
+			Roles:  model.SystemUserRoleId + " " + model.SystemAdminRoleId,
+		}
+		regularSession := model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  model.SystemUserRoleId,
+		}
+
+		hasPermission, permissionRequired := th.App.SessionHasPermissionToManageJob(adminSession, &teamSyncJob)
+		assert.True(t, hasPermission)
+		require.NotNil(t, permissionRequired)
+		assert.Equal(t, model.PermissionManageSystem.Id, permissionRequired.Id)
+
+		hasPermission, permissionRequired = th.App.SessionHasPermissionToManageJob(regularSession, &teamSyncJob)
+		assert.False(t, hasPermission)
+		require.NotNil(t, permissionRequired)
+		assert.Equal(t, model.PermissionManageSystem.Id, permissionRequired.Id)
+	})
+}
+
 func TestCreateAccessControlSyncJob(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
