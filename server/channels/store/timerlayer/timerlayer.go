@@ -14369,6 +14369,22 @@ func (s *TimerLayerUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit in
 	return result, err
 }
 
+func (s *TimerLayerUserAccessTokenStore) GetExpiringTokens(now int64, thresholds []int, limit int) ([]*model.UserAccessToken, error) {
+	start := time.Now()
+
+	result, err := s.UserAccessTokenStore.GetExpiringTokens(now, thresholds, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserAccessTokenStore.GetExpiringTokens", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerUserAccessTokenStore) Save(token *model.UserAccessToken) (*model.UserAccessToken, error) {
 	start := time.Now()
 
@@ -14399,6 +14415,22 @@ func (s *TimerLayerUserAccessTokenStore) Search(term string) ([]*model.UserAcces
 		s.Root.Metrics.ObserveStoreMethodDuration("UserAccessTokenStore.Search", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerUserAccessTokenStore) UpdateLastNotifiedThreshold(tokenID string, threshold int) error {
+	start := time.Now()
+
+	err := s.UserAccessTokenStore.UpdateLastNotifiedThreshold(tokenID, threshold)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserAccessTokenStore.UpdateLastNotifiedThreshold", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerUserAccessTokenStore) UpdateTokenDisable(tokenID string) error {
