@@ -741,7 +741,7 @@ func Etag(parts ...any) string {
 }
 
 var (
-	validHashtag = regexp.MustCompile(`^(#\pL[\pL\d\-_.]*[\pL\d])$`)
+	validHashtag = regexp.MustCompile(`^(#[\pL\d][\pL\d\-_.]*[\pL\d])$`)
 	puncStart    = regexp.MustCompile(`^[^\pL\d\s#]+`)
 	hashtagStart = regexp.MustCompile(`^#{2,}`)
 	puncEnd      = regexp.MustCompile(`[^\pL\d\s]+$`)
