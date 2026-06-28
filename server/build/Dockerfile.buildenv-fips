@@ -1,17 +1,5 @@
-# Go toolchain source: provides the MSFT FIPS Go build (apk removed in 1.26.4+)
-FROM cgr.dev/mattermost.com/go-msft-fips:1.26.4-dev@sha256:0986191b204a344bdc9e626297fb54d7b50ca349b0b62cd56eb333cddd21e0c7 AS go-toolchain
-
-# Base image: has apk and provides the FIPS-validated OpenSSL that the Go toolchain links against
-FROM cgr.dev/mattermost.com/glibc-openssl-fips:15-dev@sha256:ab5285209fff77fbe56e58aeed6d7f557cf74c6f90d1d8ee26053003f039b419
+FROM cgr.dev/mattermost.com/go-msft-fips:1.26.4.1-dev@sha256:e237532162e2a755fef5944d2fcaff02923752c754a5d7b60836b7a8aa682317
 ARG NODE_VERSION=20.11.1
-
-USER 0:0
-
-# Copy Go toolchain from MSFT FIPS image
-COPY --from=go-toolchain /usr/lib/go /usr/lib/go
-ENV GOROOT=/usr/lib/go
-ENV GOPATH=/root/go
-ENV PATH="/usr/lib/go/bin:/root/go/bin:${PATH}"
 
 RUN apk add curl ca-certificates mailcap unrtf wv poppler-utils tzdata gpg xmlsec
 
