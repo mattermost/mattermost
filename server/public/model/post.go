@@ -870,6 +870,15 @@ func (o *Post) IsSystemMessage() bool {
 	return len(o.Type) >= len(PostSystemMessagePrefix) && o.Type[:len(PostSystemMessagePrefix)] == PostSystemMessagePrefix
 }
 
+// IsAccessControlTeamMembershipNotification reports whether the post is one of
+// the team membership-policy system DMs (removal / auto-add). These are
+// persistent in-app notices only: like other system messages they skip push,
+// and they must also skip email, otherwise a bulk policy sync would mail every
+// affected user.
+func (o *Post) IsAccessControlTeamMembershipNotification() bool {
+	return o.Type == PostTypeAccessControlTeamRemoval || o.Type == PostTypeAccessControlTeamAddition
+}
+
 // IsRemote returns true if the post originated on a remote cluster.
 func (o *Post) IsRemote() bool {
 	return o.RemoteId != nil && *o.RemoteId != ""

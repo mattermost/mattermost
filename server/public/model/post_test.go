@@ -105,6 +105,29 @@ func TestAccessControlTeamPostTypes(t *testing.T) {
 	}
 }
 
+func TestIsAccessControlTeamMembershipNotification(t *testing.T) {
+	cases := []struct {
+		name     string
+		postType string
+		expected bool
+	}{
+		{"removal DM", PostTypeAccessControlTeamRemoval, true},
+		{"addition DM", PostTypeAccessControlTeamAddition, true},
+		{"regular post", "", false},
+		// Other system DMs must be unaffected.
+		{"add to team", PostTypeAddToTeam, false},
+		{"remove from team", PostTypeRemoveFromTeam, false},
+		{"join channel", PostTypeJoinChannel, false},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			p := &Post{Type: tc.postType}
+			require.Equal(t, tc.expected, p.IsAccessControlTeamMembershipNotification())
+		})
+	}
+}
+
 func TestPostPreSave(t *testing.T) {
 	o := Post{Message: "test"}
 	o.PreSave()
