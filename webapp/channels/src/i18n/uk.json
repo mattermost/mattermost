@@ -13,6 +13,7 @@
   "about.database": "База даних:",
   "about.date": "Дата збірки:",
   "about.dbversion": "Версія схеми бази даних:",
+  "about.desktopVersion": "Версія для робочих станцій:",
   "about.enterpriseEditionLearn": "Дізнайтеся більше про Mattermost {planName} на ",
   "about.enterpriseEditionSst": "Надійний обмін повідомленнями для підприємства",
   "about.enterpriseEditionSt": "Сучасне спілкування у вашій локальній мережі.",
