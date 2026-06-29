@@ -445,6 +445,14 @@ func (a *App) sanitizeFileAttachmentsForUser(rctx request.CTX, post *model.Post,
 		return
 	}
 
+	// No requesting user (e.g. a system post created by a background job with no
+	// session, such as the ABAC membership sync's channel-join messages). There
+	// is nobody to sanitize attachments for, so skip. A genuine reader re-runs
+	// this with their own session id when the post is served.
+	if userID == "" {
+		return
+	}
+
 	user, err := a.GetUser(userID)
 	if err != nil {
 		rctx.Logger().Warn("Failed to get user for file attachment sanitization, stripping attachments",

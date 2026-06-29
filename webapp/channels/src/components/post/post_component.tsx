@@ -855,8 +855,8 @@ function PostComponent(props: Props) {
                                 {priority}
                                 {burnOnReadBadge}
                                 {burnOnReadTimerChip}
-                                {((!props.compactDisplay && !(hasSameRoot(props) && props.isConsecutivePost)) || (props.compactDisplay && isRHS)) &&
-                                    PostUtils.hasAiGeneratedMetadata(post) && (
+                                {PostUtils.hasAiGeneratedMetadata(post) &&
+                                    ((!props.compactDisplay) || (props.compactDisplay && isRHS)) && (
                                     <AiGeneratedIndicator
                                         userId={post.props.ai_generated_by as string}
                                         username={post.props.ai_generated_by_username as string}

@@ -1,7 +1,7 @@
-.. _mmctl_user_deleteall:
+.. _mmctl_system_nuke_users:
 
-mmctl user deleteall
---------------------
+mmctl system nuke users
+-----------------------
 
 Delete all users and all posts. Local command only.
 
@@ -13,22 +13,22 @@ Permanently delete all users and all related information including posts. This c
 
 ::
 
-  mmctl user deleteall [flags]
+  mmctl system nuke users [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    user deleteall
+    system nuke users
 
 Options
 ~~~~~~~
 
 ::
 
-      --confirm   Confirm you really want to delete the user and a DB backup has been performed
-  -h, --help      help for deleteall
+      --confirm   Confirm you really want to permanently delete all users, posts, and related data, and that a DB backup has been performed
+  -h, --help      help for users
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -48,5 +48,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl user <mmctl_user.rst>`_ 	 - Management of users
+* `mmctl system nuke <mmctl_system_nuke.rst>`_ 	 - Destructive operations that permanently delete data
 
