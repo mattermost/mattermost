@@ -31,11 +31,12 @@ EOF
 # cypress install verifies the Electron binary, which needs a display and dbus session.
 # Use xvfb-run and dbus-run-session for the headless virtual display and bus.
 ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress bash <<'EOF'
+set -euo pipefail
 Xvfb :99 -screen 0 1280x1024x24 -nolisten tcp &
 XVFB_PID=$!
+trap 'kill "$XVFB_PID" 2>/dev/null || true' EXIT
 sleep 1
 DISPLAY=:99 dbus-run-session -- cypress install
-kill $XVFB_PID 2>/dev/null || true
 EOF
 
 # Initialize cypress report directory
