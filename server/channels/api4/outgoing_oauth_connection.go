@@ -401,14 +401,13 @@ func validateOutgoingOAuthConnectionCredentials(c *Context, w http.ResponseWrite
 	if err != nil {
 		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error", nil, "", err.StatusCode).Wrap(err)
 		c.Logger.Error("Failed to retrieve token while validating outgoing oauth connection", logr.Err(err))
-		resultStatusCode = err.StatusCode
-	} else {
-		ReturnStatusOK(w)
+		w.WriteHeader(err.StatusCode)
+		return
 	}
 
 	auditRec.Success()
 	auditRec.AddEventResultState(inputConnection)
 	auditRec.AddEventObjectType("outgoing_oauth_connection")
 
-	w.WriteHeader(resultStatusCode)
+	ReturnStatusOK(w)
 }
