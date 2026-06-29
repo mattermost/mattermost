@@ -393,8 +393,6 @@ func validateOutgoingOAuthConnectionCredentials(c *Context, w http.ResponseWrite
 
 	model.AddEventParameterAuditableToAuditRec(auditRec, "outgoing_oauth_connection", inputConnection)
 
-	resultStatusCode := http.StatusOK
-
 	// Try to retrieve a token with the provided credentials
 	// do not store the token, just check if the credentials are valid and the request can be made
 	_, err := service.RetrieveTokenForConnection(c.AppContext, inputConnection)
