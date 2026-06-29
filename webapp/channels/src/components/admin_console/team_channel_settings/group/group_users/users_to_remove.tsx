@@ -28,7 +28,7 @@ export type Filters = {
     roles?: string[];
     channel_roles?: string[];
     team_roles?: string[];
-}
+};
 
 export type Memberships = RelationOneToOne<UserProfile, TeamMembership> | RelationOneToOne<UserProfile, ChannelMembership>;
 

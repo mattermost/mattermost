@@ -4,8 +4,7 @@
 import semver from 'semver';
 
 import type {DesktopAPI, PopoutViewProps, Theme} from '@mattermost/desktop-api';
-
-import {isDesktopApp} from 'utils/user_agent';
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 
 declare global {
     interface Window {
@@ -281,6 +280,8 @@ export class DesktopAppAPI {
     setSessionExpired = (expired: boolean) => window.desktopAPI?.setSessionExpired && window.desktopAPI.setSessionExpired(expired);
     signalLogin = () => window.desktopAPI?.onLogin?.();
     signalLogout = () => window.desktopAPI?.onLogout?.();
+    invalidateSessionAttributeManifest = () => window.desktopAPI?.invalidateSessionAttributeManifest?.();
+    resendSessionAttributes = () => window.desktopAPI?.resendSessionAttributes?.();
     reactAppInitialized = () => window.desktopAPI?.reactAppInitialized?.();
     updateTheme = (theme: Theme) => window.desktopAPI?.updateTheme?.(theme);
 

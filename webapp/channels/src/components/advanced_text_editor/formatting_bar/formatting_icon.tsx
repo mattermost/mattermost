@@ -18,13 +18,13 @@ import {
     FormatListNumberedIcon,
 } from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import type {
     KeyboardShortcutDescriptor} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import WithTooltip from 'components/with_tooltip';
 
 import type {MarkdownMode} from 'utils/markdown/apply_markdown';
 
@@ -120,6 +120,10 @@ const FormattingIcon = (props: FormattingIconProps): JSX.Element => {
      * properties like aria-label, etc. get added to the DOM
      */
     const {mode, onClick, ...otherProps} = props;
+    const handleMouseDown = React.useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+        // Keep the editor focused so formatting clicks do not disturb the textarea selection or scroll position.
+        e.preventDefault();
+    }, []);
 
     /* get the correct Icon from the IconMap */
     const Icon = MAP_MARKDOWN_MODE_TO_ICON[mode];
@@ -132,6 +136,7 @@ const FormattingIcon = (props: FormattingIconProps): JSX.Element => {
             type='button'
             id={props.id || `FormattingControl_${mode}`}
             onClick={onClick}
+            onMouseDown={handleMouseDown}
             aria-label={buttonAriaLabel}
             {...otherProps}
         >

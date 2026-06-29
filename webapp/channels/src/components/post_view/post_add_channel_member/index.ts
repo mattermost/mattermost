@@ -13,12 +13,14 @@ import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
+import {isMembershipPolicyEnforced} from 'utils/channel_utils';
+
 import PostAddChannelMember from './post_add_channel_member';
 
 type OwnProps = {
     postId: string;
     userIds: string[];
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const post = getPost(state, ownProps.postId) || {};
@@ -28,7 +30,12 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         const channel = getChannel(state, post.channel_id);
         if (channel && channel.type) {
             channelType = channel.type;
-            isPolicyEnforced = Boolean(channel.policy_enforced);
+
+            // Suppress the "Add to channel" affordance only for channels
+            // whose policy controls membership. Permission-only policies
+            // (e.g. file upload restrictions) leave membership unchanged
+            // and so must keep the affordance available.
+            isPolicyEnforced = isMembershipPolicyEnforced(channel);
         }
     }
 

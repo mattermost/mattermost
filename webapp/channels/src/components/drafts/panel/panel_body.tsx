@@ -36,7 +36,7 @@ type Props = {
     uploadsInProgress: PostDraft['uploadsInProgress'];
     userId: UserProfile['id'];
     username: UserProfile['username'];
-}
+};
 
 const OPTIONS = {
     disableGroupHighlight: true,

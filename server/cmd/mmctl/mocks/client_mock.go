@@ -344,9 +344,9 @@ func (mr *MockClientMockRecorder) CreateUser(arg0, arg1 interface{}) *gomock.Cal
 }
 
 // CreateUserAccessToken mocks base method.
-func (m *MockClient) CreateUserAccessToken(arg0 context.Context, arg1, arg2 string) (*model.UserAccessToken, *model.Response, error) {
+func (m *MockClient) CreateUserAccessToken(arg0 context.Context, arg1, arg2 string, arg3 int64) (*model.UserAccessToken, *model.Response, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateUserAccessToken", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "CreateUserAccessToken", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(*model.UserAccessToken)
 	ret1, _ := ret[1].(*model.Response)
 	ret2, _ := ret[2].(error)
@@ -354,9 +354,9 @@ func (m *MockClient) CreateUserAccessToken(arg0 context.Context, arg1, arg2 stri
 }
 
 // CreateUserAccessToken indicates an expected call of CreateUserAccessToken.
-func (mr *MockClientMockRecorder) CreateUserAccessToken(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) CreateUserAccessToken(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUserAccessToken", reflect.TypeOf((*MockClient)(nil).CreateUserAccessToken), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUserAccessToken", reflect.TypeOf((*MockClient)(nil).CreateUserAccessToken), arg0, arg1, arg2, arg3)
 }
 
 // DeleteCPAField mocks base method.
@@ -648,6 +648,22 @@ func (m *MockClient) GenerateSupportPacket(arg0 context.Context) (io.ReadCloser,
 func (mr *MockClientMockRecorder) GenerateSupportPacket(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateSupportPacket", reflect.TypeOf((*MockClient)(nil).GenerateSupportPacket), arg0)
+}
+
+// GetAllRoles mocks base method.
+func (m *MockClient) GetAllRoles(arg0 context.Context) ([]*model.Role, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllRoles", arg0)
+	ret0, _ := ret[0].([]*model.Role)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetAllRoles indicates an expected call of GetAllRoles.
+func (mr *MockClientMockRecorder) GetAllRoles(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllRoles", reflect.TypeOf((*MockClient)(nil).GetAllRoles), arg0)
 }
 
 // GetAllTeams mocks base method.

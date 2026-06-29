@@ -68,19 +68,21 @@ const RecapItem = ({recap, isExpanded, onToggle}: Props) => {
             });
         }
 
-        actions.push({
-            id: 'regenerate-recap',
-            icon: <RefreshIcon size={18}/>,
-            label: formatMessage({
-                id: 'recaps.menu.regenerateRecap',
-                defaultMessage: 'Regenerate this recap',
-            }),
-            onClick: handleRegenerateRecap,
-            disabled: !agentsBridgeEnabled,
-        });
+        if (recap.read_at === 0) {
+            actions.push({
+                id: 'regenerate-recap',
+                icon: <RefreshIcon size={18}/>,
+                label: formatMessage({
+                    id: 'recaps.menu.regenerateRecap',
+                    defaultMessage: 'Regenerate this recap',
+                }),
+                onClick: handleRegenerateRecap,
+                disabled: !agentsBridgeEnabled,
+            });
+        }
 
         return actions;
-    }, [formatMessage, handleMarkAllChannelsRead, handleRegenerateRecap, isFailed, agentsBridgeEnabled]);
+    }, [formatMessage, handleMarkAllChannelsRead, handleRegenerateRecap, isFailed, agentsBridgeEnabled, recap.read_at]);
 
     const handleDelete = () => {
         dispatch(deleteRecap(recap.id));
@@ -169,7 +171,7 @@ const RecapItem = ({recap, isExpanded, onToggle}: Props) => {
                     >
                         <TrashCanOutlineIcon size={16}/>
                     </button>
-                    {recap.read_at === 0 && (
+                    {menuActions.length > 0 && (
                         <RecapMenu
                             actions={menuActions}
                             ariaLabel={formatMessage(
@@ -211,7 +213,7 @@ const RecapItem = ({recap, isExpanded, onToggle}: Props) => {
                     />
                 }
                 confirmButtonText={formatMessage({id: 'recaps.delete.confirm.button', defaultMessage: 'Delete'})}
-                confirmButtonClass='btn btn-danger'
+                confirmButtonVariant='destructive'
                 onConfirm={handleDelete}
                 onCancel={() => setShowDeleteConfirm(false)}
                 onExited={() => setShowDeleteConfirm(false)}

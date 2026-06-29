@@ -35,7 +35,7 @@ import SidebarChannelLink from './sidebar_channel_link';
 
 type OwnProps = {
     channel: Channel;
-}
+};
 
 function makeMapStateToProps() {
     const getUnreadCount = makeGetChannelUnreadCount();

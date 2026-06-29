@@ -10,7 +10,7 @@ import type {Draft} from '@mattermost/types/drafts';
 import type {CustomEmoji} from '@mattermost/types/emojis';
 import type {Group, GroupMember as GroupMemberType} from '@mattermost/types/groups';
 import type {OpenDialogRequest} from '@mattermost/types/integrations';
-import type {PluginManifest, PluginStatus} from '@mattermost/types/plugins';
+import type {PluginManifest} from '@mattermost/types/plugins';
 import type {Post, PostAcknowledgement as PostAcknowledgementType} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
@@ -193,6 +193,11 @@ export type ChannelUpdated = BaseWebSocketMessage<WebSocketEvents.ChannelUpdated
 
 export type ChannelConverted = BaseWebSocketMessage<WebSocketEvents.ChannelConverted, {
     channel_id: string;
+    channel_type?: ChannelType;
+}>;
+
+export type SharedChannelRemoteUpdated = BaseWebSocketMessage<WebSocketEvents.SharedChannelRemoteUpdated, {
+    channel_id: string;
 }>;
 
 export type ChannelSchemeUpdated = BaseWebSocketMessage<WebSocketEvents.ChannelSchemeUpdated>;
@@ -255,6 +260,16 @@ export type ChannelBookmarkDeleted = BaseWebSocketMessage<WebSocketEvents.Channe
 
 export type ChannelBookmarkSorted = BaseWebSocketMessage<WebSocketEvents.ChannelBookmarkSorted, {
     bookmarks: JsonEncodedValue<ChannelBookmarkWithFileInfo[]>;
+}>;
+
+// Channel access control messages
+
+export type ChannelAccessControlUpdated = BaseWebSocketMessage<WebSocketEvents.ChannelAccessControlUpdated, {
+    channel: JsonEncodedValue<Channel>;
+}>;
+
+export type TeamAccessControlUpdated = BaseWebSocketMessage<WebSocketEvents.TeamAccessControlUpdated, {
+    team: JsonEncodedValue<TeamType>;
 }>;
 
 // Team and team member messages
@@ -361,6 +376,30 @@ export type SidebarCategoryOrderUpdated = BaseWebSocketMessage<WebSocketEvents.S
     order: string[];
 }>;
 
+// Property system messages
+
+export type PropertyFieldCreated = BaseWebSocketMessage<WebSocketEvents.PropertyFieldCreated, {
+    property_field: JsonEncodedValue<PropertyField>;
+    object_type: string;
+}>;
+
+export type PropertyFieldUpdated = BaseWebSocketMessage<WebSocketEvents.PropertyFieldUpdated, {
+    property_field: JsonEncodedValue<PropertyField>;
+    object_type: string;
+}>;
+
+export type PropertyFieldDeleted = BaseWebSocketMessage<WebSocketEvents.PropertyFieldDeleted, {
+    field_id: string;
+    object_type: string;
+}>;
+
+export type PropertyValuesUpdated = BaseWebSocketMessage<WebSocketEvents.PropertyValuesUpdated, {
+    object_type?: string;
+    target_id?: string;
+    field_id?: string;
+    values: JsonEncodedValue<Array<PropertyValue<unknown>>>;
+}>;
+
 // Emoji messages
 
 export type EmojiAdded = BaseWebSocketMessage<WebSocketEvents.EmojiAdded, {
@@ -398,7 +437,7 @@ export type FirstAdminVisitMarketplaceStatusReceived =
 export type HostedCustomerSignupProgressUpdated =
     BaseWebSocketMessage<WebSocketEvents.HostedCustomerSignupProgressUpdated, {
         progress: string;
-    }>
+    }>;
 
 // Custom properties messages
 
@@ -452,8 +491,11 @@ export type Plugin = BaseWebSocketMessage<WebSocketEvents.PluginEnabled | WebSoc
     manifest: PluginManifest;
 }>;
 
+// Signals admin clients to refetch the full plugin statuses on demand. plugin_statuses is always
+// an empty array: it carries no data, but is retained (rather than omitted) so clients that call
+// array methods on it don't break.
 export type PluginStatusesChanged = BaseWebSocketMessage<WebSocketEvents.PluginStatusesChanged, {
-    plugin_statuses: PluginStatus[];
+    plugin_statuses: never[];
 }>;
 
 export type OpenDialog = BaseWebSocketMessage<WebSocketEvents.OpenDialog, {
@@ -467,6 +509,12 @@ export type FileDownloadRejected = BaseWebSocketMessage<WebSocketEvents.FileDown
     channel_id: string;
     post_id: string;
     download_type: string;
+}>;
+
+export type FileUploadRejected = BaseWebSocketMessage<WebSocketEvents.FileUploadRejected, {
+    file_name: string;
+    rejection_reason: string;
+    channel_id: string;
 }>;
 
 export type ShowToast = BaseWebSocketMessage<WebSocketEvents.ShowToast, {

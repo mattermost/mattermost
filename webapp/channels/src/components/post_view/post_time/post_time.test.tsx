@@ -7,7 +7,7 @@ import {renderWithContext, screen, waitFor, act, userEvent} from 'tests/react_te
 
 import PostTime from './post_time';
 
-jest.mock('utils/user_agent', () => ({
+jest.mock('@mattermost/shared/utils/user_agent', () => ({
     isMobile: jest.fn().mockReturnValue(false),
     isDesktopApp: jest.fn().mockReturnValue(false),
 }));
@@ -157,7 +157,7 @@ describe('components/post_view/post_time/PostTime', () => {
     });
 
     test('should render as div when isMobile returns true', () => {
-        require('utils/user_agent').isMobile.mockReturnValue(true);
+        require('@mattermost/shared/utils/user_agent').isMobile.mockReturnValue(true);
 
         renderWithContext(<PostTime {...baseProps}/>, initialState);
 
@@ -165,7 +165,7 @@ describe('components/post_view/post_time/PostTime', () => {
         expect(screen.getByText('12:00 AM').closest('div')).toHaveClass('post__permalink', 'post_permalink_mobile_view');
 
         // Reset mock
-        require('utils/user_agent').isMobile.mockReturnValue(false);
+        require('@mattermost/shared/utils/user_agent').isMobile.mockReturnValue(false);
     });
 
     test('should call emitCloseRightHandSide when clicked on mobile', async () => {

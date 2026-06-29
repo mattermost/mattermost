@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
-import {TestHelper} from 'utils/test_helper';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import SystemRolePermission from './system_role_permission';
 import {readAccess} from './types';
@@ -27,16 +26,14 @@ describe('admin_console/system_role_permission', () => {
                 environment: readAccess,
             },
             updatePermissions: jest.fn(),
-            roles: {
-                system_admin: TestHelper.getRoleMock(),
-            },
         };
 
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <SystemRolePermission
                 {...props}
-            />);
+            />,
+        );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

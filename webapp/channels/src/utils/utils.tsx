@@ -11,6 +11,7 @@ import React from 'react';
 import type {LinkHTMLAttributes} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 
+import {isFirefox, isSafari} from '@mattermost/shared/utils/user_agent';
 import type {Channel} from '@mattermost/types/channels';
 import type {Address} from '@mattermost/types/cloud';
 import type {FileInfo} from '@mattermost/types/files';
@@ -60,7 +61,6 @@ import DesktopApp from 'utils/desktop_api';
 import {getIntl} from 'utils/i18n';
 import * as Keyboard from 'utils/keyboard';
 import {FOCUS_REPLY_POST, isPopoutWindow, sendToParent} from 'utils/popouts/popout_windows';
-import * as UserAgent from 'utils/user_agent';
 
 import {joinPrivateChannelPrompt} from './channel_utils';
 
@@ -84,7 +84,7 @@ export enum TimeInformation {
     HOURS = 'h',
     DAYS = 'd',
     FUTURE = 'f',
-    PAST = 'p'
+    PAST = 'p',
 }
 
 export type TimeUnit = Exclude<TimeInformation, TimeInformation.FUTURE | TimeInformation.PAST>;
@@ -109,7 +109,7 @@ export function isUnhandledLineBreakKeyCombo(e: React.KeyboardEvent | KeyboardEv
     return Boolean(
         Keyboard.isKeyPressed(e, Constants.KeyCodes.ENTER) &&
         !e.shiftKey && // shift + enter is already handled everywhere, so don't handle again
-        (e.altKey && !UserAgent.isSafari() && !Keyboard.cmdOrCtrlPressed(e)), // alt/option + enter is already handled in Safari, so don't handle again
+        (e.altKey && !isSafari() && !Keyboard.cmdOrCtrlPressed(e)), // alt/option + enter is already handled in Safari, so don't handle again
     );
 }
 
@@ -240,7 +240,7 @@ export const getFileType = (extin: string): typeof FileTypes[keyof typeof FileTy
                 return FileTypes.IMAGE;
             }
         }
-    } catch (e) {
+    } catch {
         // Not a valid URL, just check if the string itself has an extension
         if (extin.includes('.')) {
             const extension = extin.split('.').pop()?.toLowerCase();
@@ -329,7 +329,7 @@ export function getCompassIconClassName(fileTypeIn: string, outline = true, larg
 }
 
 export function getIconClassName(fileTypeIn: string) {
-    const fileType = fileTypeIn.toLowerCase()as keyof typeof Constants.ICON_FROM_TYPE;
+    const fileType = fileTypeIn.toLowerCase() as keyof typeof Constants.ICON_FROM_TYPE;
 
     if (fileType in Constants.ICON_NAME_FROM_TYPE) {
         return Constants.ICON_NAME_FROM_TYPE[fileType];
@@ -658,7 +658,7 @@ function updateCodeTheme(codeTheme: string) {
         xmlHTTP.onload = function onLoad() {
             link.href = cssPath;
 
-            if (UserAgent.isFirefox()) {
+            if (isFirefox()) {
                 link.addEventListener('load', () => {
                     changeCss('code.hljs', 'visibility: visible');
                 }, {once: true});
@@ -777,6 +777,27 @@ export function offsetTopLeft(el: HTMLElement) {
     return {top: rect.top + scrollTop, left: rect.left + scrollLeft};
 }
 
+function getSuggestionBoxHorizontalBoundary(textArea: HTMLElement) {
+    const {w: viewportWidth} = getViewportSize();
+    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+    const textAreaRect = textArea.getBoundingClientRect();
+
+    let ancestor = textArea.parentElement;
+    while (ancestor) {
+        const ancestorRect = ancestor.getBoundingClientRect();
+        const ancestorStyle = getElementComputedStyle(ancestor);
+        const clipsHorizontalOverflow = ancestorStyle.overflow !== 'visible' || ancestorStyle.overflowX !== 'visible';
+
+        if (clipsHorizontalOverflow && ancestorRect.width >= textAreaRect.width) {
+            return ancestorRect.right + scrollLeft;
+        }
+
+        ancestor = ancestor.parentElement;
+    }
+
+    return viewportWidth + scrollLeft;
+}
+
 export function getSuggestionBoxAlgn(textArea: HTMLTextAreaElement, pxToSubstract = 0, alignWithTextBox = false) {
     if (!textArea || !(textArea instanceof HTMLElement)) {
         return {
@@ -786,8 +807,9 @@ export function getSuggestionBoxAlgn(textArea: HTMLTextAreaElement, pxToSubstrac
     }
 
     const {x: caretXCoordinateInTxtArea, y: caretYCoordinateInTxtArea} = getCaretXYCoordinate(textArea);
-    const {w: viewportWidth, h: viewportHeight} = getViewportSize();
+    const {h: viewportHeight} = getViewportSize();
     const {offsetWidth: textAreaWidth} = textArea;
+    const horizontalBoundary = getSuggestionBoxHorizontalBoundary(textArea);
 
     const suggestionBoxWidth = Math.min(textAreaWidth, Constants.SUGGESTION_LIST_MAXWIDTH);
 
@@ -803,8 +825,8 @@ export function getSuggestionBoxAlgn(textArea: HTMLTextAreaElement, pxToSubstrac
     if (alignWithTextBox) {
         // when the list should be aligned with the textbox just set this value to 0
         pxToTheRight = 0;
-    } else if (xBoxRightCoordinate > viewportWidth) {
-        // if the right-border edge of the suggestion box will overflow the x-axis viewport
+    } else if (xBoxRightCoordinate > horizontalBoundary) {
+        // if the right-border edge of the suggestion box will overflow the visible text area container
         // stick the suggestion list to the very right of the TextArea
         pxToTheRight = textAreaWidth - suggestionBoxWidth;
     }
@@ -1191,15 +1213,11 @@ export function fillRecord<T>(value: T, length: number): Record<number, T> {
 // Checks if a data transfer contains files not text, folders, etc..
 // Slightly modified from http://stackoverflow.com/questions/6848043/how-do-i-detect-a-file-is-being-dragged-rather-than-a-draggable-element-on-my-pa
 export function isFileTransfer(files: DataTransfer) {
-    if (UserAgent.isInternetExplorer() || UserAgent.isEdge()) {
-        return files.types != null && files.types.includes('Files');
-    }
-
     return files.types != null && (files.types.indexOf ? files.types.indexOf('Files') !== -1 : files.types.includes('application/x-moz-file'));
 }
 
 export function isUriDrop(dataTransfer: DataTransfer) {
-    if (UserAgent.isInternetExplorer() || UserAgent.isEdge() || UserAgent.isSafari()) {
+    if (isSafari()) {
         for (let i = 0; i < dataTransfer.items.length; i++) {
             if (dataTransfer.items[i].type === 'text/uri-list') {
                 return true;
@@ -1228,7 +1246,7 @@ export function clearFileInput(elm: HTMLInputElement) {
             elm.type = 'text';
             elm.type = 'file';
         }
-    } catch (e) {
+    } catch {
         // Do nothing
     }
 }
@@ -1508,9 +1526,9 @@ export function isTextSelectedInPostOrReply(e: React.KeyboardEvent | KeyboardEve
     const {id} = e.target as HTMLElement;
 
     const isTypingInValidTextbox =
-    id === AdvancedTextEditorTextboxIds.InCenter ||
-    id === AdvancedTextEditorTextboxIds.InRHSComment ||
-    id === AdvancedTextEditorTextboxIds.InEditMode;
+        id === AdvancedTextEditorTextboxIds.InCenter ||
+        id === AdvancedTextEditorTextboxIds.InRHSComment ||
+        id === AdvancedTextEditorTextboxIds.InEditMode;
 
     if (isTypingInValidTextbox === false) {
         return false;
@@ -1605,9 +1623,9 @@ export function numberToFixedDynamic(num: number, places: number): string {
 export function getDatePickerLocalesForDateFns(locale: string, loadedLocales: Record<string, Locale>) {
     if (locale && locale !== 'en' && !loadedLocales[locale]) {
         try {
-            /* eslint-disable global-require */
+            /* eslint-disable global-require, @typescript-eslint/no-require-imports */
             loadedLocales[locale] = require(`date-fns/locale/${locale}/index.js`);
-            /* eslint-disable global-require */
+            /* eslint-enable global-require, @typescript-eslint/no-require-imports */
         } catch (e) {
             console.log(e); // eslint-disable-line no-console
         }

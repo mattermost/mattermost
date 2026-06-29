@@ -1,8 +1,10 @@
 {
     "compilerOptions": {
-        "module": "commonjs",
-        "moduleResolution": "node",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
         "target": "es2022",
+        "lib": ["esnext", "dom"],
+        "types": ["node"],
         "declaration": true,
         "declarationDir": "dist",
         "strict": true,
@@ -14,7 +16,6 @@
         "strictNullChecks": true,
         "skipLibCheck": true,
         "noEmit": true,
-        "baseUrl": ".",
         "paths": {
             "@/asset": ["./asset"]
         }

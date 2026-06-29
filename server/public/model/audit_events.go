@@ -6,12 +6,19 @@ package model
 // Access Control & Security
 const (
 	AuditEventApplyIPFilters            = "applyIPFilters"            // apply IP address filtering
-	AuditEventAssignAccessPolicy        = "assignAccessPolicy"        // assign access control policy to channels
+	AuditEventAssignAccessPolicy        = "assignAccessPolicy"        // assign access control policy to channels and/or teams
 	AuditEventCreateAccessControlPolicy = "createAccessControlPolicy" // create access control policy
 	AuditEventDeleteAccessControlPolicy = "deleteAccessControlPolicy" // delete access control policy
-	AuditEventUnassignAccessPolicy      = "unassignAccessPolicy"      // remove access control policy from channels
+	AuditEventUnassignAccessPolicy      = "unassignAccessPolicy"      // remove access control policy from channels and/or teams
 	AuditEventUpdateActiveStatus        = "updateActiveStatus"        // update active/inactive status of access control policy
 	AuditEventSetActiveStatus           = "setActiveStatus"           // set active/inactive status of multiple access control policies
+
+	AuditEventCreateTeamAccessPolicy   = "createTeamAccessPolicy"   // create team-scoped access control policy
+	AuditEventUpdateTeamAccessPolicy   = "updateTeamAccessPolicy"   // update team-scoped access control policy
+	AuditEventDeleteTeamAccessPolicy   = "deleteTeamAccessPolicy"   // delete team-scoped access control policy
+	AuditEventAssignTeamAccessPolicy   = "assignTeamAccessPolicy"   // assign channels to team-scoped access control policy
+	AuditEventUnassignTeamAccessPolicy = "unassignTeamAccessPolicy" // remove channels from team-scoped access control policy
+	AuditEventTriggerTeamPolicySync    = "triggerTeamPolicySync"    // trigger sync for team-scoped access control policies
 )
 
 // Audit & Certificates
@@ -47,6 +54,22 @@ const (
 	AuditEventListChannelBookmarksForChannel = "listChannelBookmarksForChannel" // list bookmarks for channel
 )
 
+// Boards
+const (
+	AuditEventCreateBoard = "createBoard" // create board channel
+)
+
+// Views
+const (
+	AuditEventCreateView          = "createView"          // create view in channel
+	AuditEventGetView             = "getView"             // get view by ID
+	AuditEventUpdateView          = "updateView"          // update view
+	AuditEventDeleteView          = "deleteView"          // delete view
+	AuditEventListViewsForChannel = "listViewsForChannel" // list views for channel
+	AuditEventUpdateViewSortOrder = "updateViewSortOrder" // update view sort order
+	AuditEventGetPostsForView     = "getPostsForView"     // get posts for view
+)
+
 // Channel Categories
 const (
 	AuditEventCreateCategoryForTeamForUser      = "createCategoryForTeamForUser"      // create channel category for user
@@ -61,6 +84,9 @@ const (
 	AuditEventAddChannelMember                   = "addChannelMember"                   // add member to channel
 	AuditEventConvertGroupMessageToChannel       = "convertGroupMessageToChannel"       // convert group message to private channel
 	AuditEventCreateChannel                      = "createChannel"                      // create public or private channel
+	AuditEventCreateChannelJoinRequest           = "createChannelJoinRequest"           // request to join a discoverable private channel
+	AuditEventUpdateChannelJoinRequest           = "updateChannelJoinRequest"           // approve or deny a channel join request
+	AuditEventWithdrawChannelJoinRequest         = "withdrawChannelJoinRequest"         // requester cancels their channel join request
 	AuditEventCreateDirectChannel                = "createDirectChannel"                // create direct message channel between two users
 	AuditEventCreateGroupChannel                 = "createGroupChannel"                 // create group message channel with multiple users
 	AuditEventDeleteChannel                      = "deleteChannel"                      // delete channel
@@ -78,6 +104,7 @@ const (
 	AuditEventPatchChannelModerations            = "patchChannelModerations"            // update channel moderation settings
 	AuditEventRemoveChannelMember                = "removeChannelMember"                // remove member from channel
 	AuditEventRestoreChannel                     = "restoreChannel"                     // restore previously deleted channel
+	AuditEventSetChannelMembers                  = "setChannelMembers"                  // bulk set (replace) channel memberships
 	AuditEventUpdateChannel                      = "updateChannel"                      // update channel properties
 	AuditEventUpdateChannelMemberNotifyProps     = "updateChannelMemberNotifyProps"     // update notification preferences
 	AuditEventUpdateChannelMemberAutotranslation = "updateChannelMemberAutotranslation" // update autotranslation setting
@@ -125,6 +152,20 @@ const (
 	AuditEventDeleteCPAField = "deleteCPAField" // delete custom profile attribute
 	AuditEventPatchCPAField  = "patchCPAField"  // update custom profile attribute field
 	AuditEventPatchCPAValues = "patchCPAValues" // update custom profile attribute values
+)
+
+// Property Fields
+const (
+	AuditEventCreatePropertyField = "createPropertyField" // create property field
+	AuditEventDeletePropertyField = "deletePropertyField" // delete property field
+	AuditEventGetPropertyFields   = "getPropertyFields"   // list property fields
+	AuditEventPatchPropertyField  = "patchPropertyField"  // update property field
+)
+
+// Property Values
+const (
+	AuditEventGetPropertyValues   = "getPropertyValues"   // get property values for target
+	AuditEventPatchPropertyValues = "patchPropertyValues" // update property values for target
 )
 
 // Data Retention Policies
@@ -278,12 +319,13 @@ const (
 
 // Recaps
 const (
-	AuditEventCreateRecap     = "createRecap"     // create recap summarizing channel content
-	AuditEventGetRecap        = "getRecap"        // view a single recap
-	AuditEventGetRecaps       = "getRecaps"       // list user's recaps
-	AuditEventMarkRecapAsRead = "markRecapAsRead" // mark recap as read
-	AuditEventRegenerateRecap = "regenerateRecap" // regenerate recap with updated channel content
-	AuditEventDeleteRecap     = "deleteRecap"     // delete recap
+	AuditEventCreateRecap        = "createRecap"        // create recap summarizing channel content
+	AuditEventGetRecap           = "getRecap"           // view a single recap
+	AuditEventGetRecaps          = "getRecaps"          // list user's recaps
+	AuditEventMarkRecapAsRead    = "markRecapAsRead"    // mark recap as read
+	AuditEventMarkRecapsAsViewed = "markRecapsAsViewed" // bulk mark user's finished recaps as viewed
+	AuditEventRegenerateRecap    = "regenerateRecap"    // regenerate recap with updated channel content
+	AuditEventDeleteRecap        = "deleteRecap"        // delete recap
 )
 
 // Preferences
@@ -411,7 +453,7 @@ const (
 
 // Users
 const (
-	AuditEventAttachDeviceId               = "attachDeviceId"               // attach device ID to user session for mobile app
+	AuditEventAttachDeviceId               = "attachDeviceId"               // attach device IDs (standard or VoIP) to user session for mobile app
 	AuditEventCreateUser                   = "createUser"                   // create user account
 	AuditEventCreateUserAccessToken        = "createUserAccessToken"        // create personal access token for user API access
 	AuditEventDeleteUser                   = "deleteUser"                   // delete user account
@@ -424,6 +466,8 @@ const (
 	AuditEventLogin                        = "login"                        // user login to system
 	AuditEventLoginWithDesktopToken        = "loginWithDesktopToken"        // user login to system with desktop token
 	AuditEventLogout                       = "logout"                       // user logout from system
+	AuditEventMarkMessagesRead             = "markAllMessagesRead"          // user marked all direct and group messages as read
+	AuditEventMarkTeamRead                 = "markFullTeamRead"             // user marked an entire team as read
 	AuditEventMigrateAuthToLdap            = "migrateAuthToLdap"            // migrate user authentication method to LDAP
 	AuditEventMigrateAuthToSaml            = "migrateAuthToSaml"            // migrate user authentication method to SAML
 	AuditEventPatchUser                    = "patchUser"                    // update user properties
@@ -433,6 +477,7 @@ const (
 	AuditEventRevokeAllSessionsAllUsers    = "revokeAllSessionsAllUsers"    // revoke all active sessions for all users
 	AuditEventRevokeAllSessionsForUser     = "revokeAllSessionsForUser"     // revoke all active sessions for specific user
 	AuditEventRevokeSession                = "revokeSession"                // revoke specific user session
+	AuditEventRejectExpiredUserAccessToken = "rejectExpiredUserAccessToken" // rejected an API request because the personal access token has expired
 	AuditEventRevokeUserAccessToken        = "revokeUserAccessToken"        // revoke user personal access token
 	AuditEventSendPasswordReset            = "sendPasswordReset"            // send password reset email to user
 	AuditEventSendVerificationEmail        = "sendVerificationEmail"        // send email verification link to user
@@ -471,4 +516,5 @@ const (
 	AuditEventKeepFlaggedPost              = "keepFlaggedPost"              // keep flagged post
 	AuditEventUpdateContentFlaggingConfig  = "updateContentFlaggingConfig"  // update content flagging configuration
 	AuditEventSetReviewer                  = "setFlaggedPostReviewer"       // assign reviewer for flagged post
+	AuditEventGenerateFlaggedPostReport    = "generateFlaggedPostReport"    // generate flagged post data report
 )

@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 export default class InvitePeopleModal {
     readonly container: Locator;
@@ -37,9 +38,10 @@ export default class InvitePeopleModal {
         await this.inviteInput.click();
         await this.inviteInput.pressSequentially(email, {delay: 50});
 
-        // Wait for react-select to finish loading and show a selectable option
+        // Wait for react-select to finish loading and show a selectable option.
+        // Use a longer timeout (15 s) to tolerate slow email-validation responses in CI.
         const listbox = this.container.getByRole('listbox');
-        await expect(listbox.getByRole('option').first()).toBeVisible({timeout: 5000});
+        await expect(listbox.getByRole('option').first()).toBeVisible({timeout: 15000});
         await this.inviteInput.press('Enter');
 
         await expect(this.inviteButton).toBeEnabled();

@@ -184,7 +184,7 @@ func TestPreparePostForClient(t *testing.T) {
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
 					Priority:     model.NewPointer(model.PostPriorityUrgent),
-					RequestedAck: model.NewPointer(true),
+					RequestedAck: new(true),
 				},
 			},
 		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
@@ -223,7 +223,7 @@ func TestPreparePostForClient(t *testing.T) {
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
 					Priority:     model.NewPointer(model.PostPriorityUrgent),
-					RequestedAck: model.NewPointer(true),
+					RequestedAck: new(true),
 				},
 			},
 		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
@@ -244,13 +244,11 @@ func TestPreparePostForClient(t *testing.T) {
 	})
 
 	t.Run("burn on read post priority read from master", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
-		t.Cleanup(func() {
-			os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
-		})
-
 		// Verifies BoR post priority is correctly fetched when using master context
 		th := setup(t)
+
+		// Enable BurnOnRead feature flag
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
 		// Enable BoR feature with license and config
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
@@ -270,7 +268,7 @@ func TestPreparePostForClient(t *testing.T) {
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
 					Priority:     model.NewPointer(model.PostPriorityUrgent),
-					RequestedAck: model.NewPointer(true),
+					RequestedAck: new(true),
 				},
 			},
 		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
@@ -314,8 +312,6 @@ func TestPreparePostForClient(t *testing.T) {
 		th := setup(t)
 
 		fileInfo, err := th.App.DoUploadFile(th.Context, time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "test.txt", []byte("test"), true)
-		fileInfo.Content = "test"
-		fileInfo.ChannelId = th.BasicChannel.Id
 		require.Nil(t, err)
 
 		post, _, err := th.App.CreatePost(th.Context, &model.Post{
@@ -325,15 +321,29 @@ func TestPreparePostForClient(t *testing.T) {
 		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
-		fileInfo.PostId = post.Id
+		// DoUploadFile kicks off async content extraction; wait for attach + extraction on
+		// master before PreparePostForClient so the file-info cache is not seeded early.
+		require.EventuallyWithT(t, func(c *assert.CollectT) {
+			attached, storeErr := th.App.Srv().Store().FileInfo().GetFromMaster(fileInfo.Id)
+			if !assert.NoError(c, storeErr) || attached == nil {
+				return
+			}
+			assert.Equal(c, post.Id, attached.PostId)
+			if *th.App.Config().FileSettings.ExtractContent {
+				assert.Equal(c, "test", attached.Content)
+			}
+		}, 10*time.Second, 25*time.Millisecond)
+
+		expectedFileInfo, storeErr := th.App.Srv().Store().FileInfo().GetFromMaster(fileInfo.Id)
+		require.NoError(t, storeErr)
 
 		var clientPost *model.Post
-		assert.Eventually(t, func() bool {
+		assert.EventuallyWithT(t, func(c *assert.CollectT) {
 			clientPost = th.App.PreparePostForClient(th.Context, post, &model.PreparePostForClientOpts{})
-			return assert.ObjectsAreEqual([]*model.FileInfo{fileInfo}, clientPost.Metadata.Files)
-		}, time.Second, 10*time.Millisecond)
+			assert.True(c, assert.ObjectsAreEqual([]*model.FileInfo{expectedFileInfo}, clientPost.Metadata.Files))
+		}, 10*time.Second, 25*time.Millisecond)
 
-		assert.Equal(t, []*model.FileInfo{fileInfo}, clientPost.Metadata.Files, "should've populated Files")
+		assert.Equal(t, []*model.FileInfo{expectedFileInfo}, clientPost.Metadata.Files, "should've populated Files")
 	})
 
 	t.Run("emojis without custom emojis enabled", func(t *testing.T) {
@@ -796,7 +806,7 @@ func TestPreparePostForClient(t *testing.T) {
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
 					Priority:     model.NewPointer(model.PostPriorityUrgent),
-					RequestedAck: model.NewPointer(true),
+					RequestedAck: new(true),
 				},
 			},
 		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
@@ -1027,7 +1037,7 @@ func TestPreparePostForClientWithImageProxy(t *testing.T) {
 			*cfg.ImageProxySettings.Enable = true
 			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
 			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
-			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
+			*cfg.ImageProxySettings.RemoteImageProxyOptions = model.NewTestPassword()
 		})
 
 		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server.platform, th.Server.HTTPService(), th.Server.Log())
@@ -2752,6 +2762,107 @@ func TestGetLinkMetadata(t *testing.T) {
 		_, _, _, err := th.App.getLinkMetadata(th.Context, requestURL, timestamp, true, "")
 		assert.Error(t, err)
 	})
+
+	t.Run("from cache", func(t *testing.T) {
+		testURL := "https://example.com/test"
+		testTimestamp := int64(1640995200000) // 2022-01-01 00:00:00 UTC
+
+		setup := func(t *testing.T) {
+			err := platform.PurgeLinkCache()
+			require.NoError(t, err)
+		}
+
+		assertCached := func(t *testing.T, url string, expectedOG *opengraph.OpenGraph, expectedImage *model.PostImage, expectedPermalink *model.Permalink) {
+			og, image, permalink, found := getLinkMetadataFromCache(url, testTimestamp)
+			assert.True(t, found)
+			assert.Equal(t, expectedOG, og)
+			assert.Equal(t, expectedImage, image)
+			assert.Equal(t, expectedPermalink, permalink)
+		}
+
+		assertNotCached := func(t *testing.T, url string) {
+			og, image, permalink, found := getLinkMetadataFromCache(url, testTimestamp)
+			assert.False(t, found)
+			assert.Nil(t, og)
+			assert.Nil(t, image)
+			assert.Nil(t, permalink)
+		}
+
+		t.Run("should return false when cache is empty", func(t *testing.T) {
+			setup(t)
+			assertNotCached(t, testURL)
+		})
+
+		t.Run("should return cached data when URL matches", func(t *testing.T) {
+			setup(t)
+			expectedOG := &opengraph.OpenGraph{
+				Title: "Test Title",
+				URL:   testURL,
+			}
+			expectedImage := &model.PostImage{
+				Width:  100,
+				Height: 200,
+			}
+			expectedPermalink := &model.Permalink{
+				PreviewPost: &model.PreviewPost{
+					PostID: "test-post-id",
+				},
+			}
+
+			ctx := request.TestContext(t)
+			cacheLinkMetadata(ctx, testURL, testTimestamp, expectedOG, expectedImage, expectedPermalink)
+
+			assertCached(t, testURL, expectedOG, expectedImage, expectedPermalink)
+		})
+
+		t.Run("should return false when different url not cached", func(t *testing.T) {
+			setup(t)
+
+			cachedURL := "https://example.com/cached"
+			requestedURL := "https://example.com/different"
+
+			expectedOG := &opengraph.OpenGraph{
+				Title: "Cached Title",
+				URL:   cachedURL,
+			}
+			ctx := request.TestContext(t)
+			cacheLinkMetadata(ctx, cachedURL, testTimestamp, expectedOG, nil, nil)
+
+			assertNotCached(t, requestedURL)
+		})
+
+		t.Run("should return false when different url not cached, even if hash collides with a cached url", func(t *testing.T) {
+			setup(t)
+
+			url1 := "http://test.com/w4xg6hpvomau9j5iz371"
+			url2 := "http://collision.comupio5zw28x1m36c"
+
+			hash1 := model.GenerateLinkMetadataHash(url1, testTimestamp)
+			hash2 := model.GenerateLinkMetadataHash(url2, testTimestamp)
+			assert.Equal(t, hash1, hash2, "URLs should have colliding hashes")
+
+			og1 := &opengraph.OpenGraph{
+				Title: "First URL Title",
+				URL:   url1,
+			}
+			ctx := request.TestContext(t)
+			cacheLinkMetadata(ctx, url1, testTimestamp, og1, nil, nil)
+
+			assertCached(t, url1, og1, nil, nil)
+			assertNotCached(t, url2)
+		})
+
+		t.Run("should handle cached nil values correctly", func(t *testing.T) {
+			setup(t)
+
+			nilURL := "https://example.com/nil-test"
+
+			ctx := request.TestContext(t)
+			cacheLinkMetadata(ctx, nilURL, testTimestamp, nil, nil, nil)
+
+			assertCached(t, nilURL, nil, nil, nil)
+		})
+	})
 }
 
 func TestResolveMetadataURL(t *testing.T) {
@@ -3259,124 +3370,106 @@ func TestSanitizePostMetadataForUser(t *testing.T) {
 		require.Equal(t, model.PostEmbedPermalink, sanitizedPost.Metadata.Embeds[0].Type)
 		require.False(t, isMemberForPreviews)
 	})
-}
 
-func TestGetLinkMetadataFromCache(t *testing.T) {
-	mainHelper.Parallel(t)
+	t.Run("permalink embed with PreviewPost type does not panic", func(t *testing.T) {
+		// Verify that the code correctly type-asserts embed.Data as *model.PreviewPost
+		// (not *model.Permalink) and does not panic.
+		refChannelID := th.BasicChannel.Id
+		fileID := model.NewId()
 
-	testURL := "https://example.com/test"
-	testTimestamp := int64(1640995200000) // 2022-01-01 00:00:00 UTC
-
-	setup := func(t *testing.T) {
-		err := platform.PurgeLinkCache()
-		require.NoError(t, err)
-	}
-
-	assertCached := func(t *testing.T, url string, expectedOG *opengraph.OpenGraph, expectedImage *model.PostImage, expectedPermalink *model.Permalink) {
-		og, image, permalink, found := getLinkMetadataFromCache(url, testTimestamp)
-		assert.True(t, found)
-		assert.Equal(t, expectedOG, og)
-		assert.Equal(t, expectedImage, image)
-		assert.Equal(t, expectedPermalink, permalink)
-	}
-
-	assertNotCached := func(t *testing.T, url string) {
-		og, image, permalink, found := getLinkMetadataFromCache(url, testTimestamp)
-		assert.False(t, found)
-		assert.Nil(t, og)
-		assert.Nil(t, image)
-		assert.Nil(t, permalink)
-	}
-
-	t.Run("should return false when cache is empty", func(t *testing.T) {
-		setup(t)
-		assertNotCached(t, testURL)
-	})
-
-	t.Run("should return cached data when URL matches", func(t *testing.T) {
-		setup(t)
-		expectedOG := &opengraph.OpenGraph{
-			Title: "Test Title",
-			URL:   testURL,
-		}
-		expectedImage := &model.PostImage{
-			Width:  100,
-			Height: 200,
-		}
-		expectedPermalink := &model.Permalink{
-			PreviewPost: &model.PreviewPost{
-				PostID: "test-post-id",
+		post := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Metadata: &model.PostMetadata{
+				Embeds: []*model.PostEmbed{
+					{
+						Type: model.PostEmbedPermalink,
+						Data: &model.PreviewPost{
+							PostID: model.NewId(),
+							Post: &model.Post{
+								Id:        model.NewId(),
+								ChannelId: refChannelID,
+								FileIds:   model.StringArray{fileID},
+								Metadata: &model.PostMetadata{
+									Files: []*model.FileInfo{
+										{Id: fileID, Name: "photo.png", Extension: "png"},
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 		}
 
-		ctx := request.TestContext(t)
-		cacheLinkMetadata(ctx, testURL, testTimestamp, expectedOG, expectedImage, expectedPermalink)
+		// With AccessControl == nil (no enterprise), sanitizeFileAttachmentsForUser returns early.
+		// The key assertion is that the function does NOT panic on the *model.PreviewPost type assertion.
+		sanitizedPost, isMemberForPreviews, appErr := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, sanitizedPost)
+		require.True(t, isMemberForPreviews)
 
-		assertCached(t, testURL, expectedOG, expectedImage, expectedPermalink)
+		// Without enterprise ABAC, files should remain untouched.
+		require.Len(t, sanitizedPost.Metadata.Embeds, 1)
+		previewData, ok := sanitizedPost.Metadata.Embeds[0].Data.(*model.PreviewPost)
+		require.True(t, ok)
+		assert.Len(t, previewData.Post.Metadata.Files, 1, "files should be preserved when ABAC is not active")
+		assert.Len(t, previewData.Post.FileIds, 1)
 	})
 
-	t.Run("should return false when different url not cached", func(t *testing.T) {
-		setup(t)
-
-		cachedURL := "https://example.com/cached"
-		requestedURL := "https://example.com/different"
-
-		expectedOG := &opengraph.OpenGraph{
-			Title: "Cached Title",
-			URL:   cachedURL,
+	t.Run("post with no top-level files still reaches embed sanitization without error", func(t *testing.T) {
+		// Verifies that the guard removal in SanitizePostMetadataForUser allows sanitization
+		// to proceed even when the post itself has no files, only permalink embeds with files.
+		post := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			FileIds:   model.StringArray{},
+			Metadata: &model.PostMetadata{
+				Files: nil,
+				Embeds: []*model.PostEmbed{
+					{
+						Type: model.PostEmbedPermalink,
+						Data: &model.PreviewPost{
+							PostID: model.NewId(),
+							Post: &model.Post{
+								Id:        model.NewId(),
+								ChannelId: th.BasicChannel.Id,
+								FileIds:   model.StringArray{model.NewId()},
+								Metadata: &model.PostMetadata{
+									Files: []*model.FileInfo{
+										{Id: model.NewId(), Name: "doc.pdf", Extension: "pdf"},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 		}
-		ctx := request.TestContext(t)
-		cacheLinkMetadata(ctx, cachedURL, testTimestamp, expectedOG, nil, nil)
 
-		assertNotCached(t, requestedURL)
-	})
+		sanitizedPost, _, appErr := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, sanitizedPost)
 
-	t.Run("should return false when different url not cached, even if hash collides with a cached url", func(t *testing.T) {
-		setup(t)
-
-		url1 := "http://test.com/w4xg6hpvomau9j5iz371"
-		url2 := "http://collision.comupio5zw28x1m36c"
-
-		hash1 := model.GenerateLinkMetadataHash(url1, testTimestamp)
-		hash2 := model.GenerateLinkMetadataHash(url2, testTimestamp)
-		assert.Equal(t, hash1, hash2, "URLs should have colliding hashes")
-
-		og1 := &opengraph.OpenGraph{
-			Title: "First URL Title",
-			URL:   url1,
-		}
-		ctx := request.TestContext(t)
-		cacheLinkMetadata(ctx, url1, testTimestamp, og1, nil, nil)
-
-		assertCached(t, url1, og1, nil, nil)
-		assertNotCached(t, url2)
-	})
-
-	t.Run("should handle cached nil values correctly", func(t *testing.T) {
-		setup(t)
-
-		nilURL := "https://example.com/nil-test"
-
-		ctx := request.TestContext(t)
-		cacheLinkMetadata(ctx, nilURL, testTimestamp, nil, nil, nil)
-
-		assertCached(t, nilURL, nil, nil, nil)
+		// Without enterprise ABAC, the embed files should remain.
+		previewData, ok := sanitizedPost.Metadata.Embeds[0].Data.(*model.PreviewPost)
+		require.True(t, ok)
+		assert.NotNil(t, previewData.Post.Metadata.Files, "embed files should not be stripped without ABAC")
 	})
 }
 
 func TestPreparePostForClient_BurnOnReadSenderExpireAt(t *testing.T) {
-	// Set feature flag before setup
-	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
-	})
-
 	th := Setup(t).InitBasic(t)
+
+	// Enable BurnOnRead feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
 	// Enable Enterprise Advanced license and BoR config
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.ServiceSettings.EnableBurnOnRead = model.NewPointer(true)
+		cfg.ServiceSettings.EnableBurnOnRead = new(true)
 	})
 
 	// Create a burn-on-read post
@@ -3530,6 +3623,97 @@ func TestSanitizeChannelMentionsForUser(t *testing.T) {
 		require.True(t, ok)
 		// Should have current display name from database, not stale data
 		require.Equal(t, th.BasicChannel.DisplayName, channelData["display_name"])
+	})
+
+	t.Run("retains same-team public channel mention for non-channel-member under compliance", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ComplianceSettings.Enable = model.NewPointer(true)
+		})
+
+		// BasicUser2 is a member of BasicTeam (via InitBasic) but NOT of this fresh channel.
+		ch := th.CreateChannel(t, th.BasicTeam)
+
+		post := &model.Post{
+			Message: "Check ~" + ch.Name,
+		}
+		post.AddProp(model.PostPropsChannelMentions, map[string]any{
+			ch.Name: map[string]any{
+				"display_name": ch.DisplayName,
+				"team_name":    th.BasicTeam.Name,
+			},
+		})
+
+		result, _, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser2.Id)
+		require.Nil(t, err)
+		require.NotNil(t, result)
+
+		mentions := result.GetProp(model.PostPropsChannelMentions)
+		require.NotNil(t, mentions)
+		mentionsMap, ok := mentions.(map[string]any)
+		require.True(t, ok)
+		require.Contains(t, mentionsMap, ch.Name)
+	})
+
+	t.Run("strips cross-team public channel mention for non-member regardless of compliance", func(t *testing.T) {
+		for _, compliance := range []bool{true, false} {
+			t.Run(fmt.Sprintf("compliance=%t", compliance), func(t *testing.T) {
+				th := Setup(t).InitBasic(t)
+
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					cfg.ComplianceSettings.Enable = model.NewPointer(compliance)
+				})
+
+				team2 := th.CreateTeam(t)
+				ch := th.CreateChannel(t, team2)
+
+				post := &model.Post{
+					Message: "Check ~" + ch.Name,
+				}
+				post.AddProp(model.PostPropsChannelMentions, map[string]any{
+					ch.Name: map[string]any{
+						"display_name": ch.DisplayName,
+						"team_name":    team2.Name,
+					},
+				})
+
+				result, _, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser2.Id)
+				require.Nil(t, err)
+				require.NotNil(t, result)
+				require.Nil(t, result.GetProp(model.PostPropsChannelMentions))
+			})
+		}
+	})
+
+	t.Run("strips private channel mention for non-member regardless of compliance", func(t *testing.T) {
+		for _, compliance := range []bool{true, false} {
+			t.Run(fmt.Sprintf("compliance=%t", compliance), func(t *testing.T) {
+				th := Setup(t).InitBasic(t)
+
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					cfg.ComplianceSettings.Enable = model.NewPointer(compliance)
+				})
+
+				priv := th.CreatePrivateChannel(t, th.BasicTeam)
+				_ = th.App.RemoveUserFromChannel(th.Context, th.BasicUser2.Id, "", priv)
+
+				post := &model.Post{
+					Message: "Check ~" + priv.Name,
+				}
+				post.AddProp(model.PostPropsChannelMentions, map[string]any{
+					priv.Name: map[string]any{
+						"display_name": priv.DisplayName,
+						"team_name":    th.BasicTeam.Name,
+					},
+				})
+
+				result, _, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser2.Id)
+				require.Nil(t, err)
+				require.NotNil(t, result)
+				require.Nil(t, result.GetProp(model.PostPropsChannelMentions))
+			})
+		}
 	})
 }
 

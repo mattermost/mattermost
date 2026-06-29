@@ -8,14 +8,16 @@ exports[`FilePreview should match snapshot 1`] = `
     <div
       class="file-preview post-image__column"
     >
-      <div
+      <a
+        aria-label="file thumbnail test_filename"
         class="post-image__thumbnail"
+        href="#"
       >
         <div
           class="post-image normal"
           style="background-image: url(\\"/api/v4/files/file_id_1/thumbnail\\"); background-size: cover;"
         />
-      </div>
+      </a>
       <div
         class="post-image__details"
       >
@@ -123,14 +125,16 @@ exports[`FilePreview should match snapshot when props are changed 1`] = `
     <div
       class="file-preview post-image__column"
     >
-      <div
+      <a
+        aria-label="file thumbnail test_filename"
         class="post-image__thumbnail"
+        href="#"
       >
         <div
           class="post-image normal"
           style="background-image: url(\\"/api/v4/files/file_id_1/thumbnail\\"); background-size: cover;"
         />
-      </div>
+      </a>
       <div
         class="post-image__details"
       >
@@ -238,14 +242,16 @@ exports[`FilePreview should match snapshot when props are changed 2`] = `
     <div
       class="file-preview post-image__column"
     >
-      <div
+      <a
+        aria-label="file thumbnail test_filename"
         class="post-image__thumbnail"
+        href="#"
       >
         <div
           class="post-image normal"
           style="background-image: url(\\"/api/v4/files/file_id_1/thumbnail\\"); background-size: cover;"
         />
-      </div>
+      </a>
       <div
         class="post-image__details"
       >
@@ -286,14 +292,16 @@ exports[`FilePreview should match snapshot when props are changed 2`] = `
     <div
       class="file-preview post-image__column"
     >
-      <div
+      <a
+        aria-label="file thumbnail file_two.jpg"
         class="post-image__thumbnail"
+        href="#"
       >
         <div
           class="post-image normal"
           style="background-image: url(\\"/api/v4/files/file_id_2/thumbnail\\"); background-size: cover;"
         />
-      </div>
+      </a>
       <div
         class="post-image__details"
       >

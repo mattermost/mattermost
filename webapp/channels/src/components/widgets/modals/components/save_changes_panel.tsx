@@ -6,6 +6,7 @@ import React, {useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/shared/components/button';
 
 import './save_changes_panel.scss';
 
@@ -20,9 +21,10 @@ type Props = {
     tabChangeError?: boolean;
     state: SaveChangesPanelState;
     customErrorMessage?: string;
+    customSavedMessage?: string;
     saveButtonText?: React.ReactNode;
     cancelButtonText?: React.ReactNode;
-}
+};
 function SaveChangesPanel({
     handleSubmit,
     handleCancel,
@@ -30,13 +32,12 @@ function SaveChangesPanel({
     tabChangeError = false,
     state = 'editing',
     customErrorMessage,
+    customSavedMessage,
     saveButtonText,
     cancelButtonText,
 }: Props) {
     const panelClassName = classNames('SaveChangesPanel', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
     const messageClassName = classNames('SaveChangesPanel__message', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
-    const cancelButtonClassName = classNames('btn btn-tertiary btn-sm SaveChangesPanel__cancel-btn', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
-    const saveButtonClassName = classNames('btn btn-primary btn-sm SaveChangesPanel__save-btn', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
 
     useEffect(() => {
         let timeoutId: NodeJS.Timeout;
@@ -72,6 +73,9 @@ function SaveChangesPanel({
             );
         }
 
+        if (customSavedMessage) {
+            return <span>{customSavedMessage}</span>;
+        }
         return (
             <FormattedMessage
                 id='saveChangesPanel.saved'
@@ -102,9 +106,11 @@ function SaveChangesPanel({
 
         return (
             <div className='SaveChangesPanel__btn-ctr'>
-                <button
+                <Button
                     data-testid='SaveChangesPanel__cancel-btn'
-                    className={cancelButtonClassName}
+                    emphasis='tertiary'
+                    size='sm'
+                    className={classNames('SaveChangesPanel__cancel-btn', {error: tabChangeError || state === 'error'})}
                     onClick={handleCancel}
                 >
                     {cancelButtonText || (
@@ -113,10 +119,12 @@ function SaveChangesPanel({
                             defaultMessage='Undo'
                         />
                     )}
-                </button>
-                <button
+                </Button>
+                <Button
                     data-testid='SaveChangesPanel__save-btn'
-                    className={saveButtonClassName}
+                    emphasis='primary'
+                    size='sm'
+                    className={classNames('SaveChangesPanel__save-btn', {error: tabChangeError || state === 'error'})}
                     onClick={handleSubmit}
                     disabled={saveButtonDisabled}
                 >
@@ -126,7 +134,7 @@ function SaveChangesPanel({
                             defaultMessage='Save'
                         />
                     )}
-                </button>
+                </Button>
             </div>
         );
     };

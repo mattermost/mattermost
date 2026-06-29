@@ -12,6 +12,11 @@ type PropertyService struct {
 
 // CreatePropertyField creates a new property field.
 //
+// If the field's LinkedFieldID is set, the field inherits type, options,
+// and security attributes from the referenced template field. The source
+// must be a template field in the same group, must not itself be linked,
+// and must not be deleted.
+//
 // Minimum server version: 10.10
 func (p *PropertyService) CreatePropertyField(field *model.PropertyField) (*model.PropertyField, error) {
 	return p.api.CreatePropertyField(field)
@@ -33,12 +38,18 @@ func (p *PropertyService) GetPropertyFields(groupID string, ids []string) ([]*mo
 
 // UpdatePropertyField updates an existing property field.
 //
+// Fields with a LinkedFieldID cannot have their type or options modified.
+// Set LinkedFieldID to an empty string to unlink a field from its source.
+//
 // Minimum server version: 10.10
 func (p *PropertyService) UpdatePropertyField(groupID string, field *model.PropertyField) (*model.PropertyField, error) {
 	return p.api.UpdatePropertyField(groupID, field)
 }
 
 // DeletePropertyField deletes a property field (soft delete).
+//
+// Returns an error if the field has active linked dependents. Unlink or
+// delete dependent fields first.
 //
 // Minimum server version: 10.10
 func (p *PropertyService) DeletePropertyField(groupID, fieldID string) error {

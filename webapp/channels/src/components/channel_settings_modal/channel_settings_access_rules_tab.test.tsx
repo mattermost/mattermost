@@ -41,6 +41,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         createAccessControlSyncJob: jest.fn(),
         updateAccessControlPoliciesActive: jest.fn(),
         validateExpressionAgainstRequester: jest.fn(),
+        simulatePolicyForUsers: jest.fn(),
     };
 
     const mockUserAttributes: UserPropertyField[] = [
@@ -52,6 +53,11 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             create_at: 1736541716295,
             update_at: 1736541716295,
             delete_at: 0,
+            created_by: '',
+            updated_by: '',
+            target_id: '',
+            target_type: '',
+            object_type: '',
             attrs: {
                 sort_order: 0,
                 visibility: 'when_set',
@@ -70,6 +76,11 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             create_at: 1736541716295,
             update_at: 1736541716295,
             delete_at: 0,
+            created_by: '',
+            updated_by: '',
+            target_id: '',
+            target_type: '',
+            object_type: '',
             attrs: {
                 sort_order: 1,
                 visibility: 'when_set',
@@ -160,6 +171,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         mockActions.getChannelPolicy.mockClear();
         mockActions.saveChannelPolicy.mockClear();
         mockActions.searchUsers.mockClear();
+        mockActions.simulatePolicyForUsers.mockClear();
         mockUseChannelAccessControlActions.mockReturnValue(mockActions);
         mockUseChannelSystemPolicies.mockReturnValue({
             policies: [],
@@ -284,8 +296,10 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             initialState,
         );
 
-        expect(screen.getByRole('heading', {name: 'Access Rules'})).toBeInTheDocument();
-        expect(screen.getByText('Select user attributes and values as rules to restrict channel membership')).toBeInTheDocument();
+        // Public channels use membership-oriented copy because ABAC on public
+        // channels is advisory, not a hard gate.
+        expect(screen.getByRole('heading', {name: 'Membership Rules'})).toBeInTheDocument();
+        expect(screen.getByText('Define who this channel is recommended for. The channel stays open to everyone.')).toBeInTheDocument();
     });
 
     test('should call useChannelAccessControlActions hook', async () => {
@@ -487,7 +501,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             );
 
             expect(screen.getByText('Auto-add members based on access rules')).toBeInTheDocument();
-            expect(screen.getByText('Access rules will prevent unauthorized users from joining, but will not automatically add qualifying members.')).toBeInTheDocument();
+            expect(screen.getByText('Access rules will prevent users who do not match from being added, but qualifying users will not be added automatically.')).toBeInTheDocument();
         });
 
         test('should show system policy applied message when policies exist but not forcing auto-sync', () => {
@@ -512,7 +526,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             );
 
             expect(screen.getByText('Auto-add members based on access rules')).toBeInTheDocument();
-            expect(screen.getByText('Access rules will prevent unauthorized users from joining, but will not automatically add qualifying members.')).toBeInTheDocument();
+            expect(screen.getByText('Access rules will prevent users who do not match from being added, but qualifying users will not be added automatically.')).toBeInTheDocument();
         });
 
         test('should toggle auto-sync checkbox when clicked', async () => {
@@ -899,12 +913,11 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 id: 'channel_id',
                 name: 'Test Channel',
                 type: 'channel',
-                version: 'v0.2',
                 active: false, // Policy starts as inactive until job completes
                 revision: 1,
                 created_at: expect.any(Number),
                 rules: [{
-                    actions: ['*'],
+                    actions: ['membership'],
                     expression: 'user.attributes.department == "Engineering"',
                 }],
                 imports: [],
@@ -1182,13 +1195,13 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 id: 'system_policy_1',
                 name: 'System Policy 1',
                 type: 'parent',
-                version: 'v0.2',
+                version: 'v0.3',
                 revision: 1,
                 active: false,
                 createAt: 1234567890,
                 rules: [
                     {
-                        actions: ['join_channel'],
+                        actions: ['membership'],
                         expression: 'user.attributes.Program == "test"',
                     },
                 ],
@@ -1198,13 +1211,13 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 id: 'system_policy_2',
                 name: 'System Policy 2',
                 type: 'parent',
-                version: 'v0.2',
+                version: 'v0.3',
                 revision: 1,
                 active: false,
                 createAt: 1234567891,
                 rules: [
                     {
-                        actions: ['join_channel'],
+                        actions: ['membership'],
                         expression: 'user.attributes.Department == "Engineering"',
                     },
                 ],
@@ -1744,6 +1757,68 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         expect(screen.queryByText('Save and apply rules')).not.toBeInTheDocument();
     });
 
+    test('public channel: saves without membership impact confirmation even when sync would add users', async () => {
+        const user = userEvent.setup();
+
+        mockActions.searchUsers.mockResolvedValue({
+            data: {
+                users: [{id: 'user1', username: 'user1'}, {id: 'user2', username: 'user2'}],
+                total_count: 2,
+            },
+        });
+        mockActions.getChannelMembers.mockResolvedValue({data: []});
+
+        const publicChannelProps = {
+            ...baseProps,
+            channel: TestHelper.getChannelMock({
+                id: 'channel_id',
+                name: 'public-channel',
+                display_name: 'Public Channel',
+                type: 'O',
+            }),
+        };
+
+        renderWithContext(
+            <ChannelSettingsAccessRulesTab {...publicChannelProps}/>,
+            initialState,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+        });
+
+        const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+        act(() => {
+            onChangeCallback('user.department == "engineering"');
+        });
+
+        await waitFor(() => {
+            const checkbox = screen.getByRole('checkbox');
+            expect(checkbox).not.toBeDisabled();
+        });
+
+        const checkbox = screen.getByRole('checkbox');
+        await user.click(checkbox);
+
+        await waitFor(() => {
+            expect(checkbox).toBeChecked();
+        });
+
+        await waitFor(() => {
+            expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
+        });
+
+        const saveButton = screen.getByText('Save');
+        await user.click(saveButton);
+
+        await waitFor(() => {
+            expect(mockActions.saveChannelPolicy).toHaveBeenCalled();
+        });
+
+        expect(screen.queryByText('Review membership impact')).not.toBeInTheDocument();
+        expect(screen.queryByText('Save and apply rules')).not.toBeInTheDocument();
+    });
+
     describe('Activity warning logic - comprehensive scenarios', () => {
         const stateWithMessages = {
             ...initialState,
@@ -1765,7 +1840,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             mockActions.getChannelPolicy.mockResolvedValue({
                 data: {
                     id: 'channel_id',
-                    rules: [{expression: 'user.department == "Engineering"'}],
+                    rules: [{actions: ['membership'], expression: 'user.department == "Engineering"'}],
                     active: false,
                 },
             });
@@ -1808,7 +1883,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             mockActions.getChannelPolicy.mockResolvedValue({
                 data: {
                     id: 'channel_id',
-                    rules: [{expression: 'user.department == "Engineering"'}],
+                    rules: [{actions: ['membership'], expression: 'user.department == "Engineering"'}],
                     active: false,
                 },
             });
@@ -1867,7 +1942,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             mockActions.getChannelPolicy.mockResolvedValue({
                 data: {
                     id: 'channel_id',
-                    rules: [{expression: 'user.department == "Engineering"'}],
+                    rules: [{actions: ['membership'], expression: 'user.department == "Engineering"'}],
                     active: false,
                 },
             });
@@ -1928,7 +2003,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             mockActions.getChannelPolicy.mockResolvedValue({
                 data: {
                     id: 'channel_id',
-                    rules: [{expression: 'user.department == "Engineering"'}],
+                    rules: [{actions: ['membership'], expression: 'user.department == "Engineering"'}],
                     active: true,
                 },
             });
@@ -1998,7 +2073,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             mockActions.getChannelPolicy.mockResolvedValue({
                 data: {
                     id: 'channel_id',
-                    rules: [{expression: 'user.department == "Engineering"'}],
+                    rules: [{actions: ['membership'], expression: 'user.department == "Engineering"'}],
                     active: true,
                 },
             });
@@ -2052,7 +2127,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             mockActions.getChannelPolicy.mockResolvedValue({
                 data: {
                     id: 'channel_id',
-                    rules: [{expression: 'user.department == "Engineering"'}],
+                    rules: [{actions: ['membership'], expression: 'user.department == "Engineering"'}],
                     active: true,
                 },
             });

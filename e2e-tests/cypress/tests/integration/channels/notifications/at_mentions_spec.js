@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @notification
 
-import {getAdminAccount} from '../../../support/env';
-import {spyNotificationAs} from '../../../support/notification';
+import {getAdminAccount} from '@/support/env';
+import {spyNotificationAs} from '@/support/notification';
 
 describe('Notifications', () => {
     const admin = getAdminAccount();

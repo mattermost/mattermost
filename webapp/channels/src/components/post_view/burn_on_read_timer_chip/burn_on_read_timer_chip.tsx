@@ -5,8 +5,7 @@ import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 're
 import {useIntl} from 'react-intl';
 
 import {FireIcon} from '@mattermost/compass-icons/components';
-
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {useBurnOnReadTimer} from 'hooks/useBurnOnReadTimer';
 import {getAriaAnnouncementInterval, formatAriaAnnouncement} from 'utils/burn_on_read_timer_utils';

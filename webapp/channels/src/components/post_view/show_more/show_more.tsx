@@ -19,12 +19,12 @@ type Props = {
     compactDisplay: boolean;
     overflowType?: AttachmentTextOverflowType;
     maxHeight?: number;
-}
+};
 
 type State = {
     isCollapsed: boolean;
     isOverflow: boolean;
-}
+};
 
 export default class ShowMore extends React.PureComponent<Props, State> {
     private maxHeight: number;
@@ -114,8 +114,10 @@ export default class ShowMore extends React.PureComponent<Props, State> {
         let className = 'post-message';
         let collapsedMaxHeightStyle: number | undefined;
         if (isCollapsed) {
-            collapsedMaxHeightStyle = this.maxHeight;
             className += ' post-message--collapsed';
+            if (!(overflowType === 'ellipsis' && isOverflow)) {
+                collapsedMaxHeightStyle = this.maxHeight;
+            }
         } else {
             className += ' post-message--expanded';
         }

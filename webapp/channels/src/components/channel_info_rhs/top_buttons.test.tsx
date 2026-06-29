@@ -27,6 +27,7 @@ describe('channel_info_rhs/top_buttons', () => {
         isFavorite: false,
         isMuted: false,
         isInvitingPeople: false,
+        isInManagedCategory: false,
         canAddPeople: true,
         actions: {
             addPeople: jest.fn(),
@@ -168,6 +169,27 @@ describe('channel_info_rhs/top_buttons', () => {
         expect(screen.getByText('Copy Link')).toBeInTheDocument();
         await userEvent.click(screen.getByText('Copy Link'));
         expect(mockOnCopyTextClick).toHaveBeenCalled();
+    });
+
+    test('should disable favorite button when channel is in a managed category', () => {
+        const toggleFavorite = jest.fn();
+        const testProps: Props = {
+            ...topButtonDefaultProps,
+            isInManagedCategory: true,
+            actions: {
+                ...topButtonDefaultProps.actions,
+                toggleFavorite,
+            },
+        };
+
+        renderWithContext(
+            <TopButtons
+                {...testProps}
+            />,
+        );
+
+        const favoriteButton = screen.getByRole('button', {name: 'Favorite'});
+        expect(favoriteButton).toBeDisabled();
     });
 
     test('cannot copy link in DM or GM', () => {

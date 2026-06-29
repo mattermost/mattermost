@@ -77,7 +77,7 @@ function Row({
     lastPictureUpdate: UserProfile['last_picture_update'];
     username: UserProfile['username'];
 }) {
-    const getDisplayName = useMemo(makeGetDisplayName, []);
+    const getDisplayName = useMemo(() => makeGetDisplayName(), []);
     const displayName = useSelector((state: GlobalState) => getDisplayName(state, id));
 
     return (

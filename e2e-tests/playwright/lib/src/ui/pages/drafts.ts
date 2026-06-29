@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Page, expect} from '@playwright/test';
+import type {Page} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 import {components} from '@/ui/components';
 
@@ -43,7 +44,7 @@ export default class DraftsPage {
         await expect(this.tab).toBeVisible();
         const badge = this.tab.locator('span.MuiBadge-badge');
         await expect(badge).toBeVisible();
-        return await badge.textContent();
+        return badge.textContent();
     }
 
     async getLastPost() {

@@ -18,7 +18,7 @@ func (rcs *Service) PingNow(rc *model.RemoteCluster) {
 	online := rc.IsOnline()
 
 	if err := rcs.pingRemote(rc); err != nil {
-		rcs.server.Log().Log(mlog.LvlRemoteClusterServiceWarn, "Remote cluster ping failed",
+		rcs.server.Log().LogM(mlog.MlvlRemoteClusterServiceWarn, "Remote cluster ping failed",
 			mlog.String("remote", rc.DisplayName),
 			mlog.String("remoteId", rc.RemoteId),
 			mlog.String("pluginId", rc.PluginID),
@@ -39,7 +39,7 @@ func (rcs *Service) pingAllNow(filter model.RemoteClusterQueryFilter) {
 	// get all remotes, including any previously offline.
 	remotes, err := rcs.server.GetStore().RemoteCluster().GetAll(0, 999999, filter)
 	if err != nil {
-		rcs.server.Log().Log(mlog.LvlRemoteClusterServiceError, "Ping all remote clusters failed (could not get list of remotes)", mlog.Err(err))
+		rcs.server.Log().LogM(mlog.MlvlRemoteClusterServiceError, "Ping all remote clusters failed (could not get list of remotes)", mlog.Err(err))
 		return
 	}
 
@@ -135,7 +135,7 @@ func (rcs *Service) pingRemote(rc *model.RemoteCluster) error {
 	}
 
 	if err := rcs.server.GetStore().RemoteCluster().SetLastPingAt(rc.RemoteId); err != nil {
-		rcs.server.Log().Log(mlog.LvlRemoteClusterServiceError, "Failed to update LastPingAt for remote cluster",
+		rcs.server.Log().LogM(mlog.MlvlRemoteClusterServiceError, "Failed to update LastPingAt for remote cluster",
 			mlog.String("remote", rc.DisplayName),
 			mlog.String("remoteId", rc.RemoteId),
 			mlog.Err(err),

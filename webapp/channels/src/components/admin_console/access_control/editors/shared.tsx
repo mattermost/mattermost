@@ -4,17 +4,25 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
 import Markdown from 'components/markdown';
-import WithTooltip from 'components/with_tooltip';
 
 import './shared.scss';
+
+// Sentinel emitted by the server in masked CEL expressions for values the caller cannot see.
+export const MASKED_VALUE_TOKEN_LITERAL = '"--------"';
 
 // CEL operator constants
 export enum CELOperator {
     EQUALS = '==',
     NOT_EQUALS = '!=',
+    GREATER_THAN = '>',
+    GREATER_THAN_OR_EQUAL = '>=',
+    LESS_THAN = '<',
+    LESS_THAN_OR_EQUAL = '<=',
     STARTS_WITH = 'startsWith',
     ENDS_WITH = 'endsWith',
     CONTAINS = 'contains',
@@ -29,16 +37,36 @@ export enum OperatorLabel {
     ENDS_WITH = 'ends with',
     CONTAINS = 'contains',
     IN = 'in',
+    HAS_ANY_OF = 'has any of',
+    HAS_ALL_OF = 'has all of',
+
+    // Ranked-attribute comparison operators. These are shown only for
+    // attributes of type 'rank' and replace the standard operator set there.
+    // IS_NOT (above) is reused for the ranked "is not" (≠) operator.
+    IS_EXACTLY = 'is exactly',
+    IS_AT_LEAST = 'is at least',
+    IS_GREATER_THAN = 'is greater than',
+    IS_AT_MOST = 'is at most',
+    IS_LESS_THAN = 'is less than',
 }
 
-// Map from CEL operator to UI label
+// Map from visual AST operator to UI label. The comparison symbols (>=, >, <, <=)
+// are only ever produced by ranked attributes, so they map directly to the ranked
+// labels. EQUALS/NOT_EQUALS map to the generic IS/IS_NOT here; parseExpression
+// promotes EQUALS to IS_EXACTLY when the attribute is ranked.
 export const OPERATOR_LABELS: Record<string, string> = {
     [CELOperator.EQUALS]: OperatorLabel.IS,
     [CELOperator.NOT_EQUALS]: OperatorLabel.IS_NOT,
+    [CELOperator.GREATER_THAN_OR_EQUAL]: OperatorLabel.IS_AT_LEAST,
+    [CELOperator.GREATER_THAN]: OperatorLabel.IS_GREATER_THAN,
+    [CELOperator.LESS_THAN_OR_EQUAL]: OperatorLabel.IS_AT_MOST,
+    [CELOperator.LESS_THAN]: OperatorLabel.IS_LESS_THAN,
     [CELOperator.STARTS_WITH]: OperatorLabel.STARTS_WITH,
     [CELOperator.ENDS_WITH]: OperatorLabel.ENDS_WITH,
     [CELOperator.CONTAINS]: OperatorLabel.CONTAINS,
     [CELOperator.IN]: OperatorLabel.IN,
+    hasAnyOf: OperatorLabel.HAS_ANY_OF,
+    hasAllOf: OperatorLabel.HAS_ALL_OF,
 };
 
 type OperatorType = 'comparison' | 'method' | 'list';
@@ -51,7 +79,72 @@ export const OPERATOR_CONFIG: Record<string, {type: OperatorType; celOp: CELOper
     [OperatorLabel.ENDS_WITH]: {type: 'method', celOp: CELOperator.ENDS_WITH},
     [OperatorLabel.CONTAINS]: {type: 'method', celOp: CELOperator.CONTAINS},
     [OperatorLabel.IN]: {type: 'list', celOp: CELOperator.IN},
+    [OperatorLabel.HAS_ANY_OF]: {type: 'list', celOp: CELOperator.IN},
+    [OperatorLabel.HAS_ALL_OF]: {type: 'list', celOp: CELOperator.IN},
+
+    // Ranked comparison operators emit `attr <op> "Option"`. The backend
+    [OperatorLabel.IS_EXACTLY]: {type: 'comparison', celOp: CELOperator.EQUALS},
+    [OperatorLabel.IS_AT_LEAST]: {type: 'comparison', celOp: CELOperator.GREATER_THAN_OR_EQUAL},
+    [OperatorLabel.IS_GREATER_THAN]: {type: 'comparison', celOp: CELOperator.GREATER_THAN},
+    [OperatorLabel.IS_AT_MOST]: {type: 'comparison', celOp: CELOperator.LESS_THAN_OR_EQUAL},
+    [OperatorLabel.IS_LESS_THAN]: {type: 'comparison', celOp: CELOperator.LESS_THAN},
 };
+
+export function isMultiValueOperator(op: string): boolean {
+    return op === OperatorLabel.IN || op === OperatorLabel.HAS_ANY_OF || op === OperatorLabel.HAS_ALL_OF;
+}
+
+export function isMultiselectOperator(op: string): boolean {
+    return op === OperatorLabel.HAS_ANY_OF || op === OperatorLabel.HAS_ALL_OF;
+}
+
+// Ordinal comparison operators exclusive to ranked attributes. IS_NOT is
+// intentionally excluded — it is shared with the standard operator set — so it
+// is not filtered out of non-ranked attribute menus.
+export function isRankOperator(op: string): boolean {
+    return op === OperatorLabel.IS_EXACTLY ||
+        op === OperatorLabel.IS_AT_LEAST ||
+        op === OperatorLabel.IS_GREATER_THAN ||
+        op === OperatorLabel.IS_AT_MOST ||
+        op === OperatorLabel.IS_LESS_THAN;
+}
+
+export function isSimpleCondition(s: string): boolean {
+    const trimmed = s.trim();
+
+    // The first pattern accepts ==, != and the ranked ordinal operators
+    // (>=, <=, >, <) against a quoted value. >= / <= precede > / < in the
+    // alternation so the two-char forms match before the one-char ones.
+    return Boolean(
+        trimmed.match(/^user\.attributes\.\w+\s*(==|!=|>=|<=|>|<)\s*['"][^'"]*['"]$/) ||
+        trimmed.match(/^user\.attributes\.\w+\s+in\s+\[.*?\]$/) ||
+        trimmed.match(/^((\[.*?\])|['"][^'"]*['"])\s+in\s+user\.attributes\.\w+$/) ||
+        trimmed.match(/^user\.attributes\.\w+\.startsWith\(['"][^'"]*['"].*?\)$/) ||
+        trimmed.match(/^user\.attributes\.\w+\.endsWith\(['"][^'"]*['"].*?\)$/) ||
+        trimmed.match(/^user\.attributes\.\w+\.contains\(['"][^'"]*['"].*?\)$/),
+    );
+}
+
+export function isMultiselectOrGroup(s: string): boolean {
+    const trimmed = s.trim();
+    if (!trimmed.startsWith('(') || !trimmed.endsWith(')')) {
+        return false;
+    }
+    const inner = trimmed.slice(1, -1);
+    return inner.split('||').every((part) => {
+        const p = part.trim();
+        return Boolean(p.match(/^['"][^'"]*['"]\s+in\s+user\.attributes\.\w+$/));
+    });
+}
+
+export function isSimpleExpression(expr: string): boolean {
+    if (!expr) {
+        return true;
+    }
+    return expr.split('&&').every((condition) => {
+        return isSimpleCondition(condition) || isMultiselectOrGroup(condition);
+    });
+}
 
 // Checks if there are any usable attributes for ABAC policies.
 // An attribute is usable if:
@@ -75,6 +168,11 @@ interface TestButtonProps {
     onClick: () => void;
     disabled: boolean;
     disabledTooltip?: string;
+
+    /** Override the default "Test access rule" label. Used by the
+     *  permission-rule editors to surface "Simulate rules" instead,
+     *  matching the dual-lane simulation modal they open. */
+    label?: React.ReactNode;
 }
 
 interface AddAttributeButtonProps {
@@ -87,19 +185,22 @@ interface HelpTextProps {
     onLearnMoreClick?: () => void;
 }
 
-export function TestButton({onClick, disabled, disabledTooltip}: TestButtonProps): JSX.Element {
+export function TestButton({onClick, disabled, disabledTooltip, label}: TestButtonProps): JSX.Element {
     const button = (
-        <button
-            className='btn btn-sm btn-tertiary'
+        <Button
+            emphasis='tertiary'
+            size='sm'
             onClick={onClick}
             disabled={disabled}
         >
             <i className='icon icon-lock-outline'/>
-            <FormattedMessage
-                id='admin.access_control.table_editor.test_access_rule'
-                defaultMessage='Test access rule'
-            />
-        </button>
+            {label ?? (
+                <FormattedMessage
+                    id='admin.access_control.table_editor.test_access_rule'
+                    defaultMessage='Test access rule'
+                />
+            )}
+        </Button>
     );
 
     if (disabled && disabledTooltip) {
@@ -115,8 +216,9 @@ export function TestButton({onClick, disabled, disabledTooltip}: TestButtonProps
 
 export function AddAttributeButton({onClick, disabled}: AddAttributeButtonProps): JSX.Element {
     return (
-        <button
-            className='btn btn-sm btn-tertiary'
+        <Button
+            emphasis='tertiary'
+            size='sm'
             onClick={onClick}
             disabled={disabled}
         >
@@ -125,7 +227,7 @@ export function AddAttributeButton({onClick, disabled}: AddAttributeButtonProps)
                 id='admin.access_control.table_editor.add_attribute'
                 defaultMessage='Add attribute'
             />
-        </button>
+        </Button>
     );
 }
 

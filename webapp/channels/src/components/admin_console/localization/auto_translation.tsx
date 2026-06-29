@@ -20,7 +20,7 @@ import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridg
 import Toggle from 'components/toggle';
 import BetaTag from 'components/widgets/tag/beta_tag';
 
-import * as I18n from 'i18n/i18n.jsx';
+import * as I18n from 'i18n/i18n';
 
 import AgentsSettings from './agents_settings';
 import AutoTranslationInfo from './auto_translation_info';

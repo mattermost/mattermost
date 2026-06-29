@@ -26,7 +26,7 @@ type Props = {
     onExited: () => void;
     onConfirm: (timestamp: number) => Promise<{error?: string}>;
     initialTime?: Moment;
-}
+};
 
 export default function ScheduledPostCustomTimeModal({channelId, onExited, onConfirm, initialTime}: Props) {
     const {formatMessage} = useIntl();

@@ -3,7 +3,8 @@
 
 import path from 'node:path';
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 import DeletePostConfirmationDialog from './delete_post_confirmation_dialog';
 import RestorePostConfirmationDialog from './restore_post_confirmation_dialog';
@@ -63,7 +64,7 @@ export default class ChannelsPostEdit {
     }
 
     async removeFile(fileName: string) {
-        const files = await this.container.locator(`.file-preview`).all();
+        const files = await this.container.locator('.file-preview').all();
 
         for (let i = 0; i < files.length; i++) {
             const textContent = await files[i].textContent();

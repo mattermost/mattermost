@@ -7,6 +7,7 @@ import GlobalHeader from './global_header';
 import MainHeader from './main_header';
 import UserAccountMenu from './user_account_menu';
 // Channels Components
+import BrowseChannelsModal from './channels/browse_channels_modal';
 import ChannelsAppBar from './channels/app_bar';
 import ChannelsCenterView from './channels/center_view';
 import CreateTeamForm from './channels/create_team_form';
@@ -20,6 +21,7 @@ import ChannelsSidebarRight from './channels/sidebar_right';
 import DeletePostConfirmationDialog from './channels/delete_post_confirmation_dialog';
 import DeletePostModal from './channels/delete_post_modal';
 import DeleteScheduledPostModal from './channels/delete_scheduled_post_modal';
+import DirectChannelsModal from './channels/direct_channels_modal';
 import DraftPost from './channels/draft_post';
 import EmojiGifPicker from './channels/emoji_gif_picker';
 import FindChannelsModal from './channels/find_channels_modal';
@@ -46,8 +48,19 @@ import TeamMenu from './channels/team_menu';
 import TeamSettingsModal from './channels/team_settings/team_settings_modal';
 import ThreadFooter from './channels/thread_footer';
 import UserProfilePopover from './channels/user_profile_popover';
+// Burn-on-Read Components
+import BurnOnReadBadge from './channels/burn_on_read_badge';
+import BurnOnReadTimerChip from './channels/burn_on_read_timer_chip';
+import BurnOnReadConcealedPlaceholder from './channels/burn_on_read_concealed_placeholder';
+import BurnOnReadConfirmationModal from './channels/burn_on_read_confirmation_modal';
 // System Console Components
-import {AdminSectionPanel, DropdownSetting, RadioSetting, TextInputSetting} from './system_console/base_components';
+import {
+    AdminSectionPanel,
+    DropdownSetting,
+    NumberInputSetting,
+    RadioSetting,
+    TextInputSetting,
+} from './system_console/base_components';
 import DelegatedGranularAdministration from './system_console/sections/user_management/delegated_granular_administration';
 import UserDetail from './system_console/sections/user_management/user_detail';
 import EditionAndLicense from './system_console/sections/about/edition_and_license';
@@ -83,11 +96,13 @@ const components = {
     DeletePostConfirmationDialog,
     DeletePostModal,
     DeleteScheduledPostModal,
+    DirectChannelsModal,
     DraftPost,
     EmojiGifPicker,
     FindChannelsModal,
     FlagPostConfirmationDialog,
     NewChannelModal,
+    BrowseChannelsModal,
     GenericConfirmModal,
     InvitePeopleModal,
     MembersInvitedModal,
@@ -110,6 +125,12 @@ const components = {
     ThreadFooter,
     UserProfilePopover,
 
+    // Burn-on-Read
+    BurnOnReadBadge,
+    BurnOnReadTimerChip,
+    BurnOnReadConcealedPlaceholder,
+    BurnOnReadConfirmationModal,
+
     // System Console
     AdminSectionPanel,
     DelegatedGranularAdministration,
@@ -117,6 +138,7 @@ const components = {
     EditionAndLicense,
     MobileSecurity,
     Notifications,
+    NumberInputSetting,
     RadioSetting,
     UsersAndTeams,
     SystemConsoleFeatureDiscovery,
@@ -158,6 +180,8 @@ export {
     FindChannelsModal,
     FlagPostConfirmationDialog,
     NewChannelModal,
+    BrowseChannelsModal,
+    DirectChannelsModal,
     GenericConfirmModal,
     InvitePeopleModal,
     MembersInvitedModal,
@@ -180,6 +204,12 @@ export {
     ThreadFooter,
     UserProfilePopover,
 
+    // Burn-on-Read
+    BurnOnReadBadge,
+    BurnOnReadTimerChip,
+    BurnOnReadConcealedPlaceholder,
+    BurnOnReadConfirmationModal,
+
     // System Console
     AdminSectionPanel,
     DelegatedGranularAdministration,
@@ -187,6 +217,7 @@ export {
     EditionAndLicense,
     MobileSecurity,
     Notifications,
+    NumberInputSetting,
     RadioSetting,
     UsersAndTeams,
     SystemConsoleFeatureDiscovery,

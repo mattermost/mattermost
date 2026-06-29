@@ -12,7 +12,7 @@ type Props = {
     message?: ReactNode;
     className?: string;
     centered?: boolean;
-}
+};
 
 function LoadingScreen({message, position = 'relative', style, className = '', centered = false}: Props) {
     const {formatMessage} = useIntl();

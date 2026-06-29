@@ -1,76 +1,42 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/post_view/post_list snapshot for loading when there are no posts 1`] = `
-<div
-  className="post-list-holder-by-time"
->
+<div>
   <div
-    className="post-list__table"
+    class="post-list-holder-by-time"
   >
     <div
-      className="post-list__content"
-      id="virtualizedPostListContent"
+      class="post-list__table"
     >
-      <PostList
-        actions={
-          Object {
-            "canLoadMorePosts": [Function],
-            "changeUnreadChunkTimeStamp": [MockFunction],
-            "loadNewerPosts": [Function],
-            "loadOlderPosts": [Function],
-            "toggleShouldStartFromBottomWhenUnread": [MockFunction],
-            "updateNewMessagesAtInChannel": [MockFunction],
-          }
-        }
-        atLatestPost={false}
-        autoRetryEnable={true}
-        channelId="fake-id"
-        isChannelAutotranslated={false}
-        isMobileView={false}
-        lastViewedAt={1532345226632}
-        loadingNewerPosts={false}
-        loadingOlderPosts={false}
-        postListIds={Array []}
-        shouldStartFromBottomWhenUnread={false}
-      />
+      <div
+        class="post-list__content"
+        id="virtualizedPostListContent"
+      >
+        <div
+          data-testid="virt-post-list"
+        />
+      </div>
     </div>
   </div>
 </div>
 `;
 
 exports[`components/post_view/post_list snapshot with couple of posts 1`] = `
-<div
-  className="post-list-holder-by-time"
->
+<div>
   <div
-    className="post-list__table"
+    class="post-list-holder-by-time"
   >
     <div
-      className="post-list__content"
-      id="virtualizedPostListContent"
+      class="post-list__table"
     >
-      <PostList
-        actions={
-          Object {
-            "canLoadMorePosts": [Function],
-            "changeUnreadChunkTimeStamp": [MockFunction],
-            "loadNewerPosts": [Function],
-            "loadOlderPosts": [Function],
-            "toggleShouldStartFromBottomWhenUnread": [MockFunction],
-            "updateNewMessagesAtInChannel": [MockFunction],
-          }
-        }
-        atLatestPost={false}
-        autoRetryEnable={true}
-        channelId="fake-id"
-        isChannelAutotranslated={false}
-        isMobileView={false}
-        lastViewedAt={1532345226632}
-        loadingNewerPosts={false}
-        loadingOlderPosts={false}
-        postListIds={Array []}
-        shouldStartFromBottomWhenUnread={false}
-      />
+      <div
+        class="post-list__content"
+        id="virtualizedPostListContent"
+      >
+        <div
+          data-testid="virt-post-list"
+        />
+      </div>
     </div>
   </div>
 </div>

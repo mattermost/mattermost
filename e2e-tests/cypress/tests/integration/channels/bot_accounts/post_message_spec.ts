@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
+import type {Channel} from '@mattermost/types/channels';
 
 // ***************************************************************
 // - [#] indicates a test step (e.g. # Go to a page)
@@ -37,7 +37,7 @@ describe('Bot post message', () => {
 
                 // # Post message as bot through api with auth token
                 const props = {attachments: [{pretext: 'Some Pretext', text: 'Some Text'}]};
-                cy.postBotMessage({token, message, props, channelId: offTopicChannel.id}).
+                cy.postBotMessage({token: token!, message, props, channelId: offTopicChannel.id}).
                     its('id').
                     should('exist').
                     as('botPost');

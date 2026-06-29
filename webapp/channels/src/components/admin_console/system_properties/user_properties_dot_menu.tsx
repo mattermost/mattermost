@@ -2,10 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {CheckIcon, ChevronRightIcon, DotsHorizontalIcon, EyeOutlineIcon, LockOutlineIcon, PencilOutlineIcon, SyncIcon, TrashCanOutlineIcon, ContentCopyIcon} from '@mattermost/compass-icons/components';
+import {CheckIcon, ChevronRightIcon, DotsHorizontalIcon, EyeOutlineIcon, FormatListNumberedIcon, LockOutlineIcon, PencilOutlineIcon, SyncIcon, TrashCanOutlineIcon, ContentCopyIcon} from '@mattermost/compass-icons/components';
 import type {FieldVisibility, UserPropertyField} from '@mattermost/types/properties';
 
 import {openModal} from 'actions/views/modals';
@@ -14,8 +14,10 @@ import * as Menu from 'components/menu';
 import Toggle from 'components/toggle';
 
 import {ModalIdentifiers} from 'utils/constants';
+import {slugifyForCEL} from 'utils/properties';
 
 import AttributeModal from './attribute_modal';
+import RankedSchemaModal from './ranked_schema_modal';
 import {useUserPropertyFieldDelete} from './user_properties_delete_modal';
 import {isCreatePending} from './user_properties_utils';
 
@@ -27,7 +29,7 @@ type Props = {
     createField: (field: UserPropertyField) => void;
     updateField: (field: UserPropertyField) => void;
     deleteField: (id: string) => void;
-}
+};
 
 export const useAttributeLinkModal = (field: UserPropertyField, updateField: Props['updateField']) => {
     const dispatch = useDispatch();
@@ -114,18 +116,29 @@ const DotMenu = ({
     updateField,
     deleteField,
 }: Props) => {
-    const {formatMessage} = useIntl();
+    const dispatch = useDispatch();
     const {promptDelete} = useUserPropertyFieldDelete();
     const {promptEditLdapLink, promptEditSamlLink} = useAttributeLinkModal(field, updateField);
 
     const isProtected = Boolean(field.attrs?.protected);
 
-    const handleDuplicate = () => {
-        const name = formatMessage({
-            id: 'admin.system_properties.user_properties.dotmenu.duplicate.name_copy',
-            defaultMessage: '{fieldName} (copy)',
-        }, {fieldName: field.name});
+    const promptEditRanking = () => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.RANKED_SCHEMA_MODAL,
+            dialogType: RankedSchemaModal,
+            dialogProps: {
+                field,
+                onSave: updateField,
+                onExited: () => {},
+            },
+        }));
+    };
 
+    const isSynced = Boolean(field.attrs.ldap || field.attrs.saml);
+    const isEditableByUsers = !isSynced && field.attrs.managed !== 'admin';
+
+    const handleDuplicate = () => {
+        const name = `${slugifyForCEL(field.name)}_copy`;
         createField({...field, attrs: {...field.attrs}, name});
     };
 
@@ -143,10 +156,17 @@ const DotMenu = ({
     };
 
     const handleEditableByUsersToggle = () => {
+        if (isSynced) {
+            return;
+        }
+
         const newAttrs = {...field.attrs};
 
         if (field.attrs.managed === 'admin') {
-            Reflect.deleteProperty(newAttrs, 'managed');
+            // Server PATCH merges attrs and preserves keys absent from the body, so we
+            // assign '' rather than deleting the key — otherwise managed='admin' would
+            // silently persist on the server.
+            newAttrs.managed = '';
         } else {
             newAttrs.managed = 'admin';
         }
@@ -198,6 +218,19 @@ const DotMenu = ({
                 className: 'user-property-field-dotmenu-menu',
             }}
         >
+            {field.type === 'rank' && (
+                <Menu.Item
+                    id={`${menuId}_edit-ranking`}
+                    onClick={promptEditRanking}
+                    leadingElement={<FormatListNumberedIcon size={18}/>}
+                    labels={(
+                        <FormattedMessage
+                            id='admin.system_properties.user_properties.dotmenu.edit_ranking.label'
+                            defaultMessage='Edit ranking'
+                        />
+                    )}
+                />
+            )}
             <Menu.SubMenu
                 id={`${menuId}-${field.id}-visibility`}
                 menuId={`${menuId}-${field.id}-visibility-menu`}
@@ -277,10 +310,26 @@ const DotMenu = ({
             <Menu.Item
                 id={`${menuId}_editable-by-users`}
                 role='menuitemcheckbox'
-                aria-checked={field.attrs.managed !== 'admin'}
+                disabled={isSynced}
+                aria-checked={isEditableByUsers}
                 onClick={handleEditableByUsersToggle}
                 leadingElement={<PencilOutlineIcon size={18}/>}
-                labels={(
+                labels={isSynced ? (
+                    <>
+                        <span>
+                            <FormattedMessage
+                                id='admin.system_properties.user_properties.dotmenu.editable_by_users.label'
+                                defaultMessage='Editable by users'
+                            />
+                        </span>
+                        <span>
+                            <FormattedMessage
+                                id='admin.system_properties.user_properties.dotmenu.editable_by_users.synced_help'
+                                defaultMessage='Synced attributes are managed by AD/LDAP or SAML'
+                            />
+                        </span>
+                    </>
+                ) : (
                     <FormattedMessage
                         id='admin.system_properties.user_properties.dotmenu.editable_by_users.label'
                         defaultMessage='Editable by users'
@@ -289,9 +338,9 @@ const DotMenu = ({
                 trailingElements={(
                     <Toggle
                         size='btn-sm'
-                        disabled={false}
+                        disabled={isSynced}
                         onToggle={handleEditableByUsersToggle}
-                        toggled={field.attrs.managed !== 'admin'}
+                        toggled={isEditableByUsers}
                         toggleClassName='btn-toggle-primary'
                         tabIndex={-1}
                     />

@@ -9,7 +9,7 @@ import Header from 'components/widgets/header';
 
 type Props = {
     children: ReactNode;
-}
+};
 
 export default function DraftsAndSchedulePostsPageHeader(props: Props) {
     return (

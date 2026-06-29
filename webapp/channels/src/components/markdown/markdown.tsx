@@ -26,11 +26,6 @@ export type OwnProps = {
     options?: Partial<TextFormattingOptions>;
 
     /**
-     * Whether or not to proxy image URLs
-     */
-    proxyImages?: boolean;
-
-    /**
      * prop for passed down to image component for dimensions
      */
     imagesMetadata?: Record<string, PostImage>;
@@ -76,19 +71,15 @@ export type OwnProps = {
     emojiMap?: EmojiMap;
 
     /**
-     * Some components processed by messageHtmlToComponent e.g. AtSumOfMembersMention require to have a list of userIds
+     * Whether or not to render mmaction:// links as inline action buttons.
+     * Set per-post by the caller (e.g. enabled for bot/webhook/plugin posts).
+     * Defaults to false.
      */
-    userIds?: string[];
-
-    /**
-     * Some additional data to pass down to rendered component to aid in rendering decisions
-     */
-    messageMetadata?: Record<string, string>;
-}
+    allowInlineActions?: boolean;
+};
 
 function Markdown({
     options = {},
-    proxyImages = true,
     imagesMetadata = {},
     postId = '', // Needed to avoid proptypes console errors for cases like channel header, which doesn't have a proper value
     editedAt = 0,
@@ -101,11 +92,9 @@ function Markdown({
     hasPluginTooltips,
     postType,
     emojiMap,
-    userIds,
-    messageMetadata,
+    allowInlineActions,
     enableFormatting,
     siteURL,
-    hasImageProxy,
     team,
     minimumHashtagLength,
     managedResourcePaths,
@@ -128,7 +117,6 @@ function Markdown({
         highlightKeys,
         atMentions: true,
         channelNamesMap,
-        proxyImages: hasImageProxy && proxyImages,
         team,
         minimumHashtagLength,
         managedResourcePaths,
@@ -143,15 +131,12 @@ function Markdown({
         imagesMetadata,
         hasPluginTooltips,
         postId,
-        userIds,
-        messageMetadata,
         channelId,
         postType,
         mentionHighlight: options?.mentionHighlight,
         disableGroupHighlight: options?.disableGroupHighlight,
         editedAt,
-        atSumOfMembersMentions: options?.atSumOfMembersMentions,
-        atPlanMentions: options?.atPlanMentions,
+        allowInlineActions,
     });
 }
 

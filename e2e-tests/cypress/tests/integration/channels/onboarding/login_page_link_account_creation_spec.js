@@ -10,13 +10,13 @@
 // Stage: @prod
 // Group: @channels @enterprise @onboarding
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {generateRandomUser} from '../../../support/api/user';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {generateRandomUser} from '@/support/api/user';
 import {
     getWelcomeEmailTemplate,
     reUrl,
     verifyEmailBody,
-} from '../../../utils';
+} from '@/utils';
 
 describe('Onboarding', () => {
     let siteName;
@@ -100,7 +100,6 @@ describe('Onboarding', () => {
         // * Check that the 'Town Square' message is visible
         cy.url().should('include', `/${testTeam.name}/channels/town-square`);
     });
-
 
     function getEmail(username, email) {
         cy.getRecentEmail({username, email}).then((data) => {

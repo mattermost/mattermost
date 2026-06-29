@@ -10,13 +10,14 @@
 // Stage: @prod
 // Group: @channels @collapsed_reply_threads @not_cloud
 
-import {Channel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
-import * as MESSAGES from '../../../fixtures/messages';
-import {matterpollPlugin} from '../../../utils/plugins';
 import {interceptFileUpload} from '../files_and_attachments/helpers';
+
+import * as MESSAGES from '@/fixtures/messages';
+import {matterpollPlugin} from '@/utils/plugins';
 
 describe('Collapsed Reply Threads', () => {
     let testTeam: Team;

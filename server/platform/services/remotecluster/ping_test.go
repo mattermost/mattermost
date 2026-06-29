@@ -24,8 +24,6 @@ const (
 )
 
 func TestPing(t *testing.T) {
-	disablePing = false
-
 	t.Run("No error", func(t *testing.T) {
 		merr := merror.New()
 

@@ -5,6 +5,7 @@ import debounce from 'lodash/debounce';
 import React from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
+import {Button, buttonClassNames} from '@mattermost/shared/components/button';
 import type {
     LogFilter,
     LogLevels,
@@ -32,7 +33,7 @@ type Props = {
         getLogs: (logFilter: LogFilter) => Promise<unknown>;
         getPlainLogs: (
             page?: number | undefined,
-            perPage?: number | undefined
+            perPage?: number | undefined,
         ) => Promise<unknown>;
     };
 };
@@ -231,19 +232,19 @@ export default class Logs extends React.PureComponent<Props, State> {
                             </div>
                             <div className='banner-buttons'>
                                 {toggleLogFormat}
-                                <button
+                                <Button
                                     type='submit'
-                                    className='btn btn-primary'
+                                    emphasis='primary'
                                     onClick={this.reload}
                                 >
                                     <FormattedMessage
                                         id='admin.logs.ReloadLogs'
                                         defaultMessage='Reload Logs'
                                     />
-                                </button>
+                                </Button>
                                 <ExternalLink
                                     location='download_logs'
-                                    className='btn btn-primary'
+                                    className={buttonClassNames({emphasis: 'primary'})}
                                     href={Client4.getUrl() + '/api/v4/logs/download'}
                                 >
                                     <FormattedMessage

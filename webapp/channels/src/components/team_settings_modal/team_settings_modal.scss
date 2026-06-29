@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 .TeamSettingsModal {
-    width: 920px !important;
+    width: min(1024px, calc(100vw - 32px)) !important;
 
     // Override GenericModal wrapper styles
     .GenericModal__wrapper {
@@ -29,7 +29,7 @@
     &__bodyWrapper {
         display: flex;
         width: 100%;
-        max-width: 920px;
+        max-width: 1024px;
         flex-direction: column;
         gap: 24px;
     }
@@ -57,7 +57,7 @@
         width: calc(70%);
 
         @media screen and (max-width: 768px) {
-            width: calc(75%);
+            width: calc(60%);
         }
     }
 

@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 export default class PostMenu {
     readonly container: Locator;
@@ -34,10 +35,13 @@ export default class PostMenu {
 
     /**
      * Clicks on the reply button from the post menu.
+     * Uses expect.toPass to handle transient DOM detachments caused by
+     * the virtualized message list re-rendering while the click is in flight.
      */
     async reply() {
-        await this.replyButton.waitFor();
-        await this.replyButton.click();
+        await expect(async () => {
+            await this.replyButton.click({timeout: 5000});
+        }).toPass({timeout: 30000});
     }
 
     /**

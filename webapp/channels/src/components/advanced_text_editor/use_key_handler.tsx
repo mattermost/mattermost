@@ -5,6 +5,7 @@ import type React from 'react';
 import {useCallback, useEffect, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
@@ -22,7 +23,6 @@ import * as Keyboard from 'utils/keyboard';
 import {type ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {pasteHandler} from 'utils/paste';
 import {isWithinCodeBlock, postMessageOnKeyPress} from 'utils/post_utils';
-import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -49,9 +49,9 @@ const useKeyHandler = (
     isInEditMode?: boolean,
     onCancel?: () => void,
 ): [
-        (e: React.KeyboardEvent<TextboxElement>) => void,
-        (e: React.KeyboardEvent<TextboxElement>) => void,
-    ] => {
+    (e: React.KeyboardEvent<TextboxElement>) => void,
+    (e: React.KeyboardEvent<TextboxElement>) => void,
+] => {
     const dispatch = useDispatch();
 
     const ctrlSend = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'));
@@ -118,7 +118,7 @@ const useKeyHandler = (
             codeBlockOnCtrlEnter,
             postId ? 0 : Date.now(),
             postId ? 0 : lastChannelSwitchAt.current,
-            textboxRef.current?.getInputBox()?.selectionStart,
+            textboxRef.current?.getInputBox()?.selectionStart ?? undefined,
         );
 
         if (ignoreKeyPress) {

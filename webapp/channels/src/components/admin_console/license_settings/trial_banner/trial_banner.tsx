@@ -5,6 +5,8 @@ import React, {useEffect, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getBool as getBoolPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
@@ -225,14 +227,14 @@ const TrialBanner = ({
                 );
         }
         trialButton = (
-            <button
+            <Button
                 type='button'
-                className='btn btn-primary'
+                emphasis='primary'
                 onClick={handleRequestLicense}
                 disabled={isDisabled || gettingTrialError !== null || gettingTrialResponseCode === 451}
             >
                 {btnText(status)}
-            </button>
+            </Button>
         );
         content = (
             <>
@@ -300,10 +302,10 @@ const TrialBanner = ({
     } else {
         gettingTrialErrorMsg = null;
         trialButton = (
-            <button
+            <Button
                 type='button'
                 onClick={onHandleUpgrade}
-                className='btn btn-primary'
+                emphasis='primary'
             >
                 <LoadingWrapper
                     loading={upgradingPercentage > 0}
@@ -324,7 +326,7 @@ const TrialBanner = ({
                         defaultMessage='Upgrade Server And Start trial'
                     />
                 </LoadingWrapper>
-            </button>
+            </Button>
         );
 
         content = (

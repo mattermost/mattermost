@@ -21,7 +21,7 @@ type Props = {
     className?: string;
     position?: ToastPosition;
     onExited: () => void;
-}
+};
 
 function InfoToast({content, onExited, className, position = DEFAULT_POSITION}: Props): JSX.Element {
     const {formatMessage} = useIntl();

@@ -1,0 +1,9 @@
+version: "2"
+
+linters:
+  exclusions:
+    rules:
+      - path: immut/testdata.go
+        linters:
+          - govet
+        text: "buildtag"

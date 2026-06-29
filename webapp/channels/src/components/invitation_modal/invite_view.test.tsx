@@ -2,19 +2,18 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Provider} from 'react-redux';
 
 import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
+import {fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {SelfHostedProducts} from 'utils/constants';
 import {TestHelper as TH} from 'utils/test_helper';
 import {generateId} from 'utils/utils';
 
-import InviteAs, {InviteType} from './invite_as';
+import {InviteType} from './invite_as';
 import InviteView from './invite_view';
 import type {Props} from './invite_view';
 
@@ -124,19 +123,55 @@ describe('InviteView', () => {
         },
     };
 
-    const store = mockStore(state);
-
     beforeEach(() => {
         props = defaultProps;
     });
 
+    function renderControlledInviteView(overrideProps: Partial<Props> = {}) {
+        const onChangeUsersEmails = jest.fn();
+        const onUsersInputChange = jest.fn();
+        const usersLoader = jest.fn().mockImplementation((_search: string, callback: (users: UserProfile[]) => void) => {
+            callback([]);
+            return Promise.resolve([]);
+        });
+
+        const Wrapper = () => {
+            const [usersEmails, setUsersEmails] = React.useState<Array<UserProfile | string>>([]);
+            const [usersEmailsSearch, setUsersEmailsSearch] = React.useState('');
+
+            return (
+                <InviteView
+                    {...defaultProps}
+                    {...overrideProps}
+                    usersLoader={usersLoader}
+                    usersEmails={usersEmails}
+                    usersEmailsSearch={usersEmailsSearch}
+                    onChangeUsersEmails={(nextUsersEmails) => {
+                        onChangeUsersEmails(nextUsersEmails);
+                        setUsersEmails(nextUsersEmails);
+                    }}
+                    onUsersInputChange={(nextUsersEmailsSearch) => {
+                        onUsersInputChange(nextUsersEmailsSearch);
+                        setUsersEmailsSearch(nextUsersEmailsSearch);
+                    }}
+                />
+            );
+        };
+
+        return {
+            ...renderWithContext(<Wrapper/>, state),
+            onChangeUsersEmails,
+            onUsersInputChange,
+            usersLoader,
+        };
+    }
+
     it('shows InviteAs component when user can choose to invite guests or users', async () => {
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <InviteView {...props}/>
-            </Provider>,
+        renderWithContext(
+            <InviteView {...props}/>,
+            state,
         );
-        expect(wrapper.find(InviteAs).length).toBe(1);
+        expect(screen.getByText('Invite as')).toBeInTheDocument();
     });
 
     it('hides InviteAs component when user can not choose members option', async () => {
@@ -145,13 +180,12 @@ describe('InviteView', () => {
             canAddUsers: false,
         };
 
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <InviteView {...props}/>
-            </Provider>,
+        renderWithContext(
+            <InviteView {...props}/>,
+            state,
         );
 
-        expect(wrapper.find(InviteAs).length).toBe(0);
+        expect(screen.queryByText('Invite as')).not.toBeInTheDocument();
     });
 
     it('hides InviteAs component when user can not choose guests option', async () => {
@@ -160,12 +194,11 @@ describe('InviteView', () => {
             canInviteGuests: false,
         };
 
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <InviteView {...props}/>
-            </Provider>,
+        renderWithContext(
+            <InviteView {...props}/>,
+            state,
         );
-        expect(wrapper.find(InviteAs).length).toBe(0);
+        expect(screen.queryByText('Invite as')).not.toBeInTheDocument();
     });
 
     it('shows guest magic link checkbox when inviting guests and guest magic link is enabled', async () => {
@@ -175,14 +208,12 @@ describe('InviteView', () => {
             canInviteGuestsWithMagicLink: true,
         };
 
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <InviteView {...props}/>
-            </Provider>,
+        renderWithContext(
+            <InviteView {...props}/>,
+            state,
         );
 
-        const checkbox = wrapper.find('[data-testid="InviteView__guestMagicLinkCheckbox"]');
-        expect(checkbox.length).toBe(1);
+        expect(screen.getByTestId('InviteView__guestMagicLinkCheckbox')).toBeInTheDocument();
     });
 
     it('hides guest magic link checkbox when inviting members', async () => {
@@ -192,14 +223,12 @@ describe('InviteView', () => {
             canInviteGuestsWithMagicLink: true,
         };
 
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <InviteView {...props}/>
-            </Provider>,
+        renderWithContext(
+            <InviteView {...props}/>,
+            state,
         );
 
-        const checkbox = wrapper.find('[data-testid="InviteView__guestMagicLinkCheckbox"]');
-        expect(checkbox.length).toBe(0);
+        expect(screen.queryByTestId('InviteView__guestMagicLinkCheckbox')).not.toBeInTheDocument();
     });
 
     it('hides guest magic link checkbox when guest magic link is not enabled', async () => {
@@ -209,14 +238,12 @@ describe('InviteView', () => {
             canInviteGuestsWithMagicLink: false,
         };
 
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <InviteView {...props}/>
-            </Provider>,
+        renderWithContext(
+            <InviteView {...props}/>,
+            state,
         );
 
-        const checkbox = wrapper.find('[data-testid="InviteView__guestMagicLinkCheckbox"]');
-        expect(checkbox.length).toBe(0);
+        expect(screen.queryByTestId('InviteView__guestMagicLinkCheckbox')).not.toBeInTheDocument();
     });
 
     it('calls toggleGuestMagicLink when checkbox is clicked', async () => {
@@ -228,15 +255,90 @@ describe('InviteView', () => {
             toggleGuestMagicLink,
         };
 
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <InviteView {...props}/>
-            </Provider>,
+        renderWithContext(
+            <InviteView {...props}/>,
+            state,
         );
 
-        const checkbox = wrapper.find('[data-testid="InviteView__guestMagicLinkCheckbox"]');
-        checkbox.simulate('change');
+        const checkbox = screen.getByTestId('InviteView__guestMagicLinkCheckbox');
+        await userEvent.click(checkbox);
 
         expect(toggleGuestMagicLink).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps pasted invalid text as draft and leaves invite disabled', async () => {
+        const user = userEvent.setup();
+        const {onChangeUsersEmails, onUsersInputChange, usersLoader} = renderControlledInviteView();
+
+        const input = screen.getByRole('combobox', {name: 'Invite People'});
+        await user.click(input);
+        await user.paste('unknownperson');
+
+        await waitFor(() => {
+            expect(onUsersInputChange).toHaveBeenCalledWith('unknownperson');
+        });
+
+        expect(onChangeUsersEmails).not.toHaveBeenCalledWith([expect.anything()]);
+        expect(usersLoader).toHaveBeenCalledWith('unknownperson', expect.any(Function));
+        expect(input).toHaveValue('unknownperson');
+        expect(screen.getByTestId('inviteButton')).toBeDisabled();
+        await waitFor(() => {
+            expect(document.querySelector('.users-emails-input__menu-notice')).toHaveTextContent('No one found matching unknownperson. Enter their email to invite them.');
+        });
+    });
+
+    it('creates a chip for a pasted single valid email and enables invite', async () => {
+        const user = userEvent.setup();
+        const {onChangeUsersEmails} = renderControlledInviteView();
+
+        const input = screen.getByRole('combobox', {name: 'Invite People'});
+        await user.click(input);
+        await user.paste('person.one@example.com');
+
+        await waitFor(() => {
+            expect(onChangeUsersEmails).toHaveBeenCalledWith(['person.one@example.com']);
+        });
+
+        expect(input).toHaveValue('');
+        expect(screen.getByTestId('inviteButton')).toBeEnabled();
+    });
+
+    it('creates chips for pasted space-separated valid emails and enables invite', async () => {
+        const user = userEvent.setup();
+        const {onChangeUsersEmails} = renderControlledInviteView();
+
+        const input = screen.getByRole('combobox', {name: 'Invite People'});
+        await user.click(input);
+        fireEvent.paste(input, {
+            clipboardData: {
+                getData: (type: string) => {
+                    if (type === 'Text') {
+                        return 'person.one@example.com person.two@example.com';
+                    }
+                    return '';
+                },
+            },
+        });
+
+        await waitFor(() => {
+            expect(onChangeUsersEmails).toHaveBeenCalledWith(['person.one@example.com', 'person.two@example.com']);
+        });
+
+        expect(input).toHaveValue('');
+        expect(screen.getByTestId('inviteButton')).toBeEnabled();
+    });
+
+    it('does not create a chip prematurely while typing a valid email', async () => {
+        const user = userEvent.setup();
+        const {onChangeUsersEmails, onUsersInputChange} = renderControlledInviteView();
+
+        const input = screen.getByRole('combobox', {name: 'Invite People'});
+        await user.click(input);
+        await user.type(input, 'one@example.com');
+
+        expect(onChangeUsersEmails).not.toHaveBeenCalledWith(['one@example.com']);
+        expect(onUsersInputChange).toHaveBeenCalledWith('one@example.com');
+        expect(input).toHaveValue('one@example.com');
+        expect(screen.getByTestId('inviteButton')).toBeDisabled();
     });
 });

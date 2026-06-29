@@ -75,6 +75,117 @@ func TestTeamStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("GetTeamsForUserWithPagination", func(t *testing.T) { testTeamMembersWithPagination(t, rctx, ss) })
 	t.Run("GroupSyncedTeamCount", func(t *testing.T) { testGroupSyncedTeamCount(t, rctx, ss) })
 	t.Run("GetCommonTeamIDsForMultipleUsers", func(t *testing.T) { testGetCommonTeamIDsForMultipleUsers(t, rctx, ss) })
+	t.Run("PolicyEnforced", func(t *testing.T) { testTeamStorePolicyEnforced(t, rctx, ss) })
+}
+
+func testTeamStorePolicyEnforced(t *testing.T, rctx request.CTX, ss store.Store) {
+	saveTeam := func() *model.Team {
+		team, err := ss.Team().Save(&model.Team{
+			DisplayName: "DisplayName",
+			Name:        NewTestID(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
+		require.NoError(t, err)
+		t.Cleanup(func() { ss.Team().PermanentDelete(team.Id) })
+		return team
+	}
+
+	// savePolicy persists a policy whose ID matches the target resource. team-type
+	// policies validate only from v0.3 onward.
+	savePolicy := func(id, policyType string, active bool) {
+		version := model.AccessControlPolicyVersionV0_2
+		if policyType == model.AccessControlPolicyTypeTeam {
+			version = model.AccessControlPolicyVersionV0_3
+		}
+		_, err := ss.AccessControlPolicy().Save(rctx, &model.AccessControlPolicy{
+			ID:      id,
+			Type:    policyType,
+			Active:  active,
+			Version: version,
+			Rules: []model.AccessControlPolicyRule{{
+				Actions:    []string{model.AccessControlPolicyActionMembership},
+				Expression: "user.properties.program == \"engineering\"",
+			}},
+		})
+		require.NoError(t, err)
+		t.Cleanup(func() { ss.AccessControlPolicy().Delete(rctx, id) })
+	}
+
+	t.Run("no policy", func(t *testing.T) {
+		team := saveTeam()
+		got, err := ss.Team().Get(team.Id)
+		require.NoError(t, err)
+		require.False(t, got.PolicyEnforced)
+		require.False(t, got.PolicyIsActive)
+	})
+
+	t.Run("active team policy", func(t *testing.T) {
+		team := saveTeam()
+		savePolicy(team.Id, model.AccessControlPolicyTypeTeam, true)
+		got, err := ss.Team().Get(team.Id)
+		require.NoError(t, err)
+		require.True(t, got.PolicyEnforced)
+		require.True(t, got.PolicyIsActive)
+	})
+
+	t.Run("inactive team policy", func(t *testing.T) {
+		team := saveTeam()
+		savePolicy(team.Id, model.AccessControlPolicyTypeTeam, false)
+		got, err := ss.Team().Get(team.Id)
+		require.NoError(t, err)
+		require.True(t, got.PolicyEnforced)
+		require.False(t, got.PolicyIsActive)
+	})
+
+	t.Run("type guard ignores non-team policy with same id", func(t *testing.T) {
+		team := saveTeam()
+		savePolicy(team.Id, model.AccessControlPolicyTypeChannel, true)
+		got, err := ss.Team().Get(team.Id)
+		require.NoError(t, err)
+		require.False(t, got.PolicyEnforced)
+		require.False(t, got.PolicyIsActive)
+	})
+
+	t.Run("channel retrofit ignores team policy with same id", func(t *testing.T) {
+		ch := &model.Channel{
+			TeamId:      model.NewId(),
+			DisplayName: "Channel",
+			Name:        NewTestID(),
+			Type:        model.ChannelTypeOpen,
+		}
+		ch, err := ss.Channel().Save(rctx, ch, -1)
+		require.NoError(t, err)
+		t.Cleanup(func() { ss.Channel().PermanentDelete(rctx, ch.Id) })
+
+		savePolicy(ch.Id, model.AccessControlPolicyTypeTeam, true)
+		got, err := ss.Channel().Get(ch.Id, false)
+		require.NoError(t, err)
+		require.False(t, got.PolicyEnforced)
+		require.False(t, got.PolicyIsActive)
+	})
+
+	// GetAllPage feeds the team directory listing; the directory visibility filter
+	// short-circuits on PolicyEnforced, so this listing path must hydrate it.
+	t.Run("GetAllPage hydrates PolicyEnforced", func(t *testing.T) {
+		enforced := saveTeam()
+		savePolicy(enforced.Id, model.AccessControlPolicyTypeTeam, true)
+		plain := saveTeam()
+
+		teams, err := ss.Team().GetAllPage(0, 1000, nil)
+		require.NoError(t, err)
+
+		byID := make(map[string]*model.Team, len(teams))
+		for _, tm := range teams {
+			byID[tm.Id] = tm
+		}
+
+		require.Contains(t, byID, enforced.Id)
+		require.True(t, byID[enforced.Id].PolicyEnforced, "team with an active team policy must report PolicyEnforced from GetAllPage")
+		require.True(t, byID[enforced.Id].PolicyIsActive)
+		require.Contains(t, byID, plain.Id)
+		require.False(t, byID[plain.Id].PolicyEnforced)
+	})
 }
 
 func testTeamStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -276,7 +387,7 @@ func testTeamStoreSearchAll(t *testing.T, rctx request.CTX, ss store.Store) {
 	g.Email = MakeEmail()
 	g.Type = model.TeamOpen
 	g.AllowOpenInvite = false
-	g.GroupConstrained = model.NewPointer(true)
+	g.GroupConstrained = new(true)
 
 	_, err = ss.Team().Save(&g)
 	require.NoError(t, err)
@@ -294,7 +405,7 @@ func testTeamStoreSearchAll(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err = ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      "Policy 1",
-			PostDurationDays: model.NewPointer(int64(20)),
+			PostDurationDays: new(int64(20)),
 		},
 		TeamIDs: []string{q.Id},
 	})
@@ -368,55 +479,55 @@ func testTeamStoreSearchAll(t *testing.T, rctx request.CTX, ss store.Store) {
 		},
 		{
 			"Search for all 3 teams filter by allow open invite",
-			&model.TeamSearch{Term: "searchterm", AllowOpenInvite: model.NewPointer(true)},
+			&model.TeamSearch{Term: "searchterm", AllowOpenInvite: new(true)},
 			1,
 			[]string{o.Id},
 		},
 		{
 			"Search for all 3 teams filter by allow open invite = false",
-			&model.TeamSearch{Term: "searchterm", AllowOpenInvite: model.NewPointer(false)},
+			&model.TeamSearch{Term: "searchterm", AllowOpenInvite: new(false)},
 			1,
 			[]string{p.Id},
 		},
 		{
 			"Search for all 3 teams filter by group constrained",
-			&model.TeamSearch{Term: "searchterm", GroupConstrained: model.NewPointer(true)},
+			&model.TeamSearch{Term: "searchterm", GroupConstrained: new(true)},
 			1,
 			[]string{g.Id},
 		},
 		{
 			"Search for all 3 teams filter by group constrained = false",
-			&model.TeamSearch{Term: "searchterm", GroupConstrained: model.NewPointer(false)},
+			&model.TeamSearch{Term: "searchterm", GroupConstrained: new(false)},
 			2,
 			[]string{o.Id, p.Id},
 		},
 		{
 			"Search for all 3 teams filter by allow open invite and include group constrained",
-			&model.TeamSearch{Term: "searchterm", AllowOpenInvite: model.NewPointer(true), GroupConstrained: model.NewPointer(true)},
+			&model.TeamSearch{Term: "searchterm", AllowOpenInvite: new(true), GroupConstrained: new(true)},
 			2,
 			[]string{o.Id, g.Id},
 		},
 		{
 			"Search for all 3 teams filter by group constrained and not open invite",
-			&model.TeamSearch{Term: "searchterm", GroupConstrained: model.NewPointer(true), AllowOpenInvite: model.NewPointer(false)},
+			&model.TeamSearch{Term: "searchterm", GroupConstrained: new(true), AllowOpenInvite: new(false)},
 			2,
 			[]string{g.Id, p.Id},
 		},
 		{
 			"Search for all 3 teams filter by group constrained false and open invite",
-			&model.TeamSearch{Term: "searchterm", GroupConstrained: model.NewPointer(false), AllowOpenInvite: model.NewPointer(true)},
+			&model.TeamSearch{Term: "searchterm", GroupConstrained: new(false), AllowOpenInvite: new(true)},
 			2,
 			[]string{o.Id, p.Id},
 		},
 		{
 			"Search for all 3 teams filter by group constrained false and open invite false",
-			&model.TeamSearch{Term: "searchterm", GroupConstrained: model.NewPointer(false), AllowOpenInvite: model.NewPointer(false)},
+			&model.TeamSearch{Term: "searchterm", GroupConstrained: new(false), AllowOpenInvite: new(false)},
 			2,
 			[]string{p.Id, o.Id},
 		},
 		{
 			"Search for teams which are not part of a data retention policy",
-			&model.TeamSearch{Term: "", ExcludePolicyConstrained: model.NewPointer(true)},
+			&model.TeamSearch{Term: "", ExcludePolicyConstrained: new(true)},
 			3,
 			[]string{o.Id, p.Id, g.Id},
 		},
@@ -700,7 +811,7 @@ func testTeamStoreGetAllPage(t *testing.T, rctx request.CTX, ss store.Store) {
 	policy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      "Policy 1",
-			PostDurationDays: model.NewPointer(int64(30)),
+			PostDurationDays: new(int64(30)),
 		},
 		TeamIDs: []string{o.Id},
 	})
@@ -720,7 +831,7 @@ func testTeamStoreGetAllPage(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.True(t, found)
 
 	// With ExcludePolicyConstrained
-	teams, err = ss.Team().GetAllPage(0, 100, &model.TeamSearch{ExcludePolicyConstrained: model.NewPointer(true)})
+	teams, err = ss.Team().GetAllPage(0, 100, &model.TeamSearch{ExcludePolicyConstrained: new(true)})
 	require.NoError(t, err)
 	found = false
 	for _, team := range teams {
@@ -732,7 +843,7 @@ func testTeamStoreGetAllPage(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.False(t, found)
 
 	// With policy ID
-	teams, err = ss.Team().GetAllPage(0, 100, &model.TeamSearch{IncludePolicyID: model.NewPointer(true)})
+	teams, err = ss.Team().GetAllPage(0, 100, &model.TeamSearch{IncludePolicyID: new(true)})
 	require.NoError(t, err)
 	found = false
 	for _, team := range teams {
@@ -826,7 +937,7 @@ func testGetAllTeamPageListing(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err = ss.Team().Save(&o4)
 	require.NoError(t, err)
 
-	opts := &model.TeamSearch{AllowOpenInvite: model.NewPointer(true)}
+	opts := &model.TeamSearch{AllowOpenInvite: new(true)}
 
 	teams, err := ss.Team().GetAllPage(0, 10, opts)
 	require.NoError(t, err)
@@ -946,7 +1057,7 @@ func testGetAllPrivateTeamPageListing(t *testing.T, rctx request.CTX, ss store.S
 	_, err = ss.Team().Save(&o4)
 	require.NoError(t, err)
 
-	opts := &model.TeamSearch{AllowOpenInvite: model.NewPointer(false)}
+	opts := &model.TeamSearch{AllowOpenInvite: new(false)}
 
 	teams, listErr := ss.Team().GetAllPage(0, 10, opts)
 	require.NoError(t, listErr)
@@ -1021,7 +1132,7 @@ func testGetAllPublicTeamPageListing(t *testing.T, rctx request.CTX, ss store.St
 	_, err = ss.Team().Save(&o4)
 	require.NoError(t, err)
 
-	opts := &model.TeamSearch{AllowOpenInvite: model.NewPointer(true)}
+	opts := &model.TeamSearch{AllowOpenInvite: new(true)}
 
 	teams, err := ss.Team().GetAllPage(0, 10, opts)
 	assert.NoError(t, err)
@@ -1096,7 +1207,7 @@ func testPublicTeamCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err = ss.Team().Save(&o3)
 	require.NoError(t, err)
 
-	teamCount, err := ss.Team().AnalyticsTeamCount(&model.TeamSearch{AllowOpenInvite: model.NewPointer(true)})
+	teamCount, err := ss.Team().AnalyticsTeamCount(&model.TeamSearch{AllowOpenInvite: new(true)})
 	require.NoError(t, err)
 	require.Equal(t, int64(2), teamCount, "should only be 1 team")
 }
@@ -1131,7 +1242,7 @@ func testPrivateTeamCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err = ss.Team().Save(&o3)
 	require.NoError(t, err)
 
-	teamCount, err := ss.Team().AnalyticsTeamCount(&model.TeamSearch{AllowOpenInvite: model.NewPointer(false)})
+	teamCount, err := ss.Team().AnalyticsTeamCount(&model.TeamSearch{AllowOpenInvite: new(false)})
 	require.NoError(t, err)
 	require.Equal(t, int64(2), teamCount, "should only be 1 team")
 }
@@ -1161,7 +1272,7 @@ func testTeamCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 
 	// get the count of teams including deleted
-	countIncludingDeleted, err := ss.Team().AnalyticsTeamCount(&model.TeamSearch{IncludeDeleted: model.NewPointer(true)})
+	countIncludingDeleted, err := ss.Team().AnalyticsTeamCount(&model.TeamSearch{IncludeDeleted: new(true)})
 	require.NoError(t, err)
 
 	// count including deleted should be one greater than not including deleted
@@ -3589,7 +3700,7 @@ func testGroupSyncedTeamCount(t *testing.T, rctx request.CTX, ss store.Store) {
 		Name:             NewTestID(),
 		Email:            MakeEmail(),
 		Type:             model.TeamInvite,
-		GroupConstrained: model.NewPointer(true),
+		GroupConstrained: new(true),
 	})
 	require.NoError(t, err)
 	require.True(t, team1.IsGroupConstrained())
@@ -3609,7 +3720,7 @@ func testGroupSyncedTeamCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, count, int64(1))
 
-	team2.GroupConstrained = model.NewPointer(true)
+	team2.GroupConstrained = new(true)
 	team2, err = ss.Team().Update(team2)
 	require.NoError(t, err)
 	require.True(t, team2.IsGroupConstrained())

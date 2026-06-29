@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @keyboard_shortcuts
 
-import {beUnread} from '../../../support/assertions';
-import {stubClipboard} from '../../../utils';
+import {beUnread} from '@/support/assertions';
+import {stubClipboard} from '@/utils';
 
 describe('Keyboard Shortcuts', () => {
     let testTeam;

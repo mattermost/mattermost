@@ -2,15 +2,18 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {act} from 'react-dom/test-utils';
 
 import PluginState from 'mattermost-redux/constants/plugins';
 
-import PluginManagement from 'components/admin_console/plugin_management/plugin_management';
+import {PluginManagement} from 'components/admin_console/plugin_management/plugin_management';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import {defaultIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 describe('components/PluginManagement', () => {
     const defaultProps = {
+        intl: defaultIntl,
         config: {
             PluginSettings: {
                 Enable: true,
@@ -105,8 +108,8 @@ describe('components/PluginManagement', () => {
 
     test('should match snapshot', () => {
         const props = {...defaultProps};
-        const wrapper = shallowWithIntl(<PluginManagement {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<PluginManagement {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, disabled', () => {
@@ -120,8 +123,8 @@ describe('components/PluginManagement', () => {
                 },
             },
         };
-        const wrapper = shallowWithIntl(<PluginManagement {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<PluginManagement {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when `Enable Plugins` is hidden', () => {
@@ -134,8 +137,8 @@ describe('components/PluginManagement', () => {
                 },
             },
         };
-        const wrapper = shallowWithIntl(<PluginManagement {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<PluginManagement {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when `Require Signature Plugin` is true', () => {
@@ -149,8 +152,8 @@ describe('components/PluginManagement', () => {
                 },
             },
         };
-        const wrapper = shallowWithIntl(<PluginManagement {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<PluginManagement {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when `Enable Marketplace` is false', () => {
@@ -164,8 +167,8 @@ describe('components/PluginManagement', () => {
                 },
             },
         };
-        const wrapper = shallowWithIntl(<PluginManagement {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<PluginManagement {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when `Enable Remote Marketplace` is false', () => {
@@ -179,8 +182,8 @@ describe('components/PluginManagement', () => {
                 },
             },
         };
-        const wrapper = shallowWithIntl(<PluginManagement {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<PluginManagement {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, upload disabled', () => {
@@ -194,8 +197,8 @@ describe('components/PluginManagement', () => {
                 },
             },
         };
-        const wrapper = shallowWithIntl(<PluginManagement {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<PluginManagement {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, allow insecure URL enabled', () => {
@@ -209,20 +212,29 @@ describe('components/PluginManagement', () => {
                 },
             },
         };
-        const wrapper = shallowWithIntl(<PluginManagement {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<PluginManagement {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, text entered into the URL install text box', () => {
         const props = defaultProps;
 
-        const wrapper = shallowWithIntl(<PluginManagement {...props}/>);
-        wrapper.setState({pluginDownloadUrl: 'https://pluginsite.com/plugin.tar.gz'});
-        expect(wrapper).toMatchSnapshot();
+        const ref = React.createRef<InstanceType<typeof PluginManagement>>();
+        const {container} = renderWithContext(
+            <PluginManagement
+                {...props}
+                ref={ref}
+            />,
+        );
+        act(() => {
+            ref.current!.setState({pluginDownloadUrl: 'https://pluginsite.com/plugin.tar.gz'} as any);
+        });
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, No installed plugins', () => {
         const props = {
+            ...defaultProps,
             config: {
                 ...defaultProps.config,
                 PluginSettings: {
@@ -245,19 +257,36 @@ describe('components/PluginManagement', () => {
                 disablePlugin: jest.fn(),
             },
         };
-        const wrapper = shallowWithIntl(<PluginManagement {...props}/>);
-        wrapper.setState({loading: false});
-        expect(wrapper).toMatchSnapshot();
+        const ref = React.createRef<InstanceType<typeof PluginManagement>>();
+        const {container} = renderWithContext(
+            <PluginManagement
+                {...props}
+                ref={ref}
+            />,
+        );
+        act(() => {
+            ref.current!.setState({loading: false} as any);
+        });
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, with installed plugins', () => {
-        const wrapper = shallowWithIntl(<PluginManagement {...defaultProps}/>);
-        wrapper.setState({loading: false});
-        expect(wrapper).toMatchSnapshot();
+        const ref = React.createRef<InstanceType<typeof PluginManagement>>();
+        const {container} = renderWithContext(
+            <PluginManagement
+                {...defaultProps}
+                ref={ref}
+            />,
+        );
+        act(() => {
+            ref.current!.setState({loading: false} as any);
+        });
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, with installed plugins and not settings link should set hasSettings to false', () => {
         const props = {
+            ...defaultProps,
             config: {
                 ...defaultProps.config,
                 PluginSettings: {
@@ -335,13 +364,22 @@ describe('components/PluginManagement', () => {
                 disablePlugin: jest.fn(),
             },
         };
-        const wrapper = shallowWithIntl(<PluginManagement {...props}/>);
-        wrapper.setState({loading: false});
-        expect(wrapper).toMatchSnapshot();
+        const ref = React.createRef<InstanceType<typeof PluginManagement>>();
+        const {container} = renderWithContext(
+            <PluginManagement
+                {...props}
+                ref={ref}
+            />,
+        );
+        act(() => {
+            ref.current!.setState({loading: false} as any);
+        });
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, with installed plugins and just header should set hasSettings to true', () => {
         const props = {
+            ...defaultProps,
             config: {
                 ...defaultProps.config,
                 PluginSettings: {
@@ -392,13 +430,22 @@ describe('components/PluginManagement', () => {
                 disablePlugin: jest.fn(),
             },
         };
-        const wrapper = shallowWithIntl(<PluginManagement {...props}/>);
-        wrapper.setState({loading: false});
-        expect(wrapper).toMatchSnapshot();
+        const ref = React.createRef<InstanceType<typeof PluginManagement>>();
+        const {container} = renderWithContext(
+            <PluginManagement
+                {...props}
+                ref={ref}
+            />,
+        );
+        act(() => {
+            ref.current!.setState({loading: false} as any);
+        });
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, with installed plugins and just footer should set hasSettings to true', () => {
         const props = {
+            ...defaultProps,
             config: {
                 ...defaultProps.config,
                 PluginSettings: {
@@ -450,13 +497,22 @@ describe('components/PluginManagement', () => {
                 disablePlugin: jest.fn(),
             },
         };
-        const wrapper = shallowWithIntl(<PluginManagement {...props}/>);
-        wrapper.setState({loading: false});
-        expect(wrapper).toMatchSnapshot();
+        const ref = React.createRef<InstanceType<typeof PluginManagement>>();
+        const {container} = renderWithContext(
+            <PluginManagement
+                {...props}
+                ref={ref}
+            />,
+        );
+        act(() => {
+            ref.current!.setState({loading: false} as any);
+        });
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, with installed plugins and just settings should set hasSettings to true', () => {
         const props = {
+            ...defaultProps,
             config: {
                 ...defaultProps.config,
                 PluginSettings: {
@@ -509,8 +565,16 @@ describe('components/PluginManagement', () => {
                 disablePlugin: jest.fn(),
             },
         };
-        const wrapper = shallowWithIntl(<PluginManagement {...props}/>);
-        wrapper.setState({loading: false});
-        expect(wrapper).toMatchSnapshot();
+        const ref = React.createRef<InstanceType<typeof PluginManagement>>();
+        const {container} = renderWithContext(
+            <PluginManagement
+                {...props}
+                ref={ref}
+            />,
+        );
+        act(() => {
+            ref.current!.setState({loading: false} as any);
+        });
+        expect(container).toMatchSnapshot();
     });
 });

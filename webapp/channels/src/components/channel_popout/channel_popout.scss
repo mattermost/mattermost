@@ -1,0 +1,63 @@
+body.app__body.popout #root .main-wrapper.channel-popout {
+    border: none;
+    margin: 0;
+    background-color: var(--center-channel-bg);
+    grid-template: "center rhs";
+    grid-template-columns: 1fr min-content;
+
+    #channel_view {
+        overflow: hidden;
+        grid-area: center;
+    }
+
+    .sidebar--right--width-holder {
+        grid-area: rhs;
+    }
+
+    #sidebar-right {
+        top: 0;
+        right: 0;
+    }
+
+    .post-right__container .PopoutButton {
+        display: initial;
+    }
+
+    @media screen and (max-width: 768px) {
+        grid-template: "main";
+        grid-template-columns: 1fr;
+
+        #channel_view,
+        #sidebar-right {
+            grid-area: main;
+        }
+
+        .sidebar--right--width-holder {
+            display: none;
+        }
+
+        &:not(.rhs-open) #channel-header {
+            display: flex;
+
+            .flex-parent {
+                width: 100%;
+            }
+        }
+
+        .channel-header .channel-header__icon {
+            display: flex;
+        }
+
+        .channel__wrap .app__content {
+            padding-top: 0;
+        }
+
+        .search-bar__container {
+            display: none !important;
+        }
+
+        .sidebar--right__close {
+            display: block;
+        }
+    }
+}

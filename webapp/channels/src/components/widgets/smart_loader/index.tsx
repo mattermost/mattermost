@@ -10,7 +10,7 @@ type Props = {
     children: ReactNode;
     className?: string;
     onLoaded: () => void;
-}
+};
 
 const SmartLoader = ({loading, children, className, onLoaded}: Props) => {
     const [timeoutFinished, setTimeoutFinished] = useState(false);

@@ -29,7 +29,7 @@ export type Props = {
     actions: {
         removeUsersFromGroup: (groupId: string, userIds: string[]) => Promise<ActionResult>;
     };
-}
+};
 
 const ViewUserGroupListItem = (props: Props) => {
     const {formatMessage} = useIntl();

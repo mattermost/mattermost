@@ -368,36 +368,6 @@ func (_m *SharedChannelStore) GetSingleUser(userID string, channelID string, rem
 	return r0, r1
 }
 
-// GetUserChanges provides a mock function with given fields: userID, channelID, afterTime
-func (_m *SharedChannelStore) GetUserChanges(userID string, channelID string, afterTime int64) ([]*model.SharedChannelUser, error) {
-	ret := _m.Called(userID, channelID, afterTime)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetUserChanges")
-	}
-
-	var r0 []*model.SharedChannelUser
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, int64) ([]*model.SharedChannelUser, error)); ok {
-		return rf(userID, channelID, afterTime)
-	}
-	if rf, ok := ret.Get(0).(func(string, string, int64) []*model.SharedChannelUser); ok {
-		r0 = rf(userID, channelID, afterTime)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.SharedChannelUser)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, string, int64) error); ok {
-		r1 = rf(userID, channelID, afterTime)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetUsersForSync provides a mock function with given fields: filter
 func (_m *SharedChannelStore) GetUsersForSync(filter model.GetUsersForSyncFilter) ([]*model.User, error) {
 	ret := _m.Called(filter)
@@ -741,24 +711,6 @@ func (_m *SharedChannelStore) UpdateRemoteMembershipCursor(id string, syncTime i
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
 		r0 = rf(id, syncTime)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// UpdateUserLastMembershipSyncAt provides a mock function with given fields: userID, channelID, remoteID, syncTime
-func (_m *SharedChannelStore) UpdateUserLastMembershipSyncAt(userID string, channelID string, remoteID string, syncTime int64) error {
-	ret := _m.Called(userID, channelID, remoteID, syncTime)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UpdateUserLastMembershipSyncAt")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, string, int64) error); ok {
-		r0 = rf(userID, channelID, remoteID, syncTime)
 	} else {
 		r0 = ret.Error(0)
 	}

@@ -9,7 +9,7 @@ import type {Value} from 'components/multiselect/multiselect';
 // Not to be confused with the GroupChannel type used for LDAP groups
 export type GroupChannel = Channel & {
     profiles: UserProfile[];
-}
+};
 
 export function isGroupChannel(option: UserProfile | GroupChannel): option is GroupChannel {
     return (option as GroupChannel)?.type === 'G';

@@ -27,7 +27,7 @@ type Props = {
     overwriteName?: string;
     newStatusIcon?: boolean;
     statusClass?: string;
-}
+};
 
 function ProfilePicture(props: Props) {
     // profileSrc will, if possible, be the original user profile picture even if the icon

@@ -56,10 +56,13 @@ concurrency:
   group: "${{ github.workflow }}-${{ inputs.REPORT_TYPE }}-${{ inputs.FIPS_ENABLED }}-${{ inputs.PR_NUMBER || inputs.ref }}-${{ inputs.MM_ENV }}"
   cancel-in-progress: true
 
+permissions: {}
+
 jobs:
   generate-test-variables:
     runs-on: ubuntu-24.04
     permissions:
+      contents: read
       issues: write
       pull-requests: write
     defaults:
@@ -115,10 +118,16 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           ref: "${{ inputs.ref || github.sha }}"
           fetch-depth: 0
       - name: ci/generate-test-variables
         id: generate
+        env:
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           MM_ENV_HASH=$(md5sum -z <<<"$MM_ENV" | cut -c-8)
           TESTCASE_FAILURE_FATAL="true"
@@ -213,7 +222,7 @@ jobs:
           fi
           # BUILD_ID format: $pipelineID-$imageTag-$testType-$serverType-$serverEdition
           # Reference on BUILD_ID parsing: https://github.com/saturninoabril/automation-dashboard/blob/175891781bf1072c162c58c6ec0abfc5bcb3520e/lib/common_utils.ts#L3-L23
-          BUILD_ID="${{ github.run_id }}_${{ github.run_attempt }}-${SERVER_IMAGE_TAG}${FIPS_SUFFIX}-${BUILD_ID_SUFFIX}"
+          BUILD_ID="${GITHUB_RUN_ID}_${GITHUB_RUN_ATTEMPT}-${SERVER_IMAGE_TAG}${FIPS_SUFFIX}-${BUILD_ID_SUFFIX}"
           echo "commit_sha=${COMMIT_SHA}" >> $GITHUB_OUTPUT
           echo "BRANCH=${BRANCH}" >> $GITHUB_OUTPUT
           echo "SERVER_IMAGE=${SERVER_IMAGE_ORG}/${SERVER_IMAGE_NAME}:${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
@@ -231,7 +240,7 @@ jobs:
           echo "ROLLING_RELEASE_SERVER_IMAGE=${ROLLING_RELEASE_SERVER_IMAGE}" >> $GITHUB_OUTPUT
           echo "BUILD_ID=${BUILD_ID}" >> $GITHUB_OUTPUT
           # User notification variables
-          echo "WORKFLOW_RUN_URL=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{github.run_id}}" >> $GITHUB_OUTPUT
+          echo "WORKFLOW_RUN_URL=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" >> $GITHUB_OUTPUT
           echo "CYCLE_URL=${AUTOMATION_DASHBOARD_URL%%/api}/cycle/${BUILD_ID}" >> $GITHUB_OUTPUT
       - name: ci/notify-user
         env:
@@ -241,15 +250,17 @@ jobs:
           CYCLE_URL: "${{steps.generate.outputs.CYCLE_URL}}"
           RUN_CYPRESS: "${{inputs.RUN_CYPRESS == 'true' || ''}}"
           RUN_PLAYWRIGHT: "${{inputs.RUN_PLAYWRIGHT == 'true' || ''}}"
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
         run: |
           if [ -n "$PR_NUMBER" ]; then
-            gh issue -R "${{ github.repository }}" comment "$PR_NUMBER" --body-file - <<EOF
+            gh issue -R "${GITHUB_REPOSITORY}" comment "$PR_NUMBER" --body-file - <<EOF
           E2E test run is starting for commit \`${COMMIT_SHA}\`${MM_ENV:+, with \`MM_ENV=$MM_ENV\`}${MM_SERVICE_OVERRIDES:+, Cypress service overrides \`$MM_SERVICE_OVERRIDES\`}.
           To check the run progress:
           - Cypress: ${RUN_CYPRESS:+look for commit status \`$STATUS_CHECK_CONTEXT\` or the access the [Automation Dashboard Cycle URL]($CYCLE_URL)}$([ -n "${RUN_CYPRESS:-}" ] || echo -n "will not run").
           - Playwright: ${RUN_PLAYWRIGHT:+look for commit status \`$STATUS_CHECK_CONTEXT-playwright\`}$([ -n "${RUN_PLAYWRIGHT:-}" ] || echo -n "will not run").
           
-          You can also look at the [E2E test's Workflow Run URL]($WORKFLOW_RUN_URL) (run ID \`${{ github.run_id }}\`).
+          You can also look at the [E2E test's Workflow Run URL]($WORKFLOW_RUN_URL) (run ID \`${GITHUB_RUN_ID}\`).
           EOF
           fi
 
@@ -346,13 +357,17 @@ jobs:
       PLAYWRIGHT_REPORT_URL: "${{ needs.e2e-fulltest-playwright.outputs.playwright_report_url }}"
     steps:
       - name: ci/notify-user-test-completion
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          CYPRESS_PASS_RATE: ${{ needs.e2e-fulltest-cypress.outputs.pass_rate }}
+          PLAYWRIGHT_PASS_RATE: ${{ needs.e2e-fulltest-playwright.outputs.pass_rate }}
         run: |
           if [ -n "$PR_NUMBER" ]; then
-            gh issue -R "${{ github.repository }}" comment "$PR_NUMBER" --body-file - <<EOF
+            gh issue -R "${GITHUB_REPOSITORY}" comment "$PR_NUMBER" --body-file - <<EOF
           E2E test has completed for commit \`${COMMIT_SHA}\`${MM_ENV:+, with \`MM_ENV=$MM_ENV\`}.
           Results summary:
-          - Cypress: ${RUN_CYPRESS:+pass rate is \`${{ needs.e2e-fulltest-cypress.outputs.pass_rate || 'unknown' }}\` (see [Automation Dashboard]($CYCLE_URL) and commit status check \`$STATUS_CHECK_CONTEXT\`)}$([ -n "${RUN_CYPRESS:-}" ] || echo -n "did not run").
-          - Playwright: ${RUN_PLAYWRIGHT:+pass rate is \`${{ needs.e2e-fulltest-playwright.outputs.pass_rate || 'unknown' }}\` (see [Playwright Report URL]($PLAYWRIGHT_REPORT_URL) and commit status check \`$STATUS_CHECK_CONTEXT-playwright\`)}$([ -n "${RUN_PLAYWRIGHT:-}" ] || echo -n "did not run").
+          - Cypress: ${RUN_CYPRESS:+pass rate is \`${CYPRESS_PASS_RATE:-unknown}\` (see [Automation Dashboard]($CYCLE_URL) and commit status check \`$STATUS_CHECK_CONTEXT\`)}$([ -n "${RUN_CYPRESS:-}" ] || echo -n "did not run").
+          - Playwright: ${RUN_PLAYWRIGHT:+pass rate is \`${PLAYWRIGHT_PASS_RATE:-unknown}\` (see [Playwright Report URL]($PLAYWRIGHT_REPORT_URL) and commit status check \`$STATUS_CHECK_CONTEXT-playwright\`)}$([ -n "${RUN_PLAYWRIGHT:-}" ] || echo -n "did not run").
           
           The run summary artifacts are available in the corresponding [Workflow Run]($WORKFLOW_RUN_URL).
           EOF

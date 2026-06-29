@@ -17,7 +17,7 @@ import MarketplaceItemApp from './marketplace_item_app';
 
 type Props = {
     id: string;
-}
+};
 
 function mapStateToProps(state: GlobalState, props: Props) {
     const installing = getInstalling(state, props.id);

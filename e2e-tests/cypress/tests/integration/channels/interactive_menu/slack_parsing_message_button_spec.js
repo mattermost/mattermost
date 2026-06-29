@@ -13,7 +13,7 @@
 * Note: This test requires webhook server running. Initiate `npm run start:webhook` to start.
 */
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Interactive Menu', () => {
     let incomingWebhook;
@@ -39,7 +39,7 @@ describe('Interactive Menu', () => {
     });
 
     it('should parse text into Slack-compatible markdown depending on "skip_slack_parsing" property on response', () => {
-        const payload = getPayload(Cypress.env().webhookBaseUrl);
+        const payload = getPayload(Cypress.expose().webhookBaseUrl);
 
         // # Post an incoming webhook
         cy.postIncomingWebhook({url: incomingWebhook.url, data: payload, waitFor: 'attachment-pretext'});

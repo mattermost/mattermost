@@ -59,6 +59,11 @@ func (s *MmctlE2ETestSuite) SetupTestHelper() *api4.TestHelper {
 	return s.th
 }
 
+func (s *MmctlE2ETestSuite) SetupTestHelperWithConfig(updateConfig func(cfg *model.Config)) *api4.TestHelper {
+	s.th = api4.SetupConfig(s.T(), updateConfig)
+	return s.th
+}
+
 func (s *MmctlE2ETestSuite) SetupEnterpriseTestHelper() *api4.TestHelper {
 	if EnableEnterpriseTests != "true" {
 		s.T().SkipNow()

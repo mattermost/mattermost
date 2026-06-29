@@ -21,6 +21,7 @@ import {getMyTeams, getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
+import {compassIconForName, useChannelIconOverrideName} from 'components/channel_type_icon';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import ProfilePicture from 'components/profile_picture';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
@@ -39,13 +40,13 @@ import {getBaseStyles} from './forward_post_channel_select_styles';
 
 type ChannelTypeFromProvider = Channel & {
     userId?: string;
-}
+};
 
 export type ChannelOption = {
     label: string;
     value: string;
     details: ChannelTypeFromProvider;
-}
+};
 
 export const makeSelectedChannelOption = (channel: Channel): ChannelOption => ({
     label: channel.display_name || channel.name,
@@ -53,7 +54,7 @@ export const makeSelectedChannelOption = (channel: Channel): ChannelOption => ({
     details: channel,
 });
 
-const FormattedOption = (props: ChannelOption & {className: string; isSingleValue?: boolean}) => {
+export const FormattedOption = (props: ChannelOption & {className: string; isSingleValue?: boolean}) => {
     const {details} = props;
 
     const {formatMessage} = useIntl();
@@ -67,6 +68,7 @@ const FormattedOption = (props: ChannelOption & {className: string; isSingleValu
     const isPartOfOnlyOneTeam = useSelector((state: GlobalState) => getMyTeams(state).length === 1);
 
     const channelIsArchived = details.delete_at > 0;
+    const overrideName = useChannelIconOverrideName(details.id ? details : undefined);
 
     let icon;
     const iconProps = {
@@ -74,13 +76,17 @@ const FormattedOption = (props: ChannelOption & {className: string; isSingleValu
         color: 'rgba(var(--center-channel-color-rgb), 0.75)',
     };
 
+    const OverrideIcon = overrideName ? compassIconForName(overrideName) : null;
+
     if (channelIsArchived) {
-        const ArchiveIcon = getArchiveIconComponent(details.type);
+        const ArchiveIcon = OverrideIcon ?? getArchiveIconComponent(details.type);
         icon = <ArchiveIcon {...iconProps}/>;
     } else if (details.type === Constants.OPEN_CHANNEL) {
-        icon = <GlobeIcon {...iconProps}/>;
+        const OpenIcon = OverrideIcon ?? GlobeIcon;
+        icon = <OpenIcon {...iconProps}/>;
     } else if (details.type === Constants.PRIVATE_CHANNEL) {
-        icon = <LockOutlineIcon {...iconProps}/>;
+        const PrivateIcon = OverrideIcon ?? LockOutlineIcon;
+        icon = <PrivateIcon {...iconProps}/>;
     } else if (details.type === Constants.THREADS) {
         icon = <MessageTextOutlineIcon {...iconProps}/>;
     } else if (details.type === Constants.GM_CHANNEL) {
@@ -223,7 +229,7 @@ type Props<O> = {
     currentBodyHeight: number;
     value?: O;
     validChannelTypes?: string[];
-}
+};
 
 function ForwardPostChannelSelect({onSelect, value, currentBodyHeight, validChannelTypes = ['O', 'P', 'D', 'G']}: Props<ChannelOption>) {
     const {formatMessage} = useIntl();

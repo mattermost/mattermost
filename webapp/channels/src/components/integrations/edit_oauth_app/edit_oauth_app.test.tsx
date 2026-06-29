@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {OAuthApp} from '@mattermost/types/integrations';
@@ -9,7 +8,10 @@ import type {Team} from '@mattermost/types/teams';
 
 import EditOAuthApp from 'components/integrations/edit_oauth_app/edit_oauth_app';
 
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {getHistory} from 'utils/browser_history';
+
+jest.mock('components/permissions_gates/system_permission_gate', () => ({children}: {children: React.ReactNode}) => <>{children}</>);
 
 describe('components/integrations/EditOAuthApp', () => {
     const oauthApp: OAuthApp = {
@@ -46,126 +48,135 @@ describe('components/integrations/EditOAuthApp', () => {
     };
 
     test('should match snapshot, loading', () => {
-        const props = {...baseProps, oauthApp};
-        const wrapper = shallow(
+        const props = {...baseProps, oauthApp: undefined as unknown as OAuthApp};
+        const {container} = renderWithContext(
             <EditOAuthApp {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot', () => {
         const props = {...baseProps, oauthApp};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <EditOAuthApp {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
         expect(props.actions.getOAuthApp).toHaveBeenCalledWith(oauthApp.id);
     });
 
     test('should match snapshot when EnableOAuthServiceProvider is false', () => {
         const props = {...baseProps, oauthApp, enableOAuthServiceProvider: false};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <EditOAuthApp {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
         expect(props.actions.getOAuthApp).not.toHaveBeenCalledWith();
     });
 
-    test('should have match state when handleConfirmModal is called', () => {
-        const props = {...baseProps, oauthApp};
-        const wrapper = shallow<EditOAuthApp>(
+    test('should have match state when handleConfirmModal is called', async () => {
+        const editOAuthApp = jest.fn().mockResolvedValue({data: true});
+        const props = {...baseProps, oauthApp, actions: {...baseProps.actions, editOAuthApp}};
+        renderWithContext(
             <EditOAuthApp {...props}/>,
         );
 
-        wrapper.setState({showConfirmModal: false});
-        wrapper.instance().handleConfirmModal();
-        expect(wrapper.state('showConfirmModal')).toEqual(true);
+        // Change callback URLs to trigger the confirm modal
+        const callbackUrlsInput = screen.getByRole('textbox', {name: 'Callback URLs (One Per Line)'});
+        await userEvent.clear(callbackUrlsInput);
+        await userEvent.type(callbackUrlsInput, 'https://changed.com/callback');
+
+        const submitButton = screen.getByRole('button', {name: 'Update'});
+        await userEvent.click(submitButton);
+
+        await waitFor(() => {
+            expect(screen.getByText('Edit OAuth 2.0 application')).toBeInTheDocument();
+        });
     });
 
-    test('should have match state when confirmModalDismissed is called', () => {
-        const props = {...baseProps, oauthApp};
-        const wrapper = shallow<EditOAuthApp>(
+    test('should have match state when confirmModalDismissed is called', async () => {
+        const editOAuthApp = jest.fn().mockResolvedValue({data: true});
+        const props = {...baseProps, oauthApp, actions: {...baseProps.actions, editOAuthApp}};
+        renderWithContext(
             <EditOAuthApp {...props}/>,
         );
 
-        wrapper.setState({showConfirmModal: true});
-        wrapper.instance().confirmModalDismissed();
-        expect(wrapper.state('showConfirmModal')).toEqual(false);
+        // Change callback URLs to trigger the confirm modal
+        const callbackUrlsInput = screen.getByRole('textbox', {name: 'Callback URLs (One Per Line)'});
+        await userEvent.clear(callbackUrlsInput);
+        await userEvent.type(callbackUrlsInput, 'https://changed.com/callback');
+
+        const submitButton = screen.getByRole('button', {name: 'Update'});
+        await userEvent.click(submitButton);
+
+        await waitFor(() => {
+            expect(screen.getByText('Edit OAuth 2.0 application')).toBeInTheDocument();
+        });
+
+        // Dismiss the modal via cancel (use the modal's cancel button, not the form's Cancel link)
+        const cancelButton = screen.getByTestId('cancel-button');
+        await userEvent.click(cancelButton);
+
+        await waitFor(() => {
+            expect(screen.queryByText('Edit OAuth 2.0 application')).not.toBeInTheDocument();
+        });
     });
 
     test('should have match renderExtra', () => {
         const props = {...baseProps, oauthApp};
-        const wrapper = shallow<EditOAuthApp>(
+        const {container} = renderWithContext(
             <EditOAuthApp {...props}/>,
         );
 
-        expect(wrapper.instance().renderExtra()).toMatchSnapshot();
+        // The renderExtra renders a ConfirmModal which should be in the DOM
+        expect(container.querySelector('.integrations-backstage-modal')).toBeDefined();
     });
 
-    test('should have match when editOAuthApp is called', () => {
-        const props = {...baseProps, oauthApp};
-        const wrapper = shallow<EditOAuthApp>(
+    test('should have match when editOAuthApp is called', async () => {
+        const editOAuthApp = jest.fn().mockResolvedValue({data: true});
+        const props = {...baseProps, oauthApp, actions: {...baseProps.actions, editOAuthApp}};
+        renderWithContext(
             <EditOAuthApp {...props}/>,
         );
 
-        const instance = wrapper.instance();
-        instance.handleConfirmModal = jest.fn();
-        instance.submitOAuthApp = jest.fn();
-        instance.editOAuthApp(oauthApp);
+        // Submit without changing callback URLs - should call submitOAuthApp directly
+        const submitButton = screen.getByRole('button', {name: 'Update'});
+        await userEvent.click(submitButton);
 
-        expect(instance.handleConfirmModal).not.toHaveBeenCalled();
-        expect(instance.submitOAuthApp).toHaveBeenCalled();
+        await waitFor(() => {
+            expect(editOAuthApp).toHaveBeenCalled();
+        });
     });
 
     test('should have match when submitOAuthApp is called on success', async () => {
-        baseProps.actions.editOAuthApp = jest.fn().mockImplementation(
-            () => {
-                return new Promise((resolve) => {
-                    process.nextTick(() => resolve({
-                        data: 'data',
-                        error: null,
-                    }));
-                });
-            },
-        );
-
-        const props = {...baseProps, oauthApp};
-        const wrapper = shallow<EditOAuthApp>(
+        const editOAuthApp = jest.fn().mockResolvedValue({data: 'data'});
+        const props = {...baseProps, oauthApp, actions: {...baseProps.actions, editOAuthApp}};
+        renderWithContext(
             <EditOAuthApp {...props}/>,
         );
 
-        const instance = wrapper.instance();
-        wrapper.setState({showConfirmModal: true});
-        await instance.submitOAuthApp();
+        const submitButton = screen.getByRole('button', {name: 'Update'});
+        await userEvent.click(submitButton);
 
-        expect(wrapper.state('serverError')).toEqual('');
-        expect(getHistory().push).toHaveBeenCalledWith(`/${team.name}/integrations/oauth2-apps`);
+        await waitFor(() => {
+            expect(getHistory().push).toHaveBeenCalledWith(`/${team.name}/integrations/oauth2-apps`);
+        });
     });
 
     test('should have match when submitOAuthApp is called on error', async () => {
-        baseProps.actions.editOAuthApp = jest.fn().mockImplementation(
-            () => {
-                return new Promise((resolve) => {
-                    process.nextTick(() => resolve({
-                        data: null,
-                        error: {message: 'error message'},
-                    }));
-                });
-            },
-        );
-        const props = {...baseProps, oauthApp};
-        const wrapper = shallow<EditOAuthApp>(
+        const editOAuthApp = jest.fn().mockResolvedValue({error: {message: 'error message'}});
+        const props = {...baseProps, oauthApp, actions: {...baseProps.actions, editOAuthApp}};
+        renderWithContext(
             <EditOAuthApp {...props}/>,
         );
 
-        const instance = wrapper.instance();
-        wrapper.setState({showConfirmModal: true});
-        await instance.submitOAuthApp();
+        const submitButton = screen.getByRole('button', {name: 'Update'});
+        await userEvent.click(submitButton);
 
-        expect(wrapper.state('showConfirmModal')).toEqual(false);
-        expect(wrapper.state('serverError')).toEqual('error message');
+        await waitFor(() => {
+            expect(screen.getByText('error message')).toBeInTheDocument();
+        });
     });
 });

@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @channel_sidebar
 
-import {getRandomId} from '../../../utils';
+import {getRandomId} from '@/utils';
 
 describe('New category badge', () => {
     before(() => {

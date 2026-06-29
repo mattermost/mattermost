@@ -28,6 +28,7 @@ func (api *API) InitContentFlagging() {
 	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}", api.APISessionRequired(contentFlaggingRequired(getFlaggedPost))).Methods(http.MethodGet)
 	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/remove", api.APISessionRequired(contentFlaggingRequired(removeFlaggedPost))).Methods(http.MethodPut)
 	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/keep", api.APISessionRequired(contentFlaggingRequired(keepFlaggedPost))).Methods(http.MethodPut)
+	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/report", api.APISessionRequired(contentFlaggingRequired(generateFlaggedPostReport))).Methods(http.MethodPost)
 	api.BaseRoutes.ContentFlagging.Handle("/team/{team_id:[A-Za-z0-9]+}/reviewers/search", api.APISessionRequired(contentFlaggingRequired(searchReviewers))).Methods(http.MethodGet)
 	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/assign/{content_reviewer_id:[A-Za-z0-9]+}", api.APISessionRequired(contentFlaggingRequired(assignFlaggedPostReviewer))).Methods(http.MethodPost)
 
@@ -226,9 +227,9 @@ func getFlaggingConfig(contentFlaggingSettings model.ContentFlaggingSettings, as
 	}
 
 	if asReviewer {
-		config.NotifyReporterOnRemoval = model.NewPointer(slices.Contains(contentFlaggingSettings.NotificationSettings.EventTargetMapping[model.EventContentRemoved], model.TargetReporter))
+		config.NotifyReporterOnRemoval = new(slices.Contains(contentFlaggingSettings.NotificationSettings.EventTargetMapping[model.EventContentRemoved], model.TargetReporter))
 
-		config.NotifyReporterOnDismissal = model.NewPointer(slices.Contains(contentFlaggingSettings.NotificationSettings.EventTargetMapping[model.EventContentDismissed], model.TargetReporter))
+		config.NotifyReporterOnDismissal = new(slices.Contains(contentFlaggingSettings.NotificationSettings.EventTargetMapping[model.EventContentDismissed], model.TargetReporter))
 	}
 
 	return config

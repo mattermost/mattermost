@@ -1,150 +1,278 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match snapshot 1`] = `
-<Connect(injectIntl(SidebarChannelLink))
-  channel={
-    Object {
-      "create_at": 0,
-      "creator_id": "",
-      "delete_at": 0,
-      "display_name": "channel_display_name",
-      "group_constrained": false,
-      "header": "",
-      "id": "channel_id",
-      "last_post_at": 0,
-      "last_root_post_at": 0,
-      "name": "",
-      "purpose": "",
-      "scheme_id": "",
-      "team_id": "",
-      "type": "O",
-      "update_at": 0,
-    }
-  }
-  channelLeaveHandler={[Function]}
-  icon={
-    <ProfilePicture
-      newStatusIcon={true}
-      size="xs"
-      src="/api/v4/users/user_id/image"
-      statusClass="DirectChannel__status-icon "
-      wrapperClass="DirectChannel__profile-picture"
-    />
-  }
-  isSharedChannel={false}
-  label="channel_display_name"
-  link="/team_name/messages/@some-user"
-  teammateId="user_id"
-/>
+<div>
+  <a
+    aria-label="channel_display_name"
+    class="SidebarLink"
+    href="/team_name/messages/@some-user"
+    id="sidebarItem_"
+    tabindex="0"
+  >
+    <span
+      class="status-wrapper style--none DirectChannel__profile-picture"
+    >
+      <span
+        class="profile-icon "
+      >
+        <img
+          alt="user profile image"
+          class="Avatar Avatar-xs"
+          loading="lazy"
+          src="/api/v4/users/user_id/image"
+        />
+      </span>
+    </span>
+    <div
+      class="SidebarChannelLinkLabel_wrapper"
+    >
+      <span
+        class="SidebarChannelLinkLabel"
+      >
+        channel_display_name
+      </span>
+    </div>
+    <div
+      class="SidebarMenu MenuWrapper"
+    >
+      <button
+        aria-controls="SidebarChannelMenu-MenuList-channel_id"
+        aria-expanded="false"
+        aria-haspopup="true"
+        aria-label="Channel options for "
+        class="SidebarMenu_menuButton"
+        id="SidebarChannelMenu-Button-channel_id"
+      >
+        <svg
+          fill="currentColor"
+          height="16"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="16"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+          />
+        </svg>
+      </button>
+    </div>
+    <div
+      class="tour-tip__pulsating-dot-ctr"
+      data-pulsating-dot-placement="right"
+      id="tipButton"
+      style="transform: translate(undefinedpx, undefinedpx);"
+    >
+      <span
+        class="pulsating_dot"
+        data-testid="pulsating_dot"
+      />
+    </div>
+  </a>
+</div>
 `;
 
 exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match snapshot if DM is with bot with custom icon 1`] = `
-<Connect(injectIntl(SidebarChannelLink))
-  channel={
-    Object {
-      "create_at": 0,
-      "creator_id": "",
-      "delete_at": 0,
-      "display_name": "channel_display_name",
-      "group_constrained": false,
-      "header": "",
-      "id": "channel_id",
-      "last_post_at": 0,
-      "last_root_post_at": 0,
-      "name": "",
-      "purpose": "",
-      "scheme_id": "",
-      "team_id": "",
-      "type": "O",
-      "update_at": 0,
-    }
-  }
-  channelLeaveHandler={[Function]}
-  icon={
-    <ProfilePicture
-      newStatusIcon={true}
-      size="xs"
-      src="/api/v4/users/user_id/image"
-      status=""
-      statusClass="DirectChannel__status-icon "
-      wrapperClass="DirectChannel__profile-picture"
-    />
-  }
-  isSharedChannel={false}
-  label="channel_display_name"
-  link="/team_name/messages/@some-user"
-  teammateId="user_id"
-/>
+<div>
+  <a
+    aria-label="channel_display_name"
+    class="SidebarLink"
+    href="/team_name/messages/@some-user"
+    id="sidebarItem_"
+    tabindex="0"
+  >
+    <span
+      class="status-wrapper style--none DirectChannel__profile-picture"
+    >
+      <span
+        class="profile-icon "
+      >
+        <img
+          alt="user profile image"
+          class="Avatar Avatar-xs"
+          loading="lazy"
+          src="/api/v4/users/user_id/image"
+        />
+      </span>
+    </span>
+    <div
+      class="SidebarChannelLinkLabel_wrapper"
+    >
+      <span
+        class="SidebarChannelLinkLabel"
+      >
+        channel_display_name
+      </span>
+    </div>
+    <div
+      class="SidebarMenu MenuWrapper"
+    >
+      <button
+        aria-controls="SidebarChannelMenu-MenuList-channel_id"
+        aria-expanded="false"
+        aria-haspopup="true"
+        aria-label="Channel options for "
+        class="SidebarMenu_menuButton"
+        id="SidebarChannelMenu-Button-channel_id"
+      >
+        <svg
+          fill="currentColor"
+          height="16"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="16"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+          />
+        </svg>
+      </button>
+    </div>
+    <div
+      class="tour-tip__pulsating-dot-ctr"
+      data-pulsating-dot-placement="right"
+      id="tipButton"
+      style="transform: translate(undefinedpx, undefinedpx);"
+    >
+      <span
+        class="pulsating_dot"
+        data-testid="pulsating_dot"
+      />
+    </div>
+  </a>
+</div>
 `;
 
 exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match snapshot if DM is with current user 1`] = `
-<Connect(injectIntl(SidebarChannelLink))
-  channel={
-    Object {
-      "create_at": 0,
-      "creator_id": "",
-      "delete_at": 0,
-      "display_name": "channel_display_name",
-      "group_constrained": false,
-      "header": "",
-      "id": "channel_id",
-      "last_post_at": 0,
-      "last_root_post_at": 0,
-      "name": "",
-      "purpose": "",
-      "scheme_id": "",
-      "team_id": "",
-      "type": "O",
-      "update_at": 0,
-    }
-  }
-  channelLeaveHandler={[Function]}
-  icon={
-    <ProfilePicture
-      newStatusIcon={true}
-      size="xs"
-      src="/api/v4/users/user_id/image"
-      statusClass="DirectChannel__status-icon "
-      wrapperClass="DirectChannel__profile-picture"
-    />
-  }
-  isSharedChannel={false}
-  label="channel_display_name (you)"
-  link="/team_name/messages/@some-user"
-  teammateId="user_id"
-/>
+<div>
+  <a
+    aria-label="channel_display_name (you)"
+    class="SidebarLink"
+    href="/team_name/messages/@some-user"
+    id="sidebarItem_"
+    tabindex="0"
+  >
+    <span
+      class="status-wrapper style--none DirectChannel__profile-picture"
+    >
+      <span
+        class="profile-icon "
+      >
+        <img
+          alt="user profile image"
+          class="Avatar Avatar-xs"
+          loading="lazy"
+          src="/api/v4/users/user_id/image"
+        />
+      </span>
+    </span>
+    <div
+      class="SidebarChannelLinkLabel_wrapper"
+    >
+      <span
+        class="SidebarChannelLinkLabel"
+      >
+        channel_display_name (you)
+      </span>
+    </div>
+    <div
+      class="SidebarMenu MenuWrapper"
+    >
+      <button
+        aria-controls="SidebarChannelMenu-MenuList-channel_id"
+        aria-expanded="false"
+        aria-haspopup="true"
+        aria-label="Channel options for "
+        class="SidebarMenu_menuButton"
+        id="SidebarChannelMenu-Button-channel_id"
+      >
+        <svg
+          fill="currentColor"
+          height="16"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="16"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+          />
+        </svg>
+      </button>
+    </div>
+    <div
+      class="tour-tip__pulsating-dot-ctr"
+      data-pulsating-dot-placement="right"
+      id="tipButton"
+      style="transform: translate(undefinedpx, undefinedpx);"
+    >
+      <span
+        class="pulsating_dot"
+        data-testid="pulsating_dot"
+      />
+    </div>
+  </a>
+</div>
 `;
 
 exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match snapshot if DM is with deleted user 1`] = `
-<Connect(injectIntl(SidebarChannelLink))
-  channel={
-    Object {
-      "create_at": 0,
-      "creator_id": "",
-      "delete_at": 0,
-      "display_name": "channel_display_name",
-      "group_constrained": false,
-      "header": "",
-      "id": "channel_id",
-      "last_post_at": 0,
-      "last_root_post_at": 0,
-      "name": "",
-      "purpose": "",
-      "scheme_id": "",
-      "team_id": "",
-      "type": "O",
-      "update_at": 0,
-    }
-  }
-  channelLeaveHandler={[Function]}
-  icon={
+<div>
+  <a
+    aria-label="channel_display_name"
+    class="SidebarLink"
+    href="/team_name/messages/@some-user"
+    id="sidebarItem_"
+    tabindex="0"
+  >
     <i
-      className="icon icon-archive-outline"
+      class="icon icon-archive-outline"
     />
-  }
-  isSharedChannel={false}
-  label="channel_display_name"
-  link="/team_name/messages/@some-user"
-  teammateId="user_id"
-/>
+    <div
+      class="SidebarChannelLinkLabel_wrapper"
+    >
+      <span
+        class="SidebarChannelLinkLabel"
+      >
+        channel_display_name
+      </span>
+    </div>
+    <div
+      class="SidebarMenu MenuWrapper"
+    >
+      <button
+        aria-controls="SidebarChannelMenu-MenuList-channel_id"
+        aria-expanded="false"
+        aria-haspopup="true"
+        aria-label="Channel options for "
+        class="SidebarMenu_menuButton"
+        id="SidebarChannelMenu-Button-channel_id"
+      >
+        <svg
+          fill="currentColor"
+          height="16"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="16"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+          />
+        </svg>
+      </button>
+    </div>
+    <div
+      class="tour-tip__pulsating-dot-ctr"
+      data-pulsating-dot-placement="right"
+      id="tipButton"
+      style="transform: translate(undefinedpx, undefinedpx);"
+    >
+      <span
+        class="pulsating_dot"
+        data-testid="pulsating_dot"
+      />
+    </div>
+  </a>
+</div>
 `;

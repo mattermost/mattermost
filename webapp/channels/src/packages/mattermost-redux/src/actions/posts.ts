@@ -174,7 +174,7 @@ export type CreatePostReturnType = {
     created?: boolean;
     pending?: string;
     error?: string;
-}
+};
 
 export function createPost(
     post: Post,
@@ -525,7 +525,7 @@ export function unpinPost(postId: string): ActionFuncAsync {
 export type SubmitReactionReturnType = {
     reaction?: Reaction;
     removedReaction?: boolean;
-}
+};
 
 export function addReaction(postId: string, emojiName: string): ActionFuncAsync<SubmitReactionReturnType> {
     return async (dispatch, getState) => {
@@ -942,7 +942,7 @@ export function getPostThreads(posts: Post[], fetchThreads = true): ThunkActionF
 }
 
 // Note that getMentionsAndStatusesForPosts can take either an array of posts or a map of ids to posts
-export async function getMentionsAndStatusesForPosts(postsArrayOrMap: Post[]|PostList['posts'], dispatch: DispatchFunc, getState: GetStateFunc) {
+export async function getMentionsAndStatusesForPosts(postsArrayOrMap: Post[] | PostList['posts'], dispatch: DispatchFunc, getState: GetStateFunc) {
     if (!postsArrayOrMap) {
         // Some API methods return {error} for no results
         return Promise.resolve();
@@ -1153,7 +1153,7 @@ export function getNeededAtMentionedUsernamesAndGroups(state: GlobalState, posts
     return usernamesAndGroupsToLoad;
 }
 
-export type ExtendedPost = Post & { system_post_ids?: string[] };
+export type ExtendedPost = Post & {system_post_ids?: string[]};
 
 export function removePost(post: ExtendedPost): ActionFunc<boolean> {
     return (dispatch, getState) => {
@@ -1254,6 +1254,38 @@ export function doPostActionWithCookie(postId: string, actionId: string, actionC
                 data: {
                     channel_id: post.channel_id,
                 }});
+        }
+
+        return {data};
+    };
+}
+
+export function doPostActionWithQuery(postId: string, actionId: string, query: Record<string, string>): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.doPostActionWithQuery(postId, actionId, query);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        if (data && data.trigger_id) {
+            dispatch({
+                type: IntegrationTypes.RECEIVED_DIALOG_TRIGGER_ID,
+                data: data.trigger_id,
+            });
+            const state = getState();
+            const post = PostSelectors.getPost(state, postId);
+            if (post) {
+                dispatch({
+                    type: IntegrationTypes.RECEIVED_DIALOG_ARGUMENTS,
+                    data: {
+                        channel_id: post.channel_id,
+                    },
+                });
+            }
         }
 
         return {data};

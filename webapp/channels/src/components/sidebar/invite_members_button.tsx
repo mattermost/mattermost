@@ -16,7 +16,7 @@ import {ModalIdentifiers} from 'utils/constants';
 
 type Props = {
     className?: string;
-}
+};
 
 const InviteMembersButton = (props: Props): JSX.Element | null => {
     const intl = useIntl();

@@ -24,7 +24,7 @@ type Props = {
     channelId: string;
     disabled?: boolean;
     onSelect: (schedulingInfo: SchedulingInfo) => void;
-}
+};
 
 export function SendPostOptions({disabled, onSelect, channelId}: Props) {
     const {formatMessage} = useIntl();

@@ -1,0 +1,139 @@
+// NB: these rules are intentionally un-nested (not scoped under
+// `.ranked-schema-modal`). While a row is being dragged it is rendered through a
+// portal on document.body — outside the modal — to escape the Bootstrap modal
+// dialog's transform, which would otherwise offset the fixed-positioned drag
+// clone. The clone therefore needs these classes to style it at the body level.
+
+.ranked-schema-modal__title-name {
+    font-weight: 600;
+}
+
+.ranked-schema-modal__title-suffix {
+    margin-left: 8px;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    font-size: 14px;
+    font-weight: 400;
+}
+
+// Cap the list height and scroll it internally so a long schema (dozens of
+// values) doesn't grow the modal past the viewport and push the footer's
+// Save/Cancel buttons off-screen. As the droppable's own scroll container this
+// also gives react-beautiful-dnd a surface to auto-scroll while dragging. The
+// right padding keeps the scrollbar from overlapping the remove buttons.
+.ranked-schema-modal__rows {
+    display: flex;
+    max-height: 50vh;
+    flex-direction: column;
+    padding-right: 4px;
+    gap: 4px;
+    overflow-y: auto;
+}
+
+.ranked-schema-modal__row {
+    display: flex;
+    align-items: center;
+    padding: 4px;
+    border-radius: 4px;
+    background: var(--center-channel-bg);
+    gap: 8px;
+}
+
+.ranked-schema-modal__drag-handle {
+    display: inline-flex;
+    align-items: center;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    cursor: grab;
+
+    &:active {
+        cursor: grabbing;
+    }
+
+    // The handle on the in-progress "add" row is decorative only.
+    &.ranked-schema-modal__drag-handle--disabled {
+        cursor: default;
+    }
+}
+
+.ranked-schema-modal__chip {
+    display: inline-flex;
+    height: 24px;
+    align-items: center;
+    padding: 0 10px;
+    border-radius: 12px;
+    margin-right: auto;
+    background: rgba(var(--center-channel-color-rgb), 0.08);
+    color: var(--center-channel-color);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.ranked-schema-modal__extreme {
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    font-size: 12px;
+}
+
+.ranked-schema-modal__rank {
+    min-width: 16px;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    font-size: 12px;
+    text-align: center;
+}
+
+.ranked-schema-modal__remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    border: none;
+    background: transparent;
+    color: var(--error-text);
+    cursor: pointer;
+
+    &:hover {
+        border-radius: 4px;
+        background: rgba(var(--error-text-rgb), 0.08);
+    }
+}
+
+.ranked-schema-modal__add {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 0;
+    border: none;
+    margin-top: 12px;
+    background: transparent;
+    color: var(--button-bg);
+    cursor: pointer;
+    font-weight: 600;
+    gap: 4px;
+}
+
+// The "add" row mirrors a value row (fake drag handle + field) so adding a value
+// reads as a new item appearing at the bottom (highest) of the list. It keeps the
+// same top margin as the "Add value" button it replaces so the toggle doesn't
+// shift the layout.
+.ranked-schema-modal__adding-row {
+    margin-top: 12px;
+}
+
+.ranked-schema-modal__add-input {
+    // Match the value chip's height so the row doesn't shrink while adding.
+    height: 24px;
+    flex: 1;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--center-channel-color);
+    font-size: 12px;
+    font-weight: 600;
+
+    &::placeholder {
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-weight: 400;
+    }
+
+    &:focus {
+        box-shadow: none;
+        outline: none;
+    }
+}

@@ -871,18 +871,20 @@ func testFileInfoGetStorageUsage(t *testing.T, rctx request.CTX, ss store.Store)
 }
 
 func testGetUptoNSizeFileTime(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
-	t.Skip("MM-53905")
-
 	_, err := ss.FileInfo().GetUptoNSizeFileTime(0)
 	assert.Error(t, err)
 	_, err = ss.FileInfo().GetUptoNSizeFileTime(-1)
 	assert.Error(t, err)
 
-	_, err = ss.FileInfo().PermanentDeleteBatch(rctx, model.GetMillis(), 100000)
+	// Delete all existing file infos so parallel tests don't interfere with
+	// the cumulative size calculation (MM-53905).
+	_, err = ss.FileInfo().PermanentDeleteBatch(rctx, model.GetMillis()+3600000, 100000)
 	require.NoError(t, err)
 
+	// Use far-future timestamps so these are always "most recent" even if
+	// parallel tests create file infos concurrently.
 	diff := int64(10000)
-	now := utils.MillisFromTime(time.Now()) + diff
+	now := utils.MillisFromTime(time.Now()) + 3600000 // 1 hour in the future
 
 	f1, err := ss.FileInfo().Save(rctx, &model.FileInfo{
 		PostId:    model.NewId(),
@@ -982,7 +984,7 @@ func testGetByIds(t *testing.T, rctx request.CTX, ss store.Store) {
 			ss.FileInfo().PermanentDelete(rctx, info.Id)
 		}()
 
-		fileInfos, err := ss.FileInfo().GetByIds([]string{info.Id}, false, true)
+		fileInfos, err := ss.FileInfo().GetByIds([]string{info.Id}, false, true, false)
 		require.NoError(t, err)
 		require.Len(t, fileInfos, 1)
 		require.Equal(t, info.Id, fileInfos[0].Id)
@@ -1011,7 +1013,7 @@ func testGetByIds(t *testing.T, rctx request.CTX, ss store.Store) {
 			ss.FileInfo().PermanentDelete(rctx, info2.Id)
 		}()
 
-		fileInfos, err := ss.FileInfo().GetByIds([]string{info1.Id, info2.Id}, false, true)
+		fileInfos, err := ss.FileInfo().GetByIds([]string{info1.Id, info2.Id}, false, true, false)
 		require.NoError(t, err)
 		require.Len(t, fileInfos, 2)
 		require.Equal(t, info1.Id, fileInfos[1].Id)
@@ -1049,7 +1051,7 @@ func testGetByIds(t *testing.T, rctx request.CTX, ss store.Store) {
 		_, err = ss.FileInfo().DeleteForPost(rctx, postId)
 		require.NoError(t, err)
 
-		fileInfosIncludingDeleted, err := ss.FileInfo().GetByIds([]string{info1.Id, info2.Id}, true, true)
+		fileInfosIncludingDeleted, err := ss.FileInfo().GetByIds([]string{info1.Id, info2.Id}, true, true, false)
 		require.NoError(t, err)
 		require.Len(t, fileInfosIncludingDeleted, 2)
 		require.Equal(t, info2.Id, fileInfosIncludingDeleted[0].Id)
@@ -1058,7 +1060,7 @@ func testGetByIds(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Greater(t, fileInfosIncludingDeleted[1].DeleteAt, int64(0))
 
 		// verifying that the file infos are not returned when IncludeDeleted is false
-		fileInfosExcludingDeleted, err := ss.FileInfo().GetByIds([]string{info1.Id, info2.Id}, false, true)
+		fileInfosExcludingDeleted, err := ss.FileInfo().GetByIds([]string{info1.Id, info2.Id}, false, true, false)
 		require.NoError(t, err)
 		require.Len(t, fileInfosExcludingDeleted, 0)
 	})

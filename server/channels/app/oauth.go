@@ -285,6 +285,10 @@ func (a *App) GetOAuthAccessTokenForImplicitFlow(rctx request.CTX, userID string
 		return nil, err
 	}
 
+	if user.DeleteAt != 0 {
+		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.expired_code.app_error", nil, "", http.StatusForbidden)
+	}
+
 	session, err := a.newSession(rctx, oauthApp, user)
 	if err != nil {
 		return nil, err
@@ -341,6 +345,10 @@ func (a *App) handleAuthorizationCodeGrant(rctx request.CTX, oauthApp *model.OAu
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.expired_code.app_error", nil, "", http.StatusForbidden)
 	}
 
+	if authData.ClientId != clientId {
+		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.client_id_mismatch.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if authData.RedirectUri != redirectURI {
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.redirect_uri.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -395,9 +403,17 @@ func (a *App) handleRefreshTokenGrant(rctx request.CTX, oauthApp *model.OAuthApp
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.refresh_token.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
 	}
 
+	if accessData.ClientId != oauthApp.Id {
+		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.client_id_mismatch.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	user, nErr := a.Srv().Store().User().Get(context.Background(), accessData.UserId)
 	if nErr != nil {
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_user.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
+	}
+
+	if user.DeleteAt != 0 {
+		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.expired_code.app_error", nil, "", http.StatusForbidden)
 	}
 
 	audience := accessData.Audience // Default to existing audience
@@ -770,7 +786,7 @@ func (a *App) LoginByOAuth(rctx request.CTX, service string, userData io.Reader,
 			map[string]any{"Service": service}, "", http.StatusBadRequest)
 	}
 
-	user, appErr := a.GetUserByAuth(model.NewPointer(*authUser.AuthData), service)
+	user, appErr := a.GetUserByAuth(new(*authUser.AuthData), service)
 	if appErr != nil {
 		if appErr.Id == MissingAuthAccountError {
 			user, appErr = a.CreateOAuthUser(rctx, service, bytes.NewReader(buf.Bytes()), inviteToken, inviteId, tokenUser)

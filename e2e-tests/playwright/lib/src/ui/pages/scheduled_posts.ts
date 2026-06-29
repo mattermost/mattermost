@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Page, expect} from '@playwright/test';
+import type {Page} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 import {components} from '@/ui/components';
 import type {ScheduledPost} from '@/ui/components';
@@ -47,7 +48,7 @@ export default class ScheduledPostsPage {
         await expect(this.tab).toBeVisible();
         const badge = this.tab.locator('span.MuiBadge-badge');
         await expect(badge).toBeVisible();
-        return await badge.textContent();
+        return badge.textContent();
     }
 
     async getLastPost() {
@@ -71,7 +72,7 @@ export default class ScheduledPostsPage {
         await expect(post.rescheduleButton).toBeVisible();
         await post.rescheduleButton.click();
 
-        return await this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
+        return this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
     }
 
     async goto(teamName: string) {

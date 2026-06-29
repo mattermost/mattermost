@@ -51,7 +51,7 @@ func (s *SqlPostAcknowledgementStore) SaveWithModel(acknowledgement *model.PostA
 
 	acknowledgement.PreSave()
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -77,7 +77,7 @@ func (s *SqlPostAcknowledgementStore) SaveWithModel(acknowledgement *model.PostA
 }
 
 func (s *SqlPostAcknowledgementStore) Delete(acknowledgement *model.PostAcknowledgement) error {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
@@ -285,7 +285,7 @@ func (s *SqlPostAcknowledgementStore) BatchSave(acknowledgements []*model.PostAc
 		}
 	}
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -328,7 +328,7 @@ func (s *SqlPostAcknowledgementStore) BatchDelete(acknowledgements []*model.Post
 		return nil
 	}
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}

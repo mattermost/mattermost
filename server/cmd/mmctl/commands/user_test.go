@@ -561,43 +561,6 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 	})
 }
 
-func (s *MmctlUnitTestSuite) TestDeleteAllUsersCmd() {
-	s.Run("Delete all users", func() {
-		printer.Clean()
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("confirm", true, "")
-
-		s.client.
-			EXPECT().
-			PermanentDeleteAllUsers(context.TODO()).
-			Return(&model.Response{StatusCode: http.StatusOK}, nil).
-			Times(1)
-
-		err := deleteAllUsersCmdF(s.client, cmd, []string{})
-		s.Require().Nil(err)
-		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Len(printer.GetErrorLines(), 0)
-		s.Require().Equal(printer.GetLines()[0], "All users successfully deleted")
-	})
-
-	s.Run("Delete all users call fails", func() {
-		printer.Clean()
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("confirm", true, "")
-
-		s.client.
-			EXPECT().
-			PermanentDeleteAllUsers(context.TODO()).
-			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
-			Times(1)
-
-		err := deleteAllUsersCmdF(s.client, cmd, []string{})
-		s.Require().NotNil(err)
-		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 0)
-	})
-}
-
 func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 	s.Run("Search for an existing user", func() {
 		emailArg := "example@example.com"
@@ -636,7 +599,7 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 	s.Run("Search for a user with authData", func() {
 		printer.Clean()
 		emailArg := "example@example.com"
-		mockUser := &model.User{Username: "ExampleUser", Email: emailArg, AuthData: model.NewPointer("1234"), AuthService: model.UserAuthServiceLdap}
+		mockUser := &model.User{Username: "ExampleUser", Email: emailArg, AuthData: new("1234"), AuthService: model.UserAuthServiceLdap}
 
 		s.client.
 			EXPECT().
@@ -2458,9 +2421,9 @@ func (s *MmctlUnitTestSuite) TestUserConvertCmd() {
 		mockBotUser := model.User{Id: "example", Username: userNameArg, IsBot: true}
 
 		userPatch := model.UserPatch{
-			Email:    model.NewPointer("example@example.com"),
-			Password: model.NewPointer("password"),
-			Username: model.NewPointer("example-user"),
+			Email:    new("example@example.com"),
+			Password: new("password"),
+			Username: new("example-user"),
 		}
 
 		cmd := &cobra.Command{}
@@ -2533,9 +2496,9 @@ func (s *MmctlUnitTestSuite) TestUserConvertCmd() {
 		mockBotUser := model.User{Id: "example", Username: userNameArg, IsBot: true}
 
 		userPatch := model.UserPatch{
-			Email:    model.NewPointer("example@example.com"),
-			Password: model.NewPointer("password"),
-			Username: model.NewPointer("example-user"),
+			Email:    new("example@example.com"),
+			Password: new("password"),
+			Username: new("example-user"),
 		}
 
 		cmd := &cobra.Command{}

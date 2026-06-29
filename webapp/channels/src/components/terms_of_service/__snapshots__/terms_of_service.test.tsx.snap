@@ -47,7 +47,7 @@ exports[`components/terms_of_service/TermsOfService should match snapshot 1`] = 
             I Agree
           </button>
           <button
-            class="btn-quaternary btn btn-default"
+            class="btn btn-quaternary"
             id="rejectTerms"
             type="reset"
           >
@@ -144,7 +144,7 @@ exports[`components/terms_of_service/TermsOfService should match snapshot, on ac
             I Agree
           </button>
           <button
-            class="btn-quaternary btn btn-default"
+            class="btn btn-quaternary"
             disabled=""
             id="rejectTerms"
             type="reset"
@@ -206,7 +206,7 @@ exports[`components/terms_of_service/TermsOfService should match snapshot, on re
             I Agree
           </button>
           <button
-            class="btn-quaternary btn btn-default"
+            class="btn btn-quaternary"
             disabled=""
             id="rejectTerms"
             type="reset"

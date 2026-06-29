@@ -69,7 +69,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
             role="alert"
           />
           <button
-            class="btn btn-primary "
+            class="btn btn-primary"
             data-testid="saveSetting"
             id="saveSetting"
             type="submit"
@@ -308,7 +308,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
             role="alert"
           />
           <button
-            class="btn btn-primary "
+            class="btn btn-primary"
             data-testid="saveSetting"
             id="saveSetting"
             type="submit"
@@ -471,7 +471,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
             </div>
           </div>
           <button
-            class="btn btn-primary "
+            class="btn btn-primary"
             data-testid="saveSetting"
             id="saveSetting"
             type="submit"
@@ -579,7 +579,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
             role="alert"
           />
           <button
-            class="btn btn-primary "
+            class="btn btn-primary"
             data-testid="saveSetting"
             id="saveSetting"
             type="submit"
@@ -671,7 +671,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
             role="alert"
           />
           <button
-            class="btn btn-primary "
+            class="btn btn-primary"
             data-testid="saveSetting"
             id="saveSetting"
             type="submit"

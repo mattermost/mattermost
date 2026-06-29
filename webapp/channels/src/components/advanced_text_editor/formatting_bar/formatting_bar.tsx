@@ -3,21 +3,20 @@
 
 import {useFloating, offset, useClick, useDismiss, useInteractions} from '@floating-ui/react';
 import classNames from 'classnames';
-import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {CSSTransition} from 'react-transition-group';
 import styled from 'styled-components';
 
 import {DotsHorizontalIcon} from '@mattermost/compass-icons/components';
-
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import type {ApplyMarkdownOptions, MarkdownMode} from 'utils/markdown/apply_markdown';
 
 import FormattingIcon, {IconContainer} from './formatting_icon';
-import {useFormattingBarControls} from './hooks';
+import {LayoutModes, useFormattingBarControls} from './hooks';
 
-export const Separator = styled.div`
+export const Separator = styled.div.attrs({'data-testid': 'formatting-bar-separator'})`
     display: block;
     position: relative;
     width: 1px;
@@ -130,6 +129,11 @@ interface FormattingBarProps {
      * e.g: message priority picker
      */
     additionalControls?: React.ReactNodeArray;
+
+    /**
+     * AI actions menu rendered at the far left of the formatting bar
+     */
+    aiActionsMenu?: React.ReactNode;
 }
 
 const DEFAULT_MIN_MODE_X_COORD = 55;
@@ -142,10 +146,15 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
         disableControls,
         location,
         additionalControls,
+        aiActionsMenu,
     } = props;
     const [showHiddenControls, setShowHiddenControls] = useState(false);
-    const formattingBarRef = useRef<HTMLDivElement>(null);
-    const {controls, hiddenControls, wideMode} = useFormattingBarControls(formattingBarRef);
+
+    const additionalControlsCount = useMemo(() => {
+        return Array.isArray(additionalControls) ? additionalControls.filter(Boolean).length : 0;
+    }, [additionalControls]);
+
+    const {formattingBarRef, controls, hiddenControls, layoutMode} = useFormattingBarControls(additionalControlsCount, location);
 
     const {formatMessage} = useIntl();
     const HiddenControlsButtonAriaLabel = formatMessage({id: 'accessibility.button.hidden_controls_button', defaultMessage: 'show hidden formatting options'});
@@ -169,9 +178,9 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
 
     useEffect(() => {
         update?.();
-    }, [wideMode, update, showHiddenControls]);
+    }, [layoutMode, update, showHiddenControls]);
 
-    const hasHiddenControls = wideMode !== 'wide';
+    const hasHiddenControls = layoutMode !== LayoutModes.Wide;
 
     /**
      * wrapping this factory in useCallback prevents it from constantly getting a new
@@ -206,7 +215,7 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
         }
     }, [getCurrentSelection, getCurrentMessage, applyMarkdown, showHiddenControls, disableControls]);
 
-    const leftPosition = wideMode === 'min' ? (x ?? 0) + DEFAULT_MIN_MODE_X_COORD : x ?? 0;
+    const leftPosition = layoutMode === LayoutModes.Min ? (x ?? 0) + DEFAULT_MIN_MODE_X_COORD : x ?? 0;
 
     const hiddenControlsContainerStyles: React.CSSProperties = {
         position: strategy,
@@ -214,13 +223,15 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
         left: leftPosition,
     };
 
-    const showSeparators = wideMode === 'wide';
+    const showSeparators = layoutMode === LayoutModes.Wide;
 
     return (
         <FormattingBarContainer
             ref={formattingBarRef}
             data-testid='formattingBarContainer'
         >
+            {aiActionsMenu}
+            {aiActionsMenu && showSeparators && <Separator/>}
             {controls.map((mode) => {
                 return (
                     <React.Fragment key={mode}>

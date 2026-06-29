@@ -33,6 +33,12 @@ func TestRandomString(t *testing.T) {
 	}
 }
 
+func BenchmarkNewTestPassword(b *testing.B) {
+	for range b.N {
+		NewTestPassword()
+	}
+}
+
 func TestGetMillisForTime(t *testing.T) {
 	thisTimeMillis := int64(1471219200000)
 	thisTime := time.Date(2016, time.August, 15, 0, 0, 0, 0, time.UTC)
@@ -1081,7 +1087,7 @@ func checkNowhereNil(t *testing.T, name string, value any) bool {
 
 	v := reflect.ValueOf(value)
 	switch v.Type().Kind() {
-	case reflect.Ptr:
+	case reflect.Pointer:
 		// Ignoring these 2 settings.
 		// TODO: remove them completely in v8.0.
 		if name == "config.ElasticsearchSettings.BulkIndexingTimeWindowSeconds" ||

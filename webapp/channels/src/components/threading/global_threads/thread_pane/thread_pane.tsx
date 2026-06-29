@@ -7,7 +7,6 @@ import type {ReactNode} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {DotsVerticalIcon} from '@mattermost/compass-icons/components';
 import type {UserThread, UserThreadSynthetic} from '@mattermost/types/threads';
 
 import {setThreadFollow} from 'mattermost-redux/actions/threads';
@@ -18,7 +17,6 @@ import {focusPost} from 'components/permalink_view/actions';
 import PopoutButton from 'components/popout_button';
 import {getThreadPopoutTitle} from 'components/thread_popout/thread_popout';
 import Header from 'components/widgets/header';
-import WithTooltip from 'components/with_tooltip';
 
 import {popoutThread} from 'utils/popouts/popout_windows';
 
@@ -142,22 +140,12 @@ const ThreadPane = ({
                         />
                         <PopoutButton onClick={popout}/>
                         <ThreadMenu
+                            idPrefix='thread-menu'
                             threadId={threadId}
                             isFollowing={isFollowing}
                             hasUnreads={isFollowing && Boolean((thread as UserThread).unread_replies || (thread as UserThread).unread_mentions)}
                             unreadTimestamp={unreadTimestamp}
-                        >
-                            <WithTooltip
-                                title={formatMessage({
-                                    id: 'threading.threadHeader.menu',
-                                    defaultMessage: 'More Actions',
-                                })}
-                            >
-                                <Button className='Button___icon Button___large'>
-                                    <DotsVerticalIcon size={18}/>
-                                </Button>
-                            </WithTooltip>
-                        </ThreadMenu>
+                        />
                     </>
                 )}
             />

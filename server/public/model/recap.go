@@ -11,6 +11,7 @@ type Recap struct {
 	UpdateAt          int64           `json:"update_at"`
 	DeleteAt          int64           `json:"delete_at"`
 	ReadAt            int64           `json:"read_at"`
+	ViewedAt          int64           `json:"viewed_at"`
 	TotalMessageCount int             `json:"total_message_count"`
 	Status            string          `json:"status"`
 	BotID             string          `json:"bot_id"`
@@ -71,5 +72,6 @@ func (r *Recap) Auditable() map[string]any {
 		"create_at":           r.CreateAt,
 		"update_at":           r.UpdateAt,
 		"read_at":             r.ReadAt,
+		"viewed_at":           r.ViewedAt,
 	}
 }

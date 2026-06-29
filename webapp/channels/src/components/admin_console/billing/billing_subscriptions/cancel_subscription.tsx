@@ -4,6 +4,8 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
+
 import {useOpenCloudZendeskSupportForm} from 'components/common/hooks/useOpenZendeskForm';
 import ExternalLink from 'components/external_link';
 
@@ -29,7 +31,7 @@ const CancelSubscription = () => {
                 <ExternalLink
                     location='cancel_subscription'
                     href={contactSupportURL}
-                    className='btn btn-secondary btn-sm btn-danger cancelSubscriptionSection__contactUs'
+                    className={buttonClassNames({emphasis: 'secondary', size: 'sm', variant: 'destructive'}, 'cancelSubscriptionSection__contactUs')}
                 >
                     <FormattedMessage
                         id='admin.billing.subscription.cancelSubscriptionSection.contactUs'

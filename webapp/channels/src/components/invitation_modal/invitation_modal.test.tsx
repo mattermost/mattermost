@@ -3,25 +3,19 @@
 
 import React from 'react';
 import type {IntlShape} from 'react-intl';
-import {Provider} from 'react-redux';
 
 import type {Team} from '@mattermost/types/teams';
 
 import {General} from 'mattermost-redux/constants';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {act} from 'tests/react_testing_utils';
-import mockStore from 'tests/test_store';
+import {renderWithContext, screen, act} from 'tests/react_testing_utils';
 import {SelfHostedProducts} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 import {generateId} from 'utils/utils';
 
 import InvitationModal, {View} from './invitation_modal';
 import type {Props} from './invitation_modal';
-import InviteView from './invite_view';
-import NoPermissionsView from './no_permissions_view';
-import ResultView from './result_view';
 
 const defaultProps: Props = deepFreeze({
     actions: {
@@ -114,34 +108,34 @@ describe('InvitationModal', () => {
         },
     };
 
-    const store = mockStore(state);
-
     beforeEach(() => {
         props = defaultProps;
     });
 
     it('shows invite view when view state is invite', () => {
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <InvitationModal {...props}/>
-            </Provider>,
+        renderWithContext(
+            <InvitationModal {...props}/>,
+            state,
         );
-        expect(wrapper.find(InviteView).length).toBe(1);
+        expect(screen.getByTestId('inviteButton')).toBeInTheDocument();
     });
 
     it('shows result view when view state is result', () => {
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <InvitationModal {...props}/>
-            </Provider>,
+        const ref = React.createRef<InvitationModal>();
+
+        renderWithContext(
+            <InvitationModal
+                {...props}
+                ref={ref}
+            />,
+            state,
         );
 
         act(() => {
-            wrapper.find(InvitationModal).at(0).setState({view: View.RESULT});
-            wrapper.update();
+            ref.current!.setState({view: View.RESULT});
         });
 
-        expect(wrapper.find(ResultView).length).toBe(1);
+        expect(screen.getByTestId('confirm-done')).toBeInTheDocument();
     });
 
     it('shows no permissions view when user can neither invite users nor guests', () => {
@@ -150,13 +144,12 @@ describe('InvitationModal', () => {
             canAddUsers: false,
             canInviteGuests: false,
         };
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <InvitationModal {...props}/>
-            </Provider>,
+        renderWithContext(
+            <InvitationModal {...props}/>,
+            state,
         );
 
-        expect(wrapper.find(NoPermissionsView).length).toBe(1);
+        expect(screen.getByTestId('confirm-done')).toBeInTheDocument();
     });
 
     it('filters out policy_enforced channels when inviting guests', async () => {
@@ -180,14 +173,18 @@ describe('InvitationModal', () => {
             invitableChannels: [regularChannel, policyEnforcedChannel],
         };
 
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <InvitationModal {...props}/>
-            </Provider>,
+        const ref = React.createRef<InvitationModal>();
+
+        renderWithContext(
+            <InvitationModal
+                {...props}
+                ref={ref}
+            />,
+            state,
         );
 
         // Get the component instance with proper typing
-        const instance = wrapper.find(InvitationModal).instance() as InvitationModal;
+        const instance = ref.current!;
 
         // Set invite type to GUEST
         act(() => {
@@ -238,5 +235,57 @@ describe('InvitationModal', () => {
         // Verify only non-policy-enforced channels are returned for guests
         expect(guestChannelsWithSearch.length).toBe(1);
         expect(guestChannelsWithSearch[0].id).toBe('regular-channel');
+    });
+
+    it('keeps permission-only-policy channels selectable for guest invites', async () => {
+        // Bug-fix regression: a channel with ONLY a permission policy (e.g.
+        // upload_file_attachment) has policy_enforced=true but no membership
+        // action. The server-side guest-invite gate in
+        // prepareInviteGuestsToChannels reads policy_actions.membership, and
+        // the client must do the same — otherwise guest invites silently
+        // drop channels the backend would happily accept.
+        const regularChannel = TestHelper.getChannelMock({
+            id: 'regular-channel',
+            display_name: 'Regular Channel',
+            name: 'regular-channel',
+            policy_enforced: false,
+        });
+        const permissionOnlyChannel = TestHelper.getChannelMock({
+            id: 'permission-only-channel',
+            display_name: 'Permission Only Channel',
+            name: 'permission-only-channel',
+            policy_enforced: true,
+            policy_actions: {upload_file_attachment: true},
+        });
+
+        const localProps = {
+            ...props,
+            invitableChannels: [regularChannel, permissionOnlyChannel],
+        };
+
+        const ref = React.createRef<InvitationModal>();
+        renderWithContext(
+            <InvitationModal
+                {...localProps}
+                ref={ref}
+            />,
+            state,
+        );
+        const instance = ref.current!;
+
+        act(() => {
+            instance.setState({
+                invite: {
+                    ...instance.state.invite,
+                    inviteType: 'GUEST',
+                },
+            });
+        });
+
+        const guestChannels = await instance.channelsLoader('');
+        expect(guestChannels.map((c) => c.id)).toEqual(
+            expect.arrayContaining(['regular-channel', 'permission-only-channel']),
+        );
+        expect(guestChannels.length).toBe(2);
     });
 });

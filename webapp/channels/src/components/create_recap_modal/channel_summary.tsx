@@ -6,6 +6,8 @@ import {useIntl} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 
+import ChannelTypeIcon from 'components/channel_type_icon';
+
 import {Constants} from 'utils/constants';
 
 type Props = {
@@ -20,21 +22,6 @@ const ChannelSummary = ({selectedChannelIds, myChannels}: Props) => {
         selectedChannelIds.includes(channel.id),
     );
 
-    const getChannelIcon = (channel: Channel) => {
-        switch (channel.type) {
-        case Constants.OPEN_CHANNEL:
-            return 'icon-globe';
-        case Constants.PRIVATE_CHANNEL:
-            return 'icon-lock-outline';
-        case Constants.GM_CHANNEL:
-            return 'icon-account-multiple-outline';
-        case Constants.DM_CHANNEL:
-            return 'icon-account-outline';
-        default:
-            return 'icon-globe';
-        }
-    };
-
     return (
         <div className='step-two-summary'>
             <label className='form-label'>
@@ -42,15 +29,23 @@ const ChannelSummary = ({selectedChannelIds, myChannels}: Props) => {
             </label>
 
             <div className='summary-channels-list'>
-                {selectedChannels.map((channel) => (
-                    <div
-                        key={channel.id}
-                        className='summary-channel-item'
-                    >
-                        <i className={`icon ${getChannelIcon(channel)}`}/>
-                        <span className='channel-name'>{channel.display_name}</span>
-                    </div>
-                ))}
+                {selectedChannels.map((channel) => {
+                    let icon: React.ReactNode = <ChannelTypeIcon channel={channel}/>;
+                    if (channel.type === Constants.DM_CHANNEL) {
+                        icon = <i className='icon icon-account-outline'/>;
+                    } else if (channel.type === Constants.GM_CHANNEL) {
+                        icon = <i className='icon icon-account-multiple-outline'/>;
+                    }
+                    return (
+                        <div
+                            key={channel.id}
+                            className='summary-channel-item'
+                        >
+                            {icon}
+                            <span className='channel-name'>{channel.display_name}</span>
+                        </div>
+                    );
+                })}
             </div>
         </div>
     );

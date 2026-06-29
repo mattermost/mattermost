@@ -94,7 +94,7 @@ exports[`ProductNoticesModal Match snapshot for single notice 1`] = `
               class="modal-footer"
             >
               <button
-                class="GenericModal__button btn btn-primary confirm"
+                class="btn btn-primary GenericModal__button confirm"
                 type="submit"
               >
                 <span>
@@ -193,7 +193,6 @@ exports[`ProductNoticesModal Match snapshot for user notice 1`] = `
                   </p>
                 </span>
                 <a
-                  class="GenericModal__button actionButton"
                   href="http://download.com/path"
                   id="actionButton"
                   location="product_notices_modal"
@@ -229,7 +228,7 @@ exports[`ProductNoticesModal Match snapshot for user notice 1`] = `
               class="modal-footer"
             >
               <button
-                class="GenericModal__button btn btn-tertiary"
+                class="btn btn-tertiary"
                 type="button"
               >
                 <i
@@ -239,7 +238,7 @@ exports[`ProductNoticesModal Match snapshot for user notice 1`] = `
                 Previous
               </button>
               <button
-                class="GenericModal__button btn btn-primary confirm"
+                class="btn btn-primary GenericModal__button confirm"
                 type="submit"
               >
                 Done
@@ -344,7 +343,6 @@ exports[`ProductNoticesModal Should match snapshot for system admin notice 1`] =
                   </p>
                 </span>
                 <a
-                  class="GenericModal__button actionButton"
                   href="http://download.com/path"
                   id="actionButton"
                   location="product_notices_modal"
@@ -402,7 +400,7 @@ exports[`ProductNoticesModal Should match snapshot for system admin notice 1`] =
               class="modal-footer"
             >
               <button
-                class="GenericModal__button btn btn-primary confirm"
+                class="btn btn-primary GenericModal__button confirm"
                 type="submit"
               >
                 Next

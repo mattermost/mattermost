@@ -14,15 +14,15 @@
  * Note: This test requires Enterprise license to be uploaded
  */
 
-import {getRandomId} from '../../../../utils';
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-
 import {
     changeGuestFeatureSettings,
     invitePeople,
     verifyInvitationError,
     verifyInvitationSuccess,
 } from './helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getRandomId} from '@/utils';
 
 describe('Guest Account - Guest User Invitation Flow', () => {
     let testTeam: Cypress.Team;

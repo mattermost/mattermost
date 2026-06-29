@@ -36,7 +36,7 @@ type Props = {
     currentUser: UserProfile;
     userDisplayName: string;
     userStatus: UserStatus['status'];
-}
+};
 
 export default function DraftsAndSchedulePostsTabs(props: Props) {
     const history = useHistory();

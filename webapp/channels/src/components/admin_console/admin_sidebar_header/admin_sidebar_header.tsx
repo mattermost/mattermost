@@ -15,7 +15,7 @@ import Avatar from 'components/widgets/users/avatar';
 
 type Props = {
     currentUser: UserProfile;
-}
+};
 
 const SidebarHeader = ({currentUser: me}: Props) => {
     const intl = useIntl();

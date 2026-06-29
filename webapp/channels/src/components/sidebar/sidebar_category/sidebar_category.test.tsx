@@ -203,4 +203,35 @@ describe('components/sidebar/sidebar_category', () => {
 
         expect(baseProps.actions.setCategoryCollapsed).toHaveBeenCalledWith('category1', false);
     });
+
+    test('should not show category menu for managed categories', () => {
+        const props = {
+            ...baseProps,
+            category: {
+                ...baseProps.category,
+                type: CategoryTypes.MANAGED,
+                display_name: 'Admin Category',
+            },
+        };
+
+        renderWithDnd(<SidebarCategory {...props}/>);
+
+        expect(screen.getByText('Admin Category')).toBeInTheDocument();
+        expect(document.querySelector('#mock-category-menu')).not.toBeInTheDocument();
+    });
+
+    test('should render managed category with its display name', () => {
+        const props = {
+            ...baseProps,
+            category: {
+                ...baseProps.category,
+                type: CategoryTypes.MANAGED,
+                display_name: 'Active Operations',
+            },
+        };
+
+        renderWithDnd(<SidebarCategory {...props}/>);
+
+        expect(screen.getByText('Active Operations')).toBeInTheDocument();
+    });
 });

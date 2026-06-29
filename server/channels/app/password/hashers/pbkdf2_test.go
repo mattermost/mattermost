@@ -11,6 +11,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app/password/phcparser"
 	"github.com/stretchr/testify/require"
 )
@@ -56,31 +57,32 @@ func TestPBKDF2CompareHashAndPassword(t *testing.T) {
 		storedPwd   string
 		inputPwd    string
 		expectedErr error
+		skipFIPS    bool
 	}{
 		{
-
-			"empty password",
-			"",
-			"",
-			nil,
+			testName:    "empty password",
+			storedPwd:   "",
+			inputPwd:    "",
+			expectedErr: nil,
+			skipFIPS:    true,
 		},
 		{
-			"same password",
-			"one password",
-			"one password",
-			nil,
+			testName:    "same password",
+			storedPwd:   "one password!!!",
+			inputPwd:    "one password!!!",
+			expectedErr: nil,
 		},
 		{
-			"different password",
-			"one password",
-			"another password",
-			ErrMismatchedHashAndPassword,
+			testName:    "different password",
+			storedPwd:   "one password!!!",
+			inputPwd:    "another password",
+			expectedErr: ErrMismatchedHashAndPassword,
 		},
 		{
-			"password too long",
-			"stored password",
-			string(passwordTooLong),
-			ErrPasswordTooLong,
+			testName:    "password too long",
+			storedPwd:   "stored password",
+			inputPwd:    string(passwordTooLong),
+			expectedErr: ErrPasswordTooLong,
 		},
 	}
 
@@ -88,6 +90,9 @@ func TestPBKDF2CompareHashAndPassword(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.testName, func(t *testing.T) {
+			if tc.skipFIPS && model.FIPSEnabled {
+				t.Skip("skipping under FIPS: PBKDF2 requires keys >= 14 bytes")
+			}
 			storedPHCStr, err := hasher.Hash(tc.storedPwd)
 			require.NoError(t, err)
 

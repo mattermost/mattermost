@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {Link, useHistory} from 'react-router-dom';
 import styled from 'styled-components';
 
 import {DotsHorizontalIcon, CodeTagsIcon, PencilOutlineIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {RemoteCluster} from '@mattermost/types/remote_clusters';
 
 import * as Menu from 'components/menu';
@@ -65,7 +65,7 @@ const RowMenu = ({remoteCluster: rc, onDeleteSuccess, disabled}: Props) => {
         <Menu.Container
             menuButton={{
                 id: `${menuId}-button-${rc.remote_id}`,
-                class: classNames('btn btn-tertiary btn-sm connection-row-menu-button', {disabled}),
+                class: buttonClassNames({emphasis: 'tertiary', size: 'sm'}, 'connection-row-menu-button', {disabled}),
                 disabled,
                 children: !disabled && <DotsHorizontalIcon size={16}/>,
                 'aria-label': formatMessage({id: 'admin.secure_connection_row.menu-button.aria_label', defaultMessage: 'Connection options for {connection}'}, {connection: rc.display_name}),

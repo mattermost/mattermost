@@ -2,6 +2,12 @@
     scrollbar-width: thin;
 }
 
+.bookmarkMeasureItem {
+    position: absolute;
+    pointer-events: none;
+    visibility: hidden;
+}
+
 .channelBookmarksMenuButton {
     position: relative;
     display: flex;
@@ -58,15 +64,131 @@
         color: rgba(var(--center-channel-color-rgb), 0.72);
     }
 
+    &:focus-visible {
+        box-shadow: 0 0 0 2px var(--link-color) inset;
+        outline: none;
+    }
+
     &:active,
     &[aria-expanded="true"] {
         background: rgba(var(--button-bg-rgb), 16%);
         background: color-mix(in sRGB, var(--center-channel-bg), var(--button-bg) 16%);
         color: rgb(var(--button-bg-rgb));
     }
+
+    &.channelBookmarksDotMenuButton--overflow {
+        width: 28px;
+        height: 28px;
+        justify-content: center;
+        border-radius: 4px;
+    }
 }
 
 #bookmark-create-file-input,
 #bookmark-create-file-input-in-modal {
     display: none;
+}
+
+// Overflow menu button styles
+.channelBookmarksBarMenuButton {
+    display: flex;
+    align-items: center;
+    padding: 4px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    gap: 1px;
+
+    &.withLabel {
+        padding: 4px 12px 4px 6px;
+        border-radius: 12px;
+        gap: 4px;
+    }
+
+    &:hover:not(:disabled) {
+        background: rgba(var(--center-channel-color-rgb), 0.12);
+        color: rgba(var(--center-channel-color-rgb), 0.88);
+    }
+
+    &:active:not(:disabled),
+    &[aria-expanded="true"] {
+        background: rgba(var(--button-bg-rgb), 0.08);
+        color: rgb(var(--button-bg-rgb));
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+}
+
+// Drag preview ghost chip
+.bookmarkDragPreview {
+    display: inline-block;
+    overflow: hidden;
+    max-width: 25rem;
+    padding: 4px 12px;
+    border-radius: 12px;
+    background: var(--center-channel-bg);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    color: var(--center-channel-color);
+    font-family: "Open Sans", sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 16px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+// Overflow bookmark items — clamp labels so dot menu stays visible.
+// MUI's styled() injects flex: 1 0 auto on .label-elements which prevents
+// shrinking. We need !important to override the generated class styles.
+.overflowBookmarkItem.MuiMenuItem-root {
+    position: relative;
+    min-height: 36px;
+    padding-top: 2px;
+    padding-right: 12px;
+    padding-bottom: 2px;
+
+    &.is-dragging-self {
+        opacity: 0.4;
+    }
+
+    &.is-keyboard-reordering {
+        outline: 3px solid rgb(var(--button-bg-rgb));
+        outline-offset: -3px;
+    }
+
+    > .label-elements {
+        overflow: hidden;
+        min-width: 0;
+        flex: 1 1 0px !important;
+
+        > span {
+            display: block;
+            overflow: hidden;
+            max-width: 100%;
+            line-height: 20px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+
+    > .trailing-elements {
+        flex-shrink: 0;
+        margin-inline-start: 8px;
+        opacity: 0;
+    }
+
+    &:hover,
+    &.Mui-focusVisible,
+    &:has([aria-expanded="true"]) {
+        > .trailing-elements {
+            opacity: 1;
+        }
+    }
 }

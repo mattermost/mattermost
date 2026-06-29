@@ -18,6 +18,7 @@ import PostMessagePreview from 'components/post_view/post_message_preview';
 import YoutubeVideo from 'components/youtube_video';
 
 import webSocketClient from 'client/web_websocket_client';
+import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
 import type {TextFormattingOptions} from 'utils/text_formatting';
 
 import type {PostWillRenderEmbedComponent} from 'types/store/plugins';
@@ -64,10 +65,12 @@ export default class PostBodyAdditionalContent extends React.PureComponent<Props
             if (c.match(embed)) {
                 const Component = c.component;
                 return this.props.isEmbedVisible && (
-                    <Component
-                        embed={embed}
-                        webSocketClient={webSocketClient}
-                    />
+                    <PluggableErrorBoundary pluginId={c.pluginId}>
+                        <Component
+                            embed={embed}
+                            webSocketClient={webSocketClient}
+                        />
+                    </PluggableErrorBoundary>
                 );
             }
         }

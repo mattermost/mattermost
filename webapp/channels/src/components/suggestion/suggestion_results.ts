@@ -194,7 +194,7 @@ export type ProviderResults<Item = unknown> = ProviderResultsGrouped<Item> | Pro
 export type ProviderResultsGrouped<Item = unknown> = {
     matchedPretext: string;
     groups: Array<ProviderResultsGroup<Item>>;
-}
+};
 
 export type ProviderResultsGroup<Item = unknown> = {
     key: string;
@@ -214,7 +214,7 @@ type ComponentOrComponents = {
     component: React.ElementType;
 } | {
     components: React.ElementType[];
-}
+};
 
 /**
  * Converts the results from a Provider which may have one or multiple components specified into one which always

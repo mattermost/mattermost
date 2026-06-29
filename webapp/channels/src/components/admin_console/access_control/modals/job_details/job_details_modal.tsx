@@ -56,7 +56,7 @@ const StatusIndicator = ({status}: StatusIndicatorProps): JSX.Element => {
 };
 
 type Props = {
-    job: Job ;
+    job: Job;
     onExited: () => void;
 };
 

@@ -4,6 +4,7 @@
 import ChannelsPage from './channels';
 import LandingLoginPage from './landing_login';
 import LoginPage from './login';
+import RecapsPage from './recaps';
 import ResetPasswordPage from './reset_password';
 import SignupPage from './signup';
 import SystemConsolePage from './system_console';
@@ -16,6 +17,7 @@ const pages = {
     ChannelsPage,
     LandingLoginPage,
     LoginPage,
+    RecapsPage,
     ResetPasswordPage,
     SignupPage,
     ScheduledPostsPage,
@@ -32,6 +34,7 @@ export {
     DraftsPage,
     LandingLoginPage,
     LoginPage,
+    RecapsPage,
     ResetPasswordPage,
     SignupPage,
     ScheduledPostsPage,

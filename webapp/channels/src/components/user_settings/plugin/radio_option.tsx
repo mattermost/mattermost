@@ -12,7 +12,7 @@ type Props = {
     name: string;
     option: PluginConfigurationRadioSettingOption;
     onSelected: (v: string) => void;
-}
+};
 
 const markdownOptions = {mentionHighlight: false};
 

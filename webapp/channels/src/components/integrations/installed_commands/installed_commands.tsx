@@ -38,7 +38,7 @@ type Props = {
         // The function to call when Delete link is clicked
         deleteCommand: (id: string) => Promise<ActionResult>;
     };
-}
+};
 
 export default class InstalledCommands extends React.PureComponent<Props> {
     public regenCommandToken = (command: Command): void => {

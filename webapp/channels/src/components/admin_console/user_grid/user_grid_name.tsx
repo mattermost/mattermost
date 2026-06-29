@@ -11,7 +11,7 @@ import ProfilePicture from 'components/profile_picture';
 
 type Props = {
     user: UserProfile;
-}
+};
 
 const UserGridName = ({
     user,

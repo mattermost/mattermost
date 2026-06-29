@@ -60,7 +60,9 @@ export type Props = {
      * The index number of starting image
      **/
     startIndex: number;
-}
+};
+
+type Translate = {x: number; y: number};
 
 type State = {
     show: boolean;
@@ -68,11 +70,34 @@ type State = {
     imageHeight: number | string;
     loaded: Record<number, boolean>;
     prevFileInfosCount: number;
+    prevFileIds: string[];
     progress: Record<number, number>;
     showCloseBtn: boolean;
     showZoomControls: boolean;
     scale: Record<number, number>;
+    translate: Record<number, Translate>;
+    isDragging: boolean;
     content: string;
+};
+
+// Pure helper for cursor-aware zoom math. Given current scale + translate,
+// the cursor position relative to the wrapper's center, and the new scale,
+// returns the new translate so the image pixel under the cursor stays fixed.
+export function computeZoomAtCursor(
+    oldScale: number,
+    oldTranslate: Translate,
+    cursorOffsetX: number,
+    cursorOffsetY: number,
+    newScale: number,
+): Translate {
+    if (oldScale === 0) {
+        return oldTranslate;
+    }
+    const ratio = newScale / oldScale;
+    return {
+        x: (cursorOffsetX * (1 - ratio)) + (oldTranslate.x * ratio),
+        y: (cursorOffsetY * (1 - ratio)) + (oldTranslate.y * ratio),
+    };
 }
 
 export default class FilePreviewModal extends React.PureComponent<Props, State> {
@@ -91,12 +116,51 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
             imageHeight: '100%',
             loaded: Utils.fillRecord(false, this.props.fileInfos.length),
             prevFileInfosCount: 0,
+            prevFileIds: this.props.fileInfos.map(FilePreviewModal.getFileIdentity),
             progress: Utils.fillRecord(0, this.props.fileInfos.length),
             showCloseBtn: false,
             showZoomControls: false,
-            scale: Utils.fillRecord(ZoomSettings.DEFAULT_SCALE, this.props.fileInfos.length),
+            scale: this.props.fileInfos.reduce<Record<number, number>>((acc, fileInfo, index) => {
+                acc[index] = FilePreviewModal.getDefaultScaleForFile(fileInfo);
+                return acc;
+            }, {}),
+            translate: this.props.fileInfos.reduce<Record<number, Translate>>((acc, _fileInfo, index) => {
+                acc[index] = {x: 0, y: 0};
+                return acc;
+            }, {}),
+            isDragging: false,
             content: '',
         };
+    }
+
+    // Stable identity for a file used to detect same-length swaps in the
+    // fileInfos prop (a websocket post update could replace one attachment
+    // without changing the array length). FileInfo has an `id`, LinkInfo
+    // has a `link`; fall back to extension to keep this total.
+    static getFileIdentity(fileInfo: FileInfo | LinkInfo): string {
+        if (isFileInfo(fileInfo)) {
+            return `f:${fileInfo.id}`;
+        }
+        return `l:${fileInfo.link ?? fileInfo.extension ?? ''}`;
+    }
+
+    static getDefaultScaleForFile(fileInfo: FileInfo | LinkInfo): number {
+        const fileType = Utils.getFileType(fileInfo.extension || '');
+        if (fileType === FileTypes.IMAGE || fileType === FileTypes.SVG) {
+            return ZoomSettings.DEFAULT_SCALE_IMAGE;
+        }
+        return ZoomSettings.DEFAULT_SCALE;
+    }
+
+    // Images get a lower zoom-in ceiling than PDFs: beyond ~2x the image
+    // exceeds the modal viewport in both dimensions and panning becomes
+    // tedious. PDFs keep the original 3.0 ceiling.
+    static getMaxScaleForFile(fileInfo: FileInfo | LinkInfo): number {
+        const fileType = Utils.getFileType(fileInfo.extension || '');
+        if (fileType === FileTypes.IMAGE || fileType === FileTypes.SVG) {
+            return ZoomSettings.MAX_SCALE_IMAGE;
+        }
+        return ZoomSettings.MAX_SCALE;
     }
 
     handleNext = () => {
@@ -123,27 +187,94 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         }
     };
 
+    // Zoom keyboard shortcuts. Bound on keydown so they fire on press (not release)
+    // and feel snappy when held. Modifier keys are required to be absent so we
+    // don't shadow text-editing shortcuts in any focused input.
+    handleKeyDown = (e: KeyboardEvent) => {
+        if (!this.state.show || !this.state.showZoomControls || e.ctrlKey || e.metaKey || e.altKey) {
+            return;
+        }
+
+        // Don't hijack '+'/'='/'-'/'0' while the user is typing in an input.
+        const target = e.target as HTMLElement | null;
+        if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+            return;
+        }
+        switch (e.key) {
+        case '+':
+        case '=':
+            e.preventDefault();
+            this.handleZoomIn();
+            break;
+        case '-':
+            e.preventDefault();
+            this.handleZoomOut();
+            break;
+        case '0':
+            e.preventDefault();
+            this.handleZoomReset();
+            break;
+        }
+    };
+
     componentDidMount() {
         document.addEventListener('keyup', this.handleKeyPress);
+        document.addEventListener('keydown', this.handleKeyDown);
 
         this.showImage(this.props.startIndex);
     }
 
     componentWillUnmount() {
         document.removeEventListener('keyup', this.handleKeyPress);
+        document.removeEventListener('keydown', this.handleKeyDown);
+        document.removeEventListener('mousemove', this.handleDocumentMouseMove);
+        document.removeEventListener('mouseup', this.handleDocumentMouseUp);
+        window.removeEventListener('blur', this.endDrag);
     }
 
     static getDerivedStateFromProps(props: Props, state: State) {
         const updatedState: Partial<State> = {};
-        if (props.fileInfos[state.imageIndex] && props.fileInfos[state.imageIndex].extension === FileTypes.PDF) {
-            updatedState.showZoomControls = true;
+        const currentFile = props.fileInfos[state.imageIndex];
+        if (currentFile) {
+            const extension = currentFile.extension;
+            const fileType = Utils.getFileType(extension || '');
+            updatedState.showZoomControls = (
+                extension === FileTypes.PDF ||
+                fileType === FileTypes.IMAGE ||
+                fileType === FileTypes.SVG
+            );
         } else {
             updatedState.showZoomControls = false;
         }
-        if (props.fileInfos.length !== state.prevFileInfosCount) {
+
+        // Detect any change to the file list — either the length, or a
+        // same-index identity swap (e.g. a websocket post update replacing
+        // attachment N without changing array length).
+        const nextFileIds = props.fileInfos.map(FilePreviewModal.getFileIdentity);
+        const lengthChanged = props.fileInfos.length !== state.prevFileInfosCount;
+        const identitiesChanged = !lengthChanged && nextFileIds.some((id, i) => id !== state.prevFileIds[i]);
+        if (lengthChanged || identitiesChanged) {
             updatedState.loaded = Utils.fillRecord(false, props.fileInfos.length);
             updatedState.progress = Utils.fillRecord(0, props.fileInfos.length);
             updatedState.prevFileInfosCount = props.fileInfos.length;
+            updatedState.prevFileIds = nextFileIds;
+
+            // Reconcile scale/translate per index: preserve entries whose
+            // file identity is unchanged; reset to the new file's default
+            // when the identity at that index changed (or is brand new).
+            const nextScale: Record<number, number> = {};
+            const nextTranslate: Record<number, Translate> = {};
+            for (let i = 0; i < props.fileInfos.length; i++) {
+                const idUnchanged = state.prevFileIds[i] === nextFileIds[i];
+                nextScale[i] = idUnchanged && state.scale[i] !== undefined ?
+                    state.scale[i] :
+                    FilePreviewModal.getDefaultScaleForFile(props.fileInfos[i]);
+                nextTranslate[i] = idUnchanged && state.translate[i] !== undefined ?
+                    state.translate[i] :
+                    {x: 0, y: 0};
+            }
+            updatedState.scale = nextScale;
+            updatedState.translate = nextTranslate;
         }
         return Object.keys(updatedState).length ? updatedState : null;
     }
@@ -248,20 +379,32 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         this.setState({showCloseBtn: false});
     };
 
-    setScale = (index: number, scale: number) => {
+    // Apply a scale update for the current image. Auto-snaps translate to the
+    // origin when the new scale equals the file's default (so the image is
+    // re-centered when fully zoomed out via the reset/zoom buttons).
+    setScale = (index: number, scale: number, translate?: Translate) => {
+        const fileInfo = this.props.fileInfos[index];
+        const defaultScale = FilePreviewModal.getDefaultScaleForFile(fileInfo);
         this.setState((prevState) => {
+            const snappedTranslate = scale === defaultScale ? {x: 0, y: 0} : (translate ?? prevState.translate[index] ?? {x: 0, y: 0});
             return {
                 scale: {
                     ...prevState.scale,
                     [index]: scale,
+                },
+                translate: {
+                    ...prevState.translate,
+                    [index]: snappedTranslate,
                 },
             };
         });
     };
 
     handleZoomIn = () => {
+        const fileInfo = this.props.fileInfos[this.state.imageIndex];
+        const maxScale = FilePreviewModal.getMaxScaleForFile(fileInfo);
         let newScale = this.state.scale[this.state.imageIndex];
-        newScale = Math.min(newScale + ZoomSettings.SCALE_DELTA, ZoomSettings.MAX_SCALE);
+        newScale = Math.min(newScale + ZoomSettings.SCALE_DELTA, maxScale);
         this.setScale(this.state.imageIndex, newScale);
     };
 
@@ -272,7 +415,114 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
     };
 
     handleZoomReset = () => {
-        this.setScale(this.state.imageIndex, ZoomSettings.DEFAULT_SCALE);
+        const fileInfo = this.props.fileInfos[this.state.imageIndex];
+        this.setScale(this.state.imageIndex, FilePreviewModal.getDefaultScaleForFile(fileInfo));
+    };
+
+    // Native (non-passive) wheel handler so preventDefault actually suppresses
+    // the page-scroll default. Bound by ImagePreview via addEventListener.
+    handleImageWheel = (e: WheelEvent) => {
+        if (!this.state.showZoomControls || e.deltaY === 0) {
+            return;
+        }
+        e.preventDefault();
+
+        const target = e.currentTarget as HTMLElement | null;
+        if (!target) {
+            return;
+        }
+        const rect = target.getBoundingClientRect();
+        const cursorOffsetX = e.clientX - rect.left - (rect.width / 2);
+        const cursorOffsetY = e.clientY - rect.top - (rect.height / 2);
+
+        // Trackpad pinch / smooth wheel emit many small deltaY events. Scale
+        // the step by deltaY magnitude (capped at 1) so trackpad zoom doesn't
+        // sprint past max scale in a few frames.
+        const direction = e.deltaY < 0 ? 1 : -1;
+        const stepMagnitude = Math.min(Math.abs(e.deltaY) / 100, 1) * ZoomSettings.SCALE_DELTA;
+
+        this.setState((prev) => {
+            const idx = prev.imageIndex;
+            const fileInfo = this.props.fileInfos[idx];
+            const defaultScale = FilePreviewModal.getDefaultScaleForFile(fileInfo);
+            const maxScale = FilePreviewModal.getMaxScaleForFile(fileInfo);
+            const oldScale = prev.scale[idx] ?? defaultScale;
+            const newScale = direction > 0 ?
+                Math.min(oldScale + stepMagnitude, maxScale) :
+                Math.max(oldScale - stepMagnitude, ZoomSettings.MIN_SCALE);
+            if (newScale === oldScale) {
+                return null;
+            }
+            const oldTranslate = prev.translate[idx] ?? {x: 0, y: 0};
+            const newTranslate = newScale === defaultScale ?
+                {x: 0, y: 0} :
+                computeZoomAtCursor(oldScale, oldTranslate, cursorOffsetX, cursorOffsetY, newScale);
+            return {
+                scale: {...prev.scale, [idx]: newScale},
+                translate: {...prev.translate, [idx]: newTranslate},
+            };
+        });
+    };
+
+    // Drag state lives outside React state — only the resulting translate needs
+    // to render, not the in-flight drag metadata.
+    private dragState: {startX: number; startY: number; startTx: number; startTy: number; index: number} | null = null;
+
+    handleImageMouseDown = (e: React.MouseEvent<HTMLElement>) => {
+        if (e.button !== 0 || !this.state.showZoomControls) {
+            return;
+        }
+        const idx = this.state.imageIndex;
+        const fileInfo = this.props.fileInfos[idx];
+        const defaultScale = FilePreviewModal.getDefaultScaleForFile(fileInfo);
+        const currentScale = this.state.scale[idx] ?? defaultScale;
+
+        // Only allow drag-to-pan when the image is actually zoomed in. At
+        // default scale the image fits the viewport, so dragging would just
+        // slide it around in empty space.
+        if (currentScale <= defaultScale) {
+            return;
+        }
+        const current = this.state.translate[idx] ?? {x: 0, y: 0};
+        this.dragState = {
+            startX: e.clientX,
+            startY: e.clientY,
+            startTx: current.x,
+            startTy: current.y,
+            index: idx,
+        };
+        document.addEventListener('mousemove', this.handleDocumentMouseMove);
+        document.addEventListener('mouseup', this.handleDocumentMouseUp);
+        window.addEventListener('blur', this.endDrag);
+        this.setState({isDragging: true});
+        e.preventDefault(); // suppress text selection / link drag-ghost
+    };
+
+    private handleDocumentMouseMove = (e: MouseEvent) => {
+        if (!this.dragState) {
+            return;
+        }
+        const {startX, startY, startTx, startTy, index} = this.dragState;
+        const newTx = startTx + (e.clientX - startX);
+        const newTy = startTy + (e.clientY - startY);
+        this.setState((prev) => ({
+            translate: {...prev.translate, [index]: {x: newTx, y: newTy}},
+        }));
+    };
+
+    private handleDocumentMouseUp = () => {
+        this.endDrag();
+    };
+
+    private endDrag = () => {
+        if (!this.dragState) {
+            return;
+        }
+        this.dragState = null;
+        document.removeEventListener('mousemove', this.handleDocumentMouseMove);
+        document.removeEventListener('mouseup', this.handleDocumentMouseUp);
+        window.removeEventListener('blur', this.endDrag);
+        this.setState({isDragging: false});
     };
 
     handleModalClose = () => {
@@ -335,10 +585,30 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         if (!isFileInfo(fileInfo) || !fileInfo.archived) {
             if (this.state.loaded[this.state.imageIndex]) {
                 if (fileType === FileTypes.IMAGE || fileType === FileTypes.SVG) {
+                    const currentScale = this.state.scale[this.state.imageIndex];
+                    const currentTranslate = this.state.translate[this.state.imageIndex] ?? {x: 0, y: 0};
+                    const defaultScale = FilePreviewModal.getDefaultScaleForFile(fileInfo);
                     content = (
                         <ImagePreview
                             fileInfo={fileInfo as FileInfo}
                             canDownloadFiles={this.props.canDownloadFiles}
+                            scale={currentScale}
+                            translate={currentTranslate}
+                            onWheel={this.handleImageWheel}
+                            onMouseDown={this.handleImageMouseDown}
+                            isZoomed={currentScale !== defaultScale}
+                            isDragging={this.state.isDragging}
+                        />
+                    );
+                    zoomBar = (
+                        <PopoverBar
+                            scale={this.state.scale[this.state.imageIndex]}
+                            defaultScale={ZoomSettings.DEFAULT_SCALE_IMAGE}
+                            maxScale={ZoomSettings.MAX_SCALE_IMAGE}
+                            showZoomControls={this.state.showZoomControls}
+                            handleZoomIn={this.handleZoomIn}
+                            handleZoomOut={this.handleZoomOut}
+                            handleZoomReset={this.handleZoomReset}
                         />
                     );
                 } else if (fileType === FileTypes.VIDEO || fileType === FileTypes.AUDIO) {

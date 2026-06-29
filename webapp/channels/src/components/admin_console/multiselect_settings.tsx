@@ -26,7 +26,7 @@ interface Props {
     noOptionsMessage?: React.ReactNode;
 }
 
-const getOptionLabel = ({text}: { text: string}) => text;
+const getOptionLabel = ({text}: {text: string}) => text;
 
 const MultiSelectSetting: React.FC<Props> = ({
     id,

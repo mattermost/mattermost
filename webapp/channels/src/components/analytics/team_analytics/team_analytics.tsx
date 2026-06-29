@@ -91,7 +91,7 @@ const messages = defineMessages({
     newlyCreated: {id: 'analytics.team.newlyCreated', defaultMessage: 'Newly Created Users'},
 });
 
-export const searchableStrings: Array<string|MessageDescriptor|[MessageDescriptor, {[key: string]: any}]> = [
+export const searchableStrings: Array<string | MessageDescriptor | [MessageDescriptor, {[key: string]: any}]> = [
     [messages.title, {team: ''}],
     messages.info,
     messages.totalPosts,

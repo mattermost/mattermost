@@ -101,6 +101,11 @@
             }
         }
 
+        &.attachment--prevent-click,
+        &.attachment--prevent-click:hover {
+            cursor: default;
+        }
+
         .attachment__content {
             border-width: 1px;
             border-style: solid;

@@ -38,7 +38,7 @@ func NewTestPool(logger mlog.LoggerIFace, driverName string, poolSize int) (*Tes
 			settings := storetest.MakeSqlSettings(driverName)
 			sqlStore, err := New(*settings, logger, nil, WithFeatureFlags(func() *model.FeatureFlags {
 				return &model.FeatureFlags{CJKSearch: true}
-			}))
+			}), DisableMorphLogging())
 			if err != nil {
 				return err
 			}

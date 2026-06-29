@@ -377,7 +377,7 @@ describe('components/EditChannelHeaderModal', () => {
                 }}
             />
         ),
-        (instance: React.Component<any, any>) => instance.state.header,
+        (container: HTMLElement) => (container.querySelector('textarea') as HTMLTextAreaElement)?.value ?? '',
         false,
     );
 });

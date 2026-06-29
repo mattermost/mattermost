@@ -202,7 +202,7 @@ func validateConfigEntry(conf *model.Config, path string, expectedValue any) boo
 	if vt.IsNil() {
 		return expectedValue == nil
 	}
-	if vt.Kind() == reflect.Ptr {
+	if vt.Kind() == reflect.Pointer {
 		vt = vt.Elem()
 	}
 	val := vt.Interface()

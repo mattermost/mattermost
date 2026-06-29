@@ -10,7 +10,7 @@ import './data_grid.scss';
 
 type HeaderElementProps = {
     col: Column;
-}
+};
 
 const HeaderElement = ({col}: HeaderElementProps) => {
     const style: CSSProperties = {};
@@ -30,7 +30,7 @@ const HeaderElement = ({col}: HeaderElementProps) => {
 
 export type Props = {
     columns: Column[];
-}
+};
 
 const DataGridHeader = ({columns}: Props) => {
     return (

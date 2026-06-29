@@ -11,7 +11,7 @@ import type {ServerLimits} from '@mattermost/types/limits';
 
 import {getFormattedFileSize} from 'mattermost-redux/utils/file_utils';
 
-import * as AdminActions from 'actions/admin_actions.jsx';
+import * as AdminActions from 'actions/admin_actions';
 
 import UserSeatAlertBanner from 'components/admin_console/license_settings/user_seat_alert_banner';
 import ActivatedUserCard from 'components/analytics/activated_users_card';
@@ -44,12 +44,12 @@ type Props = {
     config?: Partial<ClientConfig>;
     pluginStatHandlers: GlobalState['plugins']['siteStatsHandlers'];
     serverLimits: ServerLimits;
-}
+};
 
 type State = {
     pluginSiteStats: Record<string, PluginAnalyticsRow>;
     lineChartsDataLoaded: boolean;
-}
+};
 
 const messages = defineMessages({
     title: {id: 'analytics.system.title', defaultMessage: 'System Statistics'},

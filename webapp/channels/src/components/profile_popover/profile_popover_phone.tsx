@@ -9,7 +9,7 @@ import type {UserProfile} from '@mattermost/types/users';
 type Props = {
     attribute: UserPropertyField;
     userProfile: UserProfile;
-}
+};
 
 const ProfilePopoverPhone = ({attribute, userProfile}: Props) => {
     const phone = userProfile.custom_profile_attributes?.[attribute.id] as string;

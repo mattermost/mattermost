@@ -9,6 +9,7 @@ export type Recap = {
     update_at: number;
     delete_at: number;
     read_at: number;
+    viewed_at: number;
     total_message_count: number;
     status: RecapStatus;
     bot_id: string;

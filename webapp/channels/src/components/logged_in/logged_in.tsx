@@ -4,6 +4,7 @@
 import React from 'react';
 import {Redirect} from 'react-router-dom';
 
+import {isAndroid, isIos} from '@mattermost/shared/utils/user_agent';
 import type {UserProfile} from '@mattermost/types/users';
 
 import * as GlobalActions from 'actions/global_actions';
@@ -17,7 +18,6 @@ import Constants from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {isKeyPressed} from 'utils/keyboard';
 import {getBrowserTimezone} from 'utils/timezone';
-import {isAndroid, isIos} from 'utils/user_agent';
 import {doesCookieContainsMMUserId} from 'utils/utils';
 
 declare global {
@@ -46,7 +46,7 @@ export type Props = {
         pathname: string;
         search: string;
     };
-}
+};
 
 export default class LoggedIn extends React.PureComponent<Props> {
     private cleanupDesktopListeners?: () => void;

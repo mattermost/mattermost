@@ -65,13 +65,13 @@ type Props = {
     * Whether or not commands are enabled.
     */
     enableCommands: boolean;
-}
+};
 
 type State = {
     originalCommand: Command | null;
     showConfirmModal: boolean;
     serverError: string;
-}
+};
 
 export default class EditCommand extends React.PureComponent<Props, State> {
     private newCommand?: Command;

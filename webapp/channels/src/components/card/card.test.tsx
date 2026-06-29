@@ -93,8 +93,7 @@ describe('components/card/card', () => {
         defaultMessage='Add policy'
     />,
             onClick:
-                () => {}
-            ,
+                () => {},
         };
 
         const {container} = renderWithContext(

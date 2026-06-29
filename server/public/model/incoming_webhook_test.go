@@ -150,3 +150,12 @@ func TestIncomingWebhookNullArrayItems(t *testing.T) {
 	require.Len(t, iwr.Attachments, 1)
 	require.Len(t, iwr.Attachments[0].Fields, 1)
 }
+
+func TestIncomingWebhookRequestFromJSONRootId(t *testing.T) {
+	id := NewId()
+	payload := `{"text":"hello","root_id":"` + id + `"}`
+	iwr, err := IncomingWebhookRequestFromJSON(strings.NewReader(payload))
+	require.Nil(t, err)
+	require.NotNil(t, iwr)
+	require.Equal(t, id, iwr.RootId)
+}

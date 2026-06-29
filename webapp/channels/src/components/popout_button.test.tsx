@@ -16,7 +16,7 @@ jest.mock('utils/popouts/popout_windows', () => ({
     },
 }));
 
-jest.mock('utils/user_agent', () => ({
+jest.mock('@mattermost/shared/utils/user_agent', () => ({
     isDesktopApp: jest.fn(),
 }));
 

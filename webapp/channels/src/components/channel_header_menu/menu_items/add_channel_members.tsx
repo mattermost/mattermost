@@ -17,7 +17,7 @@ import {ModalIdentifiers} from 'utils/constants';
 
 type Props = {
     channel: Channel;
-}
+};
 
 const AddChannelMembers = ({channel}: Props): JSX.Element => {
     const dispatch = useDispatch();

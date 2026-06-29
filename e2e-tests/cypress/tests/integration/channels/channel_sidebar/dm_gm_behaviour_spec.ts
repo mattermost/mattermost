@@ -9,10 +9,10 @@
 
 // Group: @channels @dm_category
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('DM category', () => {
-    let testUser;
+    let testUser: Cypress.UserProfile;
 
     before(() => {
         // # Login as test user and visit town-square

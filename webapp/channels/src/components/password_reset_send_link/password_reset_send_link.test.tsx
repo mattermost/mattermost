@@ -4,11 +4,9 @@
 import React from 'react';
 import {MemoryRouter} from 'react-router-dom';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
 
 import PasswordResetSendLink from './password_reset_send_link';
-import type {PasswordResetSendLink as PasswordResetSendLinkType} from './password_reset_send_link';
 
 describe('components/PasswordResetSendLink', () => {
     const baseProps = {
@@ -20,14 +18,17 @@ describe('components/PasswordResetSendLink', () => {
     it('should calls sendPasswordResetEmail() action on submit', async () => {
         const props = {...baseProps};
 
-        const wrapper = mountWithIntl(
+        renderWithContext(
             <MemoryRouter>
                 <PasswordResetSendLink {...props}/>
             </MemoryRouter>,
-        ).children().children().children();
+        );
 
-        (wrapper.instance() as PasswordResetSendLinkType).emailInput.current!.value = 'test@example.com';
-        wrapper.find('form').simulate('submit', {preventDefault: () => {}});
+        const emailInput = screen.getByPlaceholderText(/email/i) || screen.getByRole('textbox');
+        await userEvent.type(emailInput, 'test@example.com');
+
+        const form = emailInput.closest('form')!;
+        form.requestSubmit();
 
         await waitFor(() => {
             expect(props.actions.sendPasswordResetEmail).toHaveBeenCalledWith('test@example.com');

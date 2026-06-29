@@ -252,12 +252,22 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 			}
 			if channel.Type != model.ChannelTypeDirect {
 				rootMentions = getExplicitMentions(rootPost, keywords)
-				for id := range rootMentions.Mentions {
+				for id, mentionType := range rootMentions.Mentions {
+					if mentionType == ChannelMention {
+						if profile, ok := profileMap[id]; ok && profile.NotifyProps[model.ChannelMentionAutoFollowThreadsProp] == "false" {
+							continue
+						}
+					}
 					threadParticipants[id] = true
 				}
 			}
 		}
-		for id := range mentions.Mentions {
+		for id, mentionType := range mentions.Mentions {
+			if mentionType == ChannelMention {
+				if profile, ok := profileMap[id]; ok && profile.NotifyProps[model.ChannelMentionAutoFollowThreadsProp] == "false" {
+					continue
+				}
+			}
 			threadParticipants[id] = true
 		}
 
@@ -740,22 +750,19 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 	// If this is a reply in a thread, notify participants
 	if isCRTAllowed && post.RootId != "" {
 		for uid := range followers {
-			// A user following a thread but had left the channel won't get a notification
-			// https://mattermost.atlassian.net/browse/MM-36769
 			if profileMap[uid] == nil {
-				// This also sometimes happens when bots, which will never show up in the map, reply to threads
-				// Their own post goes through this and they get "notified", which we don't need to count as an error if they can't
-				if uid != post.UserId {
-					a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonMissingProfile, model.NotificationNoPlatform)
-					rctx.Logger().LogM(mlog.MlvlNotificationError, "Missing profile",
-						mlog.String("type", model.NotificationTypeWebsocket),
-						mlog.String("post_id", post.Id),
-						mlog.String("status", model.NotificationStatusError),
-						mlog.String("reason", model.NotificationReasonMissingProfile),
-						mlog.String("sender_id", sender.Id),
-						mlog.String("receiver_id", uid),
-					)
-				}
+				// A follower can be absent from the profile map for several valid reasons: they're a
+				// bot, they've been deactivated, or they've left the channel (MM-36769). None can
+				// receive the notification, so record it as not sent rather than an error.
+				a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypeWebsocket, model.NotificationReasonMissingProfile, model.NotificationNoPlatform)
+				rctx.Logger().LogM(mlog.MlvlNotificationDebug, "Missing profile",
+					mlog.String("type", model.NotificationTypeWebsocket),
+					mlog.String("post_id", post.Id),
+					mlog.String("status", model.NotificationStatusNotSent),
+					mlog.String("reason", model.NotificationReasonMissingProfile),
+					mlog.String("sender_id", sender.Id),
+					mlog.String("receiver_id", uid),
+				)
 				continue
 			}
 			if a.IsCRTEnabledForUser(rctx, uid) {

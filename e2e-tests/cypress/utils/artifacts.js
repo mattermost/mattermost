@@ -40,7 +40,7 @@ async function saveArtifacts() {
     if (!AWS_S3_BUCKET || !AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
         console.log('No AWS credentials found. Test artifacts not uploaded to S3.');
 
-        return;
+        return Promise.resolve(false);
     }
 
     const s3Folder = `${BUILD_ID}-${BRANCH}-${BUILD_TAG}`.replace(/\./g, '-');
@@ -75,7 +75,8 @@ async function saveArtifacts() {
             (err) => {
                 if (err) {
                     console.log('Failed to upload artifacts');
-                    return reject(new Error(err));
+                    reject(new Error(err));
+                    return;
                 }
 
                 const reportLink = `https://${AWS_S3_BUCKET}.s3.amazonaws.com/${s3Folder}/mochawesome.html`;

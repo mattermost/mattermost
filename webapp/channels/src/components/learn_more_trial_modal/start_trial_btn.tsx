@@ -4,19 +4,25 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
+
 import useOpenStartTrialFormModal from 'components/common/hooks/useOpenStartTrialFormModal';
 
 import './start_trial_btn.scss';
 
 export type StartTrialBtnProps = {
     onClick?: () => void;
-    btnClass?: string;
-    renderAsButton?: boolean;
     disabled?: boolean;
-};
+} & ({
+    btnClass?: string;
+    renderAsButton: true;
+} | {
+    btnClass?: never;
+    renderAsButton?: false;
+});
 
 const StartTrialBtn = ({
-    btnClass,
+    btnClass = buttonClassNames({emphasis: 'primary'}),
     onClick,
     disabled = false,
     renderAsButton = false,
@@ -52,7 +58,7 @@ const StartTrialBtn = ({
     ) : (
         <a
             id={id}
-            className='btn btn-secondary'
+            className={buttonClassNames({emphasis: 'secondary'})}
             onClick={startTrial}
         >
             {btnText}

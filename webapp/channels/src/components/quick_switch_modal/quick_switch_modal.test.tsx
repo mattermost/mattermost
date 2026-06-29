@@ -2,15 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {IntlProvider} from 'react-intl';
+import {IntlProvider, injectIntl} from 'react-intl';
 
-import type {QuickSwitchModal as QuickSwitchModalClass} from 'components/quick_switch_modal/quick_switch_modal';
-import QuickSwitchModal from 'components/quick_switch_modal/quick_switch_modal';
+import QuickSwitchModal, {QuickSwitchModal as QuickSwitchModalClass} from 'components/quick_switch_modal/quick_switch_modal';
 import ChannelNavigator from 'components/sidebar/channel_navigator/channel_navigator';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
+
+// Wrap the class component with injectIntl + forwardRef so refs work
+const QuickSwitchModalWithRef = injectIntl(QuickSwitchModalClass, {forwardRef: true});
 
 describe('components/QuickSwitchModal', () => {
     const baseProps = {
@@ -31,15 +32,21 @@ describe('components/QuickSwitchModal', () => {
     };
 
     it('should match snapshot', () => {
-        const wrapper = shallowWithIntl(<QuickSwitchModal {...baseProps}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<QuickSwitchModal {...baseProps}/>);
+        expect(container).toMatchSnapshot();
     });
 
     describe('handleSubmit', () => {
         it('should do nothing if nothing selected', () => {
             const props = {...baseProps};
-            const wrapper = shallowWithIntl(<QuickSwitchModal {...props}/>);
-            const instance = wrapper.instance() as QuickSwitchModalClass;
+            const ref = React.createRef<QuickSwitchModalClass>();
+            renderWithContext(
+                <QuickSwitchModalWithRef
+                    {...props}
+                    ref={ref}
+                />,
+            );
+            const instance = ref.current!;
 
             instance.handleSubmit();
             expect(props.onExited).not.toHaveBeenCalled();
@@ -48,8 +55,14 @@ describe('components/QuickSwitchModal', () => {
 
         it('should fail to switch to a channel', (done) => {
             const props = {...baseProps};
-            const wrapper = shallowWithIntl(<QuickSwitchModal {...props}/>);
-            const instance = wrapper.instance() as QuickSwitchModalClass;
+            const ref = React.createRef<QuickSwitchModalClass>();
+            renderWithContext(
+                <QuickSwitchModalWithRef
+                    {...props}
+                    ref={ref}
+                />,
+            );
+            const instance = ref.current!;
 
             const channel = {id: 'channel_id', userId: 'user_id', type: Constants.DM_CHANNEL};
             instance.handleSubmit({channel});
@@ -73,8 +86,14 @@ describe('components/QuickSwitchModal', () => {
                 },
             };
 
-            const wrapper = shallowWithIntl(<QuickSwitchModal {...props}/>);
-            const instance = wrapper.instance() as QuickSwitchModalClass;
+            const ref = React.createRef<QuickSwitchModalClass>();
+            renderWithContext(
+                <QuickSwitchModalWithRef
+                    {...props}
+                    ref={ref}
+                />,
+            );
+            const instance = ref.current!;
 
             const channel = {id: 'channel_id', userId: 'user_id', type: Constants.DM_CHANNEL};
             instance.handleSubmit({channel});
@@ -98,8 +117,14 @@ describe('components/QuickSwitchModal', () => {
                 },
             };
 
-            const wrapper = shallowWithIntl(<QuickSwitchModal {...props}/>);
-            const instance = wrapper.instance() as QuickSwitchModalClass;
+            const ref = React.createRef<QuickSwitchModalClass>();
+            renderWithContext(
+                <QuickSwitchModalWithRef
+                    {...props}
+                    ref={ref}
+                />,
+            );
+            const instance = ref.current!;
 
             const channel = {id: 'channel_id', name: 'test', type: Constants.OPEN_CHANNEL};
             const selected = {
@@ -128,8 +153,14 @@ describe('components/QuickSwitchModal', () => {
                 },
             };
 
-            const wrapper = shallowWithIntl(<QuickSwitchModal {...props}/>);
-            const instance = wrapper.instance() as QuickSwitchModalClass;
+            const ref = React.createRef<QuickSwitchModalClass>();
+            renderWithContext(
+                <QuickSwitchModalWithRef
+                    {...props}
+                    ref={ref}
+                />,
+            );
+            const instance = ref.current!;
 
             const channel = {id: 'channel_id', name: 'test', type: Constants.DM_CHANNEL};
             const selected = {

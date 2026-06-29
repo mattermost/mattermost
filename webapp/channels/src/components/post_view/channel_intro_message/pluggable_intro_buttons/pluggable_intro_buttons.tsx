@@ -13,7 +13,7 @@ type Props = {
     channel: Channel;
     channelMember?: ChannelMembership;
     pluginButtons: ChannelIntroButtonAction[];
-}
+};
 
 const PluggableIntroButtons = React.memo(({
     channel,

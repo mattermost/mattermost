@@ -4,7 +4,6 @@
 import type {ChartOptions} from 'chart.js';
 import Chart from 'chart.js/auto';
 import deepEqual from 'fast-deep-equal';
-import PropTypes from 'prop-types';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -15,37 +14,10 @@ type Props = {
     data?: any;
     id: string;
     options?: ChartOptions;
-}
+};
 
 export default class LineChart extends React.PureComponent<Props> {
     private canvasRef = React.createRef<HTMLCanvasElement>();
-    public static propTypes = {
-
-        /*
-         * Chart title
-         */
-        title: PropTypes.node.isRequired,
-
-        /*
-         * Chart width
-         */
-        width: PropTypes.number,
-
-        /*
-         * Chart height
-         */
-        height: PropTypes.number,
-
-        /*
-         * Chart data
-         */
-        data: PropTypes.object,
-
-        /*
-         * Chart options
-         */
-        options: PropTypes.object,
-    };
 
     public chart: Chart | null = null;
     public chartOptions: ChartOptions = {

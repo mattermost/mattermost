@@ -20,7 +20,7 @@ type Props = {
     access: MixedAccess | ReadAccess | NoAccess | WriteAccess;
     updatePermissions: (permissions: PermissionToUpdate[]) => void;
     isDisabled?: boolean;
-}
+};
 
 export default class SystemRolePermissionDropdown extends React.PureComponent<Props> {
     updatePermission = (value: PermissionAccess) => {

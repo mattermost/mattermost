@@ -15,7 +15,7 @@ import EditCommand from './edit_command';
 
 type Props = {
     location: Location;
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: Props) {
     const config = getConfig(state);

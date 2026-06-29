@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @messaging
 
-import {getAdminAccount} from '../../../support/env';
+import {getAdminAccount} from '@/support/env';
 
 describe('Messaging', () => {
     const sysadmin = getAdminAccount();

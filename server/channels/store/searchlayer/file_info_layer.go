@@ -200,7 +200,7 @@ func (s SearchFileInfoStore) Search(rctx request.CTX, paramsList []*model.Search
 			// Get the files
 			filesList := model.NewFileInfoList()
 			if len(fileIds) > 0 {
-				files, nErr := s.FileInfoStore.GetByIds(fileIds, false, true)
+				files, nErr := s.FileInfoStore.GetByIds(fileIds, false, true, false)
 				if nErr != nil {
 					return nil, nErr
 				}

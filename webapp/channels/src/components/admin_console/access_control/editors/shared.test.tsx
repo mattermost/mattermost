@@ -31,6 +31,24 @@ describe('TestButton', () => {
         expect(icon).toBeInTheDocument();
     });
 
+    test('should render the supplied label override instead of the default copy', () => {
+        renderWithContext(
+            <TestButton
+                {...baseProps}
+                label='Simulate rules'
+            />,
+            {},
+        );
+
+        // The default "Test access rule" copy must not appear when a
+        // label override is provided — used by the permission-rule
+        // editors to surface "Simulate rules" instead.
+        expect(screen.queryByRole('button', {name: /test access rule/i})).not.toBeInTheDocument();
+        const button = screen.getByRole('button', {name: /simulate rules/i});
+        expect(button).toBeInTheDocument();
+        expect(button.querySelector('i.icon.icon-lock-outline')).toBeInTheDocument();
+    });
+
     test('should be enabled and clickable when disabled is false', () => {
         renderWithContext(<TestButton {...baseProps}/>, {});
 
@@ -177,6 +195,9 @@ describe('hasUsableAttributes', () => {
                 name: 'department',
                 type: 'text',
                 group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
                 attrs: {
                     sort_order: 0,
                     visibility: 'always',
@@ -185,6 +206,8 @@ describe('hasUsableAttributes', () => {
                 create_at: 0,
                 update_at: 0,
                 delete_at: 0,
+                created_by: '',
+                updated_by: '',
             },
         ];
 
@@ -198,6 +221,9 @@ describe('hasUsableAttributes', () => {
                 name: 'department',
                 type: 'text',
                 group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
                 attrs: {
                     sort_order: 0,
                     visibility: 'always',
@@ -207,6 +233,8 @@ describe('hasUsableAttributes', () => {
                 create_at: 0,
                 update_at: 0,
                 delete_at: 0,
+                created_by: '',
+                updated_by: '',
             },
         ];
 
@@ -220,6 +248,9 @@ describe('hasUsableAttributes', () => {
                 name: 'department',
                 type: 'text',
                 group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
                 attrs: {
                     sort_order: 0,
                     visibility: 'always',
@@ -229,6 +260,8 @@ describe('hasUsableAttributes', () => {
                 create_at: 0,
                 update_at: 0,
                 delete_at: 0,
+                created_by: '',
+                updated_by: '',
             },
         ];
 
@@ -242,6 +275,9 @@ describe('hasUsableAttributes', () => {
                 name: 'department',
                 type: 'text',
                 group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
                 attrs: {
                     sort_order: 0,
                     visibility: 'always',
@@ -251,6 +287,8 @@ describe('hasUsableAttributes', () => {
                 create_at: 0,
                 update_at: 0,
                 delete_at: 0,
+                created_by: '',
+                updated_by: '',
             },
         ];
 
@@ -264,6 +302,9 @@ describe('hasUsableAttributes', () => {
                 name: 'department',
                 type: 'text',
                 group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
                 attrs: {
                     sort_order: 0,
                     visibility: 'always',
@@ -274,6 +315,8 @@ describe('hasUsableAttributes', () => {
                 create_at: 0,
                 update_at: 0,
                 delete_at: 0,
+                created_by: '',
+                updated_by: '',
             },
         ];
 
@@ -287,6 +330,9 @@ describe('hasUsableAttributes', () => {
                 name: 'department',
                 type: 'text',
                 group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
                 attrs: {
                     sort_order: 0,
                     visibility: 'always',
@@ -295,6 +341,8 @@ describe('hasUsableAttributes', () => {
                 create_at: 0,
                 update_at: 0,
                 delete_at: 0,
+                created_by: '',
+                updated_by: '',
             },
         ];
 
@@ -315,6 +363,9 @@ describe('hasUsableAttributes', () => {
                 name: 'department name',
                 type: 'text',
                 group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
                 attrs: {
                     sort_order: 0,
                     visibility: 'always',
@@ -324,6 +375,8 @@ describe('hasUsableAttributes', () => {
                 create_at: 0,
                 update_at: 0,
                 delete_at: 0,
+                created_by: '',
+                updated_by: '',
             },
         ];
 
@@ -337,6 +390,9 @@ describe('hasUsableAttributes', () => {
                 name: 'department name',
                 type: 'text',
                 group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
                 attrs: {
                     sort_order: 0,
                     visibility: 'always',
@@ -345,12 +401,17 @@ describe('hasUsableAttributes', () => {
                 create_at: 0,
                 update_at: 0,
                 delete_at: 0,
+                created_by: '',
+                updated_by: '',
             },
             {
                 id: 'attr2',
                 name: 'location',
                 type: 'text',
                 group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
                 attrs: {
                     sort_order: 0,
                     visibility: 'always',
@@ -360,6 +421,8 @@ describe('hasUsableAttributes', () => {
                 create_at: 0,
                 update_at: 0,
                 delete_at: 0,
+                created_by: '',
+                updated_by: '',
             },
         ];
 

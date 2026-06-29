@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @team_settings
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {getAdminAccount} from '../../../support/env';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getAdminAccount} from '@/support/env';
 
 describe('Teams Suite', () => {
     let testTeam;

@@ -124,10 +124,10 @@ func TestCreateScheduledPost(t *testing.T) {
 
 		channelModerationPatches := []*model.ChannelModerationPatch{
 			{
-				Name: model.NewPointer(model.PermissionCreatePost.Id),
+				Name: new(model.PermissionCreatePost.Id),
 				Roles: &model.ChannelModeratedRolesPatch{
-					Guests:  model.NewPointer(true),
-					Members: model.NewPointer(false),
+					Guests:  new(true),
+					Members: new(false),
 				},
 			},
 		}

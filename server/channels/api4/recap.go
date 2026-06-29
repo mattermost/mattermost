@@ -15,6 +15,7 @@ import (
 func (api *API) InitRecap() {
 	api.BaseRoutes.Recaps.Handle("", api.APISessionRequired(createRecap)).Methods(http.MethodPost)
 	api.BaseRoutes.Recaps.Handle("", api.APISessionRequired(getRecaps)).Methods(http.MethodGet)
+	api.BaseRoutes.Recaps.Handle("/mark_viewed", api.APISessionRequired(markRecapsAsViewed)).Methods(http.MethodPost)
 	api.BaseRoutes.Recaps.Handle("/{recap_id:[A-Za-z0-9]+}", api.APISessionRequired(getRecap)).Methods(http.MethodGet)
 	api.BaseRoutes.Recaps.Handle("/{recap_id:[A-Za-z0-9]+}/read", api.APISessionRequired(markRecapAsRead)).Methods(http.MethodPost)
 	api.BaseRoutes.Recaps.Handle("/{recap_id:[A-Za-z0-9]+}/regenerate", api.APISessionRequired(regenerateRecap)).Methods(http.MethodPost)
@@ -195,6 +196,31 @@ func markRecapAsRead(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventResultState(updatedRecap)
 
 	if err := json.NewEncoder(w).Encode(updatedRecap); err != nil {
+		c.Logger.Warn("Error encoding response", mlog.Err(err))
+	}
+}
+
+func markRecapsAsViewed(c *Context, w http.ResponseWriter, r *http.Request) {
+	requireRecapsEnabled(c)
+	if c.Err != nil {
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventMarkRecapsAsViewed, model.AuditStatusFail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	auditRec.AddEventObjectType("recap")
+
+	ids, err := c.App.MarkRecapsAsViewed(c.AppContext)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	auditRec.AddMeta("recap_count", len(ids))
+	auditRec.AddMeta("recap_ids", ids)
+
+	if err := json.NewEncoder(w).Encode(map[string]any{"recap_ids": ids}); err != nil {
 		c.Logger.Warn("Error encoding response", mlog.Err(err))
 	}
 }

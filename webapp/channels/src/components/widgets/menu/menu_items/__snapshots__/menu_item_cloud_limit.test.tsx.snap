@@ -1,0 +1,52 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`components/widgets/menu/menu_items/menu_item_cloud_limit shows more attention grabbing UI and notify admin CTA if a limit is very close for non admin users 1`] = `
+<div>
+  <li
+    class="MenuItemCloudLimit MenuItemCloudLimit--critical"
+    id="menuItemCloudLimit"
+    role="menuitem"
+  >
+    <div
+      class="MenuItemCloudLimit__title"
+    >
+      Total messages
+       
+      <i
+        class="icon icon-information-outline"
+      />
+    </div>
+    <div
+      class="MenuItemCloudLimit__description"
+    >
+      You’re almost at the message limit. Your admin can upgrade your plan for unlimited messages. 
+      <span>
+        <button
+          class="Button-dukoRx jscxGC"
+          id="notify_admin_cta"
+        >
+          Notify admin
+        </button>
+      </span>
+    </div>
+    <div
+      class="MenuItemCloudLimit__usage"
+    >
+      <div
+        class="BarBackground-egyIcY dvRyxa"
+        width="155"
+      >
+        <div
+          class="BarForeground-kxWflJ eKdTUN"
+          width="155"
+        />
+      </div>
+      <span
+        class="MenuItemCloudLimit__usage-label"
+      >
+        6K
+      </span>
+    </div>
+  </li>
+</div>
+`;

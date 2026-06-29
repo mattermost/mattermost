@@ -28,12 +28,12 @@ type Props = {
     /**
      * The function to call when Regenerate Token link is clicked
      */
-    onRegenToken: (command: Command) => void ;
+    onRegenToken: (command: Command) => void;
 
     /**
      * The function to call when Delete link is clicked
      */
-    onDelete: (command: Command) => void ;
+    onDelete: (command: Command) => void;
 
     /**
      * Set to filter command, comes from BackstageList
@@ -49,7 +49,7 @@ type Props = {
      * Set to show edit link
      */
     canChange: boolean;
-}
+};
 
 export function matchesFilter(command: Command, filter?: string) {
     if (!filter) {

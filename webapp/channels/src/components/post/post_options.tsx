@@ -20,6 +20,7 @@ import PostFlagIcon from 'components/post_view/post_flag_icon';
 import PostReaction from 'components/post_view/post_reaction';
 import PostRecentReactions from 'components/post_view/post_recent_reactions';
 
+import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
 import {Locations, Constants} from 'utils/constants';
 import {isSystemMessage, fromAutoResponder} from 'utils/post_utils';
 
@@ -66,6 +67,7 @@ const PostOptions = (props: Props): JSX.Element => {
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [showDotMenu, setShowDotMenu] = useState(false);
     const [showActionsMenu, setShowActionsMenu] = useState(false);
+    const [showPluginMenu, setShowPluginMenu] = useState(false);
 
     const toggleEmojiPicker = useCallback((show: boolean) => {
         setShowEmojiPicker(show);
@@ -120,8 +122,13 @@ const PostOptions = (props: Props): JSX.Element => {
         props.handleDropdownOpened!(open);
     };
 
+    const handlePluginMenuOpened = (open: boolean) => {
+        setShowPluginMenu(open);
+        props.handleDropdownOpened!(open);
+    };
+
     const isPostDeleted = post && post.state === Posts.POST_DELETED;
-    const hoverLocal = props.hover || showEmojiPicker || showDotMenu || showActionsMenu;
+    const hoverLocal = props.hover || showEmojiPicker || showDotMenu || showActionsMenu || showPluginMenu;
     const isBurnOnReadPost = props.isBurnOnReadPost || false;
     const showCommentIcon = !isBurnOnReadPost && (isFromAutoResponder || (!systemMessage && (isMobileView ||
             hoverLocal || (!post.root_id && Boolean(props.hasReplies)) ||
@@ -217,9 +224,12 @@ const PostOptions = (props: Props): JSX.Element => {
                     const Component = item.component;
                     return (
                         <li key={item.id}>
-                            <Component
-                                post={props.post}
-                            />
+                            <PluggableErrorBoundary pluginId={item.pluginId}>
+                                <Component
+                                    post={props.post}
+                                    handleDropdownOpened={handlePluginMenuOpened}
+                                />
+                            </PluggableErrorBoundary>
                         </li>
                     );
                 }

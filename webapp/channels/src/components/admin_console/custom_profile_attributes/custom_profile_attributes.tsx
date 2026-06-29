@@ -1,6 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+// This component implements the "User Attributes" admin UI, formerly known as
+// "Custom Profile Attributes" (CPA). Internal identifiers retain the old
+// naming for backward compatibility. See MM-68235.
+
 import React, {useEffect, useState} from 'react';
 import './custom_profile_attributes.scss';
 import {FormattedMessage, defineMessage} from 'react-intl';
@@ -16,6 +20,8 @@ import {getPluginDisplayName} from 'selectors/plugins';
 
 import SettingsGroup from 'components/admin_console/settings_group';
 import TextSetting from 'components/admin_console/text_setting';
+
+import {getUserPropertyFieldLabel} from 'utils/properties';
 
 import type {GlobalState} from 'types/store';
 
@@ -80,7 +86,7 @@ type Props = {
     registerSaveAction: (saveAction: () => Promise<unknown>) => void;
     unRegisterSaveAction: (saveAction: () => Promise<unknown>) => void;
     id?: string;
-}
+};
 
 type SaveActionResult = {
     error?: Error;
@@ -137,13 +143,13 @@ const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | n
                 id={props.id}
                 title={defineMessage({
                     id: 'admin.customProfileAttributes.title',
-                    defaultMessage: 'Custom profile attributes sync',
+                    defaultMessage: 'User attributes sync',
                 })}
                 container={false}
                 subtitle={
                     <FormattedMessage
                         id='admin.customProfileAttributes.subtitle'
-                        defaultMessage='You can add or remove custom profile attributes by going to the <link>user attributes page</link>.'
+                        defaultMessage='You can add or remove user attributes by going to the <link>user attributes page</link>.'
                         values={{
                             link: (msg) => (
                                 <Link
@@ -164,7 +170,7 @@ const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | n
                             <TextSetting
                                 key={attr.id}
                                 id={`custom_profile_attribute-${attr.name}`}
-                                label={attr.name}
+                                label={getUserPropertyFieldLabel(attr)}
                                 value={attr.attrs?.[attributeKey] as string || ''}
                                 onChange={(id, newValue) => {
                                     setAttributes((prevAttrs) => prevAttrs.map((a) => {
@@ -190,7 +196,7 @@ const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | n
                                     ) : (
                                         <AttributeHelpText
                                             attributeKey={attributeKey}
-                                            attributeName={attr.name}
+                                            attributeName={getUserPropertyFieldLabel(attr)}
                                             attributeType={attr.type}
                                         />
                                     )

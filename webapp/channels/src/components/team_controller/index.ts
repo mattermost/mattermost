@@ -26,7 +26,7 @@ import TeamController from './team_controller';
 type Params = {
     url: string;
     team?: string;
-}
+};
 
 export type OwnProps = RouteComponentProps<Params>;
 

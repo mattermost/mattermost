@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import range from 'lodash/range';
 import React from 'react';
 
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import MemberListGroup from './member_list_group';
@@ -21,9 +21,9 @@ describe('admin_console/team_channel_settings/group/GroupList', () => {
     });
 
     const actions = {
-        getProfilesInGroup: jest.fn(),
-        getGroupStats: jest.fn(),
-        searchProfiles: jest.fn(),
+        getProfilesInGroup: jest.fn().mockResolvedValue({data: []}),
+        getGroupStats: jest.fn().mockResolvedValue({data: {}}),
+        searchProfiles: jest.fn().mockResolvedValue({data: []}),
         setModalSearchTerm: jest.fn(),
     };
 
@@ -36,17 +36,17 @@ describe('admin_console/team_channel_settings/group/GroupList', () => {
     };
 
     test('should match snapshot with no members', () => {
-        const wrapper = shallow(<MemberListGroup {...baseProps}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<MemberListGroup {...baseProps}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with members', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <MemberListGroup
                 {...baseProps}
                 users={users}
                 total={15}
             />);
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

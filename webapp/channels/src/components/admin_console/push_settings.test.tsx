@@ -2,12 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {act} from 'react-dom/test-utils';
 
 import type {AdminConfig} from '@mattermost/types/config';
 
-import PushSettings from 'components/admin_console/push_settings';
+import {PushSettings} from 'components/admin_console/push_settings';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import {defaultIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 describe('components/PushSettings', () => {
     test('should match snapshot, licensed', () => {
@@ -23,6 +25,7 @@ describe('components/PushSettings', () => {
         } as AdminConfig;
 
         const props = {
+            intl: defaultIntl,
             config,
             license: {
                 IsLicensed: 'true',
@@ -30,12 +33,18 @@ describe('components/PushSettings', () => {
             },
         };
 
-        const wrapper = shallowWithIntl(
-            <PushSettings {...props}/>,
+        const ref = React.createRef<InstanceType<typeof PushSettings>>();
+        const {container} = renderWithContext(
+            <PushSettings
+                {...props}
+                ref={ref}
+            />,
         );
 
-        wrapper.find('#pushNotificationServerType').simulate('change', 'pushNotificationServerType', 'mhpns');
-        expect(wrapper).toMatchSnapshot();
+        act(() => {
+            ref.current!.handleDropdownChange('pushNotificationServerType', 'mhpns');
+        });
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, unlicensed', () => {
@@ -51,13 +60,14 @@ describe('components/PushSettings', () => {
         } as AdminConfig;
 
         const props = {
+            intl: defaultIntl,
             config,
             license: {},
         };
 
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <PushSettings {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

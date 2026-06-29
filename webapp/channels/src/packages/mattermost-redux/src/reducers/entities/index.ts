@@ -22,6 +22,7 @@ import jobs from './jobs';
 import limits from './limits';
 import posts from './posts';
 import preferences from './preferences';
+import properties from './properties';
 import recaps from './recaps';
 import roles from './roles';
 import scheduledPosts from './scheduled_posts';
@@ -65,4 +66,5 @@ export default combineReducers({
     scheduledPosts,
     sharedChannels,
     contentFlagging,
+    properties,
 });

@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
 
+import {useUserIdsInGroupChannel} from 'components/common/hooks/useUserIdsInGroupChannel';
 import Timestamp from 'components/timestamp';
 
 import UserDetails from './user_details';
@@ -34,7 +35,7 @@ export type Props = {
     isSelected: boolean;
     add: (value: OptionValue) => void;
     select: (value: OptionValue) => void;
-}
+};
 
 const ListItem = React.forwardRef((props: Props, ref?: React.Ref<HTMLDivElement>) => {
     const {
@@ -96,6 +97,9 @@ export default ListItem;
 
 function GMDetails(props: {option: GroupChannel}) {
     const {option} = props;
+
+    // Indirectly populate option.profiles when needed
+    useUserIdsInGroupChannel(option.id);
 
     return (
         <>

@@ -9,8 +9,8 @@
 
 // Group: @channels @messaging
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {spyNotificationAs} from '../../../support/notification';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {spyNotificationAs} from '@/support/notification';
 
 describe('Group Message', () => {
     let testTeam;

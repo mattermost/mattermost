@@ -41,6 +41,13 @@ func getExtAlsoTarGz(name string) string {
 }
 
 func (ae *archiveExtractor) Extract(name string, r io.ReadSeeker, maxFileSize int64) (string, error) {
+	// MM-65701: Skip 7zip files due to OOM vulnerability in bodgit/sevenzip library
+	match, _ := (archives.SevenZip{}).Match(context.Background(), name, r)
+	_, _ = r.Seek(0, io.SeekStart) // Reset reader position after Match reads from stream
+	if match.ByName || match.ByStream {
+		return "", nil
+	}
+
 	ext := getExtAlsoTarGz(name)
 
 	// Create a temporary file, using `*` control the random component while preserving the extension.

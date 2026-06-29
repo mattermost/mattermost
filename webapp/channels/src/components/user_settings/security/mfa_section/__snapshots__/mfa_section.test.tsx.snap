@@ -102,12 +102,11 @@ exports[`MfaSection rendering when section is expanded and MFA is active and enf
           <div
             class="pt-2"
           >
-            <a
+            <button
               class="btn btn-primary a11y--active a11y--focused"
-              href="#"
             >
               Reset MFA on Account
-            </a>
+            </button>
             <br />
           </div>
           <div
@@ -162,12 +161,11 @@ exports[`MfaSection rendering when section is expanded and MFA is active but not
           <div
             class="pt-2"
           >
-            <a
+            <button
               class="btn btn-primary a11y--active a11y--focused"
-              href="#"
             >
               Remove MFA from Account
-            </a>
+            </button>
             <br />
           </div>
           <div
@@ -222,12 +220,11 @@ exports[`MfaSection rendering when section is expanded and MFA is not active 1`]
           <div
             class="pt-2"
           >
-            <a
+            <button
               class="btn btn-primary a11y--active a11y--focused"
-              href="#"
             >
               Add MFA to Account
-            </a>
+            </button>
             <br />
           </div>
           <div

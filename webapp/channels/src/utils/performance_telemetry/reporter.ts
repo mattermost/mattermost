@@ -46,7 +46,7 @@ type PerformanceReportMeasure = {
      * in model/metrics.go on the server.
      */
     labels?: Record<string, string>;
-}
+};
 
 type PerformanceReport = {
     version: '0.1.0';
@@ -62,7 +62,7 @@ type PerformanceReport = {
 
     counters: PerformanceReportMeasure[];
     histograms: PerformanceReportMeasure[];
-}
+};
 
 export default class PerformanceReporter {
     private client: Client4;
@@ -378,11 +378,14 @@ export default class PerformanceReporter {
         const url = this.client.getClientMetricsRoute();
         const data = JSON.stringify(report);
 
-        const beaconSent = this.sendBeacon(url, data);
+        // Wrap the JSON string in a Blob so that sendBeacon sends Content-Type: application/json
+        // instead of the default text/plain, which triggers WAF rules on many deployments.
+        const blob = new Blob([data], {type: 'application/json'});
+        const beaconSent = this.sendBeacon(url, blob);
 
         if (!beaconSent) {
             // The data couldn't be queued as a beacon for some reason, so fall back to sending an immediate fetch
-            fetch(url, {method: 'POST', body: data});
+            fetch(url, {method: 'POST', body: data, headers: {'Content-Type': 'application/json'}});
         }
     }
 

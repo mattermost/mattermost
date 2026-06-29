@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect, Page} from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 export default class FlagPostConfirmationDialog {
     readonly page: Page;
@@ -42,9 +43,13 @@ export default class FlagPostConfirmationDialog {
     async selectFlagReason(reason: string) {
         // Open the dropdown
         await this.flagPostReasonInput.click();
-        // Wait for dropdown options to appear and click the desired one
+        // Wait for dropdown menu list to appear, then wait for the specific option
+        // to be visible before clicking. The second waitFor guards against a race
+        // where the list renders but the individual options are not yet in the DOM.
         await this.flagReasonOption.waitFor({state: 'visible'});
-        await this.flagReasonMenuItems(reason).click();
+        const menuItem = this.flagReasonMenuItems(reason);
+        await menuItem.waitFor({state: 'visible', timeout: 10000});
+        await menuItem.click();
     }
 
     async toBeVisible() {
@@ -60,9 +65,9 @@ export default class FlagPostConfirmationDialog {
     }
 
     async notToBeVisible() {
-        await expect(this.container).not.toBeVisible();
-        await expect(this.cancelButton).not.toBeVisible();
-        await expect(this.submitButton).not.toBeVisible();
+        await expect(this.container).not.toBeVisible({timeout: 10000});
+        await expect(this.cancelButton).not.toBeVisible({timeout: 10000});
+        await expect(this.submitButton).not.toBeVisible({timeout: 10000});
     }
 
     async cannotFlagAlreadyFlaggedPostToBeVisible() {

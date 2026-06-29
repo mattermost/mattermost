@@ -6,12 +6,28 @@
 .ChannelSettingsModal__configurationTab {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 32px;
 
-    .channel_banner_header, .channel_translation_header {
+    &--with-save-panel {
+        padding-bottom: 80px;
+    }
+
+    &__configurationDivider {
+        border: none;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        margin: 0;
+    }
+
+    .channel_shared_with_workspaces_container {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .channel_banner_header, .channel_translation_header, .channel_shared_with_workspaces_header {
         display: flex;
 
-        .channel_banner_header__text, .channel_translation_header__text {
+        .channel_banner_header__text, .channel_translation_header__text, .channel_shared_with_workspaces_header__text {
             display: flex;
             flex: 1;
             flex-direction: column;
@@ -31,7 +47,7 @@
         }
     }
 
-    .channel_banner_section_body {
+    .channel_banner_section_body, .channel_shared_with_workspaces_section_body {
         @include animations.fade-in;
 
         display: flex;
@@ -50,7 +66,8 @@
             right: 5px;
         }
 
-        #channel_banner_banner_text_textbox {
+        #channel_banner_banner_text_textbox,
+        #channel_classification_banner_text_textbox {
             min-height: 40px;
             max-height: 200px;
         }
@@ -92,6 +109,40 @@
 
         .AdvancedTextbox {
             margin-top: 0 !important;
+        }
+
+        .DropdownInput.Input_container {
+            margin-top: 0;
+
+            .Input_fieldset {
+                padding: 0;
+                border: none;
+                box-shadow: none;
+
+                &:hover,
+                &:focus-within {
+                    border: none;
+                    box-shadow: none;
+                }
+            }
+
+            .Input_wrapper {
+                padding: 0;
+                margin: 0;
+            }
+
+            .DropDown__control {
+                height: 40px;
+                min-height: 40px;
+            }
+
+            .DropDown__value-container {
+                height: 38px;
+            }
+
+            .DropDown__indicators {
+                height: 38px;
+            }
         }
     }
 }

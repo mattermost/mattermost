@@ -11,7 +11,7 @@ type Props = {
     channelDisplayName?: string;
     onConfirm: () => Promise<{error?: string}>;
     onExited: () => void;
-}
+};
 
 export default function DeleteScheduledPostModal({
     channelDisplayName,
@@ -44,12 +44,12 @@ export default function DeleteScheduledPostModal({
         <GenericModal
             className='delete_scheduled_post_modal'
             confirmButtonText={confirmButtonText}
+            confirmButtonVariant='destructive'
             handleCancel={noop}
             handleConfirm={handleOnConfirm}
             modalHeaderText={title}
             onExited={onExited}
             compassDesign={true}
-            isDeleteModal={true}
             autoFocusConfirmButton={true}
             autoCloseOnConfirmButton={false}
             errorText={errorMessage}

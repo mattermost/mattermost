@@ -86,7 +86,10 @@ export default class GenericUserProvider extends Provider {
                 return;
             }
 
-            const users = data.users;
+            const users = data?.users;
+            if (!users) {
+                return;
+            }
 
             resultsCallback({
                 matchedPretext: normalizedPretext,

@@ -32,3 +32,18 @@ describe('codespan', () => {
         expect(result.includes('search-highlight')).toBeFalsy();
     });
 });
+
+describe('link (mmaction://)', () => {
+    // mmaction:// links are rendered as plain anchors here; the conversion to
+    // <InlineActionButton> happens in messageHtmlToComponent. Validation lives
+    // in the component itself. These tests just lock the contract that the
+    // renderer leaves the href intact for downstream interception.
+    test('mmaction:// href passes through as a normal anchor', () => {
+        const renderer = new Renderer({}, {});
+
+        const result = renderer.link('mmaction://mx?tail=214', '', 'Click');
+
+        expect(result).toContain('href="mmaction://mx?tail=214"');
+        expect(result).toContain('>Click</a>');
+    });
+});

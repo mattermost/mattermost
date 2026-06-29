@@ -164,6 +164,7 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 		IPAddress:      utils.GetIPAddress(r, ch.cfgSvc.Config().ServiceSettings.TrustedProxyIPHeader),
 		AcceptLanguage: r.Header.Get("Accept-Language"),
 		UserAgent:      r.UserAgent(),
+		ConnectionId:   r.Header.Get(model.ConnectionId),
 	}
 
 	pluginID := mux.Vars(r)["plugin_id"]
@@ -231,7 +232,7 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 	session, appErr := app.GetSession(token)
 	if appErr != nil {
 		if appErr.StatusCode == http.StatusInternalServerError {
-			handleInternalServerError(rctx, "Internal server error while loading session", err)
+			handleInternalServerError(rctx, "Internal server error while loading session", appErr)
 			return
 		}
 		rctx.Logger().Debug("Token in plugin request is invalid. Treating request as unauthenticated",
@@ -253,7 +254,7 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 	// If MFA is required and user has not activated it, treat it as unauthenticated
 	if appErr := app.MFARequired(rctx); appErr != nil {
 		if appErr.StatusCode == http.StatusInternalServerError {
-			handleInternalServerError(rctx, "Internal server error during MFA validation", err)
+			handleInternalServerError(rctx, "Internal server error during MFA validation", appErr)
 			return
 		}
 		rctx.Logger().Warn("Treating session as unauthenticated since MFA required",

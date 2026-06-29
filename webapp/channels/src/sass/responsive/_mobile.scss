@@ -46,16 +46,6 @@
                 }
             }
         }
-
-        .browser--ie & {
-            .navbar-default {
-                .dropdown-menu {
-                    .close {
-                        top: 70px;
-                    }
-                }
-            }
-        }
     }
 
     .app__body {
@@ -732,16 +722,6 @@
             visibility: visible;
         }
 
-        .browser--ie & {
-            .post__header {
-                .post-menu {
-                    .dropdown + div {
-                        display: none;
-                    }
-                }
-            }
-        }
-
         .post-menu__item--reactions {
             display: none;
         }
@@ -1394,15 +1374,6 @@
         width: 100%;
         transform: translate3d(100%, 0, 0);
 
-        .browser--ie & {
-            display: none;
-            -webkit-transform: none !important;
-            -moz-transform: none !important;
-            -ms-transform: none !important;
-            -o-transform: none !important;
-            transform: none !important;
-        }
-
         .sidebar--right__bg {
             display: none;
         }
@@ -1586,12 +1557,6 @@
 }
 
 @media screen and (max-width: 640px) {
-    body {
-        &.browser--ie {
-            min-width: 600px;
-        }
-    }
-
     .section-min .d-flex {
         flex-direction: column;
     }

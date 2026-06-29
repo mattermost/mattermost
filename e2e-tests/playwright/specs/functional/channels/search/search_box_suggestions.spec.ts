@@ -78,7 +78,7 @@ test('remove extra whitespace when selecting a user', async ({pw}) => {
 
     // * The suggestion should be visible
     await expect(channelsPage.searchBox.selectedSuggestion).toBeVisible();
-    await expect(channelsPage.searchBox.selectedSuggestion).toHaveText(`@` + admin.username);
+    await expect(channelsPage.searchBox.selectedSuggestion).toHaveText('@' + admin.username);
 
     // # Press enter to validate the selection
     await searchInput.press('Enter');

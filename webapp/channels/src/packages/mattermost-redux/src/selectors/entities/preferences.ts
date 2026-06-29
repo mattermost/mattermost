@@ -12,7 +12,7 @@ import {createIdsSelector, createShallowSelector} from 'mattermost-redux/utils/h
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 import {setThemeDefaults} from 'mattermost-redux/utils/theme_utils';
 
-export function getMyPreferences(state: GlobalState): { [x: string]: PreferenceType } {
+export function getMyPreferences(state: GlobalState): {[x: string]: PreferenceType} {
     return state.entities.preferences.myPreferences;
 }
 

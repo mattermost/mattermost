@@ -32,7 +32,7 @@ type Props = {
     canSend: boolean;
     onSchedule: (timestamp: number) => Promise<{error?: string}>;
     channelId: string;
-}
+};
 
 function DraftActions({
     displayName,

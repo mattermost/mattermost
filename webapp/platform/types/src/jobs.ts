@@ -24,4 +24,4 @@ export type JobsState = {
 };
 export type JobTypeBase = {
     type: JobType;
-}
+};

@@ -870,10 +870,10 @@ func TestExportFileWarnings(t *testing.T) {
 				cfg.FileSettings.AmazonS3AccessKeyId = model.NewPointer(model.MinioAccessKey)
 				cfg.FileSettings.AmazonS3SecretAccessKey = model.NewPointer(model.MinioSecretKey)
 				cfg.FileSettings.AmazonS3Bucket = model.NewPointer(model.MinioBucket)
-				cfg.FileSettings.AmazonS3PathPrefix = model.NewPointer("")
-				cfg.FileSettings.AmazonS3Endpoint = model.NewPointer(s3Endpoint)
-				cfg.FileSettings.AmazonS3Region = model.NewPointer("")
-				cfg.FileSettings.AmazonS3SSL = model.NewPointer(false)
+				cfg.FileSettings.AmazonS3PathPrefix = new("")
+				cfg.FileSettings.AmazonS3Endpoint = new(s3Endpoint)
+				cfg.FileSettings.AmazonS3Region = new("")
+				cfg.FileSettings.AmazonS3SSL = new(false)
 			},
 		},
 	}
@@ -1360,7 +1360,7 @@ func TestExportSchemes(t *testing.T) {
 		err := th1.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
 		require.NoError(t, err)
 
-		builtInRoles := 25
+		builtInRoles := 24
 		defaultChannelSchemeRoles := 3
 
 		// Verify the roles count is expected prior to scheme creation.
@@ -1457,7 +1457,7 @@ func TestExportSchemes(t *testing.T) {
 		err := th1.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
 		require.NoError(t, err)
 
-		builtInRoles := 25
+		builtInRoles := 24
 		defaultTeamSchemeRoles := 10
 
 		// Verify the roles count is expected prior to scheme creation.

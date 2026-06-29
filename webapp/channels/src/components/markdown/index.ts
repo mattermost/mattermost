@@ -57,7 +57,6 @@ function makeMapStateToProps() {
             mentionKeys: ownProps.mentionKeys || getAllUserMentionKeys(state),
             siteURL: getSiteURL(),
             team: getCurrentTeam(state),
-            hasImageProxy: config.HasImageProxy === 'true',
             minimumHashtagLength: parseInt(config.MinimumHashtagLength || '', 10),
             emojiMap: getEmojiMap(state),
             channelId,

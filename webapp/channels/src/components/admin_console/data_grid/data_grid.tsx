@@ -27,14 +27,14 @@ export type Column = {
     width?: number;
     textAlign?: '-moz-initial' | 'inherit' | 'initial' | 'revert' | 'unset' | 'center' | 'end' | 'justify' | 'left' | 'match-parent' | 'right' | 'start' | undefined;
     overflow?: string;
-}
+};
 
 export type Row = {
     cells: {
         [key: string]: JSX.Element | string | null;
     };
     onClick?: () => void;
-}
+};
 
 type Props = {
     rows: Row[];

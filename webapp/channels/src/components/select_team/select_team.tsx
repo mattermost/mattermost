@@ -6,6 +6,7 @@ import type {ReactNode, MouseEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {CloudUsage} from '@mattermost/types/cloud';
 import type {Team} from '@mattermost/types/teams';
 
@@ -25,7 +26,6 @@ import LogoutIcon from 'components/widgets/icons/fa_logout_icon';
 
 import logoImage from 'images/logo.png';
 import Constants from 'utils/constants';
-import * as UserAgent from 'utils/user_agent';
 
 import SelectTeamItem from './components/select_team_item';
 
@@ -36,10 +36,10 @@ const TEAM_MEMBERSHIP_DENIAL_ERROR_ID = 'api.team.add_members.user_denied';
 const MATTERMOST_ACADEMY_TEAM_TRAINING_LINK = 'https://mattermost.com/pl/mattermost-academy-team-training';
 
 type Actions = {
-    getTeams: (page?: number, perPage?: number, includeTotalCount?: boolean) => Promise<ActionResult<unknown>>;
+    getTeams: (page?: number, perPage?: number, includeTotalCount?: boolean, excludePolicyConstrained?: boolean, forDirectory?: boolean) => Promise<ActionResult<unknown>>;
     loadRolesIfNeeded: (roles: Iterable<string>) => void;
     addUserToTeam: (teamId: string, userId: string) => Promise<ActionResult<unknown>>;
-}
+};
 
 type Props = {
     currentUserId: string;
@@ -67,7 +67,7 @@ type State = {
     endofTeamsData: boolean;
     currentPage: number;
     currentListableTeams: Team[];
-}
+};
 
 export default class SelectTeam extends React.PureComponent<Props, State> {
     constructor(props: Props) {
@@ -102,7 +102,10 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
         const {currentPage} = this.state;
         const {actions} = this.props;
 
-        const response = await actions.getTeams(currentPage, TEAMS_PER_PAGE, true);
+        // for_directory: this is the discovery directory, so policy-governed teams
+        // the user can't join are hidden even for admins (who are otherwise exempt
+        // so the System Console list stays complete).
+        const response = await actions.getTeams(currentPage, TEAMS_PER_PAGE, true, false, true);
 
         // We don't want to increase the page number if no data came back previously
         if (!response.error && !(response.error instanceof Error)) {
@@ -343,7 +346,7 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
         );
 
         let adminConsoleLink;
-        if (!UserAgent.isMobileApp()) {
+        if (!UserAgent.isMobile()) {
             adminConsoleLink = (
                 <SystemPermissionGate permissions={[Permissions.MANAGE_SYSTEM]}>
                     <div className='mt-8 hidden-xs'>

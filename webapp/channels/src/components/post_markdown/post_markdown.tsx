@@ -111,8 +111,6 @@ export default class PostMarkdown extends React.PureComponent<Props> {
             );
         }
 
-        // Proxy images if we have an image proxy and the server hasn't already rewritten the this.props.post's image URLs.
-        const proxyImages = !this.props.post || !this.props.post.message_source || this.props.post.message === this.props.post.message_source;
         const channelNamesMap = isChannelNamesMap(this.props.post?.props?.channel_mentions) ? this.props.post?.props?.channel_mentions : undefined;
 
         this.props.pluginHooks?.forEach((o) => {
@@ -125,6 +123,16 @@ export default class PostMarkdown extends React.PureComponent<Props> {
         if (this.props.post && this.props.post.props) {
             mentionHighlight = !this.props.post.props.mentionHighlightDisabled;
         }
+
+        const isBot = this.props.post?.props?.from_bot === 'true';
+        const isWebhook = this.props.post?.props?.from_webhook === 'true';
+        const isPlugin = this.props.post?.props?.from_plugin === 'true';
+
+        // Ephemeral posts aren't persisted, so the server can't resolve an
+        // inline action click (no DB lookup, no per-action cookie transport).
+        // Render the link as plain text rather than a non-functional button.
+        const isEphemeral = this.props.post?.type === Posts.POST_TYPES.EPHEMERAL;
+        const allowInlineActions = (isBot || isWebhook || isPlugin) && !isEphemeral;
 
         const options = this.getOptions(
             this.props.options,
@@ -143,7 +151,6 @@ export default class PostMarkdown extends React.PureComponent<Props> {
             <Markdown
                 imageProps={this.props.imageProps}
                 message={message}
-                proxyImages={proxyImages}
                 mentionKeys={this.props.mentionKeys}
                 highlightKeys={highlightKeys}
                 options={options}
@@ -152,6 +159,7 @@ export default class PostMarkdown extends React.PureComponent<Props> {
                 imagesMetadata={this.props.post?.metadata?.images}
                 postId={this.props.post?.id}
                 editedAt={this.props.showPostEditedIndicator ? this.props.post?.edit_at : undefined}
+                allowInlineActions={allowInlineActions}
             />
         );
     }

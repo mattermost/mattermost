@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Client4} from '@mattermost/client';
-import {PluginManifest} from '@mattermost/types/plugins';
+import type {Client4} from '@mattermost/client';
+import type {PluginManifest} from '@mattermost/types/plugins';
 
 export async function isPluginActive(client: Client4, pluginId: string): Promise<boolean> {
     const plugins = await client.getPlugins();

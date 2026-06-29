@@ -13,8 +13,8 @@ func TestClientRegistrationRequestIsValid(t *testing.T) {
 	t.Run("PublicClient_Valid", func(t *testing.T) {
 		req := &ClientRegistrationRequest{
 			RedirectURIs:            []string{"https://example.com/callback"},
-			TokenEndpointAuthMethod: NewPointer(ClientAuthMethodNone),
-			ClientName:              NewPointer("Test Public Client"),
+			TokenEndpointAuthMethod: new(ClientAuthMethodNone),
+			ClientName:              new("Test Public Client"),
 		}
 
 		require.Nil(t, req.IsValid())
@@ -23,20 +23,20 @@ func TestClientRegistrationRequestIsValid(t *testing.T) {
 	t.Run("PublicClient_AuthMethodValidation", func(t *testing.T) {
 		req := &ClientRegistrationRequest{
 			RedirectURIs:            []string{"https://example.com/callback"},
-			TokenEndpointAuthMethod: NewPointer(ClientAuthMethodNone),
-			ClientName:              NewPointer("Test Public Client"),
+			TokenEndpointAuthMethod: new(ClientAuthMethodNone),
+			ClientName:              new("Test Public Client"),
 		}
 
 		require.Nil(t, req.IsValid())
 
-		req.TokenEndpointAuthMethod = NewPointer("invalid_method")
+		req.TokenEndpointAuthMethod = new("invalid_method")
 		require.NotNil(t, req.IsValid())
 	})
 
 	t.Run("PublicClient_RedirectURIValidation", func(t *testing.T) {
 		req := &ClientRegistrationRequest{
-			TokenEndpointAuthMethod: NewPointer(ClientAuthMethodNone),
-			ClientName:              NewPointer("Test Public Client"),
+			TokenEndpointAuthMethod: new(ClientAuthMethodNone),
+			ClientName:              new("Test Public Client"),
 		}
 
 		require.NotNil(t, req.IsValid())
@@ -56,8 +56,8 @@ func TestNewOAuthAppFromClientRegistration(t *testing.T) {
 	t.Run("PublicClient", func(t *testing.T) {
 		req := &ClientRegistrationRequest{
 			RedirectURIs:            []string{"https://example.com/callback"},
-			TokenEndpointAuthMethod: NewPointer(ClientAuthMethodNone),
-			ClientName:              NewPointer("Test Public Client"),
+			TokenEndpointAuthMethod: new(ClientAuthMethodNone),
+			ClientName:              new("Test Public Client"),
 		}
 
 		creatorId := NewId()

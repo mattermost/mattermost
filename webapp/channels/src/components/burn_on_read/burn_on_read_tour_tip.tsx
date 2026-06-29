@@ -20,7 +20,7 @@ type Props = {
 
     // Callback when user clicks "Try it out" button to enable BoR
     onTryItOut: () => void;
-}
+};
 
 const BurnOnReadTourTip = ({onTryItOut}: Props) => {
     const dispatch = useDispatch();

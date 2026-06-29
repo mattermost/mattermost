@@ -1,265 +1,260 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/PluginManagement should match snapshot 1`] = `
-<div
-  className="wrapper--fixed DataRetentionSettings"
->
-  <AdminHeader
-    withBackButton={true}
-  >
-    <div>
-      <Connect(Component)
-        className="fa fa-angle-left back"
-        to="/admin_console/compliance/data_retention_settings"
-      />
-      <MemoizedFormattedMessage
-        defaultMessage="Global Retention Policy"
-        id="admin.data_retention.globalPolicyTitle"
-      />
-    </div>
-  </AdminHeader>
+<div>
   <div
-    className="admin-console__wrapper"
+    class="wrapper--fixed DataRetentionSettings"
   >
     <div
-      className="admin-console__content"
+      class="admin-console__header with-back"
     >
-      <Card
-        className="console"
-        expanded={true}
+      <div>
+        <a
+          class="fa fa-angle-left back"
+          href="/admin_console/compliance/data_retention_settings"
+        />
+        Global Retention Policy
+      </div>
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-console__content"
       >
-        <CardBody>
+        <div
+          class="Card console expanded"
+        >
           <div
-            className="global_policy"
+            class="Card__body expanded expanding"
+            style="height: 0px;"
           >
-            <p>
-              <MemoizedFormattedMessage
-                defaultMessage="Applies to all teams and channels, but does not apply to custom retention policies."
-                id="admin.data_retention.form.text"
-              />
-            </p>
             <div
-              id="global_direct_message_dropdown"
+              class="global_policy"
             >
-              <DropdownInputHybrid
-                defaultValue={
-                  Object {
-                    "label": <div>
-                      <i
-                        className="icon icon-infinity option-icon"
+              <p>
+                Applies to all teams and channels, but does not apply to custom retention policies.
+              </p>
+              <div
+                id="global_direct_message_dropdown"
+              >
+                <div
+                  class="DropdownInput hybrid_container"
+                  style="width: 100%;"
+                >
+                  <fieldset
+                    class="Input_fieldset Input_fieldset___legend Input_fieldset___split"
+                  >
+                    <legend
+                      class="Input_legend Input_legend___focus"
+                    >
+                      Channel & direct message retention
+                    </legend>
+                    <div
+                      class="Input_wrapper input_hybrid_wrapper showInput"
+                      style="max-width: 10000px;"
+                    >
+                      <input
+                        class="Input form-control"
+                        id="channel_message_retention_input"
+                        name="Input_channel_message_retention"
+                        placeholder="Channel & direct message retention"
+                        type="number"
+                        value="100"
                       />
-                      <span
-                        className="option_forever"
+                    </div>
+                    <div
+                      class="Input_wrapper dropdown_hybrid_wrapper"
+                      style="width: 90px;"
+                    >
+                      <div
+                        class="Input Input__focus css-b62m3t-container"
+                        id="DropdownInput_channel_message_retention"
                       >
-                        Keep forever
-                      </span>
-                    </div>,
-                    "value": "FOREVER",
-                  }
-                }
-                dropdownClassNamePrefix="channel_message_retention_dropdown"
-                exceptionToInput={
-                  Array [
-                    "FOREVER",
-                  ]
-                }
-                inputId="channel_message_retention_input"
-                inputType="number"
-                inputValue="100"
-                legend={
-                  Object {
-                    "defaultMessage": "Channel & direct message retention",
-                    "id": "admin.data_retention.form.channelAndDirectMessageRetention",
-                  }
-                }
-                name="channel_message_retention"
-                onDropdownChange={[Function]}
-                onInputChange={[Function]}
-                options={
-                  Array [
-                    Object {
-                      "label": <span
-                        className="option_hours"
-                      >
-                        Hours
-                      </span>,
-                      "value": "HOURS",
-                    },
-                    Object {
-                      "label": <span
-                        className="option_days"
-                      >
-                        Days
-                      </span>,
-                      "value": "DAYS",
-                    },
-                    Object {
-                      "label": <span
-                        className="option_years"
-                      >
-                        Years
-                      </span>,
-                      "value": "YEARS",
-                    },
-                    Object {
-                      "label": <div>
-                        <i
-                          className="icon icon-infinity option-icon"
+                        <span
+                          class="css-1f43avz-a11yText-A11yText"
+                          id="react-select-2-live-region"
                         />
                         <span
-                          className="option_forever"
+                          aria-atomic="false"
+                          aria-live="polite"
+                          aria-relevant="additions text"
+                          class="css-1f43avz-a11yText-A11yText"
+                          role="log"
+                        />
+                        <div
+                          class="DropdownInput__controlContainer"
                         >
-                          Keep forever
-                        </span>
-                      </div>,
-                      "value": "FOREVER",
-                    },
-                  ]
-                }
-                placeholder={
-                  Object {
-                    "defaultMessage": "Channel & direct message retention",
-                    "id": "admin.data_retention.form.channelAndDirectMessageRetention",
-                  }
-                }
-                value={
-                  Object {
-                    "label": <span
-                      className="option_days"
+                          <div
+                            class="channel_message_retention_dropdown__control css-1bhmcib-control"
+                          >
+                            <div
+                              class="channel_message_retention_dropdown__value-container channel_message_retention_dropdown__value-container--has-value css-hlgwow"
+                            >
+                              <div
+                                class="channel_message_retention_dropdown__single-value css-1dimb5e-singleValue"
+                              >
+                                <span
+                                  class="option_days"
+                                >
+                                  Days
+                                </span>
+                              </div>
+                              <input
+                                aria-activedescendant=""
+                                aria-autocomplete="list"
+                                aria-expanded="false"
+                                aria-haspopup="true"
+                                aria-readonly="true"
+                                class="css-1s80ejz-dummyInput-DummyInput"
+                                id="react-select-2-input"
+                                inputmode="none"
+                                role="combobox"
+                                tabindex="0"
+                                value=""
+                              />
+                            </div>
+                            <div
+                              class="DropdownInput__indicatorsContainer"
+                            >
+                              <div
+                                class="channel_message_retention_dropdown__indicators css-1wy0on6"
+                              >
+                                <i
+                                  class="icon icon-chevron-down"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </fieldset>
+                </div>
+              </div>
+              <div
+                id="global_file_dropdown"
+              >
+                <div
+                  class="DropdownInput hybrid_container"
+                  style="width: 100%;"
+                >
+                  <fieldset
+                    class="Input_fieldset Input_fieldset___legend Input_fieldset___split"
+                  >
+                    <legend
+                      class="Input_legend Input_legend___focus"
                     >
-                      Days
-                    </span>,
-                    "value": "DAYS",
-                  }
-                }
-                width={90}
-              />
-            </div>
-            <div
-              id="global_file_dropdown"
-            >
-              <DropdownInputHybrid
-                defaultValue={
-                  Object {
-                    "label": <div>
-                      <i
-                        className="icon icon-infinity option-icon"
+                      File retention
+                    </legend>
+                    <div
+                      class="Input_wrapper input_hybrid_wrapper showInput"
+                      style="max-width: 10000px;"
+                    >
+                      <input
+                        class="Input form-control"
+                        id="file_retention_input"
+                        name="Input_file_retention"
+                        placeholder="File retention"
+                        type="number"
+                        value="100"
                       />
-                      <span
-                        className="option_forever"
+                    </div>
+                    <div
+                      class="Input_wrapper dropdown_hybrid_wrapper"
+                      style="width: 90px;"
+                    >
+                      <div
+                        class="Input Input__focus css-b62m3t-container"
+                        id="DropdownInput_file_retention"
                       >
-                        Keep forever
-                      </span>
-                    </div>,
-                    "value": "FOREVER",
-                  }
-                }
-                dropdownClassNamePrefix="file_retention_dropdown"
-                exceptionToInput={
-                  Array [
-                    "FOREVER",
-                  ]
-                }
-                inputId="file_retention_input"
-                inputType="number"
-                inputValue="100"
-                legend={
-                  Object {
-                    "defaultMessage": "File retention",
-                    "id": "admin.data_retention.form.fileRetention",
-                  }
-                }
-                name="file_retention"
-                onDropdownChange={[Function]}
-                onInputChange={[Function]}
-                options={
-                  Array [
-                    Object {
-                      "label": <span
-                        className="option_hours"
-                      >
-                        Hours
-                      </span>,
-                      "value": "HOURS",
-                    },
-                    Object {
-                      "label": <span
-                        className="option_days"
-                      >
-                        Days
-                      </span>,
-                      "value": "DAYS",
-                    },
-                    Object {
-                      "label": <span
-                        className="option_years"
-                      >
-                        Years
-                      </span>,
-                      "value": "YEARS",
-                    },
-                    Object {
-                      "label": <div>
-                        <i
-                          className="icon icon-infinity option-icon"
+                        <span
+                          class="css-1f43avz-a11yText-A11yText"
+                          id="react-select-3-live-region"
                         />
                         <span
-                          className="option_forever"
+                          aria-atomic="false"
+                          aria-live="polite"
+                          aria-relevant="additions text"
+                          class="css-1f43avz-a11yText-A11yText"
+                          role="log"
+                        />
+                        <div
+                          class="DropdownInput__controlContainer"
                         >
-                          Keep forever
-                        </span>
-                      </div>,
-                      "value": "FOREVER",
-                    },
-                  ]
-                }
-                placeholder={
-                  Object {
-                    "defaultMessage": "File retention",
-                    "id": "admin.data_retention.form.fileRetention",
-                  }
-                }
-                value={
-                  Object {
-                    "label": <span
-                      className="option_days"
-                    >
-                      Days
-                    </span>,
-                    "value": "DAYS",
-                  }
-                }
-                width={90}
-              />
+                          <div
+                            class="file_retention_dropdown__control css-1bhmcib-control"
+                          >
+                            <div
+                              class="file_retention_dropdown__value-container file_retention_dropdown__value-container--has-value css-hlgwow"
+                            >
+                              <div
+                                class="file_retention_dropdown__single-value css-1dimb5e-singleValue"
+                              >
+                                <span
+                                  class="option_days"
+                                >
+                                  Days
+                                </span>
+                              </div>
+                              <input
+                                aria-activedescendant=""
+                                aria-autocomplete="list"
+                                aria-expanded="false"
+                                aria-haspopup="true"
+                                aria-readonly="true"
+                                class="css-1s80ejz-dummyInput-DummyInput"
+                                id="react-select-3-input"
+                                inputmode="none"
+                                role="combobox"
+                                tabindex="0"
+                                value=""
+                              />
+                            </div>
+                            <div
+                              class="DropdownInput__indicatorsContainer"
+                            >
+                              <div
+                                class="file_retention_dropdown__indicators css-1wy0on6"
+                              >
+                                <i
+                                  class="icon icon-chevron-down"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </fieldset>
+                </div>
+              </div>
             </div>
           </div>
-        </CardBody>
-      </Card>
+        </div>
+      </div>
     </div>
-  </div>
-  <div
-    className="admin-console-save"
-  >
-    <SaveButton
-      defaultMessage={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Save"
-          id="admin.data_retention.custom_policy.save"
-        />
-      }
-      disabled={true}
-      onClick={[Function]}
-      saving={false}
-    />
-    <Connect(Component)
-      className="btn btn-tertiary"
-      to="/admin_console/compliance/data_retention_settings"
+    <div
+      class="admin-console-save"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="Cancel"
-        id="admin.data_retention.custom_policy.cancel"
-      />
-    </Connect(Component)>
+      <button
+        class="btn btn-primary"
+        data-testid="saveSetting"
+        disabled=""
+        id="saveSetting"
+        type="submit"
+      >
+        <span>
+          Save
+        </span>
+      </button>
+      <a
+        class="btn btn-tertiary"
+        href="/admin_console/compliance/data_retention_settings"
+      >
+        Cancel
+      </a>
+    </div>
   </div>
 </div>
 `;

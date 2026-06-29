@@ -133,9 +133,8 @@ func GetDesktopAppVersion(userAgentString string) (version string, ok bool) {
 
 func getBrowserVersion(ua *uasurfer.UserAgent, userAgentString string) string {
 	for _, prefix := range versionPrefixes {
-		if index := strings.Index(userAgentString, prefix); index != -1 {
-			afterPrefix := userAgentString[index+len(prefix):]
-			if fields := strings.Fields(afterPrefix); len(fields) > 0 {
+		if _, after, ok := strings.Cut(userAgentString, prefix); ok {
+			if fields := strings.Fields(after); len(fields) > 0 {
 				// MM-55320: limitStringLength prevents potential DOS caused by filling an unbounded string with junk data
 				return limitStringLength(fields[0], maxUserAgentVersionLength)
 			}

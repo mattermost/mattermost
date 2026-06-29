@@ -10,7 +10,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {General, Preferences} from 'mattermost-redux/constants';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 import {StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
@@ -1471,5 +1471,189 @@ describe('SwitchChannelSuggestion', () => {
         expect(screen.queryByLabelText('5 unread notifications')).toBeInTheDocument();
         expect(suggestion).toHaveAccessibleName(channel3.display_name);
         expect(suggestion).toHaveAccessibleDescription(`5 unread notifications ~${channel3.name} Public channel`);
+    });
+
+    describe('layout and tooltip behavior for long names', () => {
+        const longTeam1 = TestHelper.getTeamMock({
+            id: 'team1',
+            display_name: 'A Very Long Team Display Name That Will Likely Overflow Its Slot In The Switcher',
+        });
+        const longTeam2 = TestHelper.getTeamMock({
+            id: 'team2',
+            display_name: 'Another Long Team Two',
+        });
+        const longChannel = TestHelper.getChannelMock({
+            id: 'channel1',
+            team_id: 'team1',
+            name: 'super_long_channel_name',
+            display_name: 'Super Extremely Long Channel Display Name That Should Truncate With An Ellipsis',
+        });
+
+        afterEach(() => {
+            // reset prototype overrides between tests
+            Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {configurable: true, value: 0});
+            Object.defineProperty(HTMLElement.prototype, 'clientWidth', {configurable: true, value: 0});
+        });
+
+        test('should render team name as a sibling of the primary column wrapper inside .suggestion-list__flex when on multiple teams', () => {
+            renderWithContext(
+                <ConnectedSwitchChannelSuggestion
+                    {...baseProps}
+                    term={longChannel.name}
+                    item={{
+                        channel: longChannel,
+                        name: longChannel.name,
+                        deactivated: false,
+                    }}
+                />,
+                getBaseState([longTeam1, longTeam2], [longChannel]),
+            );
+
+            const suggestion = document.getElementById(baseProps.id) as HTMLElement;
+            expect(suggestion).toBeInTheDocument();
+
+            // Both nodes (channel name and team name) are present
+            expect(screen.getByText(longChannel.display_name)).toBeInTheDocument();
+            expect(screen.getByText(longTeam1.display_name)).toBeInTheDocument();
+
+            // The flex row contains the primary column wrapper and the team name as siblings
+            const flexRow = suggestion.querySelector('.suggestion-list__flex') as HTMLElement;
+            expect(flexRow).not.toBeNull();
+
+            const primaryColumn = flexRow.querySelector(':scope > .suggestion-list__switch-channel-primary');
+            expect(primaryColumn).not.toBeNull();
+
+            const teamNameNode = flexRow.querySelector('.suggestion-list__team-name');
+            expect(teamNameNode).not.toBeNull();
+            expect(teamNameNode).toHaveTextContent(longTeam1.display_name);
+
+            // Team name must live outside the primary column so it remains a flex sibling that doesn't shrink with the channel name.
+            expect(primaryColumn!.contains(teamNameNode)).toBe(false);
+
+            // Channel name span should live inside the primary column with the truncation class
+            const channelNameNode = primaryColumn!.querySelector('.suggestion-list__channel-name-text');
+            expect(channelNameNode).not.toBeNull();
+            expect(channelNameNode).toHaveTextContent(longChannel.display_name);
+        });
+
+        test('should disable the channel-name and team-name tooltips when the names fit their containers', async () => {
+            jest.useFakeTimers();
+
+            Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {configurable: true, value: 100});
+            Object.defineProperty(HTMLElement.prototype, 'clientWidth', {configurable: true, value: 100});
+
+            renderWithContext(
+                <ConnectedSwitchChannelSuggestion
+                    {...baseProps}
+                    term={longChannel.name}
+                    item={{
+                        channel: longChannel,
+                        name: longChannel.name,
+                        deactivated: false,
+                    }}
+                />,
+                getBaseState([longTeam1, longTeam2], [longChannel]),
+            );
+
+            const channelNameNode = screen.getByText(longChannel.display_name);
+            await userEvent.hover(channelNameNode, {advanceTimers: jest.advanceTimersByTime});
+            jest.advanceTimersByTime(1000);
+            expect(screen.queryAllByText(longChannel.display_name)).toHaveLength(1);
+
+            const teamNameNode = screen.getByText(longTeam1.display_name);
+            await userEvent.hover(teamNameNode, {advanceTimers: jest.advanceTimersByTime});
+            jest.advanceTimersByTime(1000);
+            expect(screen.queryAllByText(longTeam1.display_name)).toHaveLength(1);
+
+            jest.useRealTimers();
+        });
+
+        test('should enable the channel-name and team-name tooltips when the names overflow their containers', async () => {
+            jest.useFakeTimers();
+
+            Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {configurable: true, value: 500});
+            Object.defineProperty(HTMLElement.prototype, 'clientWidth', {configurable: true, value: 100});
+
+            renderWithContext(
+                <ConnectedSwitchChannelSuggestion
+                    {...baseProps}
+                    term={longChannel.name}
+                    item={{
+                        channel: longChannel,
+                        name: longChannel.name,
+                        deactivated: false,
+                    }}
+                />,
+                getBaseState([longTeam1, longTeam2], [longChannel]),
+            );
+
+            const channelNameNode = screen.getByText(longChannel.display_name);
+            await userEvent.hover(channelNameNode, {advanceTimers: jest.advanceTimersByTime});
+            await waitFor(() => {
+                expect(screen.queryAllByText(longChannel.display_name)).toHaveLength(2);
+            });
+
+            await userEvent.unhover(channelNameNode, {advanceTimers: jest.advanceTimersByTime});
+            await waitFor(() => {
+                expect(screen.queryAllByText(longChannel.display_name)).toHaveLength(1);
+            });
+
+            const teamNameNode = screen.getByText(longTeam1.display_name);
+            await userEvent.hover(teamNameNode, {advanceTimers: jest.advanceTimersByTime});
+            await waitFor(() => {
+                expect(screen.queryAllByText(longTeam1.display_name)).toHaveLength(2);
+            });
+
+            jest.useRealTimers();
+        });
+    });
+
+    test('should render override icon when matcher matches', () => {
+        const channel1 = TestHelper.getChannelMock({id: 'channel1', team_id: 'team1', name: 'channel_one', display_name: 'Channel One', type: 'O'});
+        const overrideState = {
+            ...getBaseState([team1], [channel1]),
+            plugins: {components: {ChannelIconOverride: [{id: '1', pluginId: 'mbe', matcher: () => true, iconName: 'shield-outline'}]}},
+        };
+
+        const {container} = renderWithContext(
+            <ConnectedSwitchChannelSuggestion
+                {...baseProps}
+                term={channel1.name}
+                item={{
+                    channel: channel1,
+                    name: channel1.name,
+                    deactivated: false,
+                }}
+            />,
+            overrideState,
+        );
+
+        const icon = container.querySelector('.suggestion-list__icon i');
+        expect(icon).toHaveClass('icon', 'icon-shield-outline');
+        expect(icon).not.toHaveClass('icon-globe');
+    });
+
+    test('should render fallback globe icon when matcher returns false', () => {
+        const channel1 = TestHelper.getChannelMock({id: 'channel1', team_id: 'team1', name: 'channel_one', display_name: 'Channel One', type: 'O'});
+        const overrideState = {
+            ...getBaseState([team1], [channel1]),
+            plugins: {components: {ChannelIconOverride: [{id: '1', pluginId: 'mbe', matcher: () => false, iconName: 'shield-outline'}]}},
+        };
+
+        const {container} = renderWithContext(
+            <ConnectedSwitchChannelSuggestion
+                {...baseProps}
+                term={channel1.name}
+                item={{
+                    channel: channel1,
+                    name: channel1.name,
+                    deactivated: false,
+                }}
+            />,
+            overrideState,
+        );
+
+        const icon = container.querySelector('.suggestion-list__icon i');
+        expect(icon).toHaveClass('icon', 'icon-globe');
     });
 });

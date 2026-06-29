@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChainableT} from '../../types';
+import type {ChainableT} from '../../types';
 
 function uiGetPostTextBox(option = {exist: true}): ChainableT<JQuery> {
     if (option.exist) {
@@ -70,12 +70,12 @@ function editLastPostWithNewMessage(message: string) {
     cy.get('#edit_textbox').should('be.visible');
 
     // # Update the post message and click Save
-    cy.get('#edit_textbox').clear().type(message)
+    cy.get('#edit_textbox').clear().type(message);
     cy.get('#create_post').findByText('Save').scrollIntoView().click();
 }
 Cypress.Commands.add('editLastPostWithNewMessage', editLastPostWithNewMessage);
 
-export function verifySavedPost(postId, message) {
+export function verifySavedPost(postId: string, message: string) {
     // * Check that the center save icon has been updated correctly
     cy.get(`#post_${postId}`).trigger('mouseover', {force: true});
     cy.get(`#CENTER_flagIcon_${postId}`).
@@ -136,7 +136,7 @@ export function verifySavedPost(postId, message) {
     cy.get('#searchResultsCloseButton').should('be.visible').click();
 }
 
-export function verifyUnsavedPost(postId) {
+export function verifyUnsavedPost(postId: string) {
     // * Check that the center save icon has been updated correctly
     cy.get(`#post_${postId}`).trigger('mouseover', {force: true});
     cy.get(`#CENTER_flagIcon_${postId}`).

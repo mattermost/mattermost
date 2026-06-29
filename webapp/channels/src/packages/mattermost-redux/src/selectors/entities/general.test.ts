@@ -372,6 +372,82 @@ describe('Selectors.General', () => {
         });
     });
 
+    // Centralise the dependency-direction tests for the
+    // PermissionPolicies sub-flags here so every consumer (the
+    // channel-settings tab, the Simulate Access button, etc.) can
+    // call the selectors without re-asserting the "both flags must be
+    // on" invariant locally. Mirrors the Go-side
+    // `TestFeatureFlagsPermissionPoliciesDependencies`.
+    describe('PermissionPolicies sub-flag dependencies', () => {
+        const buildState = (config: Record<string, string>) => ({
+            entities: {
+                general: {
+                    config,
+                },
+            },
+        } as unknown as GlobalState);
+
+        test('isChannelPermissionPoliciesEnabled returns false when umbrella is off', () => {
+            const state = buildState({
+                FeatureFlagPermissionPolicies: 'false',
+                FeatureFlagChannelPermissionPolicies: 'true',
+            });
+            expect(Selectors.isChannelPermissionPoliciesEnabled(state)).toBe(false);
+        });
+
+        test('isChannelPermissionPoliciesEnabled returns false when sub-flag is off', () => {
+            const state = buildState({
+                FeatureFlagPermissionPolicies: 'true',
+                FeatureFlagChannelPermissionPolicies: 'false',
+            });
+            expect(Selectors.isChannelPermissionPoliciesEnabled(state)).toBe(false);
+        });
+
+        test('isChannelPermissionPoliciesEnabled returns true only when both flags are on', () => {
+            const state = buildState({
+                FeatureFlagPermissionPolicies: 'true',
+                FeatureFlagChannelPermissionPolicies: 'true',
+            });
+            expect(Selectors.isChannelPermissionPoliciesEnabled(state)).toBe(true);
+        });
+
+        test('isPolicySimulationEnabled returns false when umbrella is off', () => {
+            const state = buildState({
+                FeatureFlagPermissionPolicies: 'false',
+                FeatureFlagPolicySimulation: 'true',
+            });
+            expect(Selectors.isPolicySimulationEnabled(state)).toBe(false);
+        });
+
+        test('isPolicySimulationEnabled returns false when sub-flag is off', () => {
+            const state = buildState({
+                FeatureFlagPermissionPolicies: 'true',
+                FeatureFlagPolicySimulation: 'false',
+            });
+            expect(Selectors.isPolicySimulationEnabled(state)).toBe(false);
+        });
+
+        test('isPolicySimulationEnabled returns true only when both flags are on', () => {
+            const state = buildState({
+                FeatureFlagPermissionPolicies: 'true',
+                FeatureFlagPolicySimulation: 'true',
+            });
+            expect(Selectors.isPolicySimulationEnabled(state)).toBe(true);
+        });
+
+        test('the two sub-flags toggle independently', () => {
+            // Enabling channel-scope permission policies must not
+            // imply that simulation is on (and vice versa).
+            const state = buildState({
+                FeatureFlagPermissionPolicies: 'true',
+                FeatureFlagChannelPermissionPolicies: 'true',
+                FeatureFlagPolicySimulation: 'false',
+            });
+            expect(Selectors.isChannelPermissionPoliciesEnabled(state)).toBe(true);
+            expect(Selectors.isPolicySimulationEnabled(state)).toBe(false);
+        });
+    });
+
     describe('firstAdminVisitMarketplaceStatus', () => {
         test('should return empty when status does not exist', () => {
             const state = {

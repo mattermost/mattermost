@@ -78,6 +78,10 @@ func TestPostIsValid(t *testing.T) {
 	o.Type = PostCustomTypePrefix + "type"
 	appErr = o.IsValid(maxPostSize)
 	require.Nil(t, appErr)
+
+	o.Type = PostTypeCard
+	appErr = o.IsValid(maxPostSize)
+	require.Nil(t, appErr)
 }
 
 func TestPostPreSave(t *testing.T) {
@@ -167,10 +171,17 @@ func TestPost_ContainsIntegrationsReservedProps(t *testing.T) {
 			PostPropsOverrideUsername:   "overridden_username",
 			PostPropsOverrideIconURL:    "a-custom-url",
 			PostPropsOverrideIconEmoji:  ":custom_emoji_name:",
+			PostPropsMmBlocksActions: map[string]any{
+				"btn1": map[string]any{
+					"type": MmBlocksActionTypeExternal,
+					"url":  "http://example.com/hook",
+				},
+			},
 		},
 	}
 	keys2 := post2.ContainsIntegrationsReservedProps()
-	require.Len(t, keys2, 5)
+	require.Len(t, keys2, 6)
+	require.Contains(t, keys2, PostPropsMmBlocksActions)
 }
 
 func TestPostPatch_ContainsIntegrationsReservedProps(t *testing.T) {
@@ -992,7 +1003,7 @@ func TestPostPriority(t *testing.T) {
 	p.Metadata.Priority = &PostPriority{}
 	require.False(t, p.IsUrgent())
 
-	p.Metadata.Priority.Priority = NewPointer(PostPriorityUrgent)
+	p.Metadata.Priority.Priority = new(PostPriorityUrgent)
 	require.True(t, p.IsUrgent())
 }
 

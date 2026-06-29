@@ -179,12 +179,11 @@ exports[`components/ListModal should match snapshot with title bar button 1`] = 
                 list modal
               </span>
             </h1>
-            <a
-              class="btn btn-md btn-primary"
-              href="#"
+            <button
+              class="btn btn-primary"
             >
               Add Foo
-            </a>
+            </button>
           </div>
           <div
             class="modal-body"

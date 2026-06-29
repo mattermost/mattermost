@@ -8,7 +8,9 @@ import (
 	"errors"
 	"io"
 	"strings"
+	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -210,6 +212,144 @@ func TestExtractWithExtraExtractors(t *testing.T) {
 		assert.Contains(t, text, "simple")
 		assert.Contains(t, text, "document")
 		assert.Contains(t, text, "contains")
+	})
+}
+
+type slowExtractor struct {
+	delay time.Duration
+}
+
+func (se *slowExtractor) Name() string { return "slowExtractor" }
+
+func (se *slowExtractor) Match(filename string) bool { return true }
+
+func (se *slowExtractor) Extract(filename string, r io.ReadSeeker, _ int64) (string, error) {
+	time.Sleep(se.delay)
+	return "done", nil
+}
+
+func TestExtractTimeout(t *testing.T) {
+	logger := mlog.CreateConsoleTestLogger(t)
+	data := []byte("hello world")
+
+	t.Run("aborts a slow extraction once the timeout elapses", func(t *testing.T) {
+		start := time.Now()
+		text, err := ExtractWithExtraExtractors(logger, "file.txt", bytes.NewReader(data), ExtractSettings{Timeout: 50 * time.Millisecond}, []Extractor{&slowExtractor{delay: 10 * time.Second}})
+		elapsed := time.Since(start)
+
+		require.Error(t, err)
+		require.Empty(t, text)
+		assert.Contains(t, err.Error(), "timed out")
+		assert.Less(t, elapsed, 5*time.Second, "should return shortly after the timeout, not wait for the extraction")
+	})
+
+	t.Run("returns the result when extraction finishes within the timeout", func(t *testing.T) {
+		text, err := ExtractWithExtraExtractors(logger, "file.txt", bytes.NewReader(data), ExtractSettings{Timeout: 5 * time.Second}, []Extractor{&slowExtractor{delay: 10 * time.Millisecond}})
+		require.NoError(t, err)
+		require.Equal(t, "done", text)
+	})
+
+	t.Run("a zero timeout disables the bound", func(t *testing.T) {
+		text, err := ExtractWithExtraExtractors(logger, "file.txt", bytes.NewReader(data), ExtractSettings{Timeout: 0}, []Extractor{&slowExtractor{delay: 10 * time.Millisecond}})
+		require.NoError(t, err)
+		require.Equal(t, "done", text)
+	})
+
+	t.Run("a panic in the detached extraction is converted to an error", func(t *testing.T) {
+		text, err := ExtractWithExtraExtractors(logger, "file.txt", bytes.NewReader(data), ExtractSettings{Timeout: time.Second}, []Extractor{&panickingExtractor{}})
+		require.Error(t, err)
+		require.Empty(t, text)
+		require.Contains(t, err.Error(), "panic")
+	})
+}
+
+type panickingExtractor struct{}
+
+func (pe *panickingExtractor) Name() string { return "panickingExtractor" }
+
+func (pe *panickingExtractor) Match(filename string) bool { return true }
+
+func (pe *panickingExtractor) Extract(filename string, r io.ReadSeeker, _ int64) (string, error) {
+	panic("boom")
+}
+
+type recordingCloser struct {
+	closed atomic.Bool
+}
+
+func (c *recordingCloser) Close() error {
+	c.closed.Store(true)
+	return nil
+}
+
+// blockingExtractor blocks inside Extract until release is closed, simulating a
+// converter that is still using the reader after an extraction timeout fires.
+type blockingExtractor struct {
+	started chan struct{}
+	release chan struct{}
+}
+
+func (be *blockingExtractor) Name() string { return "blockingExtractor" }
+
+func (be *blockingExtractor) Match(filename string) bool { return true }
+
+func (be *blockingExtractor) Extract(filename string, r io.ReadSeeker, _ int64) (string, error) {
+	close(be.started)
+	<-be.release
+	return "done", nil
+}
+
+func TestExtractReaderCloserOwnership(t *testing.T) {
+	logger := mlog.CreateConsoleTestLogger(t)
+
+	t.Run("reader is closed only after the detached extraction finishes on timeout", func(t *testing.T) {
+		closer := &recordingCloser{}
+		be := &blockingExtractor{started: make(chan struct{}), release: make(chan struct{})}
+		settings := ExtractSettings{Timeout: 50 * time.Millisecond, ReaderCloser: closer}
+
+		_, err := ExtractWithExtraExtractors(logger, "file.txt", bytes.NewReader([]byte("hi")), settings, []Extractor{be})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "timed out")
+
+		// Wait (with a deadline) for the detached extraction to start so the
+		// test fails fast instead of hanging if it never runs.
+		select {
+		case <-be.started:
+		case <-time.After(2 * time.Second):
+			require.FailNow(t, "extraction did not start within the deadline")
+		}
+		// The extraction goroutine is still running, so closing the reader now
+		// would race with it; it must stay open.
+		require.False(t, closer.closed.Load(), "reader must not be closed while the extraction goroutine is still running")
+
+		close(be.release)
+		require.Eventually(t, closer.closed.Load, 2*time.Second, 5*time.Millisecond, "reader should be closed once the extraction goroutine finishes")
+	})
+
+	t.Run("reader is closed on the synchronous path", func(t *testing.T) {
+		closer := &recordingCloser{}
+		_, err := ExtractWithExtraExtractors(logger, "file.txt", bytes.NewReader([]byte("hi")), ExtractSettings{ReaderCloser: closer}, []Extractor{&slowExtractor{delay: 0}})
+		require.NoError(t, err)
+		require.True(t, closer.closed.Load(), "reader should be closed after synchronous extraction")
+	})
+}
+
+func TestDocumentMaxFileSize(t *testing.T) {
+	logger := mlog.CreateConsoleTestLogger(t)
+
+	data, err := testutils.ReadTestFile("sample-doc.docx")
+	require.NoError(t, err)
+
+	t.Run("a generous limit extracts the document content", func(t *testing.T) {
+		text, err := Extract(logger, "sample-doc.docx", bytes.NewReader(data), ExtractSettings{MaxFileSize: 10 * 1024 * 1024})
+		require.NoError(t, err)
+		assert.Contains(t, text, "simple")
+	})
+
+	t.Run("a tiny limit prevents the document content from being extracted", func(t *testing.T) {
+		text, err := Extract(logger, "sample-doc.docx", bytes.NewReader(data), ExtractSettings{MaxFileSize: 16})
+		require.NoError(t, err)
+		assert.NotContains(t, text, "simple")
 	})
 }
 

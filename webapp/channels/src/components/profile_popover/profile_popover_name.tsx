@@ -16,7 +16,7 @@ type Props = {
     haveOverrideProp: boolean;
     user: UserProfile;
     fullname: string;
-}
+};
 const ProfilePopoverName = ({
     user,
     haveOverrideProp,

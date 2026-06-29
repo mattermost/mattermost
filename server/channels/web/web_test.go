@@ -115,15 +115,6 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool, options []app.Option
 	require.NoError(tb, err)
 	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 
-	// Disable strict password requirements for test
-	a.UpdateConfig(func(cfg *model.Config) {
-		*cfg.PasswordSettings.MinimumLength = 5
-		*cfg.PasswordSettings.Lowercase = false
-		*cfg.PasswordSettings.Uppercase = false
-		*cfg.PasswordSettings.Symbol = false
-		*cfg.PasswordSettings.Number = false
-	})
-
 	web := New(s)
 	URL = fmt.Sprintf("http://localhost:%v", s.ListenAddr.Port)
 	apiClient = model.NewAPIv4Client(URL)
@@ -172,10 +163,10 @@ func (th *TestHelper) InitBasic(tb testing.TB) *TestHelper {
 	tb.Helper()
 
 	var appErr *model.AppError
-	th.SystemAdminUser, appErr = th.App.CreateUser(th.Context, &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SystemAdminRoleId})
+	th.SystemAdminUser, appErr = th.App.CreateUser(th.Context, &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: model.NewTestPassword(), EmailVerified: true, Roles: model.SystemAdminRoleId})
 	require.Nil(tb, appErr)
 
-	th.BasicUser, appErr = th.App.CreateUser(th.Context, &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SystemUserRoleId})
+	th.BasicUser, appErr = th.App.CreateUser(th.Context, &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: model.NewTestPassword(), EmailVerified: true, Roles: model.SystemUserRoleId})
 	require.Nil(tb, appErr)
 
 	th.BasicTeam, appErr = th.App.CreateTeam(th.Context, &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: th.BasicUser.Email, Type: model.TeamOpen})

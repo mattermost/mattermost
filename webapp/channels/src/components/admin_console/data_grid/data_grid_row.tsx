@@ -12,12 +12,12 @@ import './data_grid.scss';
 type DataGridRowProps = {
     columns: Column[];
     row: Row;
-}
+};
 
 type DataGridCellProps = {
     column: Column;
     row: Row;
-}
+};
 
 const DataGridCell = ({row, column}: DataGridCellProps) => {
     const style: CSSProperties = {};
