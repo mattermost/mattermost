@@ -1345,7 +1345,7 @@ func TestHandlerOutgoingOAuthConnectionHandlerValidate(t *testing.T) {
 
 		handler.ServeHTTP(httpRecorder, req)
 
-		require.Equal(t, http.StatusBadRequest, httpRecorder.Code)
+		require.Equal(t, http.StatusBadRequest, c.Err.StatusCode)
 	})
 
 	t.Run("success", func(t *testing.T) {
