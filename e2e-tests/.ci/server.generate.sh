@@ -289,7 +289,7 @@ $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
     # shellcheck disable=SC2016
     echo '
   playwright:
-    image: mcr.microsoft.com/playwright:v1.59.1-noble
+    image: mcr.microsoft.com/playwright:v1.61.0-noble
     entrypoint: ["/bin/bash", "-c"]
     command:
       - |

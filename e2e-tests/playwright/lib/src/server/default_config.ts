@@ -44,6 +44,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
             ClusterName: testConfig.haClusterName,
         },
         EmailSettings: {
+            FeedbackName: 'Mattermost',
             PushNotificationServer: testConfig.pushNotificationServer,
         },
         LogSettings: {
@@ -86,7 +87,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
 };
 
 // Should be based only from the generated default config from ./server via "make config-reset"
-// Based on v11.7 server
+// Based on v11.9 server
 const defaultServerConfig: AdminConfig = {
     ServiceSettings: {
         SiteURL: '',
@@ -233,6 +234,7 @@ const defaultServerConfig: AdminConfig = {
         EnableLastActiveTime: true,
         UserStatusAwayTimeout: 300,
         MaxChannelsPerTeam: 2000,
+        EnableChannelCategorySorting: true,
         MaxNotificationsPerChannel: 1000,
         EnableConfirmNotificationsToChannel: true,
         TeammateNameDisplay: 'username',
@@ -240,7 +242,6 @@ const defaultServerConfig: AdminConfig = {
         LockTeammateNameDisplay: false,
         ExperimentalPrimaryTeam: '',
         ExperimentalDefaultChannels: [],
-        EnableChannelCategorySorting: true,
     },
     ClientRequirements: {
         AndroidLatestVersion: '',
@@ -289,7 +290,7 @@ const defaultServerConfig: AdminConfig = {
         Certificate: '',
     },
     PasswordSettings: {
-        MinimumLength: 14,
+        MinimumLength: 8,
         Lowercase: false,
         Number: false,
         Uppercase: false,
@@ -324,6 +325,15 @@ const defaultServerConfig: AdminConfig = {
         AmazonS3RequestTimeoutMilliseconds: 30000,
         AmazonS3UploadPartSizeBytes: 5242880,
         AmazonS3StorageClass: '',
+        AzureStorageAccount: '',
+        AzureAuthMode: 'shared_key',
+        AzureAccessKey: '',
+        AzureContainer: '',
+        AzurePathPrefix: '',
+        AzureCloud: 'commercial',
+        AzureEndpoint: '',
+        AzureSSL: true,
+        AzureRequestTimeoutMilliseconds: 30000,
         DedicatedExportStore: false,
         ExportDriverName: 'local',
         ExportDirectory: './data/',
@@ -341,6 +351,16 @@ const defaultServerConfig: AdminConfig = {
         ExportAmazonS3PresignExpiresSeconds: 21600,
         ExportAmazonS3UploadPartSizeBytes: 104857600,
         ExportAmazonS3StorageClass: '',
+        ExportAzureStorageAccount: '',
+        ExportAzureAuthMode: 'shared_key',
+        ExportAzureAccessKey: '',
+        ExportAzureContainer: '',
+        ExportAzurePathPrefix: '',
+        ExportAzureCloud: 'commercial',
+        ExportAzureEndpoint: '',
+        ExportAzureSSL: true,
+        ExportAzureRequestTimeoutMilliseconds: 30000,
+        ExportAzurePresignExpiresSeconds: 21600,
     },
     EmailSettings: {
         EnableSignUpWithEmail: true,
@@ -349,7 +369,7 @@ const defaultServerConfig: AdminConfig = {
         SendEmailNotifications: true,
         UseChannelInEmailNotifications: false,
         RequireEmailVerification: false,
-        FeedbackName: 'Mattermost',
+        FeedbackName: '',
         FeedbackEmail: 'test@example.com',
         ReplyToAddress: 'test@example.com',
         FeedbackOrganization: '',
@@ -655,7 +675,7 @@ const defaultServerConfig: AdminConfig = {
         ClientKey: '',
         Trace: '',
         IgnoredPurgeIndexes: '',
-        EnableSearchPublicChannelsWithoutMembership: false,
+        EnableSearchPublicChannelsWithoutMembership: true,
     },
     DataRetentionSettings: {
         EnableMessageDeletion: false,
@@ -671,6 +691,12 @@ const defaultServerConfig: AdminConfig = {
         TimeBetweenBatchesMilliseconds: 100,
         RetentionIdsBatchSize: 100,
         PreservePinnedPosts: false,
+    },
+    MobileEphemeralModeSettings: {
+        Enable: false,
+        DisconnectionTimeoutSeconds: 60,
+        OfflinePersistenceTimerHours: 24,
+        AutoCacheCleanupDays: 7,
     },
     MessageExportSettings: {
         EnableExport: false,
@@ -774,20 +800,28 @@ const defaultServerConfig: AdminConfig = {
         ExperimentalAuditSettingsSystemConsoleUI: true,
         CustomProfileAttributes: true,
         AttributeBasedAccessControl: true,
-        PermissionPolicies: true,
+        AttributeValueMasking: false,
+        PermissionPolicies: false,
+        ChannelPermissionPolicies: false,
+        PolicySimulation: false,
         ContentFlagging: true,
         EnableMattermostEntry: true,
         MobileSSOCodeExchange: false,
+        EnableShiftEscapeToMarkAllRead: false,
         AutoTranslation: true,
+        ClassificationMarkings: true,
         BurnOnRead: true,
         EnableAIPluginBridge: false,
         EnableAIRecaps: false,
-        ClassificationMarkings: true,
-        PropertyFieldRank: true,
         IntegratedBoards: false,
         CJKSearch: true,
+        AggregatePluginMetrics: false,
         ManagedChannelCategories: false,
-        MobileEphemeralMode: true,
+        SessionAttributes: false,
+        DiscoverableChannels: false,
+        MobileEphemeralMode: false,
+        PropertyFieldRank: false,
+        TeamMembershipAccessControl: false,
     },
     ImportSettings: {
         Directory: './import',
@@ -816,13 +850,13 @@ const defaultServerConfig: AdminConfig = {
         MemberSyncBatchSize: 20,
     },
     AccessControlSettings: {
-        EnableAttributeBasedAccessControl: true,
-        EnableUserManagedAttributes: true,
+        EnableAttributeBasedAccessControl: false,
+        EnableUserManagedAttributes: false,
         TrustProxyDeviceIdentityHeader: false,
         EnforceDeviceIDConsistency: false,
     },
     ContentFlaggingSettings: {
-        EnableContentFlagging: true,
+        EnableContentFlagging: false,
         NotificationSettings: {
             EventTargetMapping: {
                 assigned: ['reviewers'],
@@ -867,11 +901,5 @@ const defaultServerConfig: AdminConfig = {
         Agents: {
             LLMServiceID: '',
         },
-    },
-    MobileEphemeralModeSettings: {
-        Enable: false,
-        DisconnectionTimeoutSeconds: 60,
-        OfflinePersistenceTimerHours: 24,
-        AutoCacheCleanupDays: 7,
     },
 };
