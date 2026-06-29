@@ -12852,6 +12852,27 @@ func (s *RetryLayerSessionStore) Get(rctx request.CTX, sessionIDOrToken string) 
 
 }
 
+func (s *RetryLayerSessionStore) GetAllSessionsWithActiveDeviceIds() ([]*model.Session, error) {
+
+	tries := 0
+	for {
+		result, err := s.SessionStore.GetAllSessionsWithActiveDeviceIds()
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerSessionStore) GetLRUSessions(rctx request.CTX, userID string, limit uint64, offset uint64) ([]*model.Session, error) {
 
 	tries := 0

@@ -35,7 +35,7 @@ const AutoTranslationFeatureDiscovery: React.FC = () => {
                             defaultMessage: 'Effortlessly collaborate across languages with auto-translation. Messages in shared channels are instantly translated based on each user’s language preference—no extra steps required.{br}<strong>Only available in Enterprise Advanced.</strong>',
                             values: {strong: (msg: string) => <strong>{msg}</strong>, br: <br/>},
                         })}
-                        learnMoreURL='https://docs.mattermost.com'
+                        learnMoreURL='https://docs.mattermost.com/administration-guide/manage/admin/autotranslation.html'
                         featureDiscoveryImage={
                             <AutoTranslationSVG
                                 width={158}

@@ -1693,6 +1693,14 @@ func (a *App) GetAccessControlFieldsAutocomplete(rctx request.CTX, after string,
 		return nil, model.NewAppError("GetAccessControlAutoComplete", "app.pap.get_access_control_auto_complete.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
 
+	// Native user attributes are synthetic (not persisted), so emit them once on
+	// the first page to keep the cursor-paging contract intact. The API maps an
+	// empty "after" to a 26-zero sentinel cursor (the lowest possible ID), so
+	// treat both as the first page.
+	if after == "" || after == strings.Repeat("0", 26) {
+		fields = append(model.NativeUserAttributeFields(group.ID), fields...)
+	}
+
 	return fields, nil
 }
 
