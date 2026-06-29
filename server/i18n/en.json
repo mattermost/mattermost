@@ -11295,6 +11295,22 @@
     "translation": "Invalid user id."
   },
   {
+    "id": "model.command_response.is_valid.attachment.app_error",
+    "translation": "Invalid attachment."
+  },
+  {
+    "id": "model.command_response.is_valid.goto_location.app_error",
+    "translation": "Invalid goto location."
+  },
+  {
+    "id": "model.command_response.is_valid.icon_url.app_error",
+    "translation": "Invalid icon url."
+  },
+  {
+    "id": "model.command_response.is_valid.response_type.app_error",
+    "translation": "Invalid response type."
+  },
+  {
     "id": "model.compliance.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time."
   },
