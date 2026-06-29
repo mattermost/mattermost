@@ -66,20 +66,28 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
                 `user.attributes.${fieldName} in ["Alpha", "Bravo"]`,
             );
             policyIds.push(policyId);
-            await setFieldAsSharedOnly(fieldId);
 
-            // Assign team and a channel to the policy so team settings shows the policy
-            // and the Remove link is present to exercise the "even after removing all channels" path.
+            // Assign channel first so the attribute view can be primed before
+            // we flip the field to shared_only (self-inclusion filter in
+            // SearchTeamAccessPolicies requires the view to be current).
             await adminClient.addToTeam(team.id, adminUser.id);
             const channel = await createPrivateChannel(adminClient, team.id);
             await assignChannelsToPolicy(adminClient, policyId, [channel.id]);
-            try {
-                await (adminClient as any).doFetch(
-                    `${(adminClient as any).getBaseRoute()}/access_control_policies/${policyId}/teams`,
-                    {method: 'POST', body: JSON.stringify({team_id: team.id})},
-                );
-            } catch {
-                // best-effort assignment — test still validates button state
+            await waitForAttributeViewToInclude(adminClient, `user.attributes.${fieldName} in ["Alpha", "Bravo"]`, [
+                adminUser.id,
+            ]);
+            await setFieldAsSharedOnly(fieldId);
+            // The /assign endpoint returns 200 with empty body (no JSON), so use raw fetch.
+            const assignResp = await fetch(
+                `${adminClient.getUrl()}/api/v4/access_control_policies/${policyId}/assign`,
+                {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json', Authorization: `Bearer ${adminClient.getToken()}`},
+                    body: JSON.stringify({team_ids: [team.id]}),
+                },
+            );
+            if (!assignResp.ok) {
+                throw new Error(`Failed to assign policy to team: HTTP ${assignResp.status}`);
             }
 
             const {page} = await pw.testBrowser.login(adminUser);

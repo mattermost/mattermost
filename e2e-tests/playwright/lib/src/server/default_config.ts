@@ -3,6 +3,7 @@
 
 import merge from 'deepmerge';
 import type {
+    AccessControlSettings,
     AdminConfig,
     ClusterSettings,
     EmailSettings,
@@ -26,6 +27,7 @@ export function mergeWithOnPremServerConfig(overrides: Partial<AdminConfig>): Ad
 }
 
 type TestAdminConfig = {
+    AccessControlSettings: Partial<AccessControlSettings>;
     ClusterSettings: Partial<ClusterSettings>;
     EmailSettings: Partial<EmailSettings>;
     ExperimentalSettings: Partial<ExperimentalSettings>;
@@ -39,6 +41,10 @@ type TestAdminConfig = {
 // On-prem setting that is different from the default
 const onPremServerConfig = (): Partial<TestAdminConfig> => {
     return {
+        AccessControlSettings: {
+            EnableAttributeBasedAccessControl: true,
+            EnableUserManagedAttributes: true,
+        },
         ClusterSettings: {
             Enable: testConfig.haClusterEnabled,
             ClusterName: testConfig.haClusterName,
