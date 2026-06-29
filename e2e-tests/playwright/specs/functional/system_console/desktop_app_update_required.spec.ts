@@ -29,7 +29,7 @@ test('Desktop App update required screen shows when connecting with older versio
 
         await expect(page.getByRole('heading', {name: 'Update Required'})).toBeVisible();
 
-        const message = page.locator('.message');
+        const message = page.getByTestId('updateRequiredMessage');
         await expect(message).toContainText(OLD_DESKTOP_VERSION);
         await expect(message).toContainText(MINIMUM_VERSION);
 

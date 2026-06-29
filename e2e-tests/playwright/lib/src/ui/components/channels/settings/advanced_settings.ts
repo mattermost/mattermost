@@ -4,13 +4,14 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class AdvancedSettings {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
 
+export default class AdvancedSettings extends BaseComponent {
     readonly title;
     public id = '#advancedSettings';
     readonly expandedSection;
-    public expandedSectionId = '.section-max';
+    public expandedSectionId = 'section-max';
 
     readonly ctrlEnterEditButton;
     readonly postFormattingEditButton;
@@ -19,10 +20,10 @@ export default class AdvancedSettings {
     readonly syncDraftsEditButton;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
-        this.title = container.getByRole('heading', {name: 'Advanced Settings', exact: true});
-        this.expandedSection = container.locator(this.expandedSectionId);
+        this.title = container.getByRole('heading', {name: en['user.settings.advance.title'], exact: true});
+        this.expandedSection = container.getByTestId(this.expandedSectionId);
 
         // Edit buttons for each setting section
         this.ctrlEnterEditButton = container.locator('#advancedCtrlSendEdit');

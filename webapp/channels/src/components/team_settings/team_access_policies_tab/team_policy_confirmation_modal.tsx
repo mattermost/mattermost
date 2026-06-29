@@ -65,6 +65,7 @@ export default function TeamPolicyConfirmationModal({channelsAffected, publicCha
     return (
         <GenericModal
             className='TeamPolicyConfirmationModal'
+            id='teamPolicyConfirmationModal'
             show={true}
             isStacked={true}
             onExited={onExited}

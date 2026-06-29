@@ -4,21 +4,23 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {BaseComponent} from '@/ui/base_component';
+import {duration} from '@/util';
+
 /**
  * System Console Navbar component
  */
-export default class SystemConsoleNavbar {
-    readonly container: Locator;
+export default class SystemConsoleNavbar extends BaseComponent {
     readonly backLink: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
-        this.backLink = container.locator('.backstage-navbar__back');
+        super(container);
+        this.backLink = container.getByTestId('backstageNavbarBack');
     }
 
     async toBeVisible() {
-        await expect(this.container).toBeVisible();
-        await expect(this.backLink).toBeVisible();
+        await expect(this.container).toBeVisible({timeout: duration.half_min});
+        await expect(this.backLink).toBeVisible({timeout: duration.half_min});
     }
 
     /**

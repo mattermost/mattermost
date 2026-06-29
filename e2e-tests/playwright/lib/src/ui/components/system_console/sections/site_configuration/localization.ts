@@ -4,13 +4,14 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
+
 /**
  * System Console -> Site Configuration -> Localization
  * Covers Languages section and Auto-translation block (or feature discovery when no EA license).
  */
-export default class Localization {
-    readonly container: Locator;
-
+export default class Localization extends BaseComponent {
     readonly header: Locator;
     readonly featureDiscoveryBlock: Locator;
     readonly autoTranslationSection: Locator;
@@ -24,21 +25,23 @@ export default class Localization {
     readonly saveButton: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
-        this.header = container.getByText('Localization', {exact: true});
-        this.featureDiscoveryBlock = container.getByText('Remove language barriers with auto-translation');
-        this.autoTranslationSection = container.locator('.autotranslation-section-header');
-        this.autoTranslationToggle = container.locator('.autotranslation-section-toggle').locator('button');
+        this.header = container.getByText(en['admin.site.localization'], {exact: true});
+        this.featureDiscoveryBlock = container.getByText(en['admin.auto_translation_feature_discovery.title']);
+        this.autoTranslationSection = container.getByTestId('autoTranslationSectionHeader');
+        this.autoTranslationToggle = container.getByTestId('autoTranslationSectionToggle').locator('button');
         this.providerDropdown = container.getByTestId('Providerdropdown');
         this.mattermostAgentsInactiveNotice = container.getByText(
-            'LLMs must first be configured in the Agents plugin.',
+            en['admin.site.localization.autoTranslationLLMConfigNote'],
         );
-        this.mattermostAgentsConfigLink = container.getByRole('link', {name: /Go to Agents plugin config/i});
+        this.mattermostAgentsConfigLink = container.getByRole('link', {
+            name: en['admin.site.localization.goToAgentsConfig'],
+        });
         this.libreTranslateUrlInput = container.locator('input[id="URL"]');
         this.libreTranslateApiKeyInput = container.locator('input[id="APIKey"]');
         this.targetLanguagesMultiSelect = container.getByTestId('TargetLanguages');
-        this.saveButton = container.getByRole('button', {name: 'Save'});
+        this.saveButton = container.getByRole('button', {name: en['save_button.save']});
     }
 
     async toBeVisible() {

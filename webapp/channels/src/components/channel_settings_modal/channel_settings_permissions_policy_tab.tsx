@@ -619,7 +619,10 @@ function ChannelSettingsPermissionsPolicyTab({
 
     // ── Render: list view ────────────────────────────────────────────────
     return (
-        <div className='ChannelSettingsModal__permissionsPolicyTab'>
+        <div
+            className='ChannelSettingsModal__permissionsPolicyTab'
+            data-testid='channelSettingsPermissionsPolicyTab'
+        >
             {/* One-line system-policy banner: signal that policies defined
               * higher up may also influence file action decisions. */}
             {systemPolicies.length > 0 && (

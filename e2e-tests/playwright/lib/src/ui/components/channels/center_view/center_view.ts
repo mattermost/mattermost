@@ -4,18 +4,19 @@
 import type {Locator, Page} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {waitUntil} from '@/test_action';
+import {duration, hexToRgb} from '@/util';
+import {BaseComponent} from '@/ui/base_component';
+
+import ScheduledPostIndicator from '../scheduled_post_indicator';
+import FlagPostConfirmationDialog from '../flag_post_confirmation_dialog';
+
 import ChannelsHeader from './header';
 import ChannelsPostCreate from './post_create';
-import ChannelsPostEdit from './post_edit';
-import ChannelsPost from './post';
-import ScheduledPostIndicator from './scheduled_post_indicator';
-import FlagPostConfirmationDialog from './flag_post_confirmation_dialog';
+import ChannelsPostEdit from './post/post_edit';
+import ChannelsPost from './post/post';
 
-import {duration, hexToRgb} from '@/util';
-import {waitUntil} from '@/test_action';
-
-export default class ChannelsCenterView {
-    readonly container: Locator;
+export default class ChannelsCenterView extends BaseComponent {
     readonly page: Page;
 
     readonly header;
@@ -29,13 +30,13 @@ export default class ChannelsCenterView {
     readonly flagPostConfirmationDialog;
 
     constructor(container: Locator, page: Page) {
-        this.container = container;
+        super(container);
         this.page = page;
 
-        this.header = new ChannelsHeader(this.container.locator('.channel-header'));
+        this.header = new ChannelsHeader(this.container.locator('#channel-header'));
         this.postCreate = new ChannelsPostCreate(container.getByTestId('post-create'));
         this.scheduledDraftOptions = new ChannelsPostCreate(container.locator('#dropdown_send_post_options'));
-        this.postEdit = new ChannelsPostEdit(container.locator('.post-edit__container'));
+        this.postEdit = new ChannelsPostEdit(container.getByTestId('postEditContainer'));
         this.scheduledPostIndicator = new ScheduledPostIndicator(container.getByTestId('scheduledPostIndicator'));
         this.editedPostIcon = (postID: string) => container.locator(`#postEdited_${postID}`);
         this.channelBanner = container.getByTestId('channel_banner_container');
@@ -47,7 +48,7 @@ export default class ChannelsCenterView {
     }
 
     async toBeVisible() {
-        await expect(this.container).toBeVisible();
+        await expect(this.container).toBeVisible({timeout: duration.half_min});
         await this.postCreate.toBeVisible();
     }
 
@@ -106,6 +107,10 @@ export default class ChannelsCenterView {
         const postById = this.container.locator(`[id="post_${id}"], [id^="post_${id}:"]`).first();
         await postById.waitFor();
         return new ChannelsPost(postById);
+    }
+
+    getPostContainerByText(text: string | RegExp): Locator {
+        return this.container.locator('[id^="post_"]').filter({hasText: text}).first();
     }
 
     async waitUntilLastPostContains(text: string, timeout = duration.ten_sec) {
@@ -185,7 +190,7 @@ export default class ChannelsCenterView {
     }
 
     async assertChannelBannerHasEmoticon() {
-        const emoji = this.channelBanner.locator('.emoticon:not(.emoticon--unicode)').first();
+        const emoji = this.channelBanner.locator('[data-emoticon]').first();
         await expect(emoji).toBeVisible();
 
         const backgroundImage = await emoji.evaluate((el) => {
@@ -196,7 +201,7 @@ export default class ChannelsCenterView {
     }
 
     async assertChannelBannerImageEmojiSize(expectedSizePx: number) {
-        const emoji = this.channelBanner.locator('.emoticon:not(.emoticon--unicode)').first();
+        const emoji = this.channelBanner.locator('[data-emoticon]').first();
         await expect(emoji).toBeVisible();
 
         const {width, height} = await emoji.evaluate((el) => {
@@ -214,7 +219,7 @@ export default class ChannelsCenterView {
     }
 
     async assertChannelBannerUnicodeEmojiSize(expectedSizePx: number) {
-        const emoji = this.channelBanner.locator('.emoticon--unicode').first();
+        const emoji = this.channelBanner.locator('[class~="emoticon--unicode"]').first();
         await expect(emoji).toBeVisible();
 
         const fontSize = await emoji.evaluate((el) => {

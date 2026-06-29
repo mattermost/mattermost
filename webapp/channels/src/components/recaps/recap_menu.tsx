@@ -21,12 +21,14 @@ interface RecapMenuProps {
     actions: RecapMenuAction[];
     buttonClassName?: string;
     ariaLabel?: string;
+    dataTestId?: string;
 }
 
 export const RecapMenu: React.FC<RecapMenuProps> = ({
     actions,
     buttonClassName = 'recap-icon-button',
     ariaLabel = 'Recap options',
+    dataTestId,
 }) => {
     const menuId = `recap-menu-${Math.random().toString(36).substr(2, 9)}`;
     const buttonId = `${menuId}-button`;
@@ -37,6 +39,7 @@ export const RecapMenu: React.FC<RecapMenuProps> = ({
                 id: buttonId,
                 class: buttonClassName,
                 'aria-label': ariaLabel,
+                dataTestId,
                 children: <DotsHorizontalIcon size={16}/>,
             }}
             menu={{

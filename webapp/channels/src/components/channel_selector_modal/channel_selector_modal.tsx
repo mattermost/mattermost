@@ -286,6 +286,7 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
         return (
             <GenericModal
                 className='a11y__modal more-modal more-direct-channels channel-selector-modal'
+                id='channelSelectorModal'
                 show={this.state.show}
                 onHide={this.handleHide}
                 onExited={this.handleExit}
@@ -301,7 +302,6 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
                 isStacked={this.props.isStacked}
                 compassDesign={true}
                 bodyPadding={false}
-                id='channelSelectorModal'
             >
                 <MultiSelect<ChannelWithTeamDataValue>
                     key='addChannelsToSchemeKey'

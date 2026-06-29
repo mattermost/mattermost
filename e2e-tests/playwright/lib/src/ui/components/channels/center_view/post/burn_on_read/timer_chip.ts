@@ -4,15 +4,16 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class BurnOnReadTimerChip {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
+
+export default class BurnOnReadTimerChip extends BaseComponent {
     readonly flameIcon: Locator;
     readonly timerText: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
-        this.flameIcon = container.locator('.BurnOnReadTimerChip__icon');
-        this.timerText = container.locator('.BurnOnReadTimerChip__time');
+        super(container);
+        this.flameIcon = container.getByTestId('burnOnReadTimerChipIcon');
+        this.timerText = container.getByTestId('burnOnReadTimerChipTime');
     }
 
     async toBeVisible() {

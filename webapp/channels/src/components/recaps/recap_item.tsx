@@ -105,9 +105,13 @@ const RecapItem = ({recap, isExpanded, onToggle}: Props) => {
     const headerProps = isFailed ? {} : {onClick: onToggle};
 
     return (
-        <div className={itemClassName}>
+        <div
+            className={itemClassName}
+            data-testid='recapItem'
+        >
             <div
                 className='recap-item-header'
+                data-testid='recapItemHeader'
                 {...headerProps}
             >
                 <div className='recap-item-title-section'>
@@ -167,6 +171,7 @@ const RecapItem = ({recap, isExpanded, onToggle}: Props) => {
                     )}
                     <button
                         className='recap-icon-button recap-delete-button'
+                        data-testid='recapDeleteButton'
                         onClick={() => setShowDeleteConfirm(true)}
                     >
                         <TrashCanOutlineIcon size={16}/>
@@ -181,6 +186,7 @@ const RecapItem = ({recap, isExpanded, onToggle}: Props) => {
                                 },
                                 {title: recap.title},
                             )}
+                            dataTestId='recapItemMenuButton'
                         />
                     )}
                 </div>

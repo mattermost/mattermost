@@ -4,9 +4,10 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class PostReminderMenu {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
 
+export default class PostReminderMenu extends BaseComponent {
     readonly thirtyMinsMenuItem;
     readonly oneHourMenuItem;
     readonly twoHoursMenuItem;
@@ -14,15 +15,19 @@ export default class PostReminderMenu {
     readonly customMenuItem;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
-        const getMenuItem = (hasText: string) => container.getByRole('menuitem').filter({hasText});
-
-        this.thirtyMinsMenuItem = getMenuItem('30 mins');
-        this.oneHourMenuItem = getMenuItem('1 hour');
-        this.twoHoursMenuItem = getMenuItem('2 hours');
-        this.tomorrowMenuItem = getMenuItem('Tomorrow');
-        this.customMenuItem = getMenuItem('Custom');
+        this.thirtyMinsMenuItem = container.getByRole('menuitem', {
+            name: en['post_info.post_reminder.sub_menu.thirty_minutes'],
+        });
+        this.oneHourMenuItem = container.getByRole('menuitem', {name: en['post_info.post_reminder.sub_menu.one_hour']});
+        this.twoHoursMenuItem = container.getByRole('menuitem', {
+            name: en['post_info.post_reminder.sub_menu.two_hours'],
+        });
+        this.tomorrowMenuItem = container.getByRole('menuitem', {
+            name: en['post_info.post_reminder.sub_menu.tomorrow'],
+        });
+        this.customMenuItem = container.getByRole('menuitem', {name: en['post_info.post_reminder.sub_menu.custom']});
     }
 
     async toBeVisible() {

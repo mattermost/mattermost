@@ -169,18 +169,18 @@ test.describe('System Console - Ranked User Attributes', () => {
 
             // # Open the add-value input and type a label already in use
             await sp.addRankedModalValue();
-            const addInput = sp.rankedModal().locator('.ranked-schema-modal__add-input');
+            const addInput = sp.rankedModalAddInput();
             await addInput.fill('Secret');
 
             // * Duplicate-label error appears
-            await expect(sp.rankedModal().getByText('Values must be unique.')).toBeVisible();
+            await expect(sp.rankedModalValuesUniqueError()).toBeVisible();
 
             // * Save is still enabled (duplicate prevents commit, not save of existing rows)
             await expect(sp.rankedModalSaveButton()).toBeEnabled();
 
             // # Correct the label — duplicate error disappears
             await addInput.fill('Confidential');
-            await expect(sp.rankedModal().getByText('Values must be unique.')).not.toBeVisible();
+            await expect(sp.rankedModalValuesUniqueError()).not.toBeVisible();
         } finally {
             await cleanup(adminClient);
         }
@@ -265,7 +265,7 @@ test.describe('System Console - Ranked User Attributes', () => {
             await expect(sp.rankedModalSaveButton()).toBeEnabled();
 
             // # Type the new label and commit it by blurring
-            const addInput = sp.rankedModal().locator('.ranked-schema-modal__add-input');
+            const addInput = sp.rankedModalAddInput();
             await addInput.fill('TopSecret');
             await addInput.blur();
 

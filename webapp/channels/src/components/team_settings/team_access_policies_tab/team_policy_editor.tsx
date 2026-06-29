@@ -635,6 +635,7 @@ export default function TeamPolicyEditor({
                             </div>
                             <Button
                                 variant='destructive'
+                                data-testid='teamPolicyDeleteButton'
                                 onClick={() => setShowDeleteModal(true)}
                                 disabled={hasChannels() || hasMaskedRows}
                             >
@@ -677,6 +678,7 @@ export default function TeamPolicyEditor({
             {showDeleteModal && (
                 <GenericModal
                     className='TeamPolicyEditor__delete-modal'
+                    id='teamPolicyDeleteModal'
                     show={true}
                     isStacked={true}
                     onExited={() => setShowDeleteModal(false)}

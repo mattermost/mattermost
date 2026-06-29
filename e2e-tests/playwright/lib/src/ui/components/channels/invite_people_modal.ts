@@ -4,21 +4,28 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class InvitePeopleModal {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
 
+export default class InvitePeopleModal extends BaseComponent {
     readonly closeButton: Locator;
     readonly inviteInput: Locator;
     readonly inviteButton: Locator;
     readonly copyInviteLinkButton: Locator;
+    readonly title: Locator;
+    readonly saveButton: Locator;
+    readonly autocompleteListbox: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
-        this.closeButton = container.getByRole('button', {name: 'Close'});
-        this.inviteInput = container.getByRole('combobox', {name: 'Invite People'});
-        this.inviteButton = container.getByRole('button', {name: 'Invite', exact: true});
-        this.copyInviteLinkButton = container.getByText('Copy invite link');
+        this.closeButton = container.getByRole('button', {name: en['generic.close']});
+        this.inviteInput = container.getByRole('combobox', {name: en['invitation_modal.members.search_and_add.title']});
+        this.inviteButton = container.getByRole('button', {name: en['invite_modal.invite'], exact: true});
+        this.copyInviteLinkButton = container.getByTestId('InviteView__copyInviteLink');
+        this.title = container.locator('#invitation_modal_title');
+        this.saveButton = container.locator('#saveItems');
+        this.autocompleteListbox = container.getByRole('listbox');
     }
 
     async toBeVisible() {
@@ -27,6 +34,10 @@ export default class InvitePeopleModal {
 
     async close() {
         await this.closeButton.click();
+    }
+
+    getOptionByUsername(username: string): Locator {
+        return this.autocompleteListbox.getByRole('option', {name: username});
     }
 
     /**

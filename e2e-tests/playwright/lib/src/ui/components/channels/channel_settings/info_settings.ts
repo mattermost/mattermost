@@ -4,13 +4,16 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class InfoSettings {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
+
+export default class InfoSettings extends BaseComponent {
     readonly nameInput: Locator;
+    readonly managedCategoryInput: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
         this.nameInput = container.locator('#input_channel-settings-name');
+        this.managedCategoryInput = container.getByRole('combobox');
     }
 
     async toBeVisible() {

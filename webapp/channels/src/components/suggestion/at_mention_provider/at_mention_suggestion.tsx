@@ -213,6 +213,7 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
                 <span
                     id={ids.atMention}
                     className='suggestion-list__main'
+                    data-testid='suggestionMain'
                 >
                     {'@' + itemname}
                 </span>

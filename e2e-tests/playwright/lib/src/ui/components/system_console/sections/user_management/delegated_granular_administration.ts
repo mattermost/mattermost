@@ -4,13 +4,15 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
+
 import SystemRoles from './system_roles';
 
 /**
  * System Console -> User Management -> Delegated Granular Administration
  */
-export default class DelegatedGranularAdministration {
-    readonly container: Locator;
+export default class DelegatedGranularAdministration extends BaseComponent {
     readonly header: Locator;
 
     // Admin Roles Panel
@@ -20,8 +22,8 @@ export default class DelegatedGranularAdministration {
     readonly systemRoles: SystemRoles;
 
     constructor(container: Locator) {
-        this.container = container;
-        this.header = container.getByText('Delegated Granular Administration', {exact: true});
+        super(container);
+        this.header = container.getByText(en['admin.permissions.systemRoles'], {exact: true});
 
         this.adminRolesPanel = new AdminRolesPanel(container.locator('#SystemRoles'));
 
@@ -35,17 +37,16 @@ export default class DelegatedGranularAdministration {
     }
 }
 
-class AdminRolesPanel {
-    readonly container: Locator;
+class AdminRolesPanel extends BaseComponent {
     readonly title: Locator;
     readonly description: Locator;
     private readonly dataGrid: DataGrid;
 
     constructor(container: Locator) {
-        this.container = container;
-        this.title = container.getByRole('heading', {name: 'Admin Roles'});
-        this.description = container.getByText('Manage different levels of access to the system console.');
-        this.dataGrid = new DataGrid(container.locator('.DataGrid'));
+        super(container);
+        this.title = container.getByRole('heading', {name: en['admin.permissions.systemRolesBannerTitle']});
+        this.description = container.getByText(en['admin.permissions.systemRolesBannerText']);
+        this.dataGrid = new DataGrid(container.getByTestId('dataGrid'));
     }
 
     async toBeVisible() {
@@ -74,8 +75,7 @@ class AdminRolesPanel {
     }
 }
 
-class DataGrid {
-    readonly container: Locator;
+class DataGrid extends BaseComponent {
     readonly header: Locator;
     readonly rows: Locator;
 
@@ -88,33 +88,33 @@ class DataGrid {
     readonly viewer: RoleRow;
 
     constructor(container: Locator) {
-        this.container = container;
-        this.header = container.locator('.DataGrid_header');
-        this.rows = container.locator('.DataGrid_rows');
+        super(container);
+        this.header = container.getByTestId('dataGridHeader');
+        this.rows = container.getByTestId('dataGridRows');
 
         // Individual role rows
         this.systemAdmin = new RoleRow(
-            this.rows.locator('.DataGrid_row').filter({hasText: 'System Admin'}),
+            this.rows.getByTestId('dataGridRow').filter({hasText: 'System Admin'}),
             'system_admin_edit',
         );
         this.systemManager = new RoleRow(
-            this.rows.locator('.DataGrid_row').filter({hasText: 'System Manager'}),
+            this.rows.getByTestId('dataGridRow').filter({hasText: 'System Manager'}),
             'system_manager_edit',
         );
         this.userManager = new RoleRow(
-            this.rows.locator('.DataGrid_row').filter({hasText: 'User Manager'}),
+            this.rows.getByTestId('dataGridRow').filter({hasText: 'User Manager'}),
             'system_user_manager_edit',
         );
         this.customGroupManager = new RoleRow(
-            this.rows.locator('.DataGrid_row').filter({hasText: 'Custom Group Manager'}),
+            this.rows.getByTestId('dataGridRow').filter({hasText: 'Custom Group Manager'}),
             'system_custom_group_admin_edit',
         );
         this.sharedChannelManager = new RoleRow(
-            this.rows.locator('.DataGrid_row').filter({hasText: 'Shared Channel Manager'}),
+            this.rows.getByTestId('dataGridRow').filter({hasText: 'Shared Channel Manager'}),
             'system_shared_channel_manager_edit',
         );
         this.viewer = new RoleRow(
-            this.rows.locator('.DataGrid_row').filter({hasText: 'Viewer'}),
+            this.rows.getByTestId('dataGridRow').filter({hasText: 'Viewer'}),
             'system_read_only_admin_edit',
         );
     }
@@ -124,21 +124,20 @@ class DataGrid {
     }
 }
 
-class RoleRow {
-    readonly container: Locator;
+class RoleRow extends BaseComponent {
     readonly roleName: Locator;
     readonly description: Locator;
     readonly type: Locator;
     readonly editLink: Locator;
 
     constructor(container: Locator, editTestId: string) {
-        this.container = container;
+        super(container);
 
-        const cells = container.locator('.DataGrid_cell');
+        const cells = container.getByTestId('dataGridCell');
         this.roleName = cells.nth(0);
         this.description = cells.nth(1);
         this.type = cells.nth(2);
-        this.editLink = container.getByTestId(editTestId).getByRole('link', {name: 'Edit'});
+        this.editLink = container.getByTestId(editTestId).getByRole('link', {name: en['admin.permissions.roles.edit']});
     }
 
     async toBeVisible() {

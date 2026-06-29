@@ -8,11 +8,17 @@
  */
 
 import type {Client4} from '@mattermost/client';
-import type {Page} from '@playwright/test';
 import type {UserPropertyField} from '@mattermost/types/properties';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {ChannelsPage, expect, newTestPassword, test} from '@mattermost/playwright-lib';
+import {
+    AccessControlTestResultsModal,
+    ChannelsPage,
+    en,
+    expect,
+    newTestPassword,
+    test,
+} from '@mattermost/playwright-lib';
 
 const PROGRAM_OPTIONS = [
     {name: 'Artemis', color: '#FF8800'},
@@ -132,27 +138,31 @@ async function createChannelAccessRule(
 
 async function openAccessControlSettings(channelsPage: ChannelsPage) {
     const channelSettings = await channelsPage.openChannelSettings();
-    const accessControlTab = channelSettings.container.getByRole('tab', {name: /Membership Policy/i});
-    await expect(accessControlTab).toBeVisible({timeout: 10000});
-    await accessControlTab.click();
+    await expect(channelSettings.accessRulesTab).toBeVisible({timeout: 10000});
+    await channelSettings.accessRulesTab.click();
 
     return channelSettings;
 }
 
-async function verifyTestAccessRuleDisabled(page: Page) {
-    await expect(page.getByRole('button', {name: /Test access rule/i})).toBeDisabled({timeout: 10000});
+async function verifyTestAccessRuleDisabled(channelsPage: ChannelsPage) {
+    const testButton = channelsPage.channelSettingsModal.accessRulesSettings.container.getByRole('button', {
+        name: en['admin.access_control.table_editor.test_access_rule'],
+    });
+    await expect(testButton).toBeDisabled({timeout: 10000});
 }
 
-async function testAccessRuleAndVerifyUser(page: Page, username: string) {
-    const testButton = page.getByRole('button', {name: /Test access rule/i});
+async function testAccessRuleAndVerifyUser(channelsPage: ChannelsPage, username: string) {
+    const testButton = channelsPage.channelSettingsModal.accessRulesSettings.container.getByRole('button', {
+        name: en['admin.access_control.table_editor.test_access_rule'],
+    });
     await expect(testButton).toBeEnabled({timeout: 10000});
     await testButton.click();
 
-    const modal = page.locator('.TestResultsModal').filter({hasText: 'Access Rule Test Results'});
-    await expect(modal).toBeVisible({timeout: 10000});
+    const testResultsModal = new AccessControlTestResultsModal(channelsPage.testResultsModal);
+    await testResultsModal.toBeVisible();
 
-    await modal.getByRole('textbox', {name: /Search users/i}).fill(username);
-    await expect(modal.getByText(`@${username}`)).toBeVisible({timeout: 10000});
+    await testResultsModal.searchInput.fill(username);
+    await expect(testResultsModal.getUserByUsername(username)).toBeVisible({timeout: 10000});
 }
 
 test.describe('Channel Settings → Membership Policy', () => {
@@ -209,13 +219,13 @@ test.describe('Channel Settings → Membership Policy', () => {
         await channelsPage.toBeVisible();
 
         const excludingRuleSettings = await openAccessControlSettings(channelsPage);
-        await verifyTestAccessRuleDisabled(page);
+        await verifyTestAccessRuleDisabled(channelsPage);
         await excludingRuleSettings.close();
 
         await createChannelAccessRule(adminClient, channel, twoValueOrExpression);
 
         const includingRuleSettings = await openAccessControlSettings(channelsPage);
-        await testAccessRuleAndVerifyUser(page, alice.username);
+        await testAccessRuleAndVerifyUser(channelsPage, alice.username);
 
         await includingRuleSettings.close();
     });

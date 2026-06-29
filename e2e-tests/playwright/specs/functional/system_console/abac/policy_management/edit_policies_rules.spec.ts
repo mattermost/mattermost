@@ -150,14 +150,12 @@ test('MM-T5791 Editing policy to add attribute with auto-add enabled', async ({p
     await addPolicyButton.waitFor({state: 'visible', timeout: 10000});
 
     // Try to find the policy row first without search
-    const policyRowLocator = page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyName}).first();
+    const policyRowLocator = page.getByTestId('dataGridRow').filter({hasText: policyName}).first();
     let isPolicyVisible = await policyRowLocator.isVisible({timeout: 3000}).catch(() => false);
 
     // If not visible, use search
     if (!isPolicyVisible) {
-        const policySearchInput = page
-            .locator('.DataGrid input[type="text"], input[placeholder*="Search policies" i]')
-            .first();
+        const policySearchInput = systemConsolePage.policyList.searchInput;
         if (await policySearchInput.isVisible({timeout: 3000})) {
             await policySearchInput.fill(policyName);
         }
@@ -195,7 +193,7 @@ test('MM-T5791 Editing policy to add attribute with auto-add enabled', async ({p
     await page.waitForTimeout(1000);
 
     // The attribute dropdown opens automatically after clicking "Add attribute"
-    const attributeMenu = page.locator('[id^="attribute-selector-menu"]');
+    const attributeMenu = systemConsolePage.policyEditor.ruleBuilder.attributeSelectorMenu;
     await expect
         .poll(() => attributeMenu.isVisible(), {
             timeout: 15_000,
@@ -203,7 +201,7 @@ test('MM-T5791 Editing policy to add attribute with auto-add enabled', async ({p
         })
         .toBe(true);
 
-    const officeOption = attributeMenu.locator('li:has-text("Office")').first();
+    const officeOption = systemConsolePage.policyEditor.ruleBuilder.getAttributeMenuItemByText('Office').first();
     await expect
         .poll(() => officeOption.isVisible(), {
             timeout: 15_000,
@@ -214,17 +212,17 @@ test('MM-T5791 Editing policy to add attribute with auto-add enabled', async ({p
     await page.waitForTimeout(500);
 
     // Select operator "==" (is)
-    const operatorButton = page.locator('[data-testid="operatorSelectorMenuButton"]').last();
+    const operatorButton = page.getByTestId('operatorSelectorMenuButton').last();
     await operatorButton.waitFor({state: 'visible', timeout: 10_000});
     await operatorButton.click({force: true});
     await page.waitForTimeout(500);
 
-    const operatorOption = page.locator('[id^="operator-selector-menu"] li:has-text("is")').first();
+    const operatorOption = systemConsolePage.policyEditor.ruleBuilder.getOperatorMenuItemByText('is').first();
     await operatorOption.click({force: true});
     await page.waitForTimeout(500);
 
     // Fill value "Remote"
-    const valueInput = page.locator('.values-editor__simple-input').last();
+    const valueInput = page.getByTestId('valuesEditorInput').last();
     await valueInput.waitFor({state: 'visible', timeout: 10_000});
     await valueInput.fill('Remote');
     await page.waitForTimeout(500);
@@ -405,17 +403,15 @@ test('MM-T5792 Editing policy to remove attribute rule with auto-add enabled', a
 
     // Wait for the exact policy row to appear with retry — under parallel load the
     // grid update from the server may lag behind the page load.
-    const policyRowLocator = page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyName}).first();
+    const policyRowLocator = page.getByTestId('dataGridRow').filter({hasText: policyName}).first();
     const found = await policyRowLocator.isVisible({timeout: 3000}).catch(() => false);
 
     if (!found) {
-        const policySearchInput = page
-            .locator('.DataGrid input[type="text"], input[placeholder*="Search policies" i]')
-            .first();
+        const policySearchInput = systemConsolePage.policyList.searchInput;
         if (await policySearchInput.isVisible({timeout: 3000})) {
             await policySearchInput.fill(policyName);
         }
-        const policyRow = () => page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyName}).first();
+        const policyRow = () => page.getByTestId('dataGridRow').filter({hasText: policyName}).first();
         await expect
             .poll(() => policyRow().isVisible(), {
                 timeout: 45_000,
@@ -424,12 +420,12 @@ test('MM-T5792 Editing policy to remove attribute rule with auto-add enabled', a
             })
             .toBe(true);
     }
-    await page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyName}).first().click();
+    await page.getByTestId('dataGridRow').filter({hasText: policyName}).first().click();
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000);
 
     // Verify Auto-add is ON
-    const autoAddCheckbox = page.locator('#auto-add-header-checkbox');
+    const autoAddCheckbox = systemConsolePage.policyEditor.getAutoAddHeaderCheckbox();
     if (await autoAddCheckbox.isVisible({timeout: 3000})) {
         const isChecked = await autoAddCheckbox.isChecked();
         if (!isChecked) {
@@ -447,8 +443,7 @@ test('MM-T5792 Editing policy to remove attribute rule with auto-add enabled', a
         await page.waitForTimeout(500);
     }
 
-    const officeRowRemove = page
-        .locator('.table-editor__row')
+    const officeRowRemove = systemConsolePage.policyEditor.tableEditorRows
         .filter({hasText: 'Office'})
         .getByRole('button', {name: 'Remove row'});
     await expect(officeRowRemove).toBeVisible({timeout: 15_000});

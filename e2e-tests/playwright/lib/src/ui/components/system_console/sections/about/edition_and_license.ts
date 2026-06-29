@@ -4,16 +4,18 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
+
 /**
  * System Console -> About -> Edition and License
  */
-export default class EditionAndLicense {
-    readonly container: Locator;
+export default class EditionAndLicense extends BaseComponent {
     readonly header: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
-        this.header = container.getByText('Edition and License', {exact: true});
+        super(container);
+        this.header = container.getByText(en['admin.license.title'], {exact: true});
     }
 
     async toBeVisible() {

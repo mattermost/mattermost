@@ -122,6 +122,7 @@ export class AddUsersToRoleModal extends React.PureComponent<Props, State> {
                 key={option.id}
                 ref={isSelected ? 'selected' : option.id}
                 className={'more-modal__row clickable ' + rowSelected}
+                data-testid='addUsersToRoleRow'
                 onClick={() => onAdd(option)}
                 onMouseMove={() => onMouseMove(option)}
             >

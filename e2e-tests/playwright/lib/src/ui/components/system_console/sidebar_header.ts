@@ -4,22 +4,24 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
+
 /**
  * System Console Sidebar Header component
  */
-export default class SystemConsoleSidebarHeader {
-    readonly container: Locator;
+export default class SystemConsoleSidebarHeader extends BaseComponent {
     readonly headerInfo: Locator;
     readonly title: Locator;
     readonly userName: Locator;
     readonly menuButton: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
-        this.headerInfo = container.locator('.header__info');
-        this.title = container.getByText('System Console');
-        this.userName = container.getByText(/^@/);
-        this.menuButton = container.getByRole('button', {name: 'Menu Icon'});
+        super(container);
+        this.headerInfo = container.getByTestId('adminSidebarHeaderInfo');
+        this.title = container.getByText(en['admin.sidebarHeader.systemConsole']);
+        this.userName = container.getByTestId('adminSidebarHeaderUsername');
+        this.menuButton = container.getByRole('button', {name: en['generic_icons.menu']});
     }
 
     async toBeVisible() {

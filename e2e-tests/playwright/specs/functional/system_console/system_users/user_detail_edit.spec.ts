@@ -197,6 +197,7 @@ test('allows cancelling save confirmation dialog', {tag: '@user_management'}, as
  */
 async function navigateToUserDetail(systemConsolePage: SystemConsolePage, user: UserProfile) {
     await systemConsolePage.goto();
+    await systemConsolePage.toBeVisible();
     await systemConsolePage.sidebar.users.click();
     await systemConsolePage.users.toBeVisible();
 

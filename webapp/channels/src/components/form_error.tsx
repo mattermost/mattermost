@@ -55,7 +55,10 @@ const FormError: React.FC<Props> = ({
 
     if (type === TYPE_BACKSTAGE) {
         return (
-            <div className='pull-left has-error'>
+            <div
+                className='pull-left has-error'
+                data-testid='settingFieldError'
+            >
                 <label className='control-label'>{message}</label>
             </div>
         );

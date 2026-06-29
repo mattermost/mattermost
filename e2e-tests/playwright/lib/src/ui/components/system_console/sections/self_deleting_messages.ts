@@ -4,12 +4,14 @@
 import type {Locator, Page} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
+
 /**
  * System Console -> Site Configuration -> Posts -> Self-Deleting Messages
  */
-export default class SelfDeletingMessages {
+export default class SelfDeletingMessages extends BaseComponent {
     readonly page: Page;
-    readonly container: Locator;
 
     readonly enableToggleTrue: Locator;
     readonly enableToggleFalse: Locator;
@@ -18,7 +20,7 @@ export default class SelfDeletingMessages {
     readonly saveButton: Locator;
 
     constructor(container: Locator, page: Page) {
-        this.container = container;
+        super(container);
         this.page = page;
 
         this.enableToggleTrue = this.container.getByTestId('ServiceSettings.EnableBurnOnReadtrue');
@@ -27,7 +29,7 @@ export default class SelfDeletingMessages {
         this.maxTimeToLiveDropdown = this.container.getByTestId(
             'ServiceSettings.BurnOnReadMaximumTimeToLiveSecondsdropdown',
         );
-        this.saveButton = this.container.getByRole('button', {name: 'Save'});
+        this.saveButton = this.container.getByRole('button', {name: en['save_button.save']});
     }
 
     async toBeVisible() {
@@ -72,5 +74,17 @@ export default class SelfDeletingMessages {
 
     async isMaxTimeToLiveDropdownDisabled(): Promise<boolean> {
         return this.maxTimeToLiveDropdown.isDisabled();
+    }
+
+    get timerDisplay(): Locator {
+        return this.container.getByTestId('burnOnReadTimerChipTime');
+    }
+
+    get confirmModal(): Locator {
+        return this.container.page().getByRole('dialog');
+    }
+
+    get deleteTimerSelector(): Locator {
+        return this.durationDropdown;
     }
 }

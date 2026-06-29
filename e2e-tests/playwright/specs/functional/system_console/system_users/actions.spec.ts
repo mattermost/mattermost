@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {type PlaywrightExtended, expect, test} from '@mattermost/playwright-lib';
+import {type PlaywrightExtended, en, expect, test} from '@mattermost/playwright-lib';
 
 test('MM-T5520-1 should activate and deactivate users', async ({pw}) => {
     const {getUser, systemConsolePage} = await setupAndGetRandomUser(pw);
@@ -16,7 +16,7 @@ test('MM-T5520-1 should activate and deactivate users', async ({pw}) => {
     await systemConsolePage.users.confirmModal.confirm();
 
     // * Verify user is deactivated
-    await expect(userRow.container.getByText('Deactivated')).toBeVisible();
+    await expect(userRow.getStatusBadge('Deactivated')).toBeVisible();
     expect((await getUser()).delete_at).toBeGreaterThan(0);
 
     // # Open menu and reactivate the user
@@ -24,7 +24,7 @@ test('MM-T5520-1 should activate and deactivate users', async ({pw}) => {
     await actionMenu2.clickActivate();
 
     // * Verify user is activated
-    await expect(userRow.container.getByText('Member')).toBeVisible();
+    await expect(userRow.getRoleBadge('Member')).toBeVisible();
 });
 
 test('MM-T5520-2 should change user roles', async ({pw}) => {
@@ -37,13 +37,12 @@ test('MM-T5520-2 should change user roles', async ({pw}) => {
     await actionMenu.clickManageRoles();
 
     // # Change to System Admin and click Save
-    const systemAdmin = systemConsolePage.page.locator('input[name="systemadmin"]');
-    await systemAdmin.waitFor();
-    await systemAdmin.click();
+    await systemConsolePage.users.manageRolesModal.systemadminRole.waitFor();
+    await systemConsolePage.users.manageRolesModal.systemadminRole.click();
     await systemConsolePage.users.manageRolesModal.save();
 
     // * Verify that the role was updated
-    await expect(userRow.container.getByText('System Admin')).toBeVisible();
+    await expect(userRow.getRoleBadge('System Admin')).toBeVisible();
     expect((await getUser()).roles).toContain('system_admin');
 
     // # Open menu and click Manage roles
@@ -51,13 +50,12 @@ test('MM-T5520-2 should change user roles', async ({pw}) => {
     await actionMenu2.clickManageRoles();
 
     // # Change to Member and click Save
-    const systemMember = systemConsolePage.page.locator('input[name="systemmember"]');
-    await systemMember.waitFor();
-    await systemMember.click();
+    await systemConsolePage.users.manageRolesModal.systemmemberRole.waitFor();
+    await systemConsolePage.users.manageRolesModal.systemmemberRole.click();
     await systemConsolePage.users.manageRolesModal.save();
 
     // * Verify that the role was updated
-    await expect(userRow.container.getByText('Member')).toBeVisible();
+    await expect(userRow.getRoleBadge('Member')).toBeVisible();
     expect((await getUser()).roles).toContain('system_user');
 });
 
@@ -71,27 +69,24 @@ test('MM-T5520-3 should be able to manage teams', async ({pw}) => {
     await actionMenu.clickManageTeams();
 
     // # Click Make Team Admin
-    const team = systemConsolePage.page.locator('div.manage-teams__team');
-    const teamDropdown = team.locator('div.MenuWrapper');
-    await teamDropdown.click();
-    const makeTeamAdmin = teamDropdown.getByText('Make Team Admin');
-    await makeTeamAdmin.click();
+    const team = systemConsolePage.users.manageTeamsModal.getTeamItem(0);
+    const menuButton = team.getByRole('button', {name: en['team_members_dropdown.menuAriaLabel']});
+    await menuButton.click();
+    await team.getByText(en['admin.user_item.makeTeamAdmin']).click();
 
     // * Verify role is updated
     await expect(team.getByText('Team Admin')).toBeVisible();
 
     // # Change back to Team Member
-    await teamDropdown.click();
-    const makeTeamMember = teamDropdown.getByText('Make Team Member');
-    await makeTeamMember.click();
+    await menuButton.click();
+    await team.getByText(en['admin.user_item.makeMember']).click();
 
     // * Verify role is updated
     await expect(team.getByText('Team Member')).toBeVisible();
 
     // # Click Remove From Team
-    await teamDropdown.click();
-    const removeFromTeam = teamDropdown.getByText('Remove From Team');
-    await removeFromTeam.click();
+    await menuButton.click();
+    await team.getByText(en['team_members_dropdown.leave_team']).click();
 
     // * The team should be detached
     await team.waitFor({state: 'detached'});
@@ -144,7 +139,7 @@ test('MM-T5520-6 should revoke sessions', async ({pw}) => {
     await systemConsolePage.users.confirmModal.confirm();
 
     // * Verify no error is displayed
-    await expect(userRow.container.locator('.error')).not.toBeVisible();
+    await expect(userRow.container.getByRole('alert')).not.toBeVisible();
 });
 
 /**

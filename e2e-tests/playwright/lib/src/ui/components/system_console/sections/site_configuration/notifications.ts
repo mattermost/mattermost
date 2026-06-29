@@ -4,14 +4,15 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
+
 import {RadioSetting, TextInputSetting, DropdownSetting} from '../../base_components';
 
 /**
  * System Console -> Site Configuration -> Notifications
  */
-export default class Notifications {
-    readonly container: Locator;
-
+export default class Notifications extends BaseComponent {
     // Header
     readonly header: Locator;
 
@@ -38,56 +39,52 @@ export default class Notifications {
     readonly errorMessage: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
-        this.header = container.getByText('Notifications', {exact: true});
+        this.header = container.getByText(en['admin.environment.notifications'], {exact: true});
 
         this.showMentionConfirmDialog = new RadioSetting(
-            container.getByRole('group', {name: /Show @channel, @all, @here and group mention confirmation dialog/}),
+            container.getByTestId('TeamSettings.EnableConfirmNotificationsToChannel'),
         );
-        this.enableEmailNotifications = new RadioSetting(
-            container.getByRole('group', {name: /Enable Email Notifications/}),
-        );
-        this.enablePreviewModeBanner = new RadioSetting(
-            container.getByRole('group', {name: /Enable Preview Mode Banner/}),
-        );
-        this.enableEmailBatching = new RadioSetting(container.getByRole('group', {name: /Enable Email Batching/}));
+        this.enableEmailNotifications = new RadioSetting(container.getByTestId('EmailSettings.SendEmailNotifications'));
+        this.enablePreviewModeBanner = new RadioSetting(container.getByTestId('EmailSettings.EnablePreviewModeBanner'));
+        this.enableEmailBatching = new RadioSetting(container.getByTestId('EmailSettings.EnableEmailBatching'));
         this.enableNotificationMonitoring = new RadioSetting(
-            container.getByRole('group', {name: /Enable Notification Monitoring/}),
+            container.getByTestId('MetricsSettings.EnableNotificationMetrics'),
         );
 
         this.emailNotificationContents = new DropdownSetting(
-            container.locator('.form-group').filter({hasText: 'Email Notification Contents:'}),
-            'Email Notification Contents:',
+            container.getByTestId('EmailSettings.EmailNotificationContentsType'),
+            en['admin.environment.notifications.contents.label'],
         );
         this.pushNotificationContents = new DropdownSetting(
-            container.locator('.form-group').filter({hasText: 'Push Notification Contents:'}),
-            'Push Notification Contents:',
+            container.getByTestId('EmailSettings.PushNotificationContents'),
+            en['admin.environment.notifications.pushContents.label'],
         );
 
         this.notificationDisplayName = new TextInputSetting(
-            container.locator('.form-group').filter({hasText: 'Notification Display Name:'}),
-            'Notification Display Name:',
+            container.getByTestId('EmailSettings.FeedbackName'),
+            en['admin.environment.notifications.notificationDisplay.label'],
         );
         this.notificationFromAddress = new TextInputSetting(
-            container.locator('.form-group').filter({hasText: 'Notification From Address:'}),
-            'Notification From Address:',
+            container.getByTestId('EmailSettings.FeedbackEmail'),
+            en['admin.environment.notifications.feedbackEmail.label'],
         );
         this.supportEmailAddress = new TextInputSetting(
-            container.locator('.form-group').filter({hasText: 'Support Email Address:'}),
-            'Support Email Address:',
+            container.getByTestId('SupportSettings.SupportEmail'),
+            en['admin.environment.notifications.supportEmail.label'],
         );
         this.notificationReplyToAddress = new TextInputSetting(
-            container.locator('.form-group').filter({hasText: 'Notification Reply-To Address:'}),
-            'Notification Reply-To Address:',
+            container.getByTestId('EmailSettings.ReplyToAddress'),
+            en['admin.environment.notifications.replyToAddress.label'],
         );
         this.notificationFooterMailingAddress = new TextInputSetting(
-            container.locator('.form-group').filter({hasText: 'Notification Footer Mailing Address:'}),
-            'Notification Footer Mailing Address:',
+            container.getByTestId('EmailSettings.FeedbackOrganization'),
+            en['admin.environment.notifications.feedbackOrganization.label'],
         );
 
-        this.saveButton = container.getByRole('button', {name: 'Save'});
-        this.errorMessage = container.locator('.has-error');
+        this.saveButton = container.getByRole('button', {name: en['save_button.save']});
+        this.errorMessage = container.getByTestId('errorMessage');
     }
 
     async toBeVisible() {
@@ -97,5 +94,13 @@ export default class Notifications {
 
     async save() {
         await this.saveButton.click();
+    }
+
+    getSettingFieldError(settingContainer: Locator): Locator {
+        return settingContainer.getByTestId('settingFieldError');
+    }
+
+    getMultiSelectInput(multiSelectContainer: Locator): Locator {
+        return multiSelectContainer.locator('input');
     }
 }

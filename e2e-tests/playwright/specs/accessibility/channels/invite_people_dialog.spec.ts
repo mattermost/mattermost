@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test, components} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify accessibility support in Invite People Flow
@@ -27,7 +27,7 @@ test(
         await channelsPage.sidebarLeft.teamMenuButton.click();
         await channelsPage.teamMenu.toBeVisible();
 
-        const invitePeopleMenuItem = page.locator("#sidebarTeamMenu li:has-text('Invite people')");
+        const invitePeopleMenuItem = channelsPage.teamMenu.invitePeople;
         await invitePeopleMenuItem.click();
 
         // * Verify the Invite People modal has proper accessibility attributes
@@ -36,14 +36,15 @@ test(
         await expect(inviteModal).toHaveAttribute('aria-modal', 'true');
         await expect(inviteModal).toHaveAttribute('aria-labelledby', 'invitation_modal_title');
         await expect(inviteModal).toHaveAttribute('role', 'dialog');
+        const invitePeopleModal = new components.InvitePeopleModal(inviteModal);
 
         // * Verify the modal title is visible and contains correct text
-        const modalTitle = page.locator('#invitation_modal_title');
+        const modalTitle = invitePeopleModal.title;
         await expect(modalTitle).toBeVisible();
         await expect(modalTitle).toContainText('Invite people to');
 
         // # Get the close button and verify accessibility
-        const closeButton = inviteModal.locator('button.icon-close');
+        const closeButton = invitePeopleModal.closeButton;
         await expect(closeButton).toHaveAttribute('aria-label', 'Close');
 
         // # Focus on close button and verify tab navigation works
@@ -80,7 +81,7 @@ test(
         await channelsPage.sidebarLeft.teamMenuButton.click();
         await channelsPage.teamMenu.toBeVisible();
 
-        const invitePeopleMenuItem = page.locator("#sidebarTeamMenu li:has-text('Invite people')");
+        const invitePeopleMenuItem = channelsPage.teamMenu.invitePeople;
         await invitePeopleMenuItem.click();
 
         // * Verify the Invite People modal is visible

@@ -208,7 +208,7 @@ test(
         // # Analyze the team menu for accessibility issues
         const accessibilityScanResults = await axe
             .builder(page, {disableColorContrast: true})
-            .include(teamMenu.getContainerId())
+            .include(await teamMenu.getContainerId())
             .analyze();
 
         // * Should have no violations

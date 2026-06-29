@@ -369,7 +369,10 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
             {icon}
             <div className='suggestion-list__ellipsis suggestion-list__flex'>
                 <div className='suggestion-list__switch-channel-primary'>
-                    <span className='suggestion-list__main'>
+                    <span
+                        className='suggestion-list__main'
+                        data-testid='suggestionMain'
+                    >
                         <WithTooltip
                             title={name}
                             disabled={!isChannelNameTruncated}

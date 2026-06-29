@@ -77,14 +77,14 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
 
         // Activate policy (EXACT same pattern as MM-T5800)
         await waitForLatestSyncJob(systemConsolePage.page, undefined, jobId);
-        const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
+        const searchInput = systemConsolePage.policyList.searchInput;
         await searchInput.waitFor({state: 'visible', timeout: 5000});
         const idMatch = policyName.match(/([a-z0-9]+)$/i);
         const uniqueId = idMatch ? idMatch[1] : policyName;
         await searchInput.fill(uniqueId);
         await systemConsolePage.page.waitForTimeout(1000);
 
-        const policyRow = systemConsolePage.page.locator('.policy-name').first();
+        const policyRow = systemConsolePage.policyList.policyRows.first();
         const policyId = (await policyRow.getAttribute('id'))?.replace('customDescription-', '');
 
         if (policyId) {

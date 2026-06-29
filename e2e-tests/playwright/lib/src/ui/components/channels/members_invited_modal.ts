@@ -4,9 +4,10 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class MembersInvitedModal {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
 
+export default class MembersInvitedModal extends BaseComponent {
     readonly doneButton: Locator;
     readonly inviteMoreButton: Locator;
 
@@ -14,13 +15,13 @@ export default class MembersInvitedModal {
     readonly notSentSection: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
-        this.doneButton = container.getByRole('button', {name: 'Done'});
-        this.inviteMoreButton = container.getByRole('button', {name: 'Invite More People'});
+        this.doneButton = container.getByRole('button', {name: en['invitation_modal.confirm.done']});
+        this.inviteMoreButton = container.getByRole('button', {name: en['invitation_modal.invite.more']});
 
-        this.sentSection = container.locator('.invitation-modal-confirm--sent');
-        this.notSentSection = container.locator('.invitation-modal-confirm--not-sent');
+        this.sentSection = container.getByTestId('invitationResultsSent');
+        this.notSentSection = container.getByTestId('invitationResultsNotSent');
     }
 
     async toBeVisible() {
@@ -36,7 +37,7 @@ export default class MembersInvitedModal {
      */
     async getSentResultReason(): Promise<string> {
         await expect(this.sentSection).toBeVisible();
-        return (await this.sentSection.locator('.InviteResultRow .reason').textContent()) ?? '';
+        return (await this.sentSection.getByTestId('inviteResultReason').textContent()) ?? '';
     }
 
     /**
@@ -44,7 +45,7 @@ export default class MembersInvitedModal {
      */
     async getNotSentResultReason(): Promise<string> {
         await expect(this.notSentSection).toBeVisible();
-        return (await this.notSentSection.locator('.InviteResultRow .reason').textContent()) ?? '';
+        return (await this.notSentSection.getByTestId('inviteResultReason').textContent()) ?? '';
     }
 
     /**

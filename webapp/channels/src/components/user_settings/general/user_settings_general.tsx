@@ -1836,7 +1836,10 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         />
                     }
                 />
-                <div className='user-settings'>
+                <div
+                    className='user-settings'
+                    data-testid='userSettings'
+                >
                     <SettingDesktopHeader
                         id='generalSettingsTitle'
                         text={

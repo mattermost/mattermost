@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {SearchResultsPopout, expect, test} from '@mattermost/playwright-lib';
 
 test('MM-65630-1 Search results should show popout button that opens results in a new window', async ({pw}) => {
     const {adminClient, user, team} = await pw.initSetup();
@@ -31,13 +31,14 @@ test('MM-65630-1 Search results should show popout button that opens results in 
     await channelsPage.searchBox.searchInput.fill(uniqueText);
     await channelsPage.searchBox.searchInput.press('Enter');
 
-    await expect(page.locator('#searchContainer')).toBeVisible();
-    await expect(page.locator('#searchContainer').getByText(uniqueText)).toBeVisible();
+    await expect(channelsPage.searchBox.searchResultsContainer).toBeVisible();
+    await expect(channelsPage.searchBox.searchResultsContainer.getByText(uniqueText)).toBeVisible();
 
-    const popoutButton = page.locator('#searchContainer .PopoutButton');
+    const popoutButton = channelsPage.searchBox.popoutButton;
     await expect(popoutButton).toBeVisible();
 
     const [popoutPage] = await Promise.all([page.waitForEvent('popup'), popoutButton.click()]);
+    const searchPopout = new SearchResultsPopout(popoutPage);
 
     await popoutPage.waitForLoadState('domcontentloaded');
     const popoutUrl = popoutPage.url();
@@ -46,8 +47,8 @@ test('MM-65630-1 Search results should show popout button that opens results in 
     expect(popoutUrl).toContain(`q=${encodeURIComponent(uniqueText)}`);
     expect(popoutUrl).toContain('mode=search');
 
-    await expect(popoutPage.locator('#searchContainer')).toBeVisible({timeout: 10000});
-    await expect(popoutPage.locator('#searchContainer').getByText(uniqueText)).toBeVisible({timeout: 10000});
+    await expect(searchPopout.searchContainer).toBeVisible({timeout: 10000});
+    await expect(searchPopout.getSearchResultByText(uniqueText)).toBeVisible({timeout: 10000});
 
     await popoutPage.close();
 });
@@ -78,14 +79,17 @@ test('MM-65630-2 Recent mentions popout should open with the right results', asy
 
     await channelsPage.globalHeader.openRecentMentions();
 
-    await expect(page.locator('#searchContainer')).toBeVisible();
-    await expect(page.locator('#searchContainer').getByRole('heading', {name: 'Recent Mentions'})).toBeVisible();
-    await expect(page.locator('#searchContainer').getByText(mentionText)).toBeVisible();
+    await expect(channelsPage.searchBox.searchResultsContainer).toBeVisible();
+    await expect(
+        channelsPage.searchBox.searchResultsContainer.getByRole('heading', {name: 'Recent Mentions'}),
+    ).toBeVisible();
+    await expect(channelsPage.searchBox.searchResultsContainer.getByText(mentionText)).toBeVisible();
 
-    const popoutButton = page.locator('#searchContainer .PopoutButton');
+    const popoutButton = channelsPage.searchBox.popoutButton;
     await expect(popoutButton).toBeVisible();
 
     const [popoutPage] = await Promise.all([page.waitForEvent('popup'), popoutButton.click()]);
+    const searchPopout = new SearchResultsPopout(popoutPage);
 
     await popoutPage.waitForLoadState('domcontentloaded');
     const popoutUrl = popoutPage.url();
@@ -93,8 +97,8 @@ test('MM-65630-2 Recent mentions popout should open with the right results', asy
     expect(popoutUrl).toContain('/search');
     expect(popoutUrl).toContain('mode=mention');
 
-    await expect(popoutPage.locator('#searchContainer')).toBeVisible({timeout: 10000});
-    await expect(popoutPage.locator('#searchContainer').getByText(mentionText)).toBeVisible({timeout: 10000});
+    await expect(searchPopout.searchContainer).toBeVisible({timeout: 10000});
+    await expect(searchPopout.getSearchResultByText(mentionText)).toBeVisible({timeout: 10000});
 
     await popoutPage.close();
 });
@@ -134,14 +138,17 @@ test('MM-65630-3 Saved messages popout should open with the right results', asyn
 
     await channelsPage.globalHeader.savedMessagesButton.click();
 
-    await expect(page.locator('#searchContainer')).toBeVisible();
-    await expect(page.locator('#searchContainer').getByRole('heading', {name: 'Saved messages'})).toBeVisible();
-    await expect(page.locator('#searchContainer').getByText(savedText)).toBeVisible();
+    await expect(channelsPage.searchBox.searchResultsContainer).toBeVisible();
+    await expect(
+        channelsPage.searchBox.searchResultsContainer.getByRole('heading', {name: 'Saved messages'}),
+    ).toBeVisible();
+    await expect(channelsPage.searchBox.searchResultsContainer.getByText(savedText)).toBeVisible();
 
-    const popoutButton = page.locator('#searchContainer .PopoutButton');
+    const popoutButton = channelsPage.searchBox.popoutButton;
     await expect(popoutButton).toBeVisible();
 
     const [popoutPage] = await Promise.all([page.waitForEvent('popup'), popoutButton.click()]);
+    const searchPopout = new SearchResultsPopout(popoutPage);
 
     await popoutPage.waitForLoadState('domcontentloaded');
     const popoutUrl = popoutPage.url();
@@ -149,8 +156,8 @@ test('MM-65630-3 Saved messages popout should open with the right results', asyn
     expect(popoutUrl).toContain('/search');
     expect(popoutUrl).toContain('mode=flag');
 
-    await expect(popoutPage.locator('#searchContainer')).toBeVisible({timeout: 10000});
-    await expect(popoutPage.locator('#searchContainer').getByText(savedText)).toBeVisible({timeout: 10000});
+    await expect(searchPopout.searchContainer).toBeVisible({timeout: 10000});
+    await expect(searchPopout.getSearchResultByText(savedText)).toBeVisible({timeout: 10000});
 
     await popoutPage.close();
 });
@@ -183,19 +190,17 @@ test('MM-65630-4 Search popout should not show popout button in the popout windo
     await channelsPage.searchBox.searchInput.fill(uniqueText);
     await channelsPage.searchBox.searchInput.press('Enter');
 
-    await expect(page.locator('#searchContainer')).toBeVisible();
+    await expect(channelsPage.searchBox.searchResultsContainer).toBeVisible();
 
-    const [popoutPage] = await Promise.all([
-        page.waitForEvent('popup'),
-        page.locator('#searchContainer .PopoutButton').click(),
-    ]);
+    const [popoutPage] = await Promise.all([page.waitForEvent('popup'), channelsPage.searchBox.popoutButton.click()]);
+    const searchPopout = new SearchResultsPopout(popoutPage);
 
     await popoutPage.waitForLoadState('domcontentloaded');
-    await expect(popoutPage.locator('#searchContainer')).toBeVisible({timeout: 10000});
+    await expect(searchPopout.searchContainer).toBeVisible({timeout: 10000});
 
-    await expect(popoutPage.locator('.PopoutButton')).not.toBeVisible();
+    await expect(searchPopout.popoutButton).not.toBeVisible();
 
-    await expect(popoutPage.locator('#searchResultsCloseButton')).not.toBeVisible();
+    await expect(searchPopout.closeButton).not.toBeVisible();
 
     await popoutPage.close();
 });
@@ -222,12 +227,12 @@ test('MM-65630-5 Search popout should preserve search type (files) in the URL', 
     await channelsPage.searchBox.searchInput.fill('test');
     await channelsPage.searchBox.searchInput.press('Enter');
 
-    await expect(page.locator('#searchContainer')).toBeVisible();
+    await expect(channelsPage.searchBox.searchResultsContainer).toBeVisible();
 
-    const filesTab = page.locator('#searchContainer').getByRole('tab', {name: /Files/});
+    const filesTab = channelsPage.searchBox.searchResultsContainer.getByRole('tab', {name: /Files/});
     await filesTab.click();
 
-    const popoutButton = page.locator('#searchContainer .PopoutButton');
+    const popoutButton = channelsPage.searchBox.popoutButton;
     await expect(popoutButton).toBeVisible();
 
     const [popoutPage] = await Promise.all([page.waitForEvent('popup'), popoutButton.click()]);

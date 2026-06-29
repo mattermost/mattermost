@@ -170,6 +170,7 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
             <>
                 <div
                     id={id}
+                    data-testid={isRHS ? 'rhsPostMessageText' : 'postMessageText'}
                     className='post-message__text'
                     dir='auto'
                     onClick={this.handleFormattedTextClick}

@@ -83,6 +83,7 @@ export const SearchChannelWithPermissionsSuggestion = React.forwardRef<HTMLLIEle
                 <span
                     id={ids.name}
                     className='suggestion-list__main'
+                    data-testid='suggestionMain'
                 >
                     {displayName}
                 </span>

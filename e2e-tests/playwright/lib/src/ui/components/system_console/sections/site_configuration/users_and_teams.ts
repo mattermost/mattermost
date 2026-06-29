@@ -4,26 +4,25 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
+
 import {RadioSetting} from '../../base_components';
 
 /**
  * System Console -> Site Configuration -> Users and Teams
  */
-export default class UsersAndTeams {
-    readonly container: Locator;
-
+export default class UsersAndTeams extends BaseComponent {
     readonly header: Locator;
     readonly useAnonymousURLs: RadioSetting;
     readonly saveButton: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
-        this.header = container.getByText('Users and Teams', {exact: true});
-        this.useAnonymousURLs = new RadioSetting(
-            container.getByRole('group', {name: /Use anonymous channel and team URLs/i}),
-        );
-        this.saveButton = container.getByRole('button', {name: 'Save'});
+        this.header = container.getByText(en['admin.site.usersAndTeams'], {exact: true});
+        this.useAnonymousURLs = new RadioSetting(container.getByTestId('PrivacySettings.UseAnonymousURLs'));
+        this.saveButton = container.getByRole('button', {name: en['save_button.save']});
     }
 
     async toBeVisible() {

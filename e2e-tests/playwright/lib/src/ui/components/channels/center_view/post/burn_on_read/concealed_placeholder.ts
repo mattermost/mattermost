@@ -4,17 +4,17 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class BurnOnReadConcealedPlaceholder {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
+
+export default class BurnOnReadConcealedPlaceholder extends BaseComponent {
     readonly icon: Locator;
     readonly text: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
-        // The container itself is the button - no need for nested locator
-        this.icon = container.locator('.BurnOnReadConcealedPlaceholder__icon');
-        this.text = container.locator('.BurnOnReadConcealedPlaceholder__text');
+        this.icon = container.getByTestId('burnOnReadConcealedIcon');
+        this.text = container.getByTestId('burnOnReadConcealedText');
     }
 
     async toBeVisible() {

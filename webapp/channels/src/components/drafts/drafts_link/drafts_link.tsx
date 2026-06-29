@@ -154,12 +154,14 @@ function DraftsLink() {
 
                             {
                                 showScheduledPostCount &&
-                                <ChannelMentionBadge
-                                    unreadMentions={teamScheduledPostCount}
-                                    icon={scheduleIcon}
-                                    className={classNames('scheduledPostBadge', {persistent: scheduledPostsHasError})}
-                                    hasUrgent={scheduledPostsHasError}
-                                />
+                                <span data-testid='scheduledPostBadge'>
+                                    <ChannelMentionBadge
+                                        unreadMentions={teamScheduledPostCount}
+                                        icon={scheduleIcon}
+                                        className={classNames('scheduledPostBadge', {persistent: scheduledPostsHasError})}
+                                        hasUrgent={scheduledPostsHasError}
+                                    />
+                                </span>
                             }
                         </div>
                     </WithTooltip>

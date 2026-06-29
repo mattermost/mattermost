@@ -387,7 +387,10 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                     {/* Show content only when not loading */}
                     {!this.state.loading && this.props.user &&
                         <>
-                            <div className='settings-table'>
+                            <div
+                                className='settings-table'
+                                data-testid='settingsModalContent'
+                            >
                                 <div className='settings-links'>
                                     <SettingsSidebar
                                         tabs={this.props.isContentProductSettings ? this.getUserSettingsTabs() : this.getProfileSettingsTab()}

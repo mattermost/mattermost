@@ -95,8 +95,9 @@ test.describe('ABAC Policies - Create Policies', () => {
         // STEP 1-4: Login, navigate to ABAC, create policy with rule and channel
         // ============================================================
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        await navigateToABACPage(systemConsolePage.page);
-        await enableABAC(systemConsolePage.page);
+        const {page, policyList} = systemConsolePage;
+        await navigateToABACPage(page);
+        await enableABAC(page);
 
         // Re-apply guard: concurrent initSetup() resets ABAC between enableABAC() UI call and policy creation
         await adminClient.patchConfig({
@@ -105,7 +106,7 @@ test.describe('ABAC Policies - Create Policies', () => {
 
         // Use the working createBasicPolicy helper (same as MM-T5784)
         const policyName = `Engineering Policy ${pw.random.id()}`;
-        const jobIdMM5783 = await createBasicPolicy(systemConsolePage.page, {
+        const jobIdMM5783 = await createBasicPolicy(page, {
             name: policyName,
             attribute: 'Department',
             operator: '==',
@@ -119,13 +120,13 @@ test.describe('ABAC Policies - Create Policies', () => {
         // ============================================================
 
         // Navigate back to policy to test the access rule
-        await systemConsolePage.page.waitForTimeout(1000);
-        const policyRowForTest = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
+        await page.waitForTimeout(1000);
+        const policyRowForTest = policyList.getPolicyRowByName(policyName);
         if (await policyRowForTest.isVisible({timeout: 3000})) {
             await policyRowForTest.click();
-            await systemConsolePage.page.waitForLoadState('networkidle');
+            await page.waitForLoadState('networkidle');
 
-            const testResult = await testAccessRule(systemConsolePage.page, {
+            const testResult = await testAccessRule(page, {
                 expectedMatchingUsers: [satisfyingUserNotInChannel.username, satisfyingUserInChannel.username],
                 expectedNonMatchingUsers: [nonSatisfyingUserInChannel.username],
             });
@@ -134,11 +135,11 @@ test.describe('ABAC Policies - Create Policies', () => {
             expect(testResult.unexpectedUsersMatch).toBe(false);
 
             // Navigate back to ABAC page
-            await navigateToABACPage(systemConsolePage.page);
+            await navigateToABACPage(page);
         }
 
         // Wait for sync job to complete (triggered by createBasicPolicy)
-        await waitForLatestSyncJob(systemConsolePage.page, undefined, jobIdMM5783);
+        await waitForLatestSyncJob(page, undefined, jobIdMM5783);
 
         // ============================================================
         // STEP 5-7: Verify channel membership after sync
@@ -278,12 +279,13 @@ test.describe('ABAC Policies - Create Policies', () => {
         // STEP 1-4: Login, navigate to ABAC, create policy with auto-add TRUE
         // ============================================================
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        await navigateToABACPage(systemConsolePage.page);
-        await enableABAC(systemConsolePage.page);
+        const {page, policyList} = systemConsolePage;
+        await navigateToABACPage(page);
+        await enableABAC(page);
 
         // Use createBasicPolicy with autoSync: true
         const policyName = `Auto-Add Policy ${pw.random.id()}`;
-        const jobIdMM5784 = await createBasicPolicy(systemConsolePage.page, {
+        const jobIdMM5784 = await createBasicPolicy(page, {
             name: policyName,
             attribute: 'Department',
             operator: '==',
@@ -296,13 +298,13 @@ test.describe('ABAC Policies - Create Policies', () => {
         // STEP 3: Test Access Rule (navigate back to policy to test)
         // ============================================================
 
-        await systemConsolePage.page.waitForTimeout(1000);
-        const policyRowForTest = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
+        await page.waitForTimeout(1000);
+        const policyRowForTest = policyList.getPolicyRowByName(policyName);
         if (await policyRowForTest.isVisible({timeout: 3000})) {
             await policyRowForTest.click();
-            await systemConsolePage.page.waitForLoadState('networkidle');
+            await page.waitForLoadState('networkidle');
 
-            const testResult = await testAccessRule(systemConsolePage.page, {
+            const testResult = await testAccessRule(page, {
                 expectedMatchingUsers: [satisfyingUserNotInChannel.username, satisfyingUserInChannel.username],
                 expectedNonMatchingUsers: [nonSatisfyingUserInChannel.username],
             });
@@ -310,22 +312,22 @@ test.describe('ABAC Policies - Create Policies', () => {
             expect(testResult.expectedUsersMatch).toBe(true);
             expect(testResult.unexpectedUsersMatch).toBe(false);
 
-            await navigateToABACPage(systemConsolePage.page);
+            await navigateToABACPage(page);
         }
 
         // Wait for initial sync job to complete
-        await waitForLatestSyncJob(systemConsolePage.page, undefined, jobIdMM5784);
+        await waitForLatestSyncJob(page, undefined, jobIdMM5784);
 
         // Get policy ID and activate it for auto-add to work
-        const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
+        const {searchInput} = policyList;
         await searchInput.waitFor({state: 'visible', timeout: 5000});
 
         const idMatch = policyName.match(/([a-z0-9]+)$/i);
         const uniqueId = idMatch ? idMatch[1] : policyName;
         await searchInput.fill(uniqueId);
-        await systemConsolePage.page.waitForTimeout(1000);
+        await page.waitForTimeout(1000);
 
-        const policyRow = systemConsolePage.page.locator('.policy-name').first();
+        const policyRow = policyList.policyRows.first();
         const policyElementId = await policyRow.getAttribute('id');
         const policyId = policyElementId?.replace('customDescription-', '');
 
@@ -339,7 +341,7 @@ test.describe('ABAC Policies - Create Policies', () => {
 
         // Run sync job with active policy; poll by policyId to avoid picking up a
         // concurrent shard's job completing first
-        await runSyncJob(systemConsolePage.page);
+        await runSyncJob(page);
         await waitForPolicySyncJob(adminClient, policyId);
 
         // ============================================================
@@ -375,7 +377,7 @@ test.describe('ABAC Policies - Create Policies', () => {
         const privateChannel = await createPrivateChannelForABAC(adminClient, team.id);
 
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        const page = systemConsolePage.page;
+        const {page, policyEditor} = systemConsolePage;
 
         await navigateToABACPage(page);
         await enableABAC(page);
@@ -416,7 +418,7 @@ test.describe('ABAC Policies - Create Policies', () => {
         });
 
         // Verify error message is shown
-        const errorMessage = page.locator('.EditPolicy__error');
+        const errorMessage = policyEditor.errorMessage;
         await expect(errorMessage).toBeVisible({timeout: 5000});
 
         const errorText = await errorMessage.textContent();

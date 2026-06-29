@@ -4,6 +4,8 @@
 import type {Page} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 
+import {PolicyEditor, PolicyList} from '@mattermost/playwright-lib';
+
 import {deleteFieldFromDB} from './masking_db_setup';
 
 export async function enableMaskingFlag(client: Client4): Promise<void> {
@@ -108,30 +110,24 @@ export async function createPolicyWithCEL(page: Page, name: string, celExpressio
     await page.goto('/admin_console/system_attributes/membership_policies');
     await page.waitForLoadState('networkidle');
 
-    const addPolicyBtn = page.getByRole('button', {name: 'Add policy'});
-    await addPolicyBtn.waitFor({state: 'visible', timeout: 15000});
-    await addPolicyBtn.click();
+    const policyList = new PolicyList(page.locator('#adminConsoleWrapper'));
+    await policyList.createPolicyButton.waitFor({state: 'visible', timeout: 15000});
+    await policyList.createPolicyButton.click();
     await page.waitForLoadState('networkidle');
 
-    const nameInput = page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName');
-    await nameInput.waitFor({state: 'visible', timeout: 10000});
-    await nameInput.fill(name);
+    const policyEditor = new PolicyEditor(page.locator('#adminConsoleWrapper'));
 
-    const advancedBtn = page.getByRole('button', {name: /advanced/i});
-    await advancedBtn.waitFor({state: 'visible', timeout: 5000});
-    await advancedBtn.click();
+    await policyEditor.policyNameInput.waitFor({state: 'visible', timeout: 10000});
+    await policyEditor.policyNameInput.fill(name);
+
+    await policyEditor.advancedModeButton.waitFor({state: 'visible', timeout: 5000});
+    await policyEditor.advancedModeButton.click();
     await page.waitForTimeout(1000);
 
-    const editorLines = page.locator('.monaco-editor .view-lines').first();
-    await editorLines.waitFor({state: 'visible', timeout: 5000});
-    await editorLines.click({force: true});
-    await page.waitForTimeout(300);
-    const isMac = process.platform === 'darwin';
-    await page.keyboard.press(isMac ? 'Meta+a' : 'Control+a');
-    await page.keyboard.type(celExpression, {delay: 10});
+    await policyEditor.enterCelExpression(celExpression);
     await page.waitForTimeout(1000);
 
-    const saveBtn = page.getByRole('button', {name: 'Save'});
+    const saveBtn = policyEditor.saveButton;
     await saveBtn.waitFor({state: 'visible', timeout: 5000});
     const savePromise = page.waitForResponse(
         (resp) =>
@@ -161,8 +157,9 @@ export async function openExistingPolicy(page: Page, policyName: string): Promis
     await page.goto('/admin_console/system_attributes/membership_policies');
     await page.waitForLoadState('networkidle');
 
-    const searchInput = page.locator('input[placeholder*="Search" i]').first();
-    await searchInput.waitFor({state: 'visible', timeout: 10000});
+    const policyList = new PolicyList(page.locator('#adminConsoleWrapper'));
+
+    await policyList.searchInput.waitFor({state: 'visible', timeout: 10000});
 
     const searchResponse = page.waitForResponse(
         (resp) =>
@@ -171,13 +168,13 @@ export async function openExistingPolicy(page: Page, policyName: string): Promis
             resp.ok(),
         {timeout: 15000},
     );
-    await searchInput.fill(policyName);
+    await policyList.searchInput.fill(policyName);
     await searchResponse.catch(() => {
         // debounced search may settle from cache
     });
     await page.waitForLoadState('networkidle');
 
-    const policyRow = page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyName}).first();
+    const policyRow = policyList.getPolicyRowByName(policyName);
     await policyRow.waitFor({state: 'visible', timeout: 20000});
     await policyRow.click();
     await page.waitForLoadState('networkidle');

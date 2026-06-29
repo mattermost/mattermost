@@ -19,6 +19,7 @@ const AdminHeader = (props: Props) => {
                     {'with-back': props.withBackButton},
                 )
             }
+            data-testid='adminConsoleHeader'
         >
             {props.children}
         </div>

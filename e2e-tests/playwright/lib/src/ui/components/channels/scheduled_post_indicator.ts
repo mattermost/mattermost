@@ -4,16 +4,16 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class ScheduledPostIndicator {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
 
+export default class ScheduledPostIndicator extends BaseComponent {
     readonly icon;
     readonly messageText;
     readonly seeAllLink;
     readonly scheduledMessageLink;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
         this.icon = container.getByTestId('scheduledPostIcon');
         this.messageText = container.locator('span').first();

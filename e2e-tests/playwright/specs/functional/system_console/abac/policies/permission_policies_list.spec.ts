@@ -57,8 +57,8 @@ test.describe('Permission Policies - List Page', () => {
         await enableABAC(systemConsolePage.page);
         await navigateToPermissionPoliciesPage(systemConsolePage.page);
 
-        await expect(systemConsolePage.page.getByRole('button', {name: 'Add policy'})).toBeVisible();
-        await expect(systemConsolePage.page.getByPlaceholder('Search')).toBeVisible();
+        await expect(systemConsolePage.policyList.createPolicyButton).toBeVisible();
+        await expect(systemConsolePage.policyList.searchInput).toBeVisible();
     });
 
     test('MM-T5803 Permission Policies list page subtitle describes file permission scope', async ({pw}) => {
@@ -99,8 +99,8 @@ test.describe('Permission Policies - Manage Existing Policies', () => {
         await expect(systemConsolePage.page.getByText(policyName)).toBeVisible();
 
         // # Open the row's action menu and delete
-        const policyRow = systemConsolePage.page.locator('.DataGrid_row').filter({hasText: policyName});
-        await policyRow.locator('button[id*="policy-menu"], button[aria-label*="menu" i], button').last().click();
+        const policyRow = systemConsolePage.policyList.getPolicyRowByName(policyName);
+        await systemConsolePage.policyList.getPolicyMenuButton(policyRow).click();
 
         const deleteOption = systemConsolePage.page.getByRole('menuitem', {name: /delete/i});
         await deleteOption.click();
@@ -133,7 +133,7 @@ test.describe('Permission Policies - Manage Existing Policies', () => {
             });
 
             // # Search by the exact name
-            await systemConsolePage.page.getByPlaceholder('Search').fill(policyName);
+            await systemConsolePage.policyList.searchInput.fill(policyName);
             await systemConsolePage.page.waitForLoadState('networkidle');
 
             // * Only the matching policy is visible

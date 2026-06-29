@@ -40,14 +40,15 @@ test('MM-T5786 Test "is not" (!=) operator in Simple mode', async ({pw}) => {
     await adminClient.addToTeam(team.id, salesUser.id);
 
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-    await navigateToABACPage(systemConsolePage.page);
+    const {page} = systemConsolePage;
+    await navigateToABACPage(page);
 
     const channel = await createPrivateChannelForABAC(adminClient, team.id);
     await adminClient.addToChannel(salesUser.id, channel.id);
 
     await ensureUserAttributes(adminClient);
     const policyName = `IsNot Policy ${await pw.random.id()}`;
-    await createAdvancedPolicy(systemConsolePage.page, {
+    await createAdvancedPolicy(page, {
         name: policyName,
         celExpression: 'user.attributes.Department != "Sales"',
         autoSync: true,
@@ -55,20 +56,23 @@ test('MM-T5786 Test "is not" (!=) operator in Simple mode', async ({pw}) => {
     });
     const policyId = (await getPolicyIdByName(adminClient, policyName))!;
 
-    await systemConsolePage.page.waitForTimeout(1000);
-    const policyRowForTest = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
+    await page.waitForTimeout(1000);
+    await systemConsolePage.policyList.searchInput.waitFor({state: 'visible', timeout: 5000});
+    await systemConsolePage.policyList.searchPolicy(policyName);
+    await page.waitForTimeout(500);
+    const policyRowForTest = systemConsolePage.policyList.getPolicyRowByName(policyName);
     if (await policyRowForTest.isVisible({timeout: 3000})) {
         await policyRowForTest.click();
-        await systemConsolePage.page.waitForLoadState('networkidle');
-        await testAccessRule(systemConsolePage.page, {
+        await page.waitForLoadState('networkidle');
+        await testAccessRule(page, {
             expectedMatchingUsers: [engineerUser.username],
             expectedNonMatchingUsers: [salesUser.username],
         });
-        await navigateToABACPage(systemConsolePage.page);
+        await navigateToABACPage(page);
     }
 
     await activatePolicy(adminClient, policyId);
-    await runSyncJob(systemConsolePage.page);
+    await runSyncJob(page);
     await waitForPolicySyncJob(adminClient, policyId);
 
     const engInChannel = await verifyUserInChannel(adminClient, engineerUser.id, channel.id);
@@ -101,14 +105,15 @@ test('MM-T5786 Test "in" operator in Simple mode', async ({pw}) => {
     await adminClient.addToTeam(team.id, salesUser.id);
 
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-    await navigateToABACPage(systemConsolePage.page);
+    const {page} = systemConsolePage;
+    await navigateToABACPage(page);
 
     const channel = await createPrivateChannelForABAC(adminClient, team.id);
     await adminClient.addToChannel(salesUser.id, channel.id);
 
     await ensureUserAttributes(adminClient);
     const policyName = `In Policy ${await pw.random.id()}`;
-    await createAdvancedPolicy(systemConsolePage.page, {
+    await createAdvancedPolicy(page, {
         name: policyName,
         celExpression: 'user.attributes.Department in ["Engineering", "DevOps"]',
         autoSync: true,
@@ -116,20 +121,23 @@ test('MM-T5786 Test "in" operator in Simple mode', async ({pw}) => {
     });
     const policyId = (await getPolicyIdByName(adminClient, policyName))!;
 
-    await systemConsolePage.page.waitForTimeout(1000);
-    const policyRowForTest = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
+    await page.waitForTimeout(1000);
+    await systemConsolePage.policyList.searchInput.waitFor({state: 'visible', timeout: 5000});
+    await systemConsolePage.policyList.searchPolicy(policyName);
+    await page.waitForTimeout(500);
+    const policyRowForTest = systemConsolePage.policyList.getPolicyRowByName(policyName);
     if (await policyRowForTest.isVisible({timeout: 3000})) {
         await policyRowForTest.click();
-        await systemConsolePage.page.waitForLoadState('networkidle');
-        await testAccessRule(systemConsolePage.page, {
+        await page.waitForLoadState('networkidle');
+        await testAccessRule(page, {
             expectedMatchingUsers: [engineerUser.username],
             expectedNonMatchingUsers: [salesUser.username],
         });
-        await navigateToABACPage(systemConsolePage.page);
+        await navigateToABACPage(page);
     }
 
     await activatePolicy(adminClient, policyId);
-    await runSyncJob(systemConsolePage.page);
+    await runSyncJob(page);
     await waitForPolicySyncJob(adminClient, policyId);
 
     const engInChannel = await verifyUserInChannel(adminClient, engineerUser.id, channel.id);
@@ -162,14 +170,15 @@ test('MM-T5786 Test "starts with" operator in Simple mode', async ({pw}) => {
     await adminClient.addToTeam(team.id, salesUser.id);
 
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-    await navigateToABACPage(systemConsolePage.page);
+    const {page} = systemConsolePage;
+    await navigateToABACPage(page);
 
     const channel = await createPrivateChannelForABAC(adminClient, team.id);
     await adminClient.addToChannel(salesUser.id, channel.id);
 
     await ensureUserAttributes(adminClient);
     const policyName = `StartsWith Policy ${await pw.random.id()}`;
-    await createAdvancedPolicy(systemConsolePage.page, {
+    await createAdvancedPolicy(page, {
         name: policyName,
         celExpression: 'user.attributes.Department.startsWith("Eng")',
         autoSync: true,
@@ -177,20 +186,23 @@ test('MM-T5786 Test "starts with" operator in Simple mode', async ({pw}) => {
     });
     const policyId = (await getPolicyIdByName(adminClient, policyName))!;
 
-    await systemConsolePage.page.waitForTimeout(1000);
-    const policyRowForTest = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
+    await page.waitForTimeout(1000);
+    await systemConsolePage.policyList.searchInput.waitFor({state: 'visible', timeout: 5000});
+    await systemConsolePage.policyList.searchPolicy(policyName);
+    await page.waitForTimeout(500);
+    const policyRowForTest = systemConsolePage.policyList.getPolicyRowByName(policyName);
     if (await policyRowForTest.isVisible({timeout: 3000})) {
         await policyRowForTest.click();
-        await systemConsolePage.page.waitForLoadState('networkidle');
-        await testAccessRule(systemConsolePage.page, {
+        await page.waitForLoadState('networkidle');
+        await testAccessRule(page, {
             expectedMatchingUsers: [engineerUser.username],
             expectedNonMatchingUsers: [salesUser.username],
         });
-        await navigateToABACPage(systemConsolePage.page);
+        await navigateToABACPage(page);
     }
 
     await activatePolicy(adminClient, policyId);
-    await runSyncJob(systemConsolePage.page);
+    await runSyncJob(page);
     await waitForPolicySyncJob(adminClient, policyId);
 
     const engInChannel = await verifyUserInChannel(adminClient, engineerUser.id, channel.id);

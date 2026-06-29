@@ -65,11 +65,11 @@ test.describe('Message attachment special character decoding', () => {
             await lastPost.toBeVisible();
 
             // * Verify the author name has decoded entities: &#40; → (, &#41; → ), &amp; → &
-            const authorName = lastPost.container.locator('.attachment__author-name');
+            const authorName = lastPost.attachmentAuthorName;
             await expect(authorName).toHaveText('Bot (v2.1) & Integrations');
 
             // * Verify the title has decoded entities
-            const titleLink = lastPost.container.locator('.attachment__title-link');
+            const titleLink = lastPost.attachmentTitleLink;
             await expect(titleLink).toHaveText('Future Plan for Plugins (3rd party & core)');
         },
     );
@@ -110,7 +110,7 @@ test.describe('Message attachment special character decoding', () => {
             await lastPost.toBeVisible();
 
             // * Verify the numeric entities are decoded in the title link
-            const titleLink = lastPost.container.locator('.attachment__title-link');
+            const titleLink = lastPost.attachmentTitleLink;
             await expect(titleLink).toHaveText('"All Hands" Meeting [Q1] - 9:00');
         },
     );
@@ -149,7 +149,7 @@ test.describe('Message attachment special character decoding', () => {
             await lastPost.toBeVisible();
 
             // * Verify named entities are decoded in the author name
-            const authorName = lastPost.container.locator('.attachment__author-name');
+            const authorName = lastPost.attachmentAuthorName;
             await expect(authorName).toHaveText('CI <Build> "System" \'Owner\'');
         },
     );
@@ -191,10 +191,10 @@ test.describe('Message attachment special character decoding', () => {
             await lastPost.toBeVisible();
 
             // * Should show &lt;safe&gt; literally, not <safe>
-            const authorName = lastPost.container.locator('.attachment__author-name');
+            const authorName = lastPost.attachmentAuthorName;
             await expect(authorName).toHaveText('&lt;safe&gt;');
 
-            const titleLink = lastPost.container.locator('.attachment__title-link');
+            const titleLink = lastPost.attachmentTitleLink;
             await expect(titleLink).toHaveText('&lt;safe&gt;');
         },
     );
@@ -235,10 +235,10 @@ test.describe('Message attachment special character decoding', () => {
             await lastPost.toBeVisible();
 
             // * Verify text passes through unchanged
-            const authorName = lastPost.container.locator('.attachment__author-name');
+            const authorName = lastPost.attachmentAuthorName;
             await expect(authorName).toHaveText('Simple Bot Name');
 
-            const titleLink = lastPost.container.locator('.attachment__title-link');
+            const titleLink = lastPost.attachmentTitleLink;
             await expect(titleLink).toHaveText('A normal title with no special chars');
         },
     );
@@ -280,10 +280,10 @@ test.describe('Message attachment special character decoding', () => {
             await lastPost.toBeVisible();
 
             // * Verify realistic plugin content is properly decoded
-            const authorName = lastPost.container.locator('.attachment__author-name');
+            const authorName = lastPost.attachmentAuthorName;
             await expect(authorName).toHaveText('Google Calendar | via Plugin (v1.0)');
 
-            const titleLink = lastPost.container.locator('.attachment__title-link');
+            const titleLink = lastPost.attachmentTitleLink;
             await expect(titleLink).toHaveText('Team Standup (Daily) - 9:00 AM');
         },
     );

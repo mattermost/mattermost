@@ -1,8 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {fileURLToPath} from 'node:url';
+import path from 'node:path';
+
+import alias from '@rollup/plugin-alias';
 import typescript from '@rollup/plugin-typescript';
 import copy from 'rollup-plugin-copy';
+
+const dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default {
     input: 'src/index.ts',
@@ -16,6 +22,9 @@ export default {
         },
     ],
     plugins: [
+        alias({
+            entries: [{find: '@', replacement: path.resolve(dirname, 'src')}],
+        }),
         typescript(),
         copy({
             targets: [{src: 'src/asset/**/*', dest: 'dist/asset'}], // Copy assets to dist/

@@ -113,9 +113,13 @@ const RecapChannelCard = ({channel}: Props) => {
     }
 
     return (
-        <div className={`recap-channel-card${isCollapsed ? ' collapsed' : ''}`}>
+        <div
+            className={`recap-channel-card${isCollapsed ? ' collapsed' : ''}`}
+            data-testid='recapChannelCard'
+        >
             <div
                 className='recap-channel-header'
+                data-testid='recapChannelCollapseButton'
                 role='button'
                 tabIndex={0}
                 onClick={(e) => e.target === e.currentTarget && setIsCollapsed(!isCollapsed)}
@@ -124,6 +128,7 @@ const RecapChannelCard = ({channel}: Props) => {
             >
                 <button
                     className='recap-channel-name-tag'
+                    data-testid='recapChannelNameTag'
                     onClick={handleChannelClick}
                     disabled={!channelObject}
                 >
@@ -131,6 +136,7 @@ const RecapChannelCard = ({channel}: Props) => {
                 </button>
                 <div
                     className='recap-channel-header-actions'
+                    data-testid='recapChannelHeaderActions'
                     onClick={(e) => e.stopPropagation()}
                 >
                     <RecapMenu
@@ -142,6 +148,7 @@ const RecapChannelCard = ({channel}: Props) => {
                             },
                             {channelName: channel.channel_name},
                         )}
+                        dataTestId='recapChannelMenuButton'
                     />
                 </div>
             </div>

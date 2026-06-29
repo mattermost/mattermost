@@ -24,14 +24,12 @@ test.describe('Permission Policies - Create Policy', () => {
         await enableABAC(systemConsolePage.page);
         await navigateToPermissionPoliciesPage(systemConsolePage.page);
 
-        await systemConsolePage.page.getByRole('button', {name: 'Add policy'}).click();
+        await systemConsolePage.policyList.createPolicyButton.click();
         await systemConsolePage.page.waitForLoadState('networkidle');
 
         // * Detail page heading and name input visible
-        await expect(
-            systemConsolePage.page.getByText('Attribute Based Permission Policy', {exact: true}),
-        ).toBeVisible();
-        await expect(systemConsolePage.page.getByPlaceholder('Add a unique policy name')).toBeVisible();
+        await expect(systemConsolePage.policyEditor.pageHeading).toBeVisible();
+        await expect(systemConsolePage.policyEditor.getUniqueNamePlaceholder()).toBeVisible();
     });
 
     test('MM-T5805 create policy form shows evaluation order info banner', async ({pw}) => {
@@ -42,7 +40,7 @@ test.describe('Permission Policies - Create Policy', () => {
 
         await enableABAC(systemConsolePage.page);
         await navigateToPermissionPoliciesPage(systemConsolePage.page);
-        await systemConsolePage.page.getByRole('button', {name: 'Add policy'}).click();
+        await systemConsolePage.policyList.createPolicyButton.click();
         await systemConsolePage.page.waitForLoadState('networkidle');
 
         // * Banner explains that permission policies override system permission schemes
@@ -61,7 +59,7 @@ test.describe('Permission Policies - Create Policy', () => {
 
         await enableABAC(systemConsolePage.page);
         await navigateToPermissionPoliciesPage(systemConsolePage.page);
-        await systemConsolePage.page.getByRole('button', {name: 'Add policy'}).click();
+        await systemConsolePage.policyList.createPolicyButton.click();
         await systemConsolePage.page.waitForLoadState('networkidle');
 
         await expect(systemConsolePage.page.getByText('Who this policy applies to')).toBeVisible();
@@ -77,7 +75,7 @@ test.describe('Permission Policies - Create Policy', () => {
         //   Use an exact-text matcher so a regression to the longer
         //   "Members and system administrators" label fails the test
         //   instead of silently passing the substring check.
-        const roleButton = systemConsolePage.page.locator('#pp-role-selector-btn');
+        const roleButton = systemConsolePage.policyEditor.getRoleSelectorButton();
         await expect(roleButton).toBeVisible();
         await expect(roleButton).toHaveText('Members');
     });
@@ -90,15 +88,15 @@ test.describe('Permission Policies - Create Policy', () => {
 
         await enableABAC(systemConsolePage.page);
         await navigateToPermissionPoliciesPage(systemConsolePage.page);
-        await systemConsolePage.page.getByRole('button', {name: 'Add policy'}).click();
+        await systemConsolePage.policyList.createPolicyButton.click();
         await systemConsolePage.page.waitForLoadState('networkidle');
 
         // # Open the role dropdown and select System administrators
-        await systemConsolePage.page.locator('#pp-role-selector-btn').click();
-        await systemConsolePage.page.locator('#pp-role-option-system_admin').click();
+        await systemConsolePage.policyEditor.getRoleSelectorButton().click();
+        await systemConsolePage.policyEditor.getRoleOption('system_admin').click();
 
         // * Dropdown button now shows the selected role
-        await expect(systemConsolePage.page.locator('#pp-role-selector-btn')).toContainText('System administrators');
+        await expect(systemConsolePage.policyEditor.getRoleSelectorButton()).toContainText('System administrators');
     });
 
     test('MM-T5808 admin can toggle between Simple and Advanced CEL editor modes', async ({pw}) => {
@@ -109,10 +107,10 @@ test.describe('Permission Policies - Create Policy', () => {
 
         await enableABAC(systemConsolePage.page);
         await navigateToPermissionPoliciesPage(systemConsolePage.page);
-        await systemConsolePage.page.getByRole('button', {name: 'Add policy'}).click();
+        await systemConsolePage.policyList.createPolicyButton.click();
         await systemConsolePage.page.waitForLoadState('networkidle');
 
-        const switchToAdvanced = systemConsolePage.page.getByRole('button', {name: 'Switch to Advanced Mode'});
+        const switchToAdvanced = systemConsolePage.policyEditor.advancedModeButton;
         await expect(switchToAdvanced).toBeVisible();
         await switchToAdvanced.click();
 
@@ -132,15 +130,15 @@ test.describe('Permission Policies - Create Policy', () => {
 
         await enableABAC(systemConsolePage.page);
         await navigateToPermissionPoliciesPage(systemConsolePage.page);
-        await systemConsolePage.page.getByRole('button', {name: 'Add policy'}).click();
+        await systemConsolePage.policyList.createPolicyButton.click();
         await systemConsolePage.page.waitForLoadState('networkidle');
 
         // # Type then clear the name to mark the form dirty, enabling the Save button
-        const nameInput = systemConsolePage.page.getByPlaceholder('Add a unique policy name');
+        const nameInput = systemConsolePage.policyEditor.getUniqueNamePlaceholder();
         await nameInput.fill('x');
         await nameInput.clear();
 
-        await systemConsolePage.page.getByRole('button', {name: 'Save'}).last().click();
+        await systemConsolePage.policyEditor.saveButton.click();
 
         await expect(systemConsolePage.page.getByText('Please add a name to the policy')).toBeVisible();
     });
@@ -153,13 +151,11 @@ test.describe('Permission Policies - Create Policy', () => {
 
         await enableABAC(systemConsolePage.page);
         await navigateToPermissionPoliciesPage(systemConsolePage.page);
-        await systemConsolePage.page.getByRole('button', {name: 'Add policy'}).click();
+        await systemConsolePage.policyList.createPolicyButton.click();
         await systemConsolePage.page.waitForLoadState('networkidle');
 
-        await systemConsolePage.page
-            .getByPlaceholder('Add a unique policy name')
-            .fill(`PP Expr Validate ${pw.random.id()}`);
-        await systemConsolePage.page.getByRole('button', {name: 'Save'}).last().click();
+        await systemConsolePage.policyEditor.getUniqueNamePlaceholder().fill(`PP Expr Validate ${pw.random.id()}`);
+        await systemConsolePage.policyEditor.saveButton.click();
 
         await expect(systemConsolePage.page.getByText('Please add an expression to the policy')).toBeVisible();
     });
@@ -173,18 +169,16 @@ test.describe('Permission Policies - Create Policy', () => {
 
         await enableABAC(systemConsolePage.page);
         await navigateToPermissionPoliciesPage(systemConsolePage.page);
-        await systemConsolePage.page.getByRole('button', {name: 'Add policy'}).click();
+        await systemConsolePage.policyList.createPolicyButton.click();
         await systemConsolePage.page.waitForLoadState('networkidle');
 
-        await systemConsolePage.page
-            .getByPlaceholder('Add a unique policy name')
-            .fill(`PP Perm Validate ${pw.random.id()}`);
+        await systemConsolePage.policyEditor.getUniqueNamePlaceholder().fill(`PP Perm Validate ${pw.random.id()}`);
 
         // # Enter a valid CEL expression but add no permissions
-        await systemConsolePage.page.getByRole('button', {name: 'Switch to Advanced Mode'}).click();
-        const monacoContainer = systemConsolePage.page.locator('.monaco-editor').first();
+        await systemConsolePage.policyEditor.advancedModeButton.click();
+        const monacoContainer = systemConsolePage.policyEditor.monacoEditorDiv;
         await monacoContainer.waitFor({state: 'visible', timeout: 5000});
-        const editorLines = systemConsolePage.page.locator('.monaco-editor .view-lines').first();
+        const editorLines = systemConsolePage.policyEditor.monacoEditorLines;
         await editorLines.click({force: true});
         await systemConsolePage.page.waitForTimeout(300);
         const isMac = process.platform === 'darwin';
@@ -192,7 +186,7 @@ test.describe('Permission Policies - Create Policy', () => {
         await systemConsolePage.page.waitForTimeout(100);
         await systemConsolePage.page.keyboard.type('user.attributes.Department == "Engineering"', {delay: 10});
 
-        await systemConsolePage.page.getByRole('button', {name: 'Save'}).last().click();
+        await systemConsolePage.policyEditor.saveButton.click();
 
         await expect(systemConsolePage.page.getByText('Please select at least one permission')).toBeVisible();
     });

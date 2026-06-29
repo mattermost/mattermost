@@ -54,7 +54,7 @@ test.fixme('MM-T5522 Should begin export of data when export button is pressed',
 
     // * Verify that we have started the export and that the second one is running second
     const lastPost = await channelsPage.getLastPost();
-    await lastPost.toContain('export of user data for the last 30 days');
+    await lastPost.toContainText('export of user data for the last 30 days');
 
     // * Wait until the first export finishes
     await channelsPage.centerView.waitUntilLastPostContains('contains user data for all time', pw.duration.half_min);

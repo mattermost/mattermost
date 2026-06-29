@@ -58,20 +58,20 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', {tag: ['@a
             await openExistingPolicy(page, policyName);
 
             // Alpha visible
-            await expect(page.locator('.select__multi-value').filter({hasText: 'Alpha'})).toBeVisible();
+            await expect(systemConsolePage.policyEditor.getMultiValueChip('Alpha')).toBeVisible();
 
             // No masked chip — caller holds all values
-            await expect(page.locator('.select__multi-value--masked')).not.toBeVisible();
+            await expect(systemConsolePage.policyEditor.maskedChips).not.toBeVisible();
 
             // No warning banner
-            await expect(page.locator('text="This policy contains restricted values"')).not.toBeVisible();
+            await expect(systemConsolePage.policyEditor.restrictedValuesBanner).not.toBeVisible();
 
             // Attribute selector is NOT locked
-            const attributeSelector = page.locator('[data-testid="attributeSelectorMenuButton"]').first();
+            const attributeSelector = systemConsolePage.policyEditor.ruleBuilder.getAttributeSelectorButton(0);
             await expect(attributeSelector).not.toHaveClass(/disabled/);
 
             // Test access rule button should be enabled
-            const testRulesBtn = page.locator('button').filter({hasText: 'Test access rule'});
+            const testRulesBtn = systemConsolePage.policyEditor.testAccessRuleButton;
             await expect(testRulesBtn).toBeVisible();
             await expect(testRulesBtn).toBeEnabled();
 
@@ -80,7 +80,7 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', {tag: ['@a
             await expect(advancedBtn).toBeVisible();
             await advancedBtn.click();
             await page.waitForTimeout(1000);
-            const monacoEditor = page.locator('.monaco-editor').first();
+            const monacoEditor = systemConsolePage.policyEditor.monacoEditorDiv;
             await expect(monacoEditor).toBeVisible();
             const ariaReadOnly = await monacoEditor.getAttribute('aria-readonly');
             expect(ariaReadOnly).not.toBe('true');
@@ -129,8 +129,8 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', {tag: ['@a
             await page.waitForLoadState('networkidle');
 
             // A fresh editor must show no masked chip and no warning banner
-            await expect(page.locator('.select__multi-value--masked')).not.toBeVisible();
-            await expect(page.locator('text="This policy contains restricted values"')).not.toBeVisible();
+            await expect(systemConsolePage.policyEditor.maskedChips).not.toBeVisible();
+            await expect(systemConsolePage.policyEditor.restrictedValuesBanner).not.toBeVisible();
 
             // Add a rule row
             const addAttributeBtn = page.getByRole('button', {name: /add attribute/i});
@@ -140,10 +140,10 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', {tag: ['@a
             await page.waitForTimeout(500);
 
             // Still no masked chip after adding a blank row
-            await expect(page.locator('.select__multi-value--masked')).not.toBeVisible();
+            await expect(systemConsolePage.policyEditor.maskedChips).not.toBeVisible();
 
             // Attribute selector is NOT locked on a new row
-            const attributeSelector = page.locator('[data-testid="attributeSelectorMenuButton"]').first();
+            const attributeSelector = systemConsolePage.policyEditor.ruleBuilder.getAttributeSelectorButton(0);
             await expect(attributeSelector).not.toHaveClass(/disabled/);
         } finally {
             for (const id of fieldIds) {
@@ -194,15 +194,17 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', {tag: ['@a
             await openExistingPolicy(page, policyName);
 
             // Masked state visible
-            await expect(page.locator('.select__multi-value--masked')).toBeVisible();
+            await expect(systemConsolePage.policyEditor.maskedChips).toBeVisible();
 
             // Value selector on the masked row must be disabled
-            const valueSelector = page.locator('[data-testid="valueSelectorMenuButton"]').first();
+            const valueSelector = systemConsolePage.policyEditor.ruleBuilder.getValueSelectorButton(0);
             await expect(valueSelector).toBeVisible({timeout: 3000});
             await expect(valueSelector).toBeDisabled();
 
             // Attribute selector locked
-            await expect(page.locator('[data-testid="attributeSelectorMenuButton"]').first()).toHaveClass(/disabled/);
+            await expect(systemConsolePage.policyEditor.ruleBuilder.getAttributeSelectorButton(0)).toHaveClass(
+                /disabled/,
+            );
         } finally {
             for (const id of policyIds) {
                 try {
@@ -254,13 +256,15 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', {tag: ['@a
             await openExistingPolicy(page, policyName);
 
             // "Alpha" chip visible (held); "Bravo" and "Charlie" are masked
-            await expect(page.locator('.select__multi-value').filter({hasText: 'Alpha'})).toBeVisible();
-            await expect(page.locator('.select__multi-value').filter({hasText: 'Bravo'})).not.toBeVisible();
-            await expect(page.locator('.select__multi-value').filter({hasText: 'Charlie'})).not.toBeVisible();
-            await expect(page.locator('.select__multi-value--masked')).toBeVisible();
+            await expect(systemConsolePage.policyEditor.getMultiValueChip('Alpha')).toBeVisible();
+            await expect(systemConsolePage.policyEditor.getMultiValueChip('Bravo')).not.toBeVisible();
+            await expect(systemConsolePage.policyEditor.getMultiValueChip('Charlie')).not.toBeVisible();
+            await expect(systemConsolePage.policyEditor.maskedChips).toBeVisible();
 
             // Attribute selector on the masked row is locked
-            await expect(page.locator('[data-testid="attributeSelectorMenuButton"]').first()).toHaveClass(/disabled/);
+            await expect(systemConsolePage.policyEditor.ruleBuilder.getAttributeSelectorButton(0)).toHaveClass(
+                /disabled/,
+            );
         } finally {
             for (const id of policyIds) {
                 try {
@@ -318,7 +322,7 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', {tag: ['@a
 
             // The row should still show the masked state: either masked chip or read-only input
             const maskedState = page.locator(
-                '.select__multi-value--masked, input[disabled], .values-editor__simple-input[disabled]',
+                '[class*="select__multi-value--masked"], input[disabled], [class*="values-editor__simple-input"][disabled]',
             );
             await expect(maskedState).toBeVisible({timeout: 5000});
         } finally {
@@ -381,12 +385,12 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', {tag: ['@a
             await openExistingPolicy(page, policyName);
 
             // Only the masked chip is visible — caller holds no values.
-            await expect(page.locator('.select__multi-value--masked')).toBeVisible();
-            await expect(page.locator('.select__multi-value').filter({hasText: 'Alpha'})).not.toBeVisible();
-            await expect(page.locator('.select__multi-value').filter({hasText: 'Bravo'})).not.toBeVisible();
+            await expect(systemConsolePage.policyEditor.maskedChips).toBeVisible();
+            await expect(systemConsolePage.policyEditor.getMultiValueChip('Alpha')).not.toBeVisible();
+            await expect(systemConsolePage.policyEditor.getMultiValueChip('Bravo')).not.toBeVisible();
 
             // The operator selector on the masked row must show "has any of", NOT "has all of".
-            const operatorBtn = page.locator('[data-testid="operatorSelectorMenuButton"]').first();
+            const operatorBtn = systemConsolePage.policyEditor.ruleBuilder.getOperatorSelectorButton(0);
             await operatorBtn.waitFor({state: 'visible', timeout: 10000});
             await expect(operatorBtn).toContainText('has any of');
             await expect(operatorBtn).not.toContainText('has all of');

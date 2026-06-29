@@ -4,9 +4,10 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class TeamMenu {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
 
+export default class TeamMenu extends BaseComponent {
     readonly invitePeople: Locator;
     readonly teamSettings: Locator;
     readonly manageMembers: Locator;
@@ -15,14 +16,26 @@ export default class TeamMenu {
     readonly learnAboutTeams: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
-        this.invitePeople = container.getByRole('menuitem', {name: 'Invite people Add or invite people to the team'});
-        this.teamSettings = container.getByRole('menuitem', {name: 'Team settings'});
-        this.manageMembers = container.getByRole('menuitem', {name: 'Manage members'});
-        this.leaveTeam = container.getByRole('menuitem', {name: 'Leave team'});
-        this.createTeam = container.getByRole('menuitem', {name: 'Create a team'});
-        this.learnAboutTeams = container.getByRole('menuitem', {name: 'Learn about teams'});
+        this.invitePeople = container.getByRole('menuitem', {
+            name: en['sidebarLeft.teamMenu.invitePeopleMenuItem.primaryLabel'],
+        });
+        this.teamSettings = container.getByRole('menuitem', {
+            name: en['sidebarLeft.teamMenu.teamSettingsMenuItem.primaryLabel'],
+        });
+        this.manageMembers = container.getByRole('menuitem', {
+            name: en['sidebarLeft.teamMenu.manageMembersMenuItem.primaryLabel'],
+        });
+        this.leaveTeam = container.getByRole('menuitem', {
+            name: en['sidebarLeft.teamMenu.leaveTeamMenuItem.primaryLabel'],
+        });
+        this.createTeam = container.getByRole('menuitem', {
+            name: en['sidebarLeft.teamMenu.createTeamMenuItem.primaryLabel'],
+        });
+        this.learnAboutTeams = container.getByRole('menuitem', {
+            name: en['sidebarLeft.teamMenu.learnAboutTeamsMenuItem.primaryLabel'],
+        });
     }
 
     async toBeVisible() {
@@ -30,7 +43,7 @@ export default class TeamMenu {
     }
 
     async getContainerId() {
-        return this.container.getAttribute('id');
+        return (await this.container.getAttribute('id')) ?? '';
     }
 
     async clickInvitePeople() {

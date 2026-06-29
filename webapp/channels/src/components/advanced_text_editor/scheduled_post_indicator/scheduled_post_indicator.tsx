@@ -106,8 +106,11 @@ export default function ScheduledPostIndicator({location, channelId, postId, rem
                 data-testid='scheduledPostIcon'
                 className='icon icon-draft-indicator icon-clock-send-outline'
             />
-            {scheduledPostText}
-            <Link to={scheduledPostLinkURL}>
+            <span data-testid='scheduledPostInfoText'>{scheduledPostText}</span>
+            <Link
+                to={scheduledPostLinkURL}
+                data-testid='scheduledPostSeeAll'
+            >
                 <FormattedMessage
                     id='scheduled_post.channel_indicator.link_to_scheduled_posts.text'
                     defaultMessage='See all.'

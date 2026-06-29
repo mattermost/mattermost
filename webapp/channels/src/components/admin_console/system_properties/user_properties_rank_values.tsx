@@ -140,7 +140,10 @@ const UserPropertyRankValues = ({field, updateField, autoFocus}: Props) => {
     }, []);
 
     return (
-        <div className='user-property-rank-values'>
+        <div
+            className='user-property-rank-values'
+            data-testid='userPropertyRankValues'
+        >
             {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions -- mousedown only forwards focus to the keyboard-accessible add input, mirroring react-select's control */}
             <div
                 className='user-property-rank-values__chips'
@@ -168,6 +171,7 @@ const UserPropertyRankValues = ({field, updateField, autoFocus}: Props) => {
                             ref={addInputRef}
                             type='text'
                             className='user-property-rank-values__add-input'
+                            data-testid='userPropertyRankValuesAddInput'
                             value={query}
                             maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
                             placeholder={showPlaceholder ? placeholderText : undefined}
@@ -260,6 +264,7 @@ const RankChip = ({option, ascIndex, sortedRanks, disabled, nameCollidesWith, on
             className={classNames('user-property-rank-values__chip', {
                 'user-property-rank-values__chip--disabled': disabled,
             })}
+            data-testid='userPropertyRankValuesChip'
         >
             <RankBadge rank={option.rank}/>
             <Menu.Container
@@ -267,7 +272,10 @@ const RankChip = ({option, ascIndex, sortedRanks, disabled, nameCollidesWith, on
                     id: chipId,
                     class: 'user-property-rank-values__chip-name',
                     children: (
-                        <span className='user-property-rank-values__chip-label'>{option.name}</span>
+                        <span
+                            className='user-property-rank-values__chip-label'
+                            data-testid='userPropertyRankValuesChipLabel'
+                        >{option.name}</span>
                     ),
                     dataTestId: chipId,
                     disabled,

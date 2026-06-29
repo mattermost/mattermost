@@ -4,16 +4,16 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class ScheduledDraftModal {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
 
+export default class ScheduledDraftModal extends BaseComponent {
     readonly confirmButton;
     readonly dateInput;
     readonly timeLocator;
     readonly timeDropdownOptions;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
         this.confirmButton = container.locator('button.confirm');
         this.dateInput = container.locator('div.Input_wrapper');

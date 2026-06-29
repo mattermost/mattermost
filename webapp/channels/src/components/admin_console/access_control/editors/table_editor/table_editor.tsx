@@ -488,6 +488,7 @@ function TableEditor({
                             <tr
                                 key={index}
                                 className='table-editor__row'
+                                data-testid={`tableEditorRow-${index}`}
                             >
                                 <td className='table-editor__cell'>
                                     <AttributeSelectorMenu

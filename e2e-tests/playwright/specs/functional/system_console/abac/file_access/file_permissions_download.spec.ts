@@ -95,7 +95,7 @@ test.describe('ABAC Permission Policies - Download File Enforcement', () => {
 
         await expect(deniedPage.getByTestId('redactedFilesPlaceholder')).toBeVisible({timeout: 15000});
         await expect(deniedPage.getByTestId('redactedFilesPlaceholder')).toContainText('Files not available');
-        await expect(deniedPage.locator('[data-testid="fileAttachmentList"]')).not.toBeVisible();
+        await expect(deniedPage.getByTestId('fileAttachmentList')).not.toBeVisible();
     });
 
     test('MM-T5821 user sees file normally when no download restriction policy exists', async ({pw}) => {
@@ -120,7 +120,7 @@ test.describe('ABAC Permission Policies - Download File Enforcement', () => {
         await userChannelsPage.goto(team.name, channelName);
         await userChannelsPage.toBeVisible();
 
-        await expect(userPage.locator('[data-testid="fileAttachmentList"]')).toBeVisible({timeout: 15000});
+        await expect(userPage.getByTestId('fileAttachmentList')).toBeVisible({timeout: 15000});
         await expect(userPage.getByTestId('redactedFilesPlaceholder')).not.toBeVisible();
     });
 });
@@ -235,7 +235,7 @@ test.describe('ABAC Permission Policies - Attribute-Based Access - MM-T5826', ()
                 intervals: [500, 1500, 3000],
             })
             .toBe(true);
-        await expect(page.locator('[data-testid="fileAttachmentList"]')).not.toBeVisible();
+        await expect(page.getByTestId('fileAttachmentList')).not.toBeVisible();
     });
 
     test('MM-T5826_b user with matching attribute is granted download (Engineering → file visible)', async ({pw}) => {
@@ -246,7 +246,7 @@ test.describe('ABAC Permission Policies - Attribute-Based Access - MM-T5826', ()
         await channelsPage.goto(sharedTeam.name, sharedChannelName);
         await channelsPage.toBeVisible();
         await expect
-            .poll(() => page.locator('[data-testid="fileAttachmentList"]').isVisible(), {
+            .poll(() => page.getByTestId('fileAttachmentList').isVisible(), {
                 timeout: 45000,
                 intervals: [500, 1500, 3000],
             })
@@ -318,19 +318,19 @@ test.describe('ABAC Permission Policies - BOR and Permalink', () => {
         await deniedChannelsPage.goto(team.name, channelName);
         await deniedChannelsPage.toBeVisible();
 
-        const concealedPlaceholder = deniedPage.locator('.BurnOnReadConcealedPlaceholder').first();
+        const concealedPlaceholder = deniedPage.getByTestId('burnOnReadConcealedPlaceholder').first();
         await expect(concealedPlaceholder).toBeVisible({timeout: 15000});
         await concealedPlaceholder.click();
 
         // Confirm the reveal modal if it appears
-        const confirmModal = deniedPage.locator('.BurnOnReadConfirmationModal');
-        if (await confirmModal.isVisible({timeout: 3000}).catch(() => false)) {
-            await confirmModal.getByRole('button', {name: /reveal/i}).click();
+        const revealButton = deniedPage.getByRole('button', {name: /reveal/i});
+        if (await revealButton.isVisible({timeout: 3000}).catch(() => false)) {
+            await revealButton.click();
         }
 
         // * After reveal the API applies ABAC sanitization — placeholder shown, no file card
         await expect(deniedPage.getByTestId('redactedFilesPlaceholder')).toBeVisible({timeout: 15000});
-        await expect(deniedPage.locator('[data-testid="fileAttachmentList"]')).not.toBeVisible();
+        await expect(deniedPage.getByTestId('fileAttachmentList')).not.toBeVisible();
     });
 
     test('MM-T5828 denied user sees no file preview inside a permalink to a post with attachment', async ({pw}) => {
@@ -396,11 +396,11 @@ test.describe('ABAC Permission Policies - BOR and Permalink', () => {
         // * The embedded permalink preview (.post-preview) must ALSO show the placeholder —
         // this specifically validates that the fix strips files from the embedded post
         // and sets RedactedFileCount, causing the placeholder to render inside the embed.
-        const permalinkEmbed = deniedPage.locator('.post-preview');
+        const permalinkEmbed = deniedPage.locator('[class~="post-preview"]');
         await expect(permalinkEmbed).toBeVisible({timeout: 15000});
         await expect(permalinkEmbed.getByTestId('redactedFilesPlaceholder')).toBeVisible({timeout: 10000});
 
         // * No file attachment card anywhere in the channel view
-        await expect(deniedPage.locator('[data-testid="fileAttachmentList"]')).not.toBeVisible();
+        await expect(deniedPage.getByTestId('fileAttachmentList')).not.toBeVisible();
     });
 });

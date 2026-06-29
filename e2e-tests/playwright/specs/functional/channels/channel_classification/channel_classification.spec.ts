@@ -98,8 +98,7 @@ test.describe('Channel Classification - New channel creation', () => {
         await expect(newChannelModal.createButton).toBeEnabled();
 
         // Enable classification toggle
-        const classificationToggle = channelsPage.page.getByTestId('channelClassificationToggle-button');
-        await classificationToggle.click();
+        await newChannelModal.classificationToggle.click();
 
         // Create button should be disabled (no classification level selected, no banner text)
         await expect(newChannelModal.createButton).toBeDisabled();
@@ -115,15 +114,13 @@ test.describe('Channel Classification - New channel creation', () => {
         await newChannelModal.fillDisplayName(`test-${pw.random.id()}`);
 
         // Enable classification toggle
-        const classificationToggle = channelsPage.page.getByTestId('channelClassificationToggle-button');
-        await classificationToggle.click();
+        await newChannelModal.classificationToggle.click();
 
         // Open the classification dropdown
-        const dropdownContainer = channelsPage.page.getByTestId('channelClassificationLevel');
-        await dropdownContainer.click();
+        await newChannelModal.classificationLevelDropdown.click();
 
         // Verify all test levels are present in the dropdown menu
-        const menu = channelsPage.page.locator('.DropDown__menu');
+        const menu = newChannelModal.classificationDropdownMenu;
         await expect(menu).toBeVisible();
         for (const level of TEST_LEVELS) {
             await expect(menu.getByText(level.name, {exact: true})).toBeVisible();
@@ -143,17 +140,15 @@ test.describe('Channel Classification - New channel creation', () => {
         await newChannelModal.fillDisplayName(`test-${pw.random.id()}`);
 
         // Enable classification toggle
-        const classificationToggle = channelsPage.page.getByTestId('channelClassificationToggle-button');
-        await classificationToggle.click();
+        await newChannelModal.classificationToggle.click();
 
         // Select a classification level
-        const dropdownContainer = channelsPage.page.getByTestId('channelClassificationLevel');
-        await dropdownContainer.click();
-        const menu = channelsPage.page.locator('.DropDown__menu');
+        await newChannelModal.classificationLevelDropdown.click();
+        const menu = newChannelModal.classificationDropdownMenu;
         await menu.getByText(selectedLevel!.name, {exact: true}).click();
 
         // Banner text should be auto-populated with the bold level name
-        const bannerTextbox = channelsPage.page.locator('#channel_classification_banner_text');
+        const bannerTextbox = newChannelModal.classificationBannerTextInput;
         await expect(bannerTextbox).toBeVisible();
         const currentValue = await bannerTextbox.inputValue();
         expect(currentValue).toContain(selectedLevel!.name);
@@ -181,17 +176,15 @@ test.describe('Channel Classification - New channel creation', () => {
         await newChannelModal.publicTypeButton.click();
 
         // Enable classification toggle
-        const classificationToggle = channelsPage.page.getByTestId('channelClassificationToggle-button');
-        await classificationToggle.click();
+        await newChannelModal.classificationToggle.click();
 
         // Select the classification level
-        const dropdownContainer = channelsPage.page.getByTestId('channelClassificationLevel');
-        await dropdownContainer.click();
-        const menu = channelsPage.page.locator('.DropDown__menu');
+        await newChannelModal.classificationLevelDropdown.click();
+        const menu = newChannelModal.classificationDropdownMenu;
         await menu.getByText(selectedLevel!.name, {exact: true}).click();
 
         // Wait for banner text to auto-populate, then create the channel
-        const bannerTextbox = channelsPage.page.locator('#channel_classification_banner_text');
+        const bannerTextbox = newChannelModal.classificationBannerTextInput;
         await expect(bannerTextbox).toBeVisible();
         await expect(bannerTextbox).not.toHaveValue('');
 
@@ -234,7 +227,7 @@ test.describe('Channel Classification - Existing channel settings', () => {
         await channelSettingsModal.openConfigurationTab();
 
         // The classification toggle should be available
-        const classificationToggle = channelsPage.page.getByTestId('channelClassificationToggle-button');
+        const classificationToggle = channelSettingsModal.configurationSettings.classificationToggle;
         await expect(classificationToggle).toBeVisible();
 
         // Toggle it on
@@ -260,19 +253,18 @@ test.describe('Channel Classification - Existing channel settings', () => {
         await expect(channelsPage.page.getByTestId('channel_view')).toBeVisible({timeout: 60000});
 
         const channelSettingsModal = await channelsPage.openChannelSettings();
-        await channelSettingsModal.openConfigurationTab();
+        const configurationTab = await channelSettingsModal.openConfigurationTab();
 
         // Enable classification toggle
-        const classificationToggle = channelsPage.page.getByTestId('channelClassificationToggle-button');
-        await classificationToggle.click();
+        await channelSettingsModal.configurationSettings.classificationToggle.click();
 
         // Classification level dropdown should be visible
-        const dropdownContainer = channelsPage.page.getByTestId('channelClassificationLevel');
-        await expect(dropdownContainer).toBeVisible();
+        const classificationLevelDropdown = channelSettingsModal.configurationSettings.classificationLevelDropdown;
+        await expect(classificationLevelDropdown).toBeVisible();
 
         // Open dropdown and select a level
-        await dropdownContainer.click();
-        const menu = channelsPage.page.locator('.DropDown__menu');
+        await classificationLevelDropdown.click();
+        const menu = configurationTab.classificationDropdownMenu;
         await expect(menu).toBeVisible();
 
         const selectedLevel = classificationLevels.find((l) => l.name === 'CONFIDENTIAL');
@@ -280,7 +272,7 @@ test.describe('Channel Classification - Existing channel settings', () => {
         await menu.getByText(selectedLevel!.name, {exact: true}).click();
 
         // The dropdown should now show the selected value
-        await expect(dropdownContainer.getByText(selectedLevel!.name, {exact: true})).toBeVisible();
+        await expect(classificationLevelDropdown.getByText(selectedLevel!.name, {exact: true})).toBeVisible();
     });
 
     test('Selecting classification locks banner toggle active and disabled, with matching color', async ({pw}) => {
@@ -296,18 +288,16 @@ test.describe('Channel Classification - Existing channel settings', () => {
         await expect(channelsPage.page.getByTestId('channel_view')).toBeVisible({timeout: 60000});
 
         const channelSettingsModal = await channelsPage.openChannelSettings();
-        await channelSettingsModal.openConfigurationTab();
+        const configurationTab = await channelSettingsModal.openConfigurationTab();
 
         // Enable classification and select a level
-        const classificationToggle = channelsPage.page.getByTestId('channelClassificationToggle-button');
-        await classificationToggle.click();
+        await channelSettingsModal.configurationSettings.classificationToggle.click();
 
-        const dropdownContainer = channelsPage.page.getByTestId('channelClassificationLevel');
-        await dropdownContainer.click();
+        await channelSettingsModal.configurationSettings.classificationLevelDropdown.click();
 
         const selectedLevel = classificationLevels.find((l) => l.name === 'SECRET');
         expect(selectedLevel).toBeDefined();
-        const menu = channelsPage.page.locator('.DropDown__menu');
+        const menu = configurationTab.classificationDropdownMenu;
         await menu.getByText(selectedLevel!.name, {exact: true}).click();
 
         // The channel banner toggle should now be forced active and disabled
@@ -317,7 +307,7 @@ test.describe('Channel Classification - Existing channel settings', () => {
         await expect(bannerToggle).toBeDisabled();
 
         // Banner color input should be locked to the classification color
-        const colorInput = channelsPage.page.locator('#channel_banner_banner_background_color_picker-inputColorValue');
+        const colorInput = configurationTab.backgroundColorInput;
         await expect(colorInput).toBeVisible();
         const colorValue = await colorInput.inputValue();
         expect(colorValue.toLowerCase().replace('#', '')).toBe(selectedLevel!.color.toLowerCase().replace('#', ''));
@@ -341,13 +331,12 @@ test.describe('Channel Classification - Existing channel settings', () => {
         const channelSettingsModal = await channelsPage.openChannelSettings();
         const configurationTab = await channelSettingsModal.openConfigurationTab();
 
-        const classificationToggle = channelsPage.page.getByTestId('channelClassificationToggle-button');
+        const classificationToggle = channelSettingsModal.configurationSettings.classificationToggle;
         await classificationToggle.click();
 
-        const dropdownContainer = channelsPage.page.getByTestId('channelClassificationLevel');
-        await dropdownContainer.click();
+        await channelSettingsModal.configurationSettings.classificationLevelDropdown.click();
         const selectedLevel = classificationLevels.find((l) => l.name === 'SECRET')!;
-        await channelsPage.page.locator('.DropDown__menu').getByText(selectedLevel.name, {exact: true}).click();
+        await configurationTab.classificationDropdownMenu.getByText(selectedLevel.name, {exact: true}).click();
         await configurationTab.save();
 
         // Step 2: in the same open modal, disable classification, enable a manual banner,
@@ -362,7 +351,7 @@ test.describe('Channel Classification - Existing channel settings', () => {
         await configurationTab.save();
 
         // Symptom 1 guard: color input reflects what we typed and the server persisted the custom color
-        const colorInput = channelsPage.page.locator('#channel_banner_banner_background_color_picker-inputColorValue');
+        const colorInput = configurationTab.backgroundColorInput;
         await expect(colorInput).toHaveValue(`#${customColor}`);
         const persisted = await adminClient.getChannel(channel.id);
         expect(persisted.banner_info?.background_color?.toLowerCase().replace('#', '')).toBe(customColor);
@@ -392,20 +381,18 @@ test.describe('Channel Classification - Existing channel settings', () => {
         const configurationTab = await channelSettingsModal.openConfigurationTab();
 
         // Enable classification and select a level
-        const classificationToggle = channelsPage.page.getByTestId('channelClassificationToggle-button');
-        await classificationToggle.click();
+        await channelSettingsModal.configurationSettings.classificationToggle.click();
 
-        const dropdownContainer = channelsPage.page.getByTestId('channelClassificationLevel');
-        await dropdownContainer.click();
+        await channelSettingsModal.configurationSettings.classificationLevelDropdown.click();
 
         const selectedLevel = classificationLevels.find((l) => l.name === 'TOP SECRET');
         expect(selectedLevel).toBeDefined();
-        const menu = channelsPage.page.locator('.DropDown__menu');
+        const menu = configurationTab.classificationDropdownMenu;
         await menu.getByText(selectedLevel!.name, {exact: true}).click();
 
         // Edit the banner text to a custom value
         const customBannerText = 'TOP SECRET - Handle via COMINT channels only';
-        const bannerTextbox = channelsPage.page.locator('#channel_banner_banner_text_textbox');
+        const bannerTextbox = configurationTab.bannerTextBox;
         await expect(bannerTextbox).toBeVisible();
         await bannerTextbox.fill(customBannerText);
 

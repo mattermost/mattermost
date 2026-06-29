@@ -72,6 +72,7 @@ export const ChannelMentionSuggestion = React.forwardRef<HTMLLIElement, Suggesti
                 <span
                     id={ids.name}
                     className='suggestion-list__main'
+                    data-testid='suggestionMain'
                 >
                     {channelName}
                 </span>

@@ -4,8 +4,10 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class BurnOnReadConfirmationModal {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
+
+export default class BurnOnReadConfirmationModal extends BaseComponent {
     readonly title: Locator;
     readonly message: Locator;
     readonly deleteButton: Locator;
@@ -13,18 +15,13 @@ export default class BurnOnReadConfirmationModal {
     readonly dontShowAgainCheckbox: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
-        // Modal elements
-        this.title = container.locator('.modal-title, h1, [role="heading"]').first();
-        this.message = container.locator('.modal-body, .modal-message').first();
-
-        // Action buttons - use flexible selectors
-        this.deleteButton = container.getByRole('button', {name: /delete|burn|confirm/i});
-        this.cancelButton = container.getByRole('button', {name: /cancel/i});
-
-        // Checkbox for "don't show again" preference
-        this.dontShowAgainCheckbox = container.getByRole('checkbox');
+        this.title = container.getByRole('heading', {name: en['post.burn_on_read.confirmation_modal.title']});
+        this.message = container.locator('#confirmModalBody');
+        this.deleteButton = container.getByRole('button', {name: en['post.burn_on_read.confirmation_modal.confirm']});
+        this.cancelButton = container.getByTestId('cancel-button');
+        this.dontShowAgainCheckbox = container.getByLabel(en['post.burn_on_read.confirmation_modal.checkbox']);
     }
 
     async toBeVisible() {

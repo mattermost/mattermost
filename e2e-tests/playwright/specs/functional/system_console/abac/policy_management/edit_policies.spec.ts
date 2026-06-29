@@ -149,20 +149,20 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         await page.waitForTimeout(1000);
 
         // Search for and click the policy
-        const policySearchInput = page.locator('input[placeholder*="Search" i]').first();
+        const policySearchInput = systemConsolePage.policyList.searchInput;
         if (await policySearchInput.isVisible({timeout: 3000})) {
             await policySearchInput.fill(policyName);
             await page.waitForTimeout(1000);
         }
 
-        const policyRowLocator = page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyName}).first();
+        const policyRowLocator = systemConsolePage.policyList.dataGridRows.filter({hasText: policyName}).first();
         await policyRowLocator.waitFor({state: 'visible', timeout: 10000});
         await policyRowLocator.click();
         await page.waitForLoadState('networkidle');
         await page.waitForTimeout(1000);
 
         // Verify Auto-add is OFF (check the header checkbox)
-        const autoAddCheckbox = page.locator('#auto-add-header-checkbox');
+        const autoAddCheckbox = systemConsolePage.policyEditor.getAutoAddHeaderCheckbox();
         if (await autoAddCheckbox.isVisible({timeout: 3000})) {
             const isChecked = await autoAddCheckbox.isChecked();
             if (isChecked) {
@@ -177,7 +177,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // Edit the value: Change from "Engineering" to "Sales"
 
         // Strategy 1: Try simple input field (for text attributes)
-        const simpleValueInput = page.locator('.values-editor__simple-input').first();
+        const simpleValueInput = page.getByTestId('valuesEditorInput').first();
         if (await simpleValueInput.isVisible({timeout: 3000})) {
             // Clear and fill the new value
             await simpleValueInput.click();
@@ -188,21 +188,21 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
             await page.waitForTimeout(500);
         } else {
             // Strategy 2: Try value selector menu button
-            const valueButton = page.locator('[data-testid="valueSelectorMenuButton"]').first();
+            const valueButton = page.getByTestId('valueSelectorMenuButton').first();
             if (await valueButton.isVisible({timeout: 3000})) {
                 await valueButton.click();
                 await page.waitForTimeout(500);
 
                 // Look for input in the dropdown
-                const menuInput = page
-                    .locator('#value-selector-menu input[type="text"], .value-selector-menu input')
-                    .first();
+                const menuInput = systemConsolePage.policyEditor.ruleBuilder.valueMenuSearchInput;
                 if (await menuInput.isVisible({timeout: 2000})) {
                     await menuInput.fill('Sales');
                     await page.waitForTimeout(500);
 
                     // Click on the option or press Enter
-                    const salesOption = page.locator('#value-selector-menu').getByText('Sales', {exact: true}).first();
+                    const salesOption = systemConsolePage.policyEditor.ruleBuilder
+                        .getValueMenuItemByText('Sales')
+                        .first();
                     if (await salesOption.isVisible({timeout: 2000})) {
                         await salesOption.click();
                     } else {
@@ -212,15 +212,15 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
                 }
             } else {
                 // Strategy 3: Use Advanced mode to edit CEL expression directly
-                const advancedModeButton = page.getByRole('button', {name: /advanced|switch to advanced/i});
+                const advancedModeButton = systemConsolePage.policyEditor.advancedModeButton;
                 if (await advancedModeButton.isVisible({timeout: 3000})) {
                     await advancedModeButton.click();
                     await page.waitForTimeout(1000);
 
                     // Find Monaco editor - use view-lines with force click to bypass overlay
-                    const monacoContainer = page.locator('.monaco-editor').first();
+                    const monacoContainer = systemConsolePage.policyEditor.monacoEditorDiv;
                     if (await monacoContainer.isVisible({timeout: 3000})) {
-                        const editorLines = page.locator('.monaco-editor .view-lines').first();
+                        const editorLines = systemConsolePage.policyEditor.monacoEditorLines;
                         await editorLines.click({force: true});
                         await page.waitForTimeout(300);
 
@@ -244,13 +244,13 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // ===========================================
         // STEP 4: Save the changes
         // ===========================================
-        const saveButton = page.getByRole('button', {name: 'Save'});
+        const saveButton = systemConsolePage.policyEditor.saveButton;
         await saveButton.waitFor({state: 'visible', timeout: 5000});
         await saveButton.click();
         await page.waitForTimeout(1000);
 
         // Handle "Apply policy" confirmation if it appears
-        const applyPolicyButton = page.getByRole('button', {name: /apply policy/i});
+        const applyPolicyButton = systemConsolePage.policyEditor.applyPolicyButton;
         if (await applyPolicyButton.isVisible({timeout: 3000})) {
             await applyPolicyButton.click();
             await page.waitForTimeout(1000);
@@ -431,18 +431,16 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         await page.waitForTimeout(2000);
 
         // Verify we're on the list page by checking for "Add policy" button
-        const addPolicyButton = page.getByRole('button', {name: 'Add policy'});
+        const addPolicyButton = systemConsolePage.policyList.createPolicyButton;
         await addPolicyButton.waitFor({state: 'visible', timeout: 10000});
 
         // Try to find the policy row first without search
-        const policyRowLocator = page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyName}).first();
+        const policyRowLocator = systemConsolePage.policyList.dataGridRows.filter({hasText: policyName}).first();
         const isPolicyVisible = await policyRowLocator.isVisible({timeout: 3000}).catch(() => false);
 
         // If not visible, use search
         if (!isPolicyVisible) {
-            const policySearchInput = page
-                .locator('.DataGrid input[type="text"], input[placeholder*="Search policies" i]')
-                .first();
+            const policySearchInput = systemConsolePage.policyList.searchInput;
             if (await policySearchInput.isVisible({timeout: 3000})) {
                 await policySearchInput.click();
                 await policySearchInput.fill(policyName);
@@ -458,7 +456,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         // Check if "Add attribute" button is disabled (means attributes not loaded)
         // If so, reload to fetch the Office attribute
-        const addAttributeButtonCheck = page.getByRole('button', {name: /add attribute/i});
+        const addAttributeButtonCheck = systemConsolePage.policyEditor.addAttributeButton;
         if (await addAttributeButtonCheck.isVisible({timeout: 2000})) {
             const isDisabled = await addAttributeButtonCheck.isDisabled();
             if (isDisabled) {
@@ -469,33 +467,33 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         }
 
         // Stay in Simple Mode and add a second attribute row
-        const addAttributeButton = page.getByRole('button', {name: /add attribute/i});
+        const addAttributeButton = systemConsolePage.policyEditor.addAttributeButton;
         await addAttributeButton.waitFor({state: 'visible', timeout: 5000});
         await addAttributeButton.click();
         await page.waitForTimeout(1000);
 
         // The attribute dropdown opens automatically after clicking "Add attribute"
         // Wait for the menu to be visible and select "Office"
-        const attributeMenu = page.locator('[id^="attribute-selector-menu"]');
+        const attributeMenu = systemConsolePage.policyEditor.ruleBuilder.attributeSelectorMenu;
         await attributeMenu.waitFor({state: 'visible', timeout: 5000});
 
-        const officeOption = attributeMenu.locator('li:has-text("Office")').first();
+        const officeOption = systemConsolePage.policyEditor.ruleBuilder.getAttributeMenuItemByText('Office').first();
         await officeOption.waitFor({state: 'visible', timeout: 5000});
         await officeOption.click({force: true});
         await page.waitForTimeout(500);
 
         // Select operator "==" (is)
-        const operatorButton = page.locator('[data-testid="operatorSelectorMenuButton"]').last();
+        const operatorButton = page.getByTestId('operatorSelectorMenuButton').last();
         await operatorButton.waitFor({state: 'visible', timeout: 5000});
         await operatorButton.click({force: true});
         await page.waitForTimeout(500);
 
-        const operatorOption = page.locator('[id^="operator-selector-menu"] li:has-text("is")').first();
+        const operatorOption = systemConsolePage.policyEditor.ruleBuilder.getOperatorMenuItemByText('is').first();
         await operatorOption.click({force: true});
         await page.waitForTimeout(500);
 
         // Fill value "Remote"
-        const valueInput = page.locator('.values-editor__simple-input').last();
+        const valueInput = page.getByTestId('valuesEditorInput').last();
         await valueInput.waitFor({state: 'visible', timeout: 5000});
         await valueInput.fill('Remote');
         await page.waitForTimeout(500);
@@ -508,13 +506,13 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // ===========================================
         // STEP 4: Save the changes
         // ===========================================
-        const saveButton = page.getByRole('button', {name: 'Save'});
+        const saveButton = systemConsolePage.policyEditor.saveButton;
         await saveButton.waitFor({state: 'visible', timeout: 5000});
         await saveButton.click();
         await page.waitForTimeout(1000);
 
         // Handle "Apply policy" confirmation if it appears
-        const applyPolicyButton = page.getByRole('button', {name: /apply policy/i});
+        const applyPolicyButton = systemConsolePage.policyEditor.applyPolicyButton;
         if (await applyPolicyButton.isVisible({timeout: 3000})) {
             await applyPolicyButton.click();
             await page.waitForTimeout(1000);
@@ -714,19 +712,16 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         await page.waitForTimeout(2000);
 
         // Verify we're on the list page by checking for "Add policy" button
-        const addPolicyButton = page.getByRole('button', {name: 'Add policy'});
+        const addPolicyButton = systemConsolePage.policyList.createPolicyButton;
         await addPolicyButton.waitFor({state: 'visible', timeout: 10000});
 
         // Try to find the policy row first without search
-        const policyRowLocator = page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyName}).first();
+        const policyRowLocator = systemConsolePage.policyList.dataGridRows.filter({hasText: policyName}).first();
         const isPolicyVisible = await policyRowLocator.isVisible({timeout: 3000}).catch(() => false);
 
         // If not visible, try with search
         if (!isPolicyVisible) {
-            // Use a more specific selector for the search input in the policies table
-            const policySearchInput = page
-                .locator('.DataGrid input[type="text"], input[placeholder*="Search policies" i]')
-                .first();
+            const policySearchInput = systemConsolePage.policyList.searchInput;
             if (await policySearchInput.isVisible({timeout: 3000})) {
                 await policySearchInput.click();
                 await policySearchInput.fill(policyName);
@@ -742,7 +737,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         await page.waitForTimeout(1000);
 
         // Verify Auto-add is ON
-        const autoAddCheckbox = page.locator('#auto-add-header-checkbox');
+        const autoAddCheckbox = systemConsolePage.policyEditor.getAutoAddHeaderCheckbox();
         if (await autoAddCheckbox.isVisible({timeout: 3000})) {
             const isChecked = await autoAddCheckbox.isChecked();
             if (!isChecked) {
@@ -753,11 +748,11 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         // Check if Monaco editor is visible - if not, switch to Advanced mode
         // Policy may open in Simple mode even if created in Advanced mode
-        let monacoContainer = page.locator('.monaco-editor').first();
+        let monacoContainer = systemConsolePage.policyEditor.monacoEditorDiv;
         const isMonacoVisible = await monacoContainer.isVisible({timeout: 2000}).catch(() => false);
 
         if (!isMonacoVisible) {
-            const advancedModeButton = page.getByRole('button', {name: /advanced|switch to advanced/i});
+            const advancedModeButton = systemConsolePage.policyEditor.advancedModeButton;
             if (await advancedModeButton.isVisible({timeout: 5000})) {
                 await advancedModeButton.click();
                 await page.waitForTimeout(2000); // Wait for Monaco to fully initialize
@@ -765,10 +760,10 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         }
 
         // Find Monaco editor and update expression to REMOVE Office rule
-        monacoContainer = page.locator('.monaco-editor').first();
+        monacoContainer = systemConsolePage.policyEditor.monacoEditorDiv;
         await monacoContainer.waitFor({state: 'visible', timeout: 10000});
 
-        const editorLines = page.locator('.monaco-editor .view-lines').first();
+        const editorLines = systemConsolePage.policyEditor.monacoEditorLines;
         await editorLines.waitFor({state: 'visible', timeout: 5000});
         await page.waitForTimeout(500);
 
@@ -787,7 +782,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         await page.waitForTimeout(1000);
 
         // Wait for the "Valid" indicator to confirm the expression is valid
-        const validIndicator = page.locator('text=Valid').first();
+        const validIndicator = systemConsolePage.policyEditor.validIndicator;
         try {
             await validIndicator.waitFor({state: 'visible', timeout: 10000});
         } catch {
@@ -802,13 +797,13 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // ===========================================
         // STEP 4: Save the changes
         // ===========================================
-        const saveButton = page.getByRole('button', {name: 'Save'});
+        const saveButton = systemConsolePage.policyEditor.saveButton;
         await saveButton.waitFor({state: 'visible', timeout: 5000});
         await saveButton.click();
         await page.waitForTimeout(1000);
 
         // Handle "Apply policy" confirmation if it appears
-        const applyPolicyButton = page.getByRole('button', {name: /apply policy/i});
+        const applyPolicyButton = systemConsolePage.policyEditor.applyPolicyButton;
         if (await applyPolicyButton.isVisible({timeout: 3000})) {
             await applyPolicyButton.click();
             await page.waitForTimeout(1000);
@@ -899,38 +894,38 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         await page.waitForTimeout(1000);
 
         // Search for the second policy
-        const policySearchInput = page.locator('input[placeholder*="Search" i]').first();
+        const policySearchInput = systemConsolePage.policyList.searchInput;
         if (await policySearchInput.isVisible({timeout: 3000})) {
             await policySearchInput.fill(policyName2);
             await page.waitForTimeout(1000);
         }
 
-        const policyRow = page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyName2}).first();
+        const policyRow = systemConsolePage.policyList.dataGridRows.filter({hasText: policyName2}).first();
         await policyRow.waitFor({state: 'visible', timeout: 10000});
         await policyRow.click();
         await page.waitForLoadState('networkidle');
         await page.waitForTimeout(1000);
 
         // Change the name to match the first policy
-        const nameInput = page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName');
+        const nameInput = systemConsolePage.policyEditor.policyNameInput;
         await nameInput.waitFor({state: 'visible', timeout: 10000});
         await nameInput.fill('');
         await nameInput.fill(policyName1);
 
         // Save and expect failure
-        const saveButton = page.getByRole('button', {name: 'Save'});
+        const saveButton = systemConsolePage.policyEditor.saveButton;
         await saveButton.click();
         await page.waitForTimeout(2000);
 
         // Handle confirmation modal if it appears
-        const applyPolicyButton = page.getByRole('button', {name: /apply policy/i});
+        const applyPolicyButton = systemConsolePage.policyEditor.applyPolicyButton;
         if (await applyPolicyButton.isVisible({timeout: 3000}).catch(() => false)) {
             await applyPolicyButton.click();
             await page.waitForTimeout(2000);
         }
 
         // Verify error message is shown
-        const errorMessage = page.locator('.EditPolicy__error');
+        const errorMessage = systemConsolePage.policyEditor.errorMessage;
         await expect(errorMessage).toBeVisible({timeout: 5000});
 
         const errorText = await errorMessage.textContent();

@@ -687,6 +687,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                     <div className={classNames('signup-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})}>
                         <div
                             className='signup-body-card-content'
+                            data-testid='signupBodyCard'
                         >
                             <h2 className='signup-body-card-title'>
                                 {getCardTitle()}

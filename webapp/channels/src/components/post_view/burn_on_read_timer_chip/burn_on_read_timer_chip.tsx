@@ -89,6 +89,7 @@ const BurnOnReadTimerChip = ({expireAt, onClick}: Props) => {
                 <button
                     type='button'
                     className={`BurnOnReadTimerChip ${isWarning ? 'BurnOnReadTimerChip--warning' : ''} ${isExpired ? 'BurnOnReadTimerChip--expired' : ''}`}
+                    data-testid='burnOnReadTimerChip'
                     onClick={handleClick}
                     onKeyDown={handleKeyDown}
                     aria-label={ariaLabel}
@@ -96,8 +97,12 @@ const BurnOnReadTimerChip = ({expireAt, onClick}: Props) => {
                     <FireIcon
                         size={10}
                         className='BurnOnReadTimerChip__icon'
+                        data-testid='burnOnReadTimerChipIcon'
                     />
-                    <span className='BurnOnReadTimerChip__time'>{displayText}</span>
+                    <span
+                        data-testid='burnOnReadTimerChipTime'
+                        className='BurnOnReadTimerChip__time'
+                    >{displayText}</span>
                 </button>
             </WithTooltip>
             <div

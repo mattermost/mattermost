@@ -257,7 +257,10 @@ export default function ChannelMembersRHS({
             />
             {/* Show banner only for channels whose policy gates membership. */}
             {isMembershipPolicy && (
-                <div className='channel-members-rhs__alert-container policy-enforced'>
+                <div
+                    className='channel-members-rhs__alert-container policy-enforced'
+                    data-testid='channelMembersRhsPolicyAlert'
+                >
                     <AlertBanner
                         mode='info'
                         variant='app'

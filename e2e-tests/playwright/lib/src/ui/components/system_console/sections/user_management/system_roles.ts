@@ -4,13 +4,14 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
+
 /**
  * System Console -> User Management -> Delegated Granular Administration -> [Role] Edit
  * This page is shown when editing a specific role (e.g., System Manager, User Manager, etc.)
  */
-export default class SystemRoles {
-    readonly container: Locator;
-
+export default class SystemRoles extends BaseComponent {
     // Header
     readonly backLink: Locator;
     readonly roleName: Locator;
@@ -26,18 +27,23 @@ export default class SystemRoles {
     readonly cancelButton: Locator;
     readonly errorMessage: Locator;
 
-    constructor(container: Locator) {
-        this.container = container;
+    // Add Users to Role modal (portal-rendered, page-level)
+    readonly addUsersModal: AddUsersToRoleModal;
 
-        this.backLink = container.locator('.admin-console__header .back');
-        this.roleName = container.locator('.admin-console__header span').last();
+    constructor(container: Locator) {
+        super(container);
+
+        this.backLink = container.getByTestId('adminConsoleHeader').getByRole('link');
+        this.roleName = container.getByTestId('adminConsoleHeader').getByTestId('systemRoleName');
 
         this.privilegesPanel = new PrivilegesPanel(container.locator('#SystemRolePermissions'));
         this.assignedPeoplePanel = new AssignedPeoplePanel(container.locator('#SystemRoleUsers'));
 
         this.saveButton = container.getByTestId('saveSetting');
-        this.cancelButton = container.getByRole('link', {name: 'Cancel'});
-        this.errorMessage = container.locator('.error-message');
+        this.cancelButton = container.getByRole('link', {name: en['admin.team_channel_settings.cancel']});
+        this.errorMessage = container.getByTestId('errorMessage');
+
+        this.addUsersModal = new AddUsersToRoleModal(container.page().locator('#addUsersToRoleModal'));
     }
 
     async toBeVisible() {
@@ -60,10 +66,39 @@ export default class SystemRoles {
     async getRoleName(): Promise<string> {
         return (await this.roleName.textContent()) ?? '';
     }
+
+    getUserRowInModal(username: string): Locator {
+        return this.addUsersModal.container.getByTestId('addUsersToRoleRow').filter({hasText: username});
+    }
+
+    getRoleCheckboxByName(name: string): Locator {
+        return this.addUsersModal.container
+            .getByTestId('addUsersToRoleRow')
+            .filter({hasText: name})
+            .getByRole('checkbox');
+    }
+
+    getModalSaveButton(): Locator {
+        return this.addUsersModal.saveButton;
+    }
 }
 
-class PrivilegesPanel {
-    readonly container: Locator;
+class AddUsersToRoleModal extends BaseComponent {
+    readonly searchInput: Locator;
+    readonly saveButton: Locator;
+
+    constructor(container: Locator) {
+        super(container);
+        this.searchInput = container.getByRole('combobox', {name: en['multiselect.placeholder']});
+        this.saveButton = container.locator('#saveItems');
+    }
+
+    async toBeVisible() {
+        await expect(this.container).toBeVisible();
+    }
+}
+
+class PrivilegesPanel extends BaseComponent {
     readonly title: Locator;
     readonly description: Locator;
 
@@ -80,9 +115,9 @@ class PrivilegesPanel {
     readonly experimental: PermissionSection;
 
     constructor(container: Locator) {
-        this.container = container;
-        this.title = container.getByRole('heading', {name: 'Privileges'});
-        this.description = container.getByText('Level of access to the system console.');
+        super(container);
+        this.title = container.getByRole('heading', {name: en['admin.permissions.system_role_permissions.title']});
+        this.description = container.getByText(en['admin.permissions.system_role_permissions.description']);
 
         // Permission sections
         this.about = new PermissionSection(container, 'permission_section_about');
@@ -103,8 +138,7 @@ class PrivilegesPanel {
     }
 }
 
-class PermissionSection {
-    readonly container: Locator;
+class PermissionSection extends BaseComponent {
     readonly row: Locator;
     readonly title: Locator;
     readonly description: Locator;
@@ -117,20 +151,18 @@ class PermissionSection {
     private readonly sectionName: string;
 
     constructor(panelContainer: Locator, testId: string) {
+        super(panelContainer.getByTestId(testId));
         this.panelContainer = panelContainer;
         this.testId = testId;
         // Extract section name from testId (e.g., 'permission_section_user_management' -> 'user_management')
         this.sectionName = testId.replace('permission_section_', '');
-
-        this.container = panelContainer.getByTestId(testId);
-        // Use CSS :has() selector to find the row containing this section
-        this.row = panelContainer.locator(`.PermissionRow:has([data-testid="${testId}"])`);
-        this.title = this.container.locator('.PermissionSectionText_title');
-        this.description = this.container.locator('.PermissionSection_description');
-        this.subsectionsToggle = this.container.locator('.PermissionSubsectionsToggle button');
+        this.row = panelContainer.getByTestId('permissionRow').filter({has: panelContainer.getByTestId(testId)});
+        this.title = this.container.getByTestId('permissionSectionTitle');
+        this.description = this.container.getByTestId('permissionSectionDescription');
+        this.subsectionsToggle = this.container.getByTestId('permissionSubsectionsToggle');
         // Use the dropdown button ID which is more reliable
         this.dropdownButton = panelContainer.page().locator(`#systemRolePermissionDropdown${this.sectionName}`);
-        this.subsectionsContainer = this.row.locator('.PermissionSubsections');
+        this.subsectionsContainer = this.row.getByTestId('permissionSubsections');
     }
 
     async toBeVisible() {
@@ -141,7 +173,7 @@ class PermissionSection {
      * Get the current permission value (e.g., "Can edit", "Read only", "No access", "Mixed access")
      */
     async getPermissionValue(): Promise<string> {
-        return (await this.dropdownButton.locator('.PermissionSectionDropdownButton_text').textContent()) ?? '';
+        return (await this.dropdownButton.getByTestId('permissionSectionDropdownText').textContent()) ?? '';
     }
 
     /**
@@ -157,7 +189,7 @@ class PermissionSection {
         await expect(menuWrapper).toHaveClass(/MenuWrapper--open/);
 
         // Find the menu items and click the one matching the permission
-        const menuItem = menuWrapper.locator('.Menu__content li').filter({hasText: permission});
+        const menuItem = menuWrapper.getByRole('listitem').filter({hasText: permission});
         await expect(menuItem).toBeVisible();
         await menuItem.click();
 
@@ -245,8 +277,7 @@ class PermissionSection {
     }
 }
 
-class PermissionSubsection {
-    readonly container: Locator;
+class PermissionSubsection extends BaseComponent {
     readonly title: Locator;
     readonly description: Locator;
     readonly dropdownButton: Locator;
@@ -254,9 +285,9 @@ class PermissionSubsection {
     private readonly sectionName: string;
 
     constructor(panelContainer: Locator, testId: string) {
-        this.container = panelContainer.getByTestId(testId);
-        this.title = this.container.locator('.PermissionSectionText_title');
-        this.description = this.container.locator('.PermissionSection_description');
+        super(panelContainer.getByTestId(testId));
+        this.title = this.container.getByTestId('permissionSectionTitle');
+        this.description = this.container.getByTestId('permissionSectionDescription');
         // Extract section name from testId (e.g., 'permission_section_user_management_teams' -> 'user_management_teams')
         this.sectionName = testId.replace('permission_section_', '');
         // Use the dropdown button ID which is more reliable
@@ -271,7 +302,7 @@ class PermissionSubsection {
      * Get the current permission value (e.g., "Can edit", "Read only", "No access")
      */
     async getPermissionValue(): Promise<string> {
-        return (await this.dropdownButton.locator('.PermissionSectionDropdownButton_text').textContent()) ?? '';
+        return (await this.dropdownButton.getByTestId('permissionSectionDropdownText').textContent()) ?? '';
     }
 
     /**
@@ -291,7 +322,7 @@ class PermissionSubsection {
         await expect(menuWrapper).toHaveClass(/MenuWrapper--open/);
 
         // Find the menu items and click the one matching the permission
-        const menuItem = menuWrapper.locator('.Menu__content li').filter({hasText: permission});
+        const menuItem = menuWrapper.getByRole('listitem').filter({hasText: permission});
         await expect(menuItem).toBeVisible();
         await menuItem.click();
 
@@ -300,8 +331,7 @@ class PermissionSubsection {
     }
 }
 
-class AssignedPeoplePanel {
-    readonly container: Locator;
+class AssignedPeoplePanel extends BaseComponent {
     readonly title: Locator;
     readonly description: Locator;
     readonly addPeopleButton: Locator;
@@ -312,15 +342,17 @@ class AssignedPeoplePanel {
     readonly nextPageButton: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
-        this.title = container.getByRole('heading', {name: 'Assigned People'});
-        this.description = container.getByText('List of people assigned to this system role.');
-        this.addPeopleButton = container.getByRole('button', {name: 'Add People'});
+        super(container);
+        this.title = container.getByRole('heading', {name: en['admin.permissions.system_role_users.title']});
+        this.description = container.getByText(en['admin.permissions.system_role_users.description']);
+        this.addPeopleButton = container.getByRole('button', {
+            name: en['admin.permissions.system_role_users.add_people'],
+        });
         this.searchInput = container.getByTestId('searchInput');
-        this.userRows = container.locator('.DataGrid_rows .DataGrid_row');
-        this.paginationInfo = container.locator('.DataGrid_footer span');
-        this.previousPageButton = container.locator('.DataGrid_footer .prev');
-        this.nextPageButton = container.locator('.DataGrid_footer .next');
+        this.userRows = container.getByTestId('dataGridRows').getByTestId('dataGridRow');
+        this.paginationInfo = container.getByTestId('dataGridPaginationInfo');
+        this.previousPageButton = container.getByTestId('dataGridPrev');
+        this.nextPageButton = container.getByTestId('dataGridNext');
     }
 
     async toBeVisible() {
@@ -360,19 +392,18 @@ class AssignedPeoplePanel {
     }
 }
 
-class AssignedUserRow {
-    readonly container: Locator;
+class AssignedUserRow extends BaseComponent {
     readonly avatar: Locator;
     readonly name: Locator;
     readonly email: Locator;
     readonly removeLink: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
-        this.avatar = container.locator('.Avatar');
-        this.name = container.locator('.UserGrid_name span').first();
-        this.email = container.locator('.ug-email');
-        this.removeLink = container.getByRole('link', {name: 'Remove'});
+        super(container);
+        this.avatar = container.getByTestId('userGridAvatar');
+        this.name = container.getByTestId('userGridNameText');
+        this.email = container.getByTestId('userGridEmail');
+        this.removeLink = container.getByRole('button', {name: en['admin.user_grid.remove']});
     }
 
     async toBeVisible() {

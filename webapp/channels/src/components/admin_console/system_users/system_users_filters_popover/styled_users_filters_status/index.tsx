@@ -66,6 +66,7 @@ export function SystemUsersFiltersStatus(props: Props) {
             options={options}
             value={value}
             onChange={handleChange}
+            testId='filterStatusSelect'
         />
     );
 }

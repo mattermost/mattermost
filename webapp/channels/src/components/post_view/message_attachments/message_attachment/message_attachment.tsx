@@ -425,6 +425,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                 author.push(
                     <span
                         className='attachment__author-name'
+                        data-testid='attachmentAuthorName'
                         key={'attachment__author-name'}
                     >
                         {decodeHtmlEntities(attachment.author_name)}
@@ -451,6 +452,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                     <h1 className='attachment__title'>
                         <ExternalLink
                             className='attachment__title-link'
+                            data-testid='attachmentTitleLink'
                             href={attachment.title_link}
                             location='message_attachment'
                         >

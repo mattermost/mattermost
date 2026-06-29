@@ -423,7 +423,10 @@ function ChannelSettingsInfoTab({
     }, [channel, isDMorGroupChannel, displayName, channelUrl, channelPurpose, channelHeader, channelType, saveChangesPanelState, defaultCategoryName, serverDefaultCategoryName, managedCategoryName, serverManagedCategoryName]);
 
     return (
-        <div className='ChannelSettingsModal__infoTab'>
+        <div
+            className='ChannelSettingsModal__infoTab'
+            data-testid='channelSettingsInfoTab'
+        >
             {/* ConvertConfirmModal for channel privacy changes */}
             <ConvertConfirmModal
                 show={showConvertConfirmModal}

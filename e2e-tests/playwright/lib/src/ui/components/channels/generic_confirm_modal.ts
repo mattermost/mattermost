@@ -4,22 +4,24 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {BaseComponent} from '@/ui/base_component';
+
 /**
  * This is the generic confirm modal that is used in the app.
  * It has optional cancel button, optional checkbox and confirm button along with title and message body.
  * It can present in different parts of the app such as channel, system console, etc and hence its constructor
  * should be able to accept the page object of the app and an optional id to uniquely identify the modal.
  */
-export default class GenericConfirmModal {
-    readonly container: Locator;
-
+export default class GenericConfirmModal extends BaseComponent {
     readonly confirmButton: Locator;
     readonly cancelButton: Locator;
+    readonly title: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
         this.confirmButton = container.locator('#confirmModalButton');
         this.cancelButton = container.locator('#cancelModalButton');
+        this.title = container.getByRole('heading');
     }
 
     async toBeVisible() {

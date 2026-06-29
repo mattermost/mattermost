@@ -90,14 +90,14 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
 
         // Get policy ID and activate
         await waitForLatestSyncJob(systemConsolePage.page, undefined, jobId1);
-        const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
+        const searchInput = systemConsolePage.policyList.searchInput;
         await searchInput.waitFor({state: 'visible', timeout: 5000});
         const idMatch = policy1Name.match(/([a-z0-9]+)$/i);
         const uniqueId = idMatch ? idMatch[1] : policy1Name;
         await searchInput.fill(uniqueId);
         await systemConsolePage.page.waitForTimeout(1000);
 
-        const policyRow = systemConsolePage.page.locator('.policy-name').first();
+        const policyRow = systemConsolePage.policyList.policyRows.first();
         const policyElementId = await policyRow.getAttribute('id');
         const policyId = policyElementId?.replace('customDescription-', '');
 
@@ -170,7 +170,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         await searchInput.fill(policy2Name.match(/([a-z0-9]+)$/i)?.[1] || policy2Name);
         await systemConsolePage.page.waitForTimeout(1000);
 
-        const policyRow2 = systemConsolePage.page.locator('.policy-name').first();
+        const policyRow2 = systemConsolePage.policyList.policyRows.first();
         const policyId2 = (await policyRow2.getAttribute('id'))?.replace('customDescription-', '');
 
         if (policyId2) {

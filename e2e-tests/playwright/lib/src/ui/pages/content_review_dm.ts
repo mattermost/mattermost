@@ -5,9 +5,14 @@ import type {Page, Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
 import {wait} from '@/util';
+import en from '@/i18n';
 
-export default class ContentReviewPage {
-    private readonly page: Page;
+import {BasePage} from '../base_page';
+import type {BaseComponent} from '../base_component';
+
+export default class ContentReviewPage extends BasePage {
+    readonly components: Record<string, BaseComponent>;
+
     private readonly cards: Locator;
     private readonly rhsCard: Locator;
     private reportCard?: Locator;
@@ -26,30 +31,38 @@ export default class ContentReviewPage {
     readonly generatedSection: Locator;
 
     constructor(page: Page) {
-        this.page = page;
+        super(page);
         this.cards = page.locator('[data-testid="property-card-view"]');
         this.rhsCard = page.getByTestId('rhsPostView').getByTestId('property-card-view');
         this.keepMessageButton = this.rhsCard.getByTestId('data-spillage-action-keep-message');
         this.removeMessageButton = this.rhsCard.getByTestId('data-spillage-action-remove-message');
         this.postActionConformationModal = page.locator('div.GenericModal__wrapper');
-        this.cancelButton = this.postActionConformationModal.getByRole('button', {name: 'Cancel'});
+        this.cancelButton = this.postActionConformationModal.getByRole('button', {name: en['generic_btn.cancel']});
         this.confirmRemoveMessageButton = this.postActionConformationModal.getByRole('button', {
-            name: 'Remove message',
+            name: en['data_spillage_report.remove_message.button_text'],
         });
-        this.confirmKeepMessageButton = this.postActionConformationModal.getByRole('button', {name: 'Keep message'});
+        this.confirmKeepMessageButton = this.postActionConformationModal.getByRole('button', {
+            name: en['data_spillage_report.keep_message.button_text'],
+        });
         this.confirmationModalComment = this.postActionConformationModal.getByTestId(
             'RemoveFlaggedMessageConfirmationModal__comment',
         );
         this.downloadReportCheckbox = this.postActionConformationModal.getByTestId('download-report-checkbox');
-        this.formContinueButton = this.postActionConformationModal.getByRole('button', {name: 'Continue'});
-        this.removePermanentlyButton = this.postActionConformationModal.getByRole('button', {
-            name: 'Remove permanently',
+        this.formContinueButton = this.postActionConformationModal.getByRole('button', {
+            name: en['keep_remove_quarantined_content_modal.continue.button_text'],
         });
-        this.keepPermanentlyButton = this.postActionConformationModal.getByRole('button', {name: 'Keep permanently'});
+        this.removePermanentlyButton = this.postActionConformationModal.getByRole('button', {
+            name: en['keep_remove_quarantined_content_modal.action_remove.permanent_button_text'],
+        });
+        this.keepPermanentlyButton = this.postActionConformationModal.getByRole('button', {
+            name: en['keep_remove_quarantined_content_modal.action_keep.permanent_button_text'],
+        });
         this.removeWithoutReportButton = this.postActionConformationModal.getByRole('button', {
-            name: 'Remove without report',
+            name: en['keep_remove_quarantined_content_modal.action_remove_without_report.button_text'],
         });
         this.generatedSection = this.postActionConformationModal.getByTestId('generated-section');
+
+        this.components = {};
     }
 
     async setReportCardByPostID(postID: string) {
@@ -96,7 +109,7 @@ export default class ContentReviewPage {
     }
 
     private field(fieldName: string): Locator {
-        return this.rhsCard.locator('.row', {
+        return this.rhsCard.getByTestId('property-card-row').filter({
             has: this.rhsCard.locator(`.field:has-text("${fieldName}")`),
         });
     }
@@ -120,7 +133,7 @@ export default class ContentReviewPage {
     }
 
     async expectTextProperty(fieldName: string, expected: string) {
-        await expect(this.field(fieldName).locator('.TextProperty')).toHaveText(expected);
+        await expect(this.field(fieldName).getByTestId('text-property')).toHaveText(expected);
     }
 
     async expectUser(fieldName: string, expected: string) {
@@ -135,19 +148,19 @@ export default class ContentReviewPage {
     }
 
     async expectTeam(expected: string) {
-        await expect(this.rhsCard.locator('.TeamPropertyRenderer')).toContainText(expected);
+        await expect(this.rhsCard.getByTestId('team-property')).toContainText(expected);
     }
 
     async expectChannel(expected: string) {
-        await expect(this.rhsCard.locator('.ChannelPropertyRenderer')).toContainText(expected);
+        await expect(this.rhsCard.getByTestId('channel-property')).toContainText(expected);
     }
 
     async expectMessageContains(expected: string) {
-        await expect(this.rhsCard.locator('.post-message__text')).toContainText(expected);
+        await expect(this.rhsCard.getByTestId('postMessageText')).toContainText(expected);
     }
 
     async waitForRHSVisible() {
-        const gotIt = this.page.getByRole('button', {name: 'Got it'});
+        const gotIt = this.page.getByRole('button', {name: en['tutorial_tip.got_it']});
         if (await gotIt.isVisible()) {
             await gotIt.click();
         }
@@ -156,21 +169,33 @@ export default class ContentReviewPage {
 
     async verifyFlaggedPostStatus(expected: string) {
         this.ensureReportCardSet();
-        await expect(this.reportCard!.locator('.row:has-text("Status") .SelectProperty')).toHaveText(expected);
+        await expect(
+            this.reportCard!.getByTestId('property-card-row')
+                .filter({hasText: 'Status'})
+                .getByTestId('select-property'),
+        ).toHaveText(expected);
     }
 
     async verifyFlaggedPostReason(expected: string) {
         this.ensureReportCardSet();
-        await expect(this.reportCard!.locator('.row:has-text("Reason") .SelectProperty')).toHaveText(expected);
+        await expect(
+            this.reportCard!.getByTestId('property-card-row')
+                .filter({hasText: 'Reason'})
+                .getByTestId('select-property'),
+        ).toHaveText(expected);
     }
 
     async verifyFlaggedPostMessage(expected: string) {
         this.ensureReportCardSet();
-        await expect(this.reportCard!.locator('.row:has-text("Message") .post-message__text')).toHaveText(expected);
+        await expect(this.reportCard!.getByTestId('post-preview-property').getByTestId('postMessageText')).toHaveText(
+            expected,
+        );
     }
 
     async verifyFlaggedPostMessageInRHS(expected: string) {
-        await expect(this.rhsCard.locator('.row:has-text("Message") .post-message__text')).toHaveText(expected);
+        await expect(this.rhsCard.getByTestId('post-preview-property').getByTestId('postMessageText')).toHaveText(
+            expected,
+        );
     }
 
     async verifyFlaggedPostMessageInCenter(postID: string, expected: string) {
@@ -178,7 +203,9 @@ export default class ContentReviewPage {
             .getByTestId('channel_view')
             .locator('div.DataSpillageReport')
             .filter({has: this.page.locator(`#postMessageText_${postID}`)});
-        await expect(centerCard.locator('.row:has-text("Message") .post-message__text')).toHaveText(expected);
+        await expect(centerCard.getByTestId('post-preview-property').getByTestId('postMessageText')).toHaveText(
+            expected,
+        );
     }
 
     async clickKeepMessage() {

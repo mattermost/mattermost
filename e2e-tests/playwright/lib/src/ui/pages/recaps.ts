@@ -5,6 +5,10 @@ import type {Locator, Page} from '@playwright/test';
 import {expect} from '@playwright/test';
 
 import {duration} from '@/util';
+import en from '@/i18n';
+
+import {BasePage} from '../base_page';
+import type {BaseComponent} from '../base_component';
 
 class CreateRecapModal {
     readonly container: Locator;
@@ -27,23 +31,23 @@ class CreateRecapModal {
     }
 
     async selectSelectedChannels() {
-        await this.container.getByRole('button', {name: 'Recap selected channels'}).click();
+        await this.container.getByRole('button', {name: en['recaps.modal.selectedChannels']}).click();
     }
 
     async selectAllUnreads() {
-        await this.container.getByRole('button', {name: 'Recap all my unreads'}).click();
+        await this.container.getByRole('button', {name: en['recaps.modal.allUnreads']}).click();
     }
 
     async clickNext() {
-        await this.container.getByRole('button', {name: 'Next'}).click();
+        await this.container.getByRole('button', {name: en['generic_modal.next']}).click();
     }
 
     async clickPrevious() {
-        await this.container.getByRole('button', {name: 'Previous'}).click();
+        await this.container.getByRole('button', {name: en['generic_modal.previous']}).click();
     }
 
     async startRecap() {
-        await this.container.getByRole('button', {name: 'Start recap'}).click();
+        await this.container.getByRole('button', {name: en['recaps.modal.startRecap']}).click();
         await expect(this.container).not.toBeVisible({timeout: duration.ten_sec});
     }
 
@@ -60,7 +64,7 @@ class CreateRecapModal {
     }
 
     getChannelOption(channelName: string) {
-        return this.container.locator('.channel-selector-item').filter({hasText: channelName});
+        return this.container.getByTestId('channelSelectorItem').filter({hasText: channelName});
     }
 
     async selectChannel(channelName: string) {
@@ -72,7 +76,7 @@ class CreateRecapModal {
 
     async expectSummaryChannels(channelNames: string[]) {
         for (const channelName of channelNames) {
-            await expect(this.container.locator('.summary-channel-item').filter({hasText: channelName})).toBeVisible();
+            await expect(this.container.getByTestId('summaryChannelItem').filter({hasText: channelName})).toBeVisible();
         }
     }
 
@@ -93,12 +97,9 @@ class RecapChannelCard {
         private readonly page: Page,
         readonly container: Locator,
     ) {
-        this.channelButton = container.locator('.recap-channel-name-tag');
-        this.collapseButton = container.locator('.recap-channel-collapse-button');
-        // Scope to header actions so we do not match the parent .recap-channel-header (role="button").
-        this.menuButton = container
-            .locator('.recap-channel-header-actions')
-            .getByRole('button', {name: /Options for /});
+        this.channelButton = container.getByTestId('recapChannelNameTag');
+        this.collapseButton = container.getByTestId('recapChannelCollapseButton');
+        this.menuButton = container.getByTestId('recapChannelMenuButton');
     }
 
     async toBeVisible() {
@@ -133,10 +134,10 @@ class RecapItem {
         private readonly page: Page,
         readonly container: Locator,
     ) {
-        this.header = container.locator('.recap-item-header');
-        this.markReadButton = container.getByRole('button', {name: 'Mark read'});
-        this.deleteButton = container.locator('.recap-delete-button');
-        this.menuButton = this.header.getByRole('button', {name: /Options for /});
+        this.header = container.getByTestId('recapItemHeader');
+        this.markReadButton = container.getByRole('button', {name: en['recaps.markRead']});
+        this.deleteButton = container.getByTestId('recapDeleteButton');
+        this.menuButton = this.header.getByTestId('recapItemMenuButton');
     }
 
     async toBeVisible() {
@@ -185,24 +186,29 @@ class RecapItem {
     getChannelCard(channelName: string) {
         return new RecapChannelCard(
             this.page,
-            this.container.locator('.recap-channel-card').filter({hasText: channelName}).first(),
+            this.container.getByTestId('recapChannelCard').filter({hasText: channelName}).first(),
         );
     }
 }
 
-export default class RecapsPage {
+export default class RecapsPage extends BasePage {
+    readonly components: Record<string, BaseComponent>;
+
     readonly heading: Locator;
     readonly unreadTab: Locator;
     readonly readTab: Locator;
     readonly addRecapButton: Locator;
     readonly createRecapModal: CreateRecapModal;
 
-    constructor(readonly page: Page) {
-        this.heading = page.getByRole('heading', {name: 'Recaps'});
-        this.unreadTab = page.getByRole('button', {name: 'Unread', exact: true});
-        this.readTab = page.getByRole('button', {name: 'Read', exact: true});
-        this.addRecapButton = page.getByRole('button', {name: 'Add a recap'});
+    constructor(page: Page) {
+        super(page);
+        this.heading = page.getByRole('heading', {name: en['recaps.title']});
+        this.unreadTab = page.getByRole('button', {name: en['recaps.unreadTab'], exact: true});
+        this.readTab = page.getByRole('button', {name: en['recaps.readTab'], exact: true});
+        this.addRecapButton = page.getByRole('button', {name: en['recaps.addRecap']});
         this.createRecapModal = new CreateRecapModal(page);
+
+        this.components = {};
     }
 
     async goto(teamName: string) {
@@ -216,7 +222,7 @@ export default class RecapsPage {
     }
 
     async dismissViewInBrowserPrompt() {
-        const viewInBrowserButton = this.page.getByRole('button', {name: 'View in Browser'});
+        const viewInBrowserButton = this.page.getByRole('button', {name: en['get_app.continueToBrowser']});
         if (await viewInBrowserButton.isVisible({timeout: 1000}).catch(() => false)) {
             await viewInBrowserButton.click();
         }
@@ -239,18 +245,14 @@ export default class RecapsPage {
     }
 
     async expectSetupPlaceholder() {
-        await expect(this.page.getByRole('heading', {name: 'Set up your recap'})).toBeVisible();
-        await expect(
-            this.page.getByText(
-                'Recaps help you get caught up quickly on discussions that are most important to you with a summarized report.',
-            ),
-        ).toBeVisible();
-        await expect(this.page.getByRole('button', {name: 'Create a recap'})).toBeVisible();
+        await expect(this.page.getByRole('heading', {name: en['recaps.placeholder.title']})).toBeVisible();
+        await expect(this.page.getByText(en['recaps.placeholder.description'])).toBeVisible();
+        await expect(this.page.getByRole('button', {name: en['recaps.placeholder.createRecap']})).toBeVisible();
     }
 
     async expectCaughtUpEmptyState() {
-        await expect(this.page.getByRole('heading', {name: "You're all caught up"})).toBeVisible();
-        await expect(this.page.getByText("You don't have any recaps yet. Create one to get started.")).toBeVisible();
+        await expect(this.page.getByRole('heading', {name: en['recaps.emptyState.title']})).toBeVisible();
+        await expect(this.page.getByText(en['recaps.emptyState.description'])).toBeVisible();
     }
 
     async expectAddRecapDisabled(reason: string) {
@@ -261,7 +263,7 @@ export default class RecapsPage {
     async confirmDelete() {
         const dialog = this.page.locator('#confirmModal');
         await expect(dialog).toBeVisible();
-        await dialog.getByRole('button', {name: 'Delete'}).click();
+        await dialog.getByRole('button', {name: en['recaps.delete.confirm.button']}).click();
         await expect(dialog).not.toBeVisible({timeout: duration.ten_sec});
     }
 
@@ -269,7 +271,7 @@ export default class RecapsPage {
         return new RecapItem(
             this.page,
             this.page
-                .locator('.recap-item, .recap-processing')
+                .getByTestId('recapItem')
                 .filter({
                     has: this.page.getByRole('heading', {name: title, exact: true}),
                 })

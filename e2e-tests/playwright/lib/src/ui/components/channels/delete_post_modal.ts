@@ -4,12 +4,13 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class DeletePostModal {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
+
+export default class DeletePostModal extends BaseComponent {
     readonly confirmButton: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
         this.confirmButton = container.locator('#deletePostModalButton');
     }
 

@@ -58,23 +58,68 @@ export async function createUserWithAttributes(
 
 /**
  * Enable ABAC in System Console.
- * Always navigates to the Attribute-Based Access settings page (where the toggle lives)
- * before interacting, then navigates to Membership Policies afterward so callers land
- * on the correct page for policy management.
+ * First checks whether ABAC is already enabled via the config API. If it is,
+ * skips the UI toggle and goes straight to Membership Policies. If not, attempts
+ * to enable it through the UI; falls back to a direct PATCH API call when the
+ * settings page does not render (e.g. route not yet in the webapp bundle).
  */
 export async function enableABAC(page: Page): Promise<void> {
-    await page.goto('/admin_console/system_attributes/attribute_based_access_control');
-    await page.waitForLoadState('networkidle');
+    // Check current ABAC state via the config API using the browser session.
+    const isAlreadyEnabled = await page
+        .evaluate(async () => {
+            try {
+                const resp = await fetch('/api/v4/config', {
+                    headers: {'X-Requested-With': 'XMLHttpRequest'},
+                });
+                if (!resp.ok) {
+                    return false;
+                }
+                const cfg = await resp.json();
+                return (cfg?.AccessControlSettings?.EnableAttributeBasedAccessControl as boolean) === true;
+            } catch {
+                return false;
+            }
+        })
+        .catch(() => false);
 
-    const enableRadio = page.locator('#AccessControlSettings\\.EnableAttributeBasedAccessControltrue');
-    const saveButton = page.getByRole('button', {name: 'Save'});
-
-    await enableRadio.click();
-    await saveButton.waitFor({state: 'visible', timeout: 5000});
-
-    if (!(await saveButton.isDisabled())) {
-        await saveButton.click();
+    if (!isAlreadyEnabled) {
+        // Try to enable through the UI first.
+        await page.goto('/admin_console/system_attributes/attribute_based_access_control');
         await page.waitForLoadState('networkidle');
+
+        const enableRadio = page.locator('#AccessControlSettings\\.EnableAttributeBasedAccessControltrue');
+        const saveButton = page.getByRole('button', {name: 'Save'});
+
+        const radioVisible = await enableRadio
+            .waitFor({state: 'visible', timeout: 5000})
+            .then(() => true)
+            .catch(() => false);
+
+        if (radioVisible) {
+            const isChecked = await enableRadio.isChecked();
+            if (!isChecked) {
+                await enableRadio.click();
+                await saveButton.waitFor({state: 'visible', timeout: 5000});
+                if (!(await saveButton.isDisabled())) {
+                    await saveButton.click();
+                    await page.waitForLoadState('networkidle');
+                }
+            }
+        } else {
+            // UI page unavailable — enable ABAC directly via the config API.
+            await page.evaluate(async () => {
+                await fetch('/api/v4/config/patch', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: JSON.stringify({
+                        AccessControlSettings: {EnableAttributeBasedAccessControl: true},
+                    }),
+                });
+            });
+        }
     }
 
     // Always land on Membership Policies so callers can immediately create/manage policies

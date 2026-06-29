@@ -18,11 +18,10 @@ test('displays multiple mentions correctly in Recent Mentions panel', {tag: ['@s
 
     // # Create a second user to be mentioned
     const {adminClient} = await pw.getAdminClient();
-    const mentionedUser = await pw.random.user('mentioned');
-    const {id: mentionedUserID} = await adminClient.createUser(mentionedUser, '', '');
+    const mentionedUser = await pw.createNewUserProfile(adminClient, {prefix: 'mentioned'});
 
     // # Add the mentioned user to the team
-    await adminClient.addToTeam(team.id, mentionedUserID);
+    await adminClient.addToTeam(team.id, mentionedUser.id);
 
     // # Get the town-square channel data
     const channels = await userClient.getMyChannels(team.id);
@@ -54,7 +53,7 @@ test('displays multiple mentions correctly in Recent Mentions panel', {tag: ['@s
     await mentionedChannelsPage.sidebarRight.toBeVisible();
 
     // # Get all the mention posts in the right sidebar
-    const mentionPosts = mentionedChannelsPage.sidebarRight.container.locator('.post');
+    const mentionPosts = mentionedChannelsPage.sidebarRight.container.getByTestId('postView');
 
     // * Verify the correct number of mention posts are displayed
     await expect(mentionPosts).toHaveCount(MENTION_COUNT);

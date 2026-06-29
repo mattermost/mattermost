@@ -4,19 +4,20 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class EmojiGifPicker {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
 
+export default class EmojiGifPicker extends BaseComponent {
     readonly gifTab: Locator;
     readonly gifSearchInput: Locator;
     readonly gifPickerItems: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
-        this.gifTab = container.getByText('GIFs');
-        this.gifSearchInput = container.getByPlaceholder('Search GIPHY');
-        this.gifPickerItems = container.locator('.gif-picker__items');
+        this.gifTab = container.getByText(en['emoji_gif_picker.tabs.gifs']);
+        this.gifSearchInput = container.getByPlaceholder(en['gif_picker.input.placeholder']);
+        this.gifPickerItems = container.getByTestId('gifPickerItems');
     }
 
     async toBeVisible() {
@@ -38,6 +39,10 @@ export default class EmojiGifPicker {
 
         await expect(this.gifSearchInput).toBeVisible();
         await expect(this.gifPickerItems).toBeVisible();
+    }
+
+    gifResultByIndex(n: number): Locator {
+        return this.gifPickerItems.getByRole('img').nth(n);
     }
 
     async searchGif(name: string) {

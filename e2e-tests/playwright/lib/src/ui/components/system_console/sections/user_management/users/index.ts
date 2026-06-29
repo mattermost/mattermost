@@ -4,25 +4,26 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import en from '@/i18n';
+import {ConfirmModal} from '@/ui/components/system_console/base_modal';
+import {BaseComponent} from '@/ui/base_component';
+
 import UserDetail from '../user_detail';
 
 import {ColumnToggleMenu, DateRangeMenu, FilterMenu, FilterPopover} from './menus';
-import {ManageRolesModal, ResetPasswordModal, UpdateEmailModal} from './modals';
+import {ManageRolesModal, ManageTeamsModal, ResetPasswordModal, UpdateEmailModal} from './modals';
 import {UsersTable} from './users_table';
-
-import {ConfirmModal} from '@/ui/components/system_console/base_modal';
 
 // Re-export sub-components for external use
 export {ColumnToggleMenu, DateRangeMenu, FilterMenu, FilterPopover} from './menus';
-export {ManageRolesModal, ResetPasswordModal, UpdateEmailModal} from './modals';
+export {ManageRolesModal, ManageTeamsModal, ResetPasswordModal, UpdateEmailModal} from './modals';
 export {UserActionMenu} from './user_action_menu';
 export {UserRow, UsersTable} from './users_table';
 
 /**
  * System Console -> User Management -> Users
  */
-export default class Users {
-    readonly container: Locator;
+export default class Users extends BaseComponent {
     private readonly page;
 
     // User Detail page (accessed by clicking on a user row)
@@ -31,6 +32,7 @@ export default class Users {
     // Modals (opened from user actions)
     readonly confirmModal: ConfirmModal;
     readonly manageRolesModal: ManageRolesModal;
+    readonly manageTeamsModal: ManageTeamsModal;
     readonly resetPasswordModal: ResetPasswordModal;
     readonly updateEmailModal: UpdateEmailModal;
 
@@ -65,41 +67,44 @@ export default class Users {
     readonly rowsPerPageSelector: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
         this.page = container.page();
 
         this.userDetail = new UserDetail(container);
 
         // Modals
         this.confirmModal = new ConfirmModal(this.page.locator('#confirmModal'));
-        this.manageRolesModal = new ManageRolesModal(this.page.locator('.manage-teams'));
+        this.manageRolesModal = new ManageRolesModal(this.page.locator('[aria-labelledby="manageRolesModalLabel"]'));
+        this.manageTeamsModal = new ManageTeamsModal(this.page.locator('[aria-labelledby="manageTeamsModalLabel"]'));
         this.resetPasswordModal = new ResetPasswordModal(this.page.locator('#resetPasswordModal'));
         this.updateEmailModal = new UpdateEmailModal(this.page.locator('#resetEmailModal'));
 
-        this.header = container.getByText('Mattermost Users', {exact: true});
-        this.revokeAllSessionsButton = container.getByRole('button', {name: 'Revoke All Sessions'});
+        this.header = container.locator('#systemUsersTable-headerId');
+        this.revokeAllSessionsButton = container.getByRole('button', {
+            name: en['admin.system_users.revokeAllSessions'],
+        });
 
-        this.searchInput = container.getByRole('textbox', {name: 'Search users'});
-        this.filtersButton = container.getByRole('button', {name: /Filters/});
+        this.searchInput = container.getByPlaceholder(en['admin.system_users.search.placeholder']);
+        this.filtersButton = container.locator('[aria-controls="systemUsersFilterPopover"]');
         this.columnToggleMenuButton = container.locator('#systemUsersColumnTogglerMenuButton');
         this.dateRangeSelectorMenuButton = container.locator('#systemUsersDateRangeSelectorMenuButton');
-        this.exportButton = container.getByText('Export');
+        this.exportButton = container.getByText(en['admin.system_users.exportButton']);
 
-        this.loadingSpinner = container.getByText('Loading');
+        this.loadingSpinner = container.getByTestId('loadingSpinner');
 
         this.usersTable = new UsersTable(container.locator('#systemUsersTable'));
 
         this.columnToggleMenu = new ColumnToggleMenu(this.page.locator('#systemUsersColumnTogglerMenu'));
         this.filterPopover = new FilterPopover(this.page.locator('#systemUsersFilterPopover'));
-        this.roleFilterMenu = new FilterMenu(this.page.locator('.DropDown__menu'));
-        this.statusFilterMenu = new FilterMenu(this.page.locator('.DropDown__menu'));
+        this.roleFilterMenu = new FilterMenu(this.page.locator('#DropdownInput_filterRole-listbox'));
+        this.statusFilterMenu = new FilterMenu(this.page.locator('#DropdownInput_filterStatus-listbox'));
         this.dateRangeMenu = new DateRangeMenu(this.page.locator('#systemUsersDateRangeSelectorMenu'));
 
-        const footer = container.locator('.adminConsoleListTabletOptionalFoot');
+        const footer = container.getByTestId('adminListTableFoot');
         this.paginationInfo = footer.locator('span').first();
-        this.previousPageButton = footer.getByRole('button', {name: 'Go to previous page'});
-        this.nextPageButton = footer.getByRole('button', {name: 'Go to next page'});
-        this.rowsPerPageSelector = footer.locator('.adminConsoleListTablePageSize .react-select');
+        this.previousPageButton = footer.getByRole('button', {name: en['adminConsole.list.table.pagination.previous']});
+        this.nextPageButton = footer.getByRole('button', {name: en['adminConsole.list.table.pagination.next']});
+        this.rowsPerPageSelector = footer.getByTestId('adminListTablePageSizeContainer');
     }
 
     async toBeVisible() {

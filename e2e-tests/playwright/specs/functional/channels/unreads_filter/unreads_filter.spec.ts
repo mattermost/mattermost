@@ -75,7 +75,7 @@ test('unreads filter will show and hide unread channels', {tag: ['@smoke', '@fil
 
     // * Verify the read channels are NOT visible in sidebar when filter is active (expect the currently open channel)
     for (let i = 0; i < 4; i++) {
-        const channelLink = channelsPage.sidebarLeft.container.locator(`#sidebarItem_${channels[i].name}`);
+        const channelLink = channelsPage.sidebarLeft.getSidebarItem(channels[i].name);
         await expect(channelLink).not.toBeVisible();
     }
 });

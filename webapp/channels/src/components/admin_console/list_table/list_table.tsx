@@ -236,6 +236,7 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                                                             key={cell.id}
                                                             id={`${cellIdPrefix}${cell.id}`}
                                                             headers={`${headerIdPrefix}${cell.column.id}`}
+                                                            data-testid={cell.column.id}
                                                             className={classNames(`${cell.column.id}`, {
                                                                 [PINNED_CLASS]: cell.column.getCanPin(),
                                                             })}
@@ -324,10 +325,14 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                 </tfoot>
             </table>
             {hasPagination && (
-                <div className='adminConsoleListTabletOptionalFoot'>
+                <div
+                    className='adminConsoleListTabletOptionalFoot'
+                    data-testid='adminListTableFoot'
+                >
                     {tableMeta.paginationInfo}
                     <div
                         className='adminConsoleListTablePageSize'
+                        data-testid='adminListTablePageSizeContainer'
                         aria-label={formatMessage({id: 'adminConsole.list.table.rowCount.label', defaultMessage: 'Show {count} rows per page'}, {count: selectedPageSize.label})}
                     >
                         <FormattedMessage

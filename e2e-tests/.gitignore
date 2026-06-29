@@ -12,3 +12,7 @@
 
 # build
 *.tsbuildinfo
+
+# speckit
+.specify
+specs

@@ -57,6 +57,7 @@ const GenericUserSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Us
                 <span
                     id={ids.name}
                     className='suggestion-list__main'
+                    data-testid='suggestionMain'
                 >
                     {'@' + username}
                 </span>

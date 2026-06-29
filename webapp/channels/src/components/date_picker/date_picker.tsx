@@ -85,6 +85,7 @@ const DatePicker = ({children, datePickerProps, isPopperOpen, handlePopperOpenSt
                 {...getReferenceProps()}
                 onClick={handleWrapperClick}
                 className={isPopperOpen ? 'date-time-input date-time-input--open' : 'date-time-input'}
+                data-testid='datePickerButton'
                 role='button'
                 tabIndex={0}
                 onKeyDown={(e) => {
@@ -107,6 +108,7 @@ const DatePicker = ({children, datePickerProps, isPopperOpen, handlePopperOpenSt
                 >
                     <div
                         ref={setFloating}
+                        data-testid='datePickerPopper'
                         style={{
                             position: strategy,
                             top: y ?? 0,

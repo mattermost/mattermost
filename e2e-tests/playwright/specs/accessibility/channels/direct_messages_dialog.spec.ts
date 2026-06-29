@@ -34,6 +34,7 @@ test(
         // * Verify the Direct Messages dialog is visible
         const dialog = page.getByRole('dialog', {name: 'Direct Messages'});
         await expect(dialog).toBeVisible();
+        const directChannelsModal = channelsPage.directChannelsModal;
 
         // * Verify the heading
         await expect(dialog.getByRole('heading', {name: 'Direct Messages'})).toBeVisible();
@@ -54,15 +55,15 @@ test(
         await page.keyboard.press('ArrowUp');
 
         // * Verify the selected row has the correct class
-        const selectedRow = dialog.locator('#multiSelectList').locator('.more-modal__row--selected');
+        const selectedRow = directChannelsModal.selectedRows;
         await expect(selectedRow).toBeVisible();
 
         // * Verify image alt is displayed for user profile
-        const avatar = selectedRow.locator('img.Avatar');
+        const avatar = directChannelsModal.getAvatarInRow(selectedRow);
         await expect(avatar).toHaveAttribute('alt', 'user profile image');
 
         // * Verify screen reader live region exists and has proper attributes
-        const srOnlyRegion = dialog.locator('.filtered-user-list div.sr-only:not([role="status"])');
+        const srOnlyRegion = directChannelsModal.srOnlyRegion;
         await expect(srOnlyRegion).toHaveAttribute('aria-live', 'polite');
         await expect(srOnlyRegion).toHaveAttribute('aria-atomic', 'true');
 
@@ -73,7 +74,7 @@ test(
         await pw.wait(pw.duration.half_sec);
 
         // * Check if the no results message is displayed with proper accessibility
-        const noResultsWrapper = dialog.locator('.multi-select__wrapper');
+        const noResultsWrapper = directChannelsModal.noResultsWrapper;
         await expect(noResultsWrapper).toHaveAttribute('aria-live', 'polite');
         await expect(noResultsWrapper).toContainText(`No results found matching ${invalidSearchTerm}`);
     },

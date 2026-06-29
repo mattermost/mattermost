@@ -13,7 +13,7 @@ test('Should be able to change threads with arrow keys', {tag: '@smoke'}, async 
 
     const {channelsPage, page, threadsPage} = await pw.testBrowser.login(user);
 
-    await channelsPage.goto();
+    await channelsPage.goto(team.name);
     await channelsPage.toBeVisible();
 
     // # Start some threads, and leave a draft in one of them

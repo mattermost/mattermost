@@ -4,19 +4,24 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class ChannelsHeader {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
 
+export default class ChannelsHeader extends BaseComponent {
     readonly title: Locator;
     readonly channelMenuDropdown;
     readonly callButton: Locator;
+    readonly archivedMessage: Locator;
+    readonly membersButton: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
         this.title = container.locator('#channelHeaderTitle');
-        this.channelMenuDropdown = container.locator('[aria-controls="channelHeaderDropdownMenu"]');
-        this.callButton = container.getByRole('button', {name: /call/i}).first();
+        this.channelMenuDropdown = container.getByTestId('channelMenuDropdown');
+        this.callButton = container.getByRole('button', {name: en['generic_icons.call']}).first();
+        this.archivedMessage = container.locator('#channelArchivedMessage');
+        this.membersButton = container.locator('#channelMembers');
     }
 
     async toBeVisible() {

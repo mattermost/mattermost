@@ -252,6 +252,7 @@ const RankedSchemaModal = ({field, onSave, onExited}: Props) => {
                         ref={addInputRef}
                         type='text'
                         className='ranked-schema-modal__add-input'
+                        data-testid='rankedSchemaAddInput'
                         value={draft}
                         maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
                         placeholder={formatMessage({

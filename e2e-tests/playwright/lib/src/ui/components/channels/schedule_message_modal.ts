@@ -4,8 +4,10 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class ScheduleMessageModal {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
+
+export default class ScheduleMessageModal extends BaseComponent {
     readonly dateButton: Locator;
     readonly timeButton: Locator;
     readonly timeOptionDropdown: Locator;
@@ -14,13 +16,17 @@ export default class ScheduleMessageModal {
     readonly cancelButton: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
-        this.dateButton = container.getByRole('button', {name: /Date/});
+        super(container);
+        this.dateButton = container.getByTestId('datePickerButton');
         this.timeButton = container.getByTestId('time_button');
         this.timeOptionDropdown = container.getByLabel('Choose a time');
-        this.closeButton = container.getByRole('button', {name: 'Close'});
-        this.scheduleButton = container.locator('button:has-text("Schedule")');
-        this.cancelButton = container.locator('button:has-text("Cancel")');
+        this.closeButton = container.getByRole('button', {name: en['generic.close']});
+        this.scheduleButton = container.getByRole('button', {
+            name: en['schedule_post.custom_time_modal.confirm_button_text'],
+        });
+        this.cancelButton = container.getByRole('button', {
+            name: en['schedule_post.custom_time_modal.cancel_button_text'],
+        });
     }
 
     async toBeVisible() {
@@ -74,7 +80,7 @@ export default class ScheduleMessageModal {
         await dateLocator.click();
 
         // Wait for the date-picker calendar to fully close before returning.
-        const calendarPopper = this.container.locator('.date-picker__popper');
+        const calendarPopper = this.container.getByTestId('datePickerPopper');
         await calendarPopper.waitFor({state: 'hidden'});
 
         // if day is single digit then prefix with a 0
@@ -95,7 +101,7 @@ export default class ScheduleMessageModal {
         const text = await timeOption.textContent();
         await timeOption.click();
 
-        return text;
+        return text ?? '';
     }
 
     async scheduleMessage(dayFromToday: number = 0, timeOptionIndex: number = 0) {

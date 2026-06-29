@@ -40,7 +40,7 @@ test(
         await lastPost.toContainText(testMessage);
 
         // * Verify no priority label appears on the post
-        await expect(lastPost.container.locator('.post-priority')).not.toBeVisible();
+        await expect(lastPost.postPriority).not.toBeVisible();
 
         // # Open post in right-hand sidebar
         await lastPost.container.click();
@@ -52,7 +52,7 @@ test(
         await rhsPost.toContainText(testMessage);
 
         // * Verify no priority label appears in RHS
-        await expect(rhsPost.container.locator('.post-priority')).not.toBeVisible();
+        await expect(rhsPost.postPriority).not.toBeVisible();
 
         // * Verify RHS formatting bar doesn't include priority button
         await expect(channelsPage.sidebarRight.postCreate.priorityButton).not.toBeVisible();

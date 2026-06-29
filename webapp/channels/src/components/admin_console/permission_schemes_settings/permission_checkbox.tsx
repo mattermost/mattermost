@@ -24,7 +24,8 @@ const PermissionCheckbox = ({value = '', id = ''}: Props): JSX.Element => {
     return (
         <div
             className={'permission-check ' + extraClass}
-            data-testid={id}
+            data-testid='permissionCheck'
+            id={id}
         >
             {icon}
         </div>

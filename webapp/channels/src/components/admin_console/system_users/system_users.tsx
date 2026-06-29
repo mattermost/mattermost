@@ -254,12 +254,14 @@ function SystemUsers(props: Props) {
                             <div className='profilePictureContainer'>
                                 <img
                                     className='profilePicture'
+                                    data-testid='adminUserTableProfilePicture'
                                     src={imageURLForUser(info.row.original.id)}
                                     aria-hidden='true'
                                 />
                             </div>
                             <div
                                 className='displayName'
+                                data-testid='adminUserTableDisplayName'
                                 title={getDisplayName(info.row.original)}
                             >
                                 {getDisplayName(info.row.original) || ''}
@@ -275,6 +277,7 @@ function SystemUsers(props: Props) {
                             </div>
                             <div
                                 className='userName'
+                                data-testid='adminUserTableUserName'
                                 title={info.row.original.username}
                             >
                                 {info.row.original.username}

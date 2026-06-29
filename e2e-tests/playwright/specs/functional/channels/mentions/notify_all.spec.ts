@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test, GenericConfirmModal} from '@mattermost/playwright-lib';
 
 // NOTIFY_ALL_MEMBERS threshold from webapp constants — modal triggers when member count > 5.
 const NOTIFY_ALL_THRESHOLD = 5;
@@ -30,11 +30,12 @@ test(
         await channelsPage.centerView.postCreate.sendMessage();
 
         // # Wait for the confirm modal
-        const confirmModal = channelsPage.page.locator('#confirmModal');
-        await confirmModal.waitFor({state: 'visible'});
+        const confirmModalLocator = channelsPage.confirmModal;
+        await confirmModalLocator.waitFor({state: 'visible'});
+        const confirmModal = new GenericConfirmModal(confirmModalLocator);
 
         // * Verify the modal has the correct title text
-        const modalTitle = confirmModal.locator('.modal-title');
+        const modalTitle = confirmModal.title;
         await expect(modalTitle).toContainText('Confirm sending notifications to entire channel');
 
         // * Read the computed line-height of the modal title and assert correct spacing.

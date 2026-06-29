@@ -78,14 +78,14 @@ test.describe('System Console - Membership Policy ranked operators', () => {
         await page.waitForLoadState('networkidle');
 
         // # Open the new-policy editor and name it
-        await page.getByRole('button', {name: 'Add policy'}).click();
+        await systemConsolePage.policyList.createPolicyButton.click();
         await page.waitForLoadState('networkidle');
-        const nameInput = page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName');
+        const nameInput = systemConsolePage.policyEditor.policyNameInput;
         await nameInput.waitFor({state: 'visible', timeout: 10000});
         await nameInput.fill(`Ranked Policy ${getRandomId()}`);
 
         // # Add an attribute row (reload once if attributes haven't loaded yet)
-        const addAttributeButton = page.getByRole('button', {name: /add attribute/i});
+        const addAttributeButton = systemConsolePage.policyEditor.addAttributeButton;
         await addAttributeButton.waitFor({state: 'visible', timeout: 10000});
         if (await addAttributeButton.isDisabled()) {
             await page.reload();
@@ -96,20 +96,20 @@ test.describe('System Console - Membership Policy ranked operators', () => {
         await addAttributeButton.click();
 
         // # Select the ranked attribute by name
-        const attributeButton = page.locator('[data-testid="attributeSelectorMenuButton"]').first();
-        if (!(await page.locator('[id^="attribute-selector-menu"]').isVisible({timeout: 2000}))) {
+        const attributeButton = systemConsolePage.policyEditor.ruleBuilder.getAttributeSelectorButton(0);
+        if (!(await systemConsolePage.policyEditor.ruleBuilder.attributeSelectorMenu.isVisible({timeout: 2000}))) {
             await attributeButton.click();
         }
-        await page
-            .locator(`[id^="attribute-selector-menu"] li:has-text("${field!.name}")`)
+        await systemConsolePage.policyEditor.ruleBuilder
+            .getAttributeMenuItemByText(field!.name)
             .first()
             .click({force: true});
 
         // # Let the attribute menu and its backdrop fully close before opening the next menu
-        await expect(page.locator('[id^="attribute-selector-menu"]')).toBeHidden();
+        await expect(systemConsolePage.policyEditor.ruleBuilder.attributeSelectorMenu).toBeHidden();
 
         // * The row defaults to the canonical ranked operator, "is at least"
-        const operatorButton = page.locator('[data-testid="operatorSelectorMenuButton"]').first();
+        const operatorButton = systemConsolePage.policyEditor.ruleBuilder.getOperatorSelectorButton(0);
         await expect(operatorButton).toContainText('is at least');
 
         // # Open the operator dropdown
@@ -145,13 +145,13 @@ test.describe('System Console - Membership Policy ranked operators', () => {
             await page.waitForLoadState('networkidle');
 
             // # Create a policy and add a ranked attribute row
-            await page.getByRole('button', {name: 'Add policy'}).click();
+            await systemConsolePage.policyList.createPolicyButton.click();
             await page.waitForLoadState('networkidle');
-            const nameInput = page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName');
+            const nameInput = systemConsolePage.policyEditor.policyNameInput;
             await nameInput.waitFor({state: 'visible', timeout: 10000});
             await nameInput.fill(policyName);
 
-            const addAttributeButton = page.getByRole('button', {name: /add attribute/i});
+            const addAttributeButton = systemConsolePage.policyEditor.addAttributeButton;
             await addAttributeButton.waitFor({state: 'visible', timeout: 10000});
             if (await addAttributeButton.isDisabled()) {
                 await page.reload();
@@ -161,33 +161,33 @@ test.describe('System Console - Membership Policy ranked operators', () => {
             }
             await addAttributeButton.click();
 
-            if (!(await page.locator('[id^="attribute-selector-menu"]').isVisible({timeout: 2000}))) {
-                await page.locator('[data-testid="attributeSelectorMenuButton"]').first().click();
+            if (!(await systemConsolePage.policyEditor.ruleBuilder.attributeSelectorMenu.isVisible({timeout: 2000}))) {
+                await systemConsolePage.policyEditor.ruleBuilder.getAttributeSelectorButton(0).click();
             }
-            await page
-                .locator(`[id^="attribute-selector-menu"] li:has-text("${field!.name}")`)
+            await systemConsolePage.policyEditor.ruleBuilder
+                .getAttributeMenuItemByText(field!.name)
                 .first()
                 .click({force: true});
-            await expect(page.locator('[id^="attribute-selector-menu"]')).toBeHidden();
+            await expect(systemConsolePage.policyEditor.ruleBuilder.attributeSelectorMenu).toBeHidden();
 
             // * Defaults to "is at least"
-            await expect(page.locator('[data-testid="operatorSelectorMenuButton"]').first()).toContainText(
+            await expect(systemConsolePage.policyEditor.ruleBuilder.getOperatorSelectorButton(0)).toContainText(
                 'is at least',
             );
 
             // # Pick the value "Secret"
-            await page.locator('[data-testid="valueSelectorMenuButton"]').first().click();
+            await systemConsolePage.policyEditor.ruleBuilder.getValueSelectorButton(0).click();
             await page.getByRole('menuitemradio', {name: 'Secret', exact: true}).click();
-            await expect(page.locator('[data-testid="valueSelectorMenuButton"]').first()).toContainText('Secret');
+            await expect(systemConsolePage.policyEditor.ruleBuilder.getValueSelectorButton(0)).toContainText('Secret');
 
             // # Save the policy
-            await page.getByRole('button', {name: 'Save'}).last().click();
+            await systemConsolePage.policyEditor.saveButton.click();
             await page.waitForLoadState('networkidle');
 
             // # Reopen the policy from the list
             await page.goto('/admin_console/system_attributes/membership_policies');
             await page.waitForLoadState('networkidle');
-            const policyRow = page.locator('.policy-name').filter({hasText: policyName}).first();
+            const policyRow = systemConsolePage.policyList.getPolicyRowByName(policyName);
             await expect(policyRow).toBeVisible({timeout: 10000});
             const rowId = await policyRow.getAttribute('id');
             policyId = rowId?.replace('customDescription-', '') ?? null;
@@ -206,10 +206,10 @@ test.describe('System Console - Membership Policy ranked operators', () => {
 
             // * The table editor re-parses the rehydrated rule to the same operator
             //   and value (no rank integer surfaced in the value chip)
-            await expect(page.locator('[data-testid="operatorSelectorMenuButton"]').first()).toContainText(
+            await expect(systemConsolePage.policyEditor.ruleBuilder.getOperatorSelectorButton(0)).toContainText(
                 'is at least',
             );
-            const valueButton = page.locator('[data-testid="valueSelectorMenuButton"]').first();
+            const valueButton = systemConsolePage.policyEditor.ruleBuilder.getValueSelectorButton(0);
             await expect(valueButton).toContainText('Secret');
             await expect(valueButton).not.toContainText('2');
         } finally {

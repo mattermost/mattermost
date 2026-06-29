@@ -58,6 +58,7 @@ const BurnOnReadButton = ({enabled, onToggle, disabled, durationMinutes}: Props)
                 className='control'
                 disabled={disabled}
                 type='button'
+                data-testid='burnOnReadButton'
                 aria-label={tooltipMessage}
                 onClick={handleClick}
             >

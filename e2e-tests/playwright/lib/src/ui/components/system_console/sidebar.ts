@@ -4,10 +4,11 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {BaseComponent} from '@/ui/base_component';
+
 import SystemConsoleSidebarHeader from './sidebar_header';
 
-export default class SystemConsoleSidebar {
-    readonly container: Locator;
+export default class SystemConsoleSidebar extends BaseComponent {
     readonly header: SystemConsoleSidebarHeader;
     readonly searchInput: Locator;
 
@@ -24,8 +25,8 @@ export default class SystemConsoleSidebar {
     readonly experimental: ExperimentalCategory;
 
     constructor(container: Locator) {
-        this.container = container;
-        this.header = new SystemConsoleSidebarHeader(container.locator('.AdminSidebarHeader'));
+        super(container);
+        this.header = new SystemConsoleSidebarHeader(container.getByTestId('adminSidebarHeader'));
         this.searchInput = container.getByPlaceholder('Find settings');
 
         this.about = new AboutCategory(container.getByTestId('about'));
@@ -89,12 +90,11 @@ export default class SystemConsoleSidebar {
     }
 }
 
-class SidebarSection {
-    readonly container: Locator;
+class SidebarSection extends BaseComponent {
     readonly link: Locator;
 
     constructor(container: Locator, link: Locator) {
-        this.container = container;
+        super(container);
         this.link = link;
     }
 
@@ -113,15 +113,14 @@ class SidebarSection {
     }
 }
 
-class SidebarCategory {
-    readonly container: Locator;
+class SidebarCategory extends BaseComponent {
     readonly title: Locator;
     readonly sections: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
-        this.title = container.locator('.category-title');
-        this.sections = container.locator('ul.sections');
+        super(container);
+        this.title = container.getByTestId('sidebarCategoryTitle');
+        this.sections = container.getByTestId('sidebarCategorySections');
     }
 
     protected section(name: string): SidebarSection {

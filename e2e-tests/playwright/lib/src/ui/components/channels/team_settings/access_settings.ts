@@ -4,21 +4,30 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class AccessSettings {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
 
+export default class AccessSettings extends BaseComponent {
     readonly allowedDomainsCheckbox;
     readonly allowedDomainsInput;
     readonly allowOpenInviteCheckbox;
     readonly regenerateButton;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
         this.allowedDomainsCheckbox = container.locator('input[name="showAllowedDomains"]');
         this.allowedDomainsInput = container.locator('#allowedDomains input');
         this.allowOpenInviteCheckbox = container.locator('input[name="allowOpenInvite"]');
         this.regenerateButton = container.locator('button[data-testid="regenerateButton"]');
+    }
+
+    get openAccessPoliciesTab(): Locator {
+        return this.container.getByRole('button', {name: en['team_settings_modal.accessPoliciesTab']});
+    }
+
+    get policyEditorBackButton(): Locator {
+        return this.container.locator('button[class*="back-btn"]');
     }
 
     async toBeVisible() {
@@ -52,5 +61,13 @@ export default class AccessSettings {
     async regenerateInviteId() {
         await expect(this.regenerateButton).toBeVisible();
         await this.regenerateButton.click();
+    }
+
+    getDomainChipByText(domain: string): Locator {
+        return this.container.locator('#allowedDomains').getByText(domain);
+    }
+
+    getChannelRowByName(name: string): Locator {
+        return this.container.locator('[data-testid^="ChannelRow-"]').filter({hasText: name});
     }
 }

@@ -572,7 +572,10 @@ function PostComponent(props: Props) {
     let visibleMessage = null;
     if (post.type === Constants.PostTypes.EPHEMERAL && !props.compactDisplay && post.state !== Posts.POST_DELETED) {
         visibleMessage = (
-            <span className='post__visibility'>
+            <span
+                className='post__visibility'
+                data-testid='postVisibilityNote'
+            >
                 <FormattedMessage
                     id='post_info.message.visible'
                     defaultMessage='(Only visible to you)'
@@ -911,6 +914,7 @@ function PostComponent(props: Props) {
                         {comment}
                         <div
                             className={postClass}
+                            data-testid='postBody'
                             id={isRHS ? undefined : `${post.id}_message`}
                         >
                             {post.failed && <FailedPostOptions post={post}/>}

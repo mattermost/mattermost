@@ -4,13 +4,14 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {BaseComponent} from '@/ui/base_component';
+
 import {UserActionMenu} from './user_action_menu';
 
 /**
  * Users table component
  */
-export class UsersTable {
-    readonly container: Locator;
+export class UsersTable extends BaseComponent {
     readonly headerRow: Locator;
     readonly bodyRows: Locator;
 
@@ -26,10 +27,18 @@ export class UsersTable {
     readonly channelCountHeader: Locator;
     readonly actionsHeader: Locator;
 
+    // Column visibility controls
+    readonly toggleColumnButton: Locator;
+    readonly columnVisibilityMenu: Locator;
+
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
         this.headerRow = container.locator('thead tr');
         this.bodyRows = container.locator('tbody tr');
+
+        // Column visibility controls
+        this.toggleColumnButton = container.page().locator('#systemUsersColumnTogglerMenuButton');
+        this.columnVisibilityMenu = container.page().locator('#systemUsersColumnTogglerMenu');
 
         // Column headers
         this.userDetailsHeader = container.locator('#systemUsersTable-header-usernameColumn');
@@ -46,6 +55,13 @@ export class UsersTable {
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
+    }
+
+    /**
+     * Get a column header by display name using accessible role
+     */
+    columnHeaderByName(name: string): Locator {
+        return this.container.getByRole('columnheader', {name});
     }
 
     /**
@@ -117,12 +133,16 @@ export class UsersTable {
         return (newSort as 'ascending' | 'descending' | 'none') ?? 'none';
     }
 
+    getFirstRow(): UserRow {
+        return new UserRow(this.bodyRows.first(), 0);
+    }
+
     /**
      * Wait for the table to finish loading (spinner to disappear)
      */
     async waitForLoadingComplete() {
         // Wait for any loading spinners to disappear
-        const loadingSpinner = this.container.locator('.loading-screen, .LoadingSpinner');
+        const loadingSpinner = this.container.getByTestId('loadingSpinner');
         await loadingSpinner.waitFor({state: 'detached', timeout: 10000}).catch(() => {
             // Spinner may not appear for fast loads, ignore timeout
         });
@@ -134,8 +154,7 @@ export class UsersTable {
 /**
  * A single row in the users table
  */
-export class UserRow {
-    readonly container: Locator;
+export class UserRow extends BaseComponent {
     readonly index: number;
 
     // Cells
@@ -162,23 +181,23 @@ export class UserRow {
     private readonly actionMenu: UserActionMenu;
 
     constructor(container: Locator, index: number) {
-        this.container = container;
+        super(container);
         this.index = index;
 
-        this.userDetailsCell = container.locator('.usernameColumn');
-        this.emailCell = container.locator('.emailColumn');
-        this.memberSinceCell = container.locator('.createAtColumn');
-        this.lastLoginCell = container.locator('.lastLoginColumn');
-        this.lastActivityCell = container.locator('.lastStatusAtColumn');
-        this.lastPostCell = container.locator('.lastPostDateColumn');
-        this.daysActiveCell = container.locator('.daysActiveColumn');
-        this.messagesPostedCell = container.locator('.totalPostsColumn');
-        this.channelCountCell = container.locator('.channelCountColumn');
-        this.actionsCell = container.locator('.actionsColumn');
+        this.userDetailsCell = container.getByTestId('usernameColumn');
+        this.emailCell = container.getByTestId('emailColumn');
+        this.memberSinceCell = container.getByTestId('createAtColumn');
+        this.lastLoginCell = container.getByTestId('lastLoginColumn');
+        this.lastActivityCell = container.getByTestId('lastStatusAtColumn');
+        this.lastPostCell = container.getByTestId('lastPostDateColumn');
+        this.daysActiveCell = container.getByTestId('daysActiveColumn');
+        this.messagesPostedCell = container.getByTestId('totalPostsColumn');
+        this.channelCountCell = container.getByTestId('channelCountColumn');
+        this.actionsCell = container.getByTestId('actionsColumn');
 
-        this.profilePicture = this.userDetailsCell.locator('.profilePicture');
-        this.displayName = this.userDetailsCell.locator('.displayName');
-        this.userName = this.userDetailsCell.locator('.userName');
+        this.profilePicture = this.userDetailsCell.getByTestId('adminUserTableProfilePicture');
+        this.displayName = this.userDetailsCell.getByTestId('adminUserTableDisplayName');
+        this.userName = this.userDetailsCell.getByTestId('adminUserTableUserName');
 
         this.actionMenuButton = this.actionsCell.getByRole('button');
 
@@ -187,6 +206,10 @@ export class UserRow {
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
+    }
+
+    getColumnCellByClass(cssClass: string): Locator {
+        return this.container.locator(`.${cssClass}`);
     }
 
     /**
@@ -211,5 +234,19 @@ export class UserRow {
         await this.actionMenuButton.click();
         await this.actionMenu.toBeVisible();
         return this.actionMenu;
+    }
+
+    /**
+     * Get the status badge locator by text (e.g. 'Deactivated')
+     */
+    getStatusBadge(text: string): Locator {
+        return this.container.getByText(text, {exact: true});
+    }
+
+    /**
+     * Get the role badge locator by text (e.g. 'Member', 'System Admin')
+     */
+    getRoleBadge(text: string): Locator {
+        return this.container.getByText(text, {exact: true});
     }
 }

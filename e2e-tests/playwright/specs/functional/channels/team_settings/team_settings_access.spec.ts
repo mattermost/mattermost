@@ -20,7 +20,7 @@ test.describe('Team Settings Modal - Access Tab', () => {
         const channelsPage = new ChannelsPage(page);
 
         // # Navigate to team
-        await channelsPage.goto(team.name);
+        await channelsPage.goto(team.name, 'town-square');
         await channelsPage.toBeVisible();
 
         // # Open Team Settings Modal
@@ -40,7 +40,7 @@ test.describe('Team Settings Modal - Access Tab', () => {
         await accessSettings.addDomain(testDomain);
 
         // * Verify domain appears in the UI
-        const domainChip = teamSettings.container.locator('#allowedDomains').getByText(testDomain);
+        const domainChip = teamSettings.accessSettings.getDomainChipByText(testDomain);
         await expect(domainChip).toBeVisible();
 
         // # Save changes
@@ -83,7 +83,7 @@ test.describe('Team Settings Modal - Access Tab', () => {
         const originalAllowOpenInvite = originalTeam.allow_open_invite ?? false;
 
         // # Navigate to team
-        await channelsPage.goto(team.name);
+        await channelsPage.goto(team.name, 'town-square');
         await channelsPage.toBeVisible();
 
         // # Open Team Settings Modal
@@ -140,7 +140,7 @@ test.describe('Team Settings Modal - Access Tab', () => {
         const originalInviteId = team.invite_id;
 
         // # Navigate to team
-        await channelsPage.goto(team.name);
+        await channelsPage.goto(team.name, 'town-square');
         await channelsPage.toBeVisible();
 
         // # Open Team Settings Modal

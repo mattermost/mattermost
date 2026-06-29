@@ -4,20 +4,22 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class SendMessageNowModal {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
+
+export default class SendMessageNowModal extends BaseComponent {
     readonly body: Locator;
     readonly sendNowButton: Locator;
     readonly cancelButton: Locator;
     readonly closeButton: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
-        this.body = container.locator('.modal-body');
-        this.sendNowButton = container.locator('button:has-text("Yes, send now")');
-        this.cancelButton = container.locator('button:has-text("Cancel")');
-        this.closeButton = container.getByRole('button', {name: 'Close'});
+        this.body = container.getByTestId('sendNowModalBody');
+        this.sendNowButton = container.getByRole('button', {name: en['drafts.confirm.send.button']});
+        this.cancelButton = container.getByRole('button', {name: en['generic_btn.cancel']});
+        this.closeButton = container.getByRole('button', {name: en['generic.close']});
     }
 
     async toBeVisible() {

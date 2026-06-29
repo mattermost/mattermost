@@ -68,7 +68,7 @@ test.describe('channel mention resolution', () => {
             const lastPost = await channelsPage.getLastPost();
 
             // * The mention is NOT resolved into a clickable channel link for the cross-team viewer
-            await expect(lastPost.body.locator('a.mention-link[data-channel-mention]')).toHaveCount(0);
+            await expect(lastPost.getMentionLink()).toHaveCount(0);
 
             // * The raw `~slug` is rendered as plain text and the display name is never disclosed
             await expect(lastPost.body).toContainText(`~${channelName}`);
@@ -129,7 +129,7 @@ test.describe('channel mention resolution', () => {
                 const lastPost = await channelsPage.getLastPost();
 
                 // * The mention resolves to a clickable channel link showing the display name
-                const mentionLink = lastPost.body.locator(`a.mention-link[data-channel-mention="${channelName}"]`);
+                const mentionLink = lastPost.getMentionLink(channelName);
                 await expect(mentionLink).toBeVisible();
                 await expect(mentionLink).toContainText(channelDisplayName);
             } finally {

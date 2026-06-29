@@ -4,9 +4,10 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class NewChannelModal {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
 
+export default class NewChannelModal extends BaseComponent {
     readonly displayNameInput: Locator;
     readonly urlSection: Locator;
     readonly purposeInput: Locator;
@@ -14,17 +15,29 @@ export default class NewChannelModal {
     readonly privateTypeButton: Locator;
     readonly createButton: Locator;
     readonly cancelButton: Locator;
+    readonly classificationBannerTextInput: Locator;
+    readonly classificationToggle: Locator;
+    readonly classificationLevelDropdown: Locator;
+    readonly managedCategoryInput: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
         this.displayNameInput = container.locator('[name="new-channel-modal-name"]');
-        this.urlSection = container.locator('.new-channel-modal__url');
+        this.urlSection = container.getByTestId('channelURLSection');
         this.purposeInput = container.locator('#new-channel-modal-purpose');
         this.publicTypeButton = container.locator('#public-private-selector-button-O');
         this.privateTypeButton = container.locator('#public-private-selector-button-P');
-        this.createButton = container.getByRole('button', {name: 'Create channel'});
-        this.cancelButton = container.getByRole('button', {name: 'Cancel'});
+        this.createButton = container.getByRole('button', {name: en['channel_modal.createNew']});
+        this.cancelButton = container.getByRole('button', {name: en['channel_modal.cancel']});
+        this.classificationBannerTextInput = container.locator('#channel_classification_banner_text');
+        this.classificationToggle = container.getByTestId('channelClassificationToggle-button');
+        this.classificationLevelDropdown = container.getByTestId('channelClassificationLevel');
+        this.managedCategoryInput = container.getByRole('combobox');
+    }
+
+    get classificationDropdownMenu(): Locator {
+        return this.container.page().locator('[class*="DropDown__menu"]').last();
     }
 
     async toBeVisible() {

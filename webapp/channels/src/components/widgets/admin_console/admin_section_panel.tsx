@@ -14,6 +14,7 @@ type Props = {
     description?: string | MessageDescriptor;
     licenseSku?: string;
     children: React.ReactNode;
+    testId?: string;
 };
 
 const AdminSectionPanel: React.FC<Props> = ({
@@ -21,9 +22,13 @@ const AdminSectionPanel: React.FC<Props> = ({
     description,
     licenseSku,
     children,
+    testId,
 }) => {
     return (
-        <div className='AdminSectionPanel'>
+        <div
+            className='AdminSectionPanel'
+            data-testid={testId}
+        >
             {(title || description) && (
                 <div className='AdminSectionPanel__header'>
                     {title && (
@@ -37,7 +42,10 @@ const AdminSectionPanel: React.FC<Props> = ({
                         </h3>
                     )}
                     {description && (
-                        <div className='AdminSectionPanel__description'>
+                        <div
+                            className='AdminSectionPanel__description'
+                            data-testid='adminSectionPanelDescription'
+                        >
                             {typeof description === 'string' ? (
                                 description
                             ) : (
@@ -47,7 +55,10 @@ const AdminSectionPanel: React.FC<Props> = ({
                     )}
                 </div>
             )}
-            <div className='AdminSectionPanel__body'>
+            <div
+                className='AdminSectionPanel__body'
+                data-testid='adminSectionPanelBody'
+            >
                 {children}
             </div>
         </div>

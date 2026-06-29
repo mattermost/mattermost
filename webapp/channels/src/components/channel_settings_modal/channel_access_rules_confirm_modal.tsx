@@ -246,6 +246,7 @@ function ChannelAccessRulesConfirmModal({
                     <div className='ChannelAccessRulesConfirmModal__tabs'>
                         <button
                             className={`ChannelAccessRulesConfirmModal__tab ${activeTab === 'allowed' ? 'active' : ''}`}
+                            data-testid='confirmModalAllowedTab'
                             onClick={() => handleTabChange('allowed')}
                         >
                             <FormattedMessage
@@ -256,6 +257,7 @@ function ChannelAccessRulesConfirmModal({
                         </button>
                         <button
                             className={`ChannelAccessRulesConfirmModal__tab ${activeTab === 'restricted' ? 'active' : ''}`}
+                            data-testid='confirmModalRestrictedTab'
                             onClick={() => handleTabChange('restricted')}
                         >
                             <FormattedMessage

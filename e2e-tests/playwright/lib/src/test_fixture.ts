@@ -49,11 +49,40 @@ import {
     logFocusedElement,
 } from './test_action';
 import {pages} from './ui/pages';
+import type {
+    ChannelsPage,
+    ContentReviewPage,
+    DraftsPage,
+    LandingLoginPage,
+    LoginPage,
+    RecapsPage,
+    ResetPasswordPage,
+    SearchResultsPopout,
+    SignupPage,
+    ScheduledPostsPage,
+    SystemConsolePage,
+    ThreadsPage,
+} from './ui/pages';
 import {matchSnapshot} from './visual';
 import {stubNotification, waitForNotification} from './mock_browser_api';
 import {duration, getRandomId, newTestPassword, simpleEmailRe, wait} from './util';
 
 export {expect} from '@playwright/test';
+
+export type PagesMap = {
+    readonly channels: ChannelsPage;
+    readonly contentReview: ContentReviewPage;
+    readonly drafts: DraftsPage;
+    readonly landingLogin: LandingLoginPage;
+    readonly login: LoginPage;
+    readonly recaps: RecapsPage;
+    readonly resetPassword: ResetPasswordPage;
+    readonly searchResultsPopout: SearchResultsPopout;
+    readonly scheduledPosts: ScheduledPostsPage;
+    readonly signup: SignupPage;
+    readonly systemConsole: SystemConsolePage;
+    readonly threads: ThreadsPage;
+};
 
 export type ExtendedFixtures = {
     axe: AxeBuilderExtended;
@@ -147,6 +176,8 @@ export class PlaywrightExtended {
 
     readonly hasSeenLandingPage;
 
+    readonly pages: PagesMap;
+
     constructor(browser: Browser, page: Page, isMobile: boolean) {
         // ./browser_context
         this.testBrowser = new TestBrowser(browser);
@@ -224,6 +255,21 @@ export class PlaywrightExtended {
             // Visit the base URL to be able to set the localStorage
             await page.goto('/');
             return waitUntilLocalStorageIsSet(page, '__landingPageSeen__', 'true');
+        };
+
+        this.pages = {
+            channels: new pages.ChannelsPage(page),
+            contentReview: new pages.ContentReviewPage(page),
+            drafts: new pages.DraftsPage(page),
+            landingLogin: this.landingLoginPage,
+            login: this.loginPage,
+            recaps: new pages.RecapsPage(page),
+            resetPassword: this.resetPasswordPage,
+            searchResultsPopout: new pages.SearchResultsPopout(page),
+            scheduledPosts: new pages.ScheduledPostsPage(page),
+            signup: this.signupPage,
+            systemConsole: new pages.SystemConsolePage(page),
+            threads: new pages.ThreadsPage(page),
         };
     }
 }

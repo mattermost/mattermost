@@ -98,6 +98,7 @@ export function SystemUsersFilterRole(props: Props) {
             options={groupedOptions}
             value={value}
             onChange={handleChange}
+            testId='filterRoleSelect'
         />
     );
 }

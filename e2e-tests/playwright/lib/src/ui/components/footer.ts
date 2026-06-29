@@ -4,9 +4,10 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class Footer {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
 
+export default class Footer extends BaseComponent {
     readonly copyright;
     readonly aboutLink;
     readonly privacyPolicyLink;
@@ -14,13 +15,13 @@ export default class Footer {
     readonly helpLink;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
-        this.copyright = container.locator('.footer-copyright');
-        this.aboutLink = container.locator('text=About');
-        this.privacyPolicyLink = container.locator('text=Privacy Policy');
-        this.termsLink = container.locator('text=Terms');
-        this.helpLink = container.locator('text=Help');
+        this.copyright = container.getByTestId('footerCopyright');
+        this.aboutLink = container.getByRole('link', {name: en['web.footer.about']});
+        this.privacyPolicyLink = container.getByRole('link', {name: en['web.footer.privacy']});
+        this.termsLink = container.getByRole('link', {name: en['web.footer.terms']});
+        this.helpLink = container.getByRole('link', {name: en['web.footer.help']});
     }
 
     async toBeVisible() {

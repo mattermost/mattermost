@@ -103,8 +103,7 @@ test.describe('Burn-on-Read Receiver Flow', () => {
         await receiverPage.burnOnReadConfirmationModal.confirm();
 
         // * Verify post is removed from receiver's view
-        const deletedPostLocator = receiverPage.page.locator(`[id="post_${postId}"]`);
-        await expect(deletedPostLocator).not.toBeVisible();
+        await expect(receiverPage.getPostById(postId)).not.toBeVisible();
     });
 
     test(
@@ -298,16 +297,14 @@ test.describe('Burn-on-Read Receiver Flow', () => {
         // # Wait for timer to expire (10 seconds + buffer)
         // Use polling to check for post removal
         await expect(async () => {
-            const postLocator = receiverPage.page.locator(`[id="post_${postId}"]`);
-            await expect(postLocator).not.toBeVisible();
+            await expect(receiverPage.getPostById(postId)).not.toBeVisible();
         }).toPass({
             timeout: 30000,
             intervals: [1000],
         });
 
         // * Verify message is no longer visible
-        const deletedPostLocator = receiverPage.page.locator(`[id="post_${postId}"]`);
-        await expect(deletedPostLocator).not.toBeVisible();
+        await expect(receiverPage.getPostById(postId)).not.toBeVisible();
 
         // * Verify message text is not in the channel
         const pageContent = await receiverPage.centerView.container.textContent();

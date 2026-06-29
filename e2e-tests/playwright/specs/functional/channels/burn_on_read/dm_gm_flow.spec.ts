@@ -18,9 +18,8 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
 
         // # Login and navigate to DM
         const {channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
         await channelsPage.goto(team.name, `@${otherUser.username}`);
+        await channelsPage.toBeVisible();
 
         // * Verify BoR toggle button is available
         await expect(channelsPage.centerView.postCreate.burnOnReadButton).toBeVisible();
@@ -44,9 +43,8 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
 
         // # Login as sender and navigate to DM
         const {channelsPage: senderPage} = await pw.testBrowser.login(sender);
-        await senderPage.goto(team.name);
-        await senderPage.toBeVisible();
         await senderPage.goto(team.name, `@${receiver.username}`);
+        await senderPage.toBeVisible();
 
         // # Enable BoR and send message
         await senderPage.centerView.postCreate.toggleBurnOnRead();
@@ -64,9 +62,8 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
 
         // # Login as receiver and navigate to DM
         const {channelsPage: receiverPage} = await pw.testBrowser.login(receiver);
-        await receiverPage.goto(team.name);
-        await receiverPage.toBeVisible();
         await receiverPage.goto(team.name, `@${sender.username}`);
+        await receiverPage.toBeVisible();
 
         // # Get receiver's view of the post
         const receiverPost = await receiverPage.getLastPost();
@@ -189,9 +186,8 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
 
         // # Login as sender and navigate to DM
         const {channelsPage: senderPage} = await pw.testBrowser.login(sender);
-        await senderPage.goto(team.name);
-        await senderPage.toBeVisible();
         await senderPage.goto(team.name, `@${receiver.username}`);
+        await senderPage.toBeVisible();
 
         // # Enable BoR and send message
         await senderPage.centerView.postCreate.toggleBurnOnRead();
@@ -212,18 +208,15 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
         await senderPage.burnOnReadConfirmationModal.confirm();
 
         // * Verify post is removed from sender's view
-        const deletedPostSender = senderPage.page.locator(`[id="post_${postId}"]`);
-        await expect(deletedPostSender).not.toBeVisible();
+        await expect(senderPage.getPostById(postId)).not.toBeVisible();
 
         // # Login as receiver and verify message is not there
         const {channelsPage: receiverPage} = await pw.testBrowser.login(receiver);
-        await receiverPage.goto(team.name);
-        await receiverPage.toBeVisible();
         await receiverPage.goto(team.name, `@${sender.username}`);
+        await receiverPage.toBeVisible();
 
         // * Verify the deleted message is not visible to receiver
-        const deletedPostReceiver = receiverPage.page.locator(`[id="post_${postId}"]`);
-        await expect(deletedPostReceiver).not.toBeVisible();
+        await expect(receiverPage.getPostById(postId)).not.toBeVisible();
 
         // * Verify message content is not in the channel
         const channelContent = await receiverPage.centerView.container.textContent();
@@ -277,8 +270,7 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
         await receiverPage.burnOnReadConfirmationModal.confirm();
 
         // * Verify post is removed from receiver's view
-        const deletedPostReceiver = receiverPage.page.locator(`[id="post_${postId}"]`);
-        await expect(deletedPostReceiver).not.toBeVisible({timeout: 15000});
+        await expect(receiverPage.getPostById(postId)).not.toBeVisible({timeout: 15000});
 
         // * Verify message content is not visible in the channel
         await expect(receiverPage.centerView.container).not.toContainText(secretMessage);
@@ -296,9 +288,8 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
 
         // # Login as sender and navigate to DM
         const {channelsPage: senderPage} = await pw.testBrowser.login(sender);
-        await senderPage.goto(team.name);
-        await senderPage.toBeVisible();
         await senderPage.goto(team.name, `@${receiver.username}`);
+        await senderPage.toBeVisible();
 
         // # Enable BoR and send message
         await senderPage.centerView.postCreate.toggleBurnOnRead();
@@ -346,12 +337,14 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
         await receiverPage.toBeVisible();
 
         // Wait for posts to load - at least one concealed placeholder should be visible
-        await expect(receiverPage.centerView.container.locator('.BurnOnReadConcealedPlaceholder').first()).toBeVisible({
+        await expect(
+            receiverPage.centerView.container.getByTestId('burnOnReadConcealedPlaceholder').first(),
+        ).toBeVisible({
             timeout: 10000,
         });
 
         // * Get all concealed placeholders
-        const concealedPlaceholders = receiverPage.centerView.container.locator('.BurnOnReadConcealedPlaceholder');
+        const concealedPlaceholders = receiverPage.centerView.container.getByTestId('burnOnReadConcealedPlaceholder');
         const count = await concealedPlaceholders.count();
         expect(count).toBeGreaterThanOrEqual(1);
 

@@ -1078,6 +1078,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                         <CustomComponent
                             settingsList={settingsList}
                             key={section.key}
+                            testId={section.key}
                             sectionTitle={section.title}
                             sectionDescription={section.description}
                             {...section.componentProps}
@@ -1134,6 +1135,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                     sections.push(
                         <AdminSectionPanel
                             key={section.key}
+                            testId={section.key}
                             title={section.title}
                             description={section.description}
                             licenseSku={section.license_sku}

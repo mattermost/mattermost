@@ -121,6 +121,7 @@ const SingleValueSelector = ({
                 <input
                     type='text'
                     className='values-editor__simple-input'
+                    data-testid='valuesEditorInput'
                     value={isEditing ? inputValue : value}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={handleKeyDownSimpleInput}

@@ -4,9 +4,10 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class SearchBox {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
 
+export default class SearchBox extends BaseComponent {
     readonly messagesButton;
     readonly filesButton;
     readonly searchInput;
@@ -14,17 +15,37 @@ export default class SearchBox {
     readonly selectedSuggestion;
     readonly searchHints;
     readonly clearButton;
+    readonly searchResultsContainer: Locator;
+    readonly popoutButton: Locator;
+    readonly teamSelectorContainer: Locator;
+    readonly teamSelectorButton: Locator;
+    readonly searchTeamSelector: Locator;
+    readonly sbrSearchBox: Locator;
+    readonly mobileNavbarSearchButton: Locator;
+    readonly searchTypeBadge: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
-        this.messagesButton = container.getByRole('button', {name: 'Messages'});
-        this.filesButton = container.getByRole('button', {name: 'Files'});
-        this.searchInput = container.getByLabel('Search messages');
+        this.messagesButton = container.getByRole('button', {name: en['search_bar.messages_tab']});
+        this.filesButton = container.getByRole('button', {name: en['search_bar.files_tab']});
+        this.searchInput = container.getByLabel(en['search_bar.search_messages']);
         this.searchBoxClose = container.getByTestId('searchBoxClose');
-        this.selectedSuggestion = container.locator('.suggestion--selected').locator('.suggestion-list__main');
+        this.selectedSuggestion = container.getByTestId('selectedSuggestion').getByTestId('suggestionMain');
         this.searchHints = container.locator('#searchHints');
-        this.clearButton = container.locator('.input-clear-x');
+        this.clearButton = container.getByRole('button', {name: en['search_bar.clear']});
+
+        const page = container.page();
+        this.searchResultsContainer = page.locator('#searchContainer');
+        this.popoutButton = this.searchResultsContainer.getByRole('button', {name: en['new_window_button.tooltip']});
+        this.teamSelectorContainer = this.searchResultsContainer.getByTestId('teamSelectorContainer');
+        this.teamSelectorButton = this.teamSelectorContainer.getByTestId('searchTeamsSelectorMenuButton');
+        this.searchTeamSelector = container.getByTestId('searchTeamSelector');
+        this.sbrSearchBox = page.locator('#sbrSearchBox');
+        this.mobileNavbarSearchButton = page
+            .locator('#navbar')
+            .getByRole('button', {name: en['search_bar.search'], exact: true});
+        this.searchTypeBadge = page.getByTestId('searchTypeBadge');
     }
 
     // clearIfPossible clears the search input if the clear button is visible. Returns true if the clear button was clicked.
@@ -42,6 +63,6 @@ export default class SearchBox {
     }
 
     getSelectedSuggestion() {
-        return this.searchHints.locator('.suggestion--selected');
+        return this.searchHints.getByTestId('selectedSuggestion');
     }
 }

@@ -248,7 +248,7 @@ test.describe('Anonymous URLs', () => {
 
             // # Open new channel modal
             await channelsPage.sidebarLeft.browseOrCreateChannelButton.click();
-            await channelsPage.page.locator('#createNewChannelMenuItem').click();
+            await channelsPage.sidebarLeft.createNewChannelMenuItem.click();
             await channelsPage.newChannelModal.toBeVisible();
 
             // # Fill in a channel name
@@ -298,7 +298,7 @@ test.describe('Anonymous URLs', () => {
             // # Create a new channel via UI
             const channelDisplayName = 'Obfuscated Channel ' + Date.now();
             await channelsPage.sidebarLeft.browseOrCreateChannelButton.click();
-            await channelsPage.page.locator('#createNewChannelMenuItem').click();
+            await channelsPage.sidebarLeft.createNewChannelMenuItem.click();
             await channelsPage.newChannelModal.toBeVisible();
             await channelsPage.newChannelModal.fillDisplayName(channelDisplayName);
             await setAnonymousUrls(adminClient, true);
@@ -344,7 +344,7 @@ test.describe('Anonymous URLs', () => {
 
             // # Open new channel modal
             await channelsPage.sidebarLeft.browseOrCreateChannelButton.click();
-            await channelsPage.page.locator('#createNewChannelMenuItem').click();
+            await channelsPage.sidebarLeft.createNewChannelMenuItem.click();
             await channelsPage.newChannelModal.toBeVisible();
 
             // # Type a display name to trigger URL generation

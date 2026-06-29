@@ -4,49 +4,39 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-import {
-    RadioSetting,
-    TextInputSetting,
-    NumberInputSetting,
-    DropdownSetting,
-    AdminSectionPanel,
-} from '../../base_components';
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
+
+import {RadioSetting, TextInputSetting, NumberInputSetting, DropdownSetting} from '../../base_components';
 
 /**
  * System Console -> Environment -> Mobile Security
  */
-export default class MobileSecurity {
-    readonly container: Locator;
-
-    // Header
+export default class MobileSecurity extends BaseComponent {
     readonly header: Locator;
 
-    // Panels
     readonly generalMobileSecurity: GeneralMobileSecurityPanel;
     readonly microsoftIntune: MicrosoftIntunePanel;
     readonly mobileEphemeralMode: MobileEphemeralModePanel;
 
-    // Save section
     readonly saveButton: Locator;
     readonly errorMessage: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
-        this.header = container.getByText('Mobile Security', {exact: true});
+        this.header = container.getByText(en['admin.mobileSecurity.title'], {exact: true});
 
         this.generalMobileSecurity = new GeneralMobileSecurityPanel(
-            container.locator('.AdminSectionPanel').filter({hasText: 'General Mobile Security'}),
+            container.getByTestId('MobileSecuritySettings.General'),
         );
-        this.microsoftIntune = new MicrosoftIntunePanel(
-            container.locator('.AdminSectionPanel').filter({hasText: 'Microsoft Intune'}),
-        );
+        this.microsoftIntune = new MicrosoftIntunePanel(container.getByTestId('MobileSecuritySettings.Intune'));
         this.mobileEphemeralMode = new MobileEphemeralModePanel(
-            container.locator('.AdminSectionPanel').filter({hasText: 'Mobile Ephemeral Mode'}),
+            container.getByTestId('MobileSecuritySettings.EphemeralMode'),
         );
 
-        this.saveButton = container.getByRole('button', {name: 'Save'});
-        this.errorMessage = container.locator('.error-message');
+        this.saveButton = container.getByTestId('saveSetting');
+        this.errorMessage = container.getByTestId('errorMessage');
     }
 
     async toBeVisible() {
@@ -58,7 +48,6 @@ export default class MobileSecurity {
         await this.saveButton.click();
     }
 
-    // Convenience shortcuts for General Mobile Security settings
     get enableBiometricAuthentication() {
         return this.generalMobileSecurity.enableBiometricAuthentication;
     }
@@ -75,7 +64,6 @@ export default class MobileSecurity {
         return this.generalMobileSecurity.allowPdfLinkNavigation;
     }
 
-    // Convenience shortcuts for Microsoft Intune settings
     get enableIntuneMAM() {
         return this.microsoftIntune.enableIntuneMAM;
     }
@@ -89,7 +77,6 @@ export default class MobileSecurity {
         return this.microsoftIntune.clientId;
     }
 
-    // Convenience shortcuts for Mobile Ephemeral Mode settings
     get enableMobileEphemeralMode() {
         return this.mobileEphemeralMode.enableMobileEphemeralMode;
     }
@@ -104,7 +91,7 @@ export default class MobileSecurity {
     }
 }
 
-class GeneralMobileSecurityPanel extends AdminSectionPanel {
+class GeneralMobileSecurityPanel extends BaseComponent {
     readonly enableBiometricAuthentication: RadioSetting;
     readonly preventScreenCapture: RadioSetting;
     readonly enableJailbreakProtection: RadioSetting;
@@ -112,73 +99,72 @@ class GeneralMobileSecurityPanel extends AdminSectionPanel {
     readonly allowPdfLinkNavigation: RadioSetting;
 
     constructor(container: Locator) {
-        super(container, 'General Mobile Security');
+        super(container);
 
         this.enableBiometricAuthentication = new RadioSetting(
-            this.body.getByRole('group', {name: /Enable Biometric Authentication/}),
+            container.getByTestId('NativeAppSettings.MobileEnableBiometrics'),
         );
-        this.preventScreenCapture = new RadioSetting(this.body.getByRole('group', {name: /Prevent Screen Capture/}));
+        this.preventScreenCapture = new RadioSetting(
+            container.getByTestId('NativeAppSettings.MobilePreventScreenCapture'),
+        );
         this.enableJailbreakProtection = new RadioSetting(
-            this.body.getByRole('group', {name: /Enable Jailbreak\/Root Protection/}),
+            container.getByTestId('NativeAppSettings.MobileJailbreakProtection'),
         );
         this.enableSecureFilePreviewMode = new RadioSetting(
-            this.body.getByRole('group', {name: /Enable Secure File Preview Mode/}),
+            container.getByTestId('NativeAppSettings.MobileEnableSecureFilePreview'),
         );
         this.allowPdfLinkNavigation = new RadioSetting(
-            this.body.getByRole('group', {name: /Allow Link Navigation in Secure PDFs/}),
+            container.getByTestId('NativeAppSettings.MobileAllowPdfLinkNavigation'),
         );
     }
 }
 
-class MobileEphemeralModePanel extends AdminSectionPanel {
+class MobileEphemeralModePanel extends BaseComponent {
     readonly enableMobileEphemeralMode: RadioSetting;
     readonly disconnectionTimeout: NumberInputSetting;
     readonly offlinePersistenceTimer: NumberInputSetting;
     readonly autoCacheCleanup: NumberInputSetting;
 
     constructor(container: Locator) {
-        super(container, 'Mobile Ephemeral Mode');
+        super(container);
 
-        this.enableMobileEphemeralMode = new RadioSetting(
-            this.body.getByRole('group', {name: /Enable Mobile Ephemeral Mode/}),
-        );
+        this.enableMobileEphemeralMode = new RadioSetting(container.getByTestId('MobileEphemeralModeSettings.Enable'));
         this.disconnectionTimeout = new NumberInputSetting(
-            this.body.locator('.form-group').filter({hasText: 'Disconnection Timeout (seconds):'}),
-            'Disconnection Timeout (seconds):',
+            container.getByTestId('MobileEphemeralModeSettings.DisconnectionTimeoutSeconds'),
+            en['admin.mobileSecurity.ephemeralMode.disconnectionTimeoutTitle'],
         );
         this.offlinePersistenceTimer = new NumberInputSetting(
-            this.body.locator('.form-group').filter({hasText: 'Offline Persistence Timer (hours):'}),
-            'Offline Persistence Timer (hours):',
+            container.getByTestId('MobileEphemeralModeSettings.OfflinePersistenceTimerHours'),
+            en['admin.mobileSecurity.ephemeralMode.offlinePersistenceTitle'],
         );
         this.autoCacheCleanup = new NumberInputSetting(
-            this.body.locator('.form-group').filter({hasText: 'Auto Cache Cleanup (days):'}),
-            'Auto Cache Cleanup (days):',
+            container.getByTestId('MobileEphemeralModeSettings.AutoCacheCleanupDays'),
+            en['admin.mobileSecurity.ephemeralMode.autoCacheCleanupTitle'],
         );
     }
 }
 
-class MicrosoftIntunePanel extends AdminSectionPanel {
+class MicrosoftIntunePanel extends BaseComponent {
     readonly enableIntuneMAM: RadioSetting;
     readonly authProvider: DropdownSetting;
     readonly tenantId: TextInputSetting;
     readonly clientId: TextInputSetting;
 
     constructor(container: Locator) {
-        super(container, 'Microsoft Intune');
+        super(container);
 
-        this.enableIntuneMAM = new RadioSetting(this.body.getByRole('group', {name: /Enable Microsoft Intune MAM/}));
-
+        this.enableIntuneMAM = new RadioSetting(container.getByTestId('IntuneSettings.Enable'));
         this.authProvider = new DropdownSetting(
-            this.body.locator('.form-group').filter({hasText: 'Auth Provider:'}),
-            'Auth Provider:',
+            container.getByTestId('IntuneSettings.AuthService'),
+            en['admin.intune.authServiceTitle'],
         );
         this.tenantId = new TextInputSetting(
-            this.body.locator('.form-group').filter({hasText: 'Tenant ID:'}),
-            'Tenant ID:',
+            container.getByTestId('IntuneSettings.TenantId'),
+            en['admin.intune.tenantIdTitle'],
         );
         this.clientId = new TextInputSetting(
-            this.body.locator('.form-group').filter({hasText: 'Application (Client) ID:'}),
-            'Application (Client) ID:',
+            container.getByTestId('IntuneSettings.ClientId'),
+            en['admin.intune.clientIdTitle'],
         );
     }
 }

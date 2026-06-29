@@ -70,14 +70,19 @@ function BurnOnReadConcealedPlaceholder({
             {showError ? (
                 <div
                     className='BurnOnReadConcealedPlaceholder BurnOnReadConcealedPlaceholder--error'
+                    data-testid='burnOnReadConcealedPlaceholder'
                     role='alert'
                 >
                     <div className='BurnOnReadConcealedPlaceholder__content'>
                         <AlertCircleOutlineIcon
                             size={12}
                             className='BurnOnReadConcealedPlaceholder__icon BurnOnReadConcealedPlaceholder__icon--error'
+                            data-testid='burnOnReadConcealedIcon'
                         />
-                        <span className='BurnOnReadConcealedPlaceholder__text BurnOnReadConcealedPlaceholder__text--error'>
+                        <span
+                            data-testid='burnOnReadConcealedText'
+                            className='BurnOnReadConcealedPlaceholder__text BurnOnReadConcealedPlaceholder__text--error'
+                        >
                             {formatMessage({
                                 id: 'post.burn_on_read.reveal_error',
                                 defaultMessage: 'Unable to reveal message. Please try again later.',
@@ -94,7 +99,7 @@ function BurnOnReadConcealedPlaceholder({
                     disabled={loading}
                     aria-label={ariaLabel}
                     tabIndex={0}
-                    data-testid={`burn-on-read-concealed-${postId}`}
+                    data-testid='burnOnReadConcealedPlaceholder'
                 >
                     {loading ? (
                         <LoadingSpinner/>
@@ -103,8 +108,12 @@ function BurnOnReadConcealedPlaceholder({
                             <EyeOutlineIcon
                                 size={12}
                                 className='BurnOnReadConcealedPlaceholder__icon'
+                                data-testid='burnOnReadConcealedIcon'
                             />
-                            <span className='BurnOnReadConcealedPlaceholder__text'>
+                            <span
+                                data-testid='burnOnReadConcealedText'
+                                className='BurnOnReadConcealedPlaceholder__text'
+                            >
                                 {formatMessage({
                                     id: 'post.burn_on_read.view_message',
                                     defaultMessage: 'View message',

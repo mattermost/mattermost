@@ -402,10 +402,7 @@ test.describe('System Console - User Attributes Management', () => {
 
         // # Wait for the checkbox to reflect the toggled (unchecked) state before dismissing,
         // # to avoid a race where Escape fires before the UI registers the change
-        await expect(systemConsolePage.page.getByRole('menuitemcheckbox', {name: 'Editable by users'})).toHaveAttribute(
-            'aria-checked',
-            'false',
-        );
+        await expect(sp.editableByUsersMenuItem()).toHaveAttribute('aria-checked', 'false');
 
         // # Close the dot menu — it stays open after toggling; backdrop would block Save click
         await sp.dismissMenu();

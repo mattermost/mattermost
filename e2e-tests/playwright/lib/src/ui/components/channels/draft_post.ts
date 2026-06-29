@@ -4,9 +4,9 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class DraftPost {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
 
+export default class DraftPost extends BaseComponent {
     readonly panelHeader;
     readonly panelBody;
 
@@ -20,14 +20,14 @@ export default class DraftPost {
     readonly sendButton;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
-        this.panelHeader = container.locator('.PanelHeader');
-        this.panelBody = container.locator('.DraftPanelBody');
+        this.panelHeader = container.getByTestId('panelHeader');
+        this.panelBody = container.getByTestId('draftPanelBody');
 
-        this.postBody = container.locator('.post__body');
-        this.postHeader = container.locator('.post__header');
-        this.postImage = container.locator('.post__img');
+        this.postBody = container.getByTestId('draftPanelBodyContent');
+        this.postHeader = container.getByTestId('draftPanelBodyHeader');
+        this.postImage = container.getByTestId('draftPanelBodyImage');
 
         this.deleteButton = container.locator('#draft_icon-trash-can-outline_delete');
         this.editButton = container.locator('#draft_icon-pencil-outline_edit');

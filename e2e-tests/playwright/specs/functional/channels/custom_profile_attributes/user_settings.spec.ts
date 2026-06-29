@@ -8,6 +8,7 @@ import type {Client4} from '@mattermost/client';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
 import {expect, test} from '@mattermost/playwright-lib';
+import type {ChannelsPage} from '@mattermost/playwright-lib';
 
 import type {CustomProfileAttribute} from './helpers';
 import {
@@ -84,6 +85,7 @@ let testChannel: Channel;
 let attributeFieldsMap: Record<string, UserPropertyField>;
 let adminClient: Client4;
 let userClient: Client4;
+let channelsPage: ChannelsPage;
 
 test.beforeEach(async ({pw}) => {
     // Skip test if no license for "Custom Profile Attributes"
@@ -111,13 +113,14 @@ test.beforeEach(async ({pw}) => {
     attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, customAttributes);
 
     // Login as the test user
-    const {page} = await pw.testBrowser.login(user);
+    ({channelsPage} = await pw.testBrowser.login(user));
 
     // Set up initial values for custom profile attributes
     await setupCustomProfileAttributeValues(userClient, customAttributes, attributeFieldsMap);
 
-    // Visit the test channel
-    await page.goto(`/${team.name}/channels/${testChannel.name}`);
+    // Visit the test channel and wait for it to be visible
+    await channelsPage.goto(team.name, testChannel.name);
+    await channelsPage.toBeVisible();
 });
 
 test.afterAll(async () => {
@@ -145,25 +148,23 @@ test.afterAll(async () => {
  * 5. Both users are members of the same channel
  */
 test('MM-T5768 Editing Custom Profile Attributes @custom_profile_attributes', async ({pw}) => {
-    // 1. Login as the test user
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
+    // 1. Use the channels page opened in beforeEach
 
     // 2. Open profile settings modal
     const profileModal = await channelsPage.openProfileModal();
     await profileModal.toBeVisible();
 
     // * Verify that custom profile attributes section exists
-    await verifyAttributesExistInSettings(page, customAttributes);
+    await verifyAttributesExistInSettings(channelsPage, customAttributes);
 
     // 3. Edit the DepartmentUS attribute and change to "Product"
-    await editTextAttribute(page, attributeFieldsMap, 'DepartmentUS', TEST_UPDATED_DEPARTMENT);
+    await editTextAttribute(channelsPage, attributeFieldsMap, 'DepartmentUS', TEST_UPDATED_DEPARTMENT);
 
     // 4. Edit the LocationUS attribute (select field) and select "Remote" (index 0)
-    await editSelectAttribute(page, attributeFieldsMap, 'LocationUS', 0); // Remote is the first option (index 0)
+    await editSelectAttribute(channelsPage, attributeFieldsMap, 'LocationUS', 0); // Remote is the first option (index 0)
 
     // 5. Edit the SkillsUS attribute (multiselect field) and select "Python" and "Node.js"
-    await editMultiselectAttribute(page, attributeFieldsMap, 'SkillsUS', [3, 2]); // Python (index 3) and Node.js (index 2)
+    await editMultiselectAttribute(channelsPage, attributeFieldsMap, 'SkillsUS', [3, 2]); // Python (index 3) and Node.js (index 2)
 
     // 6. Close the profile settings modal
     await profileModal.closeModal();
@@ -173,7 +174,7 @@ test('MM-T5768 Editing Custom Profile Attributes @custom_profile_attributes', as
 
     // 8. Login as the other user to view the profile popover
     const {channelsPage: otherChannelsPage} = await pw.testBrowser.login(otherUser);
-    await otherChannelsPage.goto();
+    await otherChannelsPage.goto(team.name, testChannel.name);
 
     // 9. View the test user's profile popover
     const lastPost = await otherChannelsPage.getLastPost();
@@ -197,9 +198,7 @@ test('MM-T5768 Editing Custom Profile Attributes @custom_profile_attributes', as
  * 4. Two user accounts exist and are members of the same channel
  */
 test('MM-T5769 Clearing Custom Profile Attributes @custom_profile_attributes', async ({pw}) => {
-    // 1. Login as the test user
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
+    // 1. Use the channels page opened in beforeEach
 
     // Prepare the environment by posting a message as other user
     await adminClient.createPost({
@@ -213,7 +212,7 @@ test('MM-T5769 Clearing Custom Profile Attributes @custom_profile_attributes', a
     await profileModal.toBeVisible();
 
     // 3. Edit DepartmentUS field and delete all text to clear the value
-    await editTextAttribute(page, attributeFieldsMap, 'DepartmentUS', '');
+    await editTextAttribute(channelsPage, attributeFieldsMap, 'DepartmentUS', '');
 
     // 4. Close the profile settings modal
     await profileModal.closeModal();
@@ -223,7 +222,7 @@ test('MM-T5769 Clearing Custom Profile Attributes @custom_profile_attributes', a
 
     // 6. Login as the other user
     const {channelsPage: otherChannelsPage} = await pw.testBrowser.login(otherUser);
-    await otherChannelsPage.goto();
+    await otherChannelsPage.goto(team.name, testChannel.name);
 
     // 7. View the test user's profile popover
     const lastPost = await channelsPage.getLastPost();
@@ -242,10 +241,8 @@ test('MM-T5769 Clearing Custom Profile Attributes @custom_profile_attributes', a
  * 2. Admin has created custom profile attributes
  * 3. Test user has Department value set to "Engineering"
  */
-test('MM-T5770 Cancelling Changes to Custom Profile Attributes @custom_profile_attributes', async ({pw}) => {
-    // 1. Login as the test user
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
+test('MM-T5770 Cancelling Changes to Custom Profile Attributes @custom_profile_attributes', async () => {
+    // 1. Use the channels page opened in beforeEach
 
     // 2. Open profile settings modal
     const profileModal = await channelsPage.openProfileModal();
@@ -254,23 +251,23 @@ test('MM-T5770 Cancelling Changes to Custom Profile Attributes @custom_profile_a
     // 3. Edit DepartmentUS field and change to "Changed Value"
     const department = 'DepartmentUS';
     const fieldId = getFieldIdByName(attributeFieldsMap, department);
-    await profileModal.container.locator(`text=${department}`).scrollIntoViewIfNeeded();
-    await profileModal.container.locator(`#customAttribute_${fieldId}Edit`).scrollIntoViewIfNeeded();
-    await profileModal.container.locator(`#customAttribute_${fieldId}Edit`).click();
-    await profileModal.container.locator(`#customAttribute_${fieldId}`).scrollIntoViewIfNeeded();
-    await profileModal.container.locator(`#customAttribute_${fieldId}`).clear();
-    await profileModal.container.locator(`#customAttribute_${fieldId}`).fill(TEST_CHANGED_VALUE);
+    await profileModal.container.getByText(department).scrollIntoViewIfNeeded();
+    await channelsPage.customProfileAttributes.getAttributeEditButton(fieldId).scrollIntoViewIfNeeded();
+    await channelsPage.customProfileAttributes.getAttributeEditButton(fieldId).click();
+    await channelsPage.customProfileAttributes.getAttributeInput(fieldId).scrollIntoViewIfNeeded();
+    await channelsPage.customProfileAttributes.getAttributeInput(fieldId).clear();
+    await channelsPage.customProfileAttributes.getAttributeInput(fieldId).fill(TEST_CHANGED_VALUE);
 
     // 4. Click Cancel button
     await profileModal.cancelButton.click();
 
     // 5. Open DepartmentUS field for editing again
-    await profileModal.container.locator(`text=${department}`).scrollIntoViewIfNeeded();
-    await profileModal.container.locator(`#customAttribute_${fieldId}Edit`).scrollIntoViewIfNeeded();
-    await profileModal.container.locator(`#customAttribute_${fieldId}Edit`).click();
+    await profileModal.container.getByText(department).scrollIntoViewIfNeeded();
+    await channelsPage.customProfileAttributes.getAttributeEditButton(fieldId).scrollIntoViewIfNeeded();
+    await channelsPage.customProfileAttributes.getAttributeEditButton(fieldId).click();
 
     // * After cancelling, DepartmentUS field should still show original value "Engineering"
-    await expect(profileModal.container.locator(`#customAttribute_${fieldId}`)).toHaveValue(TEST_DEPARTMENT);
+    await expect(channelsPage.customProfileAttributes.getAttributeInput(fieldId)).toHaveValue(TEST_DEPARTMENT);
 });
 
 /**
@@ -286,9 +283,7 @@ test('MM-T5770 Cancelling Changes to Custom Profile Attributes @custom_profile_a
  * 4. Two user accounts exist and are members of the same channel
  */
 test('MM-T5771 Editing Phone and URL Type Custom Profile Attributes @custom_profile_attributes', async ({pw}) => {
-    // 1. Login as the test user
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
+    // 1. Use the channels page opened in beforeEach
 
     // Prepare the environment by posting a message as other user
     await adminClient.createPost({
@@ -302,10 +297,10 @@ test('MM-T5771 Editing Phone and URL Type Custom Profile Attributes @custom_prof
     await profileModal.toBeVisible();
 
     // 3. Edit PhoneUS field and change to "555-987-6543"
-    await editTextAttribute(page, attributeFieldsMap, 'PhoneUS', TEST_UPDATED_PHONE);
+    await editTextAttribute(channelsPage, attributeFieldsMap, 'PhoneUS', TEST_UPDATED_PHONE);
 
     // 4. Edit WebsiteUS field and change to "https://mattermost.com"
-    await editTextAttribute(page, attributeFieldsMap, 'WebsiteUS', TEST_UPDATED_URL);
+    await editTextAttribute(channelsPage, attributeFieldsMap, 'WebsiteUS', TEST_UPDATED_URL);
 
     // 5. Close the profile settings modal
     await profileModal.closeModal();
@@ -315,7 +310,7 @@ test('MM-T5771 Editing Phone and URL Type Custom Profile Attributes @custom_prof
 
     // 7. Login as the other user
     const {channelsPage: otherChannelsPage} = await pw.testBrowser.login(otherUser);
-    await otherChannelsPage.goto();
+    await otherChannelsPage.goto(team.name, testChannel.name);
 
     // 8. View the test user's profile popover
     const lastPost = await otherChannelsPage.getLastPost();
@@ -335,10 +330,8 @@ test('MM-T5771 Editing Phone and URL Type Custom Profile Attributes @custom_prof
  * 2. Admin has created Website custom profile attribute with URL validation
  * 3. Test user has Website value set to "https://example.com"
  */
-test('MM-T5772 URL Validation in Custom Profile Attributes @custom_profile_attributes', async ({pw}) => {
-    // 1. Login as the test user
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
+test('MM-T5772 URL Validation in Custom Profile Attributes @custom_profile_attributes', async () => {
+    // 1. Use the channels page opened in beforeEach
 
     // 2. Open profile settings modal
     const profileModal = await channelsPage.openProfileModal();
@@ -346,28 +339,28 @@ test('MM-T5772 URL Validation in Custom Profile Attributes @custom_profile_attri
 
     // 3. Edit WebsiteUS field and enter an invalid URL
     const fieldId = getFieldIdByName(attributeFieldsMap, 'WebsiteUS');
-    await profileModal.container.locator('text=WebsiteUS').scrollIntoViewIfNeeded();
-    await profileModal.container.locator(`#customAttribute_${fieldId}Edit`).scrollIntoViewIfNeeded();
-    await profileModal.container.locator(`#customAttribute_${fieldId}Edit`).click();
-    await profileModal.container.locator(`#customAttribute_${fieldId}`).scrollIntoViewIfNeeded();
-    await profileModal.container.locator(`#customAttribute_${fieldId}`).clear();
-    await profileModal.container.locator(`#customAttribute_${fieldId}`).fill(TEST_INVALID_URL);
-    await profileModal.container.locator(`#customAttribute_${fieldId}`).blur();
+    await profileModal.container.getByText('WebsiteUS').scrollIntoViewIfNeeded();
+    await channelsPage.customProfileAttributes.getAttributeEditButton(fieldId).scrollIntoViewIfNeeded();
+    await channelsPage.customProfileAttributes.getAttributeEditButton(fieldId).click();
+    await channelsPage.customProfileAttributes.getAttributeInput(fieldId).scrollIntoViewIfNeeded();
+    await channelsPage.customProfileAttributes.getAttributeInput(fieldId).clear();
+    await channelsPage.customProfileAttributes.getAttributeInput(fieldId).fill(TEST_INVALID_URL);
+    await channelsPage.customProfileAttributes.getAttributeInput(fieldId).blur();
 
     // * Save button doesn't complete the operation with invalid URL
-    await expect(profileModal.container.locator(`#error_customAttribute_${fieldId}`)).toBeVisible();
-    await expect(profileModal.container.locator(`#error_customAttribute_${fieldId}`)).toHaveText(
+    await expect(channelsPage.customProfileAttributes.getAttributeError(fieldId)).toBeVisible();
+    await expect(channelsPage.customProfileAttributes.getAttributeError(fieldId)).toHaveText(
         'Please enter a valid url.',
     );
 
     // 5. Edit Website field and enter a valid URL
-    await profileModal.container.locator(`#customAttribute_${fieldId}`).clear();
-    await profileModal.container.locator(`#customAttribute_${fieldId}`).fill(TEST_VALID_URL);
+    await channelsPage.customProfileAttributes.getAttributeInput(fieldId).clear();
+    await channelsPage.customProfileAttributes.getAttributeInput(fieldId).fill(TEST_VALID_URL);
 
     // 6. Save the changes
     await profileModal.saveButton.click();
 
     // * Valid URL saves successfully with no error message
-    await expect(profileModal.container.locator(`#error_customAttribute_${fieldId}`)).not.toBeVisible();
+    await expect(channelsPage.customProfileAttributes.getAttributeError(fieldId)).not.toBeVisible();
     await expect(profileModal.container).toContainText(TEST_VALID_URL);
 });

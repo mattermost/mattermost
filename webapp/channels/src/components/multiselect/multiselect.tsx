@@ -302,6 +302,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
             {...innerProps}
             role='button'
             tabIndex={0}
+            data-testid='multiselectValueRemove'
             aria-label={this.props.intl.formatMessage({
                 id: 'multiselect.remove',
                 defaultMessage: 'Remove {label}',

@@ -4,31 +4,28 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
+
 /**
  * System Console -> User Management -> Permissions -> System Scheme (Edit Scheme).
  * Used to assert permission toggles (e.g. Manage Channel Auto Translation) per role section.
  */
-export default class PermissionsSystemScheme {
-    readonly container: Locator;
-
+export default class PermissionsSystemScheme extends BaseComponent {
     readonly systemSchemeHeader: Locator;
     readonly channelAdministratorsSection: Locator;
     readonly teamAdministratorsSection: Locator;
     readonly systemAdministratorsSection: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
-        this.systemSchemeHeader = container.locator('.admin-console__header').getByText('System Scheme', {exact: true});
-        this.channelAdministratorsSection = container
-            .locator('.permissions-block')
-            .filter({hasText: 'Channel Administrators'});
-        this.teamAdministratorsSection = container
-            .locator('.permissions-block')
-            .filter({hasText: 'Team Administrators'});
-        this.systemAdministratorsSection = container
-            .locator('.permissions-block')
-            .filter({hasText: 'System Administrators'});
+        this.systemSchemeHeader = container
+            .getByTestId('adminConsoleHeader')
+            .getByText(en['admin.permissions.systemScheme'], {exact: true});
+        this.channelAdministratorsSection = container.locator('#channelAdmins');
+        this.teamAdministratorsSection = container.locator('#teamAdmins');
+        this.systemAdministratorsSection = container.locator('#systemAdmins');
     }
 
     async toBeVisible() {
@@ -40,7 +37,7 @@ export default class PermissionsSystemScheme {
      * There can be two (public and private channel).
      */
     getManageChannelAutoTranslationRows(section: Locator): Locator {
-        return section.locator('.permission-row').filter({hasText: 'Manage Channel Auto Translation'});
+        return section.getByTestId('permissionRow').filter({hasText: 'Manage Channel Auto Translation'});
     }
 
     /**
@@ -57,7 +54,7 @@ export default class PermissionsSystemScheme {
         }
         for (let i = 0; i < count; i++) {
             const row = rows.nth(i);
-            await expect(row.locator('.permission-check.checked')).toBeVisible();
+            await expect(row.getByTestId('permissionCheck')).toHaveClass(/checked/);
         }
     }
 
@@ -75,7 +72,7 @@ export default class PermissionsSystemScheme {
         }
         for (let i = 0; i < count; i++) {
             const row = rows.nth(i);
-            await expect(row.locator('.permission-check.checked')).not.toBeVisible();
+            await expect(row.getByTestId('permissionCheck')).not.toHaveClass(/checked/);
         }
     }
 }

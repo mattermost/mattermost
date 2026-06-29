@@ -4,15 +4,16 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-import BurnOnReadBadge from './burn_on_read_badge';
-import BurnOnReadConcealedPlaceholder from './burn_on_read_concealed_placeholder';
-import BurnOnReadTimerChip from './burn_on_read_timer_chip';
+import en from '@/i18n';
+import {BaseComponent} from '@/ui/base_component';
+
+import BurnOnReadBadge from './burn_on_read/badge';
+import BurnOnReadConcealedPlaceholder from './burn_on_read/concealed_placeholder';
+import BurnOnReadTimerChip from './burn_on_read/timer_chip';
 import PostMenu from './post_menu';
 import ThreadFooter from './thread_footer';
 
-export default class ChannelsPost {
-    readonly container: Locator;
-
+export default class ChannelsPost extends BaseComponent {
     readonly body;
     readonly profileIcon;
 
@@ -26,24 +27,38 @@ export default class ChannelsPost {
     readonly burnOnReadTimerChip;
     readonly concealedPlaceholder;
 
+    // Post body sub-elements
+    readonly attachmentTitleLink: Locator;
+    readonly attachmentAuthorName: Locator;
+    readonly postPriority: Locator;
+    readonly visibilityNote: Locator;
+    readonly mentionHighlight: Locator;
+
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
-        this.body = container.locator('.post__body');
+        this.body = container.getByTestId('postBody');
 
-        this.profileIcon = container.locator('.profile-icon');
+        this.profileIcon = container.getByTestId('profileIcon');
 
-        this.removePostButton = container.locator('.post__remove');
+        this.removePostButton = container.getByTestId('postRemoveButton');
 
-        this.postMenu = new PostMenu(container.locator('.post-menu'));
-        this.threadFooter = new ThreadFooter(container.locator('.ThreadFooter'));
+        this.postMenu = new PostMenu(container.getByTestId('postMenu'));
+        this.threadFooter = new ThreadFooter(container.getByTestId('threadFooter'));
 
         // Burn-on-Read components
-        this.burnOnReadBadge = new BurnOnReadBadge(container.locator('.BurnOnReadBadge'));
-        this.burnOnReadTimerChip = new BurnOnReadTimerChip(container.locator('.BurnOnReadTimerChip'));
+        this.burnOnReadBadge = new BurnOnReadBadge(container.getByTestId('burnOnReadBadge'));
+        this.burnOnReadTimerChip = new BurnOnReadTimerChip(container.getByTestId('burnOnReadTimerChip'));
         this.concealedPlaceholder = new BurnOnReadConcealedPlaceholder(
-            container.locator('.BurnOnReadConcealedPlaceholder'),
+            container.getByTestId('burnOnReadConcealedPlaceholder'),
         );
+
+        // Post body sub-elements
+        this.attachmentTitleLink = container.getByTestId('attachmentTitleLink');
+        this.attachmentAuthorName = container.getByTestId('attachmentAuthorName');
+        this.postPriority = container.getByTestId('post-priority-label');
+        this.visibilityNote = container.getByTestId('postVisibilityNote');
+        this.mentionHighlight = container.getByTestId('mentionHighlight');
     }
 
     async toBeVisible() {
@@ -135,5 +150,28 @@ export default class ChannelsPost {
      */
     async isRevealed(): Promise<boolean> {
         return !(await this.isConcealed());
+    }
+
+    get ephemeralLabel(): Locator {
+        return this.container.getByText(en['post_info.message.visible']);
+    }
+
+    interactiveButton(name: string): Locator {
+        return this.container.getByRole('button', {name});
+    }
+
+    get translationBadge(): Locator {
+        return this.container.getByTestId('autotranslation-badge');
+    }
+
+    get showOriginalButton(): Locator {
+        return this.container.getByRole('button', {name: en['channel_header.autotranslation.disable_confirm.confirm']});
+    }
+
+    getMentionLink(channelName?: string): Locator {
+        if (channelName) {
+            return this.body.locator(`a.mention-link[data-channel-mention="${channelName}"]`);
+        }
+        return this.body.locator('a.mention-link[data-channel-mention]');
     }
 }

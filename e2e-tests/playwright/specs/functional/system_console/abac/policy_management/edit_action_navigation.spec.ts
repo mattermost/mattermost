@@ -65,26 +65,24 @@ test.describe('ABAC Policy Management - Edit Action Navigation', () => {
         await page.waitForTimeout(1000);
 
         // Search for the policy to ensure it's visible
-        const policySearchInput = page.locator('input[placeholder*="Search" i]').first();
+        const policySearchInput = page.getByPlaceholder('Search', {exact: false}).first();
         if (await policySearchInput.isVisible({timeout: 3000})) {
             await policySearchInput.fill(policyName);
             await page.waitForTimeout(1000);
         }
 
         // Find the policy row
-        const policyRowLocator = page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyName}).first();
+        const policyRowLocator = page.getByTestId('dataGridRow').filter({hasText: policyName}).first();
         await policyRowLocator.waitFor({state: 'visible', timeout: 10000});
 
         // Open the three-dot action menu for the policy
-        const actionMenuButton = policyRowLocator
-            .locator('button[aria-label*="Actions" i], button:has(i.icon-dots-vertical)')
-            .first();
+        const actionMenuButton = systemConsolePage.policyList.getPolicyMenuButton(policyRowLocator);
         await actionMenuButton.waitFor({state: 'visible', timeout: 5000});
         await actionMenuButton.click();
         await page.waitForTimeout(500);
 
         // Click the Edit menu item
-        const editMenuItem = page.locator(`[id*="policy-menu-edit-${policyId}"]`).first();
+        const editMenuItem = systemConsolePage.policyList.getEditMenuItem(policyId!);
         await editMenuItem.waitFor({state: 'visible', timeout: 5000});
 
         // Click Edit and wait for navigation
@@ -101,7 +99,7 @@ test.describe('ABAC Policy Management - Edit Action Navigation', () => {
 
         // Additional verification: Check that the policy editor is loaded
         // The policy editor should have the policy name visible
-        const policyNameInput = page.locator('input[placeholder*="name" i], input[value*="Edit-Nav-Test"]').first();
+        const policyNameInput = systemConsolePage.policyEditor.policyNameInput;
         await expect(policyNameInput).toBeVisible({timeout: 10000});
     });
 
@@ -154,14 +152,14 @@ test.describe('ABAC Policy Management - Edit Action Navigation', () => {
         await page.waitForTimeout(1000);
 
         // Search for the policy to ensure it's visible
-        const policySearchInput = page.locator('input[placeholder*="Search" i]').first();
+        const policySearchInput = page.getByPlaceholder('Search', {exact: false}).first();
         if (await policySearchInput.isVisible({timeout: 3000})) {
             await policySearchInput.fill(policyName);
             await page.waitForTimeout(1000);
         }
 
         // Find the policy row
-        const policyRowLocator = page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyName}).first();
+        const policyRowLocator = page.getByTestId('dataGridRow').filter({hasText: policyName}).first();
         await policyRowLocator.waitFor({state: 'visible', timeout: 10000});
 
         // Click the row (not the action menu)

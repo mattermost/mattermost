@@ -4,11 +4,32 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class ConfigurationSettings {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
+
+export default class ConfigurationSettings extends BaseComponent {
+    readonly backgroundColorInput: Locator;
+    readonly bannerTextBox: Locator;
+    readonly classificationToggle: Locator;
+    readonly classificationLevelDropdown: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
+        this.backgroundColorInput = container.locator('#channel_banner_banner_background_color_picker-inputColorValue');
+        this.bannerTextBox = container.getByTestId('channel_banner_banner_text_textbox');
+        this.classificationToggle = container.getByTestId('channelClassificationToggle-button');
+        this.classificationLevelDropdown = container.getByTestId('channelClassificationLevel');
+    }
+
+    get classificationDropdownMenu(): Locator {
+        return this.container.page().getByRole('listbox');
+    }
+
+    async selectLevel(levelName: string): Promise<void> {
+        await this.classificationLevelDropdown.click();
+        const menu = this.classificationDropdownMenu;
+        await expect(menu).toBeVisible();
+        await menu.getByText(levelName, {exact: true}).click();
     }
 
     async toBeVisible() {
@@ -35,7 +56,9 @@ export default class ConfigurationSettings {
         }
 
         await saveButton.click();
-        const unshareConfirm = this.container.page().getByRole('button', {name: 'Yes, unshare'});
+        const unshareConfirm = this.container
+            .page()
+            .getByRole('button', {name: en['channel_settings.remove_sharing_confirm.confirm']});
         try {
             await unshareConfirm.waitFor({state: 'visible', timeout: 2000});
             await unshareConfirm.click();
@@ -98,14 +121,14 @@ export default class ConfigurationSettings {
     }
 
     async setChannelBannerBackgroundColor(color: string) {
-        const colorInput = this.container.locator('#channel_banner_banner_background_color_picker-inputColorValue');
+        const colorInput = this.backgroundColorInput;
         await expect(colorInput).toBeVisible();
         await colorInput.fill(color);
         expect((await colorInput.inputValue()).replace('#', '')).toBe(color);
     }
 
     get shareWithConnectedWorkspacesSection() {
-        return this.container.getByText('Share with connected workspaces');
+        return this.container.getByText(en['channel_settings.share_channel_with_workspaces.title']);
     }
 
     get shareWithWorkspacesToggle() {
@@ -139,7 +162,9 @@ export default class ConfigurationSettings {
      * Call after enableShareWithWorkspaces() so the dropdown is visible. Required for save to apply.
      */
     async addFirstAvailableWorkspace() {
-        const addButton = this.container.getByRole('button', {name: 'Add workspace'});
+        const addButton = this.container.getByRole('button', {
+            name: en['channel_settings.share_channel_with_workspaces.add'],
+        });
         await expect(addButton).toBeVisible();
         await addButton.click();
         const firstWorkspaceItem = this.container.page().locator('[id^="add_workspace_to_channel_menu-item-"]').first();

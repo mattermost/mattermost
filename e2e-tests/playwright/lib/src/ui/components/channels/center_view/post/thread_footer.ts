@@ -4,15 +4,15 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class ThreadFooter {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
 
+export default class ThreadFooter extends BaseComponent {
     readonly replyButton: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
-        this.replyButton = container.locator('.ReplyButton');
+        this.replyButton = container.getByTestId('replyButton');
     }
 
     async toBeVisible() {

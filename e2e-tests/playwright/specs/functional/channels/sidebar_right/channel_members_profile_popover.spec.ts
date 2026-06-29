@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test, ChannelMembersRhs} from '@mattermost/playwright-lib';
 
 test('should open and close profile popover from channel members RHS', async ({pw}) => {
     // # Initialize setup with two users in the same team and channel
@@ -23,7 +23,7 @@ test('should open and close profile popover from channel members RHS', async ({p
 
     // # Open channel members RHS by clicking the Members button in the header
     await channelsPage.centerView.header.openChannelMenu();
-    const membersMenuItem = page.locator('#channelMembers');
+    const membersMenuItem = channelsPage.centerView.header.membersButton;
     await membersMenuItem.click();
 
     // * Verify the channel members RHS is visible
@@ -33,7 +33,8 @@ test('should open and close profile popover from channel members RHS', async ({p
     const memberEntry = page.getByTestId(`memberline-${testUser.id}`);
     await expect(memberEntry).toBeVisible();
 
-    const displayName = memberEntry.locator('.channel-members-rhs__display-name');
+    const channelMembersRhs = new ChannelMembersRhs(channelsPage.sidebarRight.container);
+    const displayName = channelMembersRhs.getMemberDisplayName(memberEntry);
     await displayName.click();
 
     // * Verify the profile popover is visible

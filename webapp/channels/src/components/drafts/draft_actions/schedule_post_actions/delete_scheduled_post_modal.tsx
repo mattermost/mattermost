@@ -54,25 +54,27 @@ export default function DeleteScheduledPostModal({
             autoCloseOnConfirmButton={false}
             errorText={errorMessage}
         >
-            {
-                channelDisplayName &&
-                <FormattedMessage
-                    id={'scheduled_post.delete_modal.body'}
-                    defaultMessage={'Are you sure you want to delete this scheduled post to <strong>{displayName}</strong>?'}
-                    values={{
-                        strong: (chunk) => <strong>{chunk}</strong>,
-                        displayName: channelDisplayName,
-                    }}
-                />
-            }
+            <div data-testid='deleteScheduledPostModalBody'>
+                {
+                    channelDisplayName &&
+                    <FormattedMessage
+                        id={'scheduled_post.delete_modal.body'}
+                        defaultMessage={'Are you sure you want to delete this scheduled post to <strong>{displayName}</strong>?'}
+                        values={{
+                            strong: (chunk) => <strong>{chunk}</strong>,
+                            displayName: channelDisplayName,
+                        }}
+                    />
+                }
 
-            {
-                !channelDisplayName &&
-                <FormattedMessage
-                    id={'scheduled_post.delete_modal.body_no_channel'}
-                    defaultMessage={'Are you sure you want to delete this scheduled post?'}
-                />
-            }
+                {
+                    !channelDisplayName &&
+                    <FormattedMessage
+                        id={'scheduled_post.delete_modal.body_no_channel'}
+                        defaultMessage={'Are you sure you want to delete this scheduled post?'}
+                    />
+                }
+            </div>
         </GenericModal>
     );
 }

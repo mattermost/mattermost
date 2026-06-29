@@ -4,9 +4,10 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class PostMenu {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
 
+export default class PostMenu extends BaseComponent {
     readonly plusOneEmojiButton;
     readonly grinningEmojiButton;
     readonly whiteCheckMarkEmojiButton;
@@ -17,16 +18,17 @@ export default class PostMenu {
     readonly dotMenuButton;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
-        this.plusOneEmojiButton = container.getByRole('button', {name: '+1 emoji'});
-        this.grinningEmojiButton = container.getByRole('button', {name: 'grinning emoji'});
-        this.whiteCheckMarkEmojiButton = container.getByRole('button', {name: 'white check mark emoji'});
-        this.addReactionButton = container.getByRole('button', {name: 'add reaction'});
-        this.saveButton = container.getByRole('button', {name: 'save'});
-        this.actionsButton = container.getByRole('button', {name: 'actions'});
-        this.replyButton = container.getByRole('button', {name: 'reply'});
-        this.dotMenuButton = container.getByRole('button', {name: 'more'});
+        const emojiLabel = (name: string) => en['emoji_picker_item.emoji_aria_label'].replace('{emojiName}', name);
+        this.plusOneEmojiButton = container.getByRole('button', {name: emojiLabel('+1')});
+        this.grinningEmojiButton = container.getByRole('button', {name: emojiLabel('grinning')});
+        this.whiteCheckMarkEmojiButton = container.getByRole('button', {name: emojiLabel('white check mark')});
+        this.addReactionButton = container.getByRole('button', {name: en['post_info.tooltip.add_reactions']});
+        this.saveButton = container.getByRole('button', {name: en['flag_post.flag']});
+        this.actionsButton = container.getByRole('button', {name: en['post_info.actions.tooltip.actions']});
+        this.replyButton = container.getByRole('button', {name: en['post_info.comment_icon.tooltip.reply']});
+        this.dotMenuButton = container.getByRole('button', {name: en['post_info.dot_menu.tooltip.more']});
     }
 
     async toBeVisible() {

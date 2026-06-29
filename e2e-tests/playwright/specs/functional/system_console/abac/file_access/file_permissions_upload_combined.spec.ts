@@ -86,7 +86,9 @@ test.describe('ABAC Permission Policies - Upload File Enforcement', () => {
         await userChannelsPage.centerView.postCreate.postMessage('Upload test', ['sample_text_file.txt']);
 
         await expect(userPage.getByText(/required access to upload/i)).not.toBeVisible();
-        await expect(userPage.locator('[data-testid="fileAttachmentList"]').last()).toBeVisible({timeout: 15000});
+        await expect(userChannelsPage.centerView.container.getByTestId('fileAttachmentList').last()).toBeVisible({
+            timeout: 15000,
+        });
     });
 });
 
@@ -178,11 +180,15 @@ test.describe('ABAC Permission Policies - Combined File Enforcement', () => {
         await userChannelsPage.goto(team.name, channelName);
         await userChannelsPage.toBeVisible();
 
-        await expect(userPage.locator('[data-testid="fileAttachmentList"]')).toBeVisible({timeout: 15000});
+        await expect(userChannelsPage.centerView.container.getByTestId('fileAttachmentList')).toBeVisible({
+            timeout: 15000,
+        });
         await expect(userPage.getByTestId('redactedFilesPlaceholder')).not.toBeVisible();
 
         await userChannelsPage.centerView.postCreate.postMessage('Upload from user', ['sample_text_file.txt']);
         await expect(userPage.getByText(/required access to upload/i)).not.toBeVisible();
-        await expect(userPage.locator('[data-testid="fileAttachmentList"]').last()).toBeVisible({timeout: 15000});
+        await expect(userChannelsPage.centerView.container.getByTestId('fileAttachmentList').last()).toBeVisible({
+            timeout: 15000,
+        });
     });
 });

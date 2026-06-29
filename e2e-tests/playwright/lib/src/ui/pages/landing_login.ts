@@ -4,8 +4,11 @@
 import type {Page} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class LandingLoginPage {
-    readonly page: Page;
+import {BasePage} from '../base_page';
+import type {BaseComponent} from '../base_component';
+
+export default class LandingLoginPage extends BasePage {
+    readonly components: Record<string, BaseComponent>;
 
     readonly isMobile?: boolean;
 
@@ -14,17 +17,17 @@ export default class LandingLoginPage {
     readonly viewInBrowserButton;
 
     constructor(page: Page, isMobile?: boolean) {
-        this.page = page;
+        super(page);
         this.isMobile = isMobile;
 
         this.viewInAppButton = page.locator('text=View in App');
         this.viewInDesktopAppButton = page.locator('text=View in Desktop App');
         this.viewInBrowserButton = page.locator('text=View in Browser');
+
+        this.components = {};
     }
 
     async toBeVisible() {
-        await this.page.waitForLoadState('networkidle');
-
         if (this.isMobile) {
             await expect(this.viewInAppButton).toBeVisible();
         } else {

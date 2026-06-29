@@ -6,21 +6,24 @@ import {expect} from '@playwright/test';
 
 import {ChannelsPost} from '@/ui/components';
 
-export default class ThreadsPage {
-    readonly page: Page;
+import {BasePage} from '../base_page';
+import type {BaseComponent} from '../base_component';
+
+export default class ThreadsPage extends BasePage {
+    readonly components: Record<string, BaseComponent>;
 
     readonly threadsList;
 
     readonly noThreadSelected;
 
     constructor(page: Page) {
-        this.page = page;
+        super(page);
 
         this.threadsList = page.locator('#threads-list');
 
-        this.noThreadSelected = page.locator('.no-results__title', {
-            hasText: /Looks like you’re all caught up|Catch up on your threads/,
-        });
+        this.noThreadSelected = page.getByTestId('threadPaneNoThread');
+
+        this.components = {};
     }
 
     async goto(teamName: string) {

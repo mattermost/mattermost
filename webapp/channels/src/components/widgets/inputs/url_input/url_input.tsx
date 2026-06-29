@@ -92,7 +92,10 @@ function UrlInput({
     );
 
     return (
-        <div className={classNames('url-input-main', className)}>
+        <div
+            className={classNames('url-input-main', className)}
+            data-testid='channelURLSection'
+        >
             <div className='url-input-container'>
                 {isShortenedURL ? (
                     <WithTooltip

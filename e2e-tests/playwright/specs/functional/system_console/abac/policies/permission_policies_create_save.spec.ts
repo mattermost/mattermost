@@ -42,7 +42,7 @@ test.describe('Permission Policies - Create Policy', () => {
 
             // * List page shows the new policy with correct role and permissions
             await expect(systemConsolePage.page.getByRole('heading', {name: 'Permission Policies'})).toBeVisible();
-            const policyRow = systemConsolePage.page.locator('.DataGrid_row').filter({hasText: policyName});
+            const policyRow = systemConsolePage.policyList.dataGridRows.filter({hasText: policyName});
             await expect(policyRow).toBeVisible();
             // Role label was shortened from "Members and system administrators"
             // to just "Members" in the UX pass; the "system admins fall back
@@ -73,7 +73,7 @@ test.describe('Permission Policies - Create Policy', () => {
                 permissions: ['Download Files', 'Upload Files'],
             });
 
-            const policyRow = systemConsolePage.page.locator('.DataGrid_row').filter({hasText: policyName});
+            const policyRow = systemConsolePage.policyList.dataGridRows.filter({hasText: policyName});
             await expect(policyRow.getByText(/Download Files/)).toBeVisible();
             await expect(policyRow.getByText(/Upload Files/)).toBeVisible();
         } finally {
@@ -101,7 +101,7 @@ test.describe('Permission Policies - Create Policy', () => {
             });
 
             // * Row shows name, Guest role, and Download Files permission
-            const policyRow = systemConsolePage.page.locator('.DataGrid_row').filter({hasText: policyName});
+            const policyRow = systemConsolePage.policyList.dataGridRows.filter({hasText: policyName});
             await expect(policyRow).toBeVisible();
             await expect(policyRow.getByText('Guest users')).toBeVisible();
             await expect(policyRow.getByText('Download Files')).toBeVisible();
@@ -119,12 +119,10 @@ test.describe('Permission Policies - Create Policy', () => {
         await enableABAC(systemConsolePage.page);
         await adminClient.patchConfig({AccessControlSettings: {EnableAttributeBasedAccessControl: true}});
         await navigateToPermissionPoliciesPage(systemConsolePage.page);
-        await systemConsolePage.page.getByRole('button', {name: 'Add policy'}).click();
+        await systemConsolePage.policyList.createPolicyButton.click();
         await systemConsolePage.page.waitForLoadState('networkidle');
 
-        await expect(
-            systemConsolePage.page.getByText('Attribute Based Permission Policy', {exact: true}),
-        ).toBeVisible();
+        await expect(systemConsolePage.policyEditor.pageHeading).toBeVisible();
 
         // # Cancel navigates back to list without saving
         await systemConsolePage.page.getByRole('link', {name: 'Cancel'}).click();

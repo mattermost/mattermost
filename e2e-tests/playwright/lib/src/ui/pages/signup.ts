@@ -4,11 +4,14 @@
 import type {Page} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-import {duration, wait} from '@/util';
 import {components} from '@/ui/components';
+import en from '@/i18n';
 
-export default class SignupPage {
-    readonly page: Page;
+import type {BaseComponent} from '../base_component';
+import {BasePage} from '../base_page';
+
+export default class SignupPage extends BasePage {
+    readonly components: Record<string, BaseComponent>;
 
     readonly title;
     readonly subtitle;
@@ -30,11 +33,11 @@ export default class SignupPage {
     readonly footer;
 
     constructor(page: Page) {
-        this.page = page;
+        super(page);
 
-        this.title = page.locator('h1:has-text("Let’s get started")');
+        this.title = page.locator(`h1:has-text("${en['signup_user_completed.title']}")`);
         this.subtitle = page.locator('text=Create your Mattermost account to start collaborating with your team');
-        this.bodyCard = page.locator('.signup-body-card-content');
+        this.bodyCard = page.getByTestId('signupBodyCard');
         this.loginLink = page.locator('text=Log in');
         this.emailInput = page.locator('#input_email');
         this.usernameInput = page.locator('#input_name');
@@ -47,21 +50,20 @@ export default class SignupPage {
         );
         this.passwordError = page.locator('text=/Must be \\d+-72 characters long\\./');
 
-        const termsAndPrivacyBlock = page.locator('.check-input');
-        this.termsAndPrivacyCheckBox = termsAndPrivacyBlock.getByRole('checkbox', {
-            name: 'Terms and privacy policy checkbox',
+        this.termsAndPrivacyCheckBox = page.getByRole('checkbox', {
+            name: en['signup.terms_and_privacy.checkmark.box'],
         });
-        this.termsAndPrivacyAcceptableUsePolicyLink = termsAndPrivacyBlock.locator('text=Acceptable Use Policy');
-        this.termsAndPrivacyPrivacyPolicyLink = termsAndPrivacyBlock.locator('text=Privacy Policy');
+        this.termsAndPrivacyAcceptableUsePolicyLink = page.locator('text=Acceptable Use Policy');
+        this.termsAndPrivacyPrivacyPolicyLink = page.locator('text=Privacy Policy');
 
-        this.header = new components.MainHeader(page.locator('.hfroute-header'));
-        this.footer = new components.Footer(page.locator('.hfroute-footer'));
+        this.header = new components.MainHeader(page.getByTestId('hfrouteHeader'));
+        this.footer = new components.Footer(page.getByTestId('hfrouteFooter'));
+
+        this.components = {header: this.header, footer: this.footer};
     }
 
     async toBeVisible() {
-        await this.page.waitForLoadState('networkidle');
-        await this.page.waitForLoadState('domcontentloaded');
-        await wait(duration.half_sec);
+        await this.emailInput.waitFor({state: 'visible'});
         await expect(this.title).toBeVisible();
         await expect(this.emailInput).toBeVisible();
         await expect(this.usernameInput).toBeVisible();

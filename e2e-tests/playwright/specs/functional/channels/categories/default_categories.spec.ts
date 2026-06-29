@@ -48,7 +48,7 @@ test.describe('Channel Category Sorting', () => {
 
             // * Verify the default category selector is not rendered
             const defaultCategorySelector = channelSettingsModal.container
-                .locator('.CategorySelector')
+                .locator('[class~="CategorySelector"]')
                 .filter({hasText: 'Choose a default category (optional)'});
             await expect(defaultCategorySelector).toHaveCount(0);
 
@@ -79,13 +79,11 @@ test.describe('Channel Category Sorting', () => {
             await newChannelModal.fillDisplayName(displayName);
 
             // # Locate the default category selector and select a new category
-            const defaultCategorySection = newChannelModal.container.locator('.CategorySelector').first();
+            const defaultCategorySection = newChannelModal.container.locator('[class~="CategorySelector"]').first();
             await expect(defaultCategorySection).toContainText('Choose a default category (optional)');
 
-            const defaultCategoryControl = defaultCategorySection.locator('.CategorySelector__control');
-            await defaultCategoryControl.click();
-
             const input = defaultCategorySection.getByRole('combobox');
+            await input.click();
             await input.fill('Flight Ops');
 
             const createOption = page.getByRole('option', {name: 'Create new category: Flight Ops'});
@@ -128,14 +126,12 @@ test.describe('Channel Category Sorting', () => {
         await channelSettingsModal.openInfoTab();
 
         // * Verify the default category selector is visible
-        const defaultCategorySection = channelSettingsModal.container.locator('.CategorySelector').first();
+        const defaultCategorySection = channelSettingsModal.container.locator('[class~="CategorySelector"]').first();
         await expect(defaultCategorySection).toContainText('Choose a default category (optional)');
 
         // # Click the selector, type a new category name, and select "Create new category"
-        const defaultCategoryControl = defaultCategorySection.locator('.CategorySelector__control');
-        await defaultCategoryControl.click();
-
         const input = defaultCategorySection.getByRole('combobox');
+        await input.click();
         await input.fill('Operations');
 
         const createOption = page.getByRole('option', {name: 'Create new category: Operations'});
@@ -148,10 +144,10 @@ test.describe('Channel Category Sorting', () => {
         await channelSettingsModal.close();
 
         // * Verify the default category appears in the sidebar with the channel under it
-        const sidebar = channelsPage.sidebarLeft.container;
-        await expect(sidebar.getByText('Operations')).toBeVisible();
+        const sidebar = channelsPage.sidebarLeft;
+        await expect(sidebar.container.getByText('Operations')).toBeVisible();
 
-        const operationsSection = sidebar.locator('.SidebarChannelGroup').filter({hasText: 'Operations'});
+        const operationsSection = sidebar.getSidebarGroupByName('Operations');
         await expect(operationsSection.locator(`#sidebarItem_${channelName}`)).toBeVisible();
     });
 
@@ -188,10 +184,10 @@ test.describe('Channel Category Sorting', () => {
         let channelSettingsModal = await channelsPage.openChannelSettings();
         await channelSettingsModal.openInfoTab();
 
-        const defaultCategorySection = channelSettingsModal.container.locator('.CategorySelector').first();
+        const defaultCategorySection = channelSettingsModal.container.locator('[class~="CategorySelector"]').first();
         await expect(defaultCategorySection).toContainText('Removable');
 
-        const clearButton = defaultCategorySection.locator('.CategorySelector__clear-indicator');
+        const clearButton = defaultCategorySection.getByRole('button', {name: /clear/i});
         await expect(clearButton).toBeVisible();
         await clearButton.click();
         await pw.wait(pw.duration.half_sec);
@@ -209,7 +205,9 @@ test.describe('Channel Category Sorting', () => {
         await channelSettingsModal.openInfoTab();
 
         // * Verify the default category selector shows the placeholder (value is cleared)
-        const reopenedDefaultCategorySection = channelSettingsModal.container.locator('.CategorySelector').first();
+        const reopenedDefaultCategorySection = channelSettingsModal.container
+            .locator('[class~="CategorySelector"]')
+            .first();
         await expect(reopenedDefaultCategorySection).toContainText('Choose a default category (optional)');
 
         await channelSettingsModal.close();

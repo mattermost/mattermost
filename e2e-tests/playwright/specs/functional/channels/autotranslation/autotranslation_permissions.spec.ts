@@ -5,10 +5,30 @@ import type {SystemConsolePage} from '@mattermost/playwright-lib';
 import {
     enableAutotranslationConfig,
     disableAutotranslationConfig,
+    getAdminClient,
     hasAutotranslationLicense,
     expect,
     test,
+    en,
 } from '@mattermost/playwright-lib';
+
+// Autotranslation tests involve real UI interactions with plugin state and can run
+// longer than the default 60 s in loaded CI.  Set per-test timeout to 2 minutes.
+test.beforeEach(async () => {
+    test.setTimeout(120000);
+});
+
+// Disable AutoTranslationSettings at end of file so leftover state cannot leak
+// into other suites. Individual tests enable the feature via
+// enableAutotranslationConfig() as needed.
+test.afterAll(async () => {
+    try {
+        const {adminClient} = await getAdminClient({skipLog: true});
+        await disableAutotranslationConfig(adminClient);
+    } catch {
+        // Best-effort cleanup.
+    }
+});
 
 test(
     'permission exists; Channel Administrators have Manage Channel Auto Translation ON',
@@ -101,11 +121,19 @@ test.describe('autotranslation configuration tests', () => {
 
                 await channelsPage.centerView.header.openChannelMenu();
                 if (shouldShowEditHeader) {
-                    await expect(channelsPage.page.getByRole('menuitem', {name: 'Edit Header'})).toBeVisible();
-                    await expect(channelsPage.page.getByRole('menuitem', {name: 'Channel Settings'})).toHaveCount(0);
+                    await expect(
+                        channelsPage.page.getByRole('menuitem', {name: en['channel_header.setConversationHeader']}),
+                    ).toBeVisible();
+                    await expect(
+                        channelsPage.page.getByRole('menuitem', {name: en['channel_header.channel_settings']}),
+                    ).toHaveCount(0);
                 } else {
-                    await expect(channelsPage.page.getByRole('menuitem', {name: 'Channel Settings'})).toBeVisible();
-                    await expect(channelsPage.page.getByRole('menuitem', {name: 'Edit Header'})).toHaveCount(0);
+                    await expect(
+                        channelsPage.page.getByRole('menuitem', {name: en['channel_header.channel_settings']}),
+                    ).toBeVisible();
+                    await expect(
+                        channelsPage.page.getByRole('menuitem', {name: en['channel_header.setConversationHeader']}),
+                    ).toHaveCount(0);
                 }
             } finally {
                 await adminClient.updateConfig(originalConfig as any);
@@ -204,7 +232,7 @@ test.describe('autotranslation configuration tests', () => {
 
             const newHeader = `DM header ${pw.random.id()}`;
             await channelsPage.page.getByTestId('channel_settings_header_textbox').fill(newHeader);
-            await channelsPage.page.getByRole('button', {name: 'Save'}).click();
+            await channelSettingsModal.save();
             await channelSettingsModal.close();
 
             await expect.poll(async () => (await adminClient.getChannel(dmChannel.id)).header).toBe(newHeader);
@@ -263,6 +291,6 @@ async function gotoSystemSchemePage(systemConsolePage: SystemConsolePage) {
     await systemConsolePage.sidebar.userManagement.permissions.click();
     await systemConsolePage.page.waitForURL(/\/admin_console\/user_management\/permissions/);
 
-    await systemConsolePage.page.getByRole('link', {name: 'Edit Scheme'}).click();
+    await systemConsolePage.page.getByRole('link', {name: en['admin.permissions.systemSchemeBannerButton']}).click();
     await systemConsolePage.page.waitForURL(/\/admin_console\/user_management\/permissions\/system_scheme/);
 }

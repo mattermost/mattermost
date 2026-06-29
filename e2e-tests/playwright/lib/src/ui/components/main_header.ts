@@ -4,16 +4,16 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class MainHeader {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
 
+export default class MainHeader extends BaseComponent {
     readonly logo;
     readonly backButton;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
-        this.logo = container.locator('.header-logo-link');
+        this.logo = container.getByTestId('headerLogoLink');
         this.backButton = container.getByTestId('back_button');
     }
 

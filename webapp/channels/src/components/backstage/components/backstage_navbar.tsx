@@ -18,9 +18,13 @@ const BackstageNavbar = ({team, siteName}: Props) => {
     const teamExists = team?.delete_at === 0;
 
     return (
-        <div className='backstage-navbar'>
+        <div
+            className='backstage-navbar'
+            data-testid='backstageNavbar'
+        >
             <BlockableLink
                 className='backstage-navbar__back'
+                data-testid='backstageNavbarBack'
                 to={`/${teamExists ? team?.name : ''}`}
             >
                 <BackIcon/>

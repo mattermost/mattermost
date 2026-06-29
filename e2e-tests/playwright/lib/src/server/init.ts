@@ -4,13 +4,13 @@
 import {expect} from '@playwright/test';
 import type {TeamType} from '@mattermost/types/teams';
 
+import {getFileFromCommonAsset} from '@/file';
+import {testConfig} from '@/test_config';
+
 import {makeClient} from './client';
 import {getOnPremServerConfig} from './default_config';
 import {createNewTeam} from './team';
 import {createNewUserProfile} from './user';
-
-import {getFileFromCommonAsset} from '@/file';
-import {testConfig} from '@/test_config';
 
 type InitSetupOptions = {
     userOptions?: Partial<Parameters<typeof createNewUserProfile>[1]>;

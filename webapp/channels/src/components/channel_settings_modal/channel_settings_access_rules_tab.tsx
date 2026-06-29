@@ -701,10 +701,16 @@ function ChannelSettingsAccessRulesTab({
     }, [expression, originalExpression, autoSyncMembers, originalAutoSyncMembers, saveChangesPanelState]);
 
     return (
-        <div className='ChannelSettingsModal__accessRulesTab'>
+        <div
+            className='ChannelSettingsModal__accessRulesTab'
+            data-testid='channelSettingsAccessRulesTab'
+        >
             {/* Display system policies indicator if any are applied */}
             {!policiesLoading && systemPolicies.length > 0 && (
-                <div className='ChannelSettingsModal__systemPolicies'>
+                <div
+                    className='ChannelSettingsModal__systemPolicies'
+                    data-testid='channelSystemPolicies'
+                >
                     <SystemPolicyIndicator
                         policies={systemPolicies}
                         resourceType='channel'

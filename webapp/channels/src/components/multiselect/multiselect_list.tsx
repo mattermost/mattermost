@@ -209,7 +209,10 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
             const ariaLabel = this.props.ariaLabelRenderer(selectedOption);
 
             renderOutput = (
-                <div className='more-modal__list'>
+                <div
+                    className='more-modal__list'
+                    data-testid='moreModalList'
+                >
                     <div
                         className='sr-only'
                         aria-live='polite'
@@ -225,6 +228,7 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
                         className='sr-only'
                         aria-live='polite'
                         aria-atomic='true'
+                        data-testid='multiselectAriaAnnouncer'
                     >
                         {ariaLabel}
                     </div>
@@ -244,6 +248,7 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
             <div
                 className='multi-select__wrapper'
                 aria-live='polite'
+                data-testid='multiSelectWrapper'
             >
                 {renderOutput}
             </div>

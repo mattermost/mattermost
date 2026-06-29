@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test, components} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify accessibility support in Add people to Channel Dialog screen
@@ -40,7 +40,7 @@ test(
 
         // # Open channel menu and click Members
         await channelsPage.centerView.header.openChannelMenu();
-        const membersMenuItem = page.locator('#channelMembers');
+        const membersMenuItem = channelsPage.centerView.header.membersButton;
         await membersMenuItem.click();
 
         // # Click the Add people button
@@ -50,6 +50,7 @@ test(
         // * Verify the Add people dialog is visible
         const dialog = page.getByRole('dialog').first();
         await expect(dialog).toBeVisible();
+        const dm = new components.DirectChannelsModal(dialog);
 
         // * Verify the heading with channel name
         const modalName = `Add people to ${channel.display_name}`;
@@ -74,15 +75,15 @@ test(
         await page.keyboard.press('ArrowUp');
 
         // * Verify the selected row has the correct class
-        const selectedRow = dialog.locator('#multiSelectList').locator('.more-modal__row--selected');
+        const selectedRow = dm.selectedRows;
         await expect(selectedRow).toBeVisible();
 
         // * Verify image alt is displayed for user profile
-        const avatar = selectedRow.locator('img.Avatar');
+        const avatar = dm.getAvatarInRow(selectedRow);
         await expect(avatar).toHaveAttribute('alt', 'user profile image');
 
         // * Verify screen reader live region exists and has proper attributes
-        const srOnlyRegion = dialog.locator('.filtered-user-list div.sr-only:not([role="status"])');
+        const srOnlyRegion = dm.srOnlyRegion;
         await expect(srOnlyRegion).toHaveAttribute('aria-live', 'polite');
         await expect(srOnlyRegion).toHaveAttribute('aria-atomic', 'true');
 
@@ -91,9 +92,9 @@ test(
         await pw.wait(pw.duration.half_sec);
 
         // * Check if the no results message is displayed with proper accessibility
-        const noResultsWrapper = dialog.locator('.multi-select__wrapper');
+        const noResultsWrapper = dm.noResultsWrapper;
         await expect(noResultsWrapper).toHaveAttribute('aria-live', 'polite');
-        const noResultsMessage = dialog.locator('.no-channel-message .primary-message');
+        const noResultsMessage = dm.noResultsMessage;
         await expect(noResultsMessage).toBeVisible();
         await expect(noResultsMessage).toContainText('No results found matching');
     },
@@ -136,7 +137,7 @@ test(
 
         // # Open channel menu and click Members
         await channelsPage.centerView.header.openChannelMenu();
-        const membersMenuItem = page.locator('#channelMembers');
+        const membersMenuItem = channelsPage.centerView.header.membersButton;
         await membersMenuItem.click();
 
         // # Click the Add people button

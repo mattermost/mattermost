@@ -4,9 +4,10 @@
 import type {Locator, Page} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class FlagPostConfirmationDialog {
+import {BaseComponent} from '@/ui/base_component';
+
+export default class FlagPostConfirmationDialog extends BaseComponent {
     readonly page: Page;
-    readonly container: Locator;
 
     readonly cancelButton;
     readonly flagPostReasonInput;
@@ -20,7 +21,7 @@ export default class FlagPostConfirmationDialog {
     readonly requireCommentsErrorMessage;
 
     constructor(container: Locator, page: Page) {
-        this.container = container;
+        super(container);
         this.page = page;
 
         this.flagPostReasonInput = container.locator('#FlagPostModal__reason');
@@ -29,9 +30,8 @@ export default class FlagPostConfirmationDialog {
         this.submitButton = container.locator('button.btn-primary.confirm');
         this.postContainer = container.locator('[data-testid="FlagPostModal__post-preview_container"]');
         this.postText = container.locator('div.post-message__text');
-        this.flagReasonOption = page.locator('.react-select__menu-list');
-        this.flagReasonMenuItems = (reason: string) =>
-            this.flagReasonOption.locator(`div.react-select__option:has-text("${reason}")`);
+        this.flagReasonOption = page.getByRole('listbox');
+        this.flagReasonMenuItems = (reason: string) => this.flagReasonOption.getByRole('option', {name: reason});
         this.cannotFlagPostErrorMessage = container.locator('div.FlagPostModal__request-error span');
         this.requireCommentsErrorMessage = container.locator('div.AdvancedTextbox__error-message span');
     }

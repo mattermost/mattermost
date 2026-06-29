@@ -134,6 +134,7 @@ const ManageTeamsModal = ({locale, onExited, user, actions}: Props) => {
                     <div
                         key={team.id}
                         className='manage-teams__team'
+                        data-testid='manageTeamsItem'
                     >
                         <div className='manage-teams__team-name'>
                             {team.display_name}

@@ -66,24 +66,24 @@ test.describe('Attribute-Value Masking - Table Editor', {tag: ['@abac', '@abac_m
             await openExistingPolicy(page, policyName);
 
             // Alpha chip must be visible (caller holds it)
-            await expect(page.locator('.select__multi-value').filter({hasText: 'Alpha'})).toBeVisible();
+            await expect(systemConsolePage.policyEditor.getMultiValueChip('Alpha')).toBeVisible();
 
             // Masked chip must be visible (Bravo + Charlie are hidden)
-            await expect(page.locator('.select__multi-value--masked')).toBeVisible();
+            await expect(systemConsolePage.policyEditor.maskedChips).toBeVisible();
 
             // Bravo and Charlie chips must NOT appear in plain text
-            await expect(page.locator('.select__multi-value').filter({hasText: 'Bravo'})).not.toBeVisible();
-            await expect(page.locator('.select__multi-value').filter({hasText: 'Charlie'})).not.toBeVisible();
+            await expect(systemConsolePage.policyEditor.getMultiValueChip('Bravo')).not.toBeVisible();
+            await expect(systemConsolePage.policyEditor.getMultiValueChip('Charlie')).not.toBeVisible();
 
             // Warning banner must appear
-            await expect(page.locator('text="This policy contains restricted values"')).toBeVisible();
+            await expect(systemConsolePage.policyEditor.restrictedValuesBanner).toBeVisible();
 
             // Attribute selector on the row must be locked (has 'disabled' class)
-            const attributeSelector = page.locator('[data-testid="attributeSelectorMenuButton"]').first();
+            const attributeSelector = systemConsolePage.policyEditor.ruleBuilder.getAttributeSelectorButton(0);
             await expect(attributeSelector).toHaveClass(/disabled/);
 
             // Test-access-rule button must be disabled when policy has masked values
-            const testRulesBtn = page.locator('button').filter({hasText: 'Test access rule'});
+            const testRulesBtn = systemConsolePage.policyEditor.testAccessRuleButton;
             if (await testRulesBtn.isVisible({timeout: 3000})) {
                 await expect(testRulesBtn).toBeDisabled();
             }
@@ -142,15 +142,15 @@ test.describe('Attribute-Value Masking - Table Editor', {tag: ['@abac', '@abac_m
             const storedPolicyId = await getPolicyIdFromURL(page);
 
             // Alpha visible, Bravo+Charlie masked
-            await expect(page.locator('.select__multi-value').filter({hasText: 'Alpha'})).toBeVisible();
-            await expect(page.locator('.select__multi-value--masked')).toBeVisible();
+            await expect(systemConsolePage.policyEditor.getMultiValueChip('Alpha')).toBeVisible();
+            await expect(systemConsolePage.policyEditor.maskedChips).toBeVisible();
 
             const saveBtn = page.getByRole('button', {name: 'Save'});
 
             // Dirty the form via the policy name field. Masked rows are read-only so
             // we can't remove/add chips. The merge-on-save invariant we're testing
             // doesn't depend on how the form is dirtied.
-            const nameInput = page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName');
+            const nameInput = systemConsolePage.policyEditor.policyNameInput;
             await nameInput.fill(policyName + ' (edited)');
             await page.waitForTimeout(300);
 
@@ -216,8 +216,8 @@ test.describe('Attribute-Value Masking - Table Editor', {tag: ['@abac', '@abac_m
 
             await openExistingPolicy(page, policyName);
 
-            await expect(page.locator('.select__multi-value').filter({hasText: 'Alpha'})).toBeVisible();
-            await expect(page.locator('.select__multi-value--masked')).toBeVisible();
+            await expect(systemConsolePage.policyEditor.getMultiValueChip('Alpha')).toBeVisible();
+            await expect(systemConsolePage.policyEditor.maskedChips).toBeVisible();
 
             // Row-remove (trash) button must be disabled on the masked row
             const removeRowBtn = page
@@ -279,14 +279,14 @@ test.describe('Attribute-Value Masking - Table Editor', {tag: ['@abac', '@abac_m
             await openExistingPolicy(page, policyName);
 
             // Alpha visible, no masked chip — caller has full visibility
-            await expect(page.locator('.select__multi-value').filter({hasText: 'Alpha'})).toBeVisible();
-            await expect(page.locator('.select__multi-value--masked')).not.toBeVisible();
+            await expect(systemConsolePage.policyEditor.getMultiValueChip('Alpha')).toBeVisible();
+            await expect(systemConsolePage.policyEditor.maskedChips).not.toBeVisible();
 
             const saveBtn = page.getByRole('button', {name: 'Save'});
 
             // Remove Alpha — now the condition has no values (empty)
-            const alphaChip = page.locator('.select__multi-value').filter({hasText: 'Alpha'});
-            await alphaChip.locator('.select__multi-value__remove').click();
+            const alphaChip = systemConsolePage.policyEditor.getMultiValueChip('Alpha');
+            await systemConsolePage.policyEditor.getChipRemoveButton(alphaChip).click();
             await page.waitForTimeout(300);
 
             await saveBtn.click();
@@ -300,7 +300,7 @@ test.describe('Attribute-Value Masking - Table Editor', {tag: ['@abac', '@abac_m
             await page.reload();
             await page.waitForLoadState('networkidle');
             await openExistingPolicy(page, policyName);
-            await expect(page.locator('.select__multi-value').filter({hasText: 'Alpha'})).toBeVisible();
+            await expect(systemConsolePage.policyEditor.getMultiValueChip('Alpha')).toBeVisible();
         } finally {
             for (const id of policyIds) {
                 try {
@@ -428,7 +428,7 @@ test.describe('Attribute-Value Masking - Table Editor', {tag: ['@abac', '@abac_m
 
             await openExistingPolicy(page, policyName);
 
-            await expect(page.locator('.select__multi-value--masked')).toBeVisible();
+            await expect(systemConsolePage.policyEditor.maskedChips).toBeVisible();
 
             // Switch to Advanced (CEL) mode
             const advancedBtn = page.getByRole('button', {name: /advanced/i});
@@ -438,11 +438,11 @@ test.describe('Attribute-Value Masking - Table Editor', {tag: ['@abac', '@abac_m
 
             // Monaco editor must be read-only — verify functionally: capture the current text,
             // attempt to type, and assert the content is unchanged.
-            const monacoEditor = page.locator('.monaco-editor').first();
+            const monacoEditor = systemConsolePage.policyEditor.monacoEditorDiv;
             await monacoEditor.waitFor({state: 'visible', timeout: 5000});
-            const viewLines = monacoEditor.locator('.view-lines').first();
+            const viewLines = systemConsolePage.policyEditor.monacoEditorLines;
             const before = (await viewLines.textContent()) ?? '';
-            await monacoEditor.locator('textarea.inputarea').first().focus();
+            await systemConsolePage.policyEditor.monacoEditorInput.focus();
             await page.keyboard.press('End');
             await page.keyboard.type('xyz');
             await page.waitForTimeout(300);
@@ -454,7 +454,7 @@ test.describe('Attribute-Value Masking - Table Editor', {tag: ['@abac', '@abac_m
             await expect(celNotice).toBeVisible({timeout: 5000});
 
             // Test-access-rule button must be disabled in CEL mode with masked values
-            const testRulesBtn = page.locator('button').filter({hasText: 'Test access rule'});
+            const testRulesBtn = systemConsolePage.policyEditor.testAccessRuleButton;
             if (await testRulesBtn.isVisible({timeout: 3000})) {
                 await expect(testRulesBtn).toBeDisabled();
             }
@@ -464,7 +464,7 @@ test.describe('Attribute-Value Masking - Table Editor', {tag: ['@abac', '@abac_m
             if (await simpleBtn.isVisible({timeout: 3000})) {
                 await simpleBtn.click();
                 await page.waitForTimeout(500);
-                await expect(page.locator('.select__multi-value--masked')).toBeVisible();
+                await expect(systemConsolePage.policyEditor.maskedChips).toBeVisible();
             }
         } finally {
             for (const id of policyIds) {

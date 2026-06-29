@@ -4,20 +4,22 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class DeleteScheduledPostModal {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
+
+export default class DeleteScheduledPostModal extends BaseComponent {
     readonly body: Locator;
     readonly deleteButton: Locator;
     readonly cancelButton: Locator;
     readonly closeButton: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
-        this.body = container.locator('.modal-body');
-        this.deleteButton = container.locator('button:has-text("Yes, delete")');
-        this.cancelButton = container.locator('button:has-text("Cancel")');
-        this.closeButton = container.getByRole('button', {name: 'Close'});
+        this.body = container.getByTestId('deleteScheduledPostModalBody');
+        this.deleteButton = container.getByRole('button', {name: en['drafts.confirm.delete.button']});
+        this.cancelButton = container.getByRole('button', {name: en['generic_modal.cancel']});
+        this.closeButton = container.getByRole('button', {name: en['generic.close']});
     }
 
     async toBeVisible() {

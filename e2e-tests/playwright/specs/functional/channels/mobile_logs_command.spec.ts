@@ -43,7 +43,7 @@ test.describe('/mobile-logs slash command', () => {
             await lastPost.toContainText('Mobile app log attachment is now enabled for you');
 
             // * Verify the response is ephemeral (only visible to the user)
-            await expect(lastPost.container.locator('.post__visibility')).toContainText('(Only visible to you)');
+            await expect(lastPost.visibilityNote).toContainText('(Only visible to you)');
 
             // * Verify the preference was actually set via API
             const logPref = await getAttachLogsPreference(userClient, user.id);

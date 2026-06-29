@@ -4,14 +4,16 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import en from '@/i18n';
+import {BaseComponent} from '@/ui/base_component';
+
 import AdvancedSettings from './advanced_settings';
 import DisplaySettings from './display_settings';
 import NotificationsSettings from './notifications_settings';
+import SecuritySettings from './security_settings';
 import SidebarSettings from './sidebar_settings';
 
-export default class SettingsModal {
-    readonly container: Locator;
-
+export default class SettingsModal extends BaseComponent {
     readonly content;
     readonly closeButton;
 
@@ -19,37 +21,53 @@ export default class SettingsModal {
     readonly displayTab;
     readonly sidebarTab;
     readonly advancedTab;
+    readonly securityTab;
 
     readonly notificationsSettings;
     readonly displaySettings;
     readonly sidebarSettings;
     readonly advancedSettings;
+    readonly securitySettings;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
-        this.content = container.locator('.modal-content');
-        this.closeButton = container.getByRole('button', {name: 'Close'});
+        this.content = container.getByTestId('settingsModalContent');
+        this.closeButton = container.getByRole('button', {name: en['generic.close']});
 
-        this.notificationsTab = container.getByRole('tab', {name: 'notifications'});
-        this.displayTab = container.getByRole('tab', {name: 'display'});
-        this.sidebarTab = container.getByRole('tab', {name: 'sidebar'});
-        this.advancedTab = container.getByRole('tab', {name: 'advanced'});
+        this.notificationsTab = container.getByRole('tab', {name: en['user.settings.modal.notifications']});
+        this.displayTab = container.getByRole('tab', {name: en['user.settings.modal.display']});
+        this.sidebarTab = container.getByRole('tab', {name: en['user.settings.modal.sidebar']});
+        this.advancedTab = container.getByRole('tab', {name: en['user.settings.modal.advanced']});
+        this.securityTab = container.getByRole('tab', {name: en['user.settings.modal.security']});
 
         this.notificationsSettings = new NotificationsSettings(
-            container.getByRole('tabpanel', {name: 'notifications'}),
+            container.getByRole('tabpanel', {name: en['user.settings.modal.notifications']}),
         );
-        this.displaySettings = new DisplaySettings(container.getByRole('tabpanel', {name: 'display'}));
-        this.sidebarSettings = new SidebarSettings(container.getByRole('tabpanel', {name: 'sidebar'}));
-        this.advancedSettings = new AdvancedSettings(container.getByRole('tabpanel', {name: 'advanced'}));
+        this.displaySettings = new DisplaySettings(
+            container.getByRole('tabpanel', {name: en['user.settings.modal.display']}),
+        );
+        this.sidebarSettings = new SidebarSettings(
+            container.getByRole('tabpanel', {name: en['user.settings.modal.sidebar']}),
+        );
+        this.advancedSettings = new AdvancedSettings(
+            container.getByRole('tabpanel', {name: en['user.settings.modal.advanced']}),
+        );
+        this.securitySettings = new SecuritySettings(
+            container.getByRole('tabpanel', {name: en['user.settings.modal.security']}),
+        );
+    }
+
+    get personalAccessTokensSection() {
+        return this.securitySettings.personalAccessTokensSection;
     }
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
     }
 
-    getContainerId() {
-        return this.container.getAttribute('id');
+    async getContainerId() {
+        return (await this.container.getAttribute('id')) ?? '';
     }
 
     async openNotificationsTab() {
@@ -88,8 +106,17 @@ export default class SettingsModal {
         return this.advancedSettings;
     }
 
+    async openSecurityTab() {
+        await expect(this.securityTab).toBeVisible();
+        await this.securityTab.click();
+
+        await this.securitySettings.toBeVisible();
+
+        return this.securitySettings;
+    }
+
     async close() {
-        await this.container.getByLabel('Close').click();
+        await this.container.getByLabel(en['generic.close']).click();
 
         await expect(this.container).not.toBeVisible();
     }

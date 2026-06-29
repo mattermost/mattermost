@@ -4,9 +4,10 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class CreateTeamForm {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
 
+export default class CreateTeamForm extends BaseComponent {
     // Display name step
     readonly teamNameInput: Locator;
     readonly teamNameSubmitButton: Locator;
@@ -21,7 +22,7 @@ export default class CreateTeamForm {
     readonly backLink: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
         this.teamNameInput = container.locator('#teamNameInput');
         this.teamNameSubmitButton = container.locator('#teamNameNextButton');
@@ -32,7 +33,7 @@ export default class CreateTeamForm {
         this.teamURLSubmitButton = container.locator('#teamURLFinishButton');
         this.teamURLFinishButton = container.locator('#teamURLFinishButton');
         this.teamURLError = container.locator('#teamURLInputError');
-        this.backLink = container.getByText('Back to previous step');
+        this.backLink = container.getByText(en['create_team.team_url.back']);
     }
 
     async toBeVisible() {

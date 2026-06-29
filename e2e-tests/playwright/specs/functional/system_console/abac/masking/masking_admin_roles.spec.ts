@@ -95,9 +95,7 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
             await policyRow.click();
             await page.waitForTimeout(500);
 
-            const deleteBtn = teamSettings.container
-                .locator('.TeamPolicyEditor__section--delete button')
-                .filter({hasText: 'Delete'});
+            const deleteBtn = teamSettings.container.getByTestId('teamPolicyDeleteButton');
 
             await expect(deleteBtn).toBeVisible({timeout: 3000});
             await expect(deleteBtn).toBeDisabled();
@@ -212,7 +210,7 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
             const teamSettings = await channelsPage.openTeamSettings();
             await teamSettings.openAccessPoliciesTab();
 
-            const searchInput = teamSettings.container.locator('[data-testid="searchInput"]').first();
+            const searchInput = teamSettings.policyEditorSearchInput;
             await expect(searchInput).toBeVisible({timeout: 10000});
             const searchResponse = page.waitForResponse(
                 (resp) =>
@@ -234,13 +232,11 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
             await page.waitForTimeout(500);
 
             // Masking surfaces in the team-policy editor exactly as in the system console
-            await expect(teamSettings.container.locator('.select__multi-value--masked').first()).toBeVisible({
+            await expect(teamSettings.maskedChips.first()).toBeVisible({
                 timeout: 5000,
             });
 
-            const deleteBtn = teamSettings.container
-                .locator('.TeamPolicyEditor__section--delete button')
-                .filter({hasText: 'Delete'});
+            const deleteBtn = teamSettings.container.getByTestId('teamPolicyDeleteButton');
             await expect(deleteBtn).toBeVisible({timeout: 5000});
             await expect(deleteBtn).toBeDisabled();
 
@@ -345,7 +341,7 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
             await membershipPolicyTab.click();
             await page.waitForTimeout(1500);
 
-            await expect(channelSettings.container.locator('.select__multi-value--masked').first()).toBeVisible({
+            await expect(channelSettings.maskedChips.first()).toBeVisible({
                 timeout: 10000,
             });
 
@@ -435,7 +431,7 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
 
             // The enforcement cache is cold on the first request — retry until the
             // public-field tag is visible (up to 6 attempts with reload).
-            const alertContainer = page.locator('.channel-members-rhs__alert-container.policy-enforced');
+            const alertContainer = page.getByTestId('channelMembersRhsPolicyAlert');
             let publicTagVisible = false;
             for (let attempt = 0; attempt < 6; attempt++) {
                 if (attempt > 0) {

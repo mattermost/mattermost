@@ -184,6 +184,7 @@ class DataGrid extends React.PureComponent<Props, State> {
         return (
             <div
                 className='DataGrid_rows'
+                data-testid='dataGridRows'
                 style={rowsContainerStyles || {}}
             >
                 {rowsToRender}
@@ -251,23 +252,29 @@ class DataGrid extends React.PureComponent<Props, State> {
             }
 
             footer = (
-                <div className='DataGrid_footer'>
+                <div
+                    className='DataGrid_footer'
+                    data-testid='dataGridFooter'
+                >
                     <div className='DataGrid_cell'>
-                        <FormattedMessage
-                            id='admin.data_grid.paginatorCount'
-                            defaultMessage='{startCount, number} - {endCount, number} of {total, number}'
-                            values={{
-                                startCount,
-                                endCount,
-                                total,
-                            }}
-                        />
+                        <span data-testid='dataGridPaginationInfo'>
+                            <FormattedMessage
+                                id='admin.data_grid.paginatorCount'
+                                defaultMessage='{startCount, number} - {endCount, number} of {total, number}'
+                                values={{
+                                    startCount,
+                                    endCount,
+                                    total,
+                                }}
+                            />
+                        </span>
                         <button
                             aria-label='Previous page'
                             type='button'
                             className={'btn btn-quaternary btn-icon btn-sm ml-2 prev ' + (firstPage ? 'disabled' : '')}
                             onClick={prevPageFn}
                             disabled={firstPage}
+                            data-testid='dataGridPrev'
                         >
                             <PreviousIcon/>
                         </button>
@@ -277,6 +284,7 @@ class DataGrid extends React.PureComponent<Props, State> {
                             className={'btn btn-quaternary btn-icon btn-sm next ' + (lastPage ? 'disabled' : '')}
                             onClick={nextPageFn}
                             disabled={lastPage}
+                            data-testid='dataGridNext'
                         >
                             <NextIcon/>
                         </button>
@@ -292,6 +300,7 @@ class DataGrid extends React.PureComponent<Props, State> {
         return (
             <div
                 className={classNames('DataGrid', this.props.className)}
+                data-testid='dataGrid'
                 ref={this.ref}
             >
                 {this.renderSearch()}

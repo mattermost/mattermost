@@ -54,8 +54,8 @@ test(
         // * Verify the last post as viewed by the regular user in the "off-topic" channel contains the message and is highlighted
         const otherLastPost = await otherChannelsPage.getLastPost();
         await otherLastPost.toContainText(message);
-        await expect(otherLastPost.container.locator('.mention--highlight')).toBeVisible();
-        await expect(otherLastPost.container.locator('.mention--highlight').getByText('@ALL')).toBeVisible();
+        await expect(otherLastPost.mentionHighlight).toBeVisible();
+        await expect(otherLastPost.mentionHighlight.getByText('@ALL')).toBeVisible();
 
         // # Navigate admin to the "off-topic" channel
         await adminChannelsPage.goto(team.name, 'off-topic');
@@ -63,7 +63,7 @@ test(
         // * Verify the message is posted and highlighted correctly for the admin user
         const adminLastPost = await adminChannelsPage.getLastPost();
         await adminLastPost.toContainText(message);
-        await expect(adminLastPost.container.locator('.mention--highlight')).toBeVisible();
-        await expect(adminLastPost.container.locator('.mention--highlight').getByText('@ALL')).toBeVisible();
+        await expect(adminLastPost.mentionHighlight).toBeVisible();
+        await expect(adminLastPost.mentionHighlight.getByText('@ALL')).toBeVisible();
     },
 );

@@ -387,11 +387,13 @@ function CELEditor({
                 <div
                     ref={editorRef}
                     className='cel-editor__input'
+                    data-testid='celEditorInput'
                 />
                 <div
                     className='cel-editor__status-bar'
                     style={{backgroundColor: editorState.statusBarColor}}
                     data-validation-state={getValidationState()}
+                    data-testid='celEditorStatusBar'
                 >
                     <div className='cel-editor__status-message'>
                         {renderStatusMessage(getValidationState())}

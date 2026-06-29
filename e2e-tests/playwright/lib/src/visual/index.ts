@@ -7,11 +7,11 @@ import chalk from 'chalk';
 import type {TestInfo} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-import snapshotWithPercy from './percy';
-
 import {duration, illegalRe, wait} from '@/util';
 import {testConfig} from '@/test_config';
 import type {ScreenshotOptions, TestArgs} from '@/types';
+
+import snapshotWithPercy from './percy';
 
 export async function matchSnapshot(testInfo: TestInfo, testArgs: TestArgs, options: ScreenshotOptions = {}) {
     if (os.platform() !== 'linux') {

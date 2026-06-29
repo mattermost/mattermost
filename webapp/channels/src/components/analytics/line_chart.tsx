@@ -119,11 +119,20 @@ export default class LineChart extends React.PureComponent<Props> {
 
         return (
             <div className='col-sm-12'>
-                <div className='total-count by-day'>
-                    <div className='title'>
+                <div
+                    className='total-count by-day'
+                    data-testid={`${this.props.id}Chart`}
+                >
+                    <div
+                        className='title'
+                        data-testid={`${this.props.id}ChartTitle`}
+                    >
                         {this.props.title}
                     </div>
-                    <div className='content'>
+                    <div
+                        className='content'
+                        data-testid={`${this.props.id}ChartContent`}
+                    >
                         {content}
                     </div>
                 </div>

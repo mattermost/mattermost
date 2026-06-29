@@ -27,7 +27,10 @@ export default function EditPost() {
     const storageKey = `${StoragePrefixes.EDIT_DRAFT}${editingPostDetailsAndPost.post.id}`;
 
     return (
-        <div className='post-edit__container'>
+        <div
+            className='post-edit__container'
+            data-testid='postEditContainer'
+        >
             <AdvancedTextEditor
                 location={location}
                 channelId={channelId}

@@ -68,7 +68,10 @@ const Member = ({channel, member, index, totalUsers, editing, actions}: Props) =
                     src={userProfileSrc}
                     hideStatus={member.user.is_bot}
                 >
-                    <span className='channel-members-rhs__display-name'>
+                    <span
+                        className='channel-members-rhs__display-name'
+                        data-testid='channelMembersDisplayName'
+                    >
                         {member.displayName}
                         {isGuest(member.user.roles) && <GuestTag/>}
                         {member.user.remote_id &&

@@ -4,15 +4,17 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
+import {stripHtml} from '@/util';
+
 type NotificationSettingsSection = 'keysWithHighlight' | 'keysWithNotification';
 
-export default class NotificationsSettings {
-    readonly container: Locator;
-
+export default class NotificationsSettings extends BaseComponent {
     readonly title;
     public id = '#notificationsSettings';
     readonly expandedSection;
-    public expandedSectionId = '.section-max';
+    public expandedSectionId = 'section-max';
 
     readonly learnMoreText;
     readonly desktopAndMobileEditButton;
@@ -28,23 +30,29 @@ export default class NotificationsSettings {
     readonly keysWithHighlightDesc;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
-        this.title = container.getByRole('heading', {name: 'Notifications', exact: true});
-        this.expandedSection = container.locator(this.expandedSectionId);
+        this.title = container.getByRole('heading', {name: en['user.settings.modal.notifications'], exact: true});
+        this.expandedSection = container.getByTestId(this.expandedSectionId);
 
-        this.learnMoreText = container.getByRole('link', {name: 'Learn more about notifications'});
+        this.learnMoreText = container.getByRole('link', {
+            name: stripHtml(en['user.settings.notifications.learnMore']),
+        });
         this.desktopAndMobileEditButton = container.locator('#desktopAndMobileEdit');
         this.desktopNotificationSoundEditButton = container.locator('#desktopNotificationSoundEdit');
         this.emailEditButton = container.locator('#emailEdit');
         this.channelMentionAutoFollowEditButton = container.getByRole('button', {
-            name: 'Auto-follow threads on channel-wide mentions Edit',
+            name: en['user.settings.notifications.channelMentionAutoFollow.title'],
         });
         this.keywordsTriggerNotificationsEditButton = container.locator('#keywordsAndMentionsEdit');
         this.keywordsGetHighlightedEditButton = container.locator('#keywordsAndHighlightEdit');
 
-        this.testNotificationButton = container.getByRole('button', {name: 'Send a test notification'});
-        this.troubleshootingDocsButton = container.getByRole('button', {name: 'Troubleshooting docs 󰏌'});
+        this.testNotificationButton = container.getByRole('button', {
+            name: en['user_settings.notifications.test_notification.send_button.send'],
+        });
+        this.troubleshootingDocsButton = container.getByRole('button', {
+            name: en['user_settings.notifications.test_notification.go_to_docs'],
+        });
 
         this.keysWithHighlightDesc = container.locator('#keywordsAndHighlightDesc');
     }
@@ -55,7 +63,7 @@ export default class NotificationsSettings {
 
     async expandSection(section: NotificationSettingsSection) {
         if (section === 'keysWithHighlight') {
-            await this.container.getByText('Keywords That Get Highlighted (without notifications)').click();
+            await this.container.getByText(en['user.settings.notifications.keywordsWithHighlight.title']).click();
             await this.verifySectionIsExpanded('keysWithHighlight');
         }
     }
@@ -65,14 +73,10 @@ export default class NotificationsSettings {
 
         if (section === 'keysWithHighlight') {
             await expect(
-                this.container.getByText(
-                    'Enter non case-sensitive keywords, press Tab or use commas to separate them:',
-                ),
+                this.container.getByText(en['user.settings.notifications.keywordsWithHighlight.inputTitle']),
             ).toBeVisible();
             await expect(
-                this.container.getByText(
-                    'These keywords will be shown to you with a highlight when anyone sends a message that includes them.',
-                ),
+                this.container.getByText(en['user.settings.notifications.keywordsWithHighlight.extraInfo']),
             ).toBeVisible();
         }
     }
@@ -83,7 +87,7 @@ export default class NotificationsSettings {
     }
 
     async save() {
-        await expect(this.container.getByText('Save')).toBeVisible();
-        await this.container.getByText('Save').click();
+        await expect(this.container.getByText(en['save_button.save'])).toBeVisible();
+        await this.container.getByText(en['save_button.save']).click();
     }
 }

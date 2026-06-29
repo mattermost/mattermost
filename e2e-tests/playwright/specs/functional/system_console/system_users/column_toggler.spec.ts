@@ -192,9 +192,8 @@ test(
         await systemConsolePage.users.isLoadingComplete();
 
         // * Verify the Channel count cell displays the expected numeric value
-        const firstRow = systemConsolePage.users.container.locator('tbody tr').first();
-        const channelCountCell = firstRow.locator('.channelCountColumn');
-        await expect(channelCountCell).toHaveText('2');
+        const firstRow = systemConsolePage.users.usersTable.getFirstRow();
+        await expect(firstRow.channelCountCell).toHaveText('2');
     },
 );
 

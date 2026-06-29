@@ -4,11 +4,13 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
+
 import type {ChannelsPage} from '../pages';
 
-export default class GlobalHeader {
+export default class GlobalHeader extends BaseComponent {
     readonly channelsPage: ChannelsPage;
-    readonly container: Locator;
 
     readonly accountMenuButton;
     readonly productSwitchMenu;
@@ -19,20 +21,24 @@ export default class GlobalHeader {
     readonly userProfileMenu;
 
     constructor(channelsPage: ChannelsPage, container: Locator) {
+        super(container);
         this.channelsPage = channelsPage;
-        this.container = container;
 
-        this.accountMenuButton = container.getByRole('button', {name: "'s account menu"});
-        this.productSwitchMenu = container.getByRole('button', {name: 'Product switch menu'});
-        this.recentMentionsButton = container.getByRole('button', {name: 'Recent mentions'});
-        this.savedMessagesButton = container.getByRole('button', {name: 'Saved messages'});
-        this.settingsButton = container.getByRole('button', {name: 'Settings'});
+        this.accountMenuButton = container.getByRole('button', {name: en['userAccountMenu.menuButton.ariaLabel']});
+        this.productSwitchMenu = container.getByRole('button', {name: en['global_header.productSwitchMenu']});
+        this.recentMentionsButton = container.getByRole('button', {name: en['channel_header.recentMentions']});
+        this.savedMessagesButton = container.getByRole('button', {name: en['channel_header.flagged']});
+        this.settingsButton = container.getByRole('button', {name: en['global_header.productSettings']});
         this.searchBox = container.locator('#searchFormContainer');
         this.userProfileMenu = container.locator('#userAccountMenuButton');
     }
 
-    async toBeVisible(name: string) {
-        await expect(this.container.getByRole('heading', {name})).toBeVisible();
+    async toBeVisible(name?: string) {
+        if (name) {
+            await expect(this.container.getByRole('heading', {name})).toBeVisible();
+        } else {
+            await expect(this.container).toBeVisible();
+        }
     }
 
     async switchProduct(name: string) {

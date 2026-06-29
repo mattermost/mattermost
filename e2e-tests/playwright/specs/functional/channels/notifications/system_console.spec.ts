@@ -57,13 +57,13 @@ async function waitForSaveableNotificationsForm(notifications: {
     notificationReplyToAddress: TextInputSetting;
     saveButton: Locator;
 }) {
-    await notifications.notificationDisplayName.container.scrollIntoViewIfNeeded();
+    await notifications.notificationDisplayName.scrollIntoView();
     await notifications.notificationDisplayName.fill('Mattermost Notification');
-    await notifications.notificationFromAddress.container.scrollIntoViewIfNeeded();
+    await notifications.notificationFromAddress.scrollIntoView();
     await notifications.notificationFromAddress.fill('notification@mattertest.com');
-    await notifications.supportEmailAddress.container.scrollIntoViewIfNeeded();
+    await notifications.supportEmailAddress.scrollIntoView();
     await notifications.supportEmailAddress.fill('support@mattertest.com');
-    await notifications.notificationReplyToAddress.container.scrollIntoViewIfNeeded();
+    await notifications.notificationReplyToAddress.scrollIntoView();
     await notifications.notificationReplyToAddress.fill('notification@mattertest.com');
     await expect(notifications.saveButton).not.toBeDisabled({timeout: 60_000});
 }
@@ -131,7 +131,7 @@ test.describe('System Console Notifications', () => {
         await waitForSaveableNotificationsForm(notifications);
 
         // * Verify that setting is visible and matches text content
-        await notifications.pushNotificationContents.container.scrollIntoViewIfNeeded();
+        await notifications.pushNotificationContents.scrollIntoView();
         await notifications.pushNotificationContents.toBeVisible();
 
         // * Verify that the help text is visible and matches text content
@@ -181,7 +181,7 @@ test.describe('System Console Notifications', () => {
                 await systemConsolePage.page.reload();
                 await systemConsolePage.gotoNotificationsSettings();
                 await notifications.toBeVisible();
-                await notifications.pushNotificationContents.container.scrollIntoViewIfNeeded();
+                await notifications.pushNotificationContents.scrollIntoView();
                 await notifications.pushNotificationContents.toBeVisible();
 
                 const loopDropdown = notifications.pushNotificationContents.dropdown;
@@ -243,7 +243,7 @@ test.describe('System Console Notifications', () => {
         await notifications.toBeVisible();
 
         // # Scroll Support Email section into view and verify that it's visible
-        await notifications.supportEmailAddress.container.scrollIntoViewIfNeeded();
+        await notifications.supportEmailAddress.scrollIntoView();
         await notifications.supportEmailAddress.toBeVisible();
 
         // * Verify that the help text is visible and matches text content
@@ -315,7 +315,7 @@ test.describe('System Console Notifications', () => {
 
             // Scope error check to this field's container to avoid strict-mode failure
             // when other fields on the page also have validation errors simultaneously.
-            const fieldError = testCase.field.container.locator('.has-error');
+            const fieldError = notifications.getSettingFieldError(testCase.field.container);
 
             // * Error message is shown and save button is disabled
             await expect(fieldError).toHaveText(`"${testCase.name}" is required`);

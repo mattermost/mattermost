@@ -63,6 +63,8 @@ const ListItem = React.forwardRef((props: Props, ref?: React.Ref<HTMLDivElement>
         <div
             ref={ref}
             className={classNames('more-modal__row clickable', {'more-modal__row--selected': isSelected})}
+            data-testid={isGroupChannel(option) ? 'groupChannelRow' : 'directChannelRow'}
+            aria-selected={isSelected}
             onClick={handleClick}
             onMouseEnter={handleMouseEnter}
         >
@@ -103,11 +105,17 @@ function GMDetails(props: {option: GroupChannel}) {
 
     return (
         <>
-            <div className='more-modal__gm-icon'>
+            <div
+                className='more-modal__gm-icon'
+                data-testid='gmChannelIcon'
+            >
                 {option.profiles.length}
             </div>
             <div className='more-modal__details'>
-                <div className='more-modal__name'>
+                <div
+                    className='more-modal__name'
+                    data-testid='gmChannelName'
+                >
                     <span>
                         {option.profiles.map((profile) => `@${profile.username}`).join(', ')}
                     </span>

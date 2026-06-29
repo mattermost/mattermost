@@ -4,6 +4,8 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
 import {ConfirmModal} from '@/ui/components/system_console/base_modal';
 
 /**
@@ -38,9 +40,7 @@ export class SaveChangesModal extends ConfirmModal {
  * System Console -> User Management -> Users -> User Detail
  * Accessed by clicking on a user row in the Users list
  */
-export default class UserDetail {
-    readonly container: Locator;
-
+export default class UserDetail extends BaseComponent {
     // Header
     readonly backLink: Locator;
     readonly header: Locator;
@@ -60,19 +60,17 @@ export default class UserDetail {
     readonly errorMessage: Locator;
 
     constructor(container: Locator) {
-        this.container = container.locator('.SystemUserDetail');
+        super(container.getByTestId('systemUserDetail'));
 
         // Header
-        this.backLink = this.container.locator('.admin-console__header .back');
-        this.header = this.container.getByText('User Configuration', {exact: true});
+        this.backLink = this.container.getByTestId('adminConsoleHeader').getByRole('link');
+        this.header = this.container.getByText(en['admin.systemUserDetail.title'], {exact: true});
 
         // User Card
-        this.userCard = new AdminUserCard(this.container.locator('.AdminUserCard'));
+        this.userCard = new AdminUserCard(this.container.getByTestId('adminUserCard'));
 
         // Team Membership Panel
-        this.teamMembershipPanel = new TeamMembershipPanel(
-            this.container.locator('.AdminPanel').filter({hasText: 'Team Membership'}),
-        );
+        this.teamMembershipPanel = new TeamMembershipPanel(this.container.locator('#adminPanelTeamMembership'));
 
         // Save Changes confirmation modal (page-level, rendered outside container via portal)
         this.saveChangesModal = new SaveChangesModal(
@@ -81,8 +79,8 @@ export default class UserDetail {
 
         // Save section
         this.saveButton = this.container.getByTestId('saveSetting');
-        this.cancelButton = this.container.getByRole('button', {name: 'Cancel'});
-        this.errorMessage = this.container.locator('.error-message');
+        this.cancelButton = this.container.getByRole('button', {name: en['admin.user_item.cancel']});
+        this.errorMessage = this.container.getByRole('alert');
     }
 
     async toBeVisible() {
@@ -109,9 +107,7 @@ export default class UserDetail {
     }
 }
 
-class AdminUserCard {
-    readonly container: Locator;
-
+class AdminUserCard extends BaseComponent {
     // Header section
     readonly profileImage: Locator;
     readonly displayName: Locator;
@@ -135,19 +131,19 @@ class AdminUserCard {
     readonly manageUserSettingsButton: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
         // Header
-        const header = container.locator('.AdminUserCard__header');
-        this.profileImage = header.locator('.Avatar');
-        this.displayName = header.locator('.AdminUserCard__user-info span').first();
-        this.nickname = header.locator('.AdminUserCard__user-nickname');
-        this.userId = header.locator('.AdminUserCard__user-id');
+        const header = container.getByTestId('adminUserCardHeader');
+        this.profileImage = header.getByTestId('adminUserCardProfileImage');
+        this.displayName = header.getByTestId('adminUserCardDisplayName');
+        this.nickname = header.getByTestId('adminUserCardNickname');
+        this.userId = header.getByTestId('adminUserCardUserId');
 
         // Body
-        this.body = container.locator('.AdminUserCard__body');
-        this.twoColumnLayout = this.body.locator('.two-column-layout');
-        this.fieldRows = this.body.locator('.field-row');
+        this.body = container.getByTestId('adminUserCardBody');
+        this.twoColumnLayout = this.body.getByTestId('adminUserCardTwoColumnLayout');
+        this.fieldRows = this.body.getByTestId('adminUserCardFieldRow');
 
         // System fields — use exact label text to avoid substring matches (e.g., "Email" vs "Work Email")
         this.usernameInput = this.getFieldInputByExactLabel('Username');
@@ -156,10 +152,10 @@ class AdminUserCard {
         this.authenticationMethod = this.getFieldColumn('Authentication Method').locator('label > span').last();
 
         // Footer
-        const footer = container.locator('.AdminUserCard__footer');
-        this.resetPasswordButton = footer.getByRole('button', {name: 'Reset Password'});
-        this.deactivateButton = footer.getByRole('button', {name: 'Deactivate'});
-        this.manageUserSettingsButton = footer.getByRole('button', {name: 'Manage User Settings'});
+        const footer = container.getByTestId('adminUserCardFooter');
+        this.resetPasswordButton = footer.getByRole('button', {name: en['admin.user_item.resetPwd']});
+        this.deactivateButton = footer.getByRole('button', {name: en['admin.user_item.deactivate']});
+        this.manageUserSettingsButton = footer.getByRole('button', {name: en['admin.user_item.manageSettings']});
     }
 
     async toBeVisible() {
@@ -167,11 +163,25 @@ class AdminUserCard {
     }
 
     /**
-     * Get the .field-column container for a field by its exact label text.
+     * All input and select elements within the card body — for counting form fields.
+     */
+    get allInputsAndSelects(): Locator {
+        return this.body.locator('input, select');
+    }
+
+    /**
+     * The label element for a field column, identified by its exact label text.
+     */
+    getFieldLabel(labelText: string): Locator {
+        return this.getFieldColumn(labelText).locator('label');
+    }
+
+    /**
+     * Get the field-column container for a field by its exact label text.
      */
     private getFieldColumn(labelText: string): Locator {
         return this.body
-            .locator('.field-column')
+            .getByTestId('adminUserCardFieldColumn')
             .filter({has: this.body.page().locator(`span:text-is("${labelText}")`)});
     }
 
@@ -191,15 +201,15 @@ class AdminUserCard {
     }
 
     /**
-     * Get the .field-error validation message locator for a field by its exact label text.
+     * Get the field validation error locator for a field by its exact label text.
      */
     getFieldError(labelText: string): Locator {
-        return this.getFieldColumn(labelText).locator('.field-error');
+        return this.getFieldColumn(labelText).getByRole('alert');
     }
 
     /**
      * Get the container for a multiselect CPA field by its exact label text.
-     * Returns the .field-column wrapper which holds the multiselect component.
+     * Returns the field-column wrapper which holds the multiselect component.
      */
     getCpaMultiselectContainer(labelText: string): Locator {
         return this.getFieldColumn(labelText);
@@ -209,12 +219,12 @@ class AdminUserCard {
 
     /** The menu-button for a ranked CPA field, located by its exact label. */
     getCpaRankPicker(labelText: string): Locator {
-        return this.getFieldColumn(labelText).locator('.cpa-rank-select__button');
+        return this.getFieldColumn(labelText).locator('[data-testid^="cpa-rank-select-"]');
     }
 
     /** The open ranked-value menu (rendered at page level via portal). */
     cpaRankMenu(): Locator {
-        return this.body.page().getByRole('menu', {name: 'Select an option'});
+        return this.body.page().getByRole('menu', {name: en['admin.userManagement.userDetail.selectOption']});
     }
 
     /** Menu option rows, in DOM order (highest rank first). */
@@ -233,19 +243,18 @@ class AdminUserCard {
     }
 }
 
-class TeamMembershipPanel {
-    readonly container: Locator;
+class TeamMembershipPanel extends BaseComponent {
     readonly title: Locator;
     readonly description: Locator;
     readonly addTeamButton: Locator;
     readonly teamRows: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
-        this.title = container.getByRole('heading', {name: 'Team Membership'});
-        this.description = container.getByText('Teams to which this user belongs');
-        this.addTeamButton = container.getByRole('button', {name: 'Add Team'});
-        this.teamRows = container.locator('.TeamRow');
+        super(container);
+        this.title = container.getByRole('heading', {name: en['admin.userManagement.userDetail.teamsTitle']});
+        this.description = container.getByText(en['admin.userManagement.userDetail.teamsSubtitle']);
+        this.addTeamButton = container.getByRole('button', {name: en['admin.userManagement.userDetail.addTeam']});
+        this.teamRows = container.getByTestId('adminTeamRow');
     }
 
     async toBeVisible() {

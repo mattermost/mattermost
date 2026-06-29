@@ -234,6 +234,7 @@ const SettingItemMax = ({
     return (
         <section
             className={`section-max form-horizontal ${containerStyle}`}
+            data-testid='section-max'
             ref={settingList}
         >
             {title}

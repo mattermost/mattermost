@@ -789,7 +789,10 @@ function PolicyDetails({
                     />
                 </BlockableLink>
                 {serverError && (
-                    <span className='EditPolicy__error'>
+                    <span
+                        className='EditPolicy__error'
+                        data-testid='editPolicyError'
+                    >
                         <i className='icon icon-alert-outline'/>
                         <FormattedMessage
                             id='admin.access_control.edit_policy.serverError'

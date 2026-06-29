@@ -36,6 +36,7 @@ interface Props<TriggerComponentType> {
     triggerComponentId?: HtmlHTMLAttributes<TriggerComponentType>['id'];
     triggerComponentClass?: HtmlHTMLAttributes<TriggerComponentType>['className'];
     triggerComponentStyle?: HtmlHTMLAttributes<TriggerComponentType>['style'];
+    triggerComponentDataTestId?: string;
 
     /**
      * Source URL from the image to display in the popover
@@ -128,6 +129,7 @@ export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>
                 ref={refs.setReference}
                 className={props.triggerComponentClass}
                 style={props.triggerComponentStyle}
+                data-testid={props.triggerComponentDataTestId}
                 {...getReferenceProps()}
             >
                 {props.children}
@@ -144,6 +146,7 @@ export function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>
                                 ref={refs.setFloating}
                                 style={{...floatingStyles, ...transitionStyles}}
                                 className={classNames('user-profile-popover', A11yClassNames.POPUP)}
+                                data-testid='userProfilePopover'
                                 aria-label={props.username ? userProfileAriaLabel : profileAriaLabel}
                                 {...getFloatingProps()}
                             >

@@ -198,11 +198,11 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
 
             // Open masked policy — warning banner must be present
             await openExistingPolicy(page, maskedPolicyName);
-            await expect(page.locator('text="This policy contains restricted values"')).toBeVisible({timeout: 5000});
+            await expect(systemConsolePage.policyEditor.restrictedValuesBanner).toBeVisible({timeout: 5000});
 
             // Open clean policy — warning banner must NOT be present
             await openExistingPolicy(page, cleanPolicyName);
-            await expect(page.locator('text="This policy contains restricted values"')).not.toBeVisible();
+            await expect(systemConsolePage.policyEditor.restrictedValuesBanner).not.toBeVisible();
         } finally {
             for (const id of policyIds) {
                 try {
@@ -283,7 +283,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
 
             const cleanModal = page.locator('[role="dialog"]').filter({hasText: /confirm|delete/i});
             await cleanModal.waitFor({state: 'visible', timeout: 5000});
-            await expect(cleanModal.locator('text=/restricted values/i')).not.toBeVisible();
+            await expect(cleanModal.getByText(/restricted values/i)).not.toBeVisible();
 
             await cleanModal.getByRole('button', {name: /cancel/i}).click();
         } finally {
@@ -339,7 +339,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
 
             await openExistingPolicy(page, policyName);
 
-            await expect(page.locator('.select__multi-value--masked')).toBeVisible();
+            await expect(systemConsolePage.policyEditor.maskedChips).toBeVisible();
 
             // UI: Delete Policy button must be disabled when masked values present
             const deleteBtn = page.getByRole('button', {name: /^delete$/i}).last();
@@ -425,20 +425,20 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
             const storedPolicyId = await getPolicyIdFromURL(page);
 
             // Both rows are masked — banner visible
-            await expect(page.locator('.select__multi-value--masked').first()).toBeVisible();
-            await expect(page.locator('text="This policy contains restricted values"')).toBeVisible();
+            await expect(systemConsolePage.policyEditor.maskedChips.first()).toBeVisible();
+            await expect(systemConsolePage.policyEditor.restrictedValuesBanner).toBeVisible();
 
             const saveBtn = page.getByRole('button', {name: 'Save'});
 
             // Trash buttons on both masked rows must be DISABLED
-            const trashButtons = page.locator('button[aria-label="Remove row"]');
+            const trashButtons = systemConsolePage.policyEditor.tableEditorRemoveButtons;
             const firstTrash = trashButtons.first();
             if (await firstTrash.isVisible({timeout: 3000})) {
                 await expect(firstTrash).toBeDisabled();
             }
 
             // Dirty the form via the policy name so Save enables
-            const nameInput = page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName');
+            const nameInput = systemConsolePage.policyEditor.policyNameInput;
             await nameInput.fill(policyName + ' (edited)');
             await page.waitForTimeout(300);
 
@@ -525,8 +525,8 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
             await openExistingPolicy(page, policyName);
 
             // --- Initial Simple mode: restrictions in place ---
-            const maskedChip = page.locator('.select__multi-value--masked');
-            const banner = page.locator('text="This policy contains restricted values"');
+            const maskedChip = systemConsolePage.policyEditor.maskedChips;
+            const banner = systemConsolePage.policyEditor.restrictedValuesBanner;
             const deleteBtn = page.getByRole('button', {name: /^delete$/i}).last();
 
             await expect(maskedChip.first()).toBeVisible();
@@ -540,7 +540,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
 
             // Banner must persist across the toggle
             await expect(banner).toBeVisible();
-            await expect(page.locator('.monaco-editor').first()).toBeVisible();
+            await expect(systemConsolePage.policyEditor.monacoEditorDiv).toBeVisible();
 
             // --- Switch back to Simple mode ---
             const toSimple = page.getByRole('button', {name: /switch to simple mode/i});
@@ -552,7 +552,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
             await expect(maskedChip.first()).toBeVisible();
             await expect(deleteBtn).toBeDisabled();
 
-            const valueSelector = page.locator('[data-testid="valueSelectorMenuButton"]').first();
+            const valueSelector = systemConsolePage.policyEditor.ruleBuilder.getValueSelectorButton(0);
             if (await valueSelector.isVisible({timeout: 2000})) {
                 await expect(valueSelector).toBeDisabled();
             }

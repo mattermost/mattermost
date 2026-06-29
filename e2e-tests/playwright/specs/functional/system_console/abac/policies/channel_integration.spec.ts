@@ -88,13 +88,13 @@ test.describe('ABAC Policies - Channel Integration', () => {
         await systemConsolePage.page.waitForLoadState('networkidle');
 
         // Search and find our channel
-        const channelSearchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
+        const channelSearchInput = systemConsolePage.page.getByPlaceholder('Search', {exact: false}).first();
         await channelSearchInput.fill(channel.display_name);
         await systemConsolePage.page.waitForTimeout(1000);
 
         // Verify channel shows "Manual Invites" management
         const channelRow = systemConsolePage.page
-            .locator('.DataGrid_row')
+            .getByTestId('dataGridRow')
             .filter({hasText: channel.display_name})
             .first();
         // const managementText = await channelRow.textContent();
@@ -107,7 +107,7 @@ test.describe('ABAC Policies - Channel Integration', () => {
         // STEP 3: Toggle on "Enable attribute based channel access"
         // ============================================================
 
-        const abacToggle = systemConsolePage.page.locator('[data-testid="policy-enforce-toggle-button"]');
+        const abacToggle = systemConsolePage.policyEditor.policyEnforceToggle;
         await abacToggle.waitFor({state: 'visible', timeout: 5000});
 
         const isEnabled = await abacToggle.getAttribute('aria-pressed');
@@ -121,7 +121,7 @@ test.describe('ABAC Policies - Channel Integration', () => {
         // ============================================================
 
         // Click "Link to a policy"
-        const linkButton = systemConsolePage.page.locator('[data-testid="link-to-a-policy"]');
+        const linkButton = systemConsolePage.policyEditor.linkToPolicyButton;
         await linkButton.waitFor({state: 'visible', timeout: 5000});
         await linkButton.click();
         await systemConsolePage.page.waitForTimeout(500);
@@ -130,16 +130,16 @@ test.describe('ABAC Policies - Channel Integration', () => {
         const modal = systemConsolePage.page.locator('[role="dialog"]').filter({hasText: 'Select a Membership Policy'});
         await modal.waitFor({state: 'visible', timeout: 5000});
 
-        const modalSearch = modal.locator('[data-testid="searchInput"]');
+        const modalSearch = modal.getByTestId('searchInput');
         await modalSearch.fill(searchTerm);
         await systemConsolePage.page.waitForTimeout(1000);
 
-        const policyOption = modal.locator('.DataGrid_row').filter({hasText: policyName}).first();
+        const policyOption = modal.getByTestId('dataGridRow').filter({hasText: policyName}).first();
         await policyOption.click();
         await systemConsolePage.page.waitForTimeout(500);
 
         // Save
-        await systemConsolePage.page.getByRole('button', {name: 'Save'}).click();
+        await systemConsolePage.policyEditor.saveButton.click();
         await systemConsolePage.page.waitForLoadState('networkidle');
 
         // ============================================================
@@ -258,14 +258,14 @@ test.describe('ABAC Policies - Channel Integration', () => {
         await page.waitForTimeout(1000);
 
         // Search for our channel
-        const searchInput = page.locator('input[placeholder*="Search" i]').first();
+        const searchInput = page.getByPlaceholder('Search', {exact: false}).first();
         if (await searchInput.isVisible({timeout: 3000})) {
             await searchInput.fill(groupSyncChannelName);
             await page.waitForTimeout(1000);
         }
 
         // Verify channel shows as "Group Sync"
-        const channelRow = page.locator('.DataGrid_row').filter({hasText: groupSyncChannelName}).first();
+        const channelRow = page.getByTestId('dataGridRow').filter({hasText: groupSyncChannelName}).first();
         await channelRow.waitFor({state: 'visible', timeout: 10000});
 
         const rowText = await channelRow.textContent();
@@ -277,7 +277,7 @@ test.describe('ABAC Policies - Channel Integration', () => {
         await page.waitForTimeout(1000);
 
         // STEP 1.3: Verify ABAC toggle is NOT available when Group Sync is enabled
-        const abacToggle = page.locator('[data-testid="policy-enforce-toggle-button"]');
+        const abacToggle = systemConsolePage.policyEditor.policyEnforceToggle;
         const abacVisibleWithGroupSync = await abacToggle.isVisible({timeout: 5000}).catch(() => false);
 
         expect(abacVisibleWithGroupSync).toBe(false);
@@ -295,7 +295,7 @@ test.describe('ABAC Policies - Channel Integration', () => {
         await page.waitForTimeout(1000);
 
         // Verify ABAC toggle is now available
-        const abacToggleAfter = page.locator('[data-testid="policy-enforce-toggle-button"]');
+        const abacToggleAfter = systemConsolePage.policyEditor.policyEnforceToggle;
         const abacVisibleAfterDisable = await abacToggleAfter.isVisible({timeout: 5000}).catch(() => false);
 
         expect(abacVisibleAfterDisable).toBe(true);
@@ -314,21 +314,21 @@ test.describe('ABAC Policies - Channel Integration', () => {
         // Step 2.2: Click the policy to edit it
 
         // Search for the policy first
-        const policySearchInput = page.locator('input[placeholder*="Search" i]').first();
+        const policySearchInput = systemConsolePage.policyList.searchInput;
         if (await policySearchInput.isVisible({timeout: 3000})) {
             await policySearchInput.fill(policyName);
             await page.waitForTimeout(1000);
         }
 
         // Click on the policy row (use text-based locator)
-        const policyRowLocator = page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyName}).first();
+        const policyRowLocator = page.getByTestId('dataGridRow').filter({hasText: policyName}).first();
         await policyRowLocator.waitFor({state: 'visible', timeout: 10000});
         await policyRowLocator.click();
         await page.waitForLoadState('networkidle');
         await page.waitForTimeout(1000);
 
         // Click Add channels button
-        const addChannelsButton = page.getByRole('button', {name: /add channel/i});
+        const addChannelsButton = systemConsolePage.policyEditor.addChannelsButton;
         await addChannelsButton.waitFor({state: 'visible', timeout: 10000});
         await addChannelsButton.click();
         await page.waitForTimeout(1000);
@@ -346,7 +346,7 @@ test.describe('ABAC Policies - Channel Integration', () => {
 
         // Document actual behavior (requirement notes uncertainty)
 
-        const channelRows = channelModal.locator('.DataGrid_row, .more-modal__row');
+        const channelRows = channelModal.locator('[class*="more-modal__row"], [data-testid="dataGridRow"]');
         const rowCount = await channelRows.count();
 
         if (rowCount === 0) {
@@ -382,7 +382,7 @@ test.describe('ABAC Policies - Channel Integration', () => {
             }
 
             // Check if we're back on edit page - try to save
-            const saveButton = page.getByRole('button', {name: 'Save'});
+            const saveButton = systemConsolePage.policyEditor.saveButton;
             if (await saveButton.isVisible({timeout: 3000})) {
                 const saveEnabled = await saveButton.isEnabled();
 
@@ -391,7 +391,7 @@ test.describe('ABAC Policies - Channel Integration', () => {
                     await page.waitForTimeout(2000);
 
                     // Check for error message
-                    const errorMessage = page.locator('.error-message, [class*="error"], .alert-danger');
+                    const errorMessage = page.locator('[class*="error"]');
                     const hasError = await errorMessage.isVisible({timeout: 3000}).catch(() => false);
 
                     if (hasError) {

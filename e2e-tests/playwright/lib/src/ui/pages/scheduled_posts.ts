@@ -6,9 +6,13 @@ import {expect} from '@playwright/test';
 
 import {components} from '@/ui/components';
 import type {ScheduledPost} from '@/ui/components';
+import en from '@/i18n';
 
-export default class ScheduledPostsPage {
-    readonly page: Page;
+import type {BaseComponent} from '../base_component';
+import {BasePage} from '../base_page';
+
+export default class ScheduledPostsPage extends BasePage {
+    readonly components: Record<string, BaseComponent>;
 
     readonly draftsHeader;
     readonly tab;
@@ -19,23 +23,29 @@ export default class ScheduledPostsPage {
     readonly deleteScheduledPostModal;
 
     constructor(page: Page) {
-        this.page = page;
+        super(page);
 
-        this.draftsHeader = page.locator('.Drafts__header');
-        this.tab = page.getByRole('tab', {name: 'Scheduled'});
+        this.draftsHeader = page.getByTestId('draftsHeader');
+        this.tab = page.getByRole('tab', {name: en['schedule_post.tab.heading']});
         this.badge = this.tab.locator('span.MuiBadge-badge');
 
-        this.noScheduledDrafts = page.locator('.no-results__wrapper');
+        this.noScheduledDrafts = page.getByTestId('noResultsWrapper');
 
         this.scheduleMessageModal = new components.ScheduleMessageModal(
-            page.getByRole('dialog', {name: 'Schedule message'}),
+            page.getByRole('dialog', {name: en['schedule_post.custom_time_modal.title']}),
         );
         this.sendMessageNowModal = new components.SendMessageNowModal(
-            page.getByRole('dialog', {name: 'Send message now'}),
+            page.getByRole('dialog', {name: en['drafts.confirm.send.title']}),
         );
         this.deleteScheduledPostModal = new components.DeleteScheduledPostModal(
-            page.getByRole('dialog', {name: 'Delete scheduled post'}),
+            page.getByRole('dialog', {name: en['scheduled_post.delete_modal.title']}),
         );
+
+        this.components = {
+            scheduleMessageModal: this.scheduleMessageModal,
+            sendMessageNowModal: this.sendMessageNowModal,
+            deleteScheduledPostModal: this.deleteScheduledPostModal,
+        };
     }
 
     async toBeVisible() {

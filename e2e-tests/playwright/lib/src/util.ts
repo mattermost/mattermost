@@ -50,6 +50,15 @@ export function newTestPassword(): string {
 export const illegalRe = /[/?<>\\:*|":&();]/g;
 export const simpleEmailRe = /\S+@\S+\.\S+/;
 
+/**
+ * Strips HTML/React Intl rich-text tags from an i18n string so the plain text
+ * can be used as a Playwright accessibility locator name.
+ * e.g. stripHtml('<a>Learn more</a>') → 'Learn more'
+ */
+export function stripHtml(str: string): string {
+    return str.replace(/<[^>]*>/g, '');
+}
+
 export function hexToRgb(hex: string): string {
     const hexColor = hex.replace(/^#/, '');
     const r = parseInt(hexColor.substring(0, 2), 16);

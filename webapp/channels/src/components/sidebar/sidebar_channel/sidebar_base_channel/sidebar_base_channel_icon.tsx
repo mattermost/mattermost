@@ -17,7 +17,13 @@ const SidebarBaseChannelIcon = ({channel}: Props) => {
     if (channel.type !== Constants.OPEN_CHANNEL && channel.type !== Constants.PRIVATE_CHANNEL) {
         return null;
     }
-    return <ChannelTypeIcon channel={channel}/>;
+    const testId = channel.type === Constants.PRIVATE_CHANNEL ? 'privateChannelIcon' : 'publicChannelIcon';
+    return (
+        <ChannelTypeIcon
+            channel={channel}
+            data-testid={testId}
+        />
+    );
 };
 
 export default SidebarBaseChannelIcon;

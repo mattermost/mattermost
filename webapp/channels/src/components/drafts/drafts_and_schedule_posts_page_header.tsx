@@ -16,6 +16,7 @@ export default function DraftsAndSchedulePostsPageHeader(props: Props) {
         <div
             id='app-content'
             className='Drafts app__content'
+            data-testid='draftsHeader'
         >
             <Header
                 level={2}

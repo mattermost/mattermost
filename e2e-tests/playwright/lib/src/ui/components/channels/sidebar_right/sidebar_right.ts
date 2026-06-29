@@ -4,16 +4,16 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-import ChannelsPostCreate from './post_create';
-import ChannelsPostEdit from './post_edit';
-import ChannelsPost from './post';
-import ScheduledPostIndicator from './scheduled_post_indicator';
-
+import en from '@/i18n';
 import {hexToRgb} from '@/util';
+import {BaseComponent} from '@/ui/base_component';
 
-export default class ChannelsSidebarRight {
-    readonly container: Locator;
+import ChannelsPostCreate from '../center_view/post_create';
+import ChannelsPostEdit from '../center_view/post/post_edit';
+import ChannelsPost from '../center_view/post/post';
+import ScheduledPostIndicator from '../scheduled_post_indicator';
 
+export default class ChannelsSidebarRight extends BaseComponent {
     readonly closeButton;
     readonly postCreate;
     readonly rhsPostBody;
@@ -28,22 +28,20 @@ export default class ChannelsSidebarRight {
     readonly channelBanner;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
         this.scheduledPostIndicator = new ScheduledPostIndicator(container.getByTestId('scheduledPostIndicator'));
-        this.scheduledDraftChannelInfoMessage = container.locator('div.ScheduledPostIndicator span');
-        this.scheduledDraftSeeAllLink = container.locator('a:has-text("See all")');
-        this.scheduledDraftChannelInfoMessageText = container.locator('span:has-text("Message scheduled for")');
-        this.rhsPostBody = container.locator('.post-message__text');
+        this.scheduledDraftChannelInfoMessage = container.getByTestId('scheduledPostInfoText');
+        this.scheduledDraftSeeAllLink = container.getByTestId('scheduledPostSeeAll');
+        this.scheduledDraftChannelInfoMessageText = container.getByTestId('scheduledPostInfoText');
+        this.rhsPostBody = container.getByTestId('rhsPostMessageText');
         this.postCreate = new ChannelsPostCreate(container.getByTestId('comment-create'), true);
-        this.closeButton = container.locator('.sidebar--right__close');
+        this.closeButton = container.locator('#rhsCloseButton');
 
         this.editTextbox = container.locator('#edit_textbox');
-        this.postEdit = new ChannelsPostEdit(container.locator('.post-edit__container'));
+        this.postEdit = new ChannelsPostEdit(container.getByTestId('postEditContainer'));
         this.currentVersionEditedPosttext = (postID: any) => container.locator(`#rhsPostMessageText_${postID} p`);
-        this.restorePreviousPostVersionIcon = container.locator(
-            'button[aria-label="Select to restore an old message."]',
-        );
+        this.restorePreviousPostVersionIcon = container.getByLabel(en['post_info.edit.aria_label']);
         this.channelBanner = container.getByTestId('channel_banner_container');
     }
 

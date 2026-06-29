@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {
+    AutoTranslationPost,
     disableAutotranslationConfig,
     enableAutotranslationConfig,
     enableChannelAutotranslation,
@@ -11,6 +12,7 @@ import {
     expect,
     test,
     setMockSourceLanguage,
+    en,
 } from '@mattermost/playwright-lib';
 
 // Autotranslation tests involve real UI interactions with plugin state and can run
@@ -99,9 +101,7 @@ test.fixme(
 
         // * Verify post appeared with translation (mock server appends "[translated to en]" to original)
         await expect(
-            channelsPage.centerView.container
-                .locator('[id^="post_"]')
-                .getByText('Hola para nuevo miembro [translated to en]', {exact: false}),
+            channelsPage.centerView.getPostContainerByText('Hola para nuevo miembro [translated to en]'),
         ).toBeVisible();
     },
 );
@@ -157,11 +157,11 @@ test(
         await expect(channelsPage.centerView.autotranslationBadge).toBeVisible({timeout: 15000});
 
         await channelsPage.centerView.header.openChannelMenu();
-        await page.getByRole('menuitem', {name: 'Disable autotranslation'}).click();
-        await page.getByRole('button', {name: 'Turn off auto-translation'}).click();
+        await page.getByRole('menuitem', {name: en['channel_header.autotranslation.disable']}).click();
+        await page.getByRole('button', {name: en['channel_header.autotranslation.disable_confirm.confirm']}).click();
 
         await expect(
-            channelsPage.centerView.container.locator('p').getByText(/You disabled Auto-translation for this channel/i),
+            channelsPage.centerView.container.getByText(/You disabled Auto-translation for this channel/i),
         ).toBeVisible();
     },
 );
@@ -239,9 +239,7 @@ test.fixme(
         // is asynchronous and can lag several seconds in CI; use expect.poll to retry
         // reliably rather than a fixed 15 s one-shot timeout.
         const translatedText = 'Solo texto original [translated to en]';
-        const spanishPost = channelsPage.centerView.container
-            .locator('[id^="post_"]')
-            .filter({hasText: translatedText});
+        const spanishPost = channelsPage.centerView.getPostContainerByText(translatedText);
         await expect
             .poll(async () => spanishPost.isVisible(), {
                 timeout: 60000,
@@ -250,19 +248,19 @@ test.fixme(
             .toBe(true);
 
         await channelsPage.centerView.header.openChannelMenu();
-        await page.getByRole('menuitem', {name: 'Disable autotranslation'}).click();
-        await page.getByRole('button', {name: 'Turn off auto-translation'}).click();
+        await page.getByRole('menuitem', {name: en['channel_header.autotranslation.disable']}).click();
+        await page.getByRole('button', {name: en['channel_header.autotranslation.disable_confirm.confirm']}).click();
 
         // * After disabling, wait for page to update and verify original text is shown
         // Find the post containing the original text (skip system messages)
         const userPost = channelsPage.centerView.container
             .locator('[id^="post_"]')
-            .filter({has: page.locator('.post__body').filter({hasText: originalText})});
+            .filter({has: page.getByTestId('postBody').filter({hasText: originalText})});
         await expect(userPost).toBeVisible({timeout: 15000});
         await expect(userPost).toContainText(originalText);
 
         // * Verify translation indicator is no longer present
-        await expect(userPost.getByRole('button', {name: 'This post has been translated'})).not.toBeVisible();
+        await expect(new AutoTranslationPost(userPost).translationBadge).not.toBeVisible();
     },
 );
 
@@ -353,12 +351,12 @@ test.fixme(
         // * Verify both posts appear
         // Mock server produces "<original> [translated to en]", not real translations.
         // Translation is async — use expect.poll to ride out mock-service latency in CI.
-        await expect(channelsPage.centerView.container.locator('[id^="post_"]').getByText('English only')).toBeVisible({
+        await expect(channelsPage.centerView.getPostContainerByText('English only')).toBeVisible({
             timeout: 15000,
         });
-        const translatedSpanishLocator = channelsPage.centerView.container
-            .locator('[id^="post_"]')
-            .getByText('Solo español [translated to en]', {exact: false});
+        const translatedSpanishLocator = channelsPage.centerView.getPostContainerByText(
+            'Solo español [translated to en]',
+        );
         await expect
             .poll(async () => translatedSpanishLocator.isVisible(), {
                 timeout: 45000,
@@ -367,15 +365,11 @@ test.fixme(
             .toBe(true);
 
         // * Verify both messages are present
-        const spanishPost = channelsPage.centerView.container
-            .locator('[id^="post_"]')
-            .filter({hasText: 'Solo español [translated to en]'});
+        const spanishPost = channelsPage.centerView.getPostContainerByText('Solo español [translated to en]');
         await expect(spanishPost).toBeVisible({timeout: 30000});
 
         // * Verify English message is present and unchanged
-        const englishPost = channelsPage.centerView.container
-            .locator('[id^="post_"]')
-            .filter({hasText: 'English only'});
+        const englishPost = channelsPage.centerView.getPostContainerByText('English only');
         await expect(englishPost).toBeVisible();
     },
 );
@@ -483,9 +477,7 @@ test.fixme(
 
         // * Verify translated Spanish post is present
         // Mock server produces "<original> [translated to en]"
-        const translatedPost = channelsPage.centerView.container
-            .locator('[id^="post_"]')
-            .filter({hasText: 'Solo español [translated to en]'});
+        const translatedPost = channelsPage.centerView.getPostContainerByText('Solo español [translated to en]');
         await expect
             .poll(async () => translatedPost.isVisible(), {
                 timeout: 90000,

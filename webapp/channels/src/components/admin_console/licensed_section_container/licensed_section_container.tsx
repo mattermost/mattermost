@@ -22,6 +22,7 @@ type OwnProps = {
     requiredSku: LicenseSkus;
     sectionTitle?: string | MessageDescriptor;
     sectionDescription?: string | MessageDescriptor;
+    testId?: string;
     featureDiscoveryConfig: {
         featureName: string;
         title: MessageDescriptor;
@@ -42,6 +43,7 @@ const LicensedSectionContainer: React.FC<Props> = ({
     requiredSku,
     sectionTitle,
     sectionDescription,
+    testId,
     featureDiscoveryConfig,
     license,
 }) => {
@@ -57,6 +59,7 @@ const LicensedSectionContainer: React.FC<Props> = ({
                 title={sectionTitle}
                 description={sectionDescription}
                 licenseSku={isEntryLicense ? requiredSku : undefined}
+                testId={testId}
             >
                 {settingsList}
             </AdminSectionPanel>

@@ -4,13 +4,14 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class BurnOnReadBadge {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
+
+export default class BurnOnReadBadge extends BaseComponent {
     readonly flameIcon: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
-        this.flameIcon = container.locator('svg');
+        super(container);
+        this.flameIcon = container.getByTestId('burnOnReadBadgeIcon');
     }
 
     async toBeVisible() {

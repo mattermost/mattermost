@@ -4,6 +4,9 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
+
 export type DisplaySettingsSection =
     | 'theme'
     | 'clockDisplay'
@@ -37,13 +40,11 @@ const sectionTitles: Record<DisplaySettingsSection, string> = {
     language: 'Language',
 };
 
-export default class DisplaySettings {
-    readonly container: Locator;
-
+export default class DisplaySettings extends BaseComponent {
     readonly title;
     public id = '#displaySettings';
     readonly expandedSection;
-    public expandedSectionId = '.section-max';
+    public expandedSectionId = 'section-max';
 
     readonly themeEditButton;
     readonly clockDisplayEditButton;
@@ -61,10 +62,10 @@ export default class DisplaySettings {
     readonly languageEditButton;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
-        this.title = container.getByRole('heading', {name: 'Display Settings', exact: true});
-        this.expandedSection = container.locator(this.expandedSectionId);
+        this.title = container.getByRole('heading', {name: en['user.settings.display.title'], exact: true});
+        this.expandedSection = container.getByTestId(this.expandedSectionId);
 
         // Edit buttons for each setting section - IDs are {section}Edit pattern from webapp
         this.themeEditButton = container.locator('#themeEdit');
@@ -93,8 +94,10 @@ export default class DisplaySettings {
     }
 
     async verifySectionIsExpanded(section: DisplaySettingsSection) {
-        await expect(this.container.locator('.section-min', {hasText: sectionTitles[section]})).not.toBeVisible();
+        await expect(
+            this.container.getByTestId('section-min').filter({hasText: sectionTitles[section]}),
+        ).not.toBeVisible();
 
-        await expect(this.container.locator('.section-max', {hasText: sectionTitles[section]})).toBeVisible();
+        await expect(this.container.getByTestId('section-max').filter({hasText: sectionTitles[section]})).toBeVisible();
     }
 }

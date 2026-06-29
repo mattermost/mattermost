@@ -4,14 +4,14 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class RestorePostConfirmationDialog {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
 
+export default class RestorePostConfirmationDialog extends BaseComponent {
     readonly cancelButton;
     readonly confirmButton;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
         this.cancelButton = container.locator('button.btn.btn-tertiary');
         this.confirmButton = container.locator('button.GenericModal__button.btn.btn-primary.confirm');

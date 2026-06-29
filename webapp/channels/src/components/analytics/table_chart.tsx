@@ -13,19 +13,27 @@ export type TableItem = {
 type Props = {
     title: React.ReactNode;
     data: TableItem[];
+    testId?: string;
 };
 
 const TableChart = ({
     title,
     data,
+    testId,
 }: Props) => (
     <div className='col-sm-6'>
-        <div className='total-count recent-active-users'>
-            <div className='title'>
+        <div
+            className='total-count recent-active-users'
+            data-testid={testId}
+        >
+            <div
+                className='title'
+                data-testid={testId ? `${testId}Title` : undefined}
+            >
                 {title}
             </div>
             <div className='content'>
-                <table>
+                <table data-testid={testId ? `${testId}Table` : undefined}>
                     <tbody>
                         {
                             data.map((item) => (

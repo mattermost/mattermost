@@ -101,7 +101,7 @@ test(
         await page.waitForTimeout(1000);
 
         // # Wait for channel list to load
-        await expect(page.locator('.DataGrid')).toBeVisible({timeout: 10000});
+        await expect(page.getByTestId('dataGrid')).toBeVisible({timeout: 10000});
 
         // # Search for our test channels to bring them into view
         await page.fill('[data-testid="searchInput"]', 'Admin');
@@ -142,16 +142,16 @@ test(
         await channelsPage.goto(team.name, privateChannel.name);
 
         // # Wait for channel header to load (archived channels don't have post-create)
-        await expect(page.locator('.channel-header')).toBeVisible();
+        await expect(channelsPage.centerView.header.container).toBeVisible();
 
         // # Verify archived channel message is visible
-        await expect(page.locator('#channelArchivedMessage')).toBeVisible();
+        await expect(channelsPage.centerView.header.archivedMessage).toBeVisible();
 
         // # Hide dynamic content
         await pw.hideDynamicChannelsContent(page);
 
         // # Focus on channel header area for snapshot
-        const headerElement = page.locator('.channel-header');
+        const headerElement = channelsPage.centerView.header.container;
         await expect(headerElement).toBeVisible();
 
         // * Verify channel header shows archive-lock icon for private archived channel

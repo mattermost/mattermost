@@ -4,17 +4,18 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {BaseComponent} from '@/ui/base_component';
+
 /**
  * System Console section header component
  * Represents the header area that displays the current section title
  */
-export default class SystemConsoleHeader {
-    readonly container: Locator;
+export default class SystemConsoleHeader extends BaseComponent {
     readonly title: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
-        this.title = container.locator('.admin-console__header');
+        super(container);
+        this.title = container.getByTestId('adminConsoleHeader');
     }
 
     async toBeVisible() {

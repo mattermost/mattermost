@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Locator, Page} from '@playwright/test';
+import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 
 import {newTestPassword} from '@mattermost/playwright-lib';
+import type {ChannelsPage} from '@mattermost/playwright-lib';
 
 export async function enableABACConfig(client: Client4) {
     await client.patchConfig({
@@ -250,7 +251,12 @@ export async function createTeamAdmin(adminClient: Client4, teamId: string) {
  * Adds an attribute rule row in the policy editor and fills in a value.
  * Handles the auto-opening attribute selector menu.
  */
-export async function addAttributeRule(container: Locator, page: Page, value: string, attributeName = 'Department') {
+export async function addAttributeRule(
+    container: Locator,
+    channelsPage: ChannelsPage,
+    value: string,
+    attributeName = 'Department',
+) {
     const addAttrBtn = container.getByRole('button', {name: /Add attribute/});
     await expect(addAttrBtn).toBeEnabled({timeout: 10000});
     await addAttrBtn.click();
@@ -258,12 +264,12 @@ export async function addAttributeRule(container: Locator, page: Page, value: st
     // The attribute selector menu auto-opens — select by name, not by position.
     // Clicking the first item is unreliable when multiple attributes exist (e.g. Location
     // sorts before Department and gets picked instead, causing self-inclusion to fail).
-    const attributeMenu = page.locator('[id^="attribute-selector-menu"]');
+    const attributeMenu = channelsPage.attributeSelectorMenu;
     await attributeMenu.waitFor({state: 'visible', timeout: 5000});
-    await attributeMenu.locator('li').filter({hasText: attributeName}).first().click();
+    await attributeMenu.getByRole('option', {name: attributeName}).first().click();
 
     // Fill value in the simple input (text-type attribute renders direct input)
-    const valueInput = container.locator('.values-editor__simple-input').first();
+    const valueInput = container.getByTestId('valuesEditorInput').first();
     await valueInput.waitFor({state: 'visible', timeout: 10000});
     await valueInput.fill(value);
 
@@ -274,12 +280,12 @@ export async function addAttributeRule(container: Locator, page: Page, value: st
 /**
  * Adds a channel to the policy via the channel selector modal.
  */
-export async function addChannelToPolicy(container: Locator, page: Page, channelDisplayName: string) {
+export async function addChannelToPolicy(container: Locator, channelsPage: ChannelsPage, channelDisplayName: string) {
     await container.getByRole('button', {name: /Add channels/}).click();
-    const channelModal = page.locator('.channel-selector-modal');
+    const channelModal = channelsPage.channelSelectorModal;
     await channelModal.waitFor();
-    await expect(channelModal.locator('.more-modal__row').first()).toBeVisible({timeout: 10000});
-    await channelModal.locator('.more-modal__row').filter({hasText: channelDisplayName}).click();
+    await expect(channelModal.getByRole('listitem').first()).toBeVisible({timeout: 10000});
+    await channelModal.getByRole('listitem').filter({hasText: channelDisplayName}).click();
     await channelModal.getByRole('button', {name: 'Add'}).click();
 
     // Wait for the modal to fully close before returning — callers must not proceed

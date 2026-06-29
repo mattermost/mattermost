@@ -49,7 +49,9 @@ function SendDraftModal({
             onExited={onExited}
             compassDesign={true}
         >
-            {message}
+            <div data-testid='sendNowModalBody'>
+                {message}
+            </div>
         </GenericModal>
     );
 }

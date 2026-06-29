@@ -158,16 +158,14 @@ test.describe('Burn-on-Read Sender Flow', () => {
         await senderPage.burnOnReadConfirmationModal.confirm();
 
         // * Verify the specific post is removed from sender's view
-        // Use attribute selector to handle special characters in post ID (colons, etc.)
-        const deletedPostLocator = senderPage.page.locator(`[id="post_${postId}"]`);
-        await expect(deletedPostLocator).not.toBeVisible();
+        await expect(senderPage.getPostById(postId)).not.toBeVisible();
 
         // # Login as recipient and verify post is not visible
         const {channelsPage: recipientPage} = await pw.testBrowser.login(recipient);
         await recipientPage.goto(team.name, 'town-square');
 
         // * Verify the deleted message is not in the channel
-        const posts = await recipientPage.centerView.container.locator('.post').all();
+        const posts = await recipientPage.centerView.container.getByTestId('postView').all();
         for (const post of posts) {
             const text = await post.textContent();
             expect(text).not.toContain(message);

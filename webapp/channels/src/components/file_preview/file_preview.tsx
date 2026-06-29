@@ -158,9 +158,13 @@ export default class FilePreview extends React.PureComponent<Props> {
                 <div
                     key={info.id}
                     className={className}
+                    data-testid='filePreview'
                 >
                     {thumbnailWrap}
-                    <div className='post-image__details'>
+                    <div
+                        className='post-image__details'
+                        data-testid='filePreviewDetails'
+                    >
                         <div className='post-image__detail_wrapper'>
                             <div
                                 className={classNames('post-image__detail', {
@@ -186,6 +190,7 @@ export default class FilePreview extends React.PureComponent<Props> {
                             {this.props.onRemove && (
                                 <a
                                     className={classNames('file-preview__remove', {compact: this.props.compactMode})}
+                                    data-testid='filePreviewRemove'
                                     onClick={this.handleRemove.bind(this, info.id)}
                                 >
                                     <i className='icon icon-close'/>
@@ -228,7 +233,10 @@ export default class FilePreview extends React.PureComponent<Props> {
         }
 
         return (
-            <div className={classNames('file-preview__container', {compact: this.props.compactMode})}>
+            <div
+                className={classNames('file-preview__container', {compact: this.props.compactMode})}
+                data-testid='filePreviewContainer'
+            >
                 {previews}
             </div>
         );

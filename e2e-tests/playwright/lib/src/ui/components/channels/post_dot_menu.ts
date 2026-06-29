@@ -4,9 +4,10 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class PostDotMenu {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
 
+export default class PostDotMenu extends BaseComponent {
     readonly replyMenuItem;
     readonly forwardMenuItem;
     readonly followMessageMenuItem;
@@ -25,26 +26,24 @@ export default class PostDotMenu {
     readonly showTranslationMenuItem;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
-        const getMenuItem = (hasText: string) => container.getByRole('menuitem').filter({hasText});
-
-        this.replyMenuItem = getMenuItem('Reply');
-        this.forwardMenuItem = getMenuItem('Forward');
-        this.followMessageMenuItem = getMenuItem('Follow message');
-        this.markAsUnreadMenuItem = getMenuItem('Mark as Unread');
-        this.remindMenuItem = getMenuItem('Remind');
-        this.saveMenuItem = getMenuItem('Save');
-        this.removeFromSavedMenuItem = getMenuItem('Remove from Saved');
-        this.pinToChannelMenuItem = getMenuItem('Pin to Channel');
-        this.unpinFromChannelMenuItem = getMenuItem('Unpin from Channel');
-        this.moveThreadMenuItem = getMenuItem('Move Thread');
-        this.copyLinkMenuItem = getMenuItem('Copy Link');
-        this.editMenuItem = getMenuItem('Edit');
-        this.copyTextMenuItem = getMenuItem('Copy Text');
-        this.deleteMenuItem = getMenuItem('Delete');
-        this.flagMessageMenuItem = getMenuItem('Quarantine for Review');
-        this.showTranslationMenuItem = getMenuItem('Show translation');
+        this.replyMenuItem = container.getByRole('menuitem', {name: en['post_info.reply']});
+        this.forwardMenuItem = container.getByRole('menuitem', {name: en['forward_post_button.label']});
+        this.followMessageMenuItem = container.getByRole('menuitem', {name: en['threading.threadMenu.followMessage']});
+        this.markAsUnreadMenuItem = container.getByRole('menuitem', {name: en['post_info.unread']});
+        this.remindMenuItem = container.getByRole('menuitem', {name: en['post_info.post_reminder.menu']});
+        this.saveMenuItem = container.getByRole('menuitem', {name: en['rhs_root.mobile.flag']});
+        this.removeFromSavedMenuItem = container.getByRole('menuitem', {name: en['rhs_root.mobile.unflag']});
+        this.pinToChannelMenuItem = container.getByRole('menuitem', {name: en['post_info.pin']});
+        this.unpinFromChannelMenuItem = container.getByRole('menuitem', {name: en['post_info.unpin']});
+        this.moveThreadMenuItem = container.getByRole('menuitem', {name: en['post_info.move_thread']});
+        this.copyLinkMenuItem = container.getByRole('menuitem', {name: en['post_info.permalink']});
+        this.editMenuItem = container.getByRole('menuitem', {name: en['post_info.edit']});
+        this.copyTextMenuItem = container.getByRole('menuitem', {name: en['post_info.copy']});
+        this.deleteMenuItem = container.getByRole('menuitem', {name: en['post_info.del']});
+        this.flagMessageMenuItem = container.getByRole('menuitem', {name: en['post_info.quarantine']});
+        this.showTranslationMenuItem = container.getByRole('menuitem', {name: en['post_info.show_translation']});
     }
 
     async toBeVisible() {

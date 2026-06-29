@@ -955,11 +955,18 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                         <div
                             key={`${keyPrefix}-row-${Math.trunc(index / 2)}`}
                             className='field-row'
+                            data-testid='adminUserCardFieldRow'
                         >
-                            <div className='field-column left'>
+                            <div
+                                className='field-column left'
+                                data-testid='adminUserCardFieldColumn'
+                            >
                                 {field}
                             </div>
-                            <div className='field-column right'>
+                            <div
+                                className='field-column right'
+                                data-testid='adminUserCardFieldColumn'
+                            >
                                 {fieldList[index + 1]}
                             </div>
                         </div>
@@ -970,7 +977,10 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         };
 
         return (
-            <div className='two-column-layout'>
+            <div
+                className='two-column-layout'
+                data-testid='adminUserCardTwoColumnLayout'
+            >
                 {renderFieldRows(fields, 'standard-field')}
                 {cpaFields.length > 0 && (
                     <>
@@ -1422,7 +1432,10 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
     render() {
         return (
-            <div className='SystemUserDetail wrapper--fixed'>
+            <div
+                className='SystemUserDetail wrapper--fixed'
+                data-testid='systemUserDetail'
+            >
                 <AdminHeader withBackButton={true}>
                     <div>
                         <BlockableLink
@@ -1555,6 +1568,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
                         {/* User's team details */}
                         <AdminPanel
+                            id='adminPanelTeamMembership'
                             title={defineMessage({
                                 id: 'admin.userManagement.userDetail.teamsTitle',
                                 defaultMessage: 'Team Membership',

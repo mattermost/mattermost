@@ -4,6 +4,9 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
+
 /**
  * Radio Setting - represents a true/false radio button group
  * Uses getByRole for radio buttons, getByText for help text
@@ -13,17 +16,16 @@ import {expect} from '@playwright/test';
  *   await setting.toBeTrue();
  *   await setting.toBeFalse();
  */
-export class RadioSetting {
-    readonly container: Locator;
+export class RadioSetting extends BaseComponent {
     readonly trueOption: Locator;
     readonly falseOption: Locator;
     readonly helpText: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
-        this.trueOption = container.getByRole('radio', {name: 'True'});
-        this.falseOption = container.getByRole('radio', {name: 'False'});
-        this.helpText = container.locator('.help-text');
+        super(container);
+        this.trueOption = container.getByRole('radio', {name: en['admin.true']});
+        this.falseOption = container.getByRole('radio', {name: en['admin.false']});
+        this.helpText = container.locator('[data-testid$="help-text"]');
     }
 
     /**
@@ -65,17 +67,16 @@ export class RadioSetting {
 /**
  * Text Input Setting - represents a text input field
  */
-export class TextInputSetting {
-    readonly container: Locator;
+export class TextInputSetting extends BaseComponent {
     readonly label: Locator;
     readonly input: Locator;
     readonly helpText: Locator;
 
     constructor(container: Locator, labelText: string) {
-        this.container = container;
+        super(container);
         this.label = container.getByText(labelText);
-        this.input = container.locator('input.form-control').first();
-        this.helpText = container.locator('.help-text');
+        this.input = container.getByRole('textbox').first();
+        this.helpText = container.locator('[data-testid$="help-text"]');
     }
 
     async fill(value: string) {
@@ -90,6 +91,10 @@ export class TextInputSetting {
         await this.input.clear();
     }
 
+    async scrollIntoView() {
+        await this.container.scrollIntoViewIfNeeded();
+    }
+
     async toBeVisible() {
         await expect(this.container).toBeVisible();
     }
@@ -99,17 +104,16 @@ export class TextInputSetting {
  * Number Input Setting - represents a number input field
  * Uses getByRole('spinbutton') since <input type="number"> has ARIA role spinbutton
  */
-export class NumberInputSetting {
-    readonly container: Locator;
+export class NumberInputSetting extends BaseComponent {
     readonly label: Locator;
     readonly input: Locator;
     readonly helpText: Locator;
 
     constructor(container: Locator, labelText: string) {
-        this.container = container;
+        super(container);
         this.label = container.getByText(labelText);
         this.input = container.getByRole('spinbutton');
-        this.helpText = container.locator('.help-text');
+        this.helpText = container.locator('[data-testid$="help-text"]');
     }
 
     async fill(value: string) {
@@ -132,18 +136,17 @@ export class NumberInputSetting {
 /**
  * Dropdown Setting - represents a select dropdown
  */
-export class DropdownSetting {
-    readonly container: Locator;
+export class DropdownSetting extends BaseComponent {
     readonly label: Locator;
     readonly dropdown: Locator;
     readonly helpText: Locator;
 
     constructor(container: Locator, labelText: string) {
-        this.container = container;
+        super(container);
         this.label = container.getByText(labelText);
         // Scope combobox to this form-group (unscoped matches e.g. sidebar search).
         this.dropdown = container.getByRole('combobox').first();
-        this.helpText = container.locator('.help-text');
+        this.helpText = container.locator('[data-testid$="help-text"]');
     }
 
     async select(option: string) {
@@ -154,6 +157,10 @@ export class DropdownSetting {
         return (await this.dropdown.inputValue()) ?? '';
     }
 
+    async scrollIntoView() {
+        await this.container.scrollIntoViewIfNeeded();
+    }
+
     async toBeVisible() {
         await expect(this.container).toBeVisible();
     }
@@ -162,17 +169,16 @@ export class DropdownSetting {
 /**
  * Admin Section Panel - represents a collapsible section panel
  */
-export class AdminSectionPanel {
-    readonly container: Locator;
+export class AdminSectionPanel extends BaseComponent {
     readonly title: Locator;
     readonly description: Locator;
     readonly body: Locator;
 
     constructor(container: Locator, titleText: string) {
-        this.container = container;
+        super(container);
         this.title = container.getByRole('heading', {name: titleText});
-        this.description = container.locator('.AdminSectionPanel__description');
-        this.body = container.locator('.AdminSectionPanel__body');
+        this.description = container.getByTestId('adminSectionPanelDescription');
+        this.body = container.getByTestId('adminSectionPanelBody');
     }
 
     async toBeVisible() {

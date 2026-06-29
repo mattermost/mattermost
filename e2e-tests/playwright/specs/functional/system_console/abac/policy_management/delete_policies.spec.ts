@@ -76,27 +76,27 @@ test.describe('ABAC Policy Management - Delete Policies', () => {
         // We'll create the policy, save it without channels, then remove channels via UI
 
         // Click Add policy
-        const addPolicyButton = page.getByRole('button', {name: 'Add policy'});
+        const addPolicyButton = systemConsolePage.policyList.createPolicyButton;
         await addPolicyButton.click();
         await page.waitForLoadState('networkidle');
 
         // Fill policy name
-        const nameInput = page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName');
+        const nameInput = systemConsolePage.policyEditor.policyNameInput;
         await nameInput.waitFor({state: 'visible', timeout: 10000});
         await nameInput.fill(policyWithoutChannelName);
 
         // Switch to Advanced mode to create minimal policy
-        const advancedModeButton = page.getByRole('button', {name: /advanced/i});
+        const advancedModeButton = systemConsolePage.policyEditor.advancedModeButton;
         if (await advancedModeButton.isVisible({timeout: 2000})) {
             await advancedModeButton.click();
             await page.waitForTimeout(1000);
         }
 
         // Fill CEL expression in Monaco editor
-        const monacoContainer = page.locator('.monaco-editor').first();
+        const monacoContainer = systemConsolePage.policyEditor.monacoEditorDiv;
         await monacoContainer.waitFor({state: 'visible', timeout: 5000});
 
-        const editorLines = page.locator('.monaco-editor .view-lines').first();
+        const editorLines = systemConsolePage.policyEditor.monacoEditorLines;
         await editorLines.click({force: true});
         await page.waitForTimeout(300);
 
@@ -108,7 +108,7 @@ test.describe('ABAC Policy Management - Delete Policies', () => {
         await page.waitForTimeout(1000);
 
         // Save policy WITHOUT assigning any channels
-        const saveButton = page.getByRole('button', {name: 'Save'});
+        const saveButton = systemConsolePage.policyEditor.saveButton;
         await saveButton.click();
 
         // The "Apply policy" modal should NOT appear since there are no channels
@@ -123,28 +123,25 @@ test.describe('ABAC Policy Management - Delete Policies', () => {
         // ===========================================
 
         // Clear any existing search and verify both policies exist
-        const searchInput = page.locator('input[placeholder*="Search" i]').first();
+        const searchInput = systemConsolePage.policyList.searchInput;
         await searchInput.waitFor({state: 'visible', timeout: 5000});
         await searchInput.clear();
         await page.waitForTimeout(500);
 
         // Verify both policies are visible
-        await page.locator('.policy-name, tr.clickable').count();
+        await systemConsolePage.policyList.policyRows.count();
 
         // Now search for the policy with channel
         await searchInput.fill(policyWithChannelName);
         await page.waitForTimeout(1000);
 
         // Find and click the three-dot menu for the policy with channel
-        const policyWithChannelRow = page
-            .locator('tr.clickable, .DataGrid_row')
+        const policyWithChannelRow = systemConsolePage.policyList.dataGridRows
             .filter({hasText: policyWithChannelName})
             .first();
         await policyWithChannelRow.waitFor({state: 'visible', timeout: 10000});
 
-        const menuButtonWithChannel = policyWithChannelRow
-            .locator('button[id*="policy-menu"], button[aria-label*="menu" i], .menu-button, button:has(svg)')
-            .first();
+        const menuButtonWithChannel = systemConsolePage.policyList.getPolicyMenuButton(policyWithChannelRow);
         await menuButtonWithChannel.click();
         await page.waitForTimeout(500);
 
@@ -167,7 +164,7 @@ test.describe('ABAC Policy Management - Delete Policies', () => {
         await page.waitForTimeout(500);
 
         // Verify policy without channel exists in the list
-        const policyWithoutChannelExists = await page.locator('text=' + policyWithoutChannelName).count();
+        const policyWithoutChannelExists = await page.getByText(policyWithoutChannelName).count();
 
         if (policyWithoutChannelExists === 0) {
             // Try reloading if policy not visible
@@ -181,15 +178,12 @@ test.describe('ABAC Policy Management - Delete Policies', () => {
         await page.waitForTimeout(1000);
 
         // Find and click the three-dot menu for the policy without channel
-        const policyWithoutChannelRow = page
-            .locator('tr.clickable, .DataGrid_row')
+        const policyWithoutChannelRow = systemConsolePage.policyList.dataGridRows
             .filter({hasText: policyWithoutChannelName})
             .first();
         await policyWithoutChannelRow.waitFor({state: 'visible', timeout: 10000});
 
-        const menuButtonWithoutChannel = policyWithoutChannelRow
-            .locator('button[id*="policy-menu"], button[aria-label*="menu" i], .menu-button, button:has(svg)')
-            .first();
+        const menuButtonWithoutChannel = systemConsolePage.policyList.getPolicyMenuButton(policyWithoutChannelRow);
         await menuButtonWithoutChannel.click();
         await page.waitForTimeout(500);
 
@@ -217,8 +211,7 @@ test.describe('ABAC Policy Management - Delete Policies', () => {
         await searchInput.fill(policyWithoutChannelName);
         await page.waitForTimeout(1000);
 
-        const policyStillExists = await page
-            .locator('tr.clickable, .DataGrid_row')
+        const policyStillExists = await systemConsolePage.policyList.dataGridRows
             .filter({hasText: policyWithoutChannelName})
             .isVisible({timeout: 3000});
         expect(policyStillExists).toBe(false);

@@ -37,16 +37,22 @@ const SidebarHeader = ({currentUser: me}: Props) => {
 
     return (
         <MenuWrapper className='AdminSidebarHeader'>
-            <div>
+            <div data-testid='adminSidebarHeader'>
                 {profilePicture}
-                <div className='header__info'>
+                <div
+                    className='header__info'
+                    data-testid='adminSidebarHeaderInfo'
+                >
                     <div className='team__name'>
                         <FormattedMessage
                             id='admin.sidebarHeader.systemConsole'
                             defaultMessage='System Console'
                         />
                     </div>
-                    <div className='user__name overflow--ellipsis whitespace--nowrap'>{'@' + me.username}</div>
+                    <div
+                        className='user__name overflow--ellipsis whitespace--nowrap'
+                        data-testid='adminSidebarHeaderUsername'
+                    >{'@' + me.username}</div>
                 </div>
                 <button
                     type='button'

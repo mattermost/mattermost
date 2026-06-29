@@ -35,34 +35,34 @@ test('Settings sidebar should be keyboard accessible', async ({axe, pw}) => {
     await page.keyboard.press('Tab');
 
     // * The Notifications tab should start focused
-    await expect(page.getByRole('tab', {name: 'Notifications'})).toBeFocused();
+    await expect(settingsModal.notificationsTab).toBeFocused();
     await expect(page.getByText('Desktop and mobile notifications')).toBeVisible();
 
     // * Pressing the down arrow should focus and show the Display tab
     await page.keyboard.press('ArrowDown');
-    await expect(page.getByRole('tab', {name: 'Display'})).toBeFocused();
+    await expect(settingsModal.displayTab).toBeFocused();
     await expect(page.getByText('Theme', {exact: true})).toBeVisible();
 
     // * Pressing the down arrow should focus and show the Sidebar tab
     await page.keyboard.press('ArrowDown');
-    await expect(page.getByRole('tab', {name: 'Sidebar'})).toBeFocused();
+    await expect(settingsModal.sidebarTab).toBeFocused();
     await expect(page.getByText('Group unread channels separately')).toBeVisible();
 
     // * Pressing the down arrow should focus and show the Advanced tab
     await page.keyboard.press('ArrowDown');
-    await expect(page.getByRole('tab', {name: 'Advanced'})).toBeFocused();
+    await expect(settingsModal.advancedTab).toBeFocused();
     await expect(page.getByText('Enable Post Formatting')).toBeVisible();
 
     // * Pressing the up arrow should go back through the tabs
     await page.keyboard.press('ArrowUp');
-    await expect(page.getByRole('tab', {name: 'Sidebar'})).toBeFocused();
+    await expect(settingsModal.sidebarTab).toBeFocused();
     await expect(page.getByText('Group unread channels separately')).toBeVisible();
 
     await page.keyboard.press('ArrowUp');
-    await expect(page.getByRole('tab', {name: 'Display'})).toBeFocused();
+    await expect(settingsModal.displayTab).toBeFocused();
     await expect(page.getByText('Theme', {exact: true})).toBeVisible();
 
     await page.keyboard.press('ArrowUp');
-    await expect(page.getByRole('tab', {name: 'Notifications'})).toBeFocused();
+    await expect(settingsModal.notificationsTab).toBeFocused();
     await expect(page.getByText('Desktop and mobile notifications')).toBeVisible();
 });

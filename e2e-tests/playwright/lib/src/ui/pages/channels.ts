@@ -12,12 +12,29 @@ import type {
     InvitePeopleModal,
     MembersInvitedModal,
 } from '@/ui/components';
-import {BrowseChannelsModal, ChannelSettingsModal, CreateTeamForm, NewChannelModal, components} from '@/ui/components';
+import {
+    BrowseChannelsModal,
+    ChannelBookmarks,
+    ChannelInfoRhs,
+    ChannelNotificationsModal,
+    ChannelSearchResults,
+    ChannelSettingsModal,
+    CreateTeamForm,
+    NewChannelModal,
+    UserGroupsModal,
+    components,
+} from '@/ui/components';
+import {CustomProfileAttributes} from '@/ui/components/channels/profile_modal';
 import {duration} from '@/util';
-export default class ChannelsPage {
+import en from '@/i18n';
+
+import type {BaseComponent} from '../base_component';
+import {BasePage} from '../base_page';
+
+export default class ChannelsPage extends BasePage {
     readonly channels = 'Channels';
 
-    readonly page: Page;
+    readonly components: Record<string, BaseComponent>;
 
     readonly globalHeader;
     readonly userAccountMenuButton;
@@ -44,6 +61,11 @@ export default class ChannelsPage {
     readonly scheduledDraftModal;
     readonly scheduleMessageModal;
     readonly burnOnReadConfirmationModal;
+    readonly channelBookmarks;
+    readonly channelInfoRhs;
+    readonly channelNotificationsModal;
+    readonly channelSearchResults;
+    readonly userGroupsModal;
     readonly archivedChannelMessage;
 
     readonly postContainer;
@@ -54,9 +76,17 @@ export default class ChannelsPage {
 
     readonly emojiGifPickerPopup;
     readonly scheduleMessageMenu;
+    readonly confirmModal;
+    readonly teamPolicyConfirmationModal;
+    readonly teamPolicyDeleteModal;
+    readonly channelSelectorModal;
+    readonly testResultsModal;
+    readonly channelAccessRulesConfirmModal;
+    readonly attributeSelectorMenu;
+    readonly customProfileAttributes: CustomProfileAttributes;
 
     constructor(page: Page) {
-        this.page = page;
+        super(page);
 
         // The main areas of the app
         this.globalHeader = new components.GlobalHeader(this, page.locator('#global-header'));
@@ -64,30 +94,49 @@ export default class ChannelsPage {
         this.centerView = new components.ChannelsCenterView(page.getByTestId('channel_view'), page);
         this.sidebarLeft = new components.ChannelsSidebarLeft(page.locator('#SidebarContainer'));
         this.sidebarRight = new components.ChannelsSidebarRight(page.locator('#sidebar-right'));
-        this.appBar = new components.ChannelsAppBar(page.locator('.app-bar'));
+        this.appBar = new components.ChannelsAppBar(page.getByTestId('appBar'));
         this.messagePriority = new components.MessagePriority(page.locator('body'));
-        this.userAccountMenuButton = page.getByRole('button', {name: "User's account menu"});
+        this.userAccountMenuButton = page.getByRole('button', {name: en['userAccountMenu.menuButton.ariaLabel']});
 
         // Modals
-        this.channelSettingsModal = new ChannelSettingsModal(page.getByRole('dialog', {name: 'Channel Settings'}));
-        this.createTeamForm = new CreateTeamForm(page.locator('.signup-team__container'));
-        this.deletePostModal = new components.DeletePostModal(page.locator('#deletePostModal'));
-        this.findChannelsModal = new components.FindChannelsModal(page.getByRole('dialog', {name: 'Find Channels'}));
-        this.newChannelModal = new NewChannelModal(page.getByRole('dialog', {name: 'Create a new channel'}));
-        this.browseChannelsModal = new BrowseChannelsModal(page.getByRole('dialog', {name: 'Browse Channels'}));
-        this.directChannelsModal = new components.DirectChannelsModal(
-            page.getByRole('dialog', {name: 'Direct Messages'}),
+        this.channelSettingsModal = new ChannelSettingsModal(
+            page.getByRole('dialog', {name: en['channel_settings.modal.title']}),
         );
-        this.profileModal = new components.ProfileModal(page.getByRole('dialog', {name: 'Profile'}));
-        this.settingsModal = new components.SettingsModal(page.getByRole('dialog', {name: 'Settings'}));
-        this.teamSettingsModal = new components.TeamSettingsModal(page.getByRole('dialog', {name: 'Team Settings'}));
+        this.createTeamForm = new CreateTeamForm(page.getByTestId('createTeamContainer'));
+        this.deletePostModal = new components.DeletePostModal(page.locator('#deletePostModal'));
+        this.findChannelsModal = new components.FindChannelsModal(
+            page.getByRole('dialog', {name: en['quick_switch_modal.switchChannels']}),
+        );
+        this.newChannelModal = new NewChannelModal(page.getByRole('dialog', {name: en['channel_modal.modalTitle']}));
+        this.browseChannelsModal = new BrowseChannelsModal(page.getByRole('dialog', {name: en['more_channels.title']}));
+        this.directChannelsModal = new components.DirectChannelsModal(
+            page.getByRole('dialog', {name: en['more_direct_channels.title']}),
+        );
+        this.profileModal = new components.ProfileModal(
+            page.getByRole('dialog', {name: en['user.settings.modal.title']}),
+        );
+        this.settingsModal = new components.SettingsModal(
+            page.getByRole('dialog', {name: en['channel_header.settings']}),
+        );
+        this.teamSettingsModal = new components.TeamSettingsModal(
+            page.getByRole('dialog', {name: en['team_settings_modal.title']}),
+        );
         this.burnOnReadConfirmationModal = new components.BurnOnReadConfirmationModal(
             page.getByRole('dialog').filter({hasText: /burn|delete/i}),
         );
+        this.channelBookmarks = new ChannelBookmarks(page.getByTestId('channel-bookmarks-container'));
+        this.channelInfoRhs = new ChannelInfoRhs(page.locator('#rhsContainer'));
+        this.channelNotificationsModal = new ChannelNotificationsModal(
+            page.getByRole('dialog', {name: en['channel_notifications.preferences']}),
+        );
+        this.channelSearchResults = new ChannelSearchResults(page.locator('#sidebar-right'));
+        this.userGroupsModal = new UserGroupsModal(page.locator('#userGroupsModal'));
 
         // Menus
-        this.postDotMenu = new components.PostDotMenu(page.getByRole('menu', {name: 'Post extra options'}));
-        this.postReminderMenu = new components.PostReminderMenu(page.getByRole('menu', {name: 'Set a reminder for:'}));
+        this.postDotMenu = new components.PostDotMenu(page.getByRole('menu', {name: en['post_info.menuAriaLabel']}));
+        this.postReminderMenu = new components.PostReminderMenu(
+            page.getByRole('menu', {name: en['post_info.post_reminder.sub_menu.header']}),
+        );
         this.userAccountMenu = new components.UserAccountMenu(page.locator('#userAccountMenu'));
         this.scheduleMessageMenu = new components.ScheduleMessageMenu(page.locator('#dropdown_send_post_options'));
         this.teamMenu = new components.TeamMenu(page.locator('#sidebarTeamMenu'));
@@ -96,15 +145,65 @@ export default class ChannelsPage {
         this.emojiGifPickerPopup = new components.EmojiGifPicker(page.locator('#emojiGifPicker'));
         this.scheduledDraftModal = new components.ScheduledDraftModal(page.locator('div.modal-content'));
         this.scheduleMessageModal = new components.ScheduleMessageModal(
-            page.getByRole('dialog', {name: 'Schedule message'}),
+            page.getByRole('dialog', {name: en['schedule_post.custom_time_modal.title']}),
         );
-        this.userProfilePopover = new components.UserProfilePopover(page.locator('.user-profile-popover'));
+        this.userProfilePopover = new components.UserProfilePopover(page.getByTestId('userProfilePopover'));
 
         // Posts
         this.postContainer = page.locator('div.post-message__text');
         this.archivedChannelMessage = page.locator('#channelArchivedMessage');
 
         page.locator('#channelHeaderDropdownMenu');
+
+        // Modals reachable from channels page
+        this.confirmModal = page.locator('#confirmModal');
+
+        // Team policy modals
+        this.teamPolicyConfirmationModal = page.locator('#teamPolicyConfirmationModal');
+        this.teamPolicyDeleteModal = page.locator('#teamPolicyDeleteModal');
+        this.channelSelectorModal = page.locator('#channelSelectorModal');
+        this.testResultsModal = page.locator('#testResultsModal');
+        this.channelAccessRulesConfirmModal = page.locator('#channel-access-rules-confirm-modal');
+        this.attributeSelectorMenu = page.locator('[id^="attribute-selector-menu"]');
+
+        // Custom profile attributes (in user settings general tab)
+        this.customProfileAttributes = new CustomProfileAttributes(page.getByTestId('userSettings'));
+
+        this.components = {
+            globalHeader: this.globalHeader,
+            searchBox: this.searchBox,
+            centerView: this.centerView,
+            sidebarLeft: this.sidebarLeft,
+            sidebarRight: this.sidebarRight,
+            appBar: this.appBar,
+            messagePriority: this.messagePriority,
+            channelSettingsModal: this.channelSettingsModal,
+            createTeamForm: this.createTeamForm,
+            deletePostModal: this.deletePostModal,
+            findChannelsModal: this.findChannelsModal,
+            newChannelModal: this.newChannelModal,
+            browseChannelsModal: this.browseChannelsModal,
+            directChannelsModal: this.directChannelsModal,
+            profileModal: this.profileModal,
+            settingsModal: this.settingsModal,
+            teamSettingsModal: this.teamSettingsModal,
+            burnOnReadConfirmationModal: this.burnOnReadConfirmationModal,
+            channelBookmarks: this.channelBookmarks,
+            channelInfoRhs: this.channelInfoRhs,
+            channelNotificationsModal: this.channelNotificationsModal,
+            channelSearchResults: this.channelSearchResults,
+            userGroupsModal: this.userGroupsModal,
+            postDotMenu: this.postDotMenu,
+            postReminderMenu: this.postReminderMenu,
+            userAccountMenu: this.userAccountMenu,
+            scheduleMessageMenu: this.scheduleMessageMenu,
+            teamMenu: this.teamMenu,
+            emojiGifPickerPopup: this.emojiGifPickerPopup,
+            scheduledDraftModal: this.scheduledDraftModal,
+            scheduleMessageModal: this.scheduleMessageModal,
+            userProfilePopover: this.userProfilePopover,
+            customProfileAttributes: this.customProfileAttributes,
+        };
     }
 
     async toBeVisible() {
@@ -137,7 +236,7 @@ export default class ChannelsPage {
         return this.membersInvitedModal;
     }
 
-    async goto(teamName = '', channelName = '') {
+    async goto(teamName = '', channelName = ''): Promise<void> {
         let channelsUrl = '/';
         if (teamName) {
             channelsUrl += `${teamName}`;
@@ -147,16 +246,12 @@ export default class ChannelsPage {
             }
         }
         await this.page.goto(channelsUrl);
-
-        return channelsUrl;
     }
 
     // Force the /messages route for group-message slugs that do not start with '@'.
-    async gotoMessage(teamName: string, channelName: string) {
+    async gotoMessage(teamName: string, channelName: string): Promise<void> {
         const channelsUrl = `/${teamName}/messages/${channelName}`;
         await this.page.goto(channelsUrl);
-
-        return channelsUrl;
     }
 
     /**
@@ -194,7 +289,7 @@ export default class ChannelsPage {
 
     async openTeamSettings(): Promise<TeamSettingsModal> {
         await this.page.locator('#sidebarTeamMenuButton').click();
-        await this.page.getByText('Team settings').first().click();
+        await this.page.getByText(en['sidebarLeft.teamMenu.teamSettingsMenuItem.primaryLabel']).first().click();
         await this.teamSettingsModal.toBeVisible();
 
         return this.teamSettingsModal;
@@ -203,8 +298,10 @@ export default class ChannelsPage {
     async openChannelSettings(): Promise<ChannelSettingsModal> {
         await this.centerView.header.openChannelMenu();
 
-        const channelSettingsMenuItem = this.page.getByRole('menuitem', {name: 'Channel Settings'});
-        const moreActionsMenuItem = this.page.getByRole('menuitem', {name: /More actions/i});
+        const channelSettingsMenuItem = this.page.getByRole('menuitem', {
+            name: en['channel_settings.modal.title'],
+        });
+        const moreActionsMenuItem = this.page.getByRole('menuitem', {name: en['pluginsMenu.more_actions']});
 
         const channelSettingsVisible = await channelSettingsMenuItem.isVisible({timeout: 1500}).catch(() => false);
         if (!channelSettingsVisible) {
@@ -229,7 +326,7 @@ export default class ChannelsPage {
 
     async openNewChannelModal(): Promise<NewChannelModal> {
         await this.sidebarLeft.browseOrCreateChannelButton.click();
-        await this.page.getByText('Create new channel').click();
+        await this.page.getByText(en['sidebar_left.add_channel_dropdown.createNewChannel']).click();
         await this.newChannelModal.toBeVisible();
 
         return this.newChannelModal;
@@ -237,7 +334,7 @@ export default class ChannelsPage {
 
     async openBrowseChannelsModal(): Promise<BrowseChannelsModal> {
         await this.sidebarLeft.browseOrCreateChannelButton.click();
-        await this.page.getByText('Browse channels').click();
+        await this.page.getByText(en['sidebar_left.add_channel_dropdown.browseChannels']).click();
         await this.browseChannelsModal.toBeVisible();
 
         return this.browseChannelsModal;
@@ -319,6 +416,10 @@ export default class ChannelsPage {
         await this.scheduleMessageMenu.selectCustomTime();
 
         return this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
+    }
+
+    getPostById(postId: string) {
+        return this.page.locator(`[id="post_${postId}"]`);
     }
 
     async getFlaggedPostViewDetailButton(flaggedPostId: string) {

@@ -4,22 +4,23 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class SidebarSettings {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
 
+export default class SidebarSettings extends BaseComponent {
     readonly title;
     public id = '#sidebarSettings';
     readonly expandedSection;
-    public expandedSectionId = '.section-max';
+    public expandedSectionId = 'section-max';
 
     readonly groupUnreadEditButton;
     readonly limitVisibleDMsEditButton;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
-        this.title = container.getByRole('heading', {name: 'Sidebar', exact: true});
-        this.expandedSection = container.locator(this.expandedSectionId);
+        this.title = container.getByRole('heading', {name: en['user.settings.modal.sidebar'], exact: true});
+        this.expandedSection = container.getByTestId(this.expandedSectionId);
 
         this.groupUnreadEditButton = container.locator('#showUnreadsCategoryEdit');
         this.limitVisibleDMsEditButton = container.locator('#limitVisibleGMsDMsEdit');

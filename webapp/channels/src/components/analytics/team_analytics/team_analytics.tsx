@@ -194,7 +194,10 @@ export default class TeamAnalytics extends React.PureComponent<Props, State> {
         const userCountsWithPostsDay = formatUsersWithPostsPerDayData(labels, stats[StatTypes.USERS_WITH_POSTS_PER_DAY]);
 
         let banner = (
-            <div className='banner'>
+            <div
+                className='banner'
+                data-testid='teamStatisticsBanner'
+            >
                 <div className='banner__content'>
                     <FormattedMessage {...messages.info}/>
                 </div>
@@ -206,7 +209,10 @@ export default class TeamAnalytics extends React.PureComponent<Props, State> {
         let userActiveGraph;
         if (stats[StatTypes.TOTAL_POSTS] === -1) {
             banner = (
-                <div className='banner'>
+                <div
+                    className='banner'
+                    data-testid='teamStatisticsBanner'
+                >
                     <div className='banner__content'>
                         <FormattedMessage
                             id='analytics.system.infoAndSkippedIntensiveQueries1'
@@ -235,6 +241,7 @@ export default class TeamAnalytics extends React.PureComponent<Props, State> {
                 <StatisticCount
                     title={<FormattedMessage {...messages.totalPosts}/>}
                     icon='fa-comment'
+                    id='totalPostsCount'
                     count={this.getStatValue(stats[StatTypes.TOTAL_POSTS])}
                 />
             );
@@ -293,7 +300,10 @@ export default class TeamAnalytics extends React.PureComponent<Props, State> {
         return (
             <div className='wrapper--fixed team_statistics'>
                 <AdminHeader>
-                    <div className='team-statistics__header'>
+                    <div
+                        className='team-statistics__header'
+                        data-testid='teamStatisticsHeader'
+                    >
                         <FormattedMessage
                             {...messages.title}
                             values={{
@@ -316,7 +326,10 @@ export default class TeamAnalytics extends React.PureComponent<Props, State> {
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
                         {banner}
-                        <div className='grid-statistics'>
+                        <div
+                            className='grid-statistics'
+                            data-testid='teamStatisticsGrid'
+                        >
                             <ActivatedUserCard
                                 activatedUsers={this.getStatValue(stats[StatTypes.TOTAL_USERS])}
                                 seatsPurchased={parseInt(this.props.license.Users, 10)}
@@ -325,11 +338,13 @@ export default class TeamAnalytics extends React.PureComponent<Props, State> {
                             <StatisticCount
                                 title={<FormattedMessage {...messages.publicChannels}/>}
                                 icon='fa-globe'
+                                id='publicChannels'
                                 count={this.getStatValue(stats[StatTypes.TOTAL_PUBLIC_CHANNELS])}
                             />
                             <StatisticCount
                                 title={<FormattedMessage {...messages.privateGroups}/>}
                                 icon='fa-lock'
+                                id='privateChannels'
                                 count={this.getStatValue(stats[StatTypes.TOTAL_PRIVATE_GROUPS])}
                             />
                             {totalPostsCount}
@@ -339,10 +354,12 @@ export default class TeamAnalytics extends React.PureComponent<Props, State> {
                         <div className='row'>
                             <TableChart
                                 title={<FormattedMessage {...messages.recentUsers}/>}
+                                testId='recentActiveUsers'
                                 data={recentActiveUsers}
                             />
                             <TableChart
                                 title={<FormattedMessage {...messages.newlyCreated}/>}
+                                testId='newlyCreatedUsers'
                                 data={newlyCreatedUsers}
                             />
                         </div>

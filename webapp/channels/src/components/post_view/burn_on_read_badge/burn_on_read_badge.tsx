@@ -220,7 +220,7 @@ function BurnOnReadBadge({
                     <button
                         type='button'
                         className='BurnOnReadBadge'
-                        data-testid={`burn-on-read-badge-${post.id}`}
+                        data-testid='burnOnReadBadge'
                         aria-label={getAriaLabel()}
                         onClick={isInteractive ? handleClick : undefined}
                         disabled={!isInteractive}
@@ -228,6 +228,7 @@ function BurnOnReadBadge({
                         <FireIcon
                             size={14}
                             className='BurnOnReadBadge__icon'
+                            data-testid='burnOnReadBadgeIcon'
                         />
                     </button>
                 </WithTooltip>

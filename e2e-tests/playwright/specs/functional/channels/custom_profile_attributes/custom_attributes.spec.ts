@@ -122,7 +122,7 @@ test.afterAll(async () => {
 test('MM-T5773 Display custom profile attributes in profile popover @custom_profile_attributes', async ({pw}) => {
     // 1. Login as the test user
     const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
+    await channelsPage.goto(team.name, testChannel.name);
 
     // 2. Post a message to make the user visible in the channel
     await channelsPage.postMessage(TEST_MESSAGE);
@@ -152,7 +152,7 @@ test('MM-T5773 Display custom profile attributes in profile popover @custom_prof
 test('MM-T5774 Do not display custom profile attributes if none exist @custom_profile_attributes', async ({pw}) => {
     // 1. Login as the other user
     const {channelsPage} = await pw.testBrowser.login(otherUser);
-    await channelsPage.goto();
+    await channelsPage.goto(team.name, testChannel.name);
 
     // 2. Post a message to make the user visible in the channel
     await channelsPage.postMessage(TEST_MESSAGE);
@@ -180,7 +180,7 @@ test('MM-T5774 Do not display custom profile attributes if none exist @custom_pr
 test('MM-T5775 Update custom profile attributes when changed @custom_profile_attributes', async ({pw}) => {
     // 1. Login as the test user
     const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
+    await channelsPage.goto(team.name, testChannel.name);
 
     // 2. Post a message to make the user visible in the channel
     await channelsPage.postMessage(TEST_MESSAGE);
@@ -246,7 +246,7 @@ test('MM-T5776 Hide custom profile attributes when visibility is set to hidden @
 
     // 2. Login as the test user
     const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
+    await channelsPage.goto(team.name, testChannel.name);
 
     // 3. Post a message to make the user visible in the channel
     await channelsPage.postMessage(TEST_MESSAGE);
@@ -280,7 +280,7 @@ test('MM-T5777 Always display custom profile attributes with visibility set to a
 
     // 2. Login as the other user
     const {channelsPage} = await pw.testBrowser.login(otherUser);
-    await channelsPage.goto();
+    await channelsPage.goto(team.name, testChannel.name);
 
     // 3. Post a message to make the user visible in the channel
     await channelsPage.postMessage(TEST_MESSAGE);
@@ -317,7 +317,7 @@ test('MM-T5778 Display phone and URL type custom profile attributes correctly @c
 }) => {
     // 1. Login as the test user
     const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
+    await channelsPage.goto(team.name, testChannel.name);
 
     // 2. Post a message to make the user visible in the channel
     await channelsPage.postMessage(TEST_MESSAGE);
@@ -348,7 +348,7 @@ test('MM-T5779 Verify phone and URL attributes are clickable in profile popover 
 }) => {
     // 1. Login as the test user
     const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
+    await channelsPage.goto(team.name, testChannel.name);
 
     // 2. Post a message to make the user visible in the channel
     await channelsPage.postMessage(TEST_MESSAGE);

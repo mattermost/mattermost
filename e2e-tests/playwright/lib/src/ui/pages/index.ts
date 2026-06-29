@@ -12,6 +12,7 @@ import ScheduledPostsPage from './scheduled_posts';
 import DraftsPage from './drafts';
 import ThreadsPage from './threads';
 import ContentReviewPage from './content_review_dm';
+import SearchResultsPopout from './search_results_popout';
 
 const pages = {
     ChannelsPage,
@@ -22,6 +23,7 @@ const pages = {
     SignupPage,
     ScheduledPostsPage,
     ContentReviewPage,
+    SearchResultsPopout,
     SystemConsolePage,
     DraftsPage,
     ThreadsPage,
@@ -36,7 +38,9 @@ export {
     LoginPage,
     RecapsPage,
     ResetPasswordPage,
+    SearchResultsPopout,
     SignupPage,
     ScheduledPostsPage,
     SystemConsolePage,
+    ThreadsPage,
 };

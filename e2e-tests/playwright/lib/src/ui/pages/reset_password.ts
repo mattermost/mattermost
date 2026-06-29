@@ -6,8 +6,11 @@ import {expect} from '@playwright/test';
 
 import {components} from '@/ui/components';
 
-export default class ResetPasswordPage {
-    readonly page: Page;
+import {BasePage} from '../base_page';
+import type {BaseComponent} from '../base_component';
+
+export default class ResetPasswordPage extends BasePage {
+    readonly components: Record<string, BaseComponent>;
 
     readonly title;
     readonly subtitle;
@@ -19,16 +22,18 @@ export default class ResetPasswordPage {
     readonly footer;
 
     constructor(page: Page) {
-        this.page = page;
+        super(page);
 
         this.title = page.locator('h1:has-text("Password Reset")');
         this.subtitle = page.locator('text=To reset your password, enter the email address you used to sign up');
         this.emailInput = page.locator('#passwordResetEmailInput');
         this.resetButton = page.locator('#passwordResetButton');
-        this.formContainer = page.locator('.signup-team__container');
+        this.formContainer = page.getByTestId('signupTeamContainer');
 
-        this.header = new components.MainHeader(page.locator('.signup-header'));
+        this.header = new components.MainHeader(page.getByTestId('signupHeader'));
         this.footer = new components.Footer(page.locator('#footer_section'));
+
+        this.components = {header: this.header, footer: this.footer};
     }
 
     async toBeVisible() {

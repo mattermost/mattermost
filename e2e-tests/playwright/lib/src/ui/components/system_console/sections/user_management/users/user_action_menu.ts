@@ -4,16 +4,12 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {BaseComponent} from '@/ui/base_component';
+
 /**
  * User action menu that appears when clicking the action button on a user row
  */
-export class UserActionMenu {
-    readonly container: Locator;
-
-    constructor(container: Locator) {
-        this.container = container;
-    }
-
+export class UserActionMenu extends BaseComponent {
     async toBeVisible() {
         await expect(this.container).toBeVisible();
     }

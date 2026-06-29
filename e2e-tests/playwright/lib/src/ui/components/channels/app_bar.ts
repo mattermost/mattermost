@@ -4,13 +4,13 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class ChannelsAppBar {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
 
+export default class ChannelsAppBar extends BaseComponent {
     readonly playbooksIcon;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
         this.playbooksIcon = container.locator('#app-bar-icon-playbooks').getByRole('img');
     }

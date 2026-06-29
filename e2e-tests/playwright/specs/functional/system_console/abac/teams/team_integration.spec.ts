@@ -47,11 +47,11 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await page.goto('/admin_console/user_management/teams');
         await page.waitForLoadState('networkidle');
 
-        const search = page.locator('input[placeholder*="Search" i]').first();
+        const search = page.getByPlaceholder('Search', {exact: false}).first();
         await search.fill(teamDisplayName);
         await page.waitForTimeout(1000);
 
-        const row = page.locator('.DataGrid_row').filter({hasText: teamDisplayName}).first();
+        const row = page.getByTestId('dataGridRow').filter({hasText: teamDisplayName}).first();
         await row.waitFor({state: 'visible', timeout: 10000});
         await row.getByText('Edit').click();
         await page.waitForLoadState('networkidle');
@@ -66,20 +66,20 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
      */
     async function findPolicyRow(scope: Page | Locator, policyName: string): Promise<Locator> {
         await scope
-            .locator('.DataGrid_row')
+            .getByTestId('dataGridRow')
             .first()
             .waitFor({state: 'visible', timeout: 15000})
             .catch(() => {
                 // Empty list is fine — the search below will populate it.
             });
-        await scope.locator('[data-testid="searchInput"]').fill(policyName);
-        const row = scope.locator('.DataGrid_row').filter({hasText: policyName}).first();
+        await scope.getByTestId('searchInput').fill(policyName);
+        const row = scope.getByTestId('dataGridRow').filter({hasText: policyName}).first();
         await expect(row).toBeVisible({timeout: 15000});
         return row;
     }
 
     async function setToggle(page: Page, on: boolean): Promise<void> {
-        const toggle = page.locator('[data-testid="policy-enforce-toggle-button"]');
+        const toggle = page.getByTestId('policy-enforce-toggle-button');
         await toggle.waitFor({state: 'visible', timeout: 10000});
         const pressed = (await toggle.getAttribute('aria-pressed')) === 'true';
         if (pressed !== on) {
@@ -113,14 +113,14 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await openTeamConfig(page, team.display_name);
         await setToggle(page, true);
 
-        await page.locator('[data-testid="link-to-a-policy"]').click();
+        await systemConsolePage.policyEditor.linkToPolicyButton.click();
         const modal = page.locator('[role="dialog"]').filter({hasText: 'Select a Membership Policy'});
         await modal.waitFor({state: 'visible', timeout: 5000});
         const policyRow = await findPolicyRow(modal, policyName);
         await policyRow.click();
 
         // The linked policy is listed before saving.
-        await expect(page.locator('.policy-name').filter({hasText: policyName})).toBeVisible({timeout: 5000});
+        await expect(page.getByTestId('policyName').filter({hasText: policyName})).toBeVisible({timeout: 5000});
 
         await page.getByRole('button', {name: 'Save'}).click();
         await page.waitForLoadState('networkidle');
@@ -137,7 +137,7 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await openTeamConfig(page, team.display_name);
 
         // Re-opened page hydrates the assigned policy from the server.
-        await expect(page.locator('.policy-name').filter({hasText: policyName})).toBeVisible({timeout: 15000});
+        await expect(page.getByTestId('policyName').filter({hasText: policyName})).toBeVisible({timeout: 15000});
 
         await page.getByLabel('Remove policy').click();
 
@@ -175,7 +175,7 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
 
         await openTeamConfig(page, team.display_name);
 
-        const toggle = page.locator('[data-testid="policy-enforce-toggle-button"]');
+        const toggle = systemConsolePage.policyEditor.policyEnforceToggle;
         await toggle.waitFor({state: 'visible', timeout: 10000});
         await expect(toggle).toBeDisabled();
         await expect(page.getByText(/Group synced teams cannot use a membership policy/i)).toBeVisible();
@@ -185,7 +185,7 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await page.reload();
         await page.waitForLoadState('networkidle');
 
-        const toggleAfter = page.locator('[data-testid="policy-enforce-toggle-button"]');
+        const toggleAfter = systemConsolePage.policyEditor.policyEnforceToggle;
         await toggleAfter.waitFor({state: 'visible', timeout: 10000});
         await expect(toggleAfter).toBeEnabled();
     });
@@ -210,7 +210,7 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
 
         // Empty state + the link affordance are shown.
         await expect(page.getByText(/No membership policy assigned/i)).toBeVisible({timeout: 5000});
-        await expect(page.locator('[data-testid="link-to-a-policy"]')).toBeVisible();
+        await expect(systemConsolePage.policyEditor.linkToPolicyButton).toBeVisible();
 
         // Saving with the toggle on but no policy is rejected.
         await page.getByRole('button', {name: 'Save'}).click();

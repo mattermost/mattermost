@@ -32,7 +32,7 @@ test('Profile popover should show correct fields after at-mention autocomplete @
 
     // 1. Login as the first user
     const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
+    await channelsPage.goto(team.name);
     await channelsPage.toBeVisible();
 
     // 2. Post a message with mentions of both users

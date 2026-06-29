@@ -196,29 +196,31 @@ const GlobalThreads = () => {
                             />
                         </ThreadPane>
                     ) : (
-                        <NoResultsIndicator
-                            expanded={true}
-                            iconGraphic={ChatIllustration}
-                            title={formatMessage({
-                                id: 'globalThreads.threadPane.unselectedTitle',
-                                defaultMessage: '{numUnread, plural, =0 {Looks like you’re all caught up} other {Catch up on your threads}}',
-                            }, {numUnread})}
-                            subtitle={formatMessage({
-                                id: 'globalThreads.threadPane.unreadMessageLink',
-                                defaultMessage: 'You have {numUnread, plural, =0 {no unread threads} =1 {<link>{numUnread} thread</link>} other {<link>{numUnread} threads</link>}} {numUnread, plural, =0 {} other {with unread messages}}',
-                            }, {
-                                numUnread,
-                                link: (chunks) => (
-                                    <Link
-                                        key='single'
-                                        to={`${url}/${unreadThreadIds[0]}`}
-                                        onClick={handleSelectUnread}
-                                    >
-                                        {chunks}
-                                    </Link>
-                                ),
-                            })}
-                        />
+                        <div data-testid='threadPaneNoThread'>
+                            <NoResultsIndicator
+                                expanded={true}
+                                iconGraphic={ChatIllustration}
+                                title={formatMessage({
+                                    id: 'globalThreads.threadPane.unselectedTitle',
+                                    defaultMessage: '{numUnread, plural, =0 {Looks like you’re all caught up} other {Catch up on your threads}}',
+                                }, {numUnread})}
+                                subtitle={formatMessage({
+                                    id: 'globalThreads.threadPane.unreadMessageLink',
+                                    defaultMessage: 'You have {numUnread, plural, =0 {no unread threads} =1 {<link>{numUnread} thread</link>} other {<link>{numUnread} threads</link>}} {numUnread, plural, =0 {} other {with unread messages}}',
+                                }, {
+                                    numUnread,
+                                    link: (chunks) => (
+                                        <Link
+                                            key='single'
+                                            to={`${url}/${unreadThreadIds[0]}`}
+                                            onClick={handleSelectUnread}
+                                        >
+                                            {chunks}
+                                        </Link>
+                                    ),
+                                })}
+                            />
+                        </div>
                     )}
                 </>
             )}

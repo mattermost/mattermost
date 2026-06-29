@@ -89,6 +89,7 @@ const SearchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
                 <span
                     id={ids.name}
                     className='suggestion-list__main'
+                    data-testid='suggestionMain'
                 >
                     {name}
                 </span>

@@ -4,24 +4,30 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class BrowseChannelsModal {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
 
+export default class BrowseChannelsModal extends BaseComponent {
     readonly createNewChannelButton: Locator;
     readonly hideJoinedCheckbox: Locator;
     readonly searchInput: Locator;
 
     readonly results: Locator;
+    readonly channelTypeFilterButton: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
-        this.createNewChannelButton = container.getByRole('button', {name: 'Create New Channel'});
-        this.hideJoinedCheckbox = container.getByRole('checkbox', {name: 'Hide Joined'});
-        this.searchInput = container.getByRole('textbox', {name: 'Search channels'});
+        this.createNewChannelButton = container.getByRole('button', {name: en['more_channels.create']});
+        this.hideJoinedCheckbox = container.getByRole('checkbox', {name: en['more_channels.hide_joined']});
+        this.searchInput = container.getByRole('textbox', {name: en['filtered_channels_list.search']});
 
-        // This role seems incorrect and will likely need to be changed later
         this.results = this.container.getByRole('search');
+        this.channelTypeFilterButton = container.locator('#menuWrapper');
+    }
+
+    get channelsMoreDropdownRecommended(): Locator {
+        return this.container.page().locator('#channelsMoreDropdownRecommended');
     }
 
     async toBeVisible() {
@@ -29,11 +35,11 @@ export default class BrowseChannelsModal {
     }
 
     async toBeDoneLoading() {
-        await expect(this.container.locator('.loading-screen')).toHaveCount(0);
+        await expect(this.container.getByTestId('loadingScreen')).toHaveCount(0);
     }
 
     async toHaveNResults(count: number) {
-        await expect(this.results.locator('.more-modal__row')).toHaveCount(count);
+        await expect(this.results.locator('[data-testid^="ChannelRow-"]')).toHaveCount(count);
     }
 
     async fillSearchInput(text: string) {
@@ -41,8 +47,12 @@ export default class BrowseChannelsModal {
     }
 
     async toHaveChannelAsNthResult(channelName: string, index: number) {
-        const row = this.results.locator('.more-modal__row').nth(index);
+        const row = this.results.locator('[data-testid^="ChannelRow-"]').nth(index);
 
         expect(await row.getAttribute('data-testid')).toEqual(`ChannelRow-${channelName}`);
+    }
+
+    getChannelRowByName(channelName: string): Locator {
+        return this.results.getByTestId(`ChannelRow-${channelName}`);
     }
 }

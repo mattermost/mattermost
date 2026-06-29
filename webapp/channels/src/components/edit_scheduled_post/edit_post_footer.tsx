@@ -26,6 +26,7 @@ const EditPostFooter = ({onSave, onCancel}: Props) => {
             <button
                 onClick={onSave}
                 className='save'
+                data-testid='editPostSave'
             >
                 <FormattedMessage
                     id='edit_post.action_buttons.save'

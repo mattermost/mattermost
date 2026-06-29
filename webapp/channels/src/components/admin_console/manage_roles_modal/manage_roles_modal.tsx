@@ -306,6 +306,7 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
                             <label>
                                 <input
                                     name='systemadmin'
+                                    data-testid='systemadminRole'
                                     type='radio'
                                     checked={this.state.isSystemAdmin}
                                     onChange={this.handleSystemAdminChange}
@@ -320,6 +321,7 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
                             <label>
                                 <input
                                     name='systemmember'
+                                    data-testid='systemmemberRole'
                                     type='radio'
                                     checked={!this.state.isSystemAdmin}
                                     onChange={this.handleSystemAdminChange}

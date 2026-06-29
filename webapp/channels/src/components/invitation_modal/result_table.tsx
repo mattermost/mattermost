@@ -88,7 +88,10 @@ export default function ResultTable(props: Props) {
         );
     }
     return (
-        <div className={wrapperClass}>
+        <div
+            className={wrapperClass}
+            data-testid={props.sent ? 'invitationResultsSent' : 'invitationResultsNotSent'}
+        >
             {header}
             <table className='InviteResultTable'>
                 <thead>
@@ -177,7 +180,10 @@ export default function ResultTable(props: Props) {
                                         {guestBadge}
                                     </span>
                                 </td>
-                                <td className='reason'>
+                                <td
+                                    className='reason'
+                                    data-testid='inviteResultReason'
+                                >
                                     {reason}
                                 </td>
                             </tr>

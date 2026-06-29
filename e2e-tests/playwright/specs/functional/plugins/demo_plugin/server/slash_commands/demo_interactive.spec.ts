@@ -55,18 +55,21 @@ test('should post interactive button and respond with click attribution via /int
     await expect(interactivePost.getByRole('button', {name: /1 reply/})).toBeVisible();
     await interactivePost.getByRole('button', {name: /1 reply/}).click();
 
-    // 8. Confirm bot response in the thread panel
-    const threadPanel = channelsPage.page.getByRole('region', {name: /Thread/});
-    await expect(threadPanel).toBeVisible();
+    // 8. Confirm bot response in the thread panel via the sidebarRight POM
+    await channelsPage.sidebarRight.toBeVisible();
 
     // Verify response credits the user who clicked
     await expect(
-        threadPanel.locator('p').filter({hasText: `${user.username} clicked an interactive button.`}),
+        channelsPage.sidebarRight.container.getByText(`${user.username} clicked an interactive button.`),
     ).toBeVisible();
 
     // Verify JSON payload contains expected static fields
     await expect(
-        threadPanel.locator('code').filter({hasText: new RegExp(`"user_name"\\s*:\\s*"${user.username}"`)}),
+        channelsPage.sidebarRight.container
+            .locator('code')
+            .filter({hasText: new RegExp(`"user_name"\\s*:\\s*"${user.username}"`)}),
     ).toBeVisible();
-    await expect(threadPanel.locator('code').filter({hasText: '"type": "button"'})).toBeVisible();
+    await expect(
+        channelsPage.sidebarRight.container.locator('code').filter({hasText: '"type": "button"'}),
+    ).toBeVisible();
 });

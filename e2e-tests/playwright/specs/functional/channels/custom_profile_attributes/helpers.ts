@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Page} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 import type {UserPropertyField, UserPropertyFieldPatch, FieldType} from '@mattermost/types/properties';
 
@@ -152,27 +151,28 @@ export function getFieldIdByName(fieldsMap: Record<string, UserPropertyField>, n
  * @param {string} newValue - The new value to set
  */
 export async function editTextAttribute(
-    page: Page,
+    channelsPage: ChannelsPage,
     fieldsMap: Record<string, UserPropertyField>,
     attributeName: string,
     newValue: string,
 ): Promise<void> {
     const fieldId = getFieldIdByName(fieldsMap, attributeName);
-    await page.locator(`text=${attributeName}`).scrollIntoViewIfNeeded();
-    await page.locator(`#customAttribute_${fieldId}Edit`).scrollIntoViewIfNeeded();
-    await page.locator(`#customAttribute_${fieldId}Edit`).click();
-    await page.locator(`#customAttribute_${fieldId}`).scrollIntoViewIfNeeded();
-    await page.locator(`#customAttribute_${fieldId}`).clear();
+    const cpa = channelsPage.customProfileAttributes;
+    await cpa.getAttributeLabel(attributeName).scrollIntoViewIfNeeded();
+    await cpa.getAttributeEditButton(fieldId).scrollIntoViewIfNeeded();
+    await cpa.getAttributeEditButton(fieldId).click();
+    await cpa.getAttributeInput(fieldId).scrollIntoViewIfNeeded();
+    await cpa.getAttributeInput(fieldId).clear();
     if (newValue) {
-        await page.locator(`#customAttribute_${fieldId}`).fill(newValue);
+        await cpa.getAttributeInput(fieldId).fill(newValue);
     }
-    await page.locator('button:has-text("Save")').click();
+    await cpa.saveButton.click();
     // Wait for the Edit button to reappear — it is only visible when the section is in
     // display mode (not editing). It returns to display mode only after the save API call
     // resolves and the component calls updateSection(''). Without this wait, the next
     // Edit click fires updateSection() while the save is still in-flight, which closes
     // the active section and disrupts subsequent saves.
-    await page.locator(`#customAttribute_${fieldId}Edit`).waitFor({state: 'visible'});
+    await cpa.getAttributeEditButton(fieldId).waitFor({state: 'visible'});
 }
 
 /**
@@ -183,31 +183,32 @@ export async function editTextAttribute(
  * @param {number} optionIndex - The index of the option to select
  */
 export async function editSelectAttribute(
-    page: Page,
+    channelsPage: ChannelsPage,
     fieldsMap: Record<string, UserPropertyField>,
     attributeName: string,
     optionIndex: number,
 ): Promise<void> {
     const fieldId = getFieldIdByName(fieldsMap, attributeName);
-    await page.locator(`text=${attributeName}`).scrollIntoViewIfNeeded();
-    await page.locator(`#customAttribute_${fieldId}Edit`).scrollIntoViewIfNeeded();
-    await page.locator(`#customAttribute_${fieldId}Edit`).click();
+    const cpa = channelsPage.customProfileAttributes;
+    await cpa.getAttributeLabel(attributeName).scrollIntoViewIfNeeded();
+    await cpa.getAttributeEditButton(fieldId).scrollIntoViewIfNeeded();
+    await cpa.getAttributeEditButton(fieldId).click();
 
     // Open the dropdown — the control div carries the field-scoped id
-    const selectControl = page.locator(`#customProfileAttribute_${fieldId}`);
+    const selectControl = cpa.getAttributeSelect(fieldId);
     await selectControl.scrollIntoViewIfNeeded();
     await selectControl.click();
 
     // Pick the option by index inside this specific dropdown's open menu.
     // Scoping to the react-select container avoids fragile global react-select-N-option-M IDs.
-    const selectContainer = page.locator(`#customProfileAttribute_${fieldId}`).locator('..');
-    const option = selectContainer.locator('.react-select__option').nth(optionIndex);
+    const selectContainer = cpa.getAttributeSelectContainer(fieldId);
+    const option = selectContainer.getByRole('option').nth(optionIndex);
     await option.waitFor({state: 'visible'});
     await option.click();
 
-    await page.locator('button:has-text("Save")').click();
+    await cpa.saveButton.click();
     // Wait for the Edit button to reappear — same reasoning as editTextAttribute.
-    await page.locator(`#customAttribute_${fieldId}Edit`).waitFor({state: 'visible'});
+    await cpa.getAttributeEditButton(fieldId).waitFor({state: 'visible'});
 }
 
 /**
@@ -218,35 +219,36 @@ export async function editSelectAttribute(
  * @param {Array<number>} optionIndices - The indices of the options to select
  */
 export async function editMultiselectAttribute(
-    page: Page,
+    channelsPage: ChannelsPage,
     fieldsMap: Record<string, UserPropertyField>,
     attributeName: string,
     optionIndices: number[],
 ): Promise<void> {
     const fieldId = getFieldIdByName(fieldsMap, attributeName);
-    await page.locator(`text=${attributeName}`).scrollIntoViewIfNeeded();
-    await page.locator(`#customAttribute_${fieldId}Edit`).scrollIntoViewIfNeeded();
-    await page.locator(`#customAttribute_${fieldId}Edit`).click();
+    const cpa = channelsPage.customProfileAttributes;
+    await cpa.getAttributeLabel(attributeName).scrollIntoViewIfNeeded();
+    await cpa.getAttributeEditButton(fieldId).scrollIntoViewIfNeeded();
+    await cpa.getAttributeEditButton(fieldId).click();
 
     // The react-select container wraps the control; scope option lookups to it
     // to avoid relying on fragile global react-select-N-option-M IDs.
-    const selectContainer = page.locator(`#customProfileAttribute_${fieldId}`).locator('..');
+    const selectContainer = cpa.getAttributeSelectContainer(fieldId);
 
     for (const index of optionIndices) {
         // Open the dropdown for each selection (it closes after each pick)
-        const selectControl = page.locator(`#customProfileAttribute_${fieldId}`);
+        const selectControl = cpa.getAttributeSelect(fieldId);
         await selectControl.scrollIntoViewIfNeeded();
         await selectControl.click();
 
         // Wait for menu to appear and click the nth option
-        const option = selectContainer.locator('.react-select__option').nth(index);
+        const option = selectContainer.getByRole('option').nth(index);
         await option.waitFor({state: 'visible'});
         await option.click();
     }
 
-    await page.locator('button:has-text("Save")').click();
+    await cpa.saveButton.click();
     // Wait for the Edit button to reappear — same reasoning as editTextAttribute.
-    await page.locator(`#customAttribute_${fieldId}Edit`).waitFor({state: 'visible'});
+    await cpa.getAttributeEditButton(fieldId).waitFor({state: 'visible'});
 }
 
 /**
@@ -254,12 +256,15 @@ export async function editMultiselectAttribute(
  * @param {Page} page - The Playwright page object
  * @param {Array} attributes - Array of attribute objects with name
  */
-export async function verifyAttributesExistInSettings(page: Page, attributes: CustomProfileAttribute[]): Promise<void> {
+export async function verifyAttributesExistInSettings(
+    channelsPage: ChannelsPage,
+    attributes: CustomProfileAttribute[],
+): Promise<void> {
     for (const attribute of attributes) {
         // Wait for the attribute label to appear — custom profile attribute fields are
         // fetched asynchronously after the settings modal opens, so we need an explicit
         // wait before asserting visibility.
-        const label = page.locator('.user-settings').getByText(attribute.name, {exact: false});
+        const label = channelsPage.customProfileAttributes.getAttributeLabel(attribute.name);
         await label.waitFor({state: 'visible', timeout: 15000});
         await label.scrollIntoViewIfNeeded();
     }

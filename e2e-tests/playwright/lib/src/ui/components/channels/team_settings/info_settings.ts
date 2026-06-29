@@ -4,9 +4,9 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class InfoSettings {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
 
+export default class InfoSettings extends BaseComponent {
     readonly nameInput;
     readonly descriptionInput;
     readonly uploadInput;
@@ -15,7 +15,7 @@ export default class InfoSettings {
     readonly teamIconInitial;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
         this.nameInput = container.locator('input#teamName');
         this.descriptionInput = container.locator('textarea#teamDescription');

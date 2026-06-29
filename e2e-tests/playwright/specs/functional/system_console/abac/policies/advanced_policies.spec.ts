@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Page} from '@playwright/test';
-
+import type {SystemConsolePage} from '@mattermost/playwright-lib';
 import {
     expect,
     test,
@@ -113,14 +112,14 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5785 all attribute types 
             });
 
             await systemConsolePage.page.waitForTimeout(1000);
-            const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
+            const searchInput = systemConsolePage.policyList.searchInput;
             await searchInput.waitFor({state: 'visible', timeout: 5000});
             const idMatch = policyName.match(/([a-z0-9]+)$/i);
             const uniqueId = idMatch ? idMatch[1] : policyName;
             await searchInput.fill(uniqueId);
             await systemConsolePage.page.waitForTimeout(1000);
 
-            const policyRow = systemConsolePage.page.locator('.policy-name').first();
+            const policyRow = systemConsolePage.policyList.policyRows.first();
             const policyElementId = await policyRow.getAttribute('id');
             const policyId = policyElementId?.replace('customDescription-', '');
             if (!policyId) {
@@ -207,7 +206,7 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5786 operator variants', 
     let engineerUser: Awaited<ReturnType<typeof createUserForABAC>>;
     let salesUser: Awaited<ReturnType<typeof createUserForABAC>>;
     let deptFieldName: string;
-    let systemConsolePage: {page: Page};
+    let systemConsolePage: SystemConsolePage;
     let sharedTestBrowser: TestBrowser | null = null;
     let licensed = true;
 
@@ -286,7 +285,7 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5786 operator variants', 
         });
 
         await systemConsolePage.page.waitForTimeout(1000);
-        const policyRowForTest = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
+        const policyRowForTest = systemConsolePage.policyList.getPolicyRowByName(policyName);
         if (await policyRowForTest.isVisible({timeout: 3000})) {
             await policyRowForTest.click();
             await systemConsolePage.page.waitForLoadState('networkidle');
@@ -297,12 +296,12 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5786 operator variants', 
             await navigateToABACPage(systemConsolePage.page);
         }
 
-        const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
+        const searchInput = systemConsolePage.policyList.searchInput;
         await searchInput.fill(searchTerm);
         // Wait for the exact policy row to appear instead of grabbing .first() blindly.
         // Under parallel load the grid update may be delayed, and .first() can return a
         // policy created by another concurrent test.
-        const policyRow = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
+        const policyRow = systemConsolePage.policyList.getPolicyRowByName(policyName);
         await expect
             .poll(() => policyRow.isVisible(), {
                 timeout: 45_000,
@@ -439,14 +438,14 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         await navigateToABACPage(systemConsolePage.page);
         await systemConsolePage.page.waitForTimeout(500);
 
-        const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
+        const searchInput = systemConsolePage.policyList.searchInput;
         const policyIdMatch = policyName.match(/([a-z0-9]+)$/i);
         const searchTerm = policyIdMatch ? policyIdMatch[1] : policyName;
 
         await searchInput.fill(searchTerm);
         await systemConsolePage.page.waitForTimeout(500);
 
-        const foundPolicy = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
+        const foundPolicy = systemConsolePage.policyList.getPolicyRowByName(policyName);
         await expect
             .poll(() => foundPolicy.isVisible(), {
                 timeout: 15_000,

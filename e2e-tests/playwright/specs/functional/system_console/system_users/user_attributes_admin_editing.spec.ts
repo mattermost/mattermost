@@ -321,11 +321,11 @@ test.describe('System Console - Admin User Profile Editing', () => {
         // * Verify custom user attributes are present
         for (const field of testUserAttributes) {
             const label = field.attrs?.display_name || field.name;
-            await expect(systemConsolePage!.page.locator('label').filter({hasText: label})).toBeVisible();
+            await expect(systemConsolePage!.users.userDetail.userCard.getFieldLabel(label)).toBeVisible();
         }
 
         // * Verify we have input fields (at least 4-5 total)
-        const inputElements = systemConsolePage!.page.locator('input, select');
+        const inputElements = systemConsolePage!.users.userDetail.userCard.allInputsAndSelects;
         const inputCount = await inputElements.count();
         expect(inputCount).toBeGreaterThan(4);
 
@@ -361,7 +361,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
         const locationSelect = userCard.getSelectByExactLabel(cpaDisplayLabels.location);
 
         // # Get the first available option (since we can't predict the option value/ID)
-        const firstOption = await locationSelect.locator('option').nth(1); // Skip the default "Select an option"
+        const firstOption = await locationSelect.getByRole('option').nth(1); // Skip the default "Select an option"
         const firstOptionValue = await firstOption.getAttribute('value');
         await locationSelect.selectOption(firstOptionValue || '');
 

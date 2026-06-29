@@ -4,6 +4,9 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
+
 const USER_ATTRIBUTES_URL = '/admin_console/system_attributes/user_attributes';
 
 /**
@@ -12,18 +15,19 @@ const USER_ATTRIBUTES_URL = '/admin_console/system_attributes/user_attributes';
  * Page object for the Custom Profile Attributes (CPA) field-definition UI.
  * Covers the attribute table, type selectors, dot-menu actions, and save flow.
  */
-export default class SystemProperties {
-    readonly container: Locator;
-    private readonly page;
+export default class SystemProperties extends BaseComponent {
+    readonly page;
 
     readonly addAttributeButton: Locator;
     readonly saveButton: Locator;
 
     constructor(container: Locator) {
-        this.container = container.getByTestId('systemProperties');
+        super(container.getByTestId('systemProperties'));
         this.page = container.page();
 
-        this.addAttributeButton = this.container.getByRole('button', {name: 'Add attribute'});
+        this.addAttributeButton = this.container.getByRole('button', {
+            name: en['admin.system_properties.user_properties.add_property'],
+        });
         this.saveButton = this.page.getByTestId('saveSetting');
     }
 
@@ -36,6 +40,22 @@ export default class SystemProperties {
     async goto() {
         await this.page.goto(USER_ATTRIBUTES_URL);
         await this.page.waitForLoadState('networkidle');
+    }
+
+    // ── Column headers ──────────────────────────────────────────────────
+
+    get nameColumnHeader(): Locator {
+        return this.container.getByRole('columnheader', {
+            name: en['admin.system_properties.user_properties.table.name'],
+            exact: true,
+        });
+    }
+
+    get displayNameColumnHeader(): Locator {
+        return this.container.getByRole('columnheader', {
+            name: en['admin.system_properties.user_properties.table.display_name_header'],
+            exact: true,
+        });
     }
 
     // ── Attribute row accessors ─────────────────────────────────────────
@@ -197,26 +217,42 @@ export default class SystemProperties {
     }
 
     async deleteAttribute() {
-        await this.page.getByRole('menuitem', {name: 'Delete attribute'}).click();
+        await this.page
+            .getByRole('menuitem', {name: en['admin.system_properties.user_properties.dotmenu.delete.label']})
+            .click();
     }
 
     async confirmDeletion() {
-        await this.page.getByRole('button', {name: 'Delete'}).click();
+        await this.page.getByRole('button', {name: en['admin.system_properties.confirm.delete.button']}).click();
     }
 
     async duplicateAttribute() {
-        await this.page.getByRole('menuitem', {name: 'Duplicate attribute'}).click();
+        await this.page
+            .getByRole('menuitem', {name: en['admin.system_properties.user_properties.dotmenu.duplicate.label']})
+            .click();
     }
 
     async setVisibility(option: string) {
-        await this.page.getByRole('menuitem', {name: /Visibility/}).hover();
+        await this.page
+            .getByRole('menuitem', {name: en['admin.system_properties.user_properties.dotmenu.visibility.label']})
+            .hover();
         const radioOption = this.page.getByRole('menuitemradio', {name: option});
         await expect(radioOption).toBeAttached();
         await radioOption.click({force: true});
     }
 
     async toggleEditableByUsers() {
-        await this.page.getByRole('menuitemcheckbox', {name: 'Editable by users'}).click();
+        await this.page
+            .getByRole('menuitemcheckbox', {
+                name: en['admin.system_properties.user_properties.dotmenu.editable_by_users.label'],
+            })
+            .click();
+    }
+
+    editableByUsersMenuItem(): Locator {
+        return this.page.getByRole('menuitemcheckbox', {
+            name: en['admin.system_properties.user_properties.dotmenu.editable_by_users.label'],
+        });
     }
 
     async dismissMenu() {
@@ -246,7 +282,7 @@ export default class SystemProperties {
      * Banners stack below the table; one per unique error type.
      */
     validationBannerByTitle(title: string | RegExp): Locator {
-        return this.container.locator('.AlertBanner').filter({hasText: title});
+        return this.container.getByTestId('alertBanner').filter({hasText: title});
     }
 
     validationMessage(text: string | RegExp): Locator {
@@ -260,7 +296,7 @@ export default class SystemProperties {
      * render numbered chips + an add-value input instead of the react-select.
      */
     lastRankValues(): Locator {
-        return this.container.locator('.user-property-rank-values').last();
+        return this.container.getByTestId('userPropertyRankValues').last();
     }
 
     /**
@@ -270,7 +306,7 @@ export default class SystemProperties {
      * placeholder-based lookups break when adding more than one value.
      */
     rankAddInput(): Locator {
-        return this.lastRankValues().locator('.user-property-rank-values__add-input');
+        return this.lastRankValues().getByTestId('userPropertyRankValuesAddInput');
     }
 
     async addRankValueToLast(value: string) {
@@ -287,7 +323,7 @@ export default class SystemProperties {
 
     /** All ranked chip buttons, in DOM order (ascending rank, left→right). */
     rankChips(): Locator {
-        return this.container.locator('.user-property-rank-values__chip');
+        return this.container.getByTestId('userPropertyRankValuesChip');
     }
 
     /**
@@ -298,18 +334,18 @@ export default class SystemProperties {
      */
     rankChip(name: string): Locator {
         return this.container
-            .locator('.user-property-rank-values__chip')
+            .getByTestId('userPropertyRankValuesChip')
             .filter({has: this.page.getByText(name, {exact: true})});
     }
 
     /** The numbered badge inside a chip; its text is the rank integer. */
     rankBadge(name: string): Locator {
-        return this.rankChip(name).locator('.rank-badge');
+        return this.rankChip(name).getByTestId('rankBadge');
     }
 
     /** Ordered chip labels as displayed (trimmed of the badge text). */
     async rankChipLabels(): Promise<string[]> {
-        return this.rankChips().locator('.user-property-rank-values__chip-label').allInnerTexts();
+        return this.rankChips().getByTestId('userPropertyRankValuesChipLabel').allInnerTexts();
     }
 
     // Per-chip popover (rendered at page level via portal).
@@ -324,11 +360,13 @@ export default class SystemProperties {
      * so locate it by role within the popover menu.
      */
     rankPopoverLabelInput(): Locator {
-        return this.page.getByRole('menu', {name: 'Edit option'}).getByRole('textbox');
+        return this.page
+            .getByRole('menu', {name: en['admin.system_properties.user_properties.rank_popover.aria_label']})
+            .getByRole('textbox');
     }
 
     rankPopoverRankSubmenu(): Locator {
-        return this.page.getByRole('menuitem', {name: /^Rank/});
+        return this.page.getByRole('menuitem', {name: en['admin.system_properties.user_properties.rank_popover.rank']});
     }
 
     async moveRankOptionToPosition(rankValue: number) {
@@ -337,17 +375,23 @@ export default class SystemProperties {
     }
 
     async removeRankOptionFromPopover() {
-        await this.page.getByRole('menuitem', {name: 'Remove option'}).click();
+        await this.page
+            .getByRole('menuitem', {name: en['admin.system_properties.user_properties.rank_popover.remove']})
+            .click();
     }
 
     async openEditRanking(fieldId: string) {
         await this.openDotMenu(fieldId);
-        await this.page.getByRole('menuitem', {name: 'Edit ranking'}).click();
+        await this.page
+            .getByRole('menuitem', {name: en['admin.system_properties.user_properties.dotmenu.edit_ranking.label']})
+            .click();
     }
 
     async openEditRankingForUnsaved() {
         await this.openDotMenuForUnsaved();
-        await this.page.getByRole('menuitem', {name: 'Edit ranking'}).click();
+        await this.page
+            .getByRole('menuitem', {name: en['admin.system_properties.user_properties.dotmenu.edit_ranking.label']})
+            .click();
     }
 
     // ── Ranked schema modal ─────────────────────────────────────────────
@@ -357,18 +401,30 @@ export default class SystemProperties {
     }
 
     rankedModalRows(): Locator {
-        return this.rankedModal().locator('.ranked-schema-modal__row');
+        return this.rankedModal().getByTestId('rankedSchemaRow');
     }
 
     rankedModalSaveButton(): Locator {
-        return this.rankedModal().getByRole('button', {name: 'Save'});
+        return this.rankedModal().getByRole('button', {name: en.save});
     }
 
     async addRankedModalValue() {
-        await this.rankedModal().getByRole('button', {name: 'Add value'}).click();
+        await this.rankedModal()
+            .getByRole('button', {name: en['admin.system_properties.user_properties.ranked_modal.add_value']})
+            .click();
     }
 
     async saveRankedModal() {
         await this.rankedModalSaveButton().click();
+    }
+
+    rankedModalAddInput(): Locator {
+        return this.rankedModal().getByTestId('rankedSchemaAddInput');
+    }
+
+    rankedModalValuesUniqueError(): Locator {
+        return this.rankedModal().getByText(
+            en['admin.system_properties.user_properties.table.validation.values_unique'],
+        );
     }
 }

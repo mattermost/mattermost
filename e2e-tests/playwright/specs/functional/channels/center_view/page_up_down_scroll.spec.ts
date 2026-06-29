@@ -56,6 +56,8 @@ test('should be able to scroll the post list with page up and down', async ({pw}
     expect(currentScrollTop).toBeGreaterThan(lastScrollTop);
 });
 
+// page.locator() is intentional here — this helper passes an arbitrary CSS selector
+// to measure scroll offset on infrastructure elements, not to interact with UI components.
 async function getScrollTop(page: Page, selector: string): Promise<number> {
     const locator = await page.locator(selector);
     return locator?.evaluate((element) => element.scrollTop);

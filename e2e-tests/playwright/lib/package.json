@@ -37,7 +37,8 @@
     "build-tsc": "tsc --build --verbose",
     "build-tsc:watch": "tsc --watch --preserveWatchOutput",
     "clean": "rm -rf dist node_modules *.tsbuildinfo",
-    "tsc": "tsc -b"
+    "tsc": "tsc -b",
+    "i18n:update": "node scripts/generate-i18n.mjs"
   },
   "publishConfig": {
     "access": "public"
@@ -58,6 +59,7 @@
     "uuid": "13.0.0"
   },
   "devDependencies": {
+    "@rollup/plugin-alias": "5.1.1",
     "@rollup/plugin-typescript": "12.3.0",
     "@types/luxon": "3.7.1",
     "@types/mime-types": "3.0.1",

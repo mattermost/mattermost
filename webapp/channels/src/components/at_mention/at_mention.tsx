@@ -61,6 +61,7 @@ const AtMention = (props: Props) => {
             <>
                 <ProfilePopover
                     triggerComponentClass={classNames('style--none', {'mention--highlight': highlightMention})}
+                    triggerComponentDataTestId={highlightMention ? 'mentionHighlight' : undefined}
                     userId={user.id}
                     src={Client4.getProfilePictureUrl(user.id, user.last_picture_update)}
                     channelId={props.channelId}

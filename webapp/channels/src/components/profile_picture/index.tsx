@@ -58,7 +58,10 @@ function ProfilePicture(props: Props) {
                 }}
             >
                 <>
-                    <span className={profileIconClass}>
+                    <span
+                        className={profileIconClass}
+                        data-testid='profileIcon'
+                    >
                         <Avatar
                             username={props.username}
                             size={props.size}

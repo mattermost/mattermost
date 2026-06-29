@@ -151,7 +151,10 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
     return (
         <AdminSection>
             <SectionHeader>
-                <div className='autotranslation-section-header'>
+                <div
+                    className='autotranslation-section-header'
+                    data-testid='autoTranslationSectionHeader'
+                >
                     <hgroup>
                         <h1 className='localization-section-title'>
                             <FormattedMessage {...messages.enableAutoTranslationTitle}/>
@@ -163,7 +166,10 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
                             <FormattedMessage {...messages.enableAutoTranslationDescription}/>
                         </h5>
                     </hgroup>
-                    <div className='autotranslation-section-toggle'>
+                    <div
+                        className='autotranslation-section-toggle'
+                        data-testid='autoTranslationSectionToggle'
+                    >
                         <span style={{marginRight: '12px'}}>
                             {autoTranslationSettings.Enable ? on : off}
                         </span>

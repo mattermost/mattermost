@@ -18,17 +18,21 @@ const UserGridName = ({
 }: Props) => {
     return (
         <div className='UserGrid_nameRow'>
-            <ProfilePicture
-                src={Client4.getProfilePictureUrl(user.id, user.last_picture_update)}
-                status={user.status}
-                size='md'
-            />
-
+            <div data-testid='userGridAvatar'>
+                <ProfilePicture
+                    src={Client4.getProfilePictureUrl(user.id, user.last_picture_update)}
+                    status={user.status}
+                    size='md'
+                />
+            </div>
             <div className='UserGrid_name'>
-                <span>
+                <span data-testid='userGridNameText'>
                     {`${user.username} - ${user.first_name} ${user.last_name}`}
                 </span>
-                <span className='ug-email'>
+                <span
+                    className='ug-email'
+                    data-testid='userGridEmail'
+                >
                     {user.email}
                 </span>
             </div>

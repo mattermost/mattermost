@@ -76,11 +76,11 @@ test(
         await channelsPage.goto(team.name, 'town-square');
 
         // * Verify the target GM is not present in the sidebar to ensure that the sidebar hasn't loaded it
-        await expect(page.locator(`#sidebarItem_${targetGm.channel.name}`)).toHaveCount(0);
+        await expect(channelsPage.sidebarLeft.getSidebarItem(targetGm.channel.name)).toHaveCount(0);
 
         // * Wait until the other GMs are loaded and present in the sidebar
         for (const otherGm of otherGms) {
-            const otherGmEntry = page.locator(`#sidebarItem_${otherGm.channel.name}`);
+            const otherGmEntry = channelsPage.sidebarLeft.getSidebarItem(otherGm.channel.name);
 
             await expect(otherGmEntry).toHaveCount(1);
             await expect(otherGmEntry).toContainText(gmChannelDisplayName(otherGm.members));
@@ -96,7 +96,7 @@ test(
         const dialog = await channelsPage.openDirectChannelsModal();
 
         // # Wait for the list to populate
-        const rows = dialog.container.locator('#multiSelectList .more-modal__row');
+        const rows = dialog.rows;
         await expect.poll(async () => rows.count()).toBeGreaterThanOrEqual(totalGms);
 
         // * Verify the modal contains an entry for every GM the user has, including the one that fell
@@ -112,12 +112,12 @@ test(
 
             // * Verify the GM icon shows the correct member count (channel members minus current user)
             await expect(
-                gmRow.locator('.more-modal__gm-icon'),
+                dialog.getGmIconInRow(gmRow),
                 `expected GM ${channel.id} to show a member count of ${members.length}`,
             ).toHaveText(members.length.toString());
 
             // * Verify the row's name section includes every participant's username
-            const nameContainer = gmRow.locator('.more-modal__name');
+            const nameContainer = dialog.getGmNameInRow(gmRow);
             for (const participant of members) {
                 await expect(
                     nameContainer,

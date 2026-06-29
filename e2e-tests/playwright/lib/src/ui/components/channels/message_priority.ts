@@ -4,8 +4,10 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class MessagePriority {
-    readonly container: Locator;
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
+
+export default class MessagePriority extends BaseComponent {
     readonly priorityIcon: Locator;
     readonly priorityMenu: Locator;
     readonly standardPriorityOption: Locator;
@@ -13,7 +15,7 @@ export default class MessagePriority {
     readonly dialogHeader: Locator;
 
     constructor(container: Locator) {
-        this.container = container;
+        super(container);
 
         // Formatting bar priority icon
         this.priorityIcon = container.locator('#messagePriority');
@@ -23,10 +25,12 @@ export default class MessagePriority {
 
         // Priority dialog elements
         this.priorityDialog = container.page().getByRole('menu');
-        this.dialogHeader = container.page().locator('h4.modal-title');
+        this.dialogHeader = this.priorityDialog.getByRole('heading', {name: en['post_priority.picker.header']});
 
         // Standard priority option in the menu
-        this.standardPriorityOption = this.priorityDialog.getByRole('menuitemradio', {name: 'Standard'});
+        this.standardPriorityOption = this.priorityDialog.getByRole('menuitemradio', {
+            name: en['post_priority.priority.standard'],
+        });
     }
 
     async clickPriorityIcon() {
@@ -46,8 +50,7 @@ export default class MessagePriority {
 
     async verifyPriorityMenuVisible() {
         await expect(this.priorityMenu).toBeVisible();
-        // Look for beta text in header
-        await expect(this.priorityMenu.locator('text=Message Priority')).toBeVisible();
+        await expect(this.priorityMenu.getByText(en['post_priority.picker.header'])).toBeVisible();
     }
 
     async closePriorityMenu() {
@@ -66,6 +69,6 @@ export default class MessagePriority {
 
     async verifyPriorityDialog() {
         await expect(this.priorityDialog).toBeVisible();
-        await expect(this.dialogHeader).toHaveText('Message priority');
+        await expect(this.dialogHeader).toHaveText(en['post_priority.picker.header']);
     }
 }

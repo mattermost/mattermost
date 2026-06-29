@@ -82,8 +82,8 @@ test.describe('System Console - User Attributes display names', () => {
             await sp.goto();
 
             // * Verify the table exposes both Name and Display Name column headers
-            await expect(sp.container.getByRole('columnheader', {name: 'Display Name', exact: true})).toBeVisible();
-            await expect(sp.container.getByRole('columnheader', {name: 'Name', exact: true})).toBeVisible();
+            await expect(sp.displayNameColumnHeader).toBeVisible();
+            await expect(sp.nameColumnHeader).toBeVisible();
 
             // # Add a new row and fill identifier + display name
             await sp.addAttribute();
@@ -118,23 +118,23 @@ test.describe('System Console - User Attributes display names', () => {
             await channelsPage.openProfilePopover(lastPost);
 
             // * Verify the profile popover and account settings render display_name
-            await expect(
-                channelsPage.page.locator(`#user-popover__custom_attributes-title-${createdField!.id}`),
-            ).toHaveText(displayName);
+            await expect(channelsPage.userProfilePopover.getCustomAttributeTitle(createdField!.id)).toHaveText(
+                displayName,
+            );
 
             await channelsPage.userProfilePopover.close();
 
-            const profileModal = await channelsPage.openProfileModal();
-            const section = profileModal.container.locator('.section-min').filter({hasText: displayName});
+            await channelsPage.openProfileModal();
+            const section = channelsPage.customProfileAttributes.getSectionByName(displayName);
             await expect(section).toBeVisible();
 
-            const editButton = profileModal.container.locator(`#customAttribute_${createdField!.id}Edit`);
+            const editButton = channelsPage.customProfileAttributes.getAttributeEditButton(createdField!.id);
             await editButton.scrollIntoViewIfNeeded();
             await editButton.click();
 
-            const settingsInput = profileModal.container.locator(`#customAttribute_${createdField!.id}`);
+            const settingsInput = channelsPage.customProfileAttributes.getAttributeInput(createdField!.id);
             await expect(settingsInput).toHaveAttribute('aria-label', displayName);
-            await profileModal.closeModal();
+            await channelsPage.profileModal.closeModal();
 
             // # Open the admin user detail page for sysadmin
             await systemConsolePage.page.goto(`/admin_console/user_management/user/${adminUser.id}`);

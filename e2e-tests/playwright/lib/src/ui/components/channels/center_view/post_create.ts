@@ -6,12 +6,13 @@ import path from 'node:path';
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {BaseComponent} from '@/ui/base_component';
+import en from '@/i18n';
 import {duration} from '@/util';
 import {assetPath} from '@/file';
 import {waitUntil} from '@/test_action';
 
-export default class ChannelsPostCreate {
-    readonly container: Locator;
+export default class ChannelsPostCreate extends BaseComponent {
     readonly input;
 
     readonly attachmentButton;
@@ -27,7 +28,7 @@ export default class ChannelsPostCreate {
     readonly burnOnReadLabel;
 
     constructor(container: Locator, isRHS = false) {
-        this.container = container;
+        super(container);
 
         if (isRHS) {
             this.input = container.getByTestId('reply_textbox');
@@ -36,17 +37,16 @@ export default class ChannelsPostCreate {
         }
 
         this.attachmentButton = container.locator('#fileUploadButton');
-        this.emojiButton = container.getByLabel('select an emoji');
+        this.emojiButton = container.getByLabel(en['emoji_picker.emojiPicker.button.ariaLabel']);
         this.sendMessageButton = container.getByTestId('SendMessageButton');
-        this.scheduleMessageButton = container.getByLabel('Schedule message');
-        this.priorityButton = container.getByLabel('Message priority');
-        this.suggestionList = container.getByRole('listbox', {name: 'Suggestions'});
-        this.filePreview = container.locator('.file-preview__container');
+        this.scheduleMessageButton = container.getByLabel(en['create_post_button.option.schedule_message']);
+        this.priorityButton = container.getByLabel(en['shortcuts.msgs.formatting_bar.post_priority']);
+        this.suggestionList = container.getByRole('listbox', {name: en['suggestionList.label']});
+        this.filePreview = container.getByTestId('filePreviewContainer');
 
         // Burn-on-Read elements
-        // Use a flexible locator that matches the aria-label pattern
-        this.burnOnReadButton = container.getByRole('button', {name: /Burn-on-read/i});
-        this.burnOnReadLabel = container.locator('.BurnOnReadLabel');
+        this.burnOnReadButton = container.getByTestId('burnOnReadButton');
+        this.burnOnReadLabel = container.getByTestId('burnOnReadLabel');
     }
 
     async toBeVisible() {
@@ -170,8 +170,8 @@ export default class ChannelsPostCreate {
     async waitUntilFilePreviewContains(files: string[], timeout = duration.ten_sec) {
         await waitUntil(
             async () => {
-                const previews = this.filePreview.locator('.file-preview');
-                const details = this.filePreview.locator('.post-image__details');
+                const previews = this.filePreview.getByTestId('filePreview');
+                const details = this.filePreview.getByTestId('filePreviewDetails');
 
                 const [previewsCount, detailsCount] = await Promise.all([previews.count(), details.count()]);
 
@@ -179,6 +179,14 @@ export default class ChannelsPostCreate {
             },
             {timeout},
         );
+    }
+
+    get autocompleteList(): Locator {
+        return this.container.getByRole('listbox');
+    }
+
+    autocompleteOption(name: string): Locator {
+        return this.autocompleteList.getByRole('option', {name});
     }
 
     /**

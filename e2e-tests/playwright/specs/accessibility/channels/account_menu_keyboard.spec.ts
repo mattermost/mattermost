@@ -53,27 +53,27 @@ async function testMenuWithKeyboard(user: UserProfile, page: Page, channelsPage:
 
     // * Should be able to scroll down through the menu with the keyboard
     await page.keyboard.press('ArrowDown');
-    await expect(page.getByRole('menuitem', {name: 'Set custom status'})).toBeFocused();
+    await expect(channelsPage.userAccountMenu.setCustomStatus).toBeFocused();
     await page.keyboard.press('ArrowDown');
-    await expect(page.getByRole('menuitem', {name: 'Online'})).toBeFocused();
+    await expect(channelsPage.userAccountMenu.online).toBeFocused();
     await page.keyboard.press('ArrowDown');
-    await expect(page.getByRole('menuitem', {name: 'Away'})).toBeFocused();
+    await expect(channelsPage.userAccountMenu.away).toBeFocused();
     await page.keyboard.press('ArrowDown');
-    await expect(page.getByRole('menuitem', {name: 'Do not disturb Disables all notifications'})).toBeFocused();
+    await expect(channelsPage.userAccountMenu.dnd).toBeFocused();
     await page.keyboard.press('ArrowDown');
-    await expect(page.getByRole('menuitem', {name: 'Offline'})).toBeFocused();
+    await expect(channelsPage.userAccountMenu.offline).toBeFocused();
     await page.keyboard.press('ArrowDown');
-    await expect(page.getByRole('menuitem', {name: 'Profile'})).toBeFocused();
+    await expect(channelsPage.userAccountMenu.profile).toBeFocused();
     await page.keyboard.press('ArrowDown');
-    await expect(page.getByRole('menuitem', {name: 'Log Out'})).toBeFocused();
+    await expect(channelsPage.userAccountMenu.logout).toBeFocused();
 
     // * Should be able to scroll back up through the menu with the keyboard
     await page.keyboard.press('ArrowUp');
-    await expect(page.getByRole('menuitem', {name: 'Profile'})).toBeFocused();
+    await expect(channelsPage.userAccountMenu.profile).toBeFocused();
     await page.keyboard.press('ArrowUp');
-    await expect(page.getByRole('menuitem', {name: 'Offline'})).toBeFocused();
+    await expect(channelsPage.userAccountMenu.offline).toBeFocused();
     await page.keyboard.press('ArrowUp');
-    await expect(page.getByRole('menuitem', {name: 'Do not disturb Disables all notifications'})).toBeFocused();
+    await expect(channelsPage.userAccountMenu.dnd).toBeFocused();
 
     // * Should be able to move into the submenu by pressing the right arrow
     await page.keyboard.press('ArrowRight');
@@ -99,7 +99,7 @@ async function testMenuWithKeyboard(user: UserProfile, page: Page, channelsPage:
 
     // * Should be able to close the submenu by pressing the left arrow
     await page.keyboard.press('ArrowLeft');
-    await expect(page.getByRole('menuitem', {name: 'Do not disturb Disables all notifications'})).toBeFocused();
+    await expect(channelsPage.userAccountMenu.dnd).toBeFocused();
 
     // * Should be able to close the menu by pressing escape
     await page.keyboard.press('Escape');

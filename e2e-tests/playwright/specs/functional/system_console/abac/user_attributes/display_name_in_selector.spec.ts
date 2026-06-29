@@ -89,7 +89,7 @@ test.describe('ABAC Attribute Selector - display_name rendering and filtering', 
                 await page.getByRole('button', {name: 'Add policy'}).click();
                 await page.waitForLoadState('networkidle');
 
-                const nameInput = page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName');
+                const nameInput = systemConsolePage.policyEditor.policyNameInput;
                 await nameInput.waitFor({state: 'visible', timeout: 10000});
                 await nameInput.fill(policyName);
 
@@ -98,24 +98,25 @@ test.describe('ABAC Attribute Selector - display_name rendering and filtering', 
                 await expect(addAttributeButton).toBeEnabled({timeout: 10000});
                 await addAttributeButton.click();
 
-                const attributeButton = page.locator('[data-testid="attributeSelectorMenuButton"]').first();
+                const attributeButton = systemConsolePage.policyEditor.ruleBuilder.getAttributeSelectorButton(0);
                 await attributeButton.waitFor({state: 'visible', timeout: 5000});
 
-                const attributeMenu = page.locator('[id^="attribute-selector-menu"]');
+                const attributeMenu = systemConsolePage.policyEditor.ruleBuilder.attributeSelectorMenu;
 
                 if (!(await attributeMenu.isVisible({timeout: 1000}).catch(() => false))) {
                     await attributeButton.click();
                 }
                 await attributeMenu.waitFor({state: 'visible', timeout: 5000});
 
-                const deptHeadItem = page.locator('[id^="attribute-selector-menu"] li:has-text("Department Head")');
-                const officeItem = page.locator('[id^="attribute-selector-menu"] li:has-text("office")');
+                const deptHeadItem =
+                    systemConsolePage.policyEditor.ruleBuilder.getAttributeMenuItemByText('Department Head');
+                const officeItem = systemConsolePage.policyEditor.ruleBuilder.getAttributeMenuItemByText('office');
 
                 // * Both fields render: 'Department Head' (display_name) and 'office' (name fallback)
                 await expect(deptHeadItem).toBeVisible();
                 await expect(officeItem).toBeVisible();
 
-                const filterInput = attributeMenu.locator('.attribute-selector-search input');
+                const filterInput = systemConsolePage.policyEditor.ruleBuilder.getAttributeSelectorSearchInput();
                 await filterInput.waitFor({state: 'visible', timeout: 5000});
 
                 // * Filter by display_name keeps only 'Department Head'
@@ -143,18 +144,18 @@ test.describe('ABAC Attribute Selector - display_name rendering and filtering', 
                 await expect(attributeButton).toContainText('Department Head', {timeout: 5000});
 
                 // # Wait for the attribute-selector popover to close before opening the next menu
-                const attributeMenuPopover = page.locator('[id^="attribute-selector-menu"]');
+                const attributeMenuPopover = systemConsolePage.policyEditor.ruleBuilder.attributeSelectorMenu;
                 await attributeMenuPopover.waitFor({state: 'hidden', timeout: 5000});
 
-                const operatorButton = page.locator('[data-testid="operatorSelectorMenuButton"]').first();
+                const operatorButton = systemConsolePage.policyEditor.ruleBuilder.getOperatorSelectorButton(0);
                 await operatorButton.waitFor({state: 'visible', timeout: 5000});
                 await operatorButton.click();
 
-                const operatorMenu = page.locator('[id^="operator-selector-menu"]');
+                const operatorMenu = systemConsolePage.policyEditor.ruleBuilder.operatorSelectorMenu;
                 await operatorMenu.waitFor({state: 'visible', timeout: 5000});
-                await operatorMenu.locator('li:has-text("is")').first().click();
+                await systemConsolePage.policyEditor.ruleBuilder.getOperatorMenuItemByText('is').first().click();
 
-                const valueInput = page.locator('.values-editor__simple-input').first();
+                const valueInput = systemConsolePage.policyEditor.ruleBuilder.simpleValueInput;
                 await valueInput.waitFor({state: 'visible', timeout: 10000});
                 await valueInput.fill('engineering');
                 await valueInput.press('Tab');

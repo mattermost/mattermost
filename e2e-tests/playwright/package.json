@@ -36,6 +36,7 @@
   "devDependencies": {
     "@mattermost/eslint-plugin": "file:../../webapp/platform/eslint-plugin",
     "@playwright/test": "1.59.1",
+    "playwright-core": "1.59.1",
     "@types/luxon": "3.7.1",
     "@types/pg": "8.15.4",
     "@typescript-eslint/eslint-plugin": "8.58.1",

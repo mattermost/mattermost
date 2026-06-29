@@ -5,21 +5,35 @@ import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
 import BaseModal from '@/ui/components/system_console/base_modal';
+import en from '@/i18n';
 
 /**
  * Manage Roles modal (System Console -> Users -> Action -> Manage roles)
  */
 export class ManageRolesModal extends BaseModal {
     readonly saveButton: Locator;
+    readonly systemadminRole: Locator;
+    readonly systemmemberRole: Locator;
 
     constructor(container: Locator) {
         super(container);
-        this.saveButton = container.getByRole('button', {name: 'Save'});
+        this.saveButton = container.getByRole('button', {name: en['save_button.save']});
+        this.systemadminRole = container.getByTestId('systemadminRole');
+        this.systemmemberRole = container.getByTestId('systemmemberRole');
     }
 
     async save() {
         await this.saveButton.click();
         await expect(this.container).not.toBeVisible();
+    }
+}
+
+/**
+ * Manage Teams modal (System Console -> Users -> Action -> Manage teams)
+ */
+export class ManageTeamsModal extends BaseModal {
+    getTeamItem(index = 0): Locator {
+        return this.container.getByTestId('manageTeamsItem').nth(index);
     }
 }
 
@@ -32,7 +46,7 @@ export class ResetPasswordModal extends BaseModal {
 
     constructor(container: Locator) {
         super(container);
-        this.resetButton = container.getByRole('button', {name: 'Reset'});
+        this.resetButton = container.getByRole('button', {name: en['admin.reset_password.reset']});
         this.passwordInput = container.locator('input[type="password"]');
     }
 
@@ -55,7 +69,7 @@ export class UpdateEmailModal extends BaseModal {
 
     constructor(container: Locator) {
         super(container);
-        this.updateButton = container.getByRole('button', {name: 'Update'});
+        this.updateButton = container.getByRole('button', {name: en['admin.reset_email.update']});
         this.emailInput = container.locator('input[type="email"]');
     }
 

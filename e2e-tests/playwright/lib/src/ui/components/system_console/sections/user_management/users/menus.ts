@@ -4,16 +4,14 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {BaseComponent} from '@/ui/base_component';
+
+export {FilterPopover} from './filter_popover';
+
 /**
  * Column toggle menu that appears when clicking the Columns button
  */
-export class ColumnToggleMenu {
-    readonly container: Locator;
-
-    constructor(container: Locator) {
-        this.container = container;
-    }
-
+export class ColumnToggleMenu extends BaseComponent {
     async toBeVisible() {
         await expect(this.container).toBeVisible();
     }
@@ -51,131 +49,10 @@ export class ColumnToggleMenu {
     }
 }
 
-type RoleFilter =
-    | 'Any'
-    | 'System Admin'
-    | 'Member'
-    | 'Guests (all)'
-    | 'Guests in a single channel'
-    | 'Guests in multiple channels';
-type StatusFilter = 'Any' | 'Activated users' | 'Deactivated users';
-
-/**
- * Filter popover that appears when clicking the Filters button
- */
-export class FilterPopover {
-    readonly container: Locator;
-    readonly teamMenuInput: Locator;
-    readonly roleMenuButton: Locator;
-    readonly statusMenuButton: Locator;
-    readonly applyButton: Locator;
-
-    constructor(container: Locator) {
-        this.container = container;
-        this.teamMenuInput = container.locator('#asyncTeamSelectInput');
-        this.roleMenuButton = container.locator('#DropdownInput_filterRole');
-        this.statusMenuButton = container.locator('#DropdownInput_filterStatus');
-        this.applyButton = container.getByText('Apply');
-    }
-
-    async toBeVisible() {
-        await expect(this.container).toBeVisible();
-        await expect(this.applyButton).toBeVisible();
-    }
-
-    /**
-     * Save/apply the filter settings and wait for popover to close
-     */
-    async save() {
-        await this.applyButton.click();
-        // Apply button closes the popover, wait for it to close
-        await expect(this.container).not.toBeVisible({timeout: 5000});
-    }
-
-    /**
-     * Search in the team filter and wait for dropdown options
-     */
-    async searchInTeamMenu(teamDisplayName: string) {
-        await expect(this.teamMenuInput).toBeVisible();
-        await this.teamMenuInput.fill(teamDisplayName);
-        // Wait a bit for async search results to appear
-        await this.container.page().waitForTimeout(500);
-    }
-
-    /**
-     * Select a team from the dropdown. For "All teams" and "No teams", opens the
-     * dropdown directly. For specific team names, searches first then selects.
-     */
-    async filterByTeam(team: 'All teams' | 'No teams' | string) {
-        if (team === 'All teams' || team === 'No teams') {
-            await expect(this.teamMenuInput).toBeVisible();
-            await this.teamMenuInput.click();
-        } else {
-            await this.searchInTeamMenu(team);
-        }
-        const option = this.container.getByRole('option', {name: team});
-        await option.waitFor();
-        await option.click();
-    }
-
-    /**
-     * Open the role filter menu
-     */
-    async openRoleMenu() {
-        await expect(this.roleMenuButton).toBeVisible();
-        await this.roleMenuButton.click();
-    }
-
-    /**
-     * Open the role filter menu and select a role option
-     */
-    async filterByRole(role: RoleFilter) {
-        await this.openRoleMenu();
-        const option = this.container.getByRole('option', {name: role});
-        await option.waitFor();
-        await option.click();
-    }
-
-    /**
-     * Open the status filter menu
-     */
-    async openStatusMenu() {
-        await expect(this.statusMenuButton).toBeVisible();
-        await this.statusMenuButton.click();
-    }
-
-    /**
-     * Open the status filter menu and select a status option
-     */
-    async filterByStatus(status: StatusFilter) {
-        await this.openStatusMenu();
-        const option = this.container.getByRole('option', {name: status});
-        await option.waitFor();
-        await option.click();
-    }
-
-    /**
-     * Close the popover (if still open)
-     */
-    async close() {
-        const isVisible = await this.container.isVisible();
-        if (isVisible) {
-            await this.container.press('Escape');
-            await expect(this.container).not.toBeVisible();
-        }
-    }
-}
-
 /**
  * Generic filter menu for role/status dropdowns (react-select dropdown)
  */
-export class FilterMenu {
-    readonly container: Locator;
-
-    constructor(container: Locator) {
-        this.container = container;
-    }
-
+export class FilterMenu extends BaseComponent {
     async toBeVisible() {
         await expect(this.container).toBeVisible();
     }
@@ -213,13 +90,7 @@ export class FilterMenu {
 /**
  * Date range selector menu
  */
-export class DateRangeMenu {
-    readonly container: Locator;
-
-    constructor(container: Locator) {
-        this.container = container;
-    }
-
+export class DateRangeMenu extends BaseComponent {
     async toBeVisible() {
         await expect(this.container).toBeVisible();
     }
