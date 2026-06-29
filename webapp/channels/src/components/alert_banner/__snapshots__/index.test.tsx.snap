@@ -4,6 +4,7 @@ exports[`Components/AlertBanner should match snapshot 1`] = `
 <div>
   <div
     class="AlertBanner info AlertBanner--sys"
+    data-testid="alertBanner"
   >
     <div
       class="AlertBanner__icon"
@@ -43,6 +44,7 @@ exports[`Components/AlertBanner should match snapshot for app variant 1`] = `
 <div>
   <div
     class="AlertBanner info AlertBanner--app"
+    data-testid="alertBanner"
   >
     <div
       class="AlertBanner__icon"
@@ -82,6 +84,7 @@ exports[`Components/AlertBanner should match snapshot when buttons are passed 1`
 <div>
   <div
     class="AlertBanner info AlertBanner--app"
+    data-testid="alertBanner"
   >
     <div
       class="AlertBanner__body"
@@ -115,6 +118,7 @@ exports[`Components/AlertBanner should match snapshot when icon disabled 1`] = `
 <div>
   <div
     class="AlertBanner info AlertBanner--app"
+    data-testid="alertBanner"
   >
     <div
       class="AlertBanner__body"

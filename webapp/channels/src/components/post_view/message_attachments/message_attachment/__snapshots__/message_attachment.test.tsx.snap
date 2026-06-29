@@ -36,6 +36,7 @@ exports[`components/post_view/MessageAttachment should call actions.doPostAction
           />
           <span
             class="attachment__author-name"
+            data-testid="attachmentAuthorName"
           >
             author_name
           </span>
@@ -45,6 +46,7 @@ exports[`components/post_view/MessageAttachment should call actions.doPostAction
         >
           <a
             class="attachment__title-link"
+            data-testid="attachmentTitleLink"
             href="title_link"
             location="message_attachment"
             rel="noopener noreferrer"
@@ -164,6 +166,7 @@ exports[`components/post_view/MessageAttachment should match snapshot 1`] = `
           />
           <span
             class="attachment__author-name"
+            data-testid="attachmentAuthorName"
           >
             author_name
           </span>
@@ -173,6 +176,7 @@ exports[`components/post_view/MessageAttachment should match snapshot 1`] = `
         >
           <a
             class="attachment__title-link"
+            data-testid="attachmentTitleLink"
             href="title_link"
             location="message_attachment"
             rel="noopener noreferrer"
@@ -291,6 +295,7 @@ exports[`components/post_view/MessageAttachment should match snapshot when no fo
           />
           <span
             class="attachment__author-name"
+            data-testid="attachmentAuthorName"
           >
             author_name
           </span>
@@ -300,6 +305,7 @@ exports[`components/post_view/MessageAttachment should match snapshot when no fo
         >
           <a
             class="attachment__title-link"
+            data-testid="attachmentTitleLink"
             href="title_link"
             location="message_attachment"
             rel="noopener noreferrer"

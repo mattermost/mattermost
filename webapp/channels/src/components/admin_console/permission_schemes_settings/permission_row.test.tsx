@@ -85,7 +85,7 @@ describe('components/admin_console/permission_schemes_settings/permission_row', 
                 onChange={onChange}
             />,
         );
-        await userEvent.click(screen.getByTestId('uniqId-checkbox').closest('.permission-row')!);
+        await userEvent.click(screen.getByTestId('permissionRow'));
         expect(onChange).toHaveBeenCalledWith('id');
     });
 
@@ -98,7 +98,7 @@ describe('components/admin_console/permission_schemes_settings/permission_row', 
                 onChange={onChange}
             />,
         );
-        await userEvent.click(screen.getByTestId('uniqId-checkbox').closest('.permission-row')!);
+        await userEvent.click(screen.getByTestId('permissionRow'));
         expect(onChange).not.toHaveBeenCalled();
     });
 });

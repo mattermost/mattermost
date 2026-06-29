@@ -82,6 +82,7 @@ exports[`components/ProfilePicture should match snapshot, profile and src, defau
   >
     <span
       class="profile-icon "
+      data-testid="profileIcon"
     >
       <img
         alt="user profile image"

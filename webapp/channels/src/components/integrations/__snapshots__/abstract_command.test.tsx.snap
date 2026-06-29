@@ -1057,6 +1057,7 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
         >
           <div
             class="pull-left has-error"
+            data-testid="settingFieldError"
           >
             <label
               class="control-label"

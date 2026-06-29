@@ -4,6 +4,7 @@ exports[`components/user_settings/advanced/JoinLeaveSection should match snapsho
 <div>
   <div
     class="section-min"
+    data-testid="section-min"
   >
     <div
       class="section-min__header"
@@ -44,6 +45,7 @@ exports[`components/user_settings/advanced/JoinLeaveSection should match snapsho
 <div>
   <section
     class="section-max form-horizontal "
+    data-testid="section-max"
   >
     <h4
       class="col-sm-12 section-title"

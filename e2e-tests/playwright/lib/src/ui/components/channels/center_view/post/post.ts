@@ -47,10 +47,10 @@ export default class ChannelsPost extends BaseComponent {
         this.threadFooter = new ThreadFooter(container.getByTestId('threadFooter'));
 
         // Burn-on-Read components
-        this.burnOnReadBadge = new BurnOnReadBadge(container.getByTestId('burnOnReadBadge'));
+        this.burnOnReadBadge = new BurnOnReadBadge(container.getByTestId(/^burn-on-read-badge-/));
         this.burnOnReadTimerChip = new BurnOnReadTimerChip(container.getByTestId('burnOnReadTimerChip'));
         this.concealedPlaceholder = new BurnOnReadConcealedPlaceholder(
-            container.getByTestId('burnOnReadConcealedPlaceholder'),
+            container.getByTestId(/^burn-on-read-concealed-/),
         );
 
         // Post body sub-elements

@@ -65,6 +65,7 @@ exports[`components/AtMention should match snapshot when mentioning current user
     aria-expanded="false"
     aria-haspopup="dialog"
     class="style--none mention--highlight"
+    data-testid="mentionHighlight"
   >
     <span
       class="mention-link"

@@ -7,11 +7,15 @@ exports[`components/drafts/draft_actions/send_draft_modal should have called onC
       Send message now
     </h1>
     <div>
-      Are you sure you want to send this message to 
-      <strong>
-        display_name
-      </strong>
-      ?
+      <div
+        data-testid="sendNowModalBody"
+      >
+        Are you sure you want to send this message to 
+        <strong>
+          display_name
+        </strong>
+        ?
+      </div>
     </div>
     <button>
       Yes, send now
@@ -30,11 +34,15 @@ exports[`components/drafts/draft_actions/send_draft_modal should have called onE
       Send message now
     </h1>
     <div>
-      Are you sure you want to send this message to 
-      <strong>
-        display_name
-      </strong>
-      ?
+      <div
+        data-testid="sendNowModalBody"
+      >
+        Are you sure you want to send this message to 
+        <strong>
+          display_name
+        </strong>
+        ?
+      </div>
     </div>
     <button>
       Yes, send now
@@ -53,11 +61,15 @@ exports[`components/drafts/draft_actions/send_draft_modal should match snapshot 
       Send message now
     </h1>
     <div>
-      Are you sure you want to send this message to 
-      <strong>
-        display_name
-      </strong>
-      ?
+      <div
+        data-testid="sendNowModalBody"
+      >
+        Are you sure you want to send this message to 
+        <strong>
+          display_name
+        </strong>
+        ?
+      </div>
     </div>
     <button>
       Yes, send now

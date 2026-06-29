@@ -4,7 +4,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_checkbo
 <div>
   <div
     class="permission-check "
-    data-testid=""
+    data-testid="permissionCheck"
+    id=""
   />
 </div>
 `;
@@ -13,7 +14,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_checkbo
 <div>
   <div
     class="permission-check "
-    data-testid="uniqId-checked"
+    data-testid="permissionCheck"
+    id="uniqId-checked"
   />
 </div>
 `;
@@ -22,7 +24,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_checkbo
 <div>
   <div
     class="permission-check checked"
-    data-testid="uniqId-checked"
+    data-testid="permissionCheck"
+    id="uniqId-checked"
   >
     <svg
       height="18px"
@@ -87,7 +90,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_checkbo
 <div>
   <div
     class="permission-check checked"
-    data-testid=""
+    data-testid="permissionCheck"
+    id=""
   >
     <svg
       height="18px"
@@ -152,7 +156,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_checkbo
 <div>
   <div
     class="permission-check intermediate"
-    data-testid="uniqId-checked"
+    data-testid="permissionCheck"
+    id="uniqId-checked"
   >
     <svg
       height="18px"

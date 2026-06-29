@@ -7,6 +7,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
   >
     <div
       class="admin-console__header"
+      data-testid="adminConsoleHeader"
     >
       Data Retention Policies
     </div>
@@ -47,15 +48,19 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
             >
               <div
                 class="DataGrid customTable"
+                data-testid="dataGrid"
               >
                 <div
                   class="DataGrid_header"
+                  data-testid="dataGridHeader"
                 />
                 <div
                   class="DataGrid_rows"
+                  data-testid="dataGridRows"
                 >
                   <div
                     class="DataGrid_row"
+                    data-testid="dataGridRow"
                   />
                 </div>
               </div>
@@ -98,12 +103,15 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
             >
               <div
                 class="DataGrid customTable"
+                data-testid="dataGrid"
               >
                 <div
                   class="DataGrid_header"
+                  data-testid="dataGridHeader"
                 />
                 <div
                   class="DataGrid_rows"
+                  data-testid="dataGridRows"
                 >
                   <div
                     class="DataGrid_loading"
@@ -230,6 +238,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
   >
     <div
       class="admin-console__header"
+      data-testid="adminConsoleHeader"
     >
       Data Retention Policies
     </div>
@@ -270,15 +279,19 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
             >
               <div
                 class="DataGrid customTable"
+                data-testid="dataGrid"
               >
                 <div
                   class="DataGrid_header"
+                  data-testid="dataGridHeader"
                 />
                 <div
                   class="DataGrid_rows"
+                  data-testid="dataGridRows"
                 >
                   <div
                     class="DataGrid_row"
+                    data-testid="dataGridRow"
                   />
                 </div>
               </div>
@@ -321,12 +334,15 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
             >
               <div
                 class="DataGrid customTable"
+                data-testid="dataGrid"
               >
                 <div
                   class="DataGrid_header"
+                  data-testid="dataGridHeader"
                 />
                 <div
                   class="DataGrid_rows"
+                  data-testid="dataGridRows"
                 >
                   <div
                     class="DataGrid_loading"
@@ -346,14 +362,20 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                 </div>
                 <div
                   class="DataGrid_footer"
+                  data-testid="dataGridFooter"
                 >
                   <div
                     class="DataGrid_cell"
                   >
-                    1 - 1 of 1
+                    <span
+                      data-testid="dataGridPaginationInfo"
+                    >
+                      1 - 1 of 1
+                    </span>
                     <button
                       aria-label="Previous page"
                       class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+                      data-testid="dataGridPrev"
                       disabled=""
                       type="button"
                     >
@@ -365,6 +387,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                     <button
                       aria-label="Next page"
                       class="btn btn-quaternary btn-icon btn-sm next disabled"
+                      data-testid="dataGridNext"
                       disabled=""
                       type="button"
                     >
@@ -483,6 +506,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
   >
     <div
       class="admin-console__header"
+      data-testid="adminConsoleHeader"
     >
       Data Retention Policies
     </div>
@@ -523,15 +547,19 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
             >
               <div
                 class="DataGrid customTable"
+                data-testid="dataGrid"
               >
                 <div
                   class="DataGrid_header"
+                  data-testid="dataGridHeader"
                 />
                 <div
                   class="DataGrid_rows"
+                  data-testid="dataGridRows"
                 >
                   <div
                     class="DataGrid_row"
+                    data-testid="dataGridRow"
                   />
                 </div>
               </div>
@@ -574,12 +602,15 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
             >
               <div
                 class="DataGrid customTable"
+                data-testid="dataGrid"
               >
                 <div
                   class="DataGrid_header"
+                  data-testid="dataGridHeader"
                 />
                 <div
                   class="DataGrid_rows"
+                  data-testid="dataGridRows"
                 >
                   <div
                     class="DataGrid_loading"
@@ -599,14 +630,20 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                 </div>
                 <div
                   class="DataGrid_footer"
+                  data-testid="dataGridFooter"
                 >
                   <div
                     class="DataGrid_cell"
                   >
-                    1 - 1 of 1
+                    <span
+                      data-testid="dataGridPaginationInfo"
+                    >
+                      1 - 1 of 1
+                    </span>
                     <button
                       aria-label="Previous page"
                       class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+                      data-testid="dataGridPrev"
                       disabled=""
                       type="button"
                     >
@@ -618,6 +655,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                     <button
                       aria-label="Next page"
                       class="btn btn-quaternary btn-icon btn-sm next disabled"
+                      data-testid="dataGridNext"
                       disabled=""
                       type="button"
                     >
@@ -736,6 +774,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
   >
     <div
       class="admin-console__header"
+      data-testid="adminConsoleHeader"
     >
       Data Retention Policies
     </div>
@@ -776,15 +815,19 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
             >
               <div
                 class="DataGrid customTable"
+                data-testid="dataGrid"
               >
                 <div
                   class="DataGrid_header"
+                  data-testid="dataGridHeader"
                 />
                 <div
                   class="DataGrid_rows"
+                  data-testid="dataGridRows"
                 >
                   <div
                     class="DataGrid_row"
+                    data-testid="dataGridRow"
                   />
                 </div>
               </div>
@@ -827,12 +870,15 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
             >
               <div
                 class="DataGrid customTable"
+                data-testid="dataGrid"
               >
                 <div
                   class="DataGrid_header"
+                  data-testid="dataGridHeader"
                 />
                 <div
                   class="DataGrid_rows"
+                  data-testid="dataGridRows"
                 >
                   <div
                     class="DataGrid_loading"

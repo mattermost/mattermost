@@ -7,6 +7,7 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen a
   >
     <div
       class="admin-console__header"
+      data-testid="adminConsoleHeader"
     >
       Edition and License
     </div>
@@ -21,6 +22,7 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen a
         >
           <div
             class="AlertBanner info AlertBanner--sys"
+            data-testid="alertBanner"
           >
             <div
               class="AlertBanner__icon"
@@ -486,6 +488,7 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen w
   >
     <div
       class="admin-console__header"
+      data-testid="adminConsoleHeader"
     >
       Edition and License
     </div>
@@ -500,6 +503,7 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen w
         >
           <div
             class="AlertBanner info AlertBanner--sys"
+            data-testid="alertBanner"
           >
             <div
               class="AlertBanner__icon"
@@ -987,6 +991,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
   >
     <div
       class="admin-console__header"
+      data-testid="adminConsoleHeader"
     >
       Edition and License
     </div>
@@ -1001,6 +1006,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
         >
           <div
             class="AlertBanner info AlertBanner--sys"
+            data-testid="alertBanner"
           >
             <div
               class="AlertBanner__icon"
@@ -1649,6 +1655,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
   >
     <div
       class="admin-console__header"
+      data-testid="adminConsoleHeader"
     >
       Edition and License
     </div>
@@ -1663,6 +1670,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
         >
           <div
             class="AlertBanner info AlertBanner--sys"
+            data-testid="alertBanner"
           >
             <div
               class="AlertBanner__icon"
@@ -2297,6 +2305,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
   >
     <div
       class="admin-console__header"
+      data-testid="adminConsoleHeader"
     >
       Edition and License
     </div>
@@ -2311,6 +2320,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
         >
           <div
             class="AlertBanner info AlertBanner--sys"
+            data-testid="alertBanner"
           >
             <div
               class="AlertBanner__icon"
@@ -2961,6 +2971,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
   >
     <div
       class="admin-console__header"
+      data-testid="adminConsoleHeader"
     >
       Edition and License
     </div>
@@ -2975,6 +2986,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
         >
           <div
             class="AlertBanner info AlertBanner--sys"
+            data-testid="alertBanner"
           >
             <div
               class="AlertBanner__icon"
@@ -3609,6 +3621,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
   >
     <div
       class="admin-console__header"
+      data-testid="adminConsoleHeader"
     >
       Edition and License
     </div>
@@ -3623,6 +3636,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
         >
           <div
             class="AlertBanner info AlertBanner--sys"
+            data-testid="alertBanner"
           >
             <div
               class="AlertBanner__icon"
@@ -4258,6 +4272,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
   >
     <div
       class="admin-console__header"
+      data-testid="adminConsoleHeader"
     >
       Edition and License
     </div>
@@ -4272,6 +4287,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
         >
           <div
             class="AlertBanner info AlertBanner--sys"
+            data-testid="alertBanner"
           >
             <div
               class="AlertBanner__icon"
@@ -4912,6 +4928,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
   >
     <div
       class="admin-console__header"
+      data-testid="adminConsoleHeader"
     >
       Edition and License
     </div>
@@ -4926,6 +4943,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
         >
           <div
             class="AlertBanner info AlertBanner--sys"
+            data-testid="alertBanner"
           >
             <div
               class="AlertBanner__icon"
@@ -5493,6 +5511,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
   >
     <div
       class="admin-console__header"
+      data-testid="adminConsoleHeader"
     >
       Edition and License
     </div>
@@ -5507,6 +5526,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
         >
           <div
             class="AlertBanner info AlertBanner--sys"
+            data-testid="alertBanner"
           >
             <div
               class="AlertBanner__icon"
@@ -6033,6 +6053,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
   >
     <div
       class="admin-console__header"
+      data-testid="adminConsoleHeader"
     >
       Edition and License
     </div>
@@ -6047,6 +6068,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
         >
           <div
             class="AlertBanner info AlertBanner--sys"
+            data-testid="alertBanner"
           >
             <div
               class="AlertBanner__icon"
@@ -6579,6 +6601,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
   >
     <div
       class="admin-console__header"
+      data-testid="adminConsoleHeader"
     >
       Edition and License
     </div>
@@ -6593,6 +6616,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
         >
           <div
             class="AlertBanner info AlertBanner--sys"
+            data-testid="alertBanner"
           >
             <div
               class="AlertBanner__icon"
@@ -7070,6 +7094,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
   >
     <div
       class="admin-console__header"
+      data-testid="adminConsoleHeader"
     >
       Edition and License
     </div>
@@ -7084,6 +7109,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
         >
           <div
             class="AlertBanner info AlertBanner--sys"
+            data-testid="alertBanner"
           >
             <div
               class="AlertBanner__icon"
@@ -7585,6 +7611,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
   >
     <div
       class="admin-console__header"
+      data-testid="adminConsoleHeader"
     >
       Edition and License
     </div>
@@ -8049,6 +8076,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
   >
     <div
       class="admin-console__header"
+      data-testid="adminConsoleHeader"
     >
       Edition and License
     </div>
@@ -8620,6 +8648,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
   >
     <div
       class="admin-console__header"
+      data-testid="adminConsoleHeader"
     >
       Edition and License
     </div>
@@ -8634,6 +8663,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
         >
           <div
             class="AlertBanner info AlertBanner--sys"
+            data-testid="alertBanner"
           >
             <div
               class="AlertBanner__icon"

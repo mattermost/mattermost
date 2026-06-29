@@ -3,10 +3,13 @@
 exports[`ListItem should match snapshot when rendering GroupChannel 1`] = `
 <div>
   <div
+    aria-selected="false"
     class="more-modal__row clickable"
+    data-testid="groupChannelRow"
   >
     <div
       class="more-modal__gm-icon"
+      data-testid="gmChannelIcon"
     >
       3
     </div>
@@ -15,6 +18,7 @@ exports[`ListItem should match snapshot when rendering GroupChannel 1`] = `
     >
       <div
         class="more-modal__name"
+        data-testid="gmChannelName"
       >
         <span>
           @user1, @user2, @user3
@@ -40,7 +44,9 @@ exports[`ListItem should match snapshot when rendering GroupChannel 1`] = `
 exports[`ListItem should match snapshot when rendering user 1`] = `
 <div>
   <div
+    aria-selected="false"
     class="more-modal__row clickable"
+    data-testid="directChannelRow"
   >
     <span
       class="status-wrapper style--none"

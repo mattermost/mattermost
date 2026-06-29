@@ -99,7 +99,7 @@ function BurnOnReadConcealedPlaceholder({
                     disabled={loading}
                     aria-label={ariaLabel}
                     tabIndex={0}
-                    data-testid='burnOnReadConcealedPlaceholder'
+                    data-testid={`burn-on-read-concealed-${postId}`}
                 >
                     {loading ? (
                         <LoadingSpinner/>

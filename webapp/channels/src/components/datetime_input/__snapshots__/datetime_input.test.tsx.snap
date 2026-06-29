@@ -13,6 +13,7 @@ exports[`components/datetime_input/DateTimeInput should match snapshot 1`] = `
       >
         <div
           class="date-time-input"
+          data-testid="datePickerButton"
           role="button"
           tabindex="0"
         >

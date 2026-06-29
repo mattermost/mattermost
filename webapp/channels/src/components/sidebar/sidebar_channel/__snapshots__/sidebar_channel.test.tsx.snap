@@ -15,6 +15,7 @@ exports[`components/sidebar/sidebar_channel should match snapshot 1`] = `
     >
       <i
         class="icon icon-globe"
+        data-testid="publicChannelIcon"
       />
       <div
         class="SidebarChannelLinkLabel_wrapper"
@@ -96,6 +97,7 @@ exports[`components/sidebar/sidebar_channel should match snapshot when active 1`
     >
       <i
         class="icon icon-globe"
+        data-testid="publicChannelIcon"
       />
       <div
         class="SidebarChannelLinkLabel_wrapper"
@@ -151,6 +153,7 @@ exports[`components/sidebar/sidebar_channel should match snapshot when collapsed
     >
       <i
         class="icon icon-globe"
+        data-testid="publicChannelIcon"
       />
       <div
         class="SidebarChannelLinkLabel_wrapper"
@@ -206,6 +209,7 @@ exports[`components/sidebar/sidebar_channel should match snapshot when unread 1`
     >
       <i
         class="icon icon-globe"
+        data-testid="publicChannelIcon"
       />
       <div
         class="SidebarChannelLinkLabel_wrapper"

@@ -4,6 +4,7 @@ exports[`components/admin_console/billing_subscription/CloudTrialBanner should m
 <div>
   <div
     class="AlertBanner info AlertBanner--sys"
+    data-testid="alertBanner"
   >
     <div
       class="AlertBanner__body"

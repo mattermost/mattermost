@@ -534,6 +534,7 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot, display
         >
           <div
             class="pull-left has-error"
+            data-testid="settingFieldError"
           >
             <label
               class="control-label"

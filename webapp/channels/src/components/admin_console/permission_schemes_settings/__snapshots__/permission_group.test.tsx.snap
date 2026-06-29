@@ -14,7 +14,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
       />
       <div
         class="permission-check checked"
-        data-testid="uniqId-checkbox"
+        data-testid="permissionCheck"
+        id="uniqId-checkbox"
       >
         <svg
           height="18px"
@@ -86,11 +87,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
     >
       <div
         class="permission-row"
+        data-testid="permissionRow"
         id="uniqId-invite_user"
       >
         <div
           class="permission-check checked"
-          data-testid="uniqId-invite_user-checkbox"
+          data-testid="permissionCheck"
+          id="uniqId-invite_user-checkbox"
         >
           <svg
             height="18px"
@@ -159,11 +162,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
       </div>
       <div
         class="permission-row"
+        data-testid="permissionRow"
         id="uniqId-add_user_to_team"
       >
         <div
           class="permission-check checked"
-          data-testid="uniqId-add_user_to_team-checkbox"
+          data-testid="permissionCheck"
+          id="uniqId-add_user_to_team-checkbox"
         >
           <svg
             height="18px"
@@ -249,7 +254,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
       />
       <div
         class="permission-check checked"
-        data-testid="uniqId-checkbox"
+        data-testid="permissionCheck"
+        id="uniqId-checkbox"
       >
         <svg
           height="18px"
@@ -321,11 +327,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
     >
       <div
         class="permission-row read-only"
+        data-testid="permissionRow"
         id="uniqId-invite_user"
       >
         <div
           class="permission-check checked"
-          data-testid="uniqId-invite_user-checkbox"
+          data-testid="permissionCheck"
+          id="uniqId-invite_user-checkbox"
         >
           <svg
             height="18px"
@@ -394,11 +402,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
       </div>
       <div
         class="permission-row read-only"
+        data-testid="permissionRow"
         id="uniqId-add_user_to_team"
       >
         <div
           class="permission-check checked"
-          data-testid="uniqId-add_user_to_team-checkbox"
+          data-testid="permissionCheck"
+          id="uniqId-add_user_to_team-checkbox"
         >
           <svg
             height="18px"
@@ -484,7 +494,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
       />
       <div
         class="permission-check checked"
-        data-testid="uniqId-checkbox"
+        data-testid="permissionCheck"
+        id="uniqId-checkbox"
       >
         <svg
           height="18px"
@@ -556,11 +567,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
     >
       <div
         class="permission-row read-only"
+        data-testid="permissionRow"
         id="uniqId-invite_user"
       >
         <div
           class="permission-check checked"
-          data-testid="uniqId-invite_user-checkbox"
+          data-testid="permissionCheck"
+          id="uniqId-invite_user-checkbox"
         >
           <svg
             height="18px"
@@ -629,11 +642,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
       </div>
       <div
         class="permission-row read-only"
+        data-testid="permissionRow"
         id="uniqId-add_user_to_team"
       >
         <div
           class="permission-check checked"
-          data-testid="uniqId-add_user_to_team-checkbox"
+          data-testid="permissionCheck"
+          id="uniqId-add_user_to_team-checkbox"
         >
           <svg
             height="18px"
@@ -719,7 +734,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
       />
       <div
         class="permission-check intermediate"
-        data-testid="uniqId-checkbox"
+        data-testid="permissionCheck"
+        id="uniqId-checkbox"
       >
         <svg
           height="18px"
@@ -791,11 +807,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
     >
       <div
         class="permission-row"
+        data-testid="permissionRow"
         id="uniqId-invite_user"
       >
         <div
           class="permission-check checked"
-          data-testid="uniqId-invite_user-checkbox"
+          data-testid="permissionCheck"
+          id="uniqId-invite_user-checkbox"
         >
           <svg
             height="18px"
@@ -864,11 +882,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
       </div>
       <div
         class="permission-row"
+        data-testid="permissionRow"
         id="uniqId-add_user_to_team"
       >
         <div
           class="permission-check "
-          data-testid="uniqId-add_user_to_team-checkbox"
+          data-testid="permissionCheck"
+          id="uniqId-add_user_to_team-checkbox"
         />
         <span
           class="permission-name"
@@ -898,7 +918,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
       />
       <div
         class="permission-check intermediate"
-        data-testid="uniqId-checkbox"
+        data-testid="permissionCheck"
+        id="uniqId-checkbox"
       >
         <svg
           height="18px"
@@ -970,11 +991,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
     >
       <div
         class="permission-row read-only"
+        data-testid="permissionRow"
         id="uniqId-invite_user"
       >
         <div
           class="permission-check checked"
-          data-testid="uniqId-invite_user-checkbox"
+          data-testid="permissionCheck"
+          id="uniqId-invite_user-checkbox"
         >
           <svg
             height="18px"
@@ -1043,11 +1066,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
       </div>
       <div
         class="permission-row read-only"
+        data-testid="permissionRow"
         id="uniqId-add_user_to_team"
       >
         <div
           class="permission-check "
-          data-testid="uniqId-add_user_to_team-checkbox"
+          data-testid="permissionCheck"
+          id="uniqId-add_user_to_team-checkbox"
         />
         <span
           class="permission-name"
@@ -1077,7 +1102,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
       />
       <div
         class="permission-check intermediate"
-        data-testid="uniqId-checkbox"
+        data-testid="permissionCheck"
+        id="uniqId-checkbox"
       >
         <svg
           height="18px"
@@ -1149,11 +1175,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
     >
       <div
         class="permission-row read-only"
+        data-testid="permissionRow"
         id="uniqId-invite_user"
       >
         <div
           class="permission-check checked"
-          data-testid="uniqId-invite_user-checkbox"
+          data-testid="permissionCheck"
+          id="uniqId-invite_user-checkbox"
         >
           <svg
             height="18px"
@@ -1222,11 +1250,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
       </div>
       <div
         class="permission-row"
+        data-testid="permissionRow"
         id="uniqId-add_user_to_team"
       >
         <div
           class="permission-check "
-          data-testid="uniqId-add_user_to_team-checkbox"
+          data-testid="permissionCheck"
+          id="uniqId-add_user_to_team-checkbox"
         />
         <span
           class="permission-name"
@@ -1256,7 +1286,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
       />
       <div
         class="permission-check "
-        data-testid="uniqId-checkbox"
+        data-testid="permissionCheck"
+        id="uniqId-checkbox"
       />
       <span
         class="permission-name"
@@ -1272,11 +1303,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
     >
       <div
         class="permission-row"
+        data-testid="permissionRow"
         id="uniqId-invite_user"
       >
         <div
           class="permission-check "
-          data-testid="uniqId-invite_user-checkbox"
+          data-testid="permissionCheck"
+          id="uniqId-invite_user-checkbox"
         />
         <span
           class="permission-name"
@@ -1289,11 +1322,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
       </div>
       <div
         class="permission-row"
+        data-testid="permissionRow"
         id="uniqId-add_user_to_team"
       >
         <div
           class="permission-check "
-          data-testid="uniqId-add_user_to_team-checkbox"
+          data-testid="permissionCheck"
+          id="uniqId-add_user_to_team-checkbox"
         />
         <span
           class="permission-name"
@@ -1323,7 +1358,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
       />
       <div
         class="permission-check "
-        data-testid="uniqId-checkbox"
+        data-testid="permissionCheck"
+        id="uniqId-checkbox"
       />
       <span
         class="permission-name"
@@ -1339,11 +1375,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
     >
       <div
         class="permission-row"
+        data-testid="permissionRow"
         id="uniqId-invite_user"
       >
         <div
           class="permission-check "
-          data-testid="uniqId-invite_user-checkbox"
+          data-testid="permissionCheck"
+          id="uniqId-invite_user-checkbox"
         />
         <span
           class="permission-name"
@@ -1356,11 +1394,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
       </div>
       <div
         class="permission-row"
+        data-testid="permissionRow"
         id="uniqId-add_user_to_team"
       >
         <div
           class="permission-check "
-          data-testid="uniqId-add_user_to_team-checkbox"
+          data-testid="permissionCheck"
+          id="uniqId-add_user_to_team-checkbox"
         />
         <span
           class="permission-name"
@@ -1390,7 +1430,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
       />
       <div
         class="permission-check "
-        data-testid="uniqId-checkbox"
+        data-testid="permissionCheck"
+        id="uniqId-checkbox"
       />
       <span
         class="permission-name"
@@ -1406,11 +1447,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
     >
       <div
         class="permission-row read-only"
+        data-testid="permissionRow"
         id="uniqId-invite_user"
       >
         <div
           class="permission-check "
-          data-testid="uniqId-invite_user-checkbox"
+          data-testid="permissionCheck"
+          id="uniqId-invite_user-checkbox"
         />
         <span
           class="permission-name"
@@ -1423,11 +1466,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
       </div>
       <div
         class="permission-row read-only"
+        data-testid="permissionRow"
         id="uniqId-add_user_to_team"
       >
         <div
           class="permission-check "
-          data-testid="uniqId-add_user_to_team-checkbox"
+          data-testid="permissionCheck"
+          id="uniqId-add_user_to_team-checkbox"
         />
         <span
           class="permission-name"
@@ -1457,7 +1502,8 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
       />
       <div
         class="permission-check "
-        data-testid="uniqId-checkbox"
+        data-testid="permissionCheck"
+        id="uniqId-checkbox"
       />
       <span
         class="permission-name"
@@ -1473,11 +1519,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
     >
       <div
         class="permission-row"
+        data-testid="permissionRow"
         id="uniqId-invite_user"
       >
         <div
           class="permission-check "
-          data-testid="uniqId-invite_user-checkbox"
+          data-testid="permissionCheck"
+          id="uniqId-invite_user-checkbox"
         />
         <span
           class="permission-name"
@@ -1490,11 +1538,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_group s
       </div>
       <div
         class="permission-row"
+        data-testid="permissionRow"
         id="uniqId-add_user_to_team"
       >
         <div
           class="permission-check "
-          data-testid="uniqId-add_user_to_team-checkbox"
+          data-testid="permissionCheck"
+          id="uniqId-add_user_to_team-checkbox"
         />
         <span
           class="permission-name"

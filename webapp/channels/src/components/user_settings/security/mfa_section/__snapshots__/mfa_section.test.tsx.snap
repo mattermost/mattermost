@@ -6,6 +6,7 @@ exports[`MfaSection rendering when section is collapsed and MFA is active 1`] = 
 <div>
   <div
     class="section-min"
+    data-testid="section-min"
   >
     <div
       class="section-min__header"
@@ -44,6 +45,7 @@ exports[`MfaSection rendering when section is collapsed and MFA is not active 1`
 <div>
   <div
     class="section-min"
+    data-testid="section-min"
   >
     <div
       class="section-min__header"
@@ -82,6 +84,7 @@ exports[`MfaSection rendering when section is expanded and MFA is active and enf
 <div>
   <section
     class="section-max form-horizontal "
+    data-testid="section-max"
   >
     <h4
       class="col-sm-12 section-title"
@@ -141,6 +144,7 @@ exports[`MfaSection rendering when section is expanded and MFA is active but not
 <div>
   <section
     class="section-max form-horizontal "
+    data-testid="section-max"
   >
     <h4
       class="col-sm-12 section-title"
@@ -200,6 +204,7 @@ exports[`MfaSection rendering when section is expanded and MFA is not active 1`]
 <div>
   <section
     class="section-max form-horizontal "
+    data-testid="section-max"
   >
     <h4
       class="col-sm-12 section-title"

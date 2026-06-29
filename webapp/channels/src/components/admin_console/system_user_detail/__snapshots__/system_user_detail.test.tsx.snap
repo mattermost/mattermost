@@ -4,9 +4,11 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
 <div>
   <div
     class="SystemUserDetail wrapper--fixed"
+    data-testid="systemUserDetail"
   >
     <div
       class="admin-console__header with-back"
+      data-testid="adminConsoleHeader"
     >
       <div>
         <a
@@ -24,55 +26,70 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
       >
         <div
           class="AdminUserCard"
+          data-testid="adminUserCard"
         >
           <div
             class="AdminUserCard__header"
+            data-testid="adminUserCardHeader"
           >
-            <button
-              aria-expanded="false"
-              aria-haspopup="dialog"
-              class="status-wrapper style--none admin-user-card"
-              style="border-radius: 50%; width: 128px; height: 128px;"
+            <div
+              data-testid="adminUserCardProfileImage"
             >
-              <span
-                class="profile-icon "
+              <button
+                aria-expanded="false"
+                aria-haspopup="dialog"
+                class="status-wrapper style--none admin-user-card"
+                style="border-radius: 50%; width: 128px; height: 128px;"
               >
-                <img
-                  alt="user profile image"
-                  class="Avatar Avatar-xxl"
-                  loading="lazy"
-                  src="/api/v4/users/user_id/image"
-                />
-              </span>
-            </button>
+                <span
+                  class="profile-icon "
+                  data-testid="profileIcon"
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-xxl"
+                    loading="lazy"
+                    src="/api/v4/users/user_id/image"
+                  />
+                </span>
+              </button>
+            </div>
             <div
               class="AdminUserCard__user-info"
             >
-              <span>
+              <span
+                data-testid="adminUserCardDisplayName"
+              >
                  
               </span>
               <span
                 class="AdminUserCard__user-nickname"
+                data-testid="adminUserCardNickname"
               />
             </div>
             <div
               class="AdminUserCard__user-id"
+              data-testid="adminUserCardUserId"
             >
               User ID: user_id
             </div>
           </div>
           <div
             class="AdminUserCard__body"
+            data-testid="adminUserCardBody"
           >
             <span />
             <div
               class="two-column-layout"
+              data-testid="adminUserCardTwoColumnLayout"
             >
               <div
                 class="field-row"
+                data-testid="adminUserCardFieldRow"
               >
                 <div
                   class="field-column left"
+                  data-testid="adminUserCardFieldColumn"
                 >
                   <label>
                     Username
@@ -100,6 +117,7 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
                 </div>
                 <div
                   class="field-column right"
+                  data-testid="adminUserCardFieldColumn"
                 >
                   <label>
                     Email
@@ -127,9 +145,11 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
               </div>
               <div
                 class="field-row"
+                data-testid="adminUserCardFieldRow"
               >
                 <div
                   class="field-column left"
+                  data-testid="adminUserCardFieldColumn"
                 >
                   <label>
                     Authentication Method
@@ -152,12 +172,14 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
                 </div>
                 <div
                   class="field-column right"
+                  data-testid="adminUserCardFieldColumn"
                 />
               </div>
             </div>
           </div>
           <div
             class="AdminUserCard__footer"
+            data-testid="adminUserCardFooter"
           >
             <button
               class="btn btn-secondary"
@@ -173,6 +195,7 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
         </div>
         <div
           class="AdminPanel clearfix "
+          id="adminPanelTeamMembership"
         >
           <div
             class="header"
@@ -251,9 +274,11 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
 <div>
   <div
     class="SystemUserDetail wrapper--fixed"
+    data-testid="systemUserDetail"
   >
     <div
       class="admin-console__header with-back"
+      data-testid="adminConsoleHeader"
     >
       <div>
         <a
@@ -271,55 +296,70 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
       >
         <div
           class="AdminUserCard"
+          data-testid="adminUserCard"
         >
           <div
             class="AdminUserCard__header"
+            data-testid="adminUserCardHeader"
           >
-            <button
-              aria-expanded="false"
-              aria-haspopup="dialog"
-              class="status-wrapper style--none admin-user-card"
-              style="border-radius: 50%; width: 128px; height: 128px;"
+            <div
+              data-testid="adminUserCardProfileImage"
             >
-              <span
-                class="profile-icon "
+              <button
+                aria-expanded="false"
+                aria-haspopup="dialog"
+                class="status-wrapper style--none admin-user-card"
+                style="border-radius: 50%; width: 128px; height: 128px;"
               >
-                <img
-                  alt="user profile image"
-                  class="Avatar Avatar-xxl"
-                  loading="lazy"
-                  src="/api/v4/users/user_id/image"
-                />
-              </span>
-            </button>
+                <span
+                  class="profile-icon "
+                  data-testid="profileIcon"
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-xxl"
+                    loading="lazy"
+                    src="/api/v4/users/user_id/image"
+                  />
+                </span>
+              </button>
+            </div>
             <div
               class="AdminUserCard__user-info"
             >
-              <span>
+              <span
+                data-testid="adminUserCardDisplayName"
+              >
                  
               </span>
               <span
                 class="AdminUserCard__user-nickname"
+                data-testid="adminUserCardNickname"
               />
             </div>
             <div
               class="AdminUserCard__user-id"
+              data-testid="adminUserCardUserId"
             >
               User ID: user_id
             </div>
           </div>
           <div
             class="AdminUserCard__body"
+            data-testid="adminUserCardBody"
           >
             <span />
             <div
               class="two-column-layout"
+              data-testid="adminUserCardTwoColumnLayout"
             >
               <div
                 class="field-row"
+                data-testid="adminUserCardFieldRow"
               >
                 <div
                   class="field-column left"
+                  data-testid="adminUserCardFieldColumn"
                 >
                   <label>
                     Username
@@ -347,6 +387,7 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
                 </div>
                 <div
                   class="field-column right"
+                  data-testid="adminUserCardFieldColumn"
                 >
                   <label>
                     Email
@@ -374,9 +415,11 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
               </div>
               <div
                 class="field-row"
+                data-testid="adminUserCardFieldRow"
               >
                 <div
                   class="field-column left"
+                  data-testid="adminUserCardFieldColumn"
                 >
                   <label>
                     Authentication Method
@@ -399,12 +442,14 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
                 </div>
                 <div
                   class="field-column right"
+                  data-testid="adminUserCardFieldColumn"
                 />
               </div>
             </div>
           </div>
           <div
             class="AdminUserCard__footer"
+            data-testid="adminUserCardFooter"
           >
             <button
               class="btn btn-secondary"
@@ -420,6 +465,7 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
         </div>
         <div
           class="AdminPanel clearfix "
+          id="adminPanelTeamMembership"
         >
           <div
             class="header"
@@ -498,9 +544,11 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
 <div>
   <div
     class="SystemUserDetail wrapper--fixed"
+    data-testid="systemUserDetail"
   >
     <div
       class="admin-console__header with-back"
+      data-testid="adminConsoleHeader"
     >
       <div>
         <a
@@ -518,55 +566,70 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
       >
         <div
           class="AdminUserCard"
+          data-testid="adminUserCard"
         >
           <div
             class="AdminUserCard__header"
+            data-testid="adminUserCardHeader"
           >
-            <button
-              aria-expanded="false"
-              aria-haspopup="dialog"
-              class="status-wrapper style--none admin-user-card"
-              style="border-radius: 50%; width: 128px; height: 128px;"
+            <div
+              data-testid="adminUserCardProfileImage"
             >
-              <span
-                class="profile-icon "
+              <button
+                aria-expanded="false"
+                aria-haspopup="dialog"
+                class="status-wrapper style--none admin-user-card"
+                style="border-radius: 50%; width: 128px; height: 128px;"
               >
-                <img
-                  alt="user profile image"
-                  class="Avatar Avatar-xxl"
-                  loading="lazy"
-                  src="/api/v4/users/user_id/image"
-                />
-              </span>
-            </button>
+                <span
+                  class="profile-icon "
+                  data-testid="profileIcon"
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-xxl"
+                    loading="lazy"
+                    src="/api/v4/users/user_id/image"
+                  />
+                </span>
+              </button>
+            </div>
             <div
               class="AdminUserCard__user-info"
             >
-              <span>
+              <span
+                data-testid="adminUserCardDisplayName"
+              >
                  
               </span>
               <span
                 class="AdminUserCard__user-nickname"
+                data-testid="adminUserCardNickname"
               />
             </div>
             <div
               class="AdminUserCard__user-id"
+              data-testid="adminUserCardUserId"
             >
               User ID: user_id
             </div>
           </div>
           <div
             class="AdminUserCard__body"
+            data-testid="adminUserCardBody"
           >
             <span />
             <div
               class="two-column-layout"
+              data-testid="adminUserCardTwoColumnLayout"
             >
               <div
                 class="field-row"
+                data-testid="adminUserCardFieldRow"
               >
                 <div
                   class="field-column left"
+                  data-testid="adminUserCardFieldColumn"
                 >
                   <label>
                     Username
@@ -594,6 +657,7 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
                 </div>
                 <div
                   class="field-column right"
+                  data-testid="adminUserCardFieldColumn"
                 >
                   <label>
                     Email
@@ -621,9 +685,11 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
               </div>
               <div
                 class="field-row"
+                data-testid="adminUserCardFieldRow"
               >
                 <div
                   class="field-column left"
+                  data-testid="adminUserCardFieldColumn"
                 >
                   <label>
                     Authentication Method
@@ -646,12 +712,14 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
                 </div>
                 <div
                   class="field-column right"
+                  data-testid="adminUserCardFieldColumn"
                 />
               </div>
             </div>
           </div>
           <div
             class="AdminUserCard__footer"
+            data-testid="adminUserCardFooter"
           >
             <button
               class="btn btn-secondary"
@@ -667,6 +735,7 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
         </div>
         <div
           class="AdminPanel clearfix "
+          id="adminPanelTeamMembership"
         >
           <div
             class="header"
@@ -745,9 +814,11 @@ exports[`SystemUserDetail should not show manage user settings button when user 
 <div>
   <div
     class="SystemUserDetail wrapper--fixed"
+    data-testid="systemUserDetail"
   >
     <div
       class="admin-console__header with-back"
+      data-testid="adminConsoleHeader"
     >
       <div>
         <a
@@ -765,55 +836,70 @@ exports[`SystemUserDetail should not show manage user settings button when user 
       >
         <div
           class="AdminUserCard"
+          data-testid="adminUserCard"
         >
           <div
             class="AdminUserCard__header"
+            data-testid="adminUserCardHeader"
           >
-            <button
-              aria-expanded="false"
-              aria-haspopup="dialog"
-              class="status-wrapper style--none admin-user-card"
-              style="border-radius: 50%; width: 128px; height: 128px;"
+            <div
+              data-testid="adminUserCardProfileImage"
             >
-              <span
-                class="profile-icon "
+              <button
+                aria-expanded="false"
+                aria-haspopup="dialog"
+                class="status-wrapper style--none admin-user-card"
+                style="border-radius: 50%; width: 128px; height: 128px;"
               >
-                <img
-                  alt="user profile image"
-                  class="Avatar Avatar-xxl"
-                  loading="lazy"
-                  src="/api/v4/users/user_id/image"
-                />
-              </span>
-            </button>
+                <span
+                  class="profile-icon "
+                  data-testid="profileIcon"
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-xxl"
+                    loading="lazy"
+                    src="/api/v4/users/user_id/image"
+                  />
+                </span>
+              </button>
+            </div>
             <div
               class="AdminUserCard__user-info"
             >
-              <span>
+              <span
+                data-testid="adminUserCardDisplayName"
+              >
                  
               </span>
               <span
                 class="AdminUserCard__user-nickname"
+                data-testid="adminUserCardNickname"
               />
             </div>
             <div
               class="AdminUserCard__user-id"
+              data-testid="adminUserCardUserId"
             >
               User ID: user_id
             </div>
           </div>
           <div
             class="AdminUserCard__body"
+            data-testid="adminUserCardBody"
           >
             <span />
             <div
               class="two-column-layout"
+              data-testid="adminUserCardTwoColumnLayout"
             >
               <div
                 class="field-row"
+                data-testid="adminUserCardFieldRow"
               >
                 <div
                   class="field-column left"
+                  data-testid="adminUserCardFieldColumn"
                 >
                   <label>
                     Username
@@ -841,6 +927,7 @@ exports[`SystemUserDetail should not show manage user settings button when user 
                 </div>
                 <div
                   class="field-column right"
+                  data-testid="adminUserCardFieldColumn"
                 >
                   <label>
                     Email
@@ -868,9 +955,11 @@ exports[`SystemUserDetail should not show manage user settings button when user 
               </div>
               <div
                 class="field-row"
+                data-testid="adminUserCardFieldRow"
               >
                 <div
                   class="field-column left"
+                  data-testid="adminUserCardFieldColumn"
                 >
                   <label>
                     Authentication Method
@@ -893,12 +982,14 @@ exports[`SystemUserDetail should not show manage user settings button when user 
                 </div>
                 <div
                   class="field-column right"
+                  data-testid="adminUserCardFieldColumn"
                 />
               </div>
             </div>
           </div>
           <div
             class="AdminUserCard__footer"
+            data-testid="adminUserCardFooter"
           >
             <button
               class="btn btn-secondary"
@@ -914,6 +1005,7 @@ exports[`SystemUserDetail should not show manage user settings button when user 
         </div>
         <div
           class="AdminPanel clearfix "
+          id="adminPanelTeamMembership"
         >
           <div
             class="header"
@@ -992,9 +1084,11 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
 <div>
   <div
     class="SystemUserDetail wrapper--fixed"
+    data-testid="systemUserDetail"
   >
     <div
       class="admin-console__header with-back"
+      data-testid="adminConsoleHeader"
     >
       <div>
         <a
@@ -1012,55 +1106,70 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
       >
         <div
           class="AdminUserCard"
+          data-testid="adminUserCard"
         >
           <div
             class="AdminUserCard__header"
+            data-testid="adminUserCardHeader"
           >
-            <button
-              aria-expanded="false"
-              aria-haspopup="dialog"
-              class="status-wrapper style--none admin-user-card"
-              style="border-radius: 50%; width: 128px; height: 128px;"
+            <div
+              data-testid="adminUserCardProfileImage"
             >
-              <span
-                class="profile-icon "
+              <button
+                aria-expanded="false"
+                aria-haspopup="dialog"
+                class="status-wrapper style--none admin-user-card"
+                style="border-radius: 50%; width: 128px; height: 128px;"
               >
-                <img
-                  alt="user profile image"
-                  class="Avatar Avatar-xxl"
-                  loading="lazy"
-                  src="/api/v4/users/user_id/image"
-                />
-              </span>
-            </button>
+                <span
+                  class="profile-icon "
+                  data-testid="profileIcon"
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-xxl"
+                    loading="lazy"
+                    src="/api/v4/users/user_id/image"
+                  />
+                </span>
+              </button>
+            </div>
             <div
               class="AdminUserCard__user-info"
             >
-              <span>
+              <span
+                data-testid="adminUserCardDisplayName"
+              >
                  
               </span>
               <span
                 class="AdminUserCard__user-nickname"
+                data-testid="adminUserCardNickname"
               />
             </div>
             <div
               class="AdminUserCard__user-id"
+              data-testid="adminUserCardUserId"
             >
               User ID: user_id
             </div>
           </div>
           <div
             class="AdminUserCard__body"
+            data-testid="adminUserCardBody"
           >
             <span />
             <div
               class="two-column-layout"
+              data-testid="adminUserCardTwoColumnLayout"
             >
               <div
                 class="field-row"
+                data-testid="adminUserCardFieldRow"
               >
                 <div
                   class="field-column left"
+                  data-testid="adminUserCardFieldColumn"
                 >
                   <label>
                     Username
@@ -1088,6 +1197,7 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
                 </div>
                 <div
                   class="field-column right"
+                  data-testid="adminUserCardFieldColumn"
                 >
                   <label>
                     Email
@@ -1115,9 +1225,11 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
               </div>
               <div
                 class="field-row"
+                data-testid="adminUserCardFieldRow"
               >
                 <div
                   class="field-column left"
+                  data-testid="adminUserCardFieldColumn"
                 >
                   <label>
                     Authentication Method
@@ -1140,12 +1252,14 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
                 </div>
                 <div
                   class="field-column right"
+                  data-testid="adminUserCardFieldColumn"
                 />
               </div>
             </div>
           </div>
           <div
             class="AdminUserCard__footer"
+            data-testid="adminUserCardFooter"
           >
             <button
               class="btn btn-secondary"
@@ -1167,6 +1281,7 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
         </div>
         <div
           class="AdminPanel clearfix "
+          id="adminPanelTeamMembership"
         >
           <div
             class="header"
@@ -1245,9 +1360,11 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
 <div>
   <div
     class="SystemUserDetail wrapper--fixed"
+    data-testid="systemUserDetail"
   >
     <div
       class="admin-console__header with-back"
+      data-testid="adminConsoleHeader"
     >
       <div>
         <a
@@ -1265,55 +1382,70 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
       >
         <div
           class="AdminUserCard"
+          data-testid="adminUserCard"
         >
           <div
             class="AdminUserCard__header"
+            data-testid="adminUserCardHeader"
           >
-            <button
-              aria-expanded="false"
-              aria-haspopup="dialog"
-              class="status-wrapper style--none admin-user-card"
-              style="border-radius: 50%; width: 128px; height: 128px;"
+            <div
+              data-testid="adminUserCardProfileImage"
             >
-              <span
-                class="profile-icon "
+              <button
+                aria-expanded="false"
+                aria-haspopup="dialog"
+                class="status-wrapper style--none admin-user-card"
+                style="border-radius: 50%; width: 128px; height: 128px;"
               >
-                <img
-                  alt="user profile image"
-                  class="Avatar Avatar-xxl"
-                  loading="lazy"
-                  src="/api/v4/users/user_id/image"
-                />
-              </span>
-            </button>
+                <span
+                  class="profile-icon "
+                  data-testid="profileIcon"
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-xxl"
+                    loading="lazy"
+                    src="/api/v4/users/user_id/image"
+                  />
+                </span>
+              </button>
+            </div>
             <div
               class="AdminUserCard__user-info"
             >
-              <span>
+              <span
+                data-testid="adminUserCardDisplayName"
+              >
                  
               </span>
               <span
                 class="AdminUserCard__user-nickname"
+                data-testid="adminUserCardNickname"
               />
             </div>
             <div
               class="AdminUserCard__user-id"
+              data-testid="adminUserCardUserId"
             >
               User ID: user_id
             </div>
           </div>
           <div
             class="AdminUserCard__body"
+            data-testid="adminUserCardBody"
           >
             <span />
             <div
               class="two-column-layout"
+              data-testid="adminUserCardTwoColumnLayout"
             >
               <div
                 class="field-row"
+                data-testid="adminUserCardFieldRow"
               >
                 <div
                   class="field-column left"
+                  data-testid="adminUserCardFieldColumn"
                 >
                   <label>
                     Username
@@ -1341,6 +1473,7 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
                 </div>
                 <div
                   class="field-column right"
+                  data-testid="adminUserCardFieldColumn"
                 >
                   <label>
                     Email
@@ -1368,9 +1501,11 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
               </div>
               <div
                 class="field-row"
+                data-testid="adminUserCardFieldRow"
               >
                 <div
                   class="field-column left"
+                  data-testid="adminUserCardFieldColumn"
                 >
                   <label>
                     Authentication Method
@@ -1393,12 +1528,14 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
                 </div>
                 <div
                   class="field-column right"
+                  data-testid="adminUserCardFieldColumn"
                 />
               </div>
             </div>
           </div>
           <div
             class="AdminUserCard__footer"
+            data-testid="adminUserCardFooter"
           >
             <button
               class="btn btn-secondary"
@@ -1414,6 +1551,7 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
         </div>
         <div
           class="AdminPanel clearfix "
+          id="adminPanelTeamMembership"
         >
           <div
             class="header"
@@ -1492,9 +1630,11 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
 <div>
   <div
     class="SystemUserDetail wrapper--fixed"
+    data-testid="systemUserDetail"
   >
     <div
       class="admin-console__header with-back"
+      data-testid="adminConsoleHeader"
     >
       <div>
         <a
@@ -1512,55 +1652,70 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
       >
         <div
           class="AdminUserCard"
+          data-testid="adminUserCard"
         >
           <div
             class="AdminUserCard__header"
+            data-testid="adminUserCardHeader"
           >
-            <button
-              aria-expanded="false"
-              aria-haspopup="dialog"
-              class="status-wrapper style--none admin-user-card"
-              style="border-radius: 50%; width: 128px; height: 128px;"
+            <div
+              data-testid="adminUserCardProfileImage"
             >
-              <span
-                class="profile-icon "
+              <button
+                aria-expanded="false"
+                aria-haspopup="dialog"
+                class="status-wrapper style--none admin-user-card"
+                style="border-radius: 50%; width: 128px; height: 128px;"
               >
-                <img
-                  alt="user profile image"
-                  class="Avatar Avatar-xxl"
-                  loading="lazy"
-                  src="/api/v4/users/user_id/image"
-                />
-              </span>
-            </button>
+                <span
+                  class="profile-icon "
+                  data-testid="profileIcon"
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-xxl"
+                    loading="lazy"
+                    src="/api/v4/users/user_id/image"
+                  />
+                </span>
+              </button>
+            </div>
             <div
               class="AdminUserCard__user-info"
             >
-              <span>
+              <span
+                data-testid="adminUserCardDisplayName"
+              >
                  
               </span>
               <span
                 class="AdminUserCard__user-nickname"
+                data-testid="adminUserCardNickname"
               />
             </div>
             <div
               class="AdminUserCard__user-id"
+              data-testid="adminUserCardUserId"
             >
               User ID: user_id
             </div>
           </div>
           <div
             class="AdminUserCard__body"
+            data-testid="adminUserCardBody"
           >
             <span />
             <div
               class="two-column-layout"
+              data-testid="adminUserCardTwoColumnLayout"
             >
               <div
                 class="field-row"
+                data-testid="adminUserCardFieldRow"
               >
                 <div
                   class="field-column left"
+                  data-testid="adminUserCardFieldColumn"
                 >
                   <label>
                     Username
@@ -1589,6 +1744,7 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
                 </div>
                 <div
                   class="field-column right"
+                  data-testid="adminUserCardFieldColumn"
                 >
                   <label>
                     Email
@@ -1617,9 +1773,11 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
               </div>
               <div
                 class="field-row"
+                data-testid="adminUserCardFieldRow"
               >
                 <div
                   class="field-column left"
+                  data-testid="adminUserCardFieldColumn"
                 >
                   <label>
                     Authentication Method
@@ -1642,6 +1800,7 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
                 </div>
                 <div
                   class="field-column right"
+                  data-testid="adminUserCardFieldColumn"
                 >
                   <label>
                     Auth Data
@@ -1672,6 +1831,7 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
           </div>
           <div
             class="AdminUserCard__footer"
+            data-testid="adminUserCardFooter"
           >
             <button
               class="btn btn-secondary"
@@ -1690,6 +1850,7 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
         </div>
         <div
           class="AdminPanel clearfix "
+          id="adminPanelTeamMembership"
         >
           <div
             class="header"

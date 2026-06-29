@@ -4,6 +4,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
 <div>
   <section
     class="section-max form-horizontal "
+    data-testid="section-max"
   >
     <h4
       class="col-sm-12 section-title"
@@ -96,6 +97,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
 <div>
   <div
     class="section-min"
+    data-testid="section-min"
   >
     <div
       class="section-min__header"
@@ -134,6 +136,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
 <div>
   <div
     class="section-min"
+    data-testid="section-min"
   >
     <div
       class="section-min__header"
@@ -172,6 +175,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
 <div>
   <div
     class="section-min"
+    data-testid="section-min"
   >
     <div
       class="section-min__header"
@@ -210,6 +214,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
 <div>
   <section
     class="section-max form-horizontal "
+    data-testid="section-max"
   >
     <h4
       class="col-sm-12 section-title"
@@ -335,6 +340,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
 <div>
   <section
     class="section-max form-horizontal a11y--active a11y--focused"
+    data-testid="section-max"
   >
     <h4
       class="col-sm-12 section-title"
@@ -383,6 +389,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
 <div>
   <section
     class="section-max form-horizontal "
+    data-testid="section-max"
   >
     <h4
       class="col-sm-12 section-title"
@@ -498,6 +505,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
 <div>
   <section
     class="section-max form-horizontal "
+    data-testid="section-max"
   >
     <h4
       class="col-sm-12 section-title"
@@ -606,6 +614,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
 <div>
   <section
     class="section-max form-horizontal "
+    data-testid="section-max"
   >
     <h4
       class="col-sm-12 section-title"

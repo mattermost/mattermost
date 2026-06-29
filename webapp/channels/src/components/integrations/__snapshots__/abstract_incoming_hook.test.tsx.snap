@@ -842,6 +842,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
         >
           <div
             class="pull-left has-error"
+            data-testid="settingFieldError"
           >
             <label
               class="control-label"
@@ -1444,6 +1445,7 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
         >
           <div
             class="pull-left has-error"
+            data-testid="settingFieldError"
           >
             <label
               class="control-label"

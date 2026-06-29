@@ -4,11 +4,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_row sho
 <div>
   <div
     class="permission-row"
+    data-testid="permissionRow"
     id="uniqId"
   >
     <div
       class="permission-check checked"
-      data-testid="uniqId-checkbox"
+      data-testid="permissionCheck"
+      id="uniqId-checkbox"
     >
       <svg
         height="18px"
@@ -92,11 +94,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_row sho
 <div>
   <div
     class="permission-row"
+    data-testid="permissionRow"
     id="uniqId"
   >
     <div
       class="permission-check checked"
-      data-testid="uniqId-checkbox"
+      data-testid="permissionCheck"
+      id="uniqId-checkbox"
     >
       <svg
         height="18px"
@@ -170,11 +174,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_row sho
 <div>
   <div
     class="permission-row read-only"
+    data-testid="permissionRow"
     id="uniqId"
   >
     <div
       class="permission-check checked"
-      data-testid="uniqId-checkbox"
+      data-testid="permissionCheck"
+      id="uniqId-checkbox"
     >
       <svg
         height="18px"
@@ -258,11 +264,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_row sho
 <div>
   <div
     class="permission-row read-only"
+    data-testid="permissionRow"
     id="uniqId"
   >
     <div
       class="permission-check checked"
-      data-testid="uniqId-checkbox"
+      data-testid="permissionCheck"
+      id="uniqId-checkbox"
     >
       <svg
         height="18px"
@@ -336,11 +344,13 @@ exports[`components/admin_console/permission_schemes_settings/permission_row sho
 <div>
   <div
     class="permission-row"
+    data-testid="permissionRow"
     id="uniqId"
   >
     <div
       class="permission-check checked"
-      data-testid="uniqId-checkbox"
+      data-testid="permissionCheck"
+      id="uniqId-checkbox"
     >
       <svg
         height="18px"

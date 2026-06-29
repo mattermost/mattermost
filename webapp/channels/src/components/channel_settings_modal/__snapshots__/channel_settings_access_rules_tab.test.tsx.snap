@@ -4,6 +4,7 @@ exports[`components/channel_settings_modal/ChannelSettingsAccessRulesTab should 
 <div>
   <div
     class="ChannelSettingsModal__accessRulesTab"
+    data-testid="channelSettingsAccessRulesTab"
   >
     <div
       class="ChannelSettingsModal__accessRulesHeader"

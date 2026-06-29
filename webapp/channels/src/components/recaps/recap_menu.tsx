@@ -39,7 +39,7 @@ export const RecapMenu: React.FC<RecapMenuProps> = ({
                 id: buttonId,
                 class: buttonClassName,
                 'aria-label': ariaLabel,
-                dataTestId,
+                'data-testid': dataTestId,
                 children: <DotsHorizontalIcon size={16}/>,
             }}
             menu={{

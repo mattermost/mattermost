@@ -396,6 +396,7 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
         >
           <div
             class="pull-left has-error"
+            data-testid="settingFieldError"
           >
             <label
               class="control-label"

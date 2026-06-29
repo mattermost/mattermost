@@ -4,31 +4,40 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match d
 <div>
   <div
     class="AdminUserCard"
+    data-testid="adminUserCard"
   >
     <div
       class="AdminUserCard__header"
+      data-testid="adminUserCardHeader"
     >
-      <button
-        aria-expanded="false"
-        aria-haspopup="dialog"
-        class="status-wrapper style--none admin-user-card"
-        style="border-radius: 50%; width: 128px; height: 128px;"
+      <div
+        data-testid="adminUserCardProfileImage"
       >
-        <span
-          class="profile-icon "
+        <button
+          aria-expanded="false"
+          aria-haspopup="dialog"
+          class="status-wrapper style--none admin-user-card"
+          style="border-radius: 50%; width: 128px; height: 128px;"
         >
-          <img
-            alt="user profile image"
-            class="Avatar Avatar-xxl"
-            loading="lazy"
-            src="/api/v4/users/1234/image"
-          />
-        </span>
-      </button>
+          <span
+            class="profile-icon "
+            data-testid="profileIcon"
+          >
+            <img
+              alt="user profile image"
+              class="Avatar Avatar-xxl"
+              loading="lazy"
+              src="/api/v4/users/1234/image"
+            />
+          </span>
+        </button>
+      </div>
       <div
         class="AdminUserCard__user-info"
       >
-        <span>
+        <span
+          data-testid="adminUserCardDisplayName"
+        >
           Jim
            
           Halpert
@@ -38,21 +47,25 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match d
         </span>
         <span
           class="AdminUserCard__user-nickname"
+          data-testid="adminUserCardNickname"
         >
           Big Tuna
         </span>
       </div>
       <div
         class="AdminUserCard__user-id"
+        data-testid="adminUserCardUserId"
       >
         User ID: 1234
       </div>
     </div>
     <div
       class="AdminUserCard__body"
+      data-testid="adminUserCardBody"
     />
     <div
       class="AdminUserCard__footer"
+      data-testid="adminUserCardFooter"
     />
   </div>
 </div>
@@ -62,50 +75,63 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
 <div>
   <div
     class="AdminUserCard"
+    data-testid="adminUserCard"
   >
     <div
       class="AdminUserCard__header"
+      data-testid="adminUserCardHeader"
     >
-      <button
-        aria-expanded="false"
-        aria-haspopup="dialog"
-        class="status-wrapper style--none admin-user-card"
-        style="border-radius: 50%; width: 128px; height: 128px;"
+      <div
+        data-testid="adminUserCardProfileImage"
       >
-        <span
-          class="profile-icon "
+        <button
+          aria-expanded="false"
+          aria-haspopup="dialog"
+          class="status-wrapper style--none admin-user-card"
+          style="border-radius: 50%; width: 128px; height: 128px;"
         >
-          <img
-            alt="user profile image"
-            class="Avatar Avatar-xxl"
-            loading="lazy"
-            src="/api/v4/users/1234/image"
-          />
-        </span>
-      </button>
+          <span
+            class="profile-icon "
+            data-testid="profileIcon"
+          >
+            <img
+              alt="user profile image"
+              class="Avatar Avatar-xxl"
+              loading="lazy"
+              src="/api/v4/users/1234/image"
+            />
+          </span>
+        </button>
+      </div>
       <div
         class="AdminUserCard__user-info"
       >
-        <span>
+        <span
+          data-testid="adminUserCardDisplayName"
+        >
            
         </span>
         <span
           class="AdminUserCard__user-nickname"
+          data-testid="adminUserCardNickname"
         >
           Big Tuna
         </span>
       </div>
       <div
         class="AdminUserCard__user-id"
+        data-testid="adminUserCardUserId"
       >
         User ID: 1234
       </div>
     </div>
     <div
       class="AdminUserCard__body"
+      data-testid="adminUserCardBody"
     />
     <div
       class="AdminUserCard__footer"
+      data-testid="adminUserCardFooter"
     />
   </div>
 </div>
@@ -115,48 +141,61 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
 <div>
   <div
     class="AdminUserCard"
+    data-testid="adminUserCard"
   >
     <div
       class="AdminUserCard__header"
+      data-testid="adminUserCardHeader"
     >
-      <button
-        aria-expanded="false"
-        aria-haspopup="dialog"
-        class="status-wrapper style--none admin-user-card"
-        style="border-radius: 50%; width: 128px; height: 128px;"
+      <div
+        data-testid="adminUserCardProfileImage"
       >
-        <span
-          class="profile-icon "
+        <button
+          aria-expanded="false"
+          aria-haspopup="dialog"
+          class="status-wrapper style--none admin-user-card"
+          style="border-radius: 50%; width: 128px; height: 128px;"
         >
-          <img
-            alt="user profile image"
-            class="Avatar Avatar-xxl"
-            loading="lazy"
-            src="/api/v4/users/1234/image"
-          />
-        </span>
-      </button>
+          <span
+            class="profile-icon "
+            data-testid="profileIcon"
+          >
+            <img
+              alt="user profile image"
+              class="Avatar Avatar-xxl"
+              loading="lazy"
+              src="/api/v4/users/1234/image"
+            />
+          </span>
+        </button>
+      </div>
       <div
         class="AdminUserCard__user-info"
       >
-        <span>
+        <span
+          data-testid="adminUserCardDisplayName"
+        >
            
         </span>
         <span
           class="AdminUserCard__user-nickname"
+          data-testid="adminUserCardNickname"
         />
       </div>
       <div
         class="AdminUserCard__user-id"
+        data-testid="adminUserCardUserId"
       >
         User ID: 1234
       </div>
     </div>
     <div
       class="AdminUserCard__body"
+      data-testid="adminUserCardBody"
     />
     <div
       class="AdminUserCard__footer"
+      data-testid="adminUserCardFooter"
     />
   </div>
 </div>
@@ -166,50 +205,63 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
 <div>
   <div
     class="AdminUserCard"
+    data-testid="adminUserCard"
   >
     <div
       class="AdminUserCard__header"
+      data-testid="adminUserCardHeader"
     >
-      <button
-        aria-expanded="false"
-        aria-haspopup="dialog"
-        class="status-wrapper style--none admin-user-card"
-        style="border-radius: 50%; width: 128px; height: 128px;"
+      <div
+        data-testid="adminUserCardProfileImage"
       >
-        <span
-          class="profile-icon "
+        <button
+          aria-expanded="false"
+          aria-haspopup="dialog"
+          class="status-wrapper style--none admin-user-card"
+          style="border-radius: 50%; width: 128px; height: 128px;"
         >
-          <img
-            alt="user profile image"
-            class="Avatar Avatar-xxl"
-            loading="lazy"
-            src="/api/v4/users/1234/image"
-          />
-        </span>
-      </button>
+          <span
+            class="profile-icon "
+            data-testid="profileIcon"
+          >
+            <img
+              alt="user profile image"
+              class="Avatar Avatar-xxl"
+              loading="lazy"
+              src="/api/v4/users/1234/image"
+            />
+          </span>
+        </button>
+      </div>
       <div
         class="AdminUserCard__user-info"
       >
-        <span>
+        <span
+          data-testid="adminUserCardDisplayName"
+        >
           Jim
            
           Halpert
         </span>
         <span
           class="AdminUserCard__user-nickname"
+          data-testid="adminUserCardNickname"
         />
       </div>
       <div
         class="AdminUserCard__user-id"
+        data-testid="adminUserCardUserId"
       >
         User ID: 1234
       </div>
     </div>
     <div
       class="AdminUserCard__body"
+      data-testid="adminUserCardBody"
     />
     <div
       class="AdminUserCard__footer"
+      data-testid="adminUserCardFooter"
     />
   </div>
 </div>

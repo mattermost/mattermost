@@ -4,6 +4,7 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
 <div>
   <section
     class="section-max form-horizontal "
+    data-testid="section-max"
   >
     <h4
       class="col-sm-12 section-title"
@@ -194,6 +195,7 @@ exports[`DesktopNotificationSettings should match snapshot, on min setting 1`] =
 <div>
   <div
     class="section-min"
+    data-testid="section-min"
   >
     <div
       class="section-min__header"
@@ -233,6 +235,7 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
 <div>
   <section
     class="section-max form-horizontal "
+    data-testid="section-max"
   >
     <h4
       class="col-sm-12 section-title"

@@ -7,6 +7,7 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
   >
     <div
       class="DataGrid customTable"
+      data-testid="dataGrid"
     >
       <div
         class="DataGrid_search"
@@ -222,6 +223,7 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
       </div>
       <div
         class="DataGrid_header"
+        data-testid="dataGridHeader"
       >
         <div
           class="DataGrid_cell"
@@ -239,12 +241,15 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
       </div>
       <div
         class="DataGrid_rows"
+        data-testid="dataGridRows"
       >
         <div
           class="DataGrid_row"
+          data-testid="dataGridRow"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGridCell"
           >
             <div
               class="ChannelList__nameColumn"
@@ -285,11 +290,13 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGridCell"
           >
             teamDisplayName
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGridCell"
             style="text-align: right;"
           >
             <a
@@ -304,14 +311,20 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
       </div>
       <div
         class="DataGrid_footer"
+        data-testid="dataGridFooter"
       >
         <div
           class="DataGrid_cell"
         >
-          1 - 1 of 1
+          <span
+            data-testid="dataGridPaginationInfo"
+          >
+            1 - 1 of 1
+          </span>
           <button
             aria-label="Previous page"
             class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+            data-testid="dataGridPrev"
             disabled=""
             type="button"
           >
@@ -323,6 +336,7 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
           <button
             aria-label="Next page"
             class="btn btn-quaternary btn-icon btn-sm next disabled"
+            data-testid="dataGridNext"
             disabled=""
             type="button"
           >
@@ -345,6 +359,7 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
   >
     <div
       class="DataGrid customTable"
+      data-testid="dataGrid"
     >
       <div
         class="DataGrid_search"
@@ -560,6 +575,7 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
       </div>
       <div
         class="DataGrid_header"
+        data-testid="dataGridHeader"
       >
         <div
           class="DataGrid_cell"
@@ -577,12 +593,15 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
       </div>
       <div
         class="DataGrid_rows"
+        data-testid="dataGridRows"
       >
         <div
           class="DataGrid_row"
+          data-testid="dataGridRow"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGridCell"
           >
             <div
               class="ChannelList__nameColumn"
@@ -623,11 +642,13 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGridCell"
           >
             teamDisplayName
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGridCell"
             style="text-align: right;"
           >
             <a
@@ -641,9 +662,11 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
         </div>
         <div
           class="DataGrid_row"
+          data-testid="dataGridRow"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGridCell"
           >
             <div
               class="ChannelList__nameColumn"
@@ -684,11 +707,13 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGridCell"
           >
             teamDisplayName
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGridCell"
             style="text-align: right;"
           >
             <a
@@ -702,9 +727,11 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
         </div>
         <div
           class="DataGrid_row"
+          data-testid="dataGridRow"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGridCell"
           >
             <div
               class="ChannelList__nameColumn"
@@ -745,11 +772,13 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGridCell"
           >
             teamDisplayName
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGridCell"
             style="text-align: right;"
           >
             <a
@@ -763,9 +792,11 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
         </div>
         <div
           class="DataGrid_row"
+          data-testid="dataGridRow"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGridCell"
           >
             <div
               class="ChannelList__nameColumn"
@@ -806,11 +837,13 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGridCell"
           >
             teamDisplayName
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGridCell"
             style="text-align: right;"
           >
             <a
@@ -824,9 +857,11 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
         </div>
         <div
           class="DataGrid_row"
+          data-testid="dataGridRow"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGridCell"
           >
             <div
               class="ChannelList__nameColumn"
@@ -867,11 +902,13 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGridCell"
           >
             teamDisplayName
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGridCell"
             style="text-align: right;"
           >
             <a
@@ -885,9 +922,11 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
         </div>
         <div
           class="DataGrid_row"
+          data-testid="dataGridRow"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGridCell"
           >
             <div
               class="ChannelList__nameColumn"
@@ -928,11 +967,13 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGridCell"
           >
             teamDisplayName
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGridCell"
             style="text-align: right;"
           >
             <a
@@ -946,9 +987,11 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
         </div>
         <div
           class="DataGrid_row"
+          data-testid="dataGridRow"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGridCell"
           >
             <div
               class="ChannelList__nameColumn"
@@ -989,11 +1032,13 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGridCell"
           >
             teamDisplayName
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGridCell"
             style="text-align: right;"
           >
             <a
@@ -1007,9 +1052,11 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
         </div>
         <div
           class="DataGrid_row"
+          data-testid="dataGridRow"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGridCell"
           >
             <div
               class="ChannelList__nameColumn"
@@ -1050,11 +1097,13 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGridCell"
           >
             teamDisplayName
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGridCell"
             style="text-align: right;"
           >
             <a
@@ -1068,9 +1117,11 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
         </div>
         <div
           class="DataGrid_row"
+          data-testid="dataGridRow"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGridCell"
           >
             <div
               class="ChannelList__nameColumn"
@@ -1111,11 +1162,13 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGridCell"
           >
             teamDisplayName
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGridCell"
             style="text-align: right;"
           >
             <a
@@ -1129,9 +1182,11 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
         </div>
         <div
           class="DataGrid_row"
+          data-testid="dataGridRow"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGridCell"
           >
             <div
               class="ChannelList__nameColumn"
@@ -1172,11 +1227,13 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGridCell"
           >
             teamDisplayName
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGridCell"
             style="text-align: right;"
           >
             <a
@@ -1191,14 +1248,20 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
       </div>
       <div
         class="DataGrid_footer"
+        data-testid="dataGridFooter"
       >
         <div
           class="DataGrid_cell"
         >
-          1 - 10 of 30
+          <span
+            data-testid="dataGridPaginationInfo"
+          >
+            1 - 10 of 30
+          </span>
           <button
             aria-label="Previous page"
             class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+            data-testid="dataGridPrev"
             disabled=""
             type="button"
           >
@@ -1210,6 +1273,7 @@ exports[`components/admin_console/data_retention_settings/channel_list should ma
           <button
             aria-label="Next page"
             class="btn btn-quaternary btn-icon btn-sm next "
+            data-testid="dataGridNext"
             type="button"
           >
             <i

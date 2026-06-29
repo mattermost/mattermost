@@ -30,7 +30,7 @@ describe('components/admin_console/permission_schemes_settings/permission_checkb
             />,
         );
         expect(container).toMatchSnapshot();
-        expect(screen.getByTestId('uniqId-checked')).toHaveClass('checked');
+        expect(screen.getByTestId('permissionCheck')).toHaveClass('checked');
     });
 
     test('should match snapshot on value "intermediate"', () => {
@@ -41,7 +41,7 @@ describe('components/admin_console/permission_schemes_settings/permission_checkb
             />,
         );
         expect(container).toMatchSnapshot();
-        expect(screen.getByTestId('uniqId-checked')).toHaveClass('intermediate');
+        expect(screen.getByTestId('permissionCheck')).toHaveClass('intermediate');
     });
 
     test('should match snapshot on other value', () => {
@@ -52,8 +52,8 @@ describe('components/admin_console/permission_schemes_settings/permission_checkb
             />,
         );
         expect(container).toMatchSnapshot();
-        expect(screen.getByTestId('uniqId-checked')).toHaveClass('permission-check');
-        expect(screen.getByTestId('uniqId-checked')).not.toHaveClass('checked');
-        expect(screen.getByTestId('uniqId-checked')).not.toHaveClass('intermediate');
+        expect(screen.getByTestId('permissionCheck')).toHaveClass('permission-check');
+        expect(screen.getByTestId('permissionCheck')).not.toHaveClass('checked');
+        expect(screen.getByTestId('permissionCheck')).not.toHaveClass('intermediate');
     });
 });

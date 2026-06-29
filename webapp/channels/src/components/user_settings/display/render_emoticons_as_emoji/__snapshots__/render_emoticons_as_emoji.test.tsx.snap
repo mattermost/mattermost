@@ -4,6 +4,7 @@ exports[`components/user_settings/display/render_emoticons_as_emoji/render_emoti
 <div>
   <section
     class="section-max form-horizontal "
+    data-testid="section-max"
   >
     <h4
       class="col-sm-12 section-title"

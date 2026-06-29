@@ -4,6 +4,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
 <div>
   <section
     class="section-max form-horizontal "
+    data-testid="section-max"
   >
     <h4
       class="col-sm-12 section-title"
@@ -75,6 +76,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
 <div>
   <section
     class="section-max form-horizontal "
+    data-testid="section-max"
   >
     <h4
       class="col-sm-12 section-title"
