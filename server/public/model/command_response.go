@@ -86,7 +86,8 @@ func (o *CommandResponse) IsValid() *AppError {
 
 	// icon URL must be a valid URL if set
 	if o.IconURL != "" {
-		if _,err := url.ParseRequestURI(o.IconURL);err != nil {
+		u,err := url.ParseRequestURI(o.IconURL)
+		if err != nil || (u.Scheme != "http" && u.Scheme != "https") {
 			return NewAppError("CommandResponse.IsValid", "model.command_response.is_valid.icon_url.app_error", nil, "invalid icon url", http.StatusBadRequest)
 		}
 	}
