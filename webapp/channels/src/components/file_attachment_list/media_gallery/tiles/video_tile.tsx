@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {CSSProperties} from 'react';
 import {useIntl} from 'react-intl';
 
@@ -24,13 +24,23 @@ type Props = {
 
 const POSTER_SEEK_SECONDS = 0.1;
 
-// Generate the poster client-side to avoid a server-side ffmpeg dependency.
-function useFirstFramePoster(src: string): {poster: string | null; failed: boolean; duration: number | null} {
-    const [poster, setPoster] = useState<string | null>(null);
-    const [failed, setFailed] = useState(false);
-    const [duration, setDuration] = useState<number | null>(null);
+type CachedPoster = {poster: string | null; duration: number | null; failed: boolean};
+
+const posterCache = new Map<string, CachedPoster>();
+
+function useFirstFramePoster(fileId: string, src: string, enabled: boolean): CachedPoster {
+    const [state, setState] = useState<CachedPoster>(() => posterCache.get(fileId) ?? {poster: null, duration: null, failed: false});
 
     useEffect(() => {
+        if (!enabled) {
+            return undefined;
+        }
+        const cached = posterCache.get(fileId);
+        if (cached && (cached.poster || cached.failed)) {
+            setState(cached);
+            return undefined;
+        }
+
         let cancelled = false;
         const video = document.createElement('video');
         video.crossOrigin = 'anonymous';
@@ -44,14 +54,20 @@ function useFirstFramePoster(src: string): {poster: string | null; failed: boole
             video.load();
         };
 
-        const onLoadedMetadata = () => {
-            if (Number.isFinite(video.duration)) {
-                setDuration(video.duration);
+        const finish = (next: CachedPoster) => {
+            posterCache.set(fileId, next);
+            if (!cancelled) {
+                setState(next);
             }
+        };
+
+        const onLoadedMetadata = () => {
+            const duration = Number.isFinite(video.duration) ? video.duration : null;
             try {
                 video.currentTime = Math.min(POSTER_SEEK_SECONDS, video.duration || POSTER_SEEK_SECONDS);
+                setState((prev) => ({...prev, duration}));
             } catch {
-                setFailed(true);
+                finish({poster: null, duration, failed: true});
                 cleanup();
             }
         };
@@ -60,26 +76,27 @@ function useFirstFramePoster(src: string): {poster: string | null; failed: boole
             if (cancelled) {
                 return;
             }
+            const duration = Number.isFinite(video.duration) ? video.duration : null;
             try {
                 const canvas = document.createElement('canvas');
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
                 const ctx = canvas.getContext('2d');
                 if (!ctx || !canvas.width || !canvas.height) {
-                    setFailed(true);
+                    finish({poster: null, duration, failed: true});
                     return;
                 }
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                setPoster(canvas.toDataURL('image/jpeg', 0.7));
+                finish({poster: canvas.toDataURL('image/jpeg', 0.7), duration, failed: false});
             } catch {
-                setFailed(true);
+                finish({poster: null, duration, failed: true});
             } finally {
                 cleanup();
             }
         };
 
         const onError = () => {
-            setFailed(true);
+            finish({poster: null, duration: null, failed: true});
             cleanup();
         };
 
@@ -94,9 +111,35 @@ function useFirstFramePoster(src: string): {poster: string | null; failed: boole
             video.removeEventListener('error', onError);
             cleanup();
         };
-    }, [src]);
+    }, [enabled, fileId, src]);
 
-    return {poster, failed, duration};
+    return state;
+}
+
+function useInViewport<T extends Element>(ref: React.RefObject<T>): boolean {
+    const [inView, setInView] = useState(false);
+
+    useEffect(() => {
+        if (inView || !ref.current || typeof IntersectionObserver === 'undefined') {
+            if (typeof IntersectionObserver === 'undefined') {
+                setInView(true);
+            }
+            return undefined;
+        }
+        const observer = new IntersectionObserver((entries) => {
+            for (const entry of entries) {
+                if (entry.isIntersecting) {
+                    setInView(true);
+                    observer.disconnect();
+                    return;
+                }
+            }
+        }, {rootMargin: '200px'});
+        observer.observe(ref.current);
+        return () => observer.disconnect();
+    }, [inView, ref]);
+
+    return inView;
 }
 
 function formatDuration(seconds: number): string {
@@ -114,7 +157,10 @@ function formatDuration(seconds: number): string {
 const VideoTile = ({fileInfo, index, total, width, height, enablePublicLink, onClick}: Props) => {
     const {formatMessage} = useIntl();
     const fileUrl = getFileUrl(fileInfo.id);
-    const {poster, failed, duration} = useFirstFramePoster(fileUrl);
+    const tileRef = useRef<HTMLDivElement>(null);
+    const inView = useInViewport(tileRef);
+
+    const {poster, failed, duration} = useFirstFramePoster(fileInfo.id, fileUrl, inView);
 
     const handleActivate = useCallback(() => {
         onClick(index);
@@ -144,8 +190,12 @@ const VideoTile = ({fileInfo, index, total, width, height, enablePublicLink, onC
         mediaStyle.maxHeight = `${fileInfo.height}px`;
     }
 
+    const showPlaceholder = !poster;
+    const showPlaceholderIcon = failed;
+
     return (
         <div
+            ref={tileRef}
             className='MediaGallery__tile'
             role='button'
             tabIndex={0}
@@ -164,9 +214,9 @@ const VideoTile = ({fileInfo, index, total, width, height, enablePublicLink, onC
                     style={mediaStyle}
                 />
             )}
-            {!poster && (
+            {showPlaceholder && (
                 <div className='MediaGallery__tile__video_placeholder'>
-                    {failed && <PlayIcon size={32}/>}
+                    {showPlaceholderIcon && <PlayIcon size={32}/>}
                 </div>
             )}
 
