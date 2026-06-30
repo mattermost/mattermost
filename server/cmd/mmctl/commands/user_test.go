@@ -3377,6 +3377,37 @@ func (s *MmctlUnitTestSuite) TestUserStatusSetCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 	})
 
+	s.Run("Set dnd status with a UTC end time", func() {
+		printer.Clean()
+
+		endTime := time.Now().Add(24 * time.Hour).UTC().Truncate(time.Second)
+		endTimeArg := endTime.Format(time.RFC3339)
+
+		cmd := newUserStatusSetCmd()
+		err := cmd.Flags().Set("dnd-end-time", endTimeArg)
+		s.Require().NoError(err)
+
+		mockUser := model.User{Id: "me-id", Username: "me"}
+		wantStatus := &model.Status{UserId: "me-id", Status: model.StatusDnd, DNDEndTime: endTime.Unix()}
+
+		s.client.
+			EXPECT().
+			GetMe(context.TODO(), "").
+			Return(&mockUser, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUserStatus(context.TODO(), "me-id", wantStatus).
+			Return(wantStatus, &model.Response{}, nil).
+			Times(1)
+
+		err = userStatusSetCmdF(s.client, cmd, []string{model.StatusDnd})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(wantStatus, printer.GetLines()[0])
+	})
+
 	s.Run("Reject a dnd-end-time in the past", func() {
 		printer.Clean()
 
@@ -3397,7 +3428,7 @@ func (s *MmctlUnitTestSuite) TestUserStatusSetCmd() {
 		s.Require().NoError(err)
 
 		err = userStatusSetCmdF(s.client, cmd, []string{model.StatusDnd})
-		s.Require().EqualError(err, "invalid dnd-end-time \"not-a-time\", expected ISO 8601 format (e.g. 2006-01-02T15:04:05-07:00)")
+		s.Require().EqualError(err, "invalid dnd-end-time \"not-a-time\", expected RFC3339 format (e.g. 2006-01-02T15:04:05-07:00 or 2006-01-02T15:04:05Z)")
 		s.Require().Len(printer.GetLines(), 0)
 	})
 

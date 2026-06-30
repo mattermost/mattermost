@@ -1172,9 +1172,9 @@ func userStatusSetCmdF(c client.Client, cmd *cobra.Command, args []string) error
 
 	var dndEndTime int64
 	if dndEndTimeArg != "" {
-		endTime, err := time.Parse(ISO8601Layout, dndEndTimeArg)
+		endTime, err := time.Parse(time.RFC3339, dndEndTimeArg)
 		if err != nil {
-			return fmt.Errorf("invalid dnd-end-time %q, expected ISO 8601 format (e.g. 2006-01-02T15:04:05-07:00)", dndEndTimeArg)
+			return fmt.Errorf("invalid dnd-end-time %q, expected RFC3339 format (e.g. 2006-01-02T15:04:05-07:00 or 2006-01-02T15:04:05Z)", dndEndTimeArg)
 		}
 		if !endTime.After(time.Now()) {
 			return errors.New("dnd-end-time must be in the future")
