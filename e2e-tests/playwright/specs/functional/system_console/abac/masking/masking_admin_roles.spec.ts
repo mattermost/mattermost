@@ -9,6 +9,7 @@ import {
     createTeamAdmin,
     waitForAttributeViewToInclude,
 } from '../../../channels/team_settings/helpers';
+import {assignTeamsToPolicy} from '../teams/helpers';
 import {enableUserManagedAttributes} from '../support';
 
 import {
@@ -77,15 +78,7 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
                 adminUser.id,
             ]);
             await setFieldAsSharedOnly(fieldId);
-            // The /assign endpoint returns 200 with empty body (no JSON), so use raw fetch.
-            const assignResp = await fetch(`${adminClient.getBaseRoute()}/access_control_policies/${policyId}/assign`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json', Authorization: `Bearer ${adminClient.getToken()}`},
-                body: JSON.stringify({team_ids: [team.id]}),
-            });
-            if (!assignResp.ok) {
-                throw new Error(`Failed to assign policy to team: HTTP ${assignResp.status}`);
-            }
+            await assignTeamsToPolicy(adminClient, policyId, [team.id]);
 
             const {page} = await pw.testBrowser.login(adminUser);
             const channelsPage = new ChannelsPage(page);
