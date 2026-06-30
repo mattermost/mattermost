@@ -187,11 +187,11 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ExperimentalAuditSettingsSystemConsoleUI = true
 	f.CustomProfileAttributes = true
 	f.AttributeBasedAccessControl = true
-	f.AttributeValueMasking = false
-	f.PermissionPolicies = false
+	f.AttributeValueMasking = true
+	f.PermissionPolicies = true
 	f.TeamMembershipAccessControl = false
-	f.ChannelPermissionPolicies = false
-	f.PolicySimulation = false
+	f.ChannelPermissionPolicies = true
+	f.PolicySimulation = true
 	f.ContentFlagging = true
 	f.EnableMattermostEntry = true
 
@@ -224,7 +224,7 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.MobileEphemeralMode = false
 
-	f.PropertyFieldRank = false
+	f.PropertyFieldRank = true
 }
 
 // IsChannelPermissionPoliciesEnabled reports whether channel-scope
