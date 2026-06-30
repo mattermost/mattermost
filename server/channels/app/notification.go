@@ -251,7 +251,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 				}
 			}
 			if channel.Type != model.ChannelTypeDirect {
-				rootMentions = getExplicitMentions(rootPost, keywords)
+				rootMentions = getExplicitMentions(rootPost, keywords, a.Config().FeatureFlags.MmBlocksEnabled)
 				for id, mentionType := range rootMentions.Mentions {
 					if mentionType == ChannelMention {
 						if profile, ok := profileMap[id]; ok && profile.NotifyProps[model.ChannelMentionAutoFollowThreadsProp] == "false" {
@@ -750,22 +750,19 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 	// If this is a reply in a thread, notify participants
 	if isCRTAllowed && post.RootId != "" {
 		for uid := range followers {
-			// A user following a thread but had left the channel won't get a notification
-			// https://mattermost.atlassian.net/browse/MM-36769
 			if profileMap[uid] == nil {
-				// This also sometimes happens when bots, which will never show up in the map, reply to threads
-				// Their own post goes through this and they get "notified", which we don't need to count as an error if they can't
-				if uid != post.UserId {
-					a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonMissingProfile, model.NotificationNoPlatform)
-					rctx.Logger().LogM(mlog.MlvlNotificationError, "Missing profile",
-						mlog.String("type", model.NotificationTypeWebsocket),
-						mlog.String("post_id", post.Id),
-						mlog.String("status", model.NotificationStatusError),
-						mlog.String("reason", model.NotificationReasonMissingProfile),
-						mlog.String("sender_id", sender.Id),
-						mlog.String("receiver_id", uid),
-					)
-				}
+				// A follower can be absent from the profile map for several valid reasons: they're a
+				// bot, they've been deactivated, or they've left the channel (MM-36769). None can
+				// receive the notification, so record it as not sent rather than an error.
+				a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypeWebsocket, model.NotificationReasonMissingProfile, model.NotificationNoPlatform)
+				rctx.Logger().LogM(mlog.MlvlNotificationDebug, "Missing profile",
+					mlog.String("type", model.NotificationTypeWebsocket),
+					mlog.String("post_id", post.Id),
+					mlog.String("status", model.NotificationStatusNotSent),
+					mlog.String("reason", model.NotificationReasonMissingProfile),
+					mlog.String("sender_id", sender.Id),
+					mlog.String("receiver_id", uid),
+				)
 				continue
 			}
 			if a.IsCRTEnabledForUser(rctx, uid) {
@@ -1092,7 +1089,7 @@ func (a *App) getExplicitMentionsAndKeywords(rctx request.CTX, post *model.Post,
 		allowChannelMentions = a.allowChannelMentions(rctx, post, len(profileMap))
 		keywords = a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap, groups)
 
-		mentions = getExplicitMentions(post, keywords)
+		mentions = getExplicitMentions(post, keywords, a.Config().FeatureFlags.MmBlocksEnabled)
 
 		// Add a GM mention to all members of a GM channel
 		if channel.Type == model.ChannelTypeGroup {
@@ -1419,12 +1416,11 @@ func splitAtFinal(items []string) (preliminary []string, final string) {
 
 // Given a message and a map mapping mention keywords to the users who use them, returns a map of mentioned
 // users and a slice of potential mention users not in the channel and whether or not @here was mentioned.
-func getExplicitMentions(post *model.Post, keywords MentionKeywords) *MentionResults {
+func getExplicitMentions(post *model.Post, keywords MentionKeywords, mmBlocksEnabled bool) *MentionResults {
 	parser := makeStandardMentionParser(keywords)
 
 	buf := ""
-	mentionsEnabledFields := getMentionsEnabledFields(post)
-	for _, message := range mentionsEnabledFields {
+	for _, message := range post.AllStrings(model.AllStringsOptions{OmitInteractiveBlocks: !mmBlocksEnabled}) {
 		// Parse the text as Markdown, combining adjacent Text nodes into a single string for processing
 		markdown.Inspect(message, func(node any) bool {
 			text, ok := node.(*markdown.Text)
@@ -1450,29 +1446,6 @@ func getExplicitMentions(post *model.Post, keywords MentionKeywords) *MentionRes
 	}
 
 	return parser.Results()
-}
-
-// Given a post returns the values of the fields in which mentions are possible.
-// post.message, preText and text in the attachment are enabled.
-func getMentionsEnabledFields(post *model.Post) model.StringArray {
-	ret := []string{}
-
-	ret = append(ret, post.Message)
-	for _, attachment := range post.Attachments() {
-		if attachment.Pretext != "" {
-			ret = append(ret, attachment.Pretext)
-		}
-		if attachment.Text != "" {
-			ret = append(ret, attachment.Text)
-		}
-
-		for _, field := range attachment.Fields {
-			if valueString, ok := field.Value.(string); ok && valueString != "" {
-				ret = append(ret, valueString)
-			}
-		}
-	}
-	return ret
 }
 
 // allowChannelMentions returns whether or not the channel mentions are allowed for the given post.

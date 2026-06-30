@@ -680,6 +680,72 @@ describe('Actions.Posts', () => {
                 }),
                 expected: new Set(['user1:org1', 'user2:org2', 'user3:org3', 'user4:org4', 'user5:org5', 'user6:org6']),
             },
+            {
+                name: 'should return at-mentions from mm_blocks text blocks but not button labels',
+                input: TestHelper.getPostMock({
+                    props: {
+                        mm_blocks: [
+                            {type: 'text', text: 'hello @bbb'},
+                            {type: 'button', text: '@ccc', action_id: 'act'},
+                        ],
+                    },
+                }),
+                expected: new Set(['bbb']),
+            },
+            {
+                name: 'should return at-mentions from nested mm_blocks containers',
+                input: TestHelper.getPostMock({
+                    props: {
+                        mm_blocks: [
+                            {
+                                type: 'container',
+                                content: [
+                                    {type: 'text', text: '@ddd in container'},
+                                ],
+                            },
+                        ],
+                    },
+                }),
+                expected: new Set(['ddd']),
+            },
+            {
+                name: 'should return at-mentions from Block Kit markdown and section blocks',
+                input: TestHelper.getPostMock({
+                    props: {
+                        blocks: [
+                            {type: 'markdown', text: 'markdown @eee'},
+                            {
+                                type: 'section',
+                                text: {type: 'mrkdwn', text: 'section @fff'},
+                                fields: [{type: 'mrkdwn', text: 'field @ggg'}],
+                            },
+                            {type: 'header', text: 'header @hhh'},
+                        ],
+                    },
+                }),
+                expected: new Set(['eee', 'fff', 'ggg', 'hhh']),
+            },
+            {
+                name: 'should return at-mentions from Adaptive Card TextBlock elements',
+                input: TestHelper.getPostMock({
+                    props: {
+                        cards: [
+                            {
+                                type: 'AdaptiveCard',
+                                version: '1.0',
+                                body: [
+                                    {type: 'TextBlock', text: 'card @iii'},
+                                    {
+                                        type: 'Container',
+                                        items: [{type: 'TextBlock', text: 'nested @jjj'}],
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                }),
+                expected: new Set(['iii', 'jjj']),
+            },
         ];
 
         for (const specialMention of [
@@ -1311,13 +1377,13 @@ describe('Actions.Posts', () => {
             post('/emoji').
             reply(201, {id: TestHelper.generateId(), create_at: 1507918415696, update_at: 1507918415696, delete_at: 0, creator_id: TestHelper.basicUser!.id, name: TestHelper.generateId()});
 
-        const {data: created} = await dispatch(createCustomEmoji(
+        const created = (await dispatch(createCustomEmoji(
             {
                 name: TestHelper.generateId(),
                 creator_id: TestHelper.basicUser!.id,
             },
             testImageData,
-        ));
+        ))).data!;
 
         nock(Client4.getEmojisRoute()).
             get(`/name/${created.name}`).

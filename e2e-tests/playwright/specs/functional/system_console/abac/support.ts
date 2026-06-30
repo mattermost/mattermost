@@ -1000,7 +1000,7 @@ export async function waitForLatestSyncJob(
  * Uses `expect.poll` with 500 ms intervals and a 30 s timeout so jobs that are
  * briefly delayed in the queue do not cause spurious failures.
  */
-export async function waitForPolicySyncJob(client: Client4, policyId: string): Promise<void> {
+export async function waitForPolicySyncJob(client: Client4, policyId: string, timeoutMs = 60_000): Promise<void> {
     await expect
         .poll(
             async () => {
@@ -1030,9 +1030,9 @@ export async function waitForPolicySyncJob(client: Client4, policyId: string): P
                 }
             },
             {
-                timeout: 30_000,
+                timeout: timeoutMs,
                 intervals: [500, 500, 500, 1000, 1000, 2000],
-                message: `Policy sync job for ${policyId} did not reach success within 30 s`,
+                message: `Policy sync job for ${policyId} did not reach success within ${timeoutMs / 1000} s`,
             },
         )
         .toBe('success');

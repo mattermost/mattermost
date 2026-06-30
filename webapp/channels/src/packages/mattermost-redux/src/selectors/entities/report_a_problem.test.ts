@@ -221,9 +221,6 @@ describe('getDefaultReportAProblemMailtoLink', () => {
         mockIsDesktopApp.mockReturnValue(true);
         mockGetDesktopVersion.mockReturnValue('5.10.0');
 
-        // Reset selector cache so it re-runs with updated mocks
-        getDefaultReportAProblemMailtoLink.resetRecomputations?.();
-
         const stateWithDifferentUser = {
             ...baseState,
             entities: {

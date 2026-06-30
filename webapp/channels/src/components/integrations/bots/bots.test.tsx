@@ -110,6 +110,35 @@ describe('components/integrations/bots/Bots', () => {
         expect(managedByTexts.filter((t) => t?.includes('plugin')).length).toBe(2);
     });
 
+    it('bots with plugin display names', async () => {
+        const bot1 = TestHelper.getBotMock({user_id: '1', owner_id: 'playbooks', username: 'bot1', display_name: 'Bot 1', delete_at: 0});
+        const bots = {
+            [bot1.user_id]: bot1,
+        };
+        const users = {
+            [bot1.user_id]: TestHelper.getUserMock({id: bot1.user_id}),
+        };
+        const loadBots = jest.fn().mockReturnValue(Promise.resolve({data: Object.values(bots)}));
+
+        renderWithContext(
+            <Bots
+                bots={bots}
+                team={team}
+                accessTokens={{}}
+                owners={{}}
+                users={users}
+                pluginDisplayNames={{[bot1.user_id]: 'Playbooks'}}
+                actions={{...actions, loadBots}}
+                appsEnabled={false}
+                appsBotIDs={[]}
+            />,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('Managed by Playbooks plugin')).toBeInTheDocument();
+        });
+    });
+
     it('bot owner tokens', async () => {
         const bot1 = TestHelper.getBotMock({user_id: '1', owner_id: '1', username: 'bot1', display_name: 'Bot 1', delete_at: 0});
         const bots = {

@@ -61,3 +61,31 @@
         font-size: 12px;
     }
 }
+
+// Keep the header and footer pinned inside the modal and let the body (which
+// includes the post preview with its attachments) scroll instead of pushing
+// content outside the modal boundary when a post has many attachments.
+.console__body .modal .GenericModal.flag-post-modal,
+.app__body .modal .GenericModal.flag-post-modal {
+    .modal-content {
+        overflow: hidden;
+    }
+
+    .GenericModal__wrapper {
+        display: flex;
+        max-height: 90vh;
+        flex-direction: column;
+    }
+
+    .modal-header,
+    .modal-footer {
+        flex: 0 0 auto;
+    }
+
+    .modal-body {
+        overflow: auto;
+        min-height: 0;
+        max-height: none;
+        flex: 1 1 auto;
+    }
+}
