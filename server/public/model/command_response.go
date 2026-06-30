@@ -10,7 +10,6 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/utils"
 )
 
@@ -71,10 +70,6 @@ func CommandResponseFromJSON(data io.Reader) (*CommandResponse, error) {
 		resp.Attachments = StringifyMessageAttachmentFieldValue(resp.Attachments)
 	}
 
-	if err := o.IsValid(); err != nil {
-		mlog.Warn("Command response is not valid",mlog.Err(err))
-	}
-
 	return &o, nil
 }
 
@@ -86,7 +81,7 @@ func (o *CommandResponse) IsValid() *AppError {
 
 	// icon URL must be a valid URL if set
 	if o.IconURL != "" {
-		u,err := url.ParseRequestURI(o.IconURL)
+		u, err := url.ParseRequestURI(o.IconURL)
 		if err != nil || (u.Scheme != "http" && u.Scheme != "https") {
 			return NewAppError("CommandResponse.IsValid", "model.command_response.is_valid.icon_url.app_error", nil, "invalid icon url", http.StatusBadRequest)
 		}
@@ -94,12 +89,12 @@ func (o *CommandResponse) IsValid() *AppError {
 
 	// goto location must be a valid URL if set
 	if o.GotoLocation != "" {
-		if _,err := url.ParseRequestURI(o.GotoLocation);err != nil {
+		if _, err := url.ParseRequestURI(o.GotoLocation); err != nil {
 			return NewAppError("CommandResponse.IsValid", "model.command_response.is_valid.goto_location.app_error", nil, "invalid goto location", http.StatusBadRequest)
 		}
 	}
 
-	for _,attachment := range o.Attachments {
+	for _, attachment := range o.Attachments {
 		if attachment == nil {
 			continue
 		}

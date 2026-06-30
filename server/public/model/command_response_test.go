@@ -43,7 +43,7 @@ func TestCommandResponseFromJSON(t *testing.T) {
 		Json                    string
 		ExpectedCommandResponse *CommandResponse
 		ShouldError             bool
-		ExpectInvalid 			bool
+		ExpectInvalid           bool
 	}{
 		{
 			"empty response",
@@ -262,7 +262,7 @@ func TestCommandResponseFromJSON(t *testing.T) {
 						assert.Nil(t, response.IsValid())
 					}
 				}
-			}	
+			}
 		})
 	}
 }

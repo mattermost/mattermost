@@ -117,6 +117,10 @@ func commandWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if vErr := response.IsValid(); vErr != nil {
+		c.Logger.Warn("Command response is not valid", mlog.Err(vErr))
+	}
+
 	appErr := c.App.HandleCommandWebhook(c.AppContext, id, response)
 	if appErr != nil {
 		c.Err = model.NewAppError("commandWebhook", "web.command_webhook.general.app_error", errCtx, "", appErr.StatusCode).Wrap(appErr)
