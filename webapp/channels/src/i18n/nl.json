@@ -4956,6 +4956,7 @@
   "inProduct_notices.adminOnlyMessage": "Enkel zichtbaar voor beheerders",
   "incoming_webhooks.header": "Inkomende Webhooks",
   "inline_action_button.executing": "Wordt uitgevoerd...",
+  "inline_action_button.timeout": "De tijd is verstreken. Probeer het nog eens.",
   "inline_entity_link.tooltip.channel": "Ga naar kanaal",
   "inline_entity_link.tooltip.post": "Ga naar bericht",
   "inline_entity_link.tooltip.team": "Ga naar team",
