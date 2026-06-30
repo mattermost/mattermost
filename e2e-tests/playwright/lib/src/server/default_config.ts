@@ -84,6 +84,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
             EnableSecurityFixAlert: false,
             GiphySdkKey: 's0glxvzVg9azvPipKxcPLpXV0q1x1fVP',
             EnableTesting: true,
+            AllowedUntrustedInternalConnections: 'localhost 127.0.0.1',
         },
         TeamSettings: {
             EnableOpenServer: true,
@@ -828,6 +829,7 @@ const defaultServerConfig: AdminConfig = {
         MobileEphemeralMode: false,
         PropertyFieldRank: false,
         TeamMembershipAccessControl: false,
+        MmBlocksEnabled: true,
     },
     ImportSettings: {
         Directory: './import',
@@ -889,7 +891,7 @@ const defaultServerConfig: AdminConfig = {
             CommonReviewers: true,
             CommonReviewerIds: [],
             TeamReviewersSetting: {},
-            SystemAdminsAsReviewers: true,
+            SystemAdminsAsReviewers: false,
             TeamAdminsAsReviewers: true,
         },
     },
