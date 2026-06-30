@@ -19,6 +19,43 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
 
+func (s *MmctlUnitTestSuite) TestNukeUsersCmd() {
+	s.Run("Delete all users", func() {
+		printer.Clean()
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+
+		s.client.
+			EXPECT().
+			PermanentDeleteAllUsers(context.TODO()).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
+			Times(1)
+
+		err := nukeUsersCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Equal(printer.GetLines()[0], "All users successfully deleted")
+	})
+
+	s.Run("Delete all users call fails", func() {
+		printer.Clean()
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+
+		s.client.
+			EXPECT().
+			PermanentDeleteAllUsers(context.TODO()).
+			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
+			Times(1)
+
+		err := nukeUsersCmdF(s.client, cmd, []string{})
+		s.Require().NotNil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+}
+
 func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
 	s.Run("GetBusy when not set", func() {
 		printer.Clean()

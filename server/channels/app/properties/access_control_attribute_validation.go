@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
+	"sort"
 	"strings"
 	"unicode/utf8"
 
@@ -76,8 +78,9 @@ func (h *AccessControlAttributeValidationHook) isGroupManaged(groupID string) bo
 // sanitizeAndValidateFieldAttrs trims string attrs, applies the visibility
 // default, clears attrs that don't apply to the field type, validates each
 // attr, and auto-IDs+validates options for select-shaped fields. Mutates
-// field.Attrs in place.
-func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(field *model.PropertyField) error {
+// field.Attrs in place. prevType is the field's type before this operation.
+// prevType is empty on creation of a new field.
+func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(field *model.PropertyField, prevType model.PropertyFieldType) error {
 	if field.Attrs == nil {
 		field.Attrs = model.StringInterface{}
 	}
@@ -122,7 +125,7 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 		return fmt.Errorf("display_name exceeds max length of %d runes: %w", model.PropertyFieldNameMaxRunes, ErrInvalidFieldAttrs)
 	}
 	if isSelect {
-		if err := h.sanitizeAndValidateOptions(field); err != nil {
+		if err := h.sanitizeAndValidateOptions(field, prevType); err != nil {
 			return err
 		}
 	}
@@ -150,7 +153,7 @@ var trimmedFieldAttrKeys = []string{
 // codebase expects (see PropertyField.EnsureOptionIDs). The typed slice
 // is used internally for validation only; persisting it would force
 // every downstream reader of attrs["options"] to handle two shapes.
-func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOptions(field *model.PropertyField) error {
+func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOptions(field *model.PropertyField, prevType model.PropertyFieldType) error {
 	rawOptions, ok := field.Attrs[model.PropertyFieldAttributeOptions]
 	if !ok || rawOptions == nil {
 		return nil
@@ -165,27 +168,35 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOptions(field 
 		return fmt.Errorf("invalid options: %s: %w", err, ErrInvalidFieldAttrs)
 	}
 
-	// Rank validation. For rank fields every option must carry a positive,
-	// unique rank. For other field types rank is not meaningful, so any stray
-	// values are stripped to prevent them from drifting into persisted attrs.
+	// Rank handling.
+	//
+	// For non-rank fields, rank is not meaningful, but we keep any values that
+	// are present instead of stripping them: that way a rank->select->rank
+	// round-trip preserves the option ordering. The values ride along
+	// untouched and unvalidated (zero, negative, and duplicate ranks are all
+	// fine here); a later conversion into rank normalizes whatever it finds.
+	//
+	// For rank fields, a conversion from another type first repairs the
+	// incoming ranks: they come from an arbitrary source (plain select options,
+	// API-set values) and may be missing, duplicated, or non-sequential, so we
+	// renumber them to a clean, gap-free 1..N sequence preserving relative
+	// order rather than rejecting the request. Authoring a rank field directly
+	// (create, or a rank->rank edit) does not repair — the caller owns the
+	// values.
+	//
+	// validateRankOptions then runs on every rank path and is the single source
+	// of truth for what a persisted rank field may contain. For direct
+	// authoring it rejects the caller's mistake; after a normalize it is a
+	// postcondition check that fails closed if normalization and validation
+	// ever diverge. That belt-and-suspenders matters here because invalid rank
+	// data fails open — it silently denies access at read time (see the matview
+	// and buildRankMap) instead of erroring — so we must never persist it.
 	if field.Type == model.PropertyFieldTypeRank {
-		ranks := make(map[int]struct{}, len(options))
-		for i, opt := range options {
-			if opt.Rank == nil {
-				return fmt.Errorf("invalid options: option at index %d is missing rank for rank field: %w", i, ErrInvalidFieldAttrs)
-			}
-			rank := *opt.Rank
-			if rank <= 0 {
-				return fmt.Errorf("invalid options: option rank must be a positive integer, got %d at index %d: %w", rank, i, ErrInvalidFieldAttrs)
-			}
-			if _, exists := ranks[rank]; exists {
-				return fmt.Errorf("invalid options: duplicate option rank %d at index %d: %w", rank, i, ErrInvalidFieldAttrs)
-			}
-			ranks[rank] = struct{}{}
+		if prevType != "" && prevType != model.PropertyFieldTypeRank {
+			normalizeOptionRanks(options)
 		}
-	} else {
-		for i := range options {
-			options[i].Rank = nil
+		if err = validateRankOptions(options); err != nil {
+			return err
 		}
 	}
 
@@ -208,6 +219,61 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOptions(field 
 	}
 	field.Attrs[model.PropertyFieldAttributeOptions] = canonical
 	return nil
+}
+
+// validateRankOptions enforces that every option on a rank field carries a
+// positive, unique rank. It is the single source of truth for rank validity
+// and runs on every rank path: it rejects a directly-authored field (create or
+// rank->rank edit) whose ranks the caller got wrong, and double-checks the
+// output of normalizeOptionRanks on a conversion (which should always pass, so
+// a failure there signals the two have diverged and must not be persisted).
+func validateRankOptions(options model.PropertyOptions[*model.CustomProfileAttributesSelectOption]) error {
+	ranks := make(map[int]struct{}, len(options))
+	for i, opt := range options {
+		if opt.Rank == nil {
+			return fmt.Errorf("invalid options: option at index %d is missing rank for rank field: %w", i, ErrInvalidFieldAttrs)
+		}
+		rank := *opt.Rank
+		if rank <= 0 {
+			return fmt.Errorf("invalid options: option rank must be a positive integer, got %d at index %d: %w", rank, i, ErrInvalidFieldAttrs)
+		}
+		if _, exists := ranks[rank]; exists {
+			return fmt.Errorf("invalid options: duplicate option rank %d at index %d: %w", rank, i, ErrInvalidFieldAttrs)
+		}
+		ranks[rank] = struct{}{}
+	}
+	return nil
+}
+
+// normalizeOptionRanks rewrites every option's rank to a contiguous 1..N
+// sequence, preserving relative order, when an arbitrary set of options is
+// converted into a rank field. Options are stable-sorted by their current rank
+// so that existing order is kept and duplicate ranks break ties by array
+// position; options with no rank sort last (a newly-added option never
+// silently outranks the existing hierarchy). The result is the gap-free,
+// duplicate-free numbering the rank UI expects, and is idempotent: an already
+// 1..N field re-normalizes to itself. Mutates the options in place.
+func normalizeOptionRanks(options model.PropertyOptions[*model.CustomProfileAttributesSelectOption]) {
+	order := make([]int, len(options))
+	for i := range options {
+		order[i] = i
+	}
+	sort.SliceStable(order, func(a, b int) bool {
+		return rankSortKey(options[order[a]].Rank) < rankSortKey(options[order[b]].Rank)
+	})
+	for seq, idx := range order {
+		rank := seq + 1
+		options[idx].Rank = &rank
+	}
+}
+
+// rankSortKey maps an option's rank to its sort key, treating a missing rank as
+// the largest possible value so rank-less options sort after ranked ones.
+func rankSortKey(rank *int) int {
+	if rank == nil {
+		return math.MaxInt
+	}
+	return *rank
 }
 
 // enforceGroupPermissions pins schema-edit permissions for fields in
@@ -275,7 +341,9 @@ func (h *AccessControlAttributeValidationHook) PreCreatePropertyField(rctx reque
 		return nil, appErr
 	}
 
-	if err := h.sanitizeAndValidateFieldAttrs(field); err != nil {
+	// Create: no prior type, so a rank field here is authored directly and its
+	// ranks are validated strictly rather than repaired.
+	if err := h.sanitizeAndValidateFieldAttrs(field, ""); err != nil {
 		return nil, err
 	}
 
@@ -300,7 +368,7 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyField(rctx reque
 		}
 	}
 
-	if err := h.sanitizeAndValidateFieldAttrs(field); err != nil {
+	if err := h.sanitizeAndValidateFieldAttrs(field, existing.Type); err != nil {
 		return nil, err
 	}
 
@@ -328,13 +396,21 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyFields(rctx requ
 	}
 
 	for i, field := range fields {
-		if existing, ok := existingByID[field.ID]; ok && existing.Name != field.Name {
+		existing := existingByID[field.ID]
+		if existing != nil && existing.Name != field.Name {
 			if appErr := model.ValidateCPAFieldName(field.Name); appErr != nil {
 				return nil, fmt.Errorf("field %s: %w", field.ID, appErr)
 			}
 		}
 
-		if err := h.sanitizeAndValidateFieldAttrs(field); err != nil {
+		// prevType stays empty when the field isn't found (the store surfaces
+		// the not-found error later); strict rank validation is the safe
+		// default for that path.
+		var prevType model.PropertyFieldType
+		if existing != nil {
+			prevType = existing.Type
+		}
+		if err := h.sanitizeAndValidateFieldAttrs(field, prevType); err != nil {
 			return nil, fmt.Errorf("field %s: %w", field.ID, err)
 		}
 

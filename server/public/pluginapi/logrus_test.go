@@ -1,6 +1,7 @@
 package pluginapi_test
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest"
@@ -82,4 +83,36 @@ func TestLogrus(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestConfigureLogrusConcurrentWithLogging guards against a data race between
+// registering the hook and logging through the same logger. Run with -race.
+func TestConfigureLogrusConcurrentWithLogging(t *testing.T) {
+	api := &plugintest.API{}
+	api.On("LogDebug", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Maybe()
+	client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+	logger := logrus.New()
+
+	var wg sync.WaitGroup
+	start := make(chan struct{})
+
+	for range 4 {
+		wg.Go(func() {
+			<-start
+			for range 500 {
+				logger.WithField("k", "v").Debug("message")
+			}
+		})
+	}
+
+	wg.Go(func() {
+		<-start
+		for range 50 {
+			pluginapi.ConfigureLogrus(logger, client)
+		}
+	})
+
+	close(start)
+	wg.Wait()
 }

@@ -152,7 +152,6 @@
     "jest-watch-typeahead": "3.0.1",
     "nock": "13.2.8",
     "node-fetch": "2.7.0",
-    "prettier": "2.3.2",
     "redux-mock-store": "1.5.4",
     "redux-persist-node-storage": "2.0.0",
     "sharp": "0.34.5",
