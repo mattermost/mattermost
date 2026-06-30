@@ -1731,7 +1731,7 @@ func newParentPolicy(teamID string) *model.AccessControlPolicy {
 // fail-closed branch (unknown property field) so the masking always produces the
 // "--------" sentinel without requiring a real CPA setup.
 func TestResponseMaskingOnPolicyEndpoints(t *testing.T) {
-	th := Setup().InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	require.True(t, ok, "SetLicense should return true")
