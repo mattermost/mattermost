@@ -616,12 +616,6 @@ func TestCheckLdapUserPasswordConcurrency(t *testing.T) {
 				// Capture all concurrent errors
 				appErrs := make([]*model.AppError, concurrentAttempts)
 
-				if tc.doLoginExpectedErrID == "ent.ldap.do_login.invalid_password.app_error" {
-					mockLdap.Mock.On("DoLogin", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil, &model.AppError{Id: tc.doLoginExpectedErrID}).Times(concurrentAttempts)
-				} else {
-					mockLdap.Mock.On("DoLogin", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), tc.password).Return(user, nil).Times(concurrentAttempts)
-				}
-
 				// Wait to complete the test
 				var completeWG sync.WaitGroup
 				completeWG.Add(concurrentAttempts)
@@ -629,6 +623,12 @@ func TestCheckLdapUserPasswordConcurrency(t *testing.T) {
 				for i := range concurrentAttempts {
 					go func(i int) {
 						defer completeWG.Done()
+
+						if tc.doLoginExpectedErrID == "ent.ldap.do_login.invalid_password.app_error" {
+							mockLdap.Mock.On("DoLogin", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil, &model.AppError{Id: tc.doLoginExpectedErrID})
+						} else {
+							mockLdap.Mock.On("DoLogin", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), tc.password).Return(user, nil)
+						}
 						_, appErrs[i] = th.App.checkLdapUserPasswordAndAllCriteria(th.Context, user, tc.password, tc.mfaToken)
 					}(i)
 				}
