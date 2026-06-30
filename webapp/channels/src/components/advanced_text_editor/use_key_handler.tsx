@@ -2,31 +2,31 @@
 // See LICENSE.txt for license information.
 
 import type React from 'react';
-import {useCallback, useEffect, useRef} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import { useCallback, useEffect, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
 import * as UserAgent from '@mattermost/shared/utils/user_agent';
-import type {SchedulingInfo} from '@mattermost/types/schedule_post';
+import type { SchedulingInfo } from '@mattermost/types/schedule_post';
 
-import {getBool} from 'mattermost-redux/selectors/entities/preferences';
+import { getBool } from 'mattermost-redux/selectors/entities/preferences';
 
-import {emitShortcutReactToLastPostFrom, unsetEditingPost} from 'actions/post_actions';
-import {editLatestPost} from 'actions/views/create_comment';
-import {replyToLatestPostInChannel} from 'actions/views/rhs';
-import {getIsRhsExpanded} from 'selectors/rhs';
+import { emitShortcutReactToLastPostFrom, unsetEditingPost } from 'actions/post_actions';
+import { editLatestPost } from 'actions/views/create_comment';
+import { replyToLatestPostInChannel } from 'actions/views/rhs';
+import { getIsRhsExpanded } from 'selectors/rhs';
 
-import type {TextboxElement} from 'components/textbox';
+import type { TextboxElement } from 'components/textbox';
 import type TextboxClass from 'components/textbox/textbox';
 
-import Constants, {A11yClassNames, Locations, Preferences} from 'utils/constants';
+import Constants, { A11yClassNames, Locations, Preferences } from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
-import {type ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
-import {pasteHandler} from 'utils/paste';
-import {isWithinCodeBlock, postMessageOnKeyPress} from 'utils/post_utils';
+import { type ApplyMarkdownOptions } from 'utils/markdown/apply_markdown';
+import { pasteHandler } from 'utils/paste';
+import { isWithinCodeBlock, postMessageOnKeyPress } from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
-import type {GlobalState} from 'types/store';
-import type {PostDraft} from 'types/store/draft';
+import type { GlobalState } from 'types/store';
+import type { PostDraft } from 'types/store/draft';
 
 const KeyCodes = Constants.KeyCodes;
 
@@ -40,7 +40,7 @@ const useKeyHandler = (
     showFormattingBar: boolean,
     focusTextbox: (forceFocus?: boolean) => void,
     applyMarkdown: (params: ApplyMarkdownOptions) => void,
-    handleDraftChange: (draft: PostDraft, options?: {instant?: boolean; show?: boolean}) => void,
+    handleDraftChange: (draft: PostDraft, options?: { instant?: boolean; show?: boolean }) => void,
     handleSubmit: (submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo) => void,
     emitTypingEvent: () => void,
     toggleShowPreview: () => void,
@@ -80,7 +80,7 @@ const useKeyHandler = (
 
     const onEditLatestPost = useCallback((e: React.KeyboardEvent) => {
         e.preventDefault();
-        const {data: canEditNow} = dispatch(editLatestPost(channelId, postId));
+        const { data: canEditNow } = dispatch(editLatestPost(channelId, postId));
         if (!canEditNow) {
             focusTextbox(true);
         }
@@ -111,7 +111,7 @@ const useKeyHandler = (
     }, [draft, handleDraftChange, messageHistory]);
 
     const postMsgKeyPress = useCallback((e: React.KeyboardEvent<TextboxElement>) => {
-        const {allowSending, withClosedCodeBlock, ignoreKeyPress, message} = postMessageOnKeyPress(
+        const { allowSending, withClosedCodeBlock, ignoreKeyPress, message } = postMessageOnKeyPress(
             e,
             draft.message,
             ctrlSend,
@@ -129,7 +129,7 @@ const useKeyHandler = (
 
         if (allowSending && isValidPersistentNotifications) {
             e.preventDefault();
-            const updatedDraft = (withClosedCodeBlock && message) ? {...draft, message} : undefined;
+            const updatedDraft = (withClosedCodeBlock && message) ? { ...draft, message } : undefined;
             handleSubmit(updatedDraft);
         }
 
@@ -316,11 +316,7 @@ const useKeyHandler = (
                 });
             }
         } else if (ctrlShiftCombo && !caretIsWithinCodeBlock) {
-            if (Keyboard.isKeyPressed(e, KeyCodes.P) && draft.message.length && UserAgent.isMac()) { // REVIEW
-                e.stopPropagation();
-                e.preventDefault();
-                toggleShowPreview();
-            } else if (Keyboard.isKeyPressed(e, KeyCodes.E)) {
+            if (Keyboard.isKeyPressed(e, KeyCodes.E)) {
                 e.stopPropagation();
                 e.preventDefault();
                 toggleEmojiPicker();
@@ -398,19 +394,24 @@ const useKeyHandler = (
     useEffect(() => {
         const documentKeyHandler = (e: KeyboardEvent) => {
             const ctrlOrMetaKeyPressed = e.ctrlKey || e.metaKey;
-            const lastMessageReactionKeyCombo = ctrlOrMetaKeyPressed && e.shiftKey && Keyboard.isKeyPressed(e, KeyCodes.BACK_SLASH);
+
+            const lastMessageReactionKeyCombo =
+                ctrlOrMetaKeyPressed &&
+                e.shiftKey &&
+                Keyboard.isKeyPressed(e, KeyCodes.BACK_SLASH);
+
             if (lastMessageReactionKeyCombo) {
                 reactToLastMessage(e);
             }
-        };
 
-        if (!postId) {
-            document.addEventListener('keydown', documentKeyHandler);
-        }
+            const previewShortcut =
+                ctrlOrMetaKeyPressed &&
+                e.shiftKey &&
+                Keyboard.isKeyPressed(e, KeyCodes.P);
 
-        return () => {
-            if (!postId) {
-                document.removeEventListener('keydown', documentKeyHandler);
+            if (previewShortcut) {
+                e.preventDefault();
+                toggleShowPreview();
             }
         };
     }, [postId, reactToLastMessage]);
