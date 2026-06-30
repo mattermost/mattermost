@@ -313,6 +313,32 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         expect(patchTeam.mock.invocationCallOrder[0]).toBeLessThan(deleteTeam.mock.invocationCallOrder[0]);
     });
 
+    test('blocks the save-and-archive flow and shows a validation error when the team name is invalid', async () => {
+        const patchTeam = jest.fn().mockResolvedValue({data: {}});
+        const deleteTeam = jest.fn().mockResolvedValue({data: {}});
+        const props = {
+            ...baseProps,
+            actions: {...baseProps.actions, patchTeam, deleteTeam},
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        const nameInput = screen.getByLabelText('Team Name');
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, 'a');
+
+        await userEvent.click(screen.getByText('Archive Team'));
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => {
+            expect(screen.getByText(/Team name must be 2 or more characters/)).toBeInTheDocument();
+        });
+
+        // The confirm modal must not open and no destructive action should run.
+        expect(screen.queryByText('Save and Archive Team')).not.toBeInTheDocument();
+        expect(patchTeam).not.toHaveBeenCalled();
+        expect(deleteTeam).not.toHaveBeenCalled();
+    });
+
     test('blocks restore when the edited team name is invalid', async () => {
         const unarchiveTeam = jest.fn().mockResolvedValue({data: {}});
         const archivedTeam = {...baseProps.team, delete_at: 16465313};

@@ -263,25 +263,32 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
         this.processGroupsChange(groups);
     };
 
-    handleSubmit = async () => {
-        const {team, groups: origGroups, teamID, actions} = this.props;
-        if (!team) {
-            return;
-        }
-
-        this.setState({showRemoveConfirmation: false, saving: true});
-        const {name, description, groups, allAllowedChecked, allowedDomainsChecked, allowedDomains, syncChecked, usersToAdd, usersToRemove, rolesToUpdate} = this.state;
-
-        let serverError: JSX.Element | undefined;
-
-        if (name.trim().length < Constants.MIN_TEAMNAME_LENGTH) {
-            const nameError = (
+    getTeamNameError = (): React.ReactNode => {
+        if (this.state.name.trim().length < Constants.MIN_TEAMNAME_LENGTH) {
+            return (
                 <FormattedMessage
                     id='admin.team_settings.team_detail.teamNameRestrictions'
                     defaultMessage='Team name must be {min} or more characters up to a maximum of {max}.'
                     values={{min: Constants.MIN_TEAMNAME_LENGTH, max: Constants.MAX_TEAMNAME_LENGTH}}
                 />
             );
+        }
+        return undefined;
+    };
+
+    handleSubmit = async () => {
+        const {team, groups: origGroups, teamID, actions} = this.props;
+        if (!team) {
+            return;
+        }
+
+        this.setState({showRemoveConfirmation: false, showArchiveConfirmModal: false, saving: true});
+        const {name, description, groups, allAllowedChecked, allowedDomainsChecked, allowedDomains, syncChecked, usersToAdd, usersToRemove, rolesToUpdate} = this.state;
+
+        let serverError: JSX.Element | undefined;
+
+        const nameError = this.getTeamNameError();
+        if (nameError) {
             this.setState({nameError, saving: false, saveNeeded: true});
             actions.setNavigationBlocked(true);
             return;
@@ -597,6 +604,13 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
     hideArchiveConfirmModal = () => this.setState({showArchiveConfirmModal: false});
 
     onSave = () => {
+        const nameError = this.getTeamNameError();
+        if (nameError) {
+            this.setState({nameError, saveNeeded: true});
+            this.props.actions.setNavigationBlocked(true);
+            return;
+        }
+
         if (this.teamToBeArchived()) {
             this.setState({showArchiveConfirmModal: true});
         } else if (this.state.usersToRemoveCount > 0) {
