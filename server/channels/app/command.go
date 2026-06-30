@@ -600,7 +600,7 @@ func (a *App) DoCommandRequest(rctx request.CTX, cmd *model.Command, p url.Value
 	}
 
 	if appErr := response.IsValid(); appErr != nil {
-		rctx.Logger().Warn("Command response is not valid", mlog.Err(appErr))
+		rctx.Logger().Warn("Command response is not valid. Please update your integration to be compliant.", mlog.Err(appErr))
 	}
 
 	return cmd, response, nil
