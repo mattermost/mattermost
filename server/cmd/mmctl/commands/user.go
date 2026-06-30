@@ -746,7 +746,8 @@ first_name: {{.FirstName}}
 last_name: {{.LastName}}
 email: {{.Email}}
 auth_service: {{.AuthService}}
-auth_data: {{.AuthData}}`
+auth_data: {{.AuthData}}
+roles: {{.Roles}}`
 		if i > 0 {
 			tpl = "------------------------------\n" + tpl
 		}
