@@ -70,6 +70,16 @@ type Subject struct {
 	// in the enterprise repo) so authors cannot ship a control whose
 	// production behaviour silently diverges from the simulator preview.
 	Session map[string]any `json:"session,omitempty"`
+	// Email is the subject's email address (model.User.Email), exposed to
+	// CEL policies as user.email. Populated by BuildAccessControlSubject.
+	Email string `json:"email,omitempty"`
+	// EmailVerified mirrors model.User.EmailVerified, exposed as user.verified.
+	EmailVerified bool `json:"email_verified,omitempty"`
+	// IsBot mirrors model.User.IsBot (derived from the Bots table on the
+	// cached user read), exposed as user.isbot.
+	IsBot bool `json:"is_bot,omitempty"`
+	// CreateAt mirrors model.User.CreateAt (epoch ms), exposed as user.createat.
+	CreateAt int64 `json:"create_at,omitempty"`
 }
 
 // RoleForScope returns the role assigned to this subject within the given
@@ -171,6 +181,10 @@ type SubjectSearchOptions struct {
 	// This is particularly useful for validation queries where we only need to check
 	// if a specific user matches an expression, rather than fetching all matching users
 	SubjectID string `json:"subject_id"`
+	// ExcludeNativeAttributes strips native user-attribute predicates (user.email,
+	// user.verified, user.isbot, user.createat[.youngerThanDays]) from the expression
+	// before building SQL, so self-inclusion validation checks only the CPA parts.
+	ExcludeNativeAttributes bool `json:"exclude_native_attributes,omitempty"`
 }
 
 type SubjectCursor struct {

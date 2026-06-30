@@ -44,7 +44,6 @@ SEE ALSO
 * `mmctl user create <mmctl_user_create.rst>`_ 	 - Create a user
 * `mmctl user deactivate <mmctl_user_deactivate.rst>`_ 	 - Deactivate users
 * `mmctl user delete <mmctl_user_delete.rst>`_ 	 - Delete users
-* `mmctl user deleteall <mmctl_user_deleteall.rst>`_ 	 - Delete all users and all posts. Local command only.
 * `mmctl user demote <mmctl_user_demote.rst>`_ 	 - Demote users to guests
 * `mmctl user edit <mmctl_user_edit.rst>`_ 	 - Edit user properties
 * `mmctl user invite <mmctl_user_invite.rst>`_ 	 - Send user an email invite to a team.

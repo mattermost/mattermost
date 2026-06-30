@@ -4,12 +4,14 @@
 package app
 
 import (
+	"context"
 	"crypto/subtle"
 	"errors"
 	"math"
 	"net/http"
 	"os"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -182,8 +184,75 @@ func (a *App) GetLRUSessions(rctx request.CTX, userID string, limit uint64, offs
 	return sessions, nil
 }
 
+func (a *App) sendMobileWipeSignal(rctx request.CTX, sessions ...*model.Session) {
+	// detach from request context and runs async after the caller returns
+	rctx = rctx.WithContext(context.Background())
+
+	if !model.SafeDereference(a.Config().MobileEphemeralModeSettings.Enable) {
+		return
+	}
+
+	if !a.canSendPushNotifications() {
+		rctx.Logger().Warn("Cannot send mobile wipe signal because push notifications are disabled")
+		return
+	}
+
+	for _, session := range sessions {
+		if session.DeviceId == "" || session.DeviceId == session.Props[model.SessionPropLastRemovedDeviceId] {
+			continue
+		}
+
+		// Send an empty push notification of type Session that will cause apps to terminate sessions and wipe data.
+		// ContentAvailable and SoundNone are set to trigger a silent notification that wakes up
+		// the app in the background without alerting the user.
+		msg := &model.PushNotification{
+			Version:          model.PushMessageV2,
+			Type:             model.PushTypeSession,
+			ContentAvailable: 1,
+			Sound:            model.PushSoundNone,
+		}
+
+		msg.SetDeviceIdAndPlatform(session.DeviceId)
+		msg.AckId = model.NewId()
+		signature, signErr := jwt.NewWithClaims(jwt.SigningMethodES256, pushJWTClaims{
+			AckId:    msg.AckId,
+			DeviceId: msg.DeviceId,
+		}).SignedString(a.AsymmetricSigningKey())
+		if signErr != nil {
+			rctx.Logger().Warn("Failed to sign session wipe push", mlog.String("session_id", session.Id), mlog.Err(signErr))
+			continue
+		}
+		msg.Signature = signature
+		msg.ServerId = a.ServerId()
+		pushResponse, sendErr := a.rawSendToPushProxy(msg)
+
+		reason := model.NotificationReasonPushProxySendError
+		switch pushResponse[model.PushStatus] {
+		case model.PushStatusRemove:
+			reason = model.NotificationReasonPushProxyRemoveDevice
+			sendErr = errors.New(notificationErrorRemoveDevice)
+		case model.PushStatusFail:
+			sendErr = errors.New(pushResponse[model.PushStatusErrorMsg])
+		}
+
+		if sendErr != nil {
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, reason, msg.Platform)
+			rctx.Logger().Warn("Failed to send session wipe push",
+				mlog.String("session_id", session.Id),
+				mlog.String("reason", reason),
+				mlog.Err(sendErr))
+			continue
+		}
+
+		if a.Metrics() != nil {
+			a.Metrics().IncrementPostSentPush()
+		}
+	}
+}
+
 func (a *App) RevokeAllSessions(rctx request.CTX, userID string) *model.AppError {
-	if err := a.ch.srv.platform.RevokeAllSessions(rctx, userID); err != nil {
+	sessions, err := a.ch.srv.platform.RevokeAllSessions(rctx, userID)
+	if err != nil {
 		switch {
 		case errors.Is(err, platform.GetSessionError):
 			return model.NewAppError("RevokeAllSessions", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -193,6 +262,10 @@ func (a *App) RevokeAllSessions(rctx request.CTX, userID string) *model.AppError
 			return model.NewAppError("RevokeAllSessions", "app.session.remove.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
+
+	a.Srv().Go(func() {
+		a.sendMobileWipeSignal(rctx, sessions...)
+	})
 
 	return nil
 }
@@ -205,7 +278,19 @@ func (a *App) AddSessionToCache(session *model.Session) {
 
 // RevokeSessionsFromAllUsers will go through all the sessions active
 // in the server and revoke them
-func (a *App) RevokeSessionsFromAllUsers() *model.AppError {
+func (a *App) RevokeSessionsFromAllUsers(rctx request.CTX) *model.AppError {
+	// When Mobile Ephemeral Mode is enabled, fetch sessions with active device ids
+	// before revoking them, so we can send wipe signals to the correct devices.
+	var sessionsWithActiveDevices []*model.Session
+	if model.SafeDereference(a.Config().MobileEphemeralModeSettings.Enable) {
+		var err error
+		// Sessions created between this fetch and the deletion below are revoked but won't receive a wipe signal.
+		sessionsWithActiveDevices, err = a.Srv().Store().Session().GetAllSessionsWithActiveDeviceIds()
+		if err != nil {
+			return model.NewAppError("RevokeSessionsFromAllUsers", "app.session.remove_all_sessions_for_team.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
 	if err := a.ch.srv.platform.RevokeSessionsFromAllUsers(); err != nil {
 		switch {
 		case errors.Is(err, users.DeleteAllAccessDataError):
@@ -214,6 +299,10 @@ func (a *App) RevokeSessionsFromAllUsers() *model.AppError {
 			return model.NewAppError("RevokeSessionsFromAllUsers", "app.session.remove_all_sessions_for_team.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
+
+	a.Srv().Go(func() {
+		a.sendMobileWipeSignal(rctx, sessionsWithActiveDevices...)
+	})
 
 	return nil
 }
@@ -287,6 +376,10 @@ func (a *App) RevokeSession(rctx request.CTX, session *model.Session) *model.App
 			return model.NewAppError("RevokeSession", "app.session.remove.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
+
+	a.Srv().Go(func() {
+		a.sendMobileWipeSignal(rctx, session)
+	})
 
 	return nil
 }

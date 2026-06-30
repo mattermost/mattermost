@@ -79,7 +79,11 @@ describe('Incoming webhook', () => {
                     attachments: [{image_url: 'https://cdn.pixabay.com/photo/2017/10/10/22/24/wide-format-2839089_960_720.jpg'}],
                 };
                 cy.postIncomingWebhook({url: hookUrl, data: payload});
-                cy.get('.attachment__image').should('be.visible');
+                cy.getLastPostId().then((postId) => {
+                    cy.get(`#post_${postId}`).within(() => {
+                        cy.get('.mm-blocks-image').should('be.visible');
+                    });
+                });
             });
     });
 });
