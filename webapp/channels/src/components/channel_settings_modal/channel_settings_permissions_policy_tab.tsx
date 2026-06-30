@@ -20,7 +20,6 @@ import {
     buildRulesWithPermissionRules,
     getMembershipRule,
     getPermissionRules,
-    hasOverlappingPermissionRules,
 } from '@mattermost/types/access_control';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserPropertyField} from '@mattermost/types/properties';
@@ -32,10 +31,10 @@ import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/user
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
 import SimulateAccessModal from 'components/admin_console/access_control/modals/simulate_access/simulate_access_modal';
 import * as Menu from 'components/menu';
+import SectionNotice from 'components/section_notice';
 import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
-import {useChannelSystemPolicies} from 'hooks/useChannelSystemPolicies';
 
 import type {GlobalState} from 'types/store';
 
@@ -82,6 +81,21 @@ const roleMessages = defineMessages({
     selectRole: {
         id: 'channel_settings.permissions_policy.role.select',
         defaultMessage: 'Select a role',
+    },
+});
+
+const tableRoleMessages: Record<string, MessageDescriptor> = defineMessages({
+    [ACCESS_CONTROL_CHANNEL_ROLE_GUEST]: {
+        id: 'channel_settings.permissions_policy.table.role.channel_guest',
+        defaultMessage: 'Channel guests',
+    },
+    [ACCESS_CONTROL_CHANNEL_ROLE_USER]: {
+        id: 'channel_settings.permissions_policy.table.role.channel_user',
+        defaultMessage: 'Channel members',
+    },
+    [ACCESS_CONTROL_CHANNEL_ROLE_ADMIN]: {
+        id: 'channel_settings.permissions_policy.table.role.channel_admin',
+        defaultMessage: 'Channel admins',
     },
 });
 
@@ -181,7 +195,6 @@ function ChannelSettingsPermissionsPolicyTab({
     const policySimulationEnabled = useSelector(isPolicySimulationEnabled);
 
     const actions = useChannelAccessControlActions(channel.id);
-    const {policies: systemPolicies} = useChannelSystemPolicies(channel);
 
     // The full set of rules from the loaded policy, used to preserve the
     // membership rule (and any future non-permission rules) on save.
@@ -333,8 +346,6 @@ function ChannelSettingsPermissionsPolicyTab({
             setEditingKey(null);
         }
     }, [editingKey, rules]);
-
-    const showOrHint = useMemo(() => hasOverlappingPermissionRules(rules.map(fromEditable)), [rules]);
 
     // ── List filtering & pagination ───────────────────────────────────────
     const filteredRules = useMemo(() => {
@@ -620,23 +631,6 @@ function ChannelSettingsPermissionsPolicyTab({
     // ── Render: list view ────────────────────────────────────────────────
     return (
         <div className='ChannelSettingsModal__permissionsPolicyTab'>
-            {/* One-line system-policy banner: signal that policies defined
-              * higher up may also influence file action decisions. */}
-            {systemPolicies.length > 0 && (
-                <div
-                    className='ChannelSettingsModal__permissionsPolicyBanner'
-                    data-testid='permissions-policy-system-banner'
-                >
-                    <i className='icon icon-information-outline'/>
-                    <span>
-                        <FormattedMessage
-                            id='channel_settings.permissions_policy.system_banner'
-                            defaultMessage='System-wide permission policies may also influence access decisions for this channel.'
-                        />
-                    </span>
-                </div>
-            )}
-
             <div className='ChannelSettingsModal__permissionsPolicyHeader'>
                 <h3 className='ChannelSettingsModal__permissionsPolicyTitle'>
                     <FormattedMessage
@@ -645,6 +639,7 @@ function ChannelSettingsPermissionsPolicyTab({
                     />
                 </h3>
                 <Button
+                    size='sm'
                     className='ChannelSettingsModal__permissionsPolicyAddRule'
                     onClick={startNew}
                     disabled={!attributesLoaded}
@@ -656,6 +651,19 @@ function ChannelSettingsPermissionsPolicyTab({
                         defaultMessage='Add rule'
                     />
                 </Button>
+            </div>
+
+            <div
+                className='ChannelSettingsModal__permissionsPolicyNotice'
+                data-testid='permissions-policy-notice'
+            >
+                <SectionNotice
+                    type='info'
+                    title={formatMessage({
+                        id: 'channel_settings.permissions_policy.notice',
+                        defaultMessage: 'If several rules cover the same permission, matching any one of them is enough. System and team permission policies may also apply, and these rules can only narrow the access they allow.',
+                    })}
+                />
             </div>
 
             <div className='ChannelSettingsModal__permissionsPolicySearch'>
@@ -684,19 +692,6 @@ function ChannelSettingsPermissionsPolicyTab({
                 />
             </div>
 
-            {showOrHint && (
-                <div
-                    className='ChannelSettingsModal__permissionsPolicyOrHint'
-                    data-testid='permissions-or-hint'
-                >
-                    <i className='icon icon-information-outline'/>
-                    <FormattedMessage
-                        id='channel_settings.permissions_policy.or_hint'
-                        defaultMessage='When several rules apply to the same role and action, a user is allowed if any one of them allows them. A system-level policy may still deny the permission even when this channel policy allows it.'
-                    />
-                </div>
-            )}
-
             <table
                 className='ChannelSettingsModal__permissionsPolicyTable'
                 data-testid='permissions-policy-rules-table'
@@ -706,7 +701,13 @@ function ChannelSettingsPermissionsPolicyTab({
                         <th>
                             <FormattedMessage
                                 id='channel_settings.permissions_policy.column.name'
-                                defaultMessage='Name'
+                                defaultMessage='Rule name'
+                            />
+                        </th>
+                        <th>
+                            <FormattedMessage
+                                id='channel_settings.permissions_policy.table.role'
+                                defaultMessage='Role'
                             />
                         </th>
                         <th>
@@ -721,7 +722,7 @@ function ChannelSettingsPermissionsPolicyTab({
                 <tbody>
                     {pagedRules.length === 0 ? (
                         <tr className='ChannelSettingsModal__permissionsPolicyEmpty'>
-                            <td colSpan={3}>
+                            <td colSpan={4}>
                                 {searchTerm ? (
                                     <FormattedMessage
                                         id='channel_settings.permissions_policy.empty_search'
@@ -738,6 +739,7 @@ function ChannelSettingsPermissionsPolicyTab({
                     ) : (
                         pagedRules.map((rule) => {
                             const permissionCount = (rule.actions || []).length;
+                            const roleLabel = tableRoleMessages[rule.role];
                             return (
                                 <tr
                                     key={rule.key}
@@ -754,6 +756,9 @@ function ChannelSettingsPermissionsPolicyTab({
                                                 />
                                             </span>
                                         )}
+                                    </td>
+                                    <td className='ChannelSettingsModal__permissionsPolicyRowRole'>
+                                        {roleLabel ? formatMessage(roleLabel) : '—'}
                                     </td>
                                     <td>
                                         <FormattedMessage

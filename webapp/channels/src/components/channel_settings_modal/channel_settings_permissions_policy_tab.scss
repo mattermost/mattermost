@@ -12,24 +12,6 @@
         overflow-y: auto;
     }
 
-    &__permissionsPolicyBanner {
-        display: flex;
-        align-items: center;
-        padding: 12px 16px;
-        border: 1px solid rgba(var(--button-bg-rgb), 0.16);
-        border-radius: 4px;
-        background-color: rgba(var(--button-bg-rgb), 0.06);
-        color: var(--center-channel-color);
-        font-size: 13px;
-        gap: 10px;
-        line-height: 18px;
-
-        i {
-            color: var(--button-bg);
-            font-size: 18px;
-        }
-    }
-
     &__permissionsPolicyHeader {
         display: flex;
         align-items: center;
@@ -43,17 +25,19 @@
         font-family: 'Metropolis', sans-serif;
         font-size: 16px;
         font-weight: 600;
-        line-height: 24px;
+        line-height: 20px;
     }
 
     &__permissionsPolicyAddRule {
-        display: inline-flex;
-        align-items: center;
-        padding: 8px 16px;
-        gap: 4px;
-
         i {
             font-size: 16px;
+        }
+    }
+
+    &__permissionsPolicyNotice {
+        .sectionNoticeTitle {
+            font-weight: 400;
+            line-height: 20px;
         }
     }
 
@@ -75,22 +59,8 @@
         }
     }
 
-    &__permissionsPolicyOrHint {
-        display: flex;
-        align-items: center;
-        padding: 8px 12px;
-        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-        border-radius: 4px;
-        border-left: 3px solid var(--button-bg);
-        background-color: rgba(var(--button-bg-rgb), 0.04);
-        color: rgba(var(--center-channel-color-rgb), 0.72);
-        font-size: 12px;
-        gap: 6px;
-
-        i {
-            color: var(--button-bg);
-            font-size: 16px;
-        }
+    &__permissionsPolicyRowRole {
+        color: rgba(var(--center-channel-color-rgb), 0.75);
     }
 
     &__permissionsPolicyTable {

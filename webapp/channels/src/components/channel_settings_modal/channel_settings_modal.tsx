@@ -338,16 +338,16 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
         },
         {
             name: ChannelSettingsTabs.ACCESS_RULES,
-            uiName: formatMessage({id: 'channel_settings.tab.membership_policy', defaultMessage: 'Membership Policy'}),
+            uiName: formatMessage({id: 'channel_settings.tab.membership_policy', defaultMessage: 'Membership Rules'}),
             icon: 'icon icon-shield-outline',
             iconTitle: formatMessage({id: 'generic_icons.access_rules', defaultMessage: 'Membership Policy Icon'}),
             display: shouldShowAccessRulesTab,
         },
         {
             name: ChannelSettingsTabs.PERMISSIONS_POLICY,
-            uiName: formatMessage({id: 'channel_settings.tab.permissions_policy', defaultMessage: 'Permissions Policy'}),
+            uiName: formatMessage({id: 'channel_settings.tab.permissions_policy', defaultMessage: 'Permission Rules'}),
             icon: 'icon icon-key-variant',
-            iconTitle: formatMessage({id: 'generic_icons.permissions_policy', defaultMessage: 'Permissions Policy Icon'}),
+            iconTitle: formatMessage({id: 'generic_icons.permissions_policy', defaultMessage: 'Permission Rules Icon'}),
             display: shouldShowPermissionsPolicyTab,
         },
         {

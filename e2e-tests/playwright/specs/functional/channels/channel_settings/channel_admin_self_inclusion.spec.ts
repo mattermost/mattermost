@@ -132,7 +132,7 @@ async function createChannelAccessRule(
 
 async function openAccessControlSettings(channelsPage: ChannelsPage) {
     const channelSettings = await channelsPage.openChannelSettings();
-    const accessControlTab = channelSettings.container.getByRole('tab', {name: /Membership Policy/i});
+    const accessControlTab = channelSettings.container.getByRole('tab', {name: /Membership Rules/i});
     await expect(accessControlTab).toBeVisible({timeout: 10000});
     await accessControlTab.click();
 
