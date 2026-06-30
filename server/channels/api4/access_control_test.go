@@ -33,6 +33,13 @@ func updateTestFeatureFlags(t *testing.T, th *TestHelper, fn func(cfg *model.Con
 	th.App.UpdateConfig(fn)
 }
 
+func restoreABACFeatureFlagDefaults(cfg *model.Config) {
+	cfg.FeatureFlags.PermissionPolicies = true
+	cfg.FeatureFlags.ChannelPermissionPolicies = true
+	cfg.FeatureFlags.PolicySimulation = true
+	cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+}
+
 func TestCreateAccessControlPolicy(t *testing.T) {
 	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
 
@@ -363,9 +370,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 			cfg.FeatureFlags.ChannelPermissionPolicies = false
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
-		defer updateTestFeatureFlags(t, th, func(cfg *model.Config) {
-			cfg.FeatureFlags.PermissionPolicies = false
-		})
+		defer updateTestFeatureFlags(t, th, restoreABACFeatureFlagDefaults)
 
 		channelPolicy := &model.AccessControlPolicy{
 			ID:       model.NewId(),
@@ -403,9 +408,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 			cfg.FeatureFlags.ChannelPermissionPolicies = true
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
-		defer updateTestFeatureFlags(t, th, func(cfg *model.Config) {
-			cfg.FeatureFlags.ChannelPermissionPolicies = false
-		})
+		defer updateTestFeatureFlags(t, th, restoreABACFeatureFlagDefaults)
 
 		channelPolicy := &model.AccessControlPolicy{
 			ID:       model.NewId(),
@@ -465,10 +468,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 			cfg.FeatureFlags.ChannelPermissionPolicies = true
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		})
-		defer updateTestFeatureFlags(t, th, func(cfg *model.Config) {
-			cfg.FeatureFlags.PermissionPolicies = false
-			cfg.FeatureFlags.ChannelPermissionPolicies = false
-		})
+		defer updateTestFeatureFlags(t, th, restoreABACFeatureFlagDefaults)
 
 		_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), channelPolicy)
 		require.NoError(t, err)
@@ -2712,9 +2712,7 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 			cfg.FeatureFlags.PermissionPolicies = true
 			cfg.FeatureFlags.PolicySimulation = false
 		})
-		defer updateTestFeatureFlags(t, th, func(cfg *model.Config) {
-			cfg.FeatureFlags.PermissionPolicies = false
-		})
+		defer updateTestFeatureFlags(t, th, restoreABACFeatureFlagDefaults)
 
 		body := mustMarshal(t, model.PolicySimulationByUsersParams{
 			Policy: &model.AccessControlPolicy{ID: model.NewId(), Type: model.AccessControlPolicyTypeChannel},
@@ -2740,10 +2738,7 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 			cfg.FeatureFlags.PermissionPolicies = true
 			cfg.FeatureFlags.PolicySimulation = true
 		})
-		defer updateTestFeatureFlags(t, th, func(cfg *model.Config) {
-			cfg.FeatureFlags.PermissionPolicies = false
-			cfg.FeatureFlags.PolicySimulation = false
-		})
+		defer updateTestFeatureFlags(t, th, restoreABACFeatureFlagDefaults)
 
 		body := mustMarshal(t, model.PolicySimulationByUsersParams{
 			Policy:  &model.AccessControlPolicy{ID: model.NewId(), Type: model.AccessControlPolicyTypeChannel},
@@ -2765,10 +2760,7 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 			cfg.FeatureFlags.PolicySimulation = true
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
 		})
-		defer updateTestFeatureFlags(t, th, func(cfg *model.Config) {
-			cfg.FeatureFlags.PermissionPolicies = false
-			cfg.FeatureFlags.PolicySimulation = false
-		})
+		defer updateTestFeatureFlags(t, th, restoreABACFeatureFlagDefaults)
 
 		mockACS := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().Channels().AccessControl = mockACS
@@ -2792,10 +2784,7 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 			cfg.FeatureFlags.PolicySimulation = true
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
 		})
-		defer updateTestFeatureFlags(t, th, func(cfg *model.Config) {
-			cfg.FeatureFlags.PermissionPolicies = false
-			cfg.FeatureFlags.PolicySimulation = false
-		})
+		defer updateTestFeatureFlags(t, th, restoreABACFeatureFlagDefaults)
 
 		mockACS := &mocks.AccessControlServiceInterface{}
 		mockACS.On("SimulatePolicyForUsers", mock.Anything, mock.Anything).Return(
@@ -2825,10 +2814,7 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 			cfg.FeatureFlags.PolicySimulation = true
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
 		})
-		defer updateTestFeatureFlags(t, th, func(cfg *model.Config) {
-			cfg.FeatureFlags.PermissionPolicies = false
-			cfg.FeatureFlags.PolicySimulation = false
-		})
+		defer updateTestFeatureFlags(t, th, restoreABACFeatureFlagDefaults)
 
 		mockACS := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().Channels().AccessControl = mockACS
