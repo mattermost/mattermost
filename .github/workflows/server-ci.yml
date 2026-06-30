@@ -62,8 +62,6 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - name: Run setup-go-work
-        run: make setup-go-work
       - name: Generate mocks
         run: make mocks
       - name: Check mocks
@@ -81,8 +79,6 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - name: Run setup-go-work
-        run: make setup-go-work
       - name: Run go mod tidy
         run: make modules-tidy
       - name: Check modules
@@ -100,8 +96,6 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - name: Run setup-go-work
-        run: make setup-go-work
       - name: Run golangci
         run: make check-style
   check-gen-serialized:
@@ -117,8 +111,6 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - name: Run setup-go-work
-        run: make setup-go-work
       - name: Run make-gen-serialized
         run: make gen-serialized
       - name: Check serialized
@@ -136,8 +128,6 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - name: Run setup-go-work
-        run: make setup-go-work
       - name: Run mattermost-vet-api
         run: make vet-api
   check-migrations:
@@ -189,8 +179,6 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - name: Run setup-go-work
-        run: make setup-go-work
       - name: Generate store layers
         run: make store-layers
       - name: Check generated code
@@ -208,8 +196,6 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - name: Run setup-go-work
-        run: make setup-go-work
       - name: Check docs
         run: |
           echo "Making sure docs are updated"
@@ -376,8 +362,6 @@ jobs:
           node-version-file: ".nvmrc"
           cache: "npm"
           cache-dependency-path: "webapp/package-lock.json"
-      - name: Run setup-go-work
-        run: make setup-go-work
       - name: Build
         run: |
           make config-reset
