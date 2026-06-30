@@ -16,11 +16,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// abacTestConfig enables ABAC for policy-endpoint tests that do not cover
-// attribute-value masking. Masking stays off so mocks only need the
-// access-control service calls each test exercises.
-func abacTestConfig(cfg *model.Config) {
-	cfg.FeatureFlags.AttributeBasedAccessControl = true
+// maskingOffTestConfig disables attribute-value masking for policy-endpoint
+// tests that do not cover masking. ABAC and other ABAC sub-flags default on.
+func maskingOffTestConfig(cfg *model.Config) {
 	cfg.FeatureFlags.AttributeValueMasking = false
 }
 
@@ -36,7 +34,7 @@ func updateTestFeatureFlags(t *testing.T, th *TestHelper, fn func(cfg *model.Con
 }
 
 func TestCreateAccessControlPolicy(t *testing.T) {
-	th := SetupConfig(t, abacTestConfig).InitBasic(t)
+	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       th.BasicChannel.Id,
@@ -517,7 +515,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 }
 
 func TestGetAccessControlPolicy(t *testing.T) {
-	th := SetupConfig(t, abacTestConfig).InitBasic(t)
+	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       model.NewId(),
@@ -645,7 +643,7 @@ func TestGetAccessControlPolicy(t *testing.T) {
 }
 
 func TestDeleteAccessControlPolicy(t *testing.T) {
-	th := SetupConfig(t, abacTestConfig).InitBasic(t)
+	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
 
 	samplePolicyID := model.NewId()
 
@@ -721,7 +719,7 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 }
 
 func TestCheckExpression(t *testing.T) {
-	th := SetupConfig(t, abacTestConfig).InitBasic(t)
+	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
 
 	t.Run("CheckExpression without license", func(t *testing.T) {
 		_, resp, err := th.SystemAdminClient.CheckExpression(context.Background(), "true")
@@ -856,7 +854,7 @@ func TestCheckExpression(t *testing.T) {
 }
 
 func TestTestExpression(t *testing.T) {
-	th := SetupConfig(t, abacTestConfig).InitBasic(t)
+	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
 
 	t.Run("TestExpression without license", func(t *testing.T) {
 		_, resp, err := th.SystemAdminClient.TestExpression(context.Background(), model.QueryExpressionParams{})
@@ -903,7 +901,7 @@ func TestTestExpression(t *testing.T) {
 }
 
 func TestSearchAccessControlPolicies(t *testing.T) {
-	th := SetupConfig(t, abacTestConfig).InitBasic(t)
+	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
 
 	t.Run("SearchAccessControlPolicies without license", func(t *testing.T) {
 		_, resp, err := th.SystemAdminClient.SearchAccessControlPolicies(context.Background(), model.AccessControlPolicySearch{})
@@ -1077,7 +1075,7 @@ func TestSearchTeamAccessControlPolicies(t *testing.T) {
 }
 
 func TestAssignAccessPolicy(t *testing.T) {
-	th := SetupConfig(t, abacTestConfig).InitBasic(t)
+	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       model.NewId(),
@@ -1154,7 +1152,7 @@ func TestAssignAccessPolicy(t *testing.T) {
 }
 
 func TestUnassignAccessPolicy(t *testing.T) {
-	th := SetupConfig(t, abacTestConfig).InitBasic(t)
+	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       model.NewId(),
@@ -1227,7 +1225,7 @@ func TestUnassignAccessPolicy(t *testing.T) {
 }
 
 func TestGetChannelsForAccessControlPolicy(t *testing.T) {
-	th := SetupConfig(t, abacTestConfig).InitBasic(t)
+	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       model.NewId(),
@@ -1285,7 +1283,7 @@ func TestGetChannelsForAccessControlPolicy(t *testing.T) {
 }
 
 func TestSearchChannelsForAccessControlPolicy(t *testing.T) {
-	th := SetupConfig(t, abacTestConfig).InitBasic(t)
+	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
 
 	newSamplePolicy := func() *model.AccessControlPolicy {
 		return &model.AccessControlPolicy{
@@ -1499,7 +1497,7 @@ func TestSearchChannelsForAccessControlPolicy(t *testing.T) {
 }
 
 func TestSetActiveStatus(t *testing.T) {
-	th := SetupConfig(t, abacTestConfig).InitBasic(t)
+	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       th.BasicChannel.Id,
@@ -1733,12 +1731,7 @@ func newParentPolicy(teamID string) *model.AccessControlPolicy {
 // fail-closed branch (unknown property field) so the masking always produces the
 // "--------" sentinel without requiring a real CPA setup.
 func TestResponseMaskingOnPolicyEndpoints(t *testing.T) {
-	// SetupConfig sets FFs before route init via SetReadOnlyFF(false). Avoids
-	// os.Setenv which isn't parallel-safe.
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.AttributeBasedAccessControl = true
-		cfg.FeatureFlags.AttributeValueMasking = true
-	}).InitBasic(t)
+	th := Setup().InitBasic(t)
 
 	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	require.True(t, ok, "SetLicense should return true")
@@ -2672,7 +2665,7 @@ func TestScopeReconciliationCrossTeam(t *testing.T) {
 // proxies to the access-control service which we mock here so the test
 // stays focused on the API surface (auth + payload validation).
 func TestSimulatePolicyForUsers(t *testing.T) {
-	th := SetupConfig(t, abacTestConfig).InitBasic(t)
+	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
 
 	t.Run("returns 501 when umbrella PermissionPolicies flag is disabled", func(t *testing.T) {
 		// Set the Enterprise Advanced license up-front so any future

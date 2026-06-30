@@ -83,12 +83,14 @@ type UserReportQuery struct {
 	User
 	UserPostStats
 	ChannelCount *int
+	Teams        string
 }
 
 type UserReport struct {
 	User
 	UserPostStats
-	ChannelCount *int `json:"channel_count,omitempty"`
+	ChannelCount *int   `json:"channel_count,omitempty"`
+	Teams        string `json:"teams,omitempty"`
 }
 
 func (u *UserReport) ToReport() []string {
@@ -135,6 +137,7 @@ func (u *UserReport) ToReport() []string {
 		daysActive,
 		totalPosts,
 		channelCount,
+		u.Teams,
 		deleteAt,
 	}
 }
@@ -173,6 +176,7 @@ func (u *UserReportQuery) ToReport() *UserReport {
 		User:          u.User,
 		UserPostStats: u.UserPostStats,
 		ChannelCount:  u.ChannelCount,
+		Teams:         u.Teams,
 	}
 }
 

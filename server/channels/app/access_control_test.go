@@ -352,10 +352,7 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 		// could not audit. The canonical walker's HasMaskedValuesForCaller is mocked
 		// to return true, simulating a hidden-value field without requiring a full
 		// CPA setup for the test.
-		th := SetupConfig(t, func(cfg *model.Config) {
-			cfg.FeatureFlags.AttributeBasedAccessControl = true
-			cfg.FeatureFlags.AttributeValueMasking = true
-		}).InitBasic(t)
+		th := Setup(t).InitBasic()
 
 		callerID := model.NewId()
 		th.Context = th.Context.WithSession(&model.Session{UserId: callerID, Id: model.NewId()}).(*request.Context)
@@ -4991,10 +4988,7 @@ func TestUpdateAccessControlPoliciesActive_MaskingGuard(t *testing.T) {
 	t.Run("deactivation blocked when caller has masked values", func(t *testing.T) {
 		// policyHasMaskedValuesForCaller resolves the property group from the store,
 		// so this subtest uses SetupConfig + InitBasic rather than a mock store.
-		th := SetupConfig(t, func(cfg *model.Config) {
-			cfg.FeatureFlags.AttributeBasedAccessControl = true
-			cfg.FeatureFlags.AttributeValueMasking = true
-		}).InitBasic(t)
+		th := Setup(t).InitBasic()
 
 		callerID := model.NewId()
 		th.Context = th.Context.WithSession(&model.Session{UserId: callerID, Id: model.NewId()}).(*request.Context)
@@ -5027,8 +5021,6 @@ func TestUpdateAccessControlPoliciesActive_MaskingGuard(t *testing.T) {
 	t.Run("activation always allowed even when caller has masked values", func(t *testing.T) {
 		// The guard skips Active=true updates, so no property store access is needed.
 		thMock := SetupWithStoreMock(t)
-		thMock.App.Config().FeatureFlags.AttributeBasedAccessControl = true
-		thMock.App.Config().FeatureFlags.AttributeValueMasking = true
 
 		callerID := model.NewId()
 		thMock.Context = thMock.Context.WithSession(&model.Session{UserId: callerID, Id: model.NewId()}).(*request.Context)
@@ -5199,10 +5191,7 @@ func TestMaskPolicyExpressions_FailClosedUsesDenyAllSentinel(t *testing.T) {
 	callerID := model.NewId()
 
 	t.Run("MaskExpressionForCaller failure masks rule to deny-all sentinel", func(t *testing.T) {
-		th2 := SetupConfig(t, func(cfg *model.Config) {
-			cfg.FeatureFlags.AttributeBasedAccessControl = true
-			cfg.FeatureFlags.AttributeValueMasking = true
-		}).InitBasic(t)
+		th2 := Setup(t).InitBasic()
 
 		policy := &model.AccessControlPolicy{
 			Rules: []model.AccessControlPolicyRule{

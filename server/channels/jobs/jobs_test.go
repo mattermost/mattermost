@@ -208,7 +208,26 @@ func TestSetJobWarning(t *testing.T) {
 	})
 
 	t.Run("status updated", func(t *testing.T) {
-		jobServer, mockStore, _ := makeJobServer(t)
+		jobServer, mockStore, mockMetrics := makeJobServer(t)
+
+		job := &model.Job{
+			Id:   "job_id",
+			Type: "job_type",
+		}
+		retJob := *job
+		retJob.Status = model.JobStatusWarning
+
+		mockStore.JobStore.
+			On("UpdateStatus", "job_id", model.JobStatusWarning).
+			Return(&retJob, nil)
+		mockMetrics.On("DecrementJobActive", "job_type").Once()
+
+		err := jobServer.SetJobWarning(job)
+		require.Nil(t, err)
+	})
+
+	t.Run("status updated, nil metrics service", func(t *testing.T) {
+		jobServer, mockStore := makeTeamEditionJobServer(t)
 
 		job := &model.Job{
 			Id:   "job_id",
