@@ -1156,8 +1156,6 @@ func (a *App) userAllowsEmail(rctx request.CTX, user *model.User, channelMemberN
 		return false
 	}
 
-	// Team membership-policy DMs (removal/auto-add) are persistent in-app notices
-	// only; suppress email so a bulk policy sync doesn't flood every affected user.
 	if post.IsAccessControlTeamMembershipNotification() {
 		return false
 	}

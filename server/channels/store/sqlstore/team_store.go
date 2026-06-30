@@ -619,10 +619,7 @@ func (s SqlTeamStore) SearchOpen(opts *model.TeamSearch) ([]*model.Team, error) 
 }
 
 // SearchPrivate returns from the database a list of private teams that match the Name or DisplayName
-// passed as the term search parameter. Privacy is keyed on AllowOpenInvite rather
-// than Type, so invite-only (Type "I") teams are included alongside open-typed
-// teams that have open invite disabled. The AllowOpenInvite=false filter already
-// excludes group-constrained teams.
+// passed as the term search parameter. Privacy is keyed on AllowOpenInvite, not Type, so invite-only teams are included too.
 func (s SqlTeamStore) SearchPrivate(opts *model.TeamSearch) ([]*model.Team, error) {
 	opts.AllowOpenInvite = new(false)
 	return s.SearchAll(opts)

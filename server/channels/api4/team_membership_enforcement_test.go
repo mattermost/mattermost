@@ -183,8 +183,9 @@ func TestTeamSelfJoinABACAttributeGating(t *testing.T) {
 	require.True(t, th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)))
 	defer th.App.Srv().SetLicense(nil)
 
-	// th.Client is BasicUser: a regular user whose system_user role does NOT grant
-	// join_private_teams. This is the cohort the change is about.
+	// Log in as BasicUser (a regular user without join_private_teams) so
+	// AddTeamMember(self) is a real self-join.
+	th.LoginBasic(t)
 	require.False(t, th.App.SessionHasPermissionTo(model.Session{Roles: model.SystemUserRoleId}, model.PermissionJoinPrivateTeams),
 		"the base system_user role must not hold join_private_teams, or this test is meaningless")
 
@@ -207,8 +208,7 @@ func TestTeamSelfJoinABACAttributeGating(t *testing.T) {
 		t.Cleanup(func() { _ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, teamID) })
 	}
 
-	// A private (non-open-invite) team owned by the System Admin, so BasicUser is a
-	// non-member. Optionally governed by a membership policy.
+	// Admin-owned so BasicUser is a non-member.
 	newPrivateTeam := func(t *testing.T, governed bool) *model.Team {
 		t.Helper()
 		team := th.CreateTeamWithClient(t, th.SystemAdminClient)
@@ -286,8 +286,7 @@ func TestTeamSelfJoinABACAttributeGating(t *testing.T) {
 	t.Run("governed team but ABAC disabled (no license): role gate applies, bypass is strictly gated", func(t *testing.T) {
 		team := newPrivateTeam(t, true)
 
-		// Remove the license so TeamMembershipAccessControlEnabled is false; the
-		// stored policy must not loosen the gate when the feature is off.
+		// Feature off: the stored policy must not loosen the role gate.
 		th.App.Srv().SetLicense(nil)
 		defer func() {
 			require.True(t, th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)))
@@ -306,8 +305,6 @@ func TestTeamSelfJoinABACAttributeGating(t *testing.T) {
 		saveTeamPolicy(t, team.Id)
 
 		m := setMockACS(t)
-		// Advisory: the join gate is skipped for public teams, so AccessEvaluation
-		// must never be called on this path.
 
 		_, resp, err := th.Client.AddTeamMember(context.Background(), team.Id, th.BasicUser.Id)
 		require.NoError(t, err)

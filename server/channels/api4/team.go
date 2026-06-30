@@ -975,12 +975,11 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		} else {
-			// On an ABAC-governed team, membership is authorized by attribute match
-			// in JoinUserToTeam, not by the join_private_teams role. Non-governed
-			// private teams keep the role gate exactly as before.
+			// ABAC-governed teams authorize membership by attribute in
+			// JoinUserToTeam, not by the join_private_teams role.
 			controlled, appErr := c.App.TeamAccessControlled(c.AppContext, team.Id)
 			if appErr != nil {
-				c.Err = appErr // fail-closed: don't loosen the gate on error
+				c.Err = appErr
 				return
 			}
 			if !controlled && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionJoinPrivateTeams) {

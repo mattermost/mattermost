@@ -114,7 +114,6 @@ func TestIsAccessControlTeamMembershipNotification(t *testing.T) {
 		{"removal DM", PostTypeAccessControlTeamRemoval, true},
 		{"addition DM", PostTypeAccessControlTeamAddition, true},
 		{"regular post", "", false},
-		// Other system DMs must be unaffected.
 		{"add to team", PostTypeAddToTeam, false},
 		{"remove from team", PostTypeRemoveFromTeam, false},
 		{"join channel", PostTypeJoinChannel, false},

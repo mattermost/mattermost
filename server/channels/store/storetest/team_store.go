@@ -684,8 +684,7 @@ func testTeamStoreSearchPrivate(t *testing.T, rctx request.CTX, ss store.Store) 
 	_, err = ss.Team().Save(&q)
 	require.NoError(t, err)
 
-	// Invite-only team (Type "I"): private regardless of Type, so it must be
-	// returned by the private search.
+	// Invite-only team must also count as private.
 	pi := model.Team{}
 	pi.DisplayName = "ADisplayName" + NewTestID()
 	pi.Name = NewTestID()

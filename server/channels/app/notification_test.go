@@ -2550,8 +2550,6 @@ func TestUserAllowsEmailAccessControlTeamMembership(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	// Notify props + offline status that would normally allow email; the only
-	// variable across cases is the post type.
 	props := model.StringMap{
 		model.EmailNotifyProp:      model.ChannelNotifyDefault,
 		model.MarkUnreadNotifyProp: model.ChannelMarkUnreadAll,
@@ -2571,9 +2569,7 @@ func TestUserAllowsEmailAccessControlTeamMembership(t *testing.T) {
 		assert.False(t, th.App.userAllowsEmail(th.Context, user, props, &model.Post{Type: model.PostTypeAccessControlTeamAddition}))
 	})
 
-	// Guard: the suppression is scoped to the two ABAC team types. Another system
-	// DM under the same conditions must still email, proving behavior is unchanged
-	// for everything else.
+	// Scoped to the two ABAC types: another system DM still emails.
 	t.Run("other system DM still emails", func(t *testing.T) {
 		user := th.CreateUser(t)
 		th.App.SetStatusOffline(user.Id, true, false)
