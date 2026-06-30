@@ -15,6 +15,10 @@ import {
 } from 'mattermost-redux/actions/access_control';
 import {patchTeam, regenerateTeamInviteId, getTeamStats, updateTeamPrivacy} from 'mattermost-redux/actions/teams';
 
+import {isTeamMembershipAccessControlEnabled} from 'selectors/general';
+
+import type {GlobalState} from 'types/store';
+
 import TeamAccessTab from './team_access_tab';
 
 export type OwnProps = {
@@ -24,6 +28,12 @@ export type OwnProps = {
     setAreThereUnsavedChanges: (unsaved: boolean) => void;
     setShowTabSwitchError: (error: boolean) => void;
 };
+
+function mapStateToProps(state: GlobalState) {
+    return {
+        teamMembershipAccessControlEnabled: isTeamMembershipAccessControlEnabled(state),
+    };
+}
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
@@ -39,7 +49,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
     };
 }
 
-const connector = connect(null, mapDispatchToProps);
+const connector = connect(mapStateToProps, mapDispatchToProps);
 
 export type PropsFromRedux = ConnectedProps<typeof connector>;
 

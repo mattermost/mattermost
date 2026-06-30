@@ -28,9 +28,14 @@ const generateAllowedDomainOptions = (allowedDomains?: string) => {
 
 type Props = PropsFromRedux & OwnProps;
 
-const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitchError, setAreThereUnsavedChanges, team, actions}: Props) => {
+const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitchError, setAreThereUnsavedChanges, team, teamMembershipAccessControlEnabled, actions}: Props) => {
     const [allowedDomains, setAllowedDomains] = useState<string[]>(() => generateAllowedDomainOptions(team.allowed_domains));
     const isPublicTeamInitial = team.type === 'O' && (team.allow_open_invite ?? false);
+
+    // ABAC governs this team only when the feature is enabled (license + flag +
+    // config) and a policy is attached. A stale policy row on a disabled instance
+    // must stay on the legacy path.
+    const teamAbacActive = Boolean(teamMembershipAccessControlEnabled && team.policy_enforced);
     const [isPublicTeam, setIsPublicTeam] = useState<boolean>(isPublicTeamInitial);
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
     const [isSaving, setIsSaving] = useState(false);
@@ -55,12 +60,18 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
         if (isPublicTeam === isPublicTeamInitial) {
             return true;
         }
-        const {error} = await actions.updateTeamPrivacy(team.id, isPublicTeam ? 'O' : 'I');
-        if (error) {
-            return false;
+
+        // Only ABAC-governed teams normalize both fields. Otherwise keep the legacy
+        // contract of touching only allow_open_invite, since some paths still treat
+        // type="I" differently (e.g. getInviteInfo).
+        if (teamAbacActive) {
+            const {error} = await actions.updateTeamPrivacy(team.id, isPublicTeam ? 'O' : 'I');
+            return !error;
         }
-        return true;
-    }, [actions, isPublicTeam, isPublicTeamInitial, team]);
+
+        const {error} = await actions.patchTeam({id: team.id, allow_open_invite: isPublicTeam});
+        return !error;
+    }, [actions, isPublicTeam, isPublicTeamInitial, team, teamAbacActive]);
 
     const computeModeFlipCount = useCallback(async (): Promise<number | null> => {
         try {
@@ -100,7 +111,7 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
         setAreThereUnsavedChanges(true);
         setSaveChangesPanelState('editing');
 
-        if (!newIsPublic && isPublicTeam && team.policy_enforced) {
+        if (!newIsPublic && isPublicTeam && teamAbacActive) {
             pendingPublicValueRef.current = newIsPublic;
             const count = await computeModeFlipCount();
             setModeFlipMemberCount(count);
@@ -109,7 +120,7 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
         }
 
         setIsPublicTeam(newIsPublic);
-    }, [isPublicTeam, team.policy_enforced, computeModeFlipCount, setAreThereUnsavedChanges]);
+    }, [isPublicTeam, teamAbacActive, computeModeFlipCount, setAreThereUnsavedChanges]);
 
     const handleModeFlipConfirm = useCallback(async () => {
         setShowModeFlipModal(false);
@@ -118,7 +129,7 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
             pendingPublicValueRef.current = null;
         }
 
-        if (team.policy_enforced) {
+        if (teamAbacActive) {
             try {
                 await actions.createAccessControlTeamSyncJob({policy_id: team.id});
             } catch (jobError) {
@@ -129,7 +140,7 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
                 console.error('Failed to create team access control sync job after mode flip:', jobError);
             }
         }
-    }, [actions, team.id, team.policy_enforced]);
+    }, [actions, team.id, teamAbacActive]);
 
     const handleModeFlipCancel = useCallback(() => {
         setShowModeFlipModal(false);

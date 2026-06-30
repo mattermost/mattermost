@@ -95,7 +95,7 @@ test.describe('Team Settings Modal - Access Tab - Discoverability', {tag: ['@aba
         await teamSettings.close();
     });
 
-    test('MM-69100_2 Public Team card saves type=O and allow_open_invite=true', async ({pw}) => {
+    test('MM-69100_2 non-policy team: Public card toggles allow_open_invite only, leaves type unchanged', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminClient, adminUser} = await pw.getAdminClient();
         if (!adminUser) {
@@ -104,8 +104,14 @@ test.describe('Team Settings Modal - Access Tab - Discoverability', {tag: ['@aba
         const suffix = pw.random.id();
         await enableTeamMembershipABACConfig(adminClient);
 
-        // # Start with a private team
-        const team = await createPrivateTeam(adminClient, suffix);
+        // # Start with an open-typed team that is not discoverable (type=O, allow_open_invite=false).
+        // No policy attached, so the cards must follow the legacy contract.
+        const team = await adminClient.createTeam({
+            name: `np-pub-team-${suffix}`,
+            display_name: `NP Pub Team ${suffix}`,
+            type: 'O',
+            allow_open_invite: false,
+        } as any);
 
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
@@ -116,28 +122,24 @@ test.describe('Team Settings Modal - Access Tab - Discoverability', {tag: ['@aba
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessTab();
 
-        // * Private Team card is initially selected
+        // * Private Team card is initially selected (not discoverable)
         await expect(teamSettings.container.locator('#public-private-selector-button-P')).toHaveClass(/selected/);
 
         // # Click Public Team card
         await teamSettings.container.locator('#public-private-selector-button-O').click();
-
-        // * Save button becomes visible
         await expect(teamSettings.saveButton).toBeVisible();
-
-        // # Save changes
         await teamSettings.save();
         await teamSettings.verifySavedMessage();
 
-        // * Team is now public
+        // * Only allow_open_invite changed; type stays "O" (no normalization without a policy)
         const updatedTeam = await adminClient.getTeam(team.id);
-        expect(updatedTeam.type).toBe('O');
         expect(updatedTeam.allow_open_invite).toBe(true);
+        expect(updatedTeam.type).toBe('O');
 
         await teamSettings.close();
     });
 
-    test('MM-69100_3 Private Team card saves type=I and allow_open_invite=false', async ({pw}) => {
+    test('MM-69100_3 non-policy team: Private card toggles allow_open_invite only, never sets type=I', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminClient, adminUser} = await pw.getAdminClient();
         if (!adminUser) {
@@ -146,7 +148,7 @@ test.describe('Team Settings Modal - Access Tab - Discoverability', {tag: ['@aba
         const suffix = pw.random.id();
         await enableTeamMembershipABACConfig(adminClient);
 
-        // # Start with a fully public team (type=O AND allow_open_invite=true)
+        // # Start with a fully public team (type=O AND allow_open_invite=true), no policy
         const team = await createPublicTeam(adminClient, suffix);
 
         const {page} = await pw.testBrowser.login(adminUser);
@@ -163,19 +165,16 @@ test.describe('Team Settings Modal - Access Tab - Discoverability', {tag: ['@aba
 
         // # Click Private Team card (no policy → no mode-flip modal)
         await teamSettings.container.locator('#public-private-selector-button-P').click();
-
-        // * Save button becomes visible, no mode-flip modal
         await expect(teamSettings.saveButton).toBeVisible();
         await expect(page.getByText('Switch to Private Team?')).not.toBeVisible();
-
-        // # Save
         await teamSettings.save();
         await teamSettings.verifySavedMessage();
 
-        // * Team is now private
+        // * Only allow_open_invite changed; type stays "O" — the legacy contract must not
+        // flip a non-policy team to invite-only (would regress getInviteInfo, etc.)
         const updatedTeam = await adminClient.getTeam(team.id);
-        expect(updatedTeam.type).toBe('I');
         expect(updatedTeam.allow_open_invite).toBe(false);
+        expect(updatedTeam.type).toBe('O');
 
         await teamSettings.close();
     });

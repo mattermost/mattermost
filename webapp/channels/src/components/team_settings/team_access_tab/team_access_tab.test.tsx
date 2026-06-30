@@ -31,11 +31,16 @@ describe('components/TeamSettings', () => {
     const defaultProps: ComponentProps<typeof AccessTab> = {
         team: TestHelper.getTeamMock({id: 'team_id'}),
         actions: baseActions,
+        teamMembershipAccessControlEnabled: false,
         areThereUnsavedChanges: true,
         showTabSwitchError: false,
         setAreThereUnsavedChanges: jest.fn(),
         setShowTabSwitchError: jest.fn(),
     };
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
 
     test('should not render team invite section if no permissions for team inviting', () => {
         const props = {...defaultProps, canInviteTeamMembers: false};
@@ -134,5 +139,71 @@ describe('components/TeamSettings', () => {
         renderWithContext(<AccessTab {...props}/>);
         await userEvent.click(screen.getByText('Private Team'));
         expect(defaultProps.setAreThereUnsavedChanges).toHaveBeenCalledWith(true);
+    });
+
+    test('non-ABAC team: selecting Private patches only allow_open_invite, never updateTeamPrivacy', async () => {
+        const props = {
+            ...defaultProps,
+            team: TestHelper.getTeamMock({id: 'team_id', type: 'O', allow_open_invite: true, policy_enforced: false}),
+        };
+        renderWithContext(<AccessTab {...props}/>);
+        await userEvent.click(screen.getByText('Private Team'));
+        await userEvent.click(screen.getByTestId('SaveChangesPanel__save-btn'));
+        expect(patchTeam).toHaveBeenCalledWith({id: 'team_id', allow_open_invite: false});
+        expect(updateTeamPrivacy).not.toHaveBeenCalled();
+    });
+
+    test('non-ABAC team: selecting Public patches only allow_open_invite, never updateTeamPrivacy', async () => {
+        const props = {
+            ...defaultProps,
+            team: TestHelper.getTeamMock({id: 'team_id', type: 'O', allow_open_invite: false, policy_enforced: false}),
+        };
+        renderWithContext(<AccessTab {...props}/>);
+        await userEvent.click(screen.getByText('Public Team'));
+        await userEvent.click(screen.getByTestId('SaveChangesPanel__save-btn'));
+        expect(patchTeam).toHaveBeenCalledWith({id: 'team_id', allow_open_invite: true});
+        expect(updateTeamPrivacy).not.toHaveBeenCalled();
+    });
+
+    test('ABAC-governed team: Public to Private confirms and calls updateTeamPrivacy with I', async () => {
+        const props = {
+            ...defaultProps,
+            team: TestHelper.getTeamMock({id: 'team_id', type: 'O', allow_open_invite: true, policy_enforced: true}),
+            teamMembershipAccessControlEnabled: true,
+        };
+        renderWithContext(<AccessTab {...props}/>);
+        await userEvent.click(screen.getByText('Private Team'));
+
+        // Public -> Private on a governed team opens the mode-flip confirmation.
+        await userEvent.click(await screen.findByText('Switch to Private'));
+        await userEvent.click(screen.getByTestId('SaveChangesPanel__save-btn'));
+        expect(updateTeamPrivacy).toHaveBeenCalledWith('team_id', 'I');
+    });
+
+    test('ABAC-governed team: selecting Public calls updateTeamPrivacy with O', async () => {
+        const props = {
+            ...defaultProps,
+            team: TestHelper.getTeamMock({id: 'team_id', type: 'I', allow_open_invite: false, policy_enforced: true}),
+            teamMembershipAccessControlEnabled: true,
+        };
+        renderWithContext(<AccessTab {...props}/>);
+        await userEvent.click(screen.getByText('Public Team'));
+        await userEvent.click(screen.getByTestId('SaveChangesPanel__save-btn'));
+        expect(updateTeamPrivacy).toHaveBeenCalledWith('team_id', 'O');
+    });
+
+    test('stale policy but team ABAC disabled: stays on legacy patchTeam path, never updateTeamPrivacy', async () => {
+        // policy_enforced is a pure DB-existence flag; with the feature off (license
+        // downgrade / flag off) a leftover policy row must not pull in updateTeamPrivacy.
+        const props = {
+            ...defaultProps,
+            team: TestHelper.getTeamMock({id: 'team_id', type: 'O', allow_open_invite: true, policy_enforced: true}),
+            teamMembershipAccessControlEnabled: false,
+        };
+        renderWithContext(<AccessTab {...props}/>);
+        await userEvent.click(screen.getByText('Private Team'));
+        await userEvent.click(screen.getByTestId('SaveChangesPanel__save-btn'));
+        expect(patchTeam).toHaveBeenCalledWith({id: 'team_id', allow_open_invite: false});
+        expect(updateTeamPrivacy).not.toHaveBeenCalled();
     });
 });
