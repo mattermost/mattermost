@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	saml2 "github.com/mattermost/gosaml2"
+
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
@@ -72,6 +73,7 @@ const (
 	ChannelWillBeRestoredID                   = 53
 	ScheduledPostWillBeCreatedID              = 54
 	DraftWillBeUpsertedID                     = 55
+	MessagesWillBeConsumedWithContextID       = 56
 	TotalHooksID                              = iota
 )
 
@@ -197,6 +199,18 @@ type Hooks interface {
 	//
 	// Minimum server version: 9.3
 	MessagesWillBeConsumed(posts []*model.Post) []*model.Post
+
+	// MessagesWillBeConsumedWithContext is invoked when messages are requested by a client, before
+	// they are returned to the client. It is the context-aware variant of MessagesWillBeConsumed.
+	//
+	// To modify a post, return the replacement post; the returned posts are matched to the originals
+	// by ID. Posts that should be left unchanged may be omitted from the returned slice.
+	//
+	// Note that this method will be called for posts created by plugins, including the plugin that
+	// created the post.
+	//
+	// Minimum server version: 11.9
+	MessagesWillBeConsumedWithContext(c *Context, posts []*model.Post) []*model.Post
 
 	// MessageHasBeenDeleted is invoked after the message has been deleted from the database.
 	// Note that this method will be called for posts deleted by plugins, including the plugin that
@@ -480,7 +494,7 @@ type Hooks interface {
 	// Fires from the app-layer UpdateChannel and PatchChannel paths so REST, local API, plugin API,
 	// import, and bulk callers all hit it.
 	//
-	// Minimum server version: 11.8
+	// Minimum server version: 11.9
 	ChannelWillBeUpdated(c *Context, newChannel, oldChannel *model.Channel) (*model.Channel, string)
 
 	// ChannelWillBeRestored is invoked before an archived channel is un-archived. Fires from
@@ -489,7 +503,7 @@ type Hooks interface {
 	//
 	// To reject, return a non-empty string. Empty string allows the restore.
 	//
-	// Minimum server version: 11.8
+	// Minimum server version: 11.9
 	ChannelWillBeRestored(c *Context, channel *model.Channel) string
 
 	// ScheduledPostWillBeCreated is invoked before a scheduled post is committed. Fires from the
@@ -497,7 +511,7 @@ type Hooks interface {
 	//
 	// Return value semantics match MessageWillBePosted.
 	//
-	// Minimum server version: 11.8
+	// Minimum server version: 11.9
 	ScheduledPostWillBeCreated(c *Context, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, string)
 
 	// DraftWillBeUpserted is invoked before a draft is committed. Fires from the app-layer
@@ -505,6 +519,6 @@ type Hooks interface {
 	//
 	// Return value semantics match MessageWillBePosted.
 	//
-	// Minimum server version: 11.8
+	// Minimum server version: 11.9
 	DraftWillBeUpserted(c *Context, draft *model.Draft) (*model.Draft, string)
 }

@@ -609,6 +609,22 @@ func (env *Environment) HooksForPluginWithRPCErr(id string) (HooksWithRPCErr, er
 	return nil, fmt.Errorf("plugin not found: %v", id)
 }
 
+// HasPluginImplementing reports whether any active plugin implements hookId. Use this to avoid
+// expensive setup when no plugin will actually be called by RunMultiPluginHook.
+func (env *Environment) HasPluginImplementing(hookId int) bool {
+	found := false
+	env.registeredPlugins.Range(func(_, value any) bool {
+		rp := value.(registeredPlugin)
+		if rp.supervisor == nil || !rp.supervisor.Implements(hookId) || !env.IsActive(rp.BundleInfo.Manifest.Id) {
+			return true
+		}
+		found = true
+		return false // stop on first match
+	})
+
+	return found
+}
+
 // RunMultiPluginHook invokes hookRunnerFunc for each active plugin that implements the given hookId.
 //
 // If hookRunnerFunc returns false, iteration will not continue. The iteration order among active

@@ -252,4 +252,123 @@ export default class SystemProperties {
     validationMessage(text: string | RegExp): Locator {
         return this.container.getByText(text);
     }
+
+    // ── Ranked fields ───────────────────────────────────────────────────
+
+    /**
+     * The ranked-values cell for the most recently added row. Ranked rows
+     * render numbered chips + an add-value input instead of the react-select.
+     */
+    lastRankValues(): Locator {
+        return this.container.locator('.user-property-rank-values').last();
+    }
+
+    /**
+     * Add-value input inside the ranked-values cell (auto-assigns next rank).
+     * Located by class, not placeholder: the placeholder ('Add values… (required)')
+     * only renders in the empty state and disappears once a value is added, so
+     * placeholder-based lookups break when adding more than one value.
+     */
+    rankAddInput(): Locator {
+        return this.lastRankValues().locator('.user-property-rank-values__add-input');
+    }
+
+    async addRankValueToLast(value: string) {
+        const input = this.rankAddInput();
+        await input.fill(value);
+        await input.press('Enter');
+    }
+
+    async addRankValuesToLast(values: string[]) {
+        for (const value of values) {
+            await this.addRankValueToLast(value);
+        }
+    }
+
+    /** All ranked chip buttons, in DOM order (ascending rank, left→right). */
+    rankChips(): Locator {
+        return this.container.locator('.user-property-rank-values__chip');
+    }
+
+    /**
+     * A single ranked chip button by its option label. Unlike the test-id
+     * locator, this works for both newly-added options (no server id yet) and
+     * API-created options (real id). Exact text avoids matching "Secret"
+     * inside "TopSecret".
+     */
+    rankChip(name: string): Locator {
+        return this.container
+            .locator('.user-property-rank-values__chip')
+            .filter({has: this.page.getByText(name, {exact: true})});
+    }
+
+    /** The numbered badge inside a chip; its text is the rank integer. */
+    rankBadge(name: string): Locator {
+        return this.rankChip(name).locator('.rank-badge');
+    }
+
+    /** Ordered chip labels as displayed (trimmed of the badge text). */
+    async rankChipLabels(): Promise<string[]> {
+        return this.rankChips().locator('.user-property-rank-values__chip-label').allInnerTexts();
+    }
+
+    // Per-chip popover (rendered at page level via portal).
+
+    async openRankChipPopover(name: string) {
+        await this.rankChip(name).click();
+    }
+
+    /**
+     * The label textbox in the per-chip popover. The Input widget surfaces
+     * "Option label" as a floating ARIA label (not a placeholder attribute),
+     * so locate it by role within the popover menu.
+     */
+    rankPopoverLabelInput(): Locator {
+        return this.page.getByRole('menu', {name: 'Edit option'}).getByRole('textbox');
+    }
+
+    rankPopoverRankSubmenu(): Locator {
+        return this.page.getByRole('menuitem', {name: /^Rank/});
+    }
+
+    async moveRankOptionToPosition(rankValue: number) {
+        await this.rankPopoverRankSubmenu().hover();
+        await this.page.getByRole('menuitemradio', {name: String(rankValue), exact: true}).click();
+    }
+
+    async removeRankOptionFromPopover() {
+        await this.page.getByRole('menuitem', {name: 'Remove option'}).click();
+    }
+
+    async openEditRanking(fieldId: string) {
+        await this.openDotMenu(fieldId);
+        await this.page.getByRole('menuitem', {name: 'Edit ranking'}).click();
+    }
+
+    async openEditRankingForUnsaved() {
+        await this.openDotMenuForUnsaved();
+        await this.page.getByRole('menuitem', {name: 'Edit ranking'}).click();
+    }
+
+    // ── Ranked schema modal ─────────────────────────────────────────────
+
+    rankedModal(): Locator {
+        return this.page.locator('#rankedSchemaModal');
+    }
+
+    rankedModalRows(): Locator {
+        return this.rankedModal().locator('.ranked-schema-modal__row');
+    }
+
+    rankedModalSaveButton(): Locator {
+        return this.rankedModal().getByRole('button', {name: 'Save'});
+    }
+
+    async addRankedModalValue() {
+        await this.rankedModal().getByRole('button', {name: 'Add value'}).click();
+    }
+
+    async saveRankedModal() {
+        await this.rankedModalSaveButton().click();
+    }
 }

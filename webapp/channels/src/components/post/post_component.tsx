@@ -45,6 +45,7 @@ import type {Props as TimestampProps} from 'components/timestamp/timestamp';
 import InfoSmallIcon from 'components/widgets/icons/info_small_icon';
 
 import {createBurnOnReadDeleteModalHandlers} from 'hooks/useBurnOnReadDeleteModal';
+import Pluggable from 'plugins/pluggable';
 import {getHistory} from 'utils/browser_history';
 import {getArchiveIconComponent} from 'utils/channel_utils';
 import Constants, {A11yCustomEventTypes, AppEvents, Locations, PostTypes, ModalIdentifiers} from 'utils/constants';
@@ -397,7 +398,7 @@ function PostComponent(props: Props) {
 
     // When adding clickable targets within a root post to exclude from post's on click to open thread,
     // please add to/maintain the selector below
-    const isEligibleForClick = useMemo(() => makeIsEligibleForClick('.post-image__column, .embed-responsive-item, .attachment, .hljs, code'), []);
+    const isEligibleForClick = useMemo(() => makeIsEligibleForClick('.post-image__column, .embed-responsive-item, .attachment, .hljs, code, .suggestion-list, .select-suggestion-container, .post-attachment-dropdown, .mm-blocks-select'), []);
 
     const handlePostClick = useCallback((e: MouseEvent<HTMLDivElement>) => {
         if (!post || props.channelIsArchived) {
@@ -583,6 +584,17 @@ function PostComponent(props: Props) {
     let profilePic;
     const hideProfilePicture = hasSameRoot(props) && (!post.root_id && !props.hasReplies) && !PostUtils.isFromBot(post);
     const hideProfileCase = !(props.location === Locations.RHS_COMMENT && props.compactDisplay && props.isConsecutivePost);
+    const showTimestamp =
+        (!hideProfilePicture && props.location === Locations.CENTER) ||
+        hover ||
+        props.location !== Locations.CENTER;
+
+    // For a consecutive non-compact post the host renders the timestamp in narrow
+    // style, which CSS reflows out of `badges-wrapper` onto the post body's left
+    // margin. In that case a registered post-header component would be visually
+    // orphaned, so suppress it — it stays paired with the timestamp anchor in
+    // `badges-wrapper`.
+    const showPostHeaderBadge = showTimestamp && (!props.isConsecutivePost || props.compactDisplay);
     if (!hideProfilePicture && hideProfileCase) {
         profilePic = (
             <PostProfilePicture
@@ -824,7 +836,7 @@ function PostComponent(props: Props) {
                                 isSystemMessage={isSystemMessage}
                             />
                             <div className='badges-wrapper col d-flex align-items-center'>
-                                {((!hideProfilePicture && props.location === Locations.CENTER) || hover || props.location !== Locations.CENTER) &&
+                                {showTimestamp &&
                                     <PostTime
                                         isPermalink={!(Posts.POST_DELETED === post.state || isPostPendingOrFailed(post))}
                                         teamName={props.team?.name}
@@ -834,11 +846,17 @@ function PostComponent(props: Props) {
                                         timestampProps={{...props.timestampProps, style: props.isConsecutivePost && !props.compactDisplay ? 'narrow' : undefined}}
                                     />
                                 }
+                                {showPostHeaderBadge && (
+                                    <Pluggable
+                                        pluggableName='PostHeader'
+                                        post={post}
+                                    />
+                                )}
                                 {priority}
                                 {burnOnReadBadge}
                                 {burnOnReadTimerChip}
-                                {((!props.compactDisplay && !(hasSameRoot(props) && props.isConsecutivePost)) || (props.compactDisplay && isRHS)) &&
-                                    PostUtils.hasAiGeneratedMetadata(post) && (
+                                {PostUtils.hasAiGeneratedMetadata(post) &&
+                                    ((!props.compactDisplay) || (props.compactDisplay && isRHS)) && (
                                     <AiGeneratedIndicator
                                         userId={post.props.ai_generated_by as string}
                                         username={post.props.ai_generated_by_username as string}

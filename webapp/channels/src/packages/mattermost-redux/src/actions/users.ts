@@ -1054,7 +1054,7 @@ export function updateUserRoles(userId: string, roles: string): ActionFuncAsync 
     };
 }
 
-export function updateUserMfa(userId: string, activate: boolean, code = ''): ActionFuncAsync {
+export function updateUserMfa(userId: string, activate: boolean, code = ''): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         try {
             await Client4.updateUserMfa(userId, activate, code);
@@ -1247,12 +1247,12 @@ export function switchLdapToEmail(ldapPassword: string, email: string, emailPass
     });
 }
 
-export function createUserAccessToken(userId: string, description: string): ActionFuncAsync<UserAccessToken> {
+export function createUserAccessToken(userId: string, description: string, expiresAt?: number): ActionFuncAsync<UserAccessToken> {
     return async (dispatch, getState) => {
         let data;
 
         try {
-            data = await Client4.createUserAccessToken(userId, description);
+            data = await Client4.createUserAccessToken(userId, description, expiresAt);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));

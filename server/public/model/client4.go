@@ -690,6 +690,10 @@ func (c *Client4) propertyFieldRoute(groupName, objectType, fieldID string) clie
 	return c.propertyFieldsRoute(groupName, objectType).Join(fieldID)
 }
 
+func (c *Client4) propertyFieldsSearchRoute(groupName string) clientRoute {
+	return newClientRoute("properties").Join("groups", groupName, "fields", "search")
+}
+
 func (c *Client4) propertyValuesRoute(groupName, objectType, targetID string) clientRoute {
 	return newClientRoute("properties").Join("groups", groupName, objectType, "values", targetID)
 }
@@ -1410,14 +1414,16 @@ func (c *Client4) GetUsersNotInChannel(ctx context.Context, teamId, channelId st
 // GetUsersNotInChannelWithOptionsStruct returns a page of users not in a channel using the options struct.
 func (c *Client4) GetUsersNotInChannelWithOptions(ctx context.Context, channelId string, options *GetUsersNotInChannelOptions) ([]*User, *Response, error) {
 	values := url.Values{}
+	var etag string
 	if options != nil {
 		values.Set("in_team", options.TeamID)
 		values.Set("not_in_channel", channelId)
 		values.Set("page", strconv.Itoa(options.Page))
 		values.Set("per_page", strconv.Itoa(options.Limit))
 		values.Set("cursor_id", options.CursorID)
+		etag = options.Etag
 	}
-	r, err := c.doAPIGetWithQuery(ctx, c.usersRoute(), values, options.Etag)
+	r, err := c.doAPIGetWithQuery(ctx, c.usersRoute(), values, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4095,9 +4101,9 @@ func (c *Client4) DoPostAction(ctx context.Context, postId, actionId string) (*R
 }
 
 // DoPostActionWithCookie performs a post action with extra arguments
-func (c *Client4) DoPostActionWithCookie(ctx context.Context, postId, actionId, selected, cookieStr string) (*Response, error) {
+func (c *Client4) DoPostActionWithCookie(ctx context.Context, postId, actionId, selected, cookieStr string, query map[string]string, integrationFormat string) (*Response, error) {
 	route := c.postRoute(postId).Join("actions", actionId)
-	if selected == "" && cookieStr == "" {
+	if selected == "" && cookieStr == "" && len(query) == 0 && integrationFormat == "" {
 		r, err := c.doAPIPost(ctx, route, "")
 		if err != nil {
 			return BuildResponse(r), err
@@ -4107,8 +4113,10 @@ func (c *Client4) DoPostActionWithCookie(ctx context.Context, postId, actionId, 
 	}
 
 	req := DoPostActionRequest{
-		SelectedOption: selected,
-		Cookie:         cookieStr,
+		SelectedOption:    selected,
+		Cookie:            cookieStr,
+		Query:             query,
+		IntegrationFormat: integrationFormat,
 	}
 	r, err := c.doAPIPostJSON(ctx, route, req)
 	if err != nil {
@@ -8165,13 +8173,34 @@ func (c *Client4) GetPropertyFields(ctx context.Context, groupName, objectType s
 	if search.TargetID != "" {
 		values.Set("target_id", search.TargetID)
 	}
-	if search.CursorID != "" && search.CursorCreateAt > 0 {
+	if search.ChannelID != "" {
+		values.Set("channel_id", search.ChannelID)
+	}
+	if search.TeamID != "" {
+		values.Set("team_id", search.TeamID)
+	}
+	if search.SinceUpdateAt != 0 {
+		values.Set("since", strconv.FormatInt(search.SinceUpdateAt, 10))
+	}
+	if search.CursorID != "" {
 		values.Set("cursor_id", search.CursorID)
+	}
+	if search.CursorCreateAt != 0 {
 		values.Set("cursor_create_at", strconv.FormatInt(search.CursorCreateAt, 10))
-	} else if search.CursorID != "" || search.CursorCreateAt > 0 {
-		return nil, nil, errors.New("both cursor_id and cursor_create_at must be provided together")
+	}
+	if search.CursorUpdateAt != 0 {
+		values.Set("cursor_update_at", strconv.FormatInt(search.CursorUpdateAt, 10))
 	}
 	r, err := c.doAPIGetWithQuery(ctx, c.propertyFieldsRoute(groupName, objectType), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*PropertyField](r)
+}
+
+func (c *Client4) SearchPropertyFields(ctx context.Context, groupName string, search PropertyFieldSearch) ([]*PropertyField, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.propertyFieldsSearchRoute(groupName), search)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8202,11 +8231,17 @@ func (c *Client4) GetPropertyValues(ctx context.Context, groupName, objectType, 
 	if search.PerPage > 0 {
 		values.Set("per_page", strconv.Itoa(search.PerPage))
 	}
-	if search.CursorID != "" && search.CursorCreateAt > 0 {
+	if search.SinceUpdateAt > 0 {
+		values.Set("since", strconv.FormatInt(search.SinceUpdateAt, 10))
+	}
+	if search.CursorID != "" {
 		values.Set("cursor_id", search.CursorID)
+	}
+	if search.CursorCreateAt > 0 {
 		values.Set("cursor_create_at", strconv.FormatInt(search.CursorCreateAt, 10))
-	} else if search.CursorID != "" || search.CursorCreateAt > 0 {
-		return nil, nil, errors.New("both cursor_id and cursor_create_at must be provided together")
+	}
+	if search.CursorUpdateAt > 0 {
+		values.Set("cursor_update_at", strconv.FormatInt(search.CursorUpdateAt, 10))
 	}
 	r, err := c.doAPIGetWithQuery(ctx, c.propertyValuesRoute(groupName, objectType, targetID), values, "")
 	if err != nil {
@@ -8232,11 +8267,17 @@ func (c *Client4) GetSystemPropertyValues(ctx context.Context, groupName string,
 	if search.PerPage > 0 {
 		values.Set("per_page", strconv.Itoa(search.PerPage))
 	}
-	if search.CursorID != "" && search.CursorCreateAt > 0 {
+	if search.SinceUpdateAt > 0 {
+		values.Set("since", strconv.FormatInt(search.SinceUpdateAt, 10))
+	}
+	if search.CursorID != "" {
 		values.Set("cursor_id", search.CursorID)
+	}
+	if search.CursorCreateAt > 0 {
 		values.Set("cursor_create_at", strconv.FormatInt(search.CursorCreateAt, 10))
-	} else if search.CursorID != "" || search.CursorCreateAt > 0 {
-		return nil, nil, errors.New("both cursor_id and cursor_create_at must be provided together")
+	}
+	if search.CursorUpdateAt > 0 {
+		values.Set("cursor_update_at", strconv.FormatInt(search.CursorUpdateAt, 10))
 	}
 	r, err := c.doAPIGetWithQuery(ctx, c.propertySystemValuesRoute(groupName), values, "")
 	if err != nil {

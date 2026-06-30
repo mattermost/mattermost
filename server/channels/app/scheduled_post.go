@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
@@ -40,21 +39,11 @@ func (a *App) SaveScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		return nil, model.NewAppError("App.scheduledPostPreSaveChecks", "app.save_scheduled_post.channel_deleted.app_error", map[string]any{"user_id": scheduledPost.UserId, "channel_id": scheduledPost.ChannelId}, "", http.StatusBadRequest)
 	}
 
-	var rejectionReason string
-	pluginContext := pluginContext(rctx)
-	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-		replacement, reason := hooks.ScheduledPostWillBeCreated(pluginContext, scheduledPost)
-		if reason != "" {
-			rejectionReason = reason
-			return false
-		}
-		if replacement != nil {
-			scheduledPost = replacement
-		}
-		return true
-	}, plugin.ScheduledPostWillBeCreatedID)
-	if rejectionReason != "" {
-		return nil, model.NewAppError("SaveScheduledPost", "app.scheduled_post.save.rejected_by_plugin", map[string]any{"Reason": rejectionReason}, "", http.StatusBadRequest)
+	scheduledPost, appErr = a.runGuardedScheduledPostWillBeCreated(rctx, scheduledPost, "SaveScheduledPost", func(reason string) *model.AppError {
+		return model.NewAppError("SaveScheduledPost", "app.scheduled_post.save.rejected_by_plugin", map[string]any{"Reason": reason}, "", http.StatusBadRequest)
+	})
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	savedScheduledPost, err := a.Srv().Store().ScheduledPost().CreateScheduledPost(scheduledPost)
@@ -104,21 +93,12 @@ func (a *App) UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost
 	// updated scheduled post. It's better to do this before calling update than after.
 	scheduledPost.RestoreNonUpdatableFields(existingScheduledPost)
 
-	var rejectionReason string
-	pluginContext := pluginContext(rctx)
-	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-		replacement, reason := hooks.ScheduledPostWillBeCreated(pluginContext, scheduledPost)
-		if reason != "" {
-			rejectionReason = reason
-			return false
-		}
-		if replacement != nil {
-			scheduledPost = replacement
-		}
-		return true
-	}, plugin.ScheduledPostWillBeCreatedID)
-	if rejectionReason != "" {
-		return nil, model.NewAppError("UpdateScheduledPost", "app.scheduled_post.update.rejected_by_plugin", map[string]any{"Reason": rejectionReason}, "", http.StatusBadRequest)
+	var appErr *model.AppError
+	scheduledPost, appErr = a.runGuardedScheduledPostWillBeCreated(rctx, scheduledPost, "UpdateScheduledPost", func(reason string) *model.AppError {
+		return model.NewAppError("UpdateScheduledPost", "app.scheduled_post.update.rejected_by_plugin", map[string]any{"Reason": reason}, "", http.StatusBadRequest)
+	})
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	if err := a.Srv().Store().ScheduledPost().UpdatedScheduledPost(scheduledPost); err != nil {

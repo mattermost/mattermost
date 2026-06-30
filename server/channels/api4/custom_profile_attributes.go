@@ -183,7 +183,7 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Permission branching (session-bound).
 	isOptionsOnly := isOptionsOnlyPatch(patch)
-	if isOptionsOnly && existingField.Type != model.PropertyFieldTypeSelect && existingField.Type != model.PropertyFieldTypeMultiselect {
+	if isOptionsOnly && !existingField.Type.SupportsOptions() {
 		isOptionsOnly = false
 	}
 	if isOptionsOnly {

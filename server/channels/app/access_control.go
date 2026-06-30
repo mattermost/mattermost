@@ -124,17 +124,28 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		}
 		callerID := session.UserId
 
+		resolver, appErr := newMaskingResolver(a, rctx, callerID)
+		if appErr != nil {
+			return nil, model.NewAppError("CreateOrUpdateAccessControlPolicy", "app.pap.save_policy.resolver_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+		}
+
 		// Validate submitted values BEFORE merge: only the values the caller
 		// actually submitted should be checked against their holdings. Running
 		// validation after merge would reject the re-injected hidden values
 		// (e.g. Bravo, Charlie) that the caller legitimately cannot see.
-		if appErr := a.validatePolicyExpressionValues(rctx, policy, callerID); appErr != nil {
+		appErr = a.validatePolicyExpressionValues(rctx, policy, resolver)
+		if appErr != nil {
 			return nil, appErr
 		}
 
 		// Merge hidden values back in and block deletion of masked conditions.
-		mergedHidden, appErr := a.mergeStoredPolicyExpressions(rctx, policy, callerID)
+		mergedHidden, appErr := a.mergeStoredPolicyExpressions(rctx, policy, resolver)
 		if appErr != nil {
+			return nil, appErr
+		}
+
+		// Guard against persisting the sentinel as a real value.
+		if appErr := rejectMaskedTokens(policy); appErr != nil {
 			return nil, appErr
 		}
 
@@ -176,21 +187,26 @@ func (a *App) policyHasMaskedValuesForCaller(rctx request.CTX, policy *model.Acc
 		return false, nil
 	}
 
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return false, nil
+	}
+
+	resolver, appErr := newMaskingResolver(a, rctx, callerID)
+	if appErr != nil {
+		return false, appErr
+	}
+
 	for _, rule := range policy.Rules {
 		if rule.Expression == "" || rule.Expression == "true" {
 			continue
 		}
-		maskedAST, appErr := a.GetMaskedVisualAST(rctx, rule.Expression, callerID)
+		hasMasked, appErr := acs.HasMaskedValuesForCaller(rctx, rule.Expression, resolver)
 		if appErr != nil {
 			return false, appErr
 		}
-		if maskedAST == nil {
-			continue
-		}
-		for _, cond := range maskedAST.Conditions {
-			if cond.HasMaskedValues {
-				return true, nil
-			}
+		if hasMasked {
+			return true, nil
 		}
 	}
 
@@ -198,10 +214,10 @@ func (a *App) policyHasMaskedValuesForCaller(rctx request.CTX, policy *model.Acc
 }
 
 // mergeStoredPolicyExpressions re-injects hidden values from the stored policy into the
-// submitted one, and blocks the save if the caller removed a condition with values they
-// cannot see. No-op for new policies (not found in store).
-// Returns true when at least one hidden value was re-injected.
-func (a *App) mergeStoredPolicyExpressions(rctx request.CTX, policy *model.AccessControlPolicy, callerID string) (bool, *model.AppError) {
+// submitted one, and blocks the save if the caller removed a condition that contained
+// values they cannot see (which would silently widen access beyond what they could audit).
+// No-op for new policies (not found in store). Returns true when hidden values were re-injected.
+func (a *App) mergeStoredPolicyExpressions(rctx request.CTX, policy *model.AccessControlPolicy, resolver model.MaskingFieldResolver) (bool, *model.AppError) {
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {
 		return false, nil
@@ -271,7 +287,7 @@ func (a *App) mergeStoredPolicyExpressions(rctx request.CTX, policy *model.Acces
 		// lets the Actions-locking guard below use a plain `!=` check
 		// regardless of whether `rule` is a pointer or a copy.
 		submittedExpr := rule.Expression
-		mergedExpr, appErr := a.mergeExpressionWithMaskedValues(rctx, policy.ID, submittedExpr, stored.Expression, callerID)
+		mergedExpr, appErr := a.mergeExpressionWithMaskedValues(rctx, submittedExpr, stored.Expression, resolver)
 		if appErr != nil {
 			return false, appErr
 		}
@@ -313,7 +329,7 @@ func (a *App) mergeStoredPolicyExpressions(rctx request.CTX, policy *model.Acces
 		if stored.Expression == "" || stored.Expression == "true" {
 			continue
 		}
-		hasMasked, appErr := a.expressionHasMaskedValuesForCaller(rctx, stored.Expression, callerID)
+		hasMasked, appErr := a.expressionHasMaskedValuesForCaller(rctx, stored.Expression, resolver)
 		if appErr != nil {
 			return false, appErr
 		}
@@ -340,167 +356,31 @@ func isMembershipRule(rule *model.AccessControlPolicyRule) bool {
 }
 
 // expressionHasMaskedValuesForCaller reports whether storedExpr contains any value the caller cannot see.
-func (a *App) expressionHasMaskedValuesForCaller(rctx request.CTX, storedExpr, callerID string) (bool, *model.AppError) {
-	maskedAST, appErr := a.GetMaskedVisualAST(rctx, storedExpr, callerID)
-	if appErr != nil {
-		return false, appErr
+func (a *App) expressionHasMaskedValuesForCaller(rctx request.CTX, storedExpr string, resolver model.MaskingFieldResolver) (bool, *model.AppError) {
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return false, model.NewAppError("expressionHasMaskedValuesForCaller", "app.pap.has_masked_values.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
 	}
-	if maskedAST == nil {
-		return false, nil
-	}
-	for _, cond := range maskedAST.Conditions {
-		if cond.HasMaskedValues {
-			return true, nil
-		}
-	}
-	return false, nil
+
+	return acs.HasMaskedValuesForCaller(rctx, storedExpr, resolver)
 }
 
-// mergeExpressionWithMaskedValues re-injects hidden values into submittedExpr and
-// returns 403 if the caller dropped a condition with values they cannot see.
-//
-// Two fail-closed shortcuts before the merge:
-//  1. Caller has no masked values on storedExpr → return submitted as-is.
-//  2. storedExpr isn't faithfully representable by the Visual AST (|| or grouping
-//     would flatten into ANDs on rebuild) → accept only no-op saves (e.g., rename),
-//     reject real edits. Role-neutral: masking is attribute-based, so a sysadmin
-//     without the values lands here too.
-//
-// Stopgap until the canonical CEL AST walker refactor.
-func (a *App) mergeExpressionWithMaskedValues(rctx request.CTX, policyID, submittedExpr, storedExpr, callerID string) (string, *model.AppError) {
-	hasMasked, appErr := a.expressionHasMaskedValuesForCaller(rctx, storedExpr, callerID)
-	if appErr != nil {
-		return "", appErr
-	}
-	if !hasMasked {
-		return submittedExpr, nil
+// mergeExpressionWithMaskedValues re-injects hidden values from storedExpr into
+// submittedExpr using the canonical CEL AST walker. Returns submittedExpr unchanged
+// when storedExpr contains no values hidden from the caller (the canonical merge's
+// own fast path). Returns 403 if the caller dropped an AST node that held hidden
+// values, or if the submitted tree shape diverges from stored while hidden values
+// are present.
+func (a *App) mergeExpressionWithMaskedValues(rctx request.CTX, submittedExpr, storedExpr string, resolver model.MaskingFieldResolver) (string, *model.AppError) {
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return "", model.NewAppError("mergeExpressionWithMaskedValues", "app.pap.merge_expression.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
 	}
 
-	submittedAST, appErr := a.ExpressionToVisualAST(rctx, submittedExpr)
-	if appErr != nil {
-		return "", appErr
-	}
-
-	storedAST, appErr := a.ExpressionToVisualAST(rctx, storedExpr)
-	if appErr != nil {
-		return "", appErr
-	}
-
-	if !isVisualASTRepresentable(storedExpr, storedAST) {
-		masked, maskErr := a.GetMaskedExpression(rctx, storedExpr, callerID)
-		if maskErr != nil {
-			return "", maskErr
-		}
-		if normalizedEqual(submittedExpr, masked) {
-			// no-op edit (e.g., rename) — keep stored expression as-is
-			return storedExpr, nil
-		}
-		rctx.Logger().Info("save refused: stored rule not representable by Visual AST",
-			mlog.String("policy_id", policyID),
-			mlog.String("caller_id", callerID),
-		)
-		return "", saveForbiddenError(rctx, "mergeExpressionWithMaskedValues", "advanced_expression_blocked: stored rule expression cannot be safely edited while restricted values are present")
-	}
-
-	cpaGroup, appErr := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
-	if appErr != nil {
-		return "", model.NewAppError("mergeExpressionWithMaskedValues", "app.pap.merge_expression.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
-	}
-	cpaGroupID := cpaGroup.ID
-
-	rctxWithCaller := RequestContextWithCallerID(rctx, callerID)
-
-	// Pre-fetch fields once for all stored conditions. We require every referenced field
-	// to resolve — proceeding with an incomplete map would silently strip hidden values
-	// from stored conditions and bypass the masked-condition-delete block.
-	fieldsByName := a.fetchConditionFields(rctxWithCaller, storedAST.Conditions, cpaGroupID)
-	if appErr := requireAllFieldsResolved(rctxWithCaller, storedAST.Conditions, fieldsByName); appErr != nil {
-		return "", appErr
-	}
-
-	// Count submitted conditions per attribute. A simple set isn't enough because the parser
-	// can produce two conditions on the same attribute (e.g. `attr in [...] && attr == "x"`);
-	// dropping one of them while keeping the other must still trigger the deletion guard if
-	// the dropped condition had hidden values.
-	submittedCounts := make(map[string]int, len(submittedAST.Conditions))
-	for _, cond := range submittedAST.Conditions {
-		submittedCounts[cond.Attribute]++
-	}
-
-	storedCounts := make(map[string]int, len(storedAST.Conditions))
-	for _, cond := range storedAST.Conditions {
-		storedCounts[cond.Attribute]++
-	}
-
-	// Block deletion of any stored condition that has hidden values for this caller.
-	// We walk stored conditions and, when one with hidden values appears, require that
-	// the submitted set still has at least as many conditions on the same attribute as
-	// stored had — otherwise some stored condition was dropped.
-	for i := range storedAST.Conditions {
-		hidden := a.getHiddenValues(rctxWithCaller, callerID, &storedAST.Conditions[i], cpaGroupID, fieldsByName)
-		if len(hidden) == 0 {
-			continue
-		}
-		attr := storedAST.Conditions[i].Attribute
-		if submittedCounts[attr] < storedCounts[attr] {
-			return "", saveForbiddenError(rctx, "mergeExpressionWithMaskedValues", "masked_condition_deleted: cannot remove a rule condition that contains attribute values you do not hold")
-		}
-	}
-
-	// Match submitted conditions to stored ones by attribute (in order), merge hidden values.
-	storedByAttr := make(map[string][]model.Condition)
-	for _, cond := range storedAST.Conditions {
-		storedByAttr[cond.Attribute] = append(storedByAttr[cond.Attribute], cond)
-	}
-
-	matchCount := make(map[string]int)
-	var mergedConditions []model.Condition
-
-	for _, submitted := range submittedAST.Conditions {
-		storedList, found := storedByAttr[submitted.Attribute]
-		if !found {
-			mergedConditions = append(mergedConditions, submitted)
-			continue
-		}
-
-		matchIdx := matchCount[submitted.Attribute]
-		matchCount[submitted.Attribute]++
-
-		if matchIdx >= len(storedList) {
-			mergedConditions = append(mergedConditions, submitted)
-			continue
-		}
-
-		stored := storedList[matchIdx]
-		hiddenValues := a.getHiddenValues(rctxWithCaller, callerID, &stored, cpaGroupID, fieldsByName)
-		merged := mergeConditionValues(submitted, hiddenValues)
-		merged.Operator = stored.Operator
-		merged.AttributeType = stored.AttributeType
-		// Frontend emits "attr in []" as the placeholder for any fully-masked row
-		// regardless of the stored operator. After we restore the original operator,
-		// the value shape may not match (e.g., "==" with a []any value). Normalize
-		// scalar operators to a single string from the array.
-		//
-		// When the stored scalar value is hidden, always use hiddenValues[0] directly
-		// rather than taking arr[0] from the merged list. Without this guard a crafted
-		// submission of `in ["caller-visible"]` would pass validateConditionValues,
-		// land in mergeConditionValues as a []any, and arr[0] would be the attacker's
-		// value — silently overwriting the stored hidden value.
-		if isScalarOperator(merged.Operator) {
-			if len(hiddenValues) > 0 {
-				merged.Value = hiddenValues[0]
-			} else if arr, ok := merged.Value.([]any); ok {
-				if len(arr) == 0 {
-					merged.Value = nil
-				} else if s, ok := arr[0].(string); ok {
-					merged.Value = s
-				}
-			}
-		}
-		mergedConditions = append(mergedConditions, merged)
-	}
-
-	return buildCELFromConditions(mergedConditions), nil
+	// No separate has-masked pre-check here: MergeExpressionWithMaskedValuesCanonical
+	// already short-circuits to submittedExpr when stored has nothing hidden, so an
+	// extra walk would only re-parse and re-scan the stored expression.
+	return acs.MergeExpressionWithMaskedValuesCanonical(rctx, submittedExpr, storedExpr, resolver)
 }
 
 // saveForbiddenError logs the rejection reason internally and returns a generic 403.
@@ -674,9 +554,6 @@ func (a *App) SimulateAccessControlPolicyForUsers(rctx request.CTX, params model
 	// save-only invariant. The merge alone is what makes the
 	// simulator see the unmasked policy.
 	if a.Config().FeatureFlags.AttributeValueMasking {
-		// Resolve the caller once here so merge and response masking use the same
-		// identity. An empty callerID means there is no session; we must not let
-		// unmasked literals propagate to the response without knowing who is asking.
 		callerID := ""
 		if s := rctx.Session(); s != nil {
 			callerID = s.UserId
@@ -684,9 +561,12 @@ func (a *App) SimulateAccessControlPolicyForUsers(rctx request.CTX, params model
 		if callerID == "" {
 			return nil, model.NewAppError("SimulateAccessControlPolicyForUsers", "api.context.session_expired.app_error", nil, "session required for simulation when attribute value masking is enabled", http.StatusUnauthorized)
 		}
-
-		if _, appErr := a.mergeStoredPolicyExpressions(rctx, params.Policy, callerID); appErr != nil {
-			return nil, appErr
+		resolver, appErr := newMaskingResolver(a, rctx, callerID)
+		if appErr != nil {
+			return nil, model.NewAppError("SimulateAccessControlPolicyForUsers", "app.pap.simulate.resolver_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+		}
+		if _, mergeAppErr := a.mergeStoredPolicyExpressions(rctx, params.Policy, resolver); mergeAppErr != nil {
+			return nil, mergeAppErr
 		}
 
 		resp, appErr := acs.SimulatePolicyForUsers(rctx, params)
@@ -874,7 +754,8 @@ func (a *App) protectedCPAFieldNamesForCaller(rctx request.CTX) (map[string]stru
 	}
 
 	propertyFields, appErr := a.SearchPropertyFields(rctx, group.ID, model.PropertyFieldSearchOpts{
-		PerPage: model.AccessControlGroupFieldLimit + 5,
+		ObjectTypes: []string{model.PropertyFieldObjectTypeUser},
+		PerPage:     model.AccessControlGroupFieldLimit + 5,
 	})
 	if appErr != nil {
 		return nil, appErr
@@ -1778,7 +1659,7 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, channelID strin
 	for fieldName := range attributes {
 		// Read directly from the store so this security filter sees the raw
 		// access_mode, unaffected by property read hooks for the request caller.
-		field, fieldErr := a.Srv().Store().PropertyField().GetFieldByName(rctx.Context(), cpaGroup.ID, "", fieldName)
+		field, fieldErr := a.Srv().Store().PropertyField().GetFieldByNameForObjectType(rctx.Context(), cpaGroup.ID, "", model.PropertyFieldObjectTypeUser, fieldName)
 		if fieldErr != nil {
 			delete(attributes, fieldName)
 			continue
@@ -1801,6 +1682,7 @@ func (a *App) GetAccessControlFieldsAutocomplete(rctx request.CTX, after string,
 	// Use property app layer to enforce access control
 	rctxWithCaller := RequestContextWithCallerID(rctx, callerID)
 	fields, appErr := a.SearchPropertyFields(rctxWithCaller, group.ID, model.PropertyFieldSearchOpts{
+		ObjectType: model.PropertyFieldObjectTypeUser,
 		Cursor: model.PropertyFieldSearchCursor{
 			PropertyFieldID: after,
 			CreateAt:        1,
@@ -1809,6 +1691,14 @@ func (a *App) GetAccessControlFieldsAutocomplete(rctx request.CTX, after string,
 	})
 	if appErr != nil {
 		return nil, model.NewAppError("GetAccessControlAutoComplete", "app.pap.get_access_control_auto_complete.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+	}
+
+	// Native user attributes are synthetic (not persisted), so emit them once on
+	// the first page to keep the cursor-paging contract intact. The API maps an
+	// empty "after" to a 26-zero sentinel cursor (the lowest possible ID), so
+	// treat both as the first page.
+	if after == "" || after == strings.Repeat("0", 26) {
+		fields = append(model.NativeUserAttributeFields(group.ID), fields...)
 	}
 
 	return fields, nil
@@ -2419,6 +2309,10 @@ func (a *App) ValidateExpressionAgainstRequester(rctx request.CTX, expression st
 	users, _, appErr := acs.QueryUsersForExpression(rctx, expression, model.SubjectSearchOptions{
 		SubjectID: requesterID, // Only check this specific user
 		Limit:     1,           // Maximum 1 result expected
+		// Native attributes (user.email/verified/isbot/createat) describe the
+		// requester themselves, not who they can include; strip them so the
+		// self-inclusion check validates only the CPA-attribute parts.
+		ExcludeNativeAttributes: true,
 	})
 	if appErr != nil {
 		return false, appErr
@@ -2466,6 +2360,26 @@ func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles s
 			return nil, model.NewAppError("BuildAccessControlSubject", "app.access_control.build_subject.get_subject.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
 		}
 	}
+
+	// Populate Mattermost-native user attributes (user.email / user.verified /
+	// user.isbot / user.createat) for runtime PDP evaluation. a.GetUser is the
+	// cached user read and already resolves IsBot via the Bots join, so this is
+	// a single (usually cache-hit) lookup per subject build.
+	user, appErr := a.GetUser(userID)
+	if appErr != nil {
+		// Fail closed: a native-attribute policy must not silently evaluate
+		// against zero-valued natives if the user read fails. The caller
+		// treats a build error as a denial (mirrors the channel-role path).
+		rctx.Logger().Warn("Failed to load user for ABAC native attributes; aborting subject build",
+			mlog.String("user_id", userID),
+			mlog.Err(appErr),
+		)
+		return nil, appErr
+	}
+	subject.Email = user.Email
+	subject.EmailVerified = user.EmailVerified
+	subject.IsBot = user.IsBot
+	subject.CreateAt = user.CreateAt
 
 	subject.Role = roles
 	subject.SetScopedRole(model.AccessControlSubjectScopeSystem, ResolveSystemRole(roles))

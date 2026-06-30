@@ -7,6 +7,30 @@ import './export';
 
 jest.mock('utils/message_html_to_component');
 
+describe('window.Components exposes plugin modals', () => {
+    test('EditChannelHeaderModal is defined', () => {
+        expect((window as any).Components.EditChannelHeaderModal).toBeDefined();
+    });
+
+    test('ChannelNotificationsModal is defined', () => {
+        expect((window as any).Components.ChannelNotificationsModal).toBeDefined();
+    });
+});
+
+describe('window.WebappUtils.channels exposes channel actions', () => {
+    test('favoriteChannel is defined', () => {
+        expect((window as any).WebappUtils.channels.favoriteChannel).toBeDefined();
+    });
+
+    test('unfavoriteChannel is defined', () => {
+        expect((window as any).WebappUtils.channels.unfavoriteChannel).toBeDefined();
+    });
+
+    test('isFavoriteChannel is defined', () => {
+        expect((window as any).WebappUtils.channels.isFavoriteChannel).toBeDefined();
+    });
+});
+
 describe('messageHtmlToComponent wrapper', () => {
     const message = 'test';
     const options = {emoji: true, images: false};

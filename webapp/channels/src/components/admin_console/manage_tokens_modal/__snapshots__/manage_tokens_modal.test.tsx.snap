@@ -254,12 +254,24 @@ exports[`components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx sh
                     >
                       Token Description: 
                       first token
+                       
+                      <span
+                        class="setting-box__token-status setting-box__token-status--active"
+                      >
+                        Active
+                      </span>
                     </div>
                     <div
                       class="whitespace--nowrap overflow--ellipsis"
                     >
                       Token ID: 
                       id1
+                    </div>
+                    <div
+                      class="whitespace--nowrap overflow--ellipsis"
+                    >
+                      Expires: 
+                      Never
                     </div>
                   </div>
                   <div
@@ -284,12 +296,24 @@ exports[`components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx sh
                     >
                       Token Description: 
                       second token
+                       
+                      <span
+                        class="setting-box__token-status setting-box__token-status--active"
+                      >
+                        Active
+                      </span>
                     </div>
                     <div
                       class="whitespace--nowrap overflow--ellipsis"
                     >
                       Token ID: 
                       id2
+                    </div>
+                    <div
+                      class="whitespace--nowrap overflow--ellipsis"
+                    >
+                      Expires: 
+                      Never
                     </div>
                   </div>
                   <div

@@ -63,6 +63,39 @@ func (a *App) publishPropertyFieldEvent(rctx request.CTX, eventType model.Websoc
 	a.Publish(message)
 }
 
+// rankPropertyFieldGate blocks the user-facing "rank" custom profile attribute
+// type while the PropertyFieldRank feature flag is disabled. Consolidated here
+// so that both CreatePropertyField (which blocks creating a rank field) and
+// UpdatePropertyFields (which blocks converting an existing field to rank)
+// share a single check.
+//
+// The gate is scoped to user-object fields, because that is the only place the
+// user-facing rank type can originate: createCPAField forces ObjectType=user
+// before reaching CreatePropertyField. Rank fields on other object types are
+// intentionally exempt — in particular the classification-markings fields
+// (template/system/channel in the access_control group) legitimately use the
+// rank type and ship behind the separate, GA-by-default ClassificationMarkings
+// flag. Gating those here would break the classification admin panel (create
+// and edit alike) whenever PropertyFieldRank is off, which is the default.
+func (a *App) rankPropertyFieldGate(where string, field *model.PropertyField) *model.AppError {
+	if field == nil || field.Type != model.PropertyFieldTypeRank {
+		return nil
+	}
+	if field.ObjectType != model.PropertyFieldObjectTypeUser {
+		return nil
+	}
+	if a.Config().FeatureFlags.PropertyFieldRank {
+		return nil
+	}
+	return model.NewAppError(
+		where,
+		"app.property_field.rank_disabled.app_error",
+		nil,
+		"rank property fields are not enabled",
+		http.StatusBadRequest,
+	)
+}
+
 // CreatePropertyField creates a new property field.
 func (a *App) CreatePropertyField(rctx request.CTX, field *model.PropertyField, bypassProtectedCheck bool, connectionID string) (*model.PropertyField, *model.AppError) {
 	if field == nil {
@@ -72,6 +105,10 @@ func (a *App) CreatePropertyField(rctx request.CTX, field *model.PropertyField, 
 	// Intrinsic invariants (apply to every caller — HTTP, plugin, internal).
 	CanonicalizeSystemObjectField(field)
 	field.Name = strings.TrimSpace(field.Name)
+
+	if appErr := a.rankPropertyFieldGate("CreatePropertyField", field); appErr != nil {
+		return nil, appErr
+	}
 
 	if !bypassProtectedCheck && field.Protected {
 		return nil, model.NewAppError(
@@ -121,6 +158,10 @@ func (a *App) GetPropertyFields(rctx request.CTX, groupID string, ids []string) 
 }
 
 // GetPropertyFieldByName retrieves a property field by name within a group and target.
+//
+// Deprecated: name is not unique within a group when fields of different object
+// types share a name. Use GetPropertyFieldByNameForObjectType to scope the
+// lookup to a single object type and get a deterministic result.
 func (a *App) GetPropertyFieldByName(rctx request.CTX, groupID, targetID, name string) (*model.PropertyField, *model.AppError) {
 	field, err := a.Srv().propertyService.GetPropertyFieldByName(rctx, groupID, targetID, name)
 	if err != nil {
@@ -128,6 +169,21 @@ func (a *App) GetPropertyFieldByName(rctx request.CTX, groupID, targetID, name s
 			return nil, appErr
 		}
 		return nil, model.NewAppError("GetPropertyFieldByName", "app.property_field.get_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return field, nil
+}
+
+// GetPropertyFieldByNameForObjectType retrieves a property field by name within
+// a group and target, scoped to a single object type. Prefer this over
+// GetPropertyFieldByName when a name may be shared across object types within a
+// group (e.g. the access_control "classification" fields).
+func (a *App) GetPropertyFieldByNameForObjectType(rctx request.CTX, groupID, targetID, objectType, name string) (*model.PropertyField, *model.AppError) {
+	field, err := a.Srv().propertyService.GetPropertyFieldByNameForObjectType(rctx, groupID, targetID, objectType, name)
+	if err != nil {
+		if appErr := mapPropertyServiceError("GetPropertyFieldByNameForObjectType", err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, model.NewAppError("GetPropertyFieldByNameForObjectType", "app.property_field.get_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return field, nil
 }
@@ -250,6 +306,12 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 			continue
 		}
 
+		// Rank-type gate: block converting a field to rank while the feature
+		// flag is off (shares the create-path check).
+		if appErr := a.rankPropertyFieldGate("UpdatePropertyFields", f); appErr != nil {
+			return nil, nil, appErr
+		}
+
 		// Linked-field diff invariants. "Linked" = LinkedFieldID != nil &&
 		// *LinkedFieldID != "". Unlink (nil or "") is always allowed when
 		// existing was linked.
@@ -322,6 +384,21 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 		return nil, nil, model.NewAppError("UpdatePropertyFields", "app.property_field.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// Notify the access control service so any per-field metadata it
+	// caches (e.g. the rank-by-name lookup used by the live evaluator)
+	// and any compiled-policy cache entries that depend on this field
+	// are dropped. This runs before the websocket broadcast so a client
+	// reacting to the event never re-reads stale cached metadata (mirrors
+	// the ordering in DeletePropertyField).
+	if acs := a.Srv().ch.AccessControl; acs != nil {
+		for _, field := range updated {
+			acs.OnPropertyFieldOptionsChanged(rctx, field.ID)
+		}
+		for _, field := range propagated {
+			acs.OnPropertyFieldOptionsChanged(rctx, field.ID)
+		}
+	}
+
 	// Broadcast websocket events for both requested and propagated fields
 	for _, field := range updated {
 		a.publishPropertyFieldEvent(rctx, model.WebsocketEventPropertyFieldUpdated, field, connectionID)
@@ -372,6 +449,15 @@ func (a *App) DeletePropertyField(rctx request.CTX, groupID, id string, bypassPr
 			return appErr
 		}
 		return model.NewAppError("DeletePropertyField", "app.property_field.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Notify the access control service so any per-field metadata it caches
+	// (e.g. the rank-by-name lookup used by the live evaluator) and any
+	// compiled-policy cache entries that depend on this field are dropped
+	// cluster-wide. Without this a deleted rank field's stale options would
+	// linger in the per-node cache until restart.
+	if acs := a.Srv().ch.AccessControl; acs != nil {
+		acs.OnPropertyFieldOptionsChanged(rctx, existing.ID)
 	}
 
 	if existing.IsPSAv2() {

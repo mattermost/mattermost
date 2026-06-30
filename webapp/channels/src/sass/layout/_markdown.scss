@@ -354,28 +354,33 @@ h6.markdown__heading {
 }
 
 ol.markdown__list {
-    display: table;
-    padding: 0;
-    counter-reset: list;
+    // This element has padding-left and counter-reset set by the MarkdownListOrdered component
+    list-style-type: decimal;
 
     >li {
-        display: table-row;
         counter-increment: list;
         word-break: break-word;
 
-        &::before {
-            display: table-cell;
-            padding-right: 8px;
-            content: counter(list) ".";
-            text-align: right;
-            word-break: keep-all;
+        &::marker {
+            /*
+             * The extra spaces are intentional to cause Chrome/Firefox to match the padding of Safari which doesn't
+             * support setting the content of the marker as of May 2026.
+             *
+             * Once it does, those extra spaces can be removed, a padding-left of 8px can be added to the li, and 1ch
+             * can be removed from --marker-width.
+             */
+            content: counter(list) ".  ";
         }
+
         // Special rules for task items within ordered lists
         &.list-item--task-list {
-            &::before {
+            list-style-type: none;
+
+            &::marker {
                 // The counter is erased for task items
                 content: "";
             }
+
             input[type="checkbox"] {
                 // Margins are adjusted to align better the checkbox with the text
                 margin-right: 2px;

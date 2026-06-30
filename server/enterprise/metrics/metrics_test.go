@@ -311,3 +311,91 @@ func TestSearchEngineStatusGauge(t *testing.T) {
 		require.Equal(t, 0.0, readGauge())
 	})
 }
+
+func TestObserveClusterReliableFallbackLength(t *testing.T) {
+	th := api4.SetupEnterprise(t, app.StartMetrics)
+
+	configureMetrics(th)
+	mi := th.App.Metrics()
+
+	miImpl, ok := mi.(*MetricsInterfaceImpl)
+	require.True(t, ok, fmt.Sprintf("App.Metrics is not *MetricsInterfaceImpl, but %T", mi))
+
+	event := model.ClusterEvent("ws_event")
+	length := 42
+	m := &prometheusModels.Metric{}
+
+	t.Run("labels are correct", func(t *testing.T) {
+		_, err := miImpl.ClusterReliableFallbackLength.GetMetricWith(prometheus.Labels{"event": "x"})
+		require.NoError(t, err, "expected 'event' to be a registered label")
+		_, err = miImpl.ClusterReliableFallbackLength.GetMetricWith(prometheus.Labels{"wrong_label": "x"})
+		require.Error(t, err, "expected no label other than 'event' to be registered")
+	})
+
+	t.Run("metric is registered and initialized at 0", func(t *testing.T) {
+		actualMetric, err := miImpl.ClusterReliableFallbackLength.GetMetricWith(prometheus.Labels{"event": string(event)})
+		require.NoError(t, err)
+		require.NoError(t, actualMetric.(prometheus.Histogram).Write(m))
+		require.Equal(t, uint64(0), m.Histogram.GetSampleCount())
+		require.Equal(t, 0.0, m.Histogram.GetSampleSum())
+	})
+
+	t.Run("metric can be observed and the registered value is correct", func(t *testing.T) {
+		mi.ObserveClusterReliableFallbackLength(event, length)
+
+		actualMetric, err := miImpl.ClusterReliableFallbackLength.GetMetricWith(prometheus.Labels{"event": string(event)})
+		require.NoError(t, err)
+		require.NoError(t, actualMetric.(prometheus.Histogram).Write(m))
+		require.Equal(t, uint64(1), m.Histogram.GetSampleCount())
+		require.InDelta(t, float64(length), m.Histogram.GetSampleSum(), 0.001)
+	})
+}
+
+func TestMergeLabels(t *testing.T) {
+	t.Run("combines both maps", func(t *testing.T) {
+		got := mergeLabels(map[string]string{"a": "1"}, map[string]string{"b": "2"})
+		require.Equal(t, prometheus.Labels{"a": "1", "b": "2"}, got)
+	})
+
+	t.Run("extra takes precedence over base", func(t *testing.T) {
+		got := mergeLabels(map[string]string{"a": "1"}, map[string]string{"a": "2"})
+		require.Equal(t, prometheus.Labels{"a": "2"}, got)
+	})
+
+	t.Run("handles nil maps", func(t *testing.T) {
+		require.Equal(t, prometheus.Labels{}, mergeLabels(nil, nil))
+	})
+}
+
+func TestServerInfo(t *testing.T) {
+	th := api4.SetupEnterprise(t, app.StartMetrics)
+
+	configureMetrics(th)
+	mi := th.App.Metrics()
+
+	miImpl, ok := mi.(*MetricsInterfaceImpl)
+	require.True(t, ok, fmt.Sprintf("App.Metrics is not *MetricsInterfaceImpl, but %T", mi))
+
+	m := &prometheusModels.Metric{}
+	require.NoError(t, miImpl.ServerInfo.Write(m))
+
+	t.Run("gauge value is always 1", func(t *testing.T) {
+		require.Equal(t, 1.0, m.Gauge.GetValue())
+	})
+
+	t.Run("carries the build information as labels", func(t *testing.T) {
+		labels := map[string]string{}
+		for _, pair := range m.GetLabel() {
+			labels[pair.GetName()] = pair.GetValue()
+		}
+		for key, want := range map[string]string{
+			"version":               model.CurrentVersion,
+			"build_number":          model.BuildNumber,
+			"build_hash":            model.BuildHash,
+			"build_hash_enterprise": model.BuildHashEnterprise,
+		} {
+			require.Contains(t, labels, key)
+			require.Equal(t, want, labels[key])
+		}
+	})
+}

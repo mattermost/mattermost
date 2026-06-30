@@ -10,6 +10,8 @@ import glyphMap, {CheckIcon, OpenInNewIcon} from '@mattermost/compass-icons/comp
 import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
+import {ProductMenuItemText, productMenuRowStyle} from '../menu_item_styles';
+
 export interface ProductMenuItemProps {
     destination: string;
     icon: IconGlyphTypes | React.ReactNode;
@@ -20,14 +22,6 @@ export interface ProductMenuItemProps {
     tourTip?: React.ReactNode;
     id?: string;
 }
-
-const MenuItemTextContainer = styled.div`
-    margin-left: 8px;
-    flex-grow: 1;
-    font-weight: 600;
-    font-size: 14px;
-    line-height: 20px;
-`;
 
 const OpenInNewTabButton = styled.button`
     display: flex;
@@ -50,22 +44,9 @@ const OpenInNewTabButton = styled.button`
 `;
 
 const MenuItem = styled(Link)`
+    ${productMenuRowStyle}
+
     && {
-        text-decoration: none;
-        color: inherit;
-    }
-
-    height: 40px;
-    width: 270px;
-    padding-left: 16px;
-    padding-right: 20px;
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    position: relative;
-
-    &:hover {
-        background: rgba(var(--center-channel-color-rgb), 0.08);
         text-decoration: none;
         color: inherit;
     }
@@ -106,9 +87,9 @@ const ProductMenuItem = ({icon, destination, text, active, onClick, tourTip, id}
             ) : (
                 icon
             )}
-            <MenuItemTextContainer>
+            <ProductMenuItemText>
                 {text}
-            </MenuItemTextContainer>
+            </ProductMenuItemText>
             {active ? (
                 <CheckIcon
                     size={18}

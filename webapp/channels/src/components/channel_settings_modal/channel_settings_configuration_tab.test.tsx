@@ -766,7 +766,7 @@ describe('ChannelSettingsConfigurationTab', () => {
         const channelField = {
             id: CHANNEL_FIELD_ID,
             group_id: 'access_control',
-            name: 'channel_classification',
+            name: 'classification',
             type: 'select' as const,
             attrs: {options: [LEVEL_UNCLASSIFIED, LEVEL_SECRET]},
             target_id: '',

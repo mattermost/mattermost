@@ -100,6 +100,7 @@ type CustomProfileAttributesSelectOption struct {
 	ID    string `json:"id"`
 	Name  string `json:"name"`
 	Color string `json:"color"`
+	Rank  *int   `json:"rank,omitempty"`
 }
 
 func (c CustomProfileAttributesSelectOption) GetID() string {
@@ -134,7 +135,6 @@ func (c CustomProfileAttributesSelectOption) IsValid() error {
 	if c.Color != "" && len(c.Color) > CPAOptionColorMaxLength {
 		return fmt.Errorf("color is too long, max length is %d", CPAOptionColorMaxLength)
 	}
-
 	return nil
 }
 
