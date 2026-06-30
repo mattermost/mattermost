@@ -220,7 +220,7 @@ func TestSetJobWarning(t *testing.T) {
 		mockStore.JobStore.
 			On("UpdateStatus", "job_id", model.JobStatusWarning).
 			Return(&retJob, nil)
-		mockMetrics.On("DecrementJobActive", "job_type")
+		mockMetrics.On("DecrementJobActive", "job_type").Once()
 
 		err := jobServer.SetJobWarning(job)
 		require.Nil(t, err)
