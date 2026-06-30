@@ -164,6 +164,7 @@ export default function FlagPostModal({postId, onExited}: Props) {
     return (
         <GenericModal
             id='FlagPostModal'
+            className='flag-post-modal'
             ariaLabel={label}
             modalHeaderText={label}
             modalSubheaderText={subHeading}

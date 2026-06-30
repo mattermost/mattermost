@@ -293,15 +293,15 @@ describe('Incoming webhook', () => {
         cy.getLastPost().within(() => {
             cy.get('.post-message__text').should('have.text', id);
 
-            cy.get('.attachment-actions > :nth-child(1)').should('have.attr', 'data-testid', 'autoCompleteSelector');
-            cy.get('.attachment-actions > :nth-child(1) input').should('have.attr', 'placeholder', 'Select an option...');
-            cy.get('.attachment-actions > :nth-child(2)').should('have.attr', 'data-testid', 'autoCompleteSelector');
-            cy.get('.attachment-actions > :nth-child(2) input').should('have.attr', 'placeholder', 'Select an option...');
+            cy.get('.mm-blocks-container--flow-horizontal > :nth-child(1)').should('have.attr', 'data-testid', 'autoCompleteSelector');
+            cy.get('.mm-blocks-container--flow-horizontal > :nth-child(1) input').should('have.attr', 'placeholder', 'Select an option...');
+            cy.get('.mm-blocks-container--flow-horizontal > :nth-child(2)').should('have.attr', 'data-testid', 'autoCompleteSelector');
+            cy.get('.mm-blocks-container--flow-horizontal > :nth-child(2) input').should('have.attr', 'placeholder', 'Select an option...');
 
-            cy.get('.attachment-actions > button:nth-child(3)').should('have.attr', 'data-action-id');
-            cy.get('.attachment-actions > button:nth-child(3)').should('have.text', 'Ephemeral Message');
-            cy.get('.attachment-actions > button:nth-child(4)').should('have.attr', 'data-action-id');
-            cy.get('.attachment-actions > button:nth-child(4)').should('have.text', 'Update');
+            cy.get('.mm-blocks-container--flow-horizontal > button:nth-child(3)').should('have.attr', 'data-action-id');
+            cy.get('.mm-blocks-container--flow-horizontal > button:nth-child(3)').should('have.text', 'Ephemeral Message');
+            cy.get('.mm-blocks-container--flow-horizontal > button:nth-child(4)').should('have.attr', 'data-action-id');
+            cy.get('.mm-blocks-container--flow-horizontal > button:nth-child(4)').should('have.text', 'Update');
         });
     });
 
@@ -315,15 +315,15 @@ describe('Incoming webhook', () => {
         cy.getLastPost().within(() => {
             cy.get('.post-message__text').should('have.text', id);
 
-            cy.get('.attachment-actions > :nth-child(1)').should('have.attr', 'data-testid', 'autoCompleteSelector');
-            cy.get('.attachment-actions > :nth-child(1) input').should('have.attr', 'placeholder', 'Select an option...');
-            cy.get('.attachment-actions > :nth-child(2)').should('have.attr', 'data-testid', 'autoCompleteSelector');
-            cy.get('.attachment-actions > :nth-child(2) input').should('have.attr', 'placeholder', 'Select an option...');
+            cy.get('.mm-blocks-container--flow-horizontal > :nth-child(1)').should('have.attr', 'data-testid', 'autoCompleteSelector');
+            cy.get('.mm-blocks-container--flow-horizontal > :nth-child(1) input').should('have.attr', 'placeholder', 'Select an option...');
+            cy.get('.mm-blocks-container--flow-horizontal > :nth-child(2)').should('have.attr', 'data-testid', 'autoCompleteSelector');
+            cy.get('.mm-blocks-container--flow-horizontal > :nth-child(2) input').should('have.attr', 'placeholder', 'Select an option...');
 
-            cy.get('.attachment-actions > button:nth-child(3)').should('have.attr', 'data-action-id');
-            cy.get('.attachment-actions > button:nth-child(3)').should('have.text', 'Ephemeral Message');
-            cy.get('.attachment-actions > button:nth-child(4)').should('have.attr', 'data-action-id');
-            cy.get('.attachment-actions > button:nth-child(4)').should('have.text', 'Update');
+            cy.get('.mm-blocks-container--flow-horizontal > button:nth-child(3)').should('have.attr', 'data-action-id');
+            cy.get('.mm-blocks-container--flow-horizontal > button:nth-child(3)').should('have.text', 'Ephemeral Message');
+            cy.get('.mm-blocks-container--flow-horizontal > button:nth-child(4)').should('have.attr', 'data-action-id');
+            cy.get('.mm-blocks-container--flow-horizontal > button:nth-child(4)').should('have.text', 'Update');
         });
     });
 });

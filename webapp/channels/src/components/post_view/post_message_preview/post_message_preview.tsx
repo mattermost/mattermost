@@ -11,10 +11,12 @@ import type {UserProfile} from '@mattermost/types/users';
 import {General} from 'mattermost-redux/constants';
 import {ensureString} from 'mattermost-redux/utils/post_utils';
 
+import {hasInteractiveMessageProps} from 'components/block_renderer/translation';
 import FileAttachmentListContainer from 'components/file_attachment_list';
 import PostHeaderTranslateIcon from 'components/post/post_header_translate_icon';
 import PriorityLabel from 'components/post_priority/post_priority_label';
 import AiGeneratedIndicator from 'components/post_view/ai_generated_indicator/ai_generated_indicator';
+import InteractiveMessages from 'components/post_view/interactive_messages';
 import PostAttachmentOpenGraph from 'components/post_view/post_attachment_opengraph';
 import PostMessageView from 'components/post_view/post_message_view';
 import RedactedFilesPlaceholder from 'components/post_view/redacted_files_placeholder';
@@ -43,6 +45,7 @@ export type Props = OwnProps & {
     handleFileDropdownOpened?: (open: boolean) => void;
     overrideGenerateFileDownloadUrl?: (fileId: string) => string;
     disableActions?: boolean;
+    mmBlocksEnabled?: boolean;
     permissionPoliciesEnabled?: boolean;
     actions: {
         toggleEmbedVisibility: (id: string) => void;
@@ -51,7 +54,7 @@ export type Props = OwnProps & {
 };
 
 const PostMessagePreview = (props: Props) => {
-    const {currentTeamUrl, channelDisplayName, user, previewPost, metadata, isEmbedVisible, compactDisplay, preventClickAction, previewFooterMessage, handleFileDropdownOpened, isPostPriorityEnabled, overrideGenerateFileDownloadUrl, disableActions, isChannelAutotranslated} = props;
+    const {currentTeamUrl, channelDisplayName, user, previewPost, metadata, isEmbedVisible, compactDisplay, preventClickAction, previewFooterMessage, handleFileDropdownOpened, isPostPriorityEnabled, overrideGenerateFileDownloadUrl, disableActions, mmBlocksEnabled, isChannelAutotranslated} = props;
     const {locale} = useIntl();
     const toggleEmbedVisibility = () => {
         if (previewPost) {
@@ -131,6 +134,14 @@ const PostMessagePreview = (props: Props) => {
 
     const translation = getPostTranslation(previewPost, locale);
 
+    const previewProps = previewPost.props as Record<string, unknown> | undefined;
+    const interactiveMessagesPreview = mmBlocksEnabled && hasInteractiveMessageProps(previewProps) ? (
+        <InteractiveMessages
+            post={previewPost}
+            interactionsDisabled={true}
+        />
+    ) : null;
+
     return (
         <PostAttachmentContainer
             className='permalink'
@@ -201,6 +212,8 @@ const PostMessagePreview = (props: Props) => {
                     maxHeight={200}
                     userLanguage={locale}
                     isChannelAutotranslated={isChannelAutotranslated}
+                    disableInteractions={true}
+                    messageBodyFooter={interactiveMessagesPreview}
                 />
                 {urlPreview}
                 {fileAttachmentPreview}
