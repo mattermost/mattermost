@@ -1414,14 +1414,16 @@ func (c *Client4) GetUsersNotInChannel(ctx context.Context, teamId, channelId st
 // GetUsersNotInChannelWithOptionsStruct returns a page of users not in a channel using the options struct.
 func (c *Client4) GetUsersNotInChannelWithOptions(ctx context.Context, channelId string, options *GetUsersNotInChannelOptions) ([]*User, *Response, error) {
 	values := url.Values{}
+	var etag string
 	if options != nil {
 		values.Set("in_team", options.TeamID)
 		values.Set("not_in_channel", channelId)
 		values.Set("page", strconv.Itoa(options.Page))
 		values.Set("per_page", strconv.Itoa(options.Limit))
 		values.Set("cursor_id", options.CursorID)
+		etag = options.Etag
 	}
-	r, err := c.doAPIGetWithQuery(ctx, c.usersRoute(), values, options.Etag)
+	r, err := c.doAPIGetWithQuery(ctx, c.usersRoute(), values, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

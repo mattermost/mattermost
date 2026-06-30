@@ -2855,7 +2855,8 @@ func assertHookPostExists(t *testing.T, th *TestHelper, channelID, expectedMessa
 	t.Helper()
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		posts, appErr := th.App.GetPosts(th.Context, channelID, 0, 30)
+		// Page size 31 bypasses postLastPostsCache (only 30/60 are cached).
+		posts, appErr := th.App.GetPosts(th.Context, channelID, 0, 31)
 		if !assert.Nil(c, appErr) {
 			return
 		}
