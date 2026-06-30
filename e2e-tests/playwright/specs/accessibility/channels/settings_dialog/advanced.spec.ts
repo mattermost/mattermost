@@ -13,8 +13,8 @@ test(
         // # Create and sign in a new user
         const {user, adminClient} = await pw.initSetup();
         const config = await adminClient.getConfig();
-        const wysiwygEnabled = config.FeatureFlags?.WysiwygEditor === true ||
-            config.FeatureFlags?.WysiwygEditor === 'true';
+        const wysiwygEnabled =
+            config.FeatureFlags?.WysiwygEditor === true || config.FeatureFlags?.WysiwygEditor === 'true';
 
         // # Log in a user in new browser context
         const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -83,8 +83,8 @@ test(
         const {user, adminClient} = await pw.initSetup();
 
         const config = await adminClient.getConfig();
-        const wysiwygEnabled = config.FeatureFlags?.WysiwygEditor === true ||
-            config.FeatureFlags?.WysiwygEditor === 'true';
+        const wysiwygEnabled =
+            config.FeatureFlags?.WysiwygEditor === true || config.FeatureFlags?.WysiwygEditor === 'true';
 
         // # Log in a user in new browser context
         const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -108,10 +108,12 @@ test(
         // * Advanced Settings panel should be visible
         await expect(settingsModal.advancedSettings.container).toBeVisible();
 
-        const wysiwygSnapshot = wysiwygEnabled ? `
+        const wysiwygSnapshot = wysiwygEnabled
+            ? `
             - heading "Rich text editing (Beta)" [level=4]
             - button "Rich text editing (Beta) Edit"
-            - text: /(Markdown editing [(]default[)]|Rich text editing.*)/` : '';
+            - text: /(Markdown editing [(]default[)]|Rich text editing.*)/`
+            : '';
 
         // * Verify aria snapshot of Advanced settings tab
         await expect(settingsModal.advancedSettings.container).toMatchAriaSnapshot(`
