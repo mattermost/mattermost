@@ -917,6 +917,13 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		s.Require().Equal("publicChannel1", printer.GetLines()[0])
 	})
 
+	s.Run("show-ids flag is registered on the command", func() {
+		flag := ListChannelsCmd.Flags().Lookup("show-ids")
+		s.Require().NotNil(flag)
+		s.Require().Equal("i", flag.Shorthand)
+		s.Require().Equal("false", flag.DefValue)
+	})
+
 	s.Run("Team with archived channels", func() {
 		printer.Clean()
 
