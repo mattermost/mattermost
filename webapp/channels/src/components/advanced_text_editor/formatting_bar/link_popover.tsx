@@ -15,6 +15,7 @@ import {
 } from '@mattermost/compass-icons/components';
 
 import {RootHtmlPortalId} from 'utils/constants';
+import {isUrlSafe} from 'utils/url';
 
 const POPOVER_MAX_WIDTH = 496;
 const POPOVER_VIEWPORT_PADDING = 32;
@@ -176,7 +177,7 @@ const LinkPopover = ({editor, onClose}: LinkPopoverProps) => {
     const {getFloatingProps} = useInteractions([dismiss]);
 
     const handleSave = useCallback(() => {
-        if (!url) {
+        if (!url || !isUrlSafe(url)) {
             return;
         }
 
@@ -207,7 +208,7 @@ const LinkPopover = ({editor, onClose}: LinkPopoverProps) => {
     }, [editor, onClose]);
 
     const handleOpenExternal = useCallback(() => {
-        if (url) {
+        if (url && isUrlSafe(url)) {
             window.open(url, '_blank', 'noopener,noreferrer');
         }
     }, [url]);
