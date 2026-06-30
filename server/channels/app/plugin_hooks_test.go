@@ -2850,7 +2850,6 @@ func TestHookServeMetrics(t *testing.T) {
 	})
 }
 
-<<<<<<< HEAD
 func TestUserHasJoinedChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -2861,60 +2860,6 @@ func TestUserHasJoinedChannel(t *testing.T) {
 	}
 
 	getPluginCode := func() string {
-=======
-func assertHookPostExists(t *testing.T, th *TestHelper, channelID, expectedMessage string) {
-	t.Helper()
-
-	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		// Page size 31 bypasses postLastPostsCache (only 30/60 are cached).
-		posts, appErr := th.App.GetPosts(th.Context, channelID, 0, 31)
-		if !assert.Nil(c, appErr) {
-			return
-		}
-
-		found := false
-		for _, postID := range posts.Order {
-			if posts.Posts[postID].Message == expectedMessage {
-				found = true
-				break
-			}
-		}
-		assert.True(c, found, "expected hook post %q not found", expectedMessage)
-	}, 30*time.Second, 100*time.Millisecond)
-}
-
-func assertPluginReadyForHooks(t *testing.T, th *TestHelper, pluginID string, requiredHooks ...string) {
-	t.Helper()
-
-	assert.Eventually(t, func() bool {
-		env := th.App.GetPluginsEnvironment()
-		if env == nil || !env.IsActive(pluginID) {
-			return false
-		}
-		hooks, err := env.HooksForPlugin(pluginID)
-		if err != nil {
-			return false
-		}
-		if len(requiredHooks) == 0 {
-			return true
-		}
-		implemented, err := hooks.Implemented()
-		if err != nil {
-			return false
-		}
-		for _, requiredHook := range requiredHooks {
-			if !slices.Contains(implemented, requiredHook) {
-				return false
-			}
-		}
-		return true
-	}, 10*time.Second, 50*time.Millisecond, "plugin %q failed to become ready for hooks", pluginID)
-}
-
-func TestUserHasJoinedChannel(t *testing.T) {
-	mainHelper.Parallel(t)
-	getPluginCode := func(adminUserID string) string {
->>>>>>> origin/master
 		return `
 			package main
 
@@ -2936,17 +2881,8 @@ func TestUserHasJoinedChannel(t *testing.T) {
 				return nil
 			}
 
-<<<<<<< HEAD
 			func (p *MyPlugin) UserHasJoinedChannel(c *plugin.Context, channelMember *model.ChannelMember, actor *model.User) {
 				if appErr := p.API.KVSet(fmt.Sprintf("joined_%s_%s", channelMember.ChannelId, channelMember.UserId), []byte("true")); appErr != nil {
-=======
-				_, appErr := p.API.CreatePost(&model.Post{
-					UserId: adminUserID,
-					ChannelId: channelMember.ChannelId,
-					Message: message,
-				})
-				if appErr != nil {
->>>>>>> origin/master
 					panic(appErr)
 				}
 			}
@@ -3009,13 +2945,8 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		require.NotNil(t, channel)
 
 		// Setup plugin after creating the channel
-<<<<<<< HEAD
 		setupPluginAPITest(t, getPluginCode(), pluginManifest, pluginID, th.App, th.Context)
 		waitForPluginActivated(t, th)
-=======
-		setupPluginAPITest(t, getPluginCode(th.SystemAdminUser.Id), pluginManifest, pluginID, th.App, th.Context)
-		assertPluginReadyForHooks(t, th, pluginID, "UserHasJoinedChannel")
->>>>>>> origin/master
 
 		_, appErr = th.App.AddChannelMember(th.Context, user2.Id, channel, ChannelMemberOpts{
 			UserRequestorID: user2.Id,
@@ -3044,13 +2975,8 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		require.NotNil(t, channel)
 
 		// Setup plugin after creating the channel
-<<<<<<< HEAD
 		setupPluginAPITest(t, getPluginCode(), pluginManifest, pluginID, th.App, th.Context)
 		waitForPluginActivated(t, th)
-=======
-		setupPluginAPITest(t, getPluginCode(th.SystemAdminUser.Id), pluginManifest, pluginID, th.App, th.Context)
-		assertPluginReadyForHooks(t, th, pluginID, "UserHasJoinedChannel")
->>>>>>> origin/master
 
 		_, appErr = th.App.AddChannelMember(th.Context, user2.Id, channel, ChannelMemberOpts{
 			UserRequestorID: user1.Id,
@@ -3065,13 +2991,8 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		th := Setup(t, StartMetrics).InitBasic(t)
 
 		// Setup plugin
-<<<<<<< HEAD
 		setupPluginAPITest(t, getPluginCode(), pluginManifest, pluginID, th.App, th.Context)
 		waitForPluginActivated(t, th)
-=======
-		setupPluginAPITest(t, getPluginCode(th.SystemAdminUser.Id), pluginManifest, pluginID, th.App, th.Context)
-		assertPluginReadyForHooks(t, th, pluginID)
->>>>>>> origin/master
 
 		user1 := th.CreateUser(t)
 
@@ -3092,16 +3013,11 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		th := Setup(t, StartMetrics).InitBasic(t)
 
 		// Setup plugin
-<<<<<<< HEAD
 		setupPluginAPITest(t, getPluginCode(), pluginManifest, pluginID, th.App, th.Context)
 		waitForPluginActivated(t, th)
 
 		user1 := th.CreateUser(t)
 		user2 := th.CreateUser(t)
-=======
-		setupPluginAPITest(t, getPluginCode(th.SystemAdminUser.Id), pluginManifest, pluginID, th.App, th.Context)
-		assertPluginReadyForHooks(t, th, pluginID)
->>>>>>> origin/master
 
 		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, user1.Id, user2.Id)
 		require.Nil(t, appErr)
@@ -3122,15 +3038,6 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		user2 := th.CreateUser(t)
 		user3 := th.CreateUser(t)
 
-<<<<<<< HEAD
-=======
-		pluginID, pluginManifest := newPluginFixture()
-
-		// Setup plugin
-		setupPluginAPITest(t, getPluginCode(th.SystemAdminUser.Id), pluginManifest, pluginID, th.App, th.Context)
-		assertPluginReadyForHooks(t, th, pluginID)
-
->>>>>>> origin/master
 		channel, appErr := th.App.CreateGroupChannel(th.Context, []string{user1.Id, user2.Id, user3.Id}, user1.Id)
 		require.Nil(t, appErr)
 		require.NotNil(t, channel)
