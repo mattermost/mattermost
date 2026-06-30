@@ -78,14 +78,11 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
             ]);
             await setFieldAsSharedOnly(fieldId);
             // The /assign endpoint returns 200 with empty body (no JSON), so use raw fetch.
-            const assignResp = await fetch(
-                `${adminClient.getUrl()}/api/v4/access_control_policies/${policyId}/assign`,
-                {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json', Authorization: `Bearer ${adminClient.getToken()}`},
-                    body: JSON.stringify({team_ids: [team.id]}),
-                },
-            );
+            const assignResp = await fetch(`${adminClient.getBaseRoute()}/access_control_policies/${policyId}/assign`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', Authorization: `Bearer ${adminClient.getToken()}`},
+                body: JSON.stringify({team_ids: [team.id]}),
+            });
             if (!assignResp.ok) {
                 throw new Error(`Failed to assign policy to team: HTTP ${assignResp.status}`);
             }

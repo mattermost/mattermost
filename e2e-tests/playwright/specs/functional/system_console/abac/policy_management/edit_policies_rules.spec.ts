@@ -78,7 +78,7 @@ test('MM-T5791 Editing policy to add attribute with auto-add enabled', async ({p
             try {
                 await adminClient.deleteCustomProfileAttributeField(existingOffice.id);
             } catch {
-                await deleteFieldFromDB(existingOffice.id).catch(() => {});
+                await deleteFieldFromDB(existingOffice.id);
             }
             delete attributeFieldsMap[existingOffice.id];
         }
@@ -346,7 +346,7 @@ test('MM-T5792 Editing policy to remove attribute rule with auto-add enabled', a
             try {
                 await adminClient.deleteCustomProfileAttributeField(existingOffice.id);
             } catch {
-                await deleteFieldFromDB(existingOffice.id).catch(() => {});
+                await deleteFieldFromDB(existingOffice.id);
             }
             delete attributeFieldsMap[existingOffice.id];
         }
