@@ -969,13 +969,24 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if team.AllowOpenInvite && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionJoinPublicTeams) {
-			c.SetPermissionError(model.PermissionJoinPublicTeams)
-			return
-		}
-		if !team.AllowOpenInvite && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionJoinPrivateTeams) {
-			c.SetPermissionError(model.PermissionJoinPrivateTeams)
-			return
+		if team.AllowOpenInvite {
+			if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionJoinPublicTeams) {
+				c.SetPermissionError(model.PermissionJoinPublicTeams)
+				return
+			}
+		} else {
+			// On an ABAC-governed team, membership is authorized by attribute match
+			// in JoinUserToTeam, not by the join_private_teams role. Non-governed
+			// private teams keep the role gate exactly as before.
+			controlled, appErr := c.App.TeamAccessControlled(c.AppContext, team.Id)
+			if appErr != nil {
+				c.Err = appErr // fail-closed: don't loosen the gate on error
+				return
+			}
+			if !controlled && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionJoinPrivateTeams) {
+				c.SetPermissionError(model.PermissionJoinPrivateTeams)
+				return
+			}
 		}
 	} else {
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), member.TeamId, model.PermissionAddUserToTeam) {
