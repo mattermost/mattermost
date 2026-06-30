@@ -441,7 +441,7 @@ jobs:
         uses: ./.github/actions/run-in-buildenv
         with:
           run: |
-            export BUILD_NUMBER="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}-${GITHUB_RUN_ID}"
+            export BUILD_NUMBER="$(printf '%s' "${HEAD_REF:-${REF_NAME}}" | tr -c 'A-Za-z0-9._-' '-')-${RUN_ID}"
             export FIPS_ENABLED=false
             make config-reset
             make build-cmd

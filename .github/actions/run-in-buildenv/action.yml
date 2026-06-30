@@ -3,6 +3,13 @@ description: >
   Runs a script inside the build-server container. Use for build and check
   jobs that don't need direct control over the docker run invocation.
 
+  Note the special handling of HEAD_REF, REF_NAME, and RUN_ID. Since the
+  container is not otherwise given access to the runner's environment, we
+  re-export github.head_ref, github.ref_name, and github.run_id as a
+  special case for use in safely building up BUILD_NUMBER. In general,
+  don't extend this: if your use case requires more customization, use
+  load-buildenv and invoke docker run yourself.
+
 inputs:
   run:
     description: "Bash script to execute inside the container"
@@ -44,12 +51,16 @@ runs:
         CMD: ${{ inputs.run }}
         IMAGE: ${{ steps.buildenv.outputs.image }}
         WORKING_DIR: ${{ inputs.working-directory }}
+        HEAD_REF: ${{ github.head_ref }}
+        REF_NAME: ${{ github.ref_name }}
+        RUN_ID: ${{ github.run_id }}
       run: |
         SCRIPT=$(mktemp)
         printf 'git config --global --add safe.directory /mattermost\n' > "${SCRIPT}"
         printf '%s\n' "${CMD}" >> "${SCRIPT}"
         docker run --rm \
           --network host \
+          -e HEAD_REF -e REF_NAME -e RUN_ID \
           -v "$PWD:/mattermost" \
           -v "${SCRIPT}:/run-script.sh" \
           -w "${WORKING_DIR}" \
