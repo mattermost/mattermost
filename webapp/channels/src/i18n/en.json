@@ -4269,6 +4269,7 @@
   "channel_members_rhs.action_bar.managing_title": "Managing Members",
   "channel_members_rhs.action_bar.members_count_title": "{members_count} members",
   "channel_members_rhs.default_channel_moderation_restrictions": "In this channel, you can only remove guests. Only <link>channel admins</link> can manage other members.",
+  "channel_members_rhs.filter.online_only": "Show online only ({count})",
   "channel_members_rhs.header.title": "Members",
   "channel_members_rhs.list.channel_admin_title": "CHANNEL ADMINS",
   "channel_members_rhs.list.channel_members_title": "MEMBERS",

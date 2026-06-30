@@ -78,7 +78,24 @@ export default function ChannelMembersRHS({
 
     const [page, setPage] = useState(0);
     const [isNextPageLoading, setIsNextPageLoading] = useState(false);
+    // issue #33790: persistent "show online only" toggle so members
+    // can see at a glance who's available in the channel.
+    const [showOnlineOnly, setShowOnlineOnly] = useState(false);
     const {formatMessage} = useIntl();
+
+    // Filter members by online status when the toggle is on. Online + away + dnd
+    // are all considered "available" enough to surface; only "offline" is hidden.
+    const visibleChannelMembers = useMemo(() => {
+        if (!showOnlineOnly) {
+            return channelMembers;
+        }
+        return channelMembers.filter((m) => m.status !== 'offline');
+    }, [channelMembers, showOnlineOnly]);
+
+    const onlineCount = useMemo(
+        () => channelMembers.filter((m) => m.status !== 'offline').length,
+        [channelMembers],
+    );
 
     // Only channels whose policy controls membership surface attribute
     // tags in the RHS — a permission-only policy (e.g. file upload) has
@@ -131,8 +148,8 @@ export default function ChannelMembersRHS({
         const listcp: ListItem[] = [];
         let memberDone = false;
 
-        for (let i = 0; i < channelMembers.length; i++) {
-            const member = channelMembers[i];
+        for (let i = 0; i < visibleChannelMembers.length; i++) {
+            const member = visibleChannelMembers[i];
             if (listcp.length === 0) {
                 let text = null;
                 if (member.membership?.scheme_admin === true) {
@@ -174,7 +191,7 @@ export default function ChannelMembersRHS({
         if (JSON.stringify(list) !== JSON.stringify(listcp)) {
             setList(listcp);
         }
-    }, [channelMembers]);
+    }, [visibleChannelMembers]);
 
     useEffect(() => {
         if (channel.type === Constants.DM_CHANNEL) {
@@ -316,6 +333,25 @@ export default function ChannelMembersRHS({
                     onInput={setSearchTerms}
                 />
             )}
+
+            <div className='channel-members-rhs__filter-row'>
+                <input
+                    id='channelMembersOnlineOnlyToggle'
+                    type='checkbox'
+                    checked={showOnlineOnly}
+                    onChange={(e) => setShowOnlineOnly(e.target.checked)}
+                />
+                <label
+                    htmlFor='channelMembersOnlineOnlyToggle'
+                    className='channel-members-rhs__filter-label'
+                >
+                    <FormattedMessage
+                        id='channel_members_rhs.filter.online_only'
+                        defaultMessage='Show online only ({count})'
+                        values={{count: onlineCount}}
+                    />
+                </label>
+            </div>
 
             <div className='channel-members-rhs__members-container'>
                 {channelMembers.length > 0 && (
