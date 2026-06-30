@@ -1170,16 +1170,7 @@ func userStatusSetCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		return fmt.Errorf("the --dnd-end-time flag can only be used with the %q status", model.StatusDnd)
 	}
 
-	userID, err := resolveStatusTargetUserID(c, cmd)
-	if err != nil {
-		return err
-	}
-
-	status := &model.Status{
-		UserId: userID,
-		Status: newStatus,
-	}
-
+	var dndEndTime int64
 	if dndEndTimeArg != "" {
 		endTime, err := time.Parse(ISO8601Layout, dndEndTimeArg)
 		if err != nil {
@@ -1189,7 +1180,18 @@ func userStatusSetCmdF(c client.Client, cmd *cobra.Command, args []string) error
 			return errors.New("dnd-end-time must be in the future")
 		}
 		// DNDEndTime is expressed in seconds rather than milliseconds.
-		status.DNDEndTime = endTime.Unix()
+		dndEndTime = endTime.Unix()
+	}
+
+	userID, err := resolveStatusTargetUserID(c, cmd)
+	if err != nil {
+		return err
+	}
+
+	status := &model.Status{
+		UserId:     userID,
+		Status:     newStatus,
+		DNDEndTime: dndEndTime,
 	}
 
 	updatedStatus, _, err := c.UpdateUserStatus(context.TODO(), userID, status)

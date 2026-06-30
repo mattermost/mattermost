@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
@@ -1850,17 +1849,26 @@ func (s *MmctlE2ETestSuite) TestUserStatusGetCmd() {
 		status, ok := printer.GetLines()[0].(*model.Status)
 		s.Require().True(ok)
 		s.Require().Equal(s.th.SystemAdminUser.Id, status.UserId)
+		s.Require().Equal(model.StatusOnline, status.Status)
 	})
 
-	s.Run("Require --user in local mode", func() {
+	s.Run("A regular user can read another user's status", func() {
 		printer.Clean()
-		prevLocal := viper.GetBool("local")
-		viper.Set("local", true)
-		defer viper.Set("local", prevLocal)
 
-		err := userStatusGetCmdF(s.th.LocalClient, newUserStatusCmd(), []string{})
-		s.Require().EqualError(err, "the --user flag is required in local mode")
-		s.Require().Len(printer.GetLines(), 0)
+		s.th.App.SaveAndBroadcastStatus(&model.Status{UserId: s.th.BasicUser2.Id, Status: model.StatusOnline, Manual: true})
+
+		cmd := newUserStatusCmd()
+		s.Require().NoError(cmd.Flags().Set("user", s.th.BasicUser2.Email))
+
+		err := userStatusGetCmdF(s.th.Client, cmd, []string{})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+
+		status, ok := printer.GetLines()[0].(*model.Status)
+		s.Require().True(ok)
+		s.Require().Equal(s.th.BasicUser2.Id, status.UserId)
+		s.Require().Equal(model.StatusOnline, status.Status)
 	})
 
 	s.RunForAllClients("Get the status of a nonexistent user", func(c client.Client) {
@@ -1934,6 +1942,27 @@ func (s *MmctlE2ETestSuite) TestUserStatusSetCmd() {
 		s.Require().Equal(model.StatusAway, stored.Status)
 	})
 
+	s.Run("A regular user can set their own status when --user is omitted", func() {
+		printer.Clean()
+
+		// Seed a distinct starting status so the read-back proves the write happened
+		// rather than passing on leftover state from earlier subtests.
+		s.th.App.SaveAndBroadcastStatus(&model.Status{UserId: s.th.BasicUser.Id, Status: model.StatusDnd, Manual: true})
+
+		err := userStatusSetCmdF(s.th.Client, newUserStatusSetCmd(), []string{model.StatusAway})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+
+		status, ok := printer.GetLines()[0].(*model.Status)
+		s.Require().True(ok)
+		s.Require().Equal(model.StatusAway, status.Status)
+
+		stored, appErr := s.th.App.GetStatus(s.th.BasicUser.Id)
+		s.Require().Nil(appErr)
+		s.Require().Equal(model.StatusAway, stored.Status)
+	})
+
 	s.Run("A regular user cannot set another user's status", func() {
 		printer.Clean()
 
@@ -1942,24 +1971,14 @@ func (s *MmctlE2ETestSuite) TestUserStatusSetCmd() {
 
 		err := userStatusSetCmdF(s.th.Client, cmd, []string{model.StatusOnline})
 		s.Require().Error(err)
+		s.CheckErrorID(err, "api.context.permissions.app_error")
 		s.Require().Len(printer.GetLines(), 0)
 	})
 
-	s.Run("Require --user in local mode", func() {
-		printer.Clean()
-		prevLocal := viper.GetBool("local")
-		viper.Set("local", true)
-		defer viper.Set("local", prevLocal)
-
-		err := userStatusSetCmdF(s.th.LocalClient, newUserStatusSetCmd(), []string{model.StatusOnline})
-		s.Require().EqualError(err, "the --user flag is required in local mode")
-		s.Require().Len(printer.GetLines(), 0)
-	})
-
-	s.RunForAllClients("Reject an invalid status value", func(c client.Client) {
+	s.Run("Reject an invalid status value", func() {
 		printer.Clean()
 
-		err := userStatusSetCmdF(c, newUserStatusSetCmd(), []string{"busy"})
+		err := userStatusSetCmdF(s.th.SystemAdminClient, newUserStatusSetCmd(), []string{"busy"})
 		s.Require().EqualError(err, "invalid status \"busy\", must be one of: online, away, dnd, offline")
 		s.Require().Len(printer.GetLines(), 0)
 	})

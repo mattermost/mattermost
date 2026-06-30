@@ -3134,6 +3134,27 @@ func newUserStatusSetCmd() *cobra.Command {
 	return cmd
 }
 
+func (s *MmctlUnitTestSuite) TestUserStatusCmdWiring() {
+	s.Run("status command is registered under user with a set subcommand", func() {
+		s.Require().True(UserCmd.HasSubCommands())
+		s.Require().Contains(UserCmd.Commands(), UserStatusCmd)
+		s.Require().Contains(UserStatusCmd.Commands(), UserStatusSetCmd)
+	})
+
+	s.Run("the expected flags are registered", func() {
+		s.Require().NotNil(UserStatusCmd.Flags().Lookup("user"))
+		s.Require().NotNil(UserStatusSetCmd.Flags().Lookup("user"))
+		s.Require().NotNil(UserStatusSetCmd.Flags().Lookup("dnd-end-time"))
+	})
+
+	s.Run("argument contracts are enforced", func() {
+		s.Require().NoError(UserStatusCmd.Args(UserStatusCmd, []string{}))
+		s.Require().Error(UserStatusCmd.Args(UserStatusCmd, []string{"online"}))
+		s.Require().NoError(UserStatusSetCmd.Args(UserStatusSetCmd, []string{"online"}))
+		s.Require().Error(UserStatusSetCmd.Args(UserStatusSetCmd, []string{}))
+	})
+}
+
 func (s *MmctlUnitTestSuite) TestUserStatusGetCmd() {
 	s.Run("Get status of the current user when --user is omitted", func() {
 		printer.Clean()
@@ -3363,13 +3384,6 @@ func (s *MmctlUnitTestSuite) TestUserStatusSetCmd() {
 		err := cmd.Flags().Set("dnd-end-time", time.Now().Add(-time.Hour).Format(ISO8601Layout))
 		s.Require().NoError(err)
 
-		mockUser := model.User{Id: "me-id", Username: "me"}
-		s.client.
-			EXPECT().
-			GetMe(context.TODO(), "").
-			Return(&mockUser, &model.Response{}, nil).
-			Times(1)
-
 		err = userStatusSetCmdF(s.client, cmd, []string{model.StatusDnd})
 		s.Require().EqualError(err, "dnd-end-time must be in the future")
 		s.Require().Len(printer.GetLines(), 0)
@@ -3382,15 +3396,22 @@ func (s *MmctlUnitTestSuite) TestUserStatusSetCmd() {
 		err := cmd.Flags().Set("dnd-end-time", "not-a-time")
 		s.Require().NoError(err)
 
-		mockUser := model.User{Id: "me-id", Username: "me"}
+		err = userStatusSetCmdF(s.client, cmd, []string{model.StatusDnd})
+		s.Require().EqualError(err, "invalid dnd-end-time \"not-a-time\", expected ISO 8601 format (e.g. 2006-01-02T15:04:05-07:00)")
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("Return error when the current user cannot be resolved", func() {
+		printer.Clean()
+
 		s.client.
 			EXPECT().
 			GetMe(context.TODO(), "").
-			Return(&mockUser, &model.Response{}, nil).
+			Return(nil, &model.Response{}, errors.New("me error")).
 			Times(1)
 
-		err = userStatusSetCmdF(s.client, cmd, []string{model.StatusDnd})
-		s.Require().EqualError(err, "invalid dnd-end-time \"not-a-time\", expected ISO 8601 format (e.g. 2006-01-02T15:04:05-07:00)")
+		err := userStatusSetCmdF(s.client, newUserStatusSetCmd(), []string{model.StatusOnline})
+		s.Require().EqualError(err, "could not retrieve the current user: me error")
 		s.Require().Len(printer.GetLines(), 0)
 	})
 
