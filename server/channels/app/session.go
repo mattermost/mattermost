@@ -668,12 +668,14 @@ func (a *App) RevokeNonCompliantUserAccessTokens(rctx request.CTX) (int64, *mode
 	}
 
 	var totalRevoked int64
+	allRevoked := false
 	for range revokeNonCompliantMaxBatches {
 		userIDs, err := a.Srv().Store().UserAccessToken().DeleteNonCompliantExpiry(maxExpiresAt, revokeNonCompliantBatchLimit)
 		if err != nil {
 			return totalRevoked, model.NewAppError("RevokeNonCompliantUserAccessTokens", "app.user_access_token.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		if len(userIDs) == 0 {
+			allRevoked = true
 			break
 		}
 
@@ -688,15 +690,12 @@ func (a *App) RevokeNonCompliantUserAccessTokens(rctx request.CTX) (int64, *mode
 		}
 
 		if len(userIDs) < revokeNonCompliantBatchLimit {
+			allRevoked = true
 			break
 		}
 	}
 
-	remaining, err := a.Srv().Store().UserAccessToken().CountNonCompliantExpiry(maxExpiresAt)
-	if err != nil {
-		return totalRevoked, model.NewAppError("RevokeNonCompliantUserAccessTokens", "app.user_access_token.get_non_compliant.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	if remaining > 0 {
+	if !allRevoked {
 		return totalRevoked, model.NewAppError("RevokeNonCompliantUserAccessTokens", "app.user_access_token.revoke_non_compliant.partial.app_error", nil, "", http.StatusInternalServerError)
 	}
 
