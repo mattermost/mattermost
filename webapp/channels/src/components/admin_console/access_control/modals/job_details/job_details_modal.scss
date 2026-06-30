@@ -31,6 +31,7 @@
 
     .filter-row {
         position: relative;
+        margin-top: 16px;
         padding: 0 32px;
 
         .input-clear {
@@ -47,12 +48,12 @@
             pointer-events: none;
         }
 
-        #searchChannelsTextbox {
+        .filter-textbox {
             height: 48px;
             border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
             box-shadow: none;
             font-size: 16px;
-            padding-inline: 40px;
+            padding-inline: 44px 40px;
 
             &::placeholder {
                 color: var(--center-channel-color);

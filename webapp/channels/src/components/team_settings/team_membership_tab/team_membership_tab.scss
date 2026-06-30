@@ -41,9 +41,9 @@
     &__editor {
         .table-editor__cell {
             button {
-                color: var(--center-channel-color);
+                color: var(--center-channel-color) !important;
                 &:hover {
-                    background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                    background-color: rgba(var(--center-channel-color-rgb), 0.08) !important;
                 }
             }
         }
