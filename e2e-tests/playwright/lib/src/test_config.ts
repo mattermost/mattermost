@@ -24,6 +24,9 @@ export class TestConfig {
     snapshotEnabled: boolean;
     percyEnabled: boolean;
 
+    /** Base URL of the Cypress/Playwright webhook sidecar (`e2e-tests/cypress`: `npm run start:webhook`). */
+    webhookBaseUrl: string;
+
     constructor() {
         // Server
         this.baseURL = process.env.PW_BASE_URL || 'http://localhost:8065';
@@ -48,6 +51,7 @@ export class TestConfig {
         // Visual tests
         this.snapshotEnabled = parseBool(process.env.PW_SNAPSHOT_ENABLE, false);
         this.percyEnabled = parseBool(process.env.PW_PERCY_ENABLE, false);
+        this.webhookBaseUrl = process.env.PW_WEBHOOK_BASE_URL || 'http://localhost:3000';
     }
 }
 

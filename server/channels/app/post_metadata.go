@@ -283,15 +283,12 @@ func (a *App) getEmbedsAndImages(rctx request.CTX, post *model.Post, isNewPost b
 		post.Metadata.Embeds = []*model.PostEmbed{}
 	}
 
-	// Embeds and image dimensions
-	firstLink, images := a.getFirstLinkAndImages(rctx, post.Message)
+	// Embeds use the first autolink from the post message only (not from attachments or blocks).
+	firstLink := a.getFirstLink(rctx, post.Message)
 
-	if unsafeLinksProp := post.GetProp(model.PostPropsUnsafeLinks); unsafeLinksProp != nil {
-		if prop, ok := unsafeLinksProp.(string); ok && prop == "true" {
-			images = []string{}
-			if !looksLikeAPermalink(firstLink, *a.Config().ServiceSettings.SiteURL) {
-				return post
-			}
+	if post.HasUnsafeLinks() {
+		if !looksLikeAPermalink(firstLink, *a.Config().ServiceSettings.SiteURL) {
+			return post
 		}
 	}
 
@@ -305,7 +302,7 @@ func (a *App) getEmbedsAndImages(rctx request.CTX, post *model.Post, isNewPost b
 	} else if embed != nil {
 		post.Metadata.Embeds = append(post.Metadata.Embeds, embed)
 	}
-	post.Metadata.Images = a.getImagesForPost(rctx, post, images, isNewPost)
+	post.Metadata.Images = a.getImagesForPost(rctx, post, isNewPost)
 	return post
 }
 
@@ -442,6 +439,14 @@ func (a *App) sanitizeFileAttachmentsForUser(rctx request.CTX, post *model.Post,
 	}
 
 	if !a.Config().FeatureFlags.PermissionPolicies {
+		return
+	}
+
+	// No requesting user (e.g. a system post created by a background job with no
+	// session, such as the ABAC membership sync's channel-join messages). There
+	// is nobody to sanitize attachments for, so skip. A genuine reader re-runs
+	// this with their own session id when the post is served.
+	if userID == "" {
 		return
 	}
 
@@ -608,18 +613,21 @@ func (a *App) getEmbedForPost(rctx request.CTX, post *model.Post, firstLink stri
 	}, nil
 }
 
-func (a *App) getImagesForPost(rctx request.CTX, post *model.Post, imageURLs []string, isNewPost bool) map[string]*model.PostImage {
-	images := map[string]*model.PostImage{}
+func (a *App) getImagesForPost(rctx request.CTX, post *model.Post, isNewPost bool) map[string]*model.PostImage {
+	if post.HasUnsafeLinks() {
+		return map[string]*model.PostImage{}
+	}
+
+	imageURLs := a.markdownImageURLsFromStrings(rctx, post.AllStrings(model.AllStringsOptions{OmitInteractiveBlocks: !a.Config().FeatureFlags.MmBlocksEnabled}))
+	imageURLs = append(imageURLs, post.InteractiveBlocksImageURLs(a.Config().FeatureFlags.MmBlocksEnabled)...)
+
+	postImages := map[string]*model.PostImage{}
 
 	for _, embed := range post.Metadata.Embeds {
 		switch embed.Type {
 		case model.PostEmbedImage:
 			// These dimensions will generally be cached by a previous call to getEmbedForPost
 			imageURLs = append(imageURLs, embed.URL)
-
-		case model.PostEmbedMessageAttachment:
-			imageURLs = append(imageURLs, a.getImagesInMessageAttachments(rctx, post)...)
-
 		case model.PostEmbedOpengraph:
 			openGraph, ok := embed.Data.(*opengraph.OpenGraph)
 			if !ok {
@@ -646,7 +654,7 @@ func (a *App) getImagesForPost(rctx request.CTX, post *model.Post, imageURLs []s
 		}
 	}
 
-	// Removing duplicates isn't strictly since images is a map, but it feels safer to do it beforehand
+	// Removing duplicates isn't strictly required since postImages is a map, but it feels safer to do it beforehand
 	if len(imageURLs) > 1 {
 		imageURLs = model.RemoveDuplicateStrings(imageURLs)
 	}
@@ -670,11 +678,11 @@ func (a *App) getImagesForPost(rctx request.CTX, post *model.Post, imageURLs []s
 				)
 			}
 		} else if image != nil {
-			images[imageURL] = image
+			postImages[imageURL] = image
 		}
 	}
 
-	return images
+	return postImages
 }
 
 func getEmojiNamesForString(s string) []string {
@@ -687,43 +695,16 @@ func getEmojiNamesForString(s string) []string {
 	return names
 }
 
-func getEmojiNamesForPost(post *model.Post, reactions []*model.Reaction) []string {
-	// Post message
-	names := getEmojiNamesForString(post.Message)
-
-	// Reactions
+func getEmojiNamesForPost(post *model.Post, reactions []*model.Reaction, mmBlocksEnabled bool) []string {
+	allStrings := post.AllStrings(model.AllStringsOptions{OmitInteractiveBlocks: !mmBlocksEnabled})
+	var names []string
+	for _, s := range allStrings {
+		names = append(names, getEmojiNamesForString(s)...)
+	}
 	for _, reaction := range reactions {
 		names = append(names, reaction.EmojiName)
 	}
-
-	// Post attachments
-	for _, attachment := range post.Attachments() {
-		if attachment.Title != "" {
-			names = append(names, getEmojiNamesForString(attachment.Title)...)
-		}
-
-		if attachment.Text != "" {
-			names = append(names, getEmojiNamesForString(attachment.Text)...)
-		}
-
-		if attachment.Pretext != "" {
-			names = append(names, getEmojiNamesForString(attachment.Pretext)...)
-		}
-
-		for _, field := range attachment.Fields {
-			if field == nil {
-				continue
-			}
-			if value, ok := field.Value.(string); ok {
-				names = append(names, getEmojiNamesForString(value)...)
-			}
-		}
-	}
-
-	// Remove duplicates
-	names = model.RemoveDuplicateStrings(names)
-
-	return names
+	return model.RemoveDuplicateStrings(names)
 }
 
 func (a *App) getCustomEmojisForPost(rctx request.CTX, post *model.Post, reactions []*model.Reaction) ([]*model.Emoji, *model.AppError) {
@@ -732,7 +713,7 @@ func (a *App) getCustomEmojisForPost(rctx request.CTX, post *model.Post, reactio
 		return []*model.Emoji{}, nil
 	}
 
-	names := getEmojiNamesForPost(post, reactions)
+	names := getEmojiNamesForPost(post, reactions, a.Config().FeatureFlags.MmBlocksEnabled)
 	if len(names) == 0 {
 		return []*model.Emoji{}, nil
 	}
@@ -779,19 +760,37 @@ func normalizeDomains(domains string) []string {
 	)
 }
 
-// Given a string, returns the first autolinked URL in the string as well as an array of all Markdown
-// images of the form ![alt text](image url). Note that this does not return Markdown links of the
-// form [text](url).
-func (a *App) getFirstLinkAndImages(rctx request.CTX, str string) (string, []string) {
-	firstLink := ""
-	images := []string{}
+// markdownImageURLsFromStrings collects ![alt](url) and reference-style image URLs from the given
+// strings (typically model.Post.AllStrings).
+func (a *App) markdownImageURLsFromStrings(rctx request.CTX, allStrings []string) []string {
+	var images []string
+	for _, s := range allStrings {
+		images = append(images, a.getImages(rctx, s)...)
+	}
+	return images
+}
 
+// getFirstLink returns the first autolinked URL in the string. It does not return Markdown links of
+// the form [text](url) or image URLs from ![alt](url).
+func (a *App) getFirstLink(rctx request.CTX, str string) string {
+	firstLink := ""
 	markdown.Inspect(str, func(blockOrInline any) bool {
-		switch v := blockOrInline.(type) {
-		case *markdown.Autolink:
+		if v, ok := blockOrInline.(*markdown.Autolink); ok {
 			if link := v.Destination(); firstLink == "" && a.isLinkAllowedForPreview(rctx, link) {
 				firstLink = link
 			}
+		}
+		return true
+	})
+	return firstLink
+}
+
+// getImages returns all Markdown image URLs of the form ![alt text](image url) and reference-style
+// images. It does not return plain autolinks or Markdown links of the form [text](url).
+func (a *App) getImages(rctx request.CTX, str string) []string {
+	images := []string{}
+	markdown.Inspect(str, func(blockOrInline any) bool {
+		switch v := blockOrInline.(type) {
 		case *markdown.InlineImage:
 			if link := v.Destination(); a.isLinkAllowedForPreview(rctx, link) {
 				images = append(images, link)
@@ -801,50 +800,8 @@ func (a *App) getFirstLinkAndImages(rctx request.CTX, str string) (string, []str
 				images = append(images, link)
 			}
 		}
-
 		return true
 	})
-
-	return firstLink, images
-}
-
-func (a *App) getImagesInMessageAttachments(rctx request.CTX, post *model.Post) []string {
-	var images []string
-
-	for _, attachment := range post.Attachments() {
-		_, imagesInText := a.getFirstLinkAndImages(rctx, attachment.Text)
-		images = append(images, imagesInText...)
-
-		_, imagesInPretext := a.getFirstLinkAndImages(rctx, attachment.Pretext)
-		images = append(images, imagesInPretext...)
-
-		for _, field := range attachment.Fields {
-			if field == nil {
-				continue
-			}
-			if value, ok := field.Value.(string); ok {
-				_, imagesInFieldValue := a.getFirstLinkAndImages(rctx, value)
-				images = append(images, imagesInFieldValue...)
-			}
-		}
-
-		if attachment.AuthorIcon != "" {
-			images = append(images, attachment.AuthorIcon)
-		}
-
-		if attachment.ImageURL != "" {
-			images = append(images, attachment.ImageURL)
-		}
-
-		if attachment.ThumbURL != "" {
-			images = append(images, attachment.ThumbURL)
-		}
-
-		if attachment.FooterIcon != "" {
-			images = append(images, attachment.FooterIcon)
-		}
-	}
-
 	return images
 }
 
@@ -862,7 +819,7 @@ func looksLikeAPermalink(url, siteURL string) bool {
 }
 
 func (a *App) containsPermalink(rctx request.CTX, post *model.Post) bool {
-	link, _ := a.getFirstLinkAndImages(rctx, post.Message)
+	link := a.getFirstLink(rctx, post.Message)
 	if link == "" {
 		return false
 	}

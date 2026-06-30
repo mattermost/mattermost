@@ -6797,6 +6797,94 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store, s SqlStor
 		require.Equal(t, users[2].Username, userReport[2].Username)
 	})
 
+	t.Run("should include team membership data", func(t *testing.T) {
+		teamAlpha, tErr := ss.Team().Save(&model.Team{
+			DisplayName: "Alpha Team",
+			Name:        NewTestID(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
+		require.NoError(t, tErr)
+		teamZeta, tErr := ss.Team().Save(&model.Team{
+			DisplayName: "Zeta Team",
+			Name:        NewTestID(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
+		require.NoError(t, tErr)
+		archivedTeam, tErr := ss.Team().Save(&model.Team{
+			DisplayName: "Archived Team",
+			Name:        NewTestID(),
+			Email:       MakeEmail(),
+			Type:        model.TeamOpen,
+		})
+		require.NoError(t, tErr)
+
+		multiTeamUser, uErr := ss.User().Save(rctx, &model.User{Username: "zzreport_multi_" + model.NewId()[:8], Email: MakeEmail()})
+		require.NoError(t, uErr)
+		singleTeamUser, uErr := ss.User().Save(rctx, &model.User{Username: "zzreport_single_" + model.NewId()[:8], Email: MakeEmail()})
+		require.NoError(t, uErr)
+		noTeamUser, uErr := ss.User().Save(rctx, &model.User{Username: "zzreport_none_" + model.NewId()[:8], Email: MakeEmail()})
+		require.NoError(t, uErr)
+
+		defer func() {
+			require.NoError(t, ss.User().PermanentDelete(rctx, multiTeamUser.Id))
+			require.NoError(t, ss.User().PermanentDelete(rctx, singleTeamUser.Id))
+			require.NoError(t, ss.User().PermanentDelete(rctx, noTeamUser.Id))
+			require.NoError(t, ss.Team().PermanentDelete(teamAlpha.Id))
+			require.NoError(t, ss.Team().PermanentDelete(teamZeta.Id))
+			require.NoError(t, ss.Team().PermanentDelete(archivedTeam.Id))
+		}()
+
+		// multiTeamUser belongs to two active teams (added out of alphabetical
+		// order to verify the aggregation orders by display name).
+		_, tErr = ss.Team().SaveMember(rctx, &model.TeamMember{UserId: multiTeamUser.Id, TeamId: teamZeta.Id}, 100)
+		require.NoError(t, tErr)
+		_, tErr = ss.Team().SaveMember(rctx, &model.TeamMember{UserId: multiTeamUser.Id, TeamId: teamAlpha.Id}, 100)
+		require.NoError(t, tErr)
+
+		// singleTeamUser belongs to one active team.
+		_, tErr = ss.Team().SaveMember(rctx, &model.TeamMember{UserId: singleTeamUser.Id, TeamId: teamAlpha.Id}, 100)
+		require.NoError(t, tErr)
+
+		// A membership in an archived (soft-deleted) team must be excluded.
+		_, tErr = ss.Team().SaveMember(rctx, &model.TeamMember{UserId: multiTeamUser.Id, TeamId: archivedTeam.Id}, 100)
+		require.NoError(t, tErr)
+		archivedTeam.DeleteAt = model.GetMillis()
+		_, tErr = ss.Team().Update(archivedTeam)
+		require.NoError(t, tErr)
+
+		// A soft-deleted membership must be excluded.
+		deletedMember, tErr := ss.Team().SaveMember(rctx, &model.TeamMember{UserId: singleTeamUser.Id, TeamId: teamZeta.Id}, 100)
+		require.NoError(t, tErr)
+		deletedMember.DeleteAt = model.GetMillis()
+		_, tErr = ss.Team().UpdateMember(rctx, deletedMember)
+		require.NoError(t, tErr)
+
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   200,
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, userReport)
+
+		teamsByUserID := map[string]string{}
+		for _, report := range userReport {
+			teamsByUserID[report.Id] = report.Teams
+		}
+
+		// Active teams are joined and ordered alphabetically by display name; the
+		// archived team is excluded.
+		require.Equal(t, "Alpha Team, Zeta Team", teamsByUserID[multiTeamUser.Id])
+		// Only the active membership is reported; the soft-deleted Zeta membership
+		// is excluded.
+		require.Equal(t, "Alpha Team", teamsByUserID[singleTeamUser.Id])
+		// A user without any team membership reports an empty string.
+		require.Equal(t, "", teamsByUserID[noTeamUser.Id])
+	})
+
 	t.Run("should return in the correct order", func(t *testing.T) {
 		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
 			ReportingBaseOptions: model.ReportingBaseOptions{
