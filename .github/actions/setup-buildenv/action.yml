@@ -37,19 +37,16 @@ runs:
       env:
         GO_VERSION: ${{ inputs.go-version }}
       run: |
-        if docker manifest inspect "${BUILDENV_IMAGE}:${GO_VERSION}" > /dev/null 2>&1; then
-          echo "artifact-name=" >> "${GITHUB_OUTPUT}"
-        else
-          echo "artifact-name=${BUILDENV_ARTIFACT}" >> "${GITHUB_OUTPUT}"
-        fi
+        docker manifest inspect "${BUILDENV_IMAGE}:${GO_VERSION}" > /dev/null 2>&1 || \
+          echo "needs-build=true" >> "${GITHUB_OUTPUT}"
     - name: Build regular image
-      if: ${{ steps.resolve.outputs.artifact-name != '' }}
+      if: ${{ steps.resolve.outputs.needs-build == 'true' }}
       shell: bash
       env:
         GO_VERSION: ${{ inputs.go-version }}
       run: docker build -t "${BUILDENV_IMAGE}:${GO_VERSION}" - < "${BUILDENV_DOCKERFILE}"
     - name: Save and upload regular image
-      if: ${{ steps.resolve.outputs.artifact-name != '' }}
+      if: ${{ steps.resolve.outputs.needs-build == 'true' }}
       shell: bash
       env:
         GO_VERSION: ${{ inputs.go-version }}
@@ -57,7 +54,7 @@ runs:
         mkdir -p "${BUILDENV_TMPDIR}"
         docker save "${BUILDENV_IMAGE}:${GO_VERSION}" | gzip > "${BUILDENV_TMPDIR}/image.tar.gz"
     - name: Upload regular image artifact
-      if: ${{ steps.resolve.outputs.artifact-name != '' }}
+      if: ${{ steps.resolve.outputs.needs-build == 'true' }}
       uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
       with:
         name: ${{ env.BUILDENV_ARTIFACT }}
@@ -82,19 +79,16 @@ runs:
       env:
         GO_VERSION: ${{ inputs.go-version }}
       run: |
-        if docker manifest inspect "${BUILDENV_FIPS_IMAGE}:${GO_VERSION}" > /dev/null 2>&1; then
-          echo "artifact-name=" >> "${GITHUB_OUTPUT}"
-        else
-          echo "artifact-name=${BUILDENV_FIPS_ARTIFACT}" >> "${GITHUB_OUTPUT}"
-        fi
+        docker manifest inspect "${BUILDENV_FIPS_IMAGE}:${GO_VERSION}" > /dev/null 2>&1 || \
+          echo "needs-build=true" >> "${GITHUB_OUTPUT}"
     - name: Build FIPS image
-      if: ${{ steps.resolve-fips.outputs.artifact-name != '' }}
+      if: ${{ steps.resolve-fips.outputs.needs-build == 'true' }}
       shell: bash
       env:
         GO_VERSION: ${{ inputs.go-version }}
       run: docker build -t "${BUILDENV_FIPS_IMAGE}:${GO_VERSION}" - < "${BUILDENV_FIPS_DOCKERFILE}"
     - name: Save and upload FIPS image
-      if: ${{ steps.resolve-fips.outputs.artifact-name != '' }}
+      if: ${{ steps.resolve-fips.outputs.needs-build == 'true' }}
       shell: bash
       env:
         GO_VERSION: ${{ inputs.go-version }}
@@ -102,7 +96,7 @@ runs:
         mkdir -p "${BUILDENV_TMPDIR}"
         docker save "${BUILDENV_FIPS_IMAGE}:${GO_VERSION}" | gzip > "${BUILDENV_TMPDIR}/image-fips.tar.gz"
     - name: Upload FIPS image artifact
-      if: ${{ steps.resolve-fips.outputs.artifact-name != '' }}
+      if: ${{ steps.resolve-fips.outputs.needs-build == 'true' }}
       uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
       with:
         name: ${{ env.BUILDENV_FIPS_ARTIFACT }}
