@@ -158,7 +158,7 @@ TEMPLATES_DIR=templates
 
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
-PLUGIN_PACKAGES += mattermost-plugin-calls-v1.12.0
+PLUGIN_PACKAGES += mattermost-plugin-calls-v1.12.1
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.7.1
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.13.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v4.7.1
