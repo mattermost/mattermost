@@ -146,4 +146,38 @@ describe('splitFormattingBarControls', () => {
             expect(hiddenControls).toHaveLength(9);
         });
     });
+
+    describe('WYSIWYG text style dropdown — reduces visible count by 3 and excludes legacy heading control', () => {
+        test('wide mode keeps the remaining 8 controls (heading filtered out)', () => {
+            const {controls, hiddenControls, showTextStyleDropdown} = splitFormattingBarControls(LayoutModes.Wide, 0, false, true);
+            expect(showTextStyleDropdown).toBe(true);
+            expect(controls).toHaveLength(8);
+            expect(controls).toEqual(['bold', 'italic', 'strike', 'link', 'code', 'quote', 'ul', 'ol']);
+            expect(hiddenControls).toHaveLength(0);
+        });
+
+        test('normal mode reduces from 5 to 2 and excludes heading from overflow', () => {
+            const {controls, hiddenControls, showTextStyleDropdown} = splitFormattingBarControls(LayoutModes.Normal, 0, false, true);
+            expect(showTextStyleDropdown).toBe(true);
+            expect(controls).toHaveLength(2);
+            expect(hiddenControls).toHaveLength(6);
+            expect([...controls, ...hiddenControls]).not.toContain('heading');
+        });
+
+        test('narrow mode falls back to the legacy heading icon (dropdown does not fit)', () => {
+            const {controls, hiddenControls, showTextStyleDropdown} = splitFormattingBarControls(LayoutModes.Narrow, 0, false, true);
+            expect(showTextStyleDropdown).toBe(false);
+            expect(controls).toHaveLength(2);
+            expect(hiddenControls).toHaveLength(7);
+            expect([...controls, ...hiddenControls]).toContain('heading');
+        });
+
+        test('min mode falls back to the legacy heading icon (dropdown does not fit)', () => {
+            const {controls, hiddenControls, showTextStyleDropdown} = splitFormattingBarControls(LayoutModes.Min, 0, false, true);
+            expect(showTextStyleDropdown).toBe(false);
+            expect(controls).toHaveLength(1);
+            expect(hiddenControls).toHaveLength(8);
+            expect([...controls, ...hiddenControls]).toContain('heading');
+        });
+    });
 });

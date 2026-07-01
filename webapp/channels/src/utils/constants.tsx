@@ -90,6 +90,8 @@ export const Preferences = {
     COLLAPSED_REPLY_THREADS_FALLBACK_DEFAULT: 'off',
     RENDER_EMOTICONS_AS_EMOJI: 'render_emoticons_as_emoji',
     RENDER_EMOTICONS_AS_EMOJI_DEFAULT: 'true',
+    WYSIWYG_EDITOR: 'wysiwyg_editor',
+    WYSIWYG_EDITOR_DEFAULT: 'false',
     LINK_PREVIEW_DISPLAY: 'link_previews',
     LINK_PREVIEW_DISPLAY_DEFAULT: 'true',
     COLLAPSE_DISPLAY: 'collapse_previews',
