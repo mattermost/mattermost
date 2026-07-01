@@ -40,6 +40,7 @@ func TestSessionStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("UpdateExpiredNotify", func(t *testing.T) { testUpdateExpiredNotify(t, rctx, ss) })
 	t.Run("GetLRUSessions", func(t *testing.T) { testGetLRUSessions(t, rctx, ss) })
 	t.Run("GetSessionsWithActiveDeviceIds", func(t *testing.T) { testGetSessionsWithActiveDeviceIds(t, rctx, ss) })
+	t.Run("GetAllSessionsWithActiveDeviceIds", func(t *testing.T) { testGetAllSessionsWithActiveDeviceIds(t, rctx, ss) })
 	t.Run("GetMobileSessionMetadata", func(t *testing.T) { testGetMobileSessionMetadata(t, rctx, ss) })
 }
 
@@ -606,6 +607,44 @@ func testGetLRUSessions(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Equal(t, s3.Id, sessions[0].Id)
 	require.Equal(t, s2.Id, sessions[1].Id)
 	require.Equal(t, s1.Id, sessions[2].Id)
+}
+
+func testGetAllSessionsWithActiveDeviceIds(t *testing.T, rctx request.CTX, ss store.Store) {
+	err := ss.Session().RemoveAllSessions()
+	require.NoError(t, err)
+
+	userId1 := model.NewId()
+	userId2 := model.NewId()
+
+	s1 := &model.Session{UserId: userId1, ExpiresAt: model.GetMillis() + 100000, DeviceId: model.NewId()}
+	s1, err = ss.Session().Save(rctx, s1)
+	require.NoError(t, err)
+
+	s2 := &model.Session{UserId: userId2, ExpiresAt: model.GetMillis() + 100000, DeviceId: model.NewId()}
+	s2, err = ss.Session().Save(rctx, s2)
+	require.NoError(t, err)
+
+	// no device ID — excluded
+	s3 := &model.Session{UserId: userId1, ExpiresAt: model.GetMillis() + 100000}
+	s3, err = ss.Session().Save(rctx, s3)
+	require.NoError(t, err)
+
+	// expired — still included so the wipe reaches devices with stale local data
+	s4 := &model.Session{UserId: userId2, ExpiresAt: model.GetMillis() - 100000, DeviceId: model.NewId()}
+	s4, err = ss.Session().Save(rctx, s4)
+	require.NoError(t, err)
+
+	sessions, err := ss.Session().GetAllSessionsWithActiveDeviceIds()
+	require.NoError(t, err)
+
+	sessionIds := make(map[string]bool, len(sessions))
+	for _, s := range sessions {
+		sessionIds[s.Id] = true
+	}
+	require.True(t, sessionIds[s1.Id], "expected session from user1")
+	require.True(t, sessionIds[s2.Id], "expected session from user2")
+	require.False(t, sessionIds[s3.Id], "expected session without device ID excluded")
+	require.True(t, sessionIds[s4.Id], "expected expired session included for wipe")
 }
 
 func testGetMobileSessionMetadata(t *testing.T, rctx request.CTX, ss store.Store) {

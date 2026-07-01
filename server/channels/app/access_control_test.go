@@ -25,8 +25,19 @@ func celSafeName() string {
 	return "f_" + model.NewId()
 }
 
+func storeMockWithMaskingOff(tb testing.TB) *TestHelper {
+	tb.Helper()
+	th := SetupWithStoreMock(tb)
+	// Mutate in place — UpdateConfig persists config and triggers
+	// listeners that call Store.Post(), which the mock store lacks.
+	th.App.Config().FeatureFlags.AttributeValueMasking = false
+	return th
+}
+
 func TestCreateOrUpdateAccessControlPolicy(t *testing.T) {
-	th := Setup(t).InitBasic(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.AttributeValueMasking = false
+	}).InitBasic(t)
 
 	t.Run("Feature not enabled", func(t *testing.T) {
 		th.App.Srv().ch.AccessControl = nil
@@ -115,7 +126,7 @@ func TestCreateOrUpdateAccessControlPolicy(t *testing.T) {
 	})
 
 	t.Run("Channel-type policy broadcasts policy enforced update", func(t *testing.T) {
-		thMock := SetupWithStoreMock(t)
+		thMock := storeMockWithMaskingOff(t)
 
 		channelID := model.NewId()
 		channelPolicy := &model.AccessControlPolicy{
@@ -157,7 +168,7 @@ func TestCreateOrUpdateAccessControlPolicy(t *testing.T) {
 	})
 
 	t.Run("Parent-type policy does not broadcast channel-only update", func(t *testing.T) {
-		thMock := SetupWithStoreMock(t)
+		thMock := storeMockWithMaskingOff(t)
 
 		parentID := model.NewId()
 		parentPolicy := &model.AccessControlPolicy{
@@ -341,10 +352,7 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 		// could not audit. The canonical walker's HasMaskedValuesForCaller is mocked
 		// to return true, simulating a hidden-value field without requiring a full
 		// CPA setup for the test.
-		th := SetupConfig(t, func(cfg *model.Config) {
-			cfg.FeatureFlags.AttributeBasedAccessControl = true
-			cfg.FeatureFlags.AttributeValueMasking = true
-		}).InitBasic(t)
+		th := Setup(t).InitBasic(t)
 
 		callerID := model.NewId()
 		th.Context = th.Context.WithSession(&model.Session{UserId: callerID, Id: model.NewId()}).(*request.Context)
@@ -378,9 +386,7 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 		// Belt-and-braces: with AttributeValueMasking off, the masking guard must not
 		// fire — the policy deletes normally even if the caller wouldn't have seen all
 		// values. Guards against accidentally inverting the flag condition.
-		thMock := SetupWithStoreMock(t)
-		// Note: SetupWithStoreMock doesn't take a config callback. Feature flags
-		// default to false, which is exactly the state this test wants.
+		thMock := storeMockWithMaskingOff(t)
 
 		thMock.Context = thMock.Context.WithSession(&model.Session{UserId: model.NewId(), Id: model.NewId()}).(*request.Context)
 
@@ -2149,6 +2155,7 @@ func TestHasPermissionToFileAction(t *testing.T) {
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockAccessControl
 
+		th.ConfigStore.SetReadOnlyFF(false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(false)
 			cfg.FeatureFlags.PermissionPolicies = true
@@ -2162,6 +2169,7 @@ func TestHasPermissionToFileAction(t *testing.T) {
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockAccessControl
 
+		th.ConfigStore.SetReadOnlyFF(false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 			cfg.FeatureFlags.PermissionPolicies = false
@@ -4535,7 +4543,7 @@ func TestPublishChannelPolicyEnforcedUpdateHydratesBroadcastPayload(t *testing.T
 	// broadcast payload so connected clients can react to action-set
 	// changes without a follow-up REST round-trip. The hydration happens
 	// after GetChannel reloads the (now-policy-enforced) channel post-save.
-	thMock := SetupWithStoreMock(t)
+	thMock := storeMockWithMaskingOff(t)
 
 	channelID := model.NewId()
 	channelPolicy := &model.AccessControlPolicy{
@@ -4980,10 +4988,7 @@ func TestUpdateAccessControlPoliciesActive_MaskingGuard(t *testing.T) {
 	t.Run("deactivation blocked when caller has masked values", func(t *testing.T) {
 		// policyHasMaskedValuesForCaller resolves the property group from the store,
 		// so this subtest uses SetupConfig + InitBasic rather than a mock store.
-		th := SetupConfig(t, func(cfg *model.Config) {
-			cfg.FeatureFlags.AttributeBasedAccessControl = true
-			cfg.FeatureFlags.AttributeValueMasking = true
-		}).InitBasic(t)
+		th := Setup(t).InitBasic(t)
 
 		callerID := model.NewId()
 		th.Context = th.Context.WithSession(&model.Session{UserId: callerID, Id: model.NewId()}).(*request.Context)
@@ -5016,10 +5021,6 @@ func TestUpdateAccessControlPoliciesActive_MaskingGuard(t *testing.T) {
 	t.Run("activation always allowed even when caller has masked values", func(t *testing.T) {
 		// The guard skips Active=true updates, so no property store access is needed.
 		thMock := SetupWithStoreMock(t)
-		thMock.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.FeatureFlags.AttributeBasedAccessControl = true
-			cfg.FeatureFlags.AttributeValueMasking = true
-		})
 
 		callerID := model.NewId()
 		thMock.Context = thMock.Context.WithSession(&model.Session{UserId: callerID, Id: model.NewId()}).(*request.Context)
@@ -5057,7 +5058,7 @@ func TestUpdateAccessControlPoliciesActive_MaskingGuard(t *testing.T) {
 	})
 
 	t.Run("deactivation allowed when masking flag is off", func(t *testing.T) {
-		thMock := SetupWithStoreMock(t)
+		thMock := storeMockWithMaskingOff(t)
 		thMock.Context = thMock.Context.WithSession(&model.Session{UserId: model.NewId(), Id: model.NewId()}).(*request.Context)
 
 		channelID := model.NewId()
@@ -5190,10 +5191,7 @@ func TestMaskPolicyExpressions_FailClosedUsesDenyAllSentinel(t *testing.T) {
 	callerID := model.NewId()
 
 	t.Run("MaskExpressionForCaller failure masks rule to deny-all sentinel", func(t *testing.T) {
-		th2 := SetupConfig(t, func(cfg *model.Config) {
-			cfg.FeatureFlags.AttributeBasedAccessControl = true
-			cfg.FeatureFlags.AttributeValueMasking = true
-		}).InitBasic(t)
+		th2 := Setup(t).InitBasic(t)
 
 		policy := &model.AccessControlPolicy{
 			Rules: []model.AccessControlPolicyRule{
@@ -5342,6 +5340,61 @@ func TestBuildAccessControlSubjectTeamPath(t *testing.T) {
 
 		for _, sr := range subject.ScopedRoles {
 			assert.NotEqual(t, model.AccessControlSubjectScopeChannel, sr.Scope)
+		}
+	})
+}
+
+func TestGetAccessControlFieldsAutocompleteNativeAttributes(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	defer th.App.Srv().SetLicense(nil)
+
+	rctx := request.TestContext(t)
+
+	cpaGroup, gErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, gErr)
+
+	cpaField, cErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+		GroupID:    cpaGroup.ID,
+		Name:       celSafeName(),
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	}, false, "")
+	require.Nil(t, cErr)
+
+	nativeNames := []string{
+		model.NativeAttributePropertyFieldEmail,
+		model.NativeAttributePropertyFieldVerified,
+		model.NativeAttributePropertyFieldIsBot,
+		model.NativeAttributePropertyFieldCreateAt,
+	}
+
+	t.Run("first page prepends native attributes", func(t *testing.T) {
+		// The API maps an empty first page to a 26-zero sentinel cursor.
+		fields, appErr := th.App.GetAccessControlFieldsAutocomplete(rctx, strings.Repeat("0", 26), 50, anonymousCallerId)
+		require.Nil(t, appErr)
+
+		seen := map[string]bool{}
+		for _, f := range fields {
+			if isNative, _ := f.Attrs[model.NativeAttributeAttrMarker].(bool); isNative {
+				seen[f.Name] = true
+			}
+		}
+		for _, name := range nativeNames {
+			assert.True(t, seen[name], "expected native attribute %q on first page", name)
+		}
+
+		require.GreaterOrEqual(t, len(fields), len(nativeNames)+1)
+		assert.Equal(t, true, fields[0].Attrs[model.NativeAttributeAttrMarker], "native attributes should precede CPA fields")
+	})
+
+	t.Run("subsequent pages omit native attributes", func(t *testing.T) {
+		fields, appErr := th.App.GetAccessControlFieldsAutocomplete(rctx, cpaField.ID, 50, anonymousCallerId)
+		require.Nil(t, appErr)
+		for _, f := range fields {
+			isNative, _ := f.Attrs[model.NativeAttributeAttrMarker].(bool)
+			assert.False(t, isNative, "native attribute %q must not repeat on later pages", f.Name)
 		}
 	})
 }

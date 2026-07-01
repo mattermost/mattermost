@@ -49,12 +49,18 @@ func init() {
 		ChannelAdminRoleId,
 
 		CustomGroupUserRoleId,
+		SystemCustomGroupAdminRoleId,
 
 		PlaybookAdminRoleId,
 		PlaybookMemberRoleId,
 		RunAdminRoleId,
 		RunMemberRoleId,
 	}, NewSystemRoleIDs...)
+
+	builtInRoleSet = make(map[string]bool, len(BuiltInSchemeManagedRoleIDs))
+	for _, id := range BuiltInSchemeManagedRoleIDs {
+		builtInRoleSet[id] = true
+	}
 
 	// When updating the values here, the values in mattermost-redux must also be updated.
 	SysconsoleAncillaryPermissions = map[string][]*Permission{
@@ -867,6 +873,44 @@ func IsValidRoleName(roleName string) bool {
 
 	if strings.TrimLeft(roleName, "abcdefghijklmnopqrstuvwxyz0123456789_") != "" {
 		return false
+	}
+
+	return true
+}
+
+// builtInRoleSet is the O(1) lookup set for BuiltInSchemeManagedRoleIDs, built in init().
+// Despite its name, BuiltInSchemeManagedRoleIDs is the canonical list of built-in role
+// IDs and not all of its entries are scheme-managed (roughly half have SchemeManaged: false,
+// e.g. custom_group_user). It is used as the single source of truth for "is this a built-in
+// role", independent of the per-role BuiltIn/SchemeManaged flags.
+var builtInRoleSet map[string]bool
+
+// IsBuiltInRole reports whether roleName is a built-in role, using
+// BuiltInSchemeManagedRoleIDs as the source of truth. This is the predicate shared by
+// IsValidChannelMemberRoles and the app-layer channel member role validation so both
+// layers agree on which roles are built-in.
+func IsBuiltInRole(roleName string) bool {
+	return builtInRoleSet[roleName]
+}
+
+// IsChannelScopedBuiltInRole returns true for the three built-in roles that are
+// valid inside a channel-member role list.
+func IsChannelScopedBuiltInRole(roleName string) bool {
+	return roleName == ChannelGuestRoleId || roleName == ChannelUserRoleId || roleName == ChannelAdminRoleId
+}
+
+// IsValidChannelMemberRoles reports whether roles are valid for a channel member.
+// IsValidUserRoles is format validation only; this additionally rejects any built-in
+// role (per IsBuiltInRole) that is not channel-scoped.
+func IsValidChannelMemberRoles(channelMemberRoles string) bool {
+	if !IsValidUserRoles(channelMemberRoles) {
+		return false
+	}
+
+	for roleName := range strings.FieldsSeq(channelMemberRoles) {
+		if IsBuiltInRole(roleName) && !IsChannelScopedBuiltInRole(roleName) {
+			return false
+		}
 	}
 
 	return true
