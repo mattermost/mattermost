@@ -1123,9 +1123,11 @@ func TestAccessControlAttributeValidationHookManagedAuthorization(t *testing.T) 
 }
 
 // TestAccessControlAttributeValidationHookRankOptions exercises the rank-field
-// option validation in sanitizeAndValidateOptions: rank-typed fields require a
-// positive, unique rank on every option, while non-rank fields must have
-// any stray rank values stripped before the options are persisted.
+// option validation in sanitizeAndValidateOptions: a directly-authored rank
+// field requires a positive, unique rank on every option, while non-rank
+// fields keep any stray rank values (as opaque order-carriers) so a
+// rank->select->rank round-trip preserves option ordering. Conversion repair
+// is covered by TestAccessControlAttributeValidationHookRankConversion.
 func TestAccessControlAttributeValidationHookRankOptions(t *testing.T) {
 	th := Setup(t)
 
@@ -1217,7 +1219,10 @@ func TestAccessControlAttributeValidationHookRankOptions(t *testing.T) {
 		assert.Contains(t, createErr.Error(), "duplicate")
 	})
 
-	t.Run("non-rank field strips stray rank values", func(t *testing.T) {
+	t.Run("non-rank field preserves stray rank values", func(t *testing.T) {
+		// Ranks are meaningless on a select field, but we keep them so a later
+		// conversion back to rank can recover the original ordering. They ride
+		// along untouched; only a conversion into rank normalizes them.
 		field := &model.PropertyField{
 			GroupID:    group.ID,
 			Name:       "field_" + model.NewId(),
@@ -1234,10 +1239,218 @@ func TestAccessControlAttributeValidationHookRankOptions(t *testing.T) {
 		created, createErr := th.service.CreatePropertyField(th.Context, field)
 		require.NoError(t, createErr)
 
-		for i := range []int{0, 1} {
-			_, present := optionRank(t, created, i)
-			assert.False(t, present, "select-field option %d should not persist a rank", i)
+		for i, want := range []float64{7, 9} {
+			got, present := optionRank(t, created, i)
+			assert.True(t, present, "select-field option %d should keep its rank", i)
+			assert.Equal(t, want, got, "select-field option %d rank", i)
 		}
+	})
+
+	t.Run("non-rank field keeps even non-positive or duplicate ranks", func(t *testing.T) {
+		// Rank is unvalidated on a select field: it is just an opaque
+		// order-carrier, so zero, negative, and duplicate values all ride
+		// along untouched until a conversion into rank normalizes them.
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "A", "rank": -3},
+					map[string]any{"name": "B", "rank": 0},
+					map[string]any{"name": "C", "rank": 0},
+				},
+			},
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+
+		for i, want := range []float64{-3, 0, 0} {
+			got, present := optionRank(t, created, i)
+			assert.True(t, present, "select-field option %d should keep its rank", i)
+			assert.Equal(t, want, got, "select-field option %d rank", i)
+		}
+	})
+}
+
+// TestAccessControlAttributeValidationHookRankConversion covers the repair that
+// runs when a field is converted INTO rank from another type: arbitrary option
+// ranks (non-sequential, duplicated, or missing) are renumbered to a gap-free
+// 1..N sequence that preserves relative order, while directly editing an
+// existing rank field still rejects invalid ranks rather than repairing them.
+func TestAccessControlAttributeValidationHookRankConversion(t *testing.T) {
+	th := Setup(t)
+
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_rank_conversion", Version: model.PropertyGroupVersionV2})
+	require.NoError(t, err)
+
+	hook := NewAccessControlAttributeValidationHook(th.service, nil, group.ID)
+	th.service.AddHook(hook)
+
+	// ranksByName parses a persisted field's canonical []any options into a
+	// name -> rank map, plus the set of names whose rank is absent.
+	ranksByName := func(t *testing.T, field *model.PropertyField) (map[string]int, map[string]struct{}) {
+		t.Helper()
+		opts, ok := field.Attrs[model.PropertyFieldAttributeOptions].([]any)
+		require.True(t, ok, "options should be []any, got %T", field.Attrs[model.PropertyFieldAttributeOptions])
+		ranks := map[string]int{}
+		missing := map[string]struct{}{}
+		for _, o := range opts {
+			m, ok := o.(map[string]any)
+			require.True(t, ok, "option should be map[string]any, got %T", o)
+			name, _ := m["name"].(string)
+			raw, present := m["rank"]
+			if !present || raw == nil {
+				missing[name] = struct{}{}
+				continue
+			}
+			f, ok := raw.(float64)
+			require.True(t, ok, "rank should decode as float64, got %T", raw)
+			ranks[name] = int(f)
+		}
+		return ranks, missing
+	}
+
+	selectField := func(options []any) *model.PropertyField {
+		return &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs:      model.StringInterface{model.PropertyFieldAttributeOptions: options},
+		}
+	}
+
+	convertToRank := func(t *testing.T, field *model.PropertyField) (*model.PropertyField, error) {
+		t.Helper()
+		field.Type = model.PropertyFieldTypeRank
+		updated, _, updErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		return updated, updErr
+	}
+
+	t.Run("non-sequential valid ranks collapse to gap-free 1..N", func(t *testing.T) {
+		created, createErr := th.service.CreatePropertyField(th.Context, selectField([]any{
+			map[string]any{"name": "A", "rank": 10},
+			map[string]any{"name": "B", "rank": 20},
+			map[string]any{"name": "C", "rank": 30},
+		}))
+		require.NoError(t, createErr)
+
+		updated, updErr := convertToRank(t, created)
+		require.NoError(t, updErr)
+
+		ranks, missing := ranksByName(t, updated)
+		assert.Empty(t, missing)
+		assert.Equal(t, map[string]int{"A": 1, "B": 2, "C": 3}, ranks)
+	})
+
+	t.Run("duplicate ranks renumber, ties broken by array order", func(t *testing.T) {
+		created, createErr := th.service.CreatePropertyField(th.Context, selectField([]any{
+			map[string]any{"name": "A", "rank": 1},
+			map[string]any{"name": "B", "rank": 1},
+			map[string]any{"name": "C", "rank": 2},
+		}))
+		require.NoError(t, createErr)
+
+		updated, updErr := convertToRank(t, created)
+		require.NoError(t, updErr)
+
+		ranks, missing := ranksByName(t, updated)
+		assert.Empty(t, missing)
+		// A and B tie at 1; the earlier array position (A) keeps the lower rank.
+		assert.Equal(t, map[string]int{"A": 1, "B": 2, "C": 3}, ranks)
+	})
+
+	t.Run("missing ranks sort last and are filled", func(t *testing.T) {
+		created, createErr := th.service.CreatePropertyField(th.Context, selectField([]any{
+			map[string]any{"name": "A", "rank": 1},
+			map[string]any{"name": "B"},
+			map[string]any{"name": "C", "rank": 2},
+		}))
+		require.NoError(t, createErr)
+
+		updated, updErr := convertToRank(t, created)
+		require.NoError(t, updErr)
+
+		ranks, missing := ranksByName(t, updated)
+		assert.Empty(t, missing)
+		// B had no rank, so it sorts after the ranked options and lands last.
+		assert.Equal(t, map[string]int{"A": 1, "C": 2, "B": 3}, ranks)
+	})
+
+	t.Run("plain select with no ranks gets sequential ranks by order", func(t *testing.T) {
+		created, createErr := th.service.CreatePropertyField(th.Context, selectField([]any{
+			map[string]any{"name": "A"},
+			map[string]any{"name": "B"},
+			map[string]any{"name": "C"},
+		}))
+		require.NoError(t, createErr)
+
+		updated, updErr := convertToRank(t, created)
+		require.NoError(t, updErr)
+
+		ranks, missing := ranksByName(t, updated)
+		assert.Empty(t, missing)
+		assert.Equal(t, map[string]int{"A": 1, "B": 2, "C": 3}, ranks)
+	})
+
+	t.Run("clean rank->select->rank round-trip preserves sequential ranks", func(t *testing.T) {
+		created, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeRank,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"name": "A", "rank": 1},
+				map[string]any{"name": "B", "rank": 2},
+				map[string]any{"name": "C", "rank": 3},
+			}},
+		})
+		require.NoError(t, createErr)
+
+		// rank -> select: ranks ride along untouched.
+		created.Type = model.PropertyFieldTypeSelect
+		asSelect, _, updErr := th.service.UpdatePropertyField(th.Context, group.ID, created)
+		require.NoError(t, updErr)
+		ranks, missing := ranksByName(t, asSelect)
+		assert.Empty(t, missing)
+		assert.Equal(t, map[string]int{"A": 1, "B": 2, "C": 3}, ranks)
+
+		// select -> rank: normalization is an identity on an already-clean set.
+		asRank, updErr := convertToRank(t, asSelect)
+		require.NoError(t, updErr)
+		ranks, missing = ranksByName(t, asRank)
+		assert.Empty(t, missing)
+		assert.Equal(t, map[string]int{"A": 1, "B": 2, "C": 3}, ranks)
+	})
+
+	t.Run("rank->rank edit with duplicate rank is rejected, not repaired", func(t *testing.T) {
+		created, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeRank,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"name": "A", "rank": 1},
+				map[string]any{"name": "B", "rank": 2},
+			}},
+		})
+		require.NoError(t, createErr)
+
+		// Stay a rank field but introduce a duplicate: the caller owns these
+		// ranks, so this is an error rather than a silent renumber.
+		created.Attrs[model.PropertyFieldAttributeOptions] = []any{
+			map[string]any{"name": "A", "rank": 1},
+			map[string]any{"name": "B", "rank": 1},
+		}
+		_, _, updErr := th.service.UpdatePropertyField(th.Context, group.ID, created)
+		require.Error(t, updErr)
+		assert.Contains(t, updErr.Error(), "duplicate")
 	})
 }
 

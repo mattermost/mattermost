@@ -169,6 +169,12 @@ func TestGetJobs(t *testing.T) {
 		require.Len(t, received, 1, "received wrong number of jobs")
 		require.Equal(t, jobs[3].Id, received[0].Id, "should've received the ldap sync job")
 	})
+
+	t.Run("Return 400 for invalid status", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.GetJobs(context.Background(), "", "not_a_valid_status", 0, 60)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func TestGetJobsByType(t *testing.T) {

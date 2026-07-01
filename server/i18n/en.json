@@ -1970,6 +1970,10 @@
     "translation": "Unable to get user from session UserID."
   },
   {
+    "id": "api.context.invalid_body.app_error",
+    "translation": "Invalid post props."
+  },
+  {
     "id": "api.context.invalid_body_param.app_error",
     "translation": "Invalid or missing {{.Name}} in request body."
   },
@@ -3031,10 +3035,6 @@
   {
     "id": "api.post.do_action.action_integration.app_error",
     "translation": "Action integration error."
-  },
-  {
-    "id": "api.post.do_action.merge_query.app_error",
-    "translation": "Failed to merge query into action URL."
   },
   {
     "id": "api.post.do_action.query.app_error",

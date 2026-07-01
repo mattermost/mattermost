@@ -289,7 +289,7 @@ $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
     # shellcheck disable=SC2016
     echo '
   playwright:
-    image: mcr.microsoft.com/playwright:v1.59.1-noble
+    image: mcr.microsoft.com/playwright:v1.61.0-noble
     entrypoint: ["/bin/bash", "-c"]
     command:
       - |
@@ -319,6 +319,7 @@ $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
       PW_WORKERS: 1
       PW_SNAPSHOT_ENABLE: "false"
       PW_PERCY_ENABLE: "false"
+      PW_WEBHOOK_BASE_URL: http://localhost:3000
     ulimits:
       nofile:
         soft: 8096
@@ -455,6 +456,7 @@ cypress)
   ;;
 playwright)
   enable_docker_service playwright
+  enable_docker_service webhook-interactions
   ;;
 esac
 

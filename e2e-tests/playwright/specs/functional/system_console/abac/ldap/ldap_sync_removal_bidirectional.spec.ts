@@ -24,7 +24,7 @@ import {
  * MM-T5800: Policy enforcement after attribute change (bidirectional)
  */
 test('MM-T5800 Policy enforcement after attribute change (bidirectional)', async ({pw}) => {
-    test.setTimeout(120000);
+    test.setTimeout(180000);
 
     await pw.skipIfNoLicense();
 

@@ -198,7 +198,9 @@ jobs:
           echo "workers=$(jq -nc --argjson n "${INPUT_WORKERS}" '[range(1; $n+1)]')" >> $GITHUB_OUTPUT
           echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
 
-  # Install cypress node_modules once, then workers restore from cache.
+  # Install webapp node_modules once via the shared webapp-setup action, then
+  # workers restore the same stable cache. The node_modules cache is keyed only
+  # on webapp/package-lock.json and is shared with webapp-ci.yml jobs.
   prep-deps:
     name: prep-deps
     runs-on: ubuntu-24.04
@@ -212,29 +214,8 @@ jobs:
           persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 1
-      - name: ci/setup-node
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
-        with:
-          node-version-file: ".nvmrc"
-      - name: ci/cache-platform-pkgs
-        # `webapp/node_modules/@mattermost/{client,types}` are the workspace
-        # symlinks Node walks up to find when platform/client requires
-        # @mattermost/types. Without them, module resolution fails inside
-        # the slim slice.
-        id: cache-platform-pkgs
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
-        with:
-          path: |
-            webapp/**/node_modules
-            webapp/platform/client/lib
-            webapp/platform/types/lib
-          key: e2e-platform-pkgs-${{ runner.os }}-${{ hashFiles('webapp/package-lock.json', 'webapp/platform/client/src/**', 'webapp/platform/client/tsconfig*.json', 'webapp/platform/types/src/**', 'webapp/platform/types/tsconfig*.json') }}
-      - name: ci/build-platform-pkgs
-        # Full webapp install is needed for tsc + workspace linking; the
-        # postinstall builds platform/{client,types}/lib. We only cache those.
-        if: steps.cache-platform-pkgs.outputs.cache-hit != 'true'
-        working-directory: webapp
-        run: make node_modules
+      - name: ci/setup-webapp-node-modules
+        uses: ./.github/actions/webapp-setup
       - name: ci/cache-cypress-deps
         # node_modules + the cypress binary (downloaded to ~/.cache/Cypress by
         # cypress's postinstall, not into node_modules). Both must be cached;
@@ -332,21 +313,10 @@ jobs:
           persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
-      - name: ci/setup-node
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+      - name: ci/setup-webapp-node-modules
+        uses: ./.github/actions/webapp-setup
         with:
-          node-version-file: ".nvmrc"
-      - name: ci/restore-platform-pkgs
-        # Built lib/ for @mattermost/client and @mattermost/types, plus the
-        # webapp workspace symlinks under webapp/node_modules/@mattermost/.
-        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
-        with:
-          path: |
-            webapp/**/node_modules
-            webapp/platform/client/lib
-            webapp/platform/types/lib
-          key: e2e-platform-pkgs-${{ runner.os }}-${{ hashFiles('webapp/package-lock.json', 'webapp/platform/client/src/**', 'webapp/platform/client/tsconfig*.json', 'webapp/platform/types/src/**', 'webapp/platform/types/tsconfig*.json') }}
-          fail-on-cache-miss: true
+          read-only: "true"
       - name: ci/restore-cypress-deps
         uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:

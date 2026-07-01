@@ -251,7 +251,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 				}
 			}
 			if channel.Type != model.ChannelTypeDirect {
-				rootMentions = getExplicitMentions(rootPost, keywords)
+				rootMentions = getExplicitMentions(rootPost, keywords, a.Config().FeatureFlags.MmBlocksEnabled)
 				for id, mentionType := range rootMentions.Mentions {
 					if mentionType == ChannelMention {
 						if profile, ok := profileMap[id]; ok && profile.NotifyProps[model.ChannelMentionAutoFollowThreadsProp] == "false" {
@@ -1089,7 +1089,7 @@ func (a *App) getExplicitMentionsAndKeywords(rctx request.CTX, post *model.Post,
 		allowChannelMentions = a.allowChannelMentions(rctx, post, len(profileMap))
 		keywords = a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap, groups)
 
-		mentions = getExplicitMentions(post, keywords)
+		mentions = getExplicitMentions(post, keywords, a.Config().FeatureFlags.MmBlocksEnabled)
 
 		// Add a GM mention to all members of a GM channel
 		if channel.Type == model.ChannelTypeGroup {
@@ -1416,12 +1416,11 @@ func splitAtFinal(items []string) (preliminary []string, final string) {
 
 // Given a message and a map mapping mention keywords to the users who use them, returns a map of mentioned
 // users and a slice of potential mention users not in the channel and whether or not @here was mentioned.
-func getExplicitMentions(post *model.Post, keywords MentionKeywords) *MentionResults {
+func getExplicitMentions(post *model.Post, keywords MentionKeywords, mmBlocksEnabled bool) *MentionResults {
 	parser := makeStandardMentionParser(keywords)
 
 	buf := ""
-	mentionsEnabledFields := getMentionsEnabledFields(post)
-	for _, message := range mentionsEnabledFields {
+	for _, message := range post.AllStrings(model.AllStringsOptions{OmitInteractiveBlocks: !mmBlocksEnabled}) {
 		// Parse the text as Markdown, combining adjacent Text nodes into a single string for processing
 		markdown.Inspect(message, func(node any) bool {
 			text, ok := node.(*markdown.Text)
@@ -1447,29 +1446,6 @@ func getExplicitMentions(post *model.Post, keywords MentionKeywords) *MentionRes
 	}
 
 	return parser.Results()
-}
-
-// Given a post returns the values of the fields in which mentions are possible.
-// post.message, preText and text in the attachment are enabled.
-func getMentionsEnabledFields(post *model.Post) model.StringArray {
-	ret := []string{}
-
-	ret = append(ret, post.Message)
-	for _, attachment := range post.Attachments() {
-		if attachment.Pretext != "" {
-			ret = append(ret, attachment.Pretext)
-		}
-		if attachment.Text != "" {
-			ret = append(ret, attachment.Text)
-		}
-
-		for _, field := range attachment.Fields {
-			if valueString, ok := field.Value.(string); ok && valueString != "" {
-				ret = append(ret, valueString)
-			}
-		}
-	}
-	return ret
 }
 
 // allowChannelMentions returns whether or not the channel mentions are allowed for the given post.

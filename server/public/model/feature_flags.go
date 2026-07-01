@@ -38,10 +38,7 @@ type FeatureFlags struct {
 
 	StreamlinedMarketplace bool
 
-	CloudAnnualRenewals    bool
 	CloudDedicatedExportUI bool
-
-	ChannelBookmarks bool
 
 	WebSocketEventScope bool
 
@@ -143,6 +140,9 @@ type FeatureFlags struct {
 
 	// Requires AttributeBasedAccessControl to also be enabled.
 	TeamMembershipAccessControl bool
+
+	// Enable the new mm_blocks Interactive Messages framework
+	MmBlocksEnabled bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -157,19 +157,17 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableExportDirectDownload = false
 	f.MoveThreadsEnabled = false
 	f.StreamlinedMarketplace = true
-	f.CloudAnnualRenewals = false
 	f.CloudDedicatedExportUI = false
-	f.ChannelBookmarks = true
 	f.WebSocketEventScope = true
 	f.NotificationMonitoring = true
 	f.ExperimentalAuditSettingsSystemConsoleUI = true
 	f.CustomProfileAttributes = true
 	f.AttributeBasedAccessControl = true
-	f.AttributeValueMasking = false
-	f.PermissionPolicies = false
+	f.AttributeValueMasking = true
+	f.PermissionPolicies = true
 	f.TeamMembershipAccessControl = false
-	f.ChannelPermissionPolicies = false
-	f.PolicySimulation = false
+	f.ChannelPermissionPolicies = true
+	f.PolicySimulation = true
 	f.ContentFlagging = true
 	f.EnableMattermostEntry = true
 
@@ -202,7 +200,9 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.MobileEphemeralMode = false
 
-	f.PropertyFieldRank = false
+	f.PropertyFieldRank = true
+
+	f.MmBlocksEnabled = true
 }
 
 // IsChannelPermissionPoliciesEnabled reports whether channel-scope
