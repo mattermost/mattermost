@@ -10,6 +10,7 @@ import type {AccessControlPolicy} from '@mattermost/types/access_control';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import PolicySelectionModal from 'components/admin_console/access_control/modals/policy_selection/policy_selection_modal';
+import ConfirmModal from 'components/confirm_modal';
 import AdminPanelWithButton from 'components/widgets/admin_console/admin_panel_with_button';
 
 import './team_access_control_policy.scss';
@@ -28,9 +29,19 @@ interface Props {
 export const TeamAccessControl: React.FC<Props> = (props: Props): JSX.Element => {
     const {parentPolicies: accessControlPolicies, actions} = props;
     const [showPolicySelectionModal, setShowPolicySelectionModal] = useState<boolean>(false);
+    const [policyPendingRemoval, setPolicyPendingRemoval] = useState<AccessControlPolicy | null>(null);
     const [page, setPage] = useState(0);
 
     const intl = useIntl();
+
+    const handleConfirmPolicyRemove = useCallback(() => {
+        if (policyPendingRemoval) {
+            actions.onPolicyRemove(policyPendingRemoval.id);
+        }
+        setPolicyPendingRemoval(null);
+    }, [actions, policyPendingRemoval]);
+
+    const handleCancelPolicyRemove = useCallback(() => setPolicyPendingRemoval(null), []);
 
     const handlePolicySelected = useCallback((policy: AccessControlPolicy) => {
         if (actions.onPolicySelected && policy) {
@@ -53,6 +64,40 @@ export const TeamAccessControl: React.FC<Props> = (props: Props): JSX.Element =>
             onHide={handleClosePolicyModal}
             onPolicySelected={handlePolicySelected}
             actions={{searchPolicies: actions.searchPolicies}}
+        />
+    );
+
+    const removePolicyConfirmModal = (
+        <ConfirmModal
+            show={policyPendingRemoval !== null}
+            title={
+                <FormattedMessage
+                    id='admin.team_settings.team_detail.remove_policy_confirm.title'
+                    defaultMessage='Remove this team from policy “{policyName}”?'
+                    values={{policyName: policyPendingRemoval?.name}}
+                />
+            }
+            message={
+                <FormattedMessage
+                    id='admin.team_settings.team_detail.remove_policy_confirm.body'
+                    defaultMessage="This team's membership will no longer be governed by this policy's rules. Existing members are retained; the team returns to its standard access mode at next sync."
+                />
+            }
+            confirmButtonText={
+                <FormattedMessage
+                    id='admin.team_settings.team_detail.remove_policy_confirm.confirm'
+                    defaultMessage='Remove policy'
+                />
+            }
+            confirmButtonVariant='destructive'
+            cancelButtonText={
+                <FormattedMessage
+                    id='admin.team_settings.team_detail.remove_policy_confirm.cancel'
+                    defaultMessage='Cancel'
+                />
+            }
+            onConfirm={handleConfirmPolicyRemove}
+            onCancel={handleCancelPolicyRemove}
         />
     );
 
@@ -130,7 +175,7 @@ export const TeamAccessControl: React.FC<Props> = (props: Props): JSX.Element =>
                                     id: 'admin.team_settings.team_detail.remove_policy.aria_label',
                                     defaultMessage: 'Remove policy',
                                 })}
-                                onClick={() => actions.onPolicyRemove(policy.id)}
+                                onClick={() => setPolicyPendingRemoval(policy)}
                             >
                                 <i className='fa fa-trash'/>
                             </button>
@@ -161,6 +206,7 @@ export const TeamAccessControl: React.FC<Props> = (props: Props): JSX.Element =>
                 </div>
             </div>
             {policySelectionModal}
+            {removePolicyConfirmModal}
         </AdminPanelWithButton>
     );
 };

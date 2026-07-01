@@ -709,6 +709,30 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
 
     hideArchiveConfirmModal = () => this.setState({showArchiveConfirmModal: false});
 
+    // Combine the team's own membership expression with the expressions of any
+    // linked parent policies, ANDed together. The ad-hoc searchUsersForExpression
+    // endpoint does NOT resolve imports server-side, so the effective expression
+    // must be assembled here (mirrors the sync job and the channel access-rules tab).
+    private combineTeamAndPolicyExpressions = (teamExpression: string): string => {
+        const parentExpressions = this.state.accessControlPolicies.
+            map((policy) => getMembershipRule(policy.rules)?.expression).
+            filter((expr): expr is string => Boolean(expr && expr.trim()));
+
+        const allExpressions: string[] = [];
+        if (teamExpression.trim()) {
+            allExpressions.push(teamExpression.trim());
+        }
+        allExpressions.push(...parentExpressions);
+
+        if (allExpressions.length === 0) {
+            return '';
+        }
+        if (allExpressions.length === 1) {
+            return allExpressions[0]!;
+        }
+        return allExpressions.map((expr) => `(${expr})`).join(' && ');
+    };
+
     onSave = async () => {
         if (this.teamToBeArchived()) {
             this.setState({showArchiveConfirmModal: true});
@@ -731,9 +755,10 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             try {
                 const statsResult = await this.props.actions.getTeamStats(this.props.teamID);
                 const totalMembers = (statsResult?.data as {total_member_count?: number} | null)?.total_member_count ?? null;
-                if (totalMembers !== null && this.state.teamRulesExpression?.trim()) {
+                const effectiveExpression = this.combineTeamAndPolicyExpressions(this.state.teamRulesExpression ?? '');
+                if (totalMembers !== null && effectiveExpression.trim()) {
                     const exprResult = await this.props.actions.searchUsersForExpression(
-                        this.state.teamRulesExpression,
+                        effectiveExpression,
                         '',
                         '',
                         1,

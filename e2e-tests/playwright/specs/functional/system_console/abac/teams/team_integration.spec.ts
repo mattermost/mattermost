@@ -187,6 +187,12 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
 
         await page.getByLabel('Remove policy').click();
 
+        // Removing now requires confirming the disconnect dialog before it is staged.
+        const disconnectModal = page.locator('.ConfirmModal').filter({hasText: 'Remove this team from policy'});
+        await expect(disconnectModal).toBeVisible({timeout: 5000});
+        await disconnectModal.getByRole('button', {name: 'Remove policy'}).click();
+        await expect(disconnectModal).not.toBeVisible({timeout: 5000});
+
         // Once the last policy is removed the toggle unlocks; disable it before saving.
         await setToggle(page, false);
         await page.getByRole('button', {name: 'Save'}).click();
@@ -262,9 +268,11 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await expect(page.getByText(/No membership policy assigned/i)).toBeVisible({timeout: 5000});
         await expect(page.locator('[data-testid="link-to-a-policy"]')).toBeVisible();
 
-        // Saving with the toggle on but no policy is rejected.
+        // Saving with the toggle on but neither a linked policy nor a custom rule is rejected.
         await page.getByRole('button', {name: 'Save'}).click();
-        await expect(page.getByText(/must select a membership policy/i)).toBeVisible({timeout: 5000});
+        await expect(page.getByText(/must select a membership policy or define custom access rules/i)).toBeVisible({
+            timeout: 5000,
+        });
 
         // The server state is untouched — no policy was assigned.
         expect((await adminClient.getTeam(team.id)).policy_enforced).toBeFalsy();
@@ -517,5 +525,244 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         // # Cancel
         await confirmModal.getByRole('button', {name: 'Cancel'}).click();
         await expect(confirmModal).not.toBeVisible();
+    });
+
+    /**
+     * @objective Linking a PARENT policy (no custom team rules) computes the affected
+     * count against the linked policy's expression, not the raw member total.
+     *
+     * Regression guard: the affected count is derived client-side from
+     * searchUsersForExpression, whose endpoint does NOT resolve a policy's imports.
+     * When only a parent policy is linked, the team's own expression is empty, so a
+     * naive implementation falls back to "all members affected". The count must
+     * instead evaluate the linked policy's expression — here one of two members
+     * matches (Engineering), so exactly one is affected, never both.
+     */
+    test('MM-68846-T12 - linked policy affected count evaluates the policy expression, not the member total', async ({
+        pw,
+    }) => {
+        test.setTimeout(120000);
+        await pw.skipIfNoLicense();
+
+        const {adminUser, adminClient} = await pw.getAdminClient();
+        if (!adminUser) {
+            throw new Error('Admin user not found');
+        }
+        const suffix = pw.random.id();
+        cleanupClient = adminClient;
+        await enableTeamMembershipABACConfig(adminClient);
+        await enableTeamMembershipPolicies(adminClient);
+        await ensureDepartmentAttribute(adminClient);
+
+        // # Parent policy that admits only Engineering
+        const policyName = `Linked Count Policy ${suffix}`;
+        const policy = await createTeamMembershipParentPolicy(
+            adminClient,
+            policyName,
+            'user.attributes.Department == "Engineering"',
+        );
+        createdPolicyIds.push(policy.id);
+
+        // # Private team whose only members are one match + one non-match. Remove the
+        // # admin (auto-added on create) so the total is deterministically 2.
+        const team = await createPrivateTeam(adminClient, suffix);
+        createdTeamIds.push(team.id);
+        await adminClient.removeFromTeam(team.id, adminUser.id).catch(() => {});
+
+        const matchUser = await adminClient.createUser(
+            {
+                email: `match${suffix}@sample.mattermost.com`,
+                username: `match${suffix}`,
+                password: newTestPassword(),
+            } as any,
+            '',
+            '',
+        );
+        createdUserIds.push(matchUser.id);
+        await adminClient.addToTeam(team.id, matchUser.id);
+        await setUserAttribute(adminClient, matchUser.id, 'Department', 'Engineering');
+
+        const nonMatchUser = await adminClient.createUser(
+            {
+                email: `nomatch${suffix}@sample.mattermost.com`,
+                username: `nomatch${suffix}`,
+                password: newTestPassword(),
+            } as any,
+            '',
+            '',
+        );
+        createdUserIds.push(nonMatchUser.id);
+        await adminClient.addToTeam(team.id, nonMatchUser.id);
+        await setUserAttribute(adminClient, nonMatchUser.id, 'Department', 'Marketing');
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [matchUser.id]);
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Marketing"', [
+            nonMatchUser.id,
+        ]);
+
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        const {page} = systemConsolePage;
+        const policyFetchDoneT12 = page
+            .waitForResponse((resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`), {timeout: 20000})
+            .catch(() => {});
+        await openTeamConfig(page, team.display_name);
+        await policyFetchDoneT12;
+
+        // # Enable the toggle and link the parent policy (no custom rules added)
+        await setToggle(page, true);
+        await page.locator('[data-testid="link-to-a-policy"]').click();
+        const modal = page.locator('[role="dialog"]').filter({hasText: 'Select a Membership Policy'});
+        await modal.waitFor({state: 'visible', timeout: 5000});
+        const policyRow = await findPolicyRow(modal, policyName);
+        await policyRow.click();
+
+        const policyPanel = page.locator('#team_access_control_with_policy');
+        await expect(policyPanel.locator('.policy-name').filter({hasText: policyName})).toBeVisible({timeout: 5000});
+
+        // # Save to open the affected-count confirmation
+        await page.getByRole('button', {name: 'Save'}).click();
+        const confirmModal = page.locator('.ConfirmModal').filter({hasText: 'Apply membership policy'});
+        await expect(confirmModal).toBeVisible({timeout: 15000});
+
+        // * Exactly one member (the non-matching Marketing user) is affected — not both.
+        await expect(confirmModal.getByText(/1 member does not currently meet the criteria/i)).toBeVisible();
+        await expect(confirmModal.getByText(/2 members do not currently meet the criteria/i)).toHaveCount(0);
+
+        await confirmModal.getByRole('button', {name: 'Cancel'}).click();
+        await expect(confirmModal).not.toBeVisible();
+    });
+
+    /**
+     * @objective The per-row Remove action opens a disconnect confirmation with the
+     * policy name and non-destructive-cancel behavior; only confirming stages removal.
+     */
+    test('MM-68846-T13 - disconnecting a policy requires confirming a named dialog', async ({pw}) => {
+        test.setTimeout(120000);
+        await pw.skipIfNoLicense();
+
+        const {adminUser, adminClient, team} = await pw.initSetup();
+        cleanupClient = adminClient;
+        await enableTeamMembershipPolicies(adminClient);
+
+        const policyName = `Disconnect Policy ${pw.random.id()}`;
+        const policy = await createTeamMembershipParentPolicy(adminClient, policyName, 'true');
+        createdPolicyIds.push(policy.id);
+        await assignTeamsToPolicy(adminClient, policy.id, [team.id]);
+
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        const {page} = systemConsolePage;
+        const policyFetchDoneT13 = page
+            .waitForResponse((resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`), {timeout: 20000})
+            .catch(() => {});
+        await openTeamConfig(page, team.display_name);
+        await policyFetchDoneT13;
+
+        const policyPanel = page.locator('#team_access_control_with_policy');
+        await expect(policyPanel.locator('.policy-name').filter({hasText: policyName})).toBeVisible({timeout: 15000});
+
+        // # Open the disconnect confirmation
+        await page.getByLabel('Remove policy').click();
+        const disconnectModal = page.locator('.ConfirmModal').filter({hasText: 'Remove this team from policy'});
+        await expect(disconnectModal).toBeVisible({timeout: 5000});
+
+        // * Dialog names the policy and explains members are retained
+        await expect(disconnectModal.getByText(policyName)).toBeVisible();
+        await expect(disconnectModal.getByText(/Existing members are retained/i)).toBeVisible();
+
+        // # Cancel is non-destructive — the policy stays linked
+        await disconnectModal.getByRole('button', {name: 'Cancel'}).click();
+        await expect(disconnectModal).not.toBeVisible();
+        await expect(policyPanel.locator('.policy-name').filter({hasText: policyName})).toBeVisible();
+
+        // # Confirming removes it from the list (staged until save)
+        await page.getByLabel('Remove policy').click();
+        await expect(disconnectModal).toBeVisible({timeout: 5000});
+        await disconnectModal.getByRole('button', {name: 'Remove policy'}).click();
+        await expect(disconnectModal).not.toBeVisible({timeout: 5000});
+        await expect(policyPanel.locator('.policy-name').filter({hasText: policyName})).toHaveCount(0);
+    });
+
+    /**
+     * @objective The custom-rules table editor supports the full row mechanics: picking a
+     * multi-value operator, entering multiple values as chips, adding a second row, and
+     * deleting rows down to the empty blank state.
+     *
+     * Exercises editor interactions the existing single-value helper doesn't cover.
+     */
+    test('MM-68846-T14 - custom rules editor handles operator, multi-value, and row deletion', async ({pw}) => {
+        test.setTimeout(120000);
+        await pw.skipIfNoLicense();
+
+        const {adminUser, adminClient} = await pw.getAdminClient();
+        if (!adminUser) {
+            throw new Error('Admin user not found');
+        }
+        const suffix = pw.random.id();
+        cleanupClient = adminClient;
+        await enableTeamMembershipABACConfig(adminClient);
+        await enableTeamMembershipPolicies(adminClient);
+        await ensureDepartmentAttribute(adminClient);
+
+        const team = await createPrivateTeam(adminClient, suffix);
+        createdTeamIds.push(team.id);
+
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        const {page} = systemConsolePage;
+        const policyFetchDoneT14 = page
+            .waitForResponse((resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`), {timeout: 20000})
+            .catch(() => {});
+        await openTeamConfig(page, team.display_name);
+        await policyFetchDoneT14;
+
+        await setToggle(page, true);
+        const rulesPanel = page.locator('#team_level_access_rules');
+        await expect(rulesPanel).toBeVisible({timeout: 10000});
+
+        const addAttribute = async () => {
+            await rulesPanel.getByRole('button', {name: /Add attribute/}).click();
+            const attrMenu = page.locator('[id^="attribute-selector-menu"]');
+            await attrMenu.waitFor({state: 'visible', timeout: 5000});
+            await attrMenu.locator('li').filter({hasText: 'Department'}).first().click();
+        };
+
+        // # Add the first rule row (Department, default operator)
+        await addAttribute();
+        await expect(rulesPanel.locator('.table-editor__row')).toHaveCount(1);
+
+        const row1 = rulesPanel.locator('.table-editor__row').first();
+
+        // # Switch the operator to a multi-value operator ("in")
+        await row1.locator('[data-testid="operatorSelectorMenuButton"]').click();
+        await page.getByRole('menuitemradio', {name: 'in', exact: true}).click();
+
+        // # Enter multiple values — each Enter creates a chip
+        await row1.locator('[data-testid="valueSelectorMenuButton"]').click();
+        const valueFilter = page.locator('#filter_values');
+        await valueFilter.fill('Engineering');
+        await valueFilter.press('Enter');
+        await valueFilter.fill('Marketing');
+        await valueFilter.press('Enter');
+
+        // Close the value menu (click-away) so its overlay doesn't intercept later clicks.
+        // Escape is swallowed by the filter input, so click a neutral spot instead.
+        await page.mouse.click(5, 5);
+        await expect(page.locator('#value-selector-menu')).toBeHidden({timeout: 5000});
+
+        // * Two chips are present on the row
+        await expect(row1.locator('.select__multi-value')).toHaveCount(2);
+        await expect(row1.locator('.select__multi-value__label').filter({hasText: 'Engineering'})).toBeVisible();
+        await expect(row1.locator('.select__multi-value__label').filter({hasText: 'Marketing'})).toBeVisible();
+
+        // # Add a second rule row
+        await addAttribute();
+        await expect(rulesPanel.locator('.table-editor__row')).toHaveCount(2);
+
+        // # Delete the first row
+        await rulesPanel.locator('.table-editor__row-remove').first().click();
+        await expect(rulesPanel.locator('.table-editor__row')).toHaveCount(1);
+
+        // # Delete the remaining row — the editor returns to the blank state
+        await rulesPanel.locator('.table-editor__row-remove').first().click();
+        await expect(rulesPanel.locator('.table-editor__row')).toHaveCount(0);
+        await expect(rulesPanel.locator('.table-editor__blank-state')).toBeVisible();
     });
 });

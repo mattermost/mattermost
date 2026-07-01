@@ -41,6 +41,18 @@ async function addTeamMemberRaw(
     return {status: res.status, body};
 }
 
+// Log in via raw REST to obtain the user's OWN session token, so a self-join can be
+// attempted with the requesting user's session rather than the admin's (which would
+// bypass the attribute gate). The token is returned in the response 'Token' header.
+async function loginRaw(baseRoute: string, loginId: string, password: string): Promise<string> {
+    const res = await fetch(`${baseRoute}/users/login`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({login_id: loginId, password}),
+    });
+    return res.headers.get('Token') ?? '';
+}
+
 test.describe('ABAC - Join enforcement gate (API level)', {tag: ['@abac', '@team_membership']}, () => {
     test.setTimeout(120000);
 
@@ -172,5 +184,68 @@ test.describe('ABAC - Join enforcement gate (API level)', {tag: ['@abac', '@team
         const members: any[] = await adminClient.getTeamMembers(team.id, 0, 100);
         const memberIds = members.map((m: any) => m.user_id);
         expect(memberIds).toContain(mkt2.id);
+    });
+
+    test('MM-69100-T10 qualifying user self-joins a private ABAC team by attribute match; non-qualifying is rejected', async ({
+        pw,
+    }) => {
+        await pw.skipIfNoLicense();
+        const {adminClient} = await pw.getAdminClient();
+        const suffix = pw.random.id();
+
+        await enableTeamMembershipABACConfig(adminClient);
+        await ensureDepartmentAttribute(adminClient);
+
+        // # Private team governed by the Engineering policy
+        const team = await createPrivateTeam(adminClient, suffix);
+        createdTeamIds.push(team.id);
+
+        // # Two regular users (no join_private_teams role): eng qualifies, mkt does not.
+        // Capture their passwords so we can log in as them and self-join.
+        const makeUser = async (dept: string, label: string) => {
+            const uid = `${label}${suffix}`;
+            const password = newTestPassword();
+            const user = await adminClient.createUser(
+                {
+                    email: `${uid}@sample.mattermost.com`,
+                    username: uid,
+                    password,
+                } as any,
+                '',
+                '',
+            );
+            await setUserAttribute(adminClient, user.id, 'Department', dept);
+            createdUserIds.push(user.id);
+            return {user, password};
+        };
+        const eng = await makeUser('Engineering', 'engself');
+        const mkt = await makeUser('Marketing', 'mktself');
+
+        await createTeamMembershipPolicy(adminClient, team.id, 'user.attributes.Department == "Engineering"', false);
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [eng.user.id]);
+
+        const baseRoute = adminClient.getBaseRoute();
+
+        // # Qualifying user logs in and joins themselves with their OWN session
+        const engToken = await loginRaw(baseRoute, eng.user.username, eng.password);
+        expect(engToken.length).toBeGreaterThan(0);
+
+        // * Attribute match authorizes the self-join even without the join_private_teams role
+        const engResult = await addTeamMemberRaw(engToken, baseRoute, team.id, eng.user.id);
+        expect(engResult.status).toBe(201);
+
+        const members: any[] = await adminClient.getTeamMembers(team.id, 0, 100);
+        expect(members.map((m: any) => m.user_id)).toContain(eng.user.id);
+
+        // # Non-qualifying user attempts the same self-join with their own session
+        const mktToken = await loginRaw(baseRoute, mkt.user.username, mkt.password);
+        expect(mktToken.length).toBeGreaterThan(0);
+
+        // * Rejected — the attribute gate applies to the requesting user's session too
+        const mktResult = await addTeamMemberRaw(mktToken, baseRoute, team.id, mkt.user.id);
+        expect(mktResult.status).toBe(403);
+
+        const membersAfter: any[] = await adminClient.getTeamMembers(team.id, 0, 100);
+        expect(membersAfter.map((m: any) => m.user_id)).not.toContain(mkt.user.id);
     });
 });

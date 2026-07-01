@@ -371,7 +371,6 @@ body {
 
         .icon {
             height: 20px;
-            margin: 0 -8px 0 15px;
             cursor: pointer;
             float: left;
             opacity: 0.45;
@@ -432,7 +431,7 @@ body {
         align-items: center;
         padding: 0 6px;
         border-radius: 4px;
-        margin-left: 8px;
+        margin: 0 20px;
         background: rgba(var(--button-bg-rgb), 0.08);
         color: var(--button-bg);
         font-size: 11px;

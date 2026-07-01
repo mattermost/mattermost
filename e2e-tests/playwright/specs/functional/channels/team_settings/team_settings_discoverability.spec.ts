@@ -95,7 +95,9 @@ test.describe('Team Settings Modal - Access Tab - Discoverability', {tag: ['@aba
         await teamSettings.close();
     });
 
-    test('MM-69100_2 non-policy team: Public card toggles allow_open_invite only, leaves type unchanged', async ({pw}) => {
+    test('MM-69100_2 non-policy team: Public card toggles allow_open_invite only, leaves type unchanged', async ({
+        pw,
+    }) => {
         await pw.skipIfNoLicense();
         const {adminClient, adminUser} = await pw.getAdminClient();
         if (!adminUser) {

@@ -80,7 +80,7 @@ describe('TeamAccessControl', () => {
         expect(removeBtn.tagName).toBe('BUTTON');
     });
 
-    test('clicking Remove policy calls onPolicyRemove with the policy id', async () => {
+    test('clicking the trash icon opens a named confirmation and does not remove immediately', async () => {
         const onPolicyRemove = jest.fn();
         renderWithContext(
             <TeamAccessControl
@@ -90,7 +90,41 @@ describe('TeamAccessControl', () => {
         );
 
         await userEvent.click(screen.getByLabelText('Remove policy'));
+
+        // Confirmation is shown, naming the policy; nothing is removed yet.
+        expect(screen.getByText('Remove this team from policy “Engineering Policy”?')).toBeInTheDocument();
+        expect(onPolicyRemove).not.toHaveBeenCalled();
+    });
+
+    test('confirming the disconnect dialog calls onPolicyRemove with the policy id', async () => {
+        const onPolicyRemove = jest.fn();
+        renderWithContext(
+            <TeamAccessControl
+                parentPolicies={[parentPolicy]}
+                actions={{...baseActions, onPolicyRemove}}
+            />,
+        );
+
+        await userEvent.click(screen.getByLabelText('Remove policy'));
+
+        // The dialog's confirm button (id from ConfirmModal) is distinct from the
+        // trash icon, which shares the "Remove policy" accessible name.
+        await userEvent.click(document.getElementById('confirmModalButton')!);
         expect(onPolicyRemove).toHaveBeenCalledWith('policy1');
+    });
+
+    test('cancelling the disconnect dialog does not call onPolicyRemove', async () => {
+        const onPolicyRemove = jest.fn();
+        renderWithContext(
+            <TeamAccessControl
+                parentPolicies={[parentPolicy]}
+                actions={{...baseActions, onPolicyRemove}}
+            />,
+        );
+
+        await userEvent.click(screen.getByLabelText('Remove policy'));
+        await userEvent.click(screen.getByText('Cancel'));
+        expect(onPolicyRemove).not.toHaveBeenCalled();
     });
 
     test('does not render auto-add checkbox in the policies panel', () => {
