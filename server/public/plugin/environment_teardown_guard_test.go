@@ -145,11 +145,9 @@ func TestDeactivateBlocksConcurrentHookDispatch(t *testing.T) {
 
 	var wg sync.WaitGroup
 	stop := make(chan struct{})
-	var errCount int32
+	var errCount atomic.Int32
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		for {
 			select {
 			case <-stop:
@@ -160,10 +158,10 @@ func TestDeactivateBlocksConcurrentHookDispatch(t *testing.T) {
 				return true, hooks.MessageHasBeenPostedWithRPCErr(&Context{}, &model.Post{})
 			}, MessageHasBeenPostedID)
 			if runErr != nil {
-				atomic.AddInt32(&errCount, 1)
+				errCount.Add(1)
 			}
 		}
-	}()
+	})
 
 	// Give the hammering goroutine a head start before tearing down.
 	time.Sleep(10 * time.Millisecond)
@@ -172,5 +170,5 @@ func TestDeactivateBlocksConcurrentHookDispatch(t *testing.T) {
 	close(stop)
 	wg.Wait()
 
-	require.Zero(t, atomic.LoadInt32(&errCount), "no hook dispatch should race the closing RPC connection")
+	require.Zero(t, errCount.Load(), "no hook dispatch should race the closing RPC connection")
 }
