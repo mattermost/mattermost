@@ -16,7 +16,6 @@ type Props = {
     code: string;
     language: string;
     searchedContent?: string;
-    channelId?: string;
 };
 
 const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) => {
