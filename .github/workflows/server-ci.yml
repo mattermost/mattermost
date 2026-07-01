@@ -52,7 +52,7 @@ jobs:
         run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
       - name: Check for go.mod changes
         id: changed-files
-        uses: tj-actions/changed-files@22103cc46bda19c2b464ffe86db46df6922fd323 # v47.0.5
+        uses: tj-actions/changed-files@22103cc46bda19c2b464ffe86db46df6922fd323  # v47.0.5
         with:
           files: |
             **/go.mod
@@ -282,7 +282,7 @@ jobs:
     name: Postgres (shard ${{ matrix.shard }})
     needs: go
     strategy:
-      fail-fast: false # Let all shards complete so we get full test results
+      fail-fast: false  # Let all shards complete so we get full test results
       matrix:
         shard: [0, 1, 2, 3]
     permissions:
@@ -448,7 +448,7 @@ jobs:
             make package
       - name: Persist dist artifacts
         if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f  # v7.0.0
         with:
           name: server-dist-artifact
           path: server/dist/
@@ -457,7 +457,7 @@ jobs:
           retention-days: 2
       - name: Persist build artifacts
         if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f  # v7.0.0
         with:
           name: server-build-artifact
           path: server/build/
