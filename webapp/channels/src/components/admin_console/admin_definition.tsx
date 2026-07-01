@@ -669,7 +669,10 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'system_attributes/board_attributes',
                 title: defineMessage({id: 'admin.sidebar.board_attributes', defaultMessage: 'Board Attributes'}),
                 searchableStrings: boardAttributesSearchableStrings,
-                isHidden: it.not(it.configIsTrue('FeatureFlags', 'IntegratedBoards')),
+                isHidden: it.not(it.all(
+                    it.minLicenseTier(LicenseSkus.Enterprise),
+                    it.configIsTrue('FeatureFlags', 'IntegratedBoards'),
+                )),
                 schema: {
                     id: 'BoardAttributes',
                     component: BoardAttributes,
