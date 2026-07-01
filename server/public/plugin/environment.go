@@ -74,8 +74,7 @@ type Environment struct {
 	teardownGuardEnabled bool
 }
 
-// EnvironmentOption configures optional Environment behavior at construction time. See
-// WithMetrics and WithTeardownGuardEnabled.
+// EnvironmentOption configures optional Environment behavior at construction time.
 type EnvironmentOption func(*Environment) error
 
 // WithMetrics records plugin hook and lifecycle metrics via the given implementation.
@@ -105,13 +104,11 @@ func NewEnvironment(
 	opts ...EnvironmentOption,
 ) (*Environment, error) {
 	env := &Environment{
-		logger:          logger,
-		newAPIImpl:      newAPIImpl,
-		dbDriver:        dbDriver,
-		pluginDir:       pluginDir,
-		webappPluginDir: webappPluginDir,
-		// Defaults to enabled so callers (tests included) get the race guard for free; pass
-		// WithTeardownGuardEnabled(false) to opt out, e.g. to mirror a disabled feature flag.
+		logger:               logger,
+		newAPIImpl:           newAPIImpl,
+		dbDriver:             dbDriver,
+		pluginDir:            pluginDir,
+		webappPluginDir:      webappPluginDir,
 		teardownGuardEnabled: true,
 	}
 

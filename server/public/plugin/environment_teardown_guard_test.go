@@ -86,7 +86,7 @@ func TestNewEnvironmentOptionError(t *testing.T) {
 	logger := mlog.CreateConsoleTestLogger(t)
 	apiImpl := func(*model.Manifest) API { return nil }
 	sentinel := errors.New("boom")
-	failingOption := EnvironmentOption(func(*Environment) error { return sentinel })
+	failingOption := func(*Environment) error { return sentinel }
 
 	env, err := NewEnvironment(apiImpl, nil, t.TempDir(), t.TempDir(), logger, failingOption)
 	require.Nil(t, env)
