@@ -1,0 +1,277 @@
+{
+  "acknowledge-button": {
+    "alt": "Select the Acknowledge button to indicate that you've read it and taken necessary action.",
+    "class": "",
+    "src": "/img/ui/Ack-Button-Default.svg"
+  },
+  "add-user-icon": {
+    "alt": "Account plus outline icon used to add user to a channel.",
+    "class": "theme-icon",
+    "src": "/img/ui/account-plus-outline_F0801.svg"
+  },
+  "ai-actions-icon": {
+    "alt": "Select the AI Actions icon to access AI options.",
+    "class": "theme-icon",
+    "src": "/img/ui/creation-outline_F1C2B.svg"
+  },
+  "ai-rewrite": {
+    "alt": "AI Rewrite icon.",
+    "class": "theme-icon",
+    "src": "/img/ui/creation-outline_F1C2B.svg"
+  },
+  "attachments-icon": {
+    "alt": "Add a message attachment using the Upload files icon in the message formatting toolbar.",
+    "class": "theme-icon",
+    "src": "/img/ui/paperclip_F03E2.svg"
+  },
+  "away": {
+    "alt": "Away availability status icon in Mattermost.",
+    "class": "",
+    "src": "/img/ui/away.png"
+  },
+  "bold-icon": {
+    "alt": "Bold message text using the Bold icon in the message formatting toolbar.",
+    "class": "theme-icon",
+    "src": "/img/ui/format-bold_F0264.svg"
+  },
+  "bullets-icon": {
+    "alt": "Format message text as a bulleted list using the Bulleted list icon in the message formatting toolbar.",
+    "class": "theme-icon",
+    "src": "/img/ui/format-list-bulleted_F0279.svg"
+  },
+  "burn-on-read-icon": {
+    "alt": "Burn on Read icon.",
+    "class": "theme-icon",
+    "src": "/img/ui/fire_F0238.svg"
+  },
+  "channel-files-icon": {
+    "alt": "Use the Channel Files icon to search for files attached to messages in a given channel.",
+    "class": "theme-icon",
+    "src": "/img/ui/file-text-outline_F09EE.svg"
+  },
+  "channel-info": {
+    "alt": "Use the Channel Info icon to access additional channel management options.",
+    "class": "theme-icon",
+    "src": "/img/ui/information-outline_F02FD.svg"
+  },
+  "checkmark": {
+    "alt": "Green checkmark icon used to indicate that a given feature is included in a specific package, deployment, or plan.",
+    "class": "",
+    "src": "/img/ui/checkmark.svg"
+  },
+  "code-icon": {
+    "alt": "Format message text as code using the Code icon in the message formatting toolbar.",
+    "class": "theme-icon",
+    "src": "/img/ui/code-tags_F0174.svg"
+  },
+  "copy-link-icon": {
+    "alt": "Use the Copy Link icon to copy the public URL link for an image in a message.",
+    "class": "theme-icon",
+    "src": "/img/ui/link-variant_F0339.svg"
+  },
+  "deployment-img": {
+    "alt": "",
+    "class": "mm-badge-flag",
+    "src": "/img/badges/deployment.svg"
+  },
+  "deployment-img-yellow": {
+    "alt": "",
+    "class": "mm-badge-deployment",
+    "src": "/img/badges/deployment-yellow.svg"
+  },
+  "desktop-download-icon": {
+    "alt": "Use the desktop app download icon to review download status, as well as access and clear the list of downloaded files.",
+    "class": "theme-icon",
+    "src": "/img/ui/arrow-down-bold-circle-outline_F0048.svg"
+  },
+  "dnd": {
+    "alt": "Do Not Disturb availability status icon in Mattermost.",
+    "class": "",
+    "src": "/img/ui/dnd.png"
+  },
+  "download-icon": {
+    "alt": "Use the Download icon to download an attached file to your local system.",
+    "class": "theme-icon",
+    "src": "/img/ui/download-outline_F0B8F.svg"
+  },
+  "edit-icon": {
+    "alt": "Edit icon.",
+    "class": "theme-icon",
+    "src": "/img/ui/pencil-outline_F0CB6.svg"
+  },
+  "edit-on-github": {
+    "alt": "Contribute to Mattermost documentation by selecting the Edit option located in the top right corner of any documentation page.",
+    "class": "theme-icon",
+    "src": "/img/ui/edit-on-github.png"
+  },
+  "emoji-icon": {
+    "alt": "Add emojis or GIFs to message text using the Emoji/Gif picker icon in the message formatting toolbar.",
+    "class": "theme-icon",
+    "src": "/img/ui/emoticon-outline_F01F2.svg"
+  },
+  "favorite-icon": {
+    "alt": "Use the Star icon to mark a channel as a favorite.",
+    "class": "theme-icon",
+    "src": "/img/ui/star-outline_F04D2.svg"
+  },
+  "file-box": {
+    "alt": "Archived channels are identified with a File Box icon.",
+    "class": "theme-icon",
+    "src": "/img/ui/archive-outline_F120E.svg"
+  },
+  "gear": {
+    "alt": "Use the Settings icon to customize your Mattermost user experience.",
+    "class": "theme-icon",
+    "src": "/img/ui/settings-outline_F08BB.svg"
+  },
+  "globe": {
+    "alt": "Public channels are identified with a Globe icon.",
+    "class": "theme-icon",
+    "src": "/img/ui/globe_E805.svg"
+  },
+  "headings-icon": {
+    "alt": "Format message text as a heading using the Heading icon in the message formatting toolbar. Headings 1 through 6 are supported.",
+    "class": "theme-icon",
+    "src": "/img/ui/format-header_E81D.svg"
+  },
+  "hide-formatting-icon": {
+    "alt": "Hide formatting options in the message formatting toolbar using the Show/Hide Formatting icon.",
+    "class": "theme-icon",
+    "src": "/img/ui/format-letter-case_F0B34.svg"
+  },
+  "italics-icon": {
+    "alt": "Italicize message text using the Italic icon in the message formatting toolbar.",
+    "class": "theme-icon",
+    "src": "/img/ui/format-italic_F0277.svg"
+  },
+  "lock": {
+    "alt": "Private channels are identified with a Lock icon.",
+    "class": "theme-icon",
+    "src": "/img/ui/lock-outline_F0341.svg"
+  },
+  "message-priority-icon": {
+    "alt": "Mark a message as important or urgent using the Priority Message icon.",
+    "class": "theme-icon",
+    "src": "/img/ui/alert-circle-outline_F05D6.svg"
+  },
+  "more-icon": {
+    "alt": "Use the More icon to access additional message options.",
+    "class": "theme-icon",
+    "src": "/img/ui/dots-horizontal_F01D8.svg"
+  },
+  "more-icon-vertical": {
+    "alt": "Use the More icon in the top left corner to access Mattermost desktop apps customization settings.",
+    "class": "theme-icon",
+    "src": "/img/ui/dots-vertical_F01D9.svg"
+  },
+  "new-window-icon": {
+    "alt": "Open thread in a new browser window icon.",
+    "class": "",
+    "src": "/img/ui/dock-window_F10AC.svg"
+  },
+  "numbered-icon": {
+    "alt": "Format message text as a numbered list using the Numbered list icon in the message formatting toolbar.",
+    "class": "theme-icon",
+    "src": "/img/ui/format-list-numbered_F027B.svg"
+  },
+  "offline": {
+    "alt": "Offline availability status icon in Mattermost.",
+    "class": "",
+    "src": "/img/ui/offline.png"
+  },
+  "online": {
+    "alt": "Online availability status icon in Mattermost.",
+    "class": "",
+    "src": "/img/ui/online.png"
+  },
+  "pinned-messages": {
+    "alt": "Pin icon used to indicate when there are pinned messages in a given channel.",
+    "class": "",
+    "src": "/img/ui/pin-outline_F0931.svg"
+  },
+  "plans-img": {
+    "alt": "",
+    "class": "mm-badge-flag",
+    "src": "/img/badges/flag.svg"
+  },
+  "plans-img-yellow": {
+    "alt": "",
+    "class": "mm-badge-flag",
+    "src": "/img/badges/flag-yellow.svg"
+  },
+  "plus": {
+    "alt": "The Plus icon provides access to channel and direct message functionality.",
+    "class": "theme-icon",
+    "src": "/img/ui/plus_F0415.svg"
+  },
+  "preview-icon": {
+    "alt": "Review your message text formatting using the Show/Hide preview icon in the message formatting toolbar.",
+    "class": "theme-icon",
+    "src": "/img/ui/eye-outline_F06D0.svg"
+  },
+  "product-list": {
+    "alt": "Navigate between Channels, collaborative playbooks, and boards using the product menu icon.",
+    "class": "theme-icon",
+    "src": "/img/ui/products_E82F.svg"
+  },
+  "quotes-icon": {
+    "alt": "Format message text as a quotation using the Quote icon in the message formatting toolbar.",
+    "class": "theme-icon",
+    "src": "/img/ui/format-quote-open_F0757.svg"
+  },
+  "reply-arrow": {
+    "alt": "Reply icon.",
+    "class": "theme-icon",
+    "src": "/img/ui/reply-outline_F0F20.svg"
+  },
+  "restore-edit": {
+    "alt": "Use the Restore icon to restore a previous version of an edited message.",
+    "class": "theme-icon",
+    "src": "/img/ui/restore_F099B.svg"
+  },
+  "save-icon": {
+    "alt": "Save icon.",
+    "class": "theme-icon",
+    "src": "/img/ui/bookmark-outline_F00C3.svg"
+  },
+  "saved-icon": {
+    "alt": "Saved icon.",
+    "class": "theme-icon",
+    "src": "/img/ui/bookmark_F00C0.svg"
+  },
+  "scheduled-message-total": {
+    "alt": "Total count of scheduled messages.",
+    "class": "",
+    "src": "/img/ui/schedule-count-red-badge.png"
+  },
+  "search-icon": {
+    "alt": "Search for messages and files in Mattermost.",
+    "class": "theme-icon",
+    "src": "/img/ui/magnify_F0349.svg"
+  },
+  "send-icon": {
+    "alt": "Select the Send icon to post your message.",
+    "class": "theme-icon",
+    "src": "/img/ui/send_F048A.svg"
+  },
+  "servers-icon": {
+    "alt": "Access server connection options using the Servers icon.",
+    "class": "theme-icon",
+    "src": "/img/ui/server-variant_E81F.svg"
+  },
+  "shared": {
+    "alt": "Shared icon indicates channels and their members that are shared across connected Mattermost servers.",
+    "class": "",
+    "src": "/img/ui/circle-multiple-outline_F0695.svg"
+  },
+  "smile-icon": {
+    "alt": "Use the Smile icon to add emojis to your message.",
+    "class": "theme-icon",
+    "src": "/img/ui/emoticon-plus-outline_E80F.svg"
+  },
+  "strikeout-icon": {
+    "alt": "Strike out message text using the Strikethrough icon in the message formatting toolbar.",
+    "class": "theme-icon",
+    "src": "/img/ui/format-strikethrough-variant_F0281.svg"
+  }
+}

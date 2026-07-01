@@ -1,0 +1,39 @@
+---
+title: "For Compliance Officers"
+description: "Start here if you collect audit evidence, respond to audits, and map regulatory mandates to Mattermost configuration."
+slug: /for/compliance-officer
+hide_table_of_contents: true
+---
+
+<Eyebrow>Persona landing</Eyebrow>
+
+# For Compliance Officers and Auditors
+
+You collect audit evidence, respond to audits, and map regulatory mandates to Mattermost configuration. You need step-by-step runbooks for exports + eDiscovery + Legal Hold, plus regulatory framework mappings. This page is a curated entry point — every link goes to the canonical guide.
+
+## Start here
+
+<CardGrid columns={3} cards={[
+  {title: 'Comply (operational)', to: '/administration-guide/comply', description: 'Exports, eDiscovery, Legal Hold, retention.'},
+  {title: 'Compliance Frameworks', to: '/security-guide/compliance-frameworks', description: 'FedRAMP, IL, STIG, CMMC, HIPAA, FINRA mappings.'},
+  {title: 'Audit logging', to: '/administration-guide/manage/logging', description: 'Schema, retention, SIEM integration.'},
+]} />
+
+## Common tasks
+
+<CardGrid columns={3} cards={[
+  {title: 'Compliance export', to: '/administration-guide/comply', description: 'Periodic export for regulated workloads.'},
+  {title: 'eDiscovery', to: '/administration-guide/comply', description: 'Pull communications for legal review.'},
+  {title: 'Legal Hold', to: '/administration-guide/comply', description: 'Preserve communications during litigation.'},
+  {title: 'Data retention', to: '/administration-guide/comply', description: 'Policy-driven retention by team and channel.'},
+  {title: 'HIPAA / FINRA / CMMC', to: '/security-guide/compliance-frameworks', description: 'Industry-specific framework coverage.'},
+  {title: 'Permissions and roles', to: '/administration-guide/manage', description: 'Verify RBAC + custom permissions match policy.'},
+]} />
+
+## Other personas
+
+<CardGrid columns={3} cards={[
+  {title: 'For security architects', to: '/for/security-architect', description: 'Authorization, attestations, citable specifics.'},
+  {title: 'For administrators', to: '/for/administrator', description: 'Day-to-day operational configuration.'},
+  {title: 'For air-gapped operators', to: '/for/air-gapped-operator', description: 'Deployment in network-isolated enclaves.'},
+]} />

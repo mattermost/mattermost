@@ -1,0 +1,533 @@
+---
+title: "Compliance configuration settings"
+draft: true
+---
+<PlanAvailability slug="ent-plus" />
+
+Review and manage the following compliance configuration options in the System Console by selecting the **Product** <img src="/img/ui/products_E82F.svg" alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> menu, selecting **System Console**, and then selecting **Compliance**:
+
+- [Data Retention Policies](#data-retention-policies)
+- [Compliance Export](#administration-guide/comply/compliance-export)
+- [Compliance Monitoring](#compliance-monitoring)
+- [Custom Terms of Service](#custom-terms-of-service)
+
+<Tip>
+
+System admins managing a self-hosted Mattermost deployment can edit the `config.json` file as described in the following tables. Each configuration value below includes a JSON path to access the value programmatically in the `config.json` file using a JSON-aware tool. For example, the `MessageRetentionHours` value is under `DataRetentionSettings`.
+
+- If using a tool such as [jq](https://stedolan.github.io/jq/), you'd enter: `cat config/config.json | jq '.DataRetentionSettings.MessageRetentionHours'`
+- When working with the `config.json` file manually, look for an object such as `DataRetentionSettings`, then within that object, find the key `MessageRetentionHours`.
+
+</Tip>
+
+------------------------------------------------------------------------------------------------------------------------
+
+## Data retention policies
+
+Changes to properties in this section require a server restart before taking effect.
+
+<Warning>
+
+- Once a message or a file is deleted, the action is irreversible. Please be careful when setting up a custom data retention policy.
+- From Mattermost v9.5, data retention removes Elasticsearch indexes based on the day of the retention cut-off time.
+
+</Warning>
+
+Access the following configuration settings in the System Console by going to **Compliance \> Data Retention Policies**.
+
+### Global retention policy for messages
+
+Set how long Mattermost keeps messages across all teams and channels. This value is not used for any teams and channels that have a custom retention policy applied . Requires the [global retention policy for messages](/administration-guide/configure/compliance-configuration-settings#global-retention-policy-for-messages) configuration setting to be set to `true`.
+
+By default, messages are kept forever. If **Hours**, **Days**, or **Years** is chosen, set how many hours, days, or years messages are kept in Mattermost. Messages older than the duration you set will be deleted nightly. The minimum message retention time is one hour.
+
+The global retention time for messages can be superseded on a team or channel level by creating custom policies with unique post retention times See the [Custom retention policy](#custom-retention-policy) section below for details.
+
+<table>
+<colgroup>
+<col style={{width: '100%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>"MessageRetentionHours": 1</code> with numerical input.</td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+From Mattermost v9.5, `MessageRetentionDays` has been deprecated in favor of `MessageRetentionHours`. See [deprecated configuration settings](/administration-guide/configure/deprecated-configuration-settings) for details.
+
+</Note>
+
+### Global retention policy for files
+
+Set how long Mattermost keeps files across all teams and channels. Custom policies on team and channel level don't apply to file attachments. The global retention time for files will be used even if a custom policy for messages is in place. Requires the [global retention policy for files](/administration-guide/configure/compliance-configuration-settings#global-retention-policy-for-files) configuration setting to be set to `true`.
+
+By default, files are kept forever. If **Hours**, **Days**, or **Years** is chosen, set how many hours, days, or years files are kept in Mattermost. Files older than the duration you set will be deleted nightly. The minimum file retention time is one hour.
+
+<table>
+<colgroup>
+<col style={{width: '100%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>"FileRetentionHours": 1</code> with numerical input.</td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+From Mattermost v9.5, `FileRetentionDays` has been deprecated in favor of `FileRetentionHours`. See [deprecated configuration settings](/administration-guide/configure/deprecated-configuration-settings) for details.
+
+</Note>
+
+### Preserve pinned posts
+
+From Mattermost v10.10, controls whether pinned posts are preserved when data retention policies delete messages. When enabled, pinned posts won't be deleted by data retention policies, even if they exceed the configured retention period.
+
+**True**: Pinned posts are preserved and won't be deleted by data retention policies.
+
+**False**: **(Default)** Pinned posts are deleted according to the configured data retention policy.
+
+<table>
+<colgroup>
+<col style={{width: '100%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>"DataRetentionSettings.PreservePinnedPosts": false</code> with options <code>true</code> and <code>false</code>.</td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+- This global configuration setting must be enabled with mmctl using the [mmctl config set](/administration-guide/manage/mmctl-command-line-tool#mmctl-config-set) command.
+- This configuration setting applies to team and channel policies as well as data retention, and can't be overridden in those more granular team or channel policies.
+- Files attached to the pinned message aren't preserved.
+- Only the pinned post is preserved. If it's attached to a thread or if it's the root post of a thread, the other threaded messages aren't preserved.
+
+</Note>
+
+### Custom retention policy
+
+Set how long Mattermost keeps messages across specific teams and channels by specifying a name for the custom retention policy, setting a duration value in days or years, and specifying the teams and channels that will follow this policy. The attachment retention time cannot be set on custom policy levels and the global retention time for attachments is always applied.
+
+### Data deletion time
+
+Set the start time of the daily scheduled data retention job. Choose a time when fewer people are using your system. Must be a 24-hour time stamp in the form `HH:MM`.
+
+This setting is based on the local time of the server.
+
+<table>
+<colgroup>
+<col style={{width: '100%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>"DeletionJobStartTime": "02:00"</code> with 24-hour timestamp input in the form <code>"HH:MM"</code>.</td>
+</tr>
+</tbody>
+</table>
+
+### Run deletion job now
+
+Start a Data Retention deletion job immediately. You can monitor the status of the job in the data deletion job table within the Policy Log section.
+
+### Time between batches
+
+The time in milliseconds between batches processed during data retention job execution. This setting helps control the rate at which data is deleted to reduce database load during retention operations.
+
+Default is 100 milliseconds. Possible values are any non-negative integer (≥ 0).
+
+<table>
+<colgroup>
+<col style={{width: '100%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>"TimeBetweenBatchesMilliseconds": 100</code> with numerical input.</td>
+</tr>
+</tbody>
+</table>
+
+### Retention IDs batch size
+
+The number of retention IDs to process in a single batch during data retention job execution. This setting controls how many items are processed together for optimal performance.
+
+Default is 100. Possible values are any non-negative integer (≥ 0).
+
+<table style={{width: '90%'}}>
+<colgroup>
+<col style={{width: '90%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>"RetentionIdsBatchSize": 100</code> with numerical input.</td>
+</tr>
+</tbody>
+</table>
+
+### Boards retention days
+
+Set how long Mattermost keeps boards data. When set to a value greater than 0, boards data older than the specified number of days will be deleted during retention job execution only when boards deletion is enabled via `EnableBoardsDeletion`.
+
+Default is 365 days. Possible values are any non-negative integer (≥ 0).
+
+<table style={{width: '85%'}}>
+<colgroup>
+<col style={{width: '85%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>"BoardsRetentionDays": 365</code> with numerical input.</td>
+</tr>
+</tbody>
+</table>
+
+### Enable message deletion
+
+**True**: Message deletion is enabled during data retention job execution.
+
+**False**: Messages are not deleted during data retention job execution.
+
+<table style={{width: '97%'}}>
+<colgroup>
+<col style={{width: '96%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>"EnableMessageDeletion": false</code> with options <code>true</code> and <code>false</code>.</td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+When `EnableMessageDeletion` is set to `false`, messages will not be deleted regardless of other retention policy settings.
+
+</Note>
+
+### Enable file deletion
+
+**True**: File deletion is enabled during data retention job execution.
+
+**False**: Files are not deleted during data retention job execution.
+
+<table style={{width: '94%'}}>
+<colgroup>
+<col style={{width: '94%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>"EnableFileDeletion": false</code> with options <code>true</code> and <code>false</code>.</td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+When `EnableFileDeletion` is set to `false`, files will not be deleted regardless of other retention policy settings.
+
+</Note>
+
+### Enable boards deletion
+
+**True**: Boards deletion is enabled during data retention job execution.
+
+**False**: Boards data is not deleted during data retention job execution.
+
+<table style={{width: '96%'}}>
+<colgroup>
+<col style={{width: '95%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>"EnableBoardsDeletion": false</code> with options <code>true</code> and <code>false</code>.</td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+When `EnableBoardsDeletion` is set to `false`, boards data will not be deleted regardless of other retention policy settings.
+
+</Note>
+
+### Batch size
+
+The number of records to process in a single batch during data retention job execution. This setting controls how many records are processed together for optimal performance.
+
+Default is 3000. Possible values are any non-negative integer (≥ 0).
+
+<table style={{width: '82%'}}>
+<colgroup>
+<col style={{width: '81%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>"BatchSize": 3000</code> with numerical input.</td>
+</tr>
+</tbody>
+</table>
+
+------------------------------------------------------------------------------------------------------------------------
+
+## Compliance export
+
+Access the following configuration settings in the System Console by going to **Compliance \> Compliance Export**.
+
+### Enable compliance export
+
+**True**: Mattermost will generate a compliance export file that contains all messages that were posted in the last 24 hours. The export task is scheduled to run once per day. See the [documentation to learn more](/administration-guide/comply/compliance-export).
+
+**False**: Mattermost doesn't generate a compliance export file.
+
+<table style={{width: '89%'}}>
+<colgroup>
+<col style={{width: '89%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>"EnableExport": false</code> with options <code>true</code> and <code>false</code>.</td>
+</tr>
+</tbody>
+</table>
+
+### Compliance export time
+
+Set the start time of the daily scheduled compliance export job. Choose a time when fewer people are using your system. Must be a 24-hour time stamp in the form `HH:MM`.
+
+This setting is based on the local time of the server.
+
+<table>
+<colgroup>
+<col style={{width: '100%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>"DailyRunTime": 01:00</code> with 24-hour timestamp input in the form <code>"HH:MM"</code>.</td>
+</tr>
+</tbody>
+</table>
+
+### Export file format
+
+File format of the compliance export. Corresponds to the system that you want to import the data into.
+
+Currently supported formats are CSV, Actiance XML, and Global Relay EML.
+
+If Global Relay is chosen, the following options will be presented:
+
+### Global Relay customer account
+
+Type of Global Relay customer account your organization has. Can be one of: `A9/Type 9`, `A10/Type 10`, or `Custom`.
+
+<table style={{width: '98%'}}>
+<colgroup>
+<col style={{width: '98%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>"CustomerType": "A9"</code> with options <code>"A9</code>, <code>"A10"</code>, and <code>CUSTOM</code>.</td>
+</tr>
+</tbody>
+</table>
+
+### Global Relay SMTP username
+
+The username for authenticating to the Global Relay SMTP server.
+
+<table style={{width: '72%'}}>
+<colgroup>
+<col style={{width: '71%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>"SmtpUsername": ""</code> with string input.</td>
+</tr>
+</tbody>
+</table>
+
+### Global Relay SMTP password
+
+The password associated with the Global Relay SMTP username.
+
+<table style={{width: '72%'}}>
+<colgroup>
+<col style={{width: '71%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>"SmtpPassword": ""</code> with string input.</td>
+</tr>
+</tbody>
+</table>
+
+### Global Relay email address
+
+The email address your Global Relay server monitors for incoming compliance exports.
+
+<table style={{width: '72%'}}>
+<colgroup>
+<col style={{width: '71%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>"EmailAddress": ""</code> with string input.</td>
+</tr>
+</tbody>
+</table>
+
+### SMTP server name
+
+The SMTP server name URL that will receive your Global Relay EML file when a [custom customer account type](#global-relay-customer-account) is configured.
+
+<table>
+<colgroup>
+<col style={{width: '100%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>".MessageExportSettings.GlobalRelaySettings.CustomSMTPServerName": ""</code> with string input.</td>
+</tr>
+</tbody>
+</table>
+
+### SMTP server port
+
+The SMTP server port that will receive your Global Relay EML file when a [custom customer account type](#global-relay-customer-account) is configured. Default is `"25"`.
+
+<table>
+<colgroup>
+<col style={{width: '100%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>".MessageExportSettings.GlobalRelaySettings.CustomSMTPPort": "25"</code> with string input.</td>
+</tr>
+</tbody>
+</table>
+
+### Message export batch size
+
+This setting isn't available in the System Console and can only be set in `config.json`.
+
+Determines how many new posts are batched together to a compliance export file.
+
+<table style={{width: '78%'}}>
+<colgroup>
+<col style={{width: '78%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>"BatchSize": 10000</code> with numerical input.</td>
+</tr>
+</tbody>
+</table>
+
+### Run compliance export job now
+
+This button initiates a compliance export job immediately. You can monitor the status of the job in the compliance export job table.
+
+------------------------------------------------------------------------------------------------------------------------
+
+## Compliance monitoring
+
+Settings used to enable and configure Mattermost compliance reports.
+
+Access the following configuration settings in the System Console by going to **Compliance \> Compliance Monitoring**.
+
+### Enable compliance reporting
+
+**True**: Compliance reporting is enabled in Mattermost.
+
+**False**: Compliance reporting is disabled.
+
+<table style={{width: '84%'}}>
+<colgroup>
+<col style={{width: '84%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>"Enable": false</code> with options <code>true</code> and <code>false</code>.</td>
+</tr>
+</tbody>
+</table>
+
+### Compliance report directory
+
+Sets the directory where compliance reports are written.
+
+<table style={{width: '75%'}}>
+<colgroup>
+<col style={{width: '75%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>"Directory": "./data/"</code> with string input.</td>
+</tr>
+</tbody>
+</table>
+
+### Enable daily report
+
+**True**: Mattermost generates a daily compliance report.
+
+**False**: Daily reports are not generated.
+
+<table style={{width: '88%'}}>
+<colgroup>
+<col style={{width: '88%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>"EnableDaily": false</code> with options <code>true</code> and <code>false</code>.</td>
+</tr>
+</tbody>
+</table>
+
+### Batch size
+
+Set the size of the batches in which posts will be read from the database to generate the compliance report. This setting is currently not available in the System Console and can only be set in `config.json`.
+
+<table style={{width: '81%'}}>
+<colgroup>
+<col style={{width: '80%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>"BatchSize": 30000</code> with default value <code>30000</code>.</td>
+</tr>
+</tbody>
+</table>
+
+------------------------------------------------------------------------------------------------------------------------
+
+## Custom terms of service
+
+Access the following configuration settings in the System Console by going to **Compliance \> Custom Terms of Service**.
+
+### Enable custom terms of service
+
+<Note>
+
+This configuration setting can only be modified using the System Console user interface.
+
+</Note>
+
+**True**: New users must accept the Terms of Service before accessing any Mattermost teams on desktop, web, or mobile. Existing users must accept them after login or a page refresh. To update the Terms of Service link displayed in account creation and login pages, go to **System Console \> Legal and Support \> Terms of Service Link**.
+
+**False**: During account creation or login, users can review Terms of Service by accessing the link configured via **System Console \> Legal and Support \> Terms of Service link**.
+
+### Custom terms of service text
+
+Text that will appear in your custom Terms of Service. Supports Markdown-formatted text.
+
+### Re-acceptance period
+
+The number of days before Terms of Service acceptance expires, and the terms must be re-accepted.
+
+Defaults to 365 days. 0 indicates the terms do not expire.

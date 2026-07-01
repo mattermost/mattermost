@@ -1,0 +1,47 @@
+# Mattermost docs version manifest.
+# Single source of truth for what production renders.
+# See PLAN.md §5.2 for the full schema and lifecycle.
+#
+# Lives on master only. Production CI reads this file, hydrates worktrees
+# for each entry in versions[], and builds the cross-version aggregate.
+#
+# Adding/promoting/archiving a version is a PR to this file, reviewed
+# by the AI persona reviewers.
+
+# /docs/ resolves to this version (also the default for /developers/ and /api/).
+default: next
+
+# Live versions — built into production from their respective git branches.
+# Visibility controls dropdown behavior:
+#   default  — preselected on first page load
+#   visible  — listed in the version dropdown
+#   hidden   — accessible by direct URL, not advertised
+versions:
+  - id: next
+    label: Next (in development)
+    branch: master
+    visibility: default
+
+  # Placeholders for the future. Uncomment and populate once the first
+  # release branches are cut (see PLAN.md §9 phase 6).
+  #
+  # - id: "11.1"
+  #   label: v11.1 (current)
+  #   branch: release-11.1
+  #   visibility: default
+  # - id: "11.0"
+  #   label: v11.0
+  #   branch: release-11.0
+  #   visibility: visible
+  # - id: "10.0"
+  #   label: v10.0 (ESR)
+  #   branch: release-10.0
+  #   visibility: visible
+
+# Archived versions — frozen R2 snapshots, dropdown links out.
+# Build pipeline does not touch these on every run; only the archive
+# workflow regenerates them when a version is moved here.
+archived: []
+  # - id: "9.0"
+  #   label: v9.0 (archived)
+  #   archive_url: https://archive.docs.mattermost.com/v9/

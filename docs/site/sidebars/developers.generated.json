@@ -1,0 +1,1239 @@
+[
+  {
+    "type": "doc",
+    "id": "index",
+    "label": "Welcome"
+  },
+  {
+    "type": "category",
+    "label": "Contribute",
+    "collapsed": true,
+    "link": {
+      "type": "doc",
+      "id": "contribute/index"
+    },
+    "items": [
+      {
+        "type": "doc",
+        "id": "contribute/monorepo-migration-notes",
+        "label": "Monorepo migration notes"
+      },
+      {
+        "type": "category",
+        "label": "Developer setup",
+        "collapsed": true,
+        "link": {
+          "type": "doc",
+          "id": "contribute/developer-setup/index"
+        },
+        "items": [
+          {
+            "type": "doc",
+            "id": "contribute/developer-setup/docker",
+            "label": "Docker Services"
+          }
+        ]
+      },
+      {
+        "type": "category",
+        "label": "Why and how to contribute",
+        "collapsed": true,
+        "link": {
+          "type": "doc",
+          "id": "contribute/why-contribute/index"
+        },
+        "items": []
+      },
+      {
+        "type": "category",
+        "label": "Community expectations",
+        "collapsed": true,
+        "link": {
+          "type": "doc",
+          "id": "contribute/good-decisions/index"
+        },
+        "items": [
+          {
+            "type": "doc",
+            "id": "contribute/good-decisions/fixing-pr-mistakes",
+            "label": "When a merged PR results in a bug"
+          }
+        ]
+      },
+      {
+        "type": "category",
+        "label": "Contributor expectations",
+        "collapsed": true,
+        "link": {
+          "type": "doc",
+          "id": "contribute/expectations/index"
+        },
+        "items": []
+      },
+      {
+        "type": "category",
+        "label": "Where to find more information?",
+        "collapsed": true,
+        "link": {
+          "type": "doc",
+          "id": "contribute/more-info/index"
+        },
+        "items": [
+          {
+            "type": "category",
+            "label": "Contribute code",
+            "collapsed": true,
+            "link": {
+              "type": "doc",
+              "id": "contribute/more-info/getting-started/index"
+            },
+            "items": [
+              {
+                "type": "doc",
+                "id": "contribute/more-info/getting-started/contributions-without-ticket",
+                "label": "Contributions without ticket"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/getting-started/contribution-checklist",
+                "label": "Contribution checklist"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/getting-started/inactive-contributions",
+                "label": "Inactive contributions"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/getting-started/core-committers",
+                "label": "Core committers"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/getting-started/code-review",
+                "label": "Code review"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/getting-started/test-guideline",
+                "label": "Test guidelines"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/getting-started/using-gitpod",
+                "label": "Using Gitpod"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/getting-started/labels",
+                "label": "Labels"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/getting-started/test-servers",
+                "label": "Test servers"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/getting-started/branching",
+                "label": "Mattermost cherry-pick process"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/getting-started/slash-commands",
+                "label": "Slash commands"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/getting-started/guilds",
+                "label": "Engineering guilds"
+              }
+            ]
+          },
+          {
+            "type": "category",
+            "label": "Web app",
+            "collapsed": true,
+            "link": {
+              "type": "doc",
+              "id": "contribute/more-info/webapp/index"
+            },
+            "items": [
+              {
+                "type": "doc",
+                "id": "contribute/more-info/webapp/developer-workflow",
+                "label": "Web app workflow"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/webapp/build-component",
+                "label": "Build a component"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/webapp/unit-testing",
+                "label": "Unit tests"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/webapp/e2e-testing",
+                "label": "End-to-End (E2E) tests"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/webapp/e2e-cheatsheets",
+                "label": "End-to-End (E2E) cheatsheets"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/webapp/migrating-to-typescript",
+                "label": "Migrate to Typescript"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/webapp/using-i18n-extract",
+                "label": "Use make i18n-extract"
+              },
+              {
+                "type": "category",
+                "label": "Redux",
+                "collapsed": true,
+                "link": {
+                  "type": "doc",
+                  "id": "contribute/more-info/webapp/redux/index"
+                },
+                "items": [
+                  {
+                    "type": "doc",
+                    "id": "contribute/more-info/webapp/redux/actions",
+                    "label": "Actions"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "contribute/more-info/webapp/redux/reducers",
+                    "label": "Reducers"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "contribute/more-info/webapp/redux/selectors",
+                    "label": "Selectors"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "contribute/more-info/webapp/redux/react-redux",
+                    "label": "Use Redux with React"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "contribute/more-info/webapp/redux/testing",
+                    "label": "Redux Testing"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "category",
+            "label": "Server",
+            "collapsed": true,
+            "link": {
+              "type": "doc",
+              "id": "contribute/more-info/server/index"
+            },
+            "items": [
+              {
+                "type": "doc",
+                "id": "contribute/more-info/server/tests",
+                "label": "Tests"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/server/developer-workflow",
+                "label": "Server workflow"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/server/feature-flags",
+                "label": "Feature flags"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/server/schema-migration-guide",
+                "label": "DB migration guide"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/server/style-guide",
+                "label": "Golang style guide"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/server/rest-api",
+                "label": "REST API"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/server/cli-commands",
+                "label": "CLI commands"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/server/dependencies",
+                "label": "Dependencies"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/server/plugins",
+                "label": "Plugins"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/server/system_console",
+                "label": "System Console"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/server/tooling",
+                "label": "Tools"
+              }
+            ]
+          },
+          {
+            "type": "category",
+            "label": "Mobile apps",
+            "collapsed": true,
+            "link": {
+              "type": "doc",
+              "id": "contribute/more-info/mobile/index"
+            },
+            "items": [
+              {
+                "type": "doc",
+                "id": "contribute/more-info/mobile/e2e",
+                "label": "Mobile End-to-End (E2E) Tests"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/mobile/storybook",
+                "label": "Storybook"
+              },
+              {
+                "type": "category",
+                "label": "Developer setup",
+                "collapsed": true,
+                "link": {
+                  "type": "doc",
+                  "id": "contribute/more-info/mobile/developer-setup/index"
+                },
+                "items": [
+                  {
+                    "type": "doc",
+                    "id": "contribute/more-info/mobile/developer-setup/structure",
+                    "label": "Folder structure"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "contribute/more-info/mobile/developer-setup/dependecies",
+                    "label": "Add new dependencies"
+                  },
+                  {
+                    "type": "category",
+                    "label": "Run the mobile app",
+                    "collapsed": true,
+                    "link": {
+                      "type": "doc",
+                      "id": "contribute/more-info/mobile/developer-setup/run/index"
+                    },
+                    "items": []
+                  }
+                ]
+              },
+              {
+                "type": "category",
+                "label": "Build your own mobile app",
+                "collapsed": true,
+                "link": {
+                  "type": "doc",
+                  "id": "contribute/more-info/mobile/build-your-own/index"
+                },
+                "items": [
+                  {
+                    "type": "doc",
+                    "id": "contribute/more-info/mobile/build-your-own/android",
+                    "label": "Build the Android mobile app"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "contribute/more-info/mobile/build-your-own/ios",
+                    "label": "Build the iOS mobile app"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "contribute/more-info/mobile/build-your-own/ssl-pinning",
+                    "label": "Enable SSL Pinning certificates"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "contribute/more-info/mobile/build-your-own/white-label",
+                    "label": "White label"
+                  }
+                ]
+              },
+              {
+                "type": "category",
+                "label": "Set up push notifications",
+                "collapsed": true,
+                "link": {
+                  "type": "doc",
+                  "id": "contribute/more-info/mobile/push-notifications/index"
+                },
+                "items": [
+                  {
+                    "type": "doc",
+                    "id": "contribute/more-info/mobile/push-notifications/android",
+                    "label": "Android push notifications"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "contribute/more-info/mobile/push-notifications/ios",
+                    "label": "iOS push notifications"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "contribute/more-info/mobile/push-notifications/service",
+                    "label": "Push notification service"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "contribute/more-info/mobile/push-notifications/corporate-proxy",
+                    "label": "Corporate proxy"
+                  }
+                ]
+              },
+              {
+                "type": "category",
+                "label": "Sign unsigned builds",
+                "collapsed": true,
+                "link": {
+                  "type": "doc",
+                  "id": "contribute/more-info/mobile/unsigned/index"
+                },
+                "items": [
+                  {
+                    "type": "doc",
+                    "id": "contribute/more-info/mobile/unsigned/android",
+                    "label": "Sign unsigned Android builds"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "contribute/more-info/mobile/unsigned/ios",
+                    "label": "Sign unsigned iOS builds"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "category",
+            "label": "Desktop app",
+            "collapsed": true,
+            "link": {
+              "type": "doc",
+              "id": "contribute/more-info/desktop/index"
+            },
+            "items": [
+              {
+                "type": "doc",
+                "id": "contribute/more-info/desktop/developer-setup",
+                "label": "Developer setup"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/desktop/build-commands",
+                "label": "Build and CLI commands"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/desktop/debugging",
+                "label": "Debug the desktop app"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/desktop/dependencies",
+                "label": "Dependencies"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/desktop/style-and-code-quality",
+                "label": "Style and code quality"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/desktop/packaging-and-releasing",
+                "label": "Package and release"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/desktop/testing",
+                "label": "Unit and End-to-End (E2E) Tests"
+              },
+              {
+                "type": "category",
+                "label": "Architecture",
+                "collapsed": true,
+                "link": {
+                  "type": "doc",
+                  "id": "contribute/more-info/desktop/architecture/index"
+                },
+                "items": [
+                  {
+                    "type": "doc",
+                    "id": "contribute/more-info/desktop/architecture/configuration",
+                    "label": "Configuration"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "contribute/more-info/desktop/architecture/navigation",
+                    "label": "Navigation"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "contribute/more-info/desktop/architecture/internal-views",
+                    "label": "Internal views"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "contribute/more-info/desktop/architecture/external-views",
+                    "label": "External views"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "contribute/more-info/desktop/architecture/logging",
+                    "label": "Logging"
+                  }
+                ]
+              },
+              {
+                "type": "category",
+                "label": "Developer Setup",
+                "collapsed": true,
+                "items": [
+                  {
+                    "type": "doc",
+                    "id": "contribute/more-info/desktop/developer-setup/arch",
+                    "label": "Arch"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "contribute/more-info/desktop/developer-setup/macos",
+                    "label": "Macos"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "contribute/more-info/desktop/developer-setup/redhat",
+                    "label": "Redhat"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "contribute/more-info/desktop/developer-setup/ubuntu",
+                    "label": "Ubuntu"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "contribute/more-info/desktop/developer-setup/windows",
+                    "label": "Windows"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "category",
+            "label": "Focalboard",
+            "collapsed": true,
+            "link": {
+              "type": "doc",
+              "id": "contribute/more-info/focalboard/index"
+            },
+            "items": [
+              {
+                "type": "doc",
+                "id": "contribute/more-info/focalboard/personal-server-setup-guide",
+                "label": "Personal server setup guide"
+              },
+              {
+                "type": "doc",
+                "id": "contribute/more-info/focalboard/mattermost-boards-setup-guide",
+                "label": "Mattermost Boards plugin guide"
+              }
+            ]
+          },
+          {
+            "type": "category",
+            "label": "Plugins",
+            "collapsed": true,
+            "link": {
+              "type": "doc",
+              "id": "contribute/more-info/plugins/index"
+            },
+            "items": []
+          },
+          {
+            "type": "category",
+            "label": "Containers",
+            "collapsed": true,
+            "link": {
+              "type": "doc",
+              "id": "contribute/more-info/containers/index"
+            },
+            "items": []
+          },
+          {
+            "type": "category",
+            "label": "MVP",
+            "collapsed": true,
+            "link": {
+              "type": "doc",
+              "id": "contribute/more-info/mvp/index"
+            },
+            "items": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "category",
+    "label": "Integrate & Extend",
+    "collapsed": true,
+    "items": [
+      {
+        "type": "category",
+        "label": "Get started",
+        "collapsed": true,
+        "link": {
+          "type": "doc",
+          "id": "integrate/getting-started/index"
+        },
+        "items": []
+      },
+      {
+        "type": "category",
+        "label": "Webhooks",
+        "collapsed": true,
+        "link": {
+          "type": "doc",
+          "id": "integrate/webhooks/index"
+        },
+        "items": [
+          {
+            "type": "category",
+            "label": "Incoming webhooks",
+            "collapsed": true,
+            "link": {
+              "type": "doc",
+              "id": "integrate/webhooks/incoming/index"
+            },
+            "items": []
+          },
+          {
+            "type": "category",
+            "label": "Outgoing webhooks",
+            "collapsed": true,
+            "link": {
+              "type": "doc",
+              "id": "integrate/webhooks/outgoing/index"
+            },
+            "items": []
+          }
+        ]
+      },
+      {
+        "type": "category",
+        "label": "Slash commands",
+        "collapsed": true,
+        "link": {
+          "type": "doc",
+          "id": "integrate/slash-commands/index"
+        },
+        "items": [
+          {
+            "type": "category",
+            "label": "Built-in commands",
+            "collapsed": true,
+            "link": {
+              "type": "doc",
+              "id": "integrate/slash-commands/built-in/index"
+            },
+            "items": []
+          },
+          {
+            "type": "category",
+            "label": "Custom commands",
+            "collapsed": true,
+            "link": {
+              "type": "doc",
+              "id": "integrate/slash-commands/custom/index"
+            },
+            "items": []
+          },
+          {
+            "type": "category",
+            "label": "Outgoing OAuth connections",
+            "collapsed": true,
+            "link": {
+              "type": "doc",
+              "id": "integrate/slash-commands/outgoing-oauth-connections/index"
+            },
+            "items": []
+          },
+          {
+            "type": "category",
+            "label": "Slack compatibility",
+            "collapsed": true,
+            "link": {
+              "type": "doc",
+              "id": "integrate/slash-commands/slack/index"
+            },
+            "items": []
+          }
+        ]
+      },
+      {
+        "type": "category",
+        "label": "Plugins",
+        "collapsed": true,
+        "link": {
+          "type": "doc",
+          "id": "integrate/plugins/index"
+        },
+        "items": [
+          {
+            "type": "doc",
+            "id": "integrate/plugins/overview",
+            "label": "Overview"
+          },
+          {
+            "type": "doc",
+            "id": "integrate/plugins/developer-setup",
+            "label": "Developer setup"
+          },
+          {
+            "type": "doc",
+            "id": "integrate/plugins/developer-workflow",
+            "label": "Developer workflow"
+          },
+          {
+            "type": "doc",
+            "id": "integrate/plugins/using-and-managing-plugins",
+            "label": "Use and manage plugins"
+          },
+          {
+            "type": "doc",
+            "id": "integrate/plugins/migration",
+            "label": "Migrate plugins"
+          },
+          {
+            "type": "doc",
+            "id": "integrate/plugins/example-plugins",
+            "label": "Example plugins"
+          },
+          {
+            "type": "doc",
+            "id": "integrate/plugins/best-practices",
+            "label": "Best practices"
+          },
+          {
+            "type": "doc",
+            "id": "integrate/plugins/helpers",
+            "label": "Plugin helpers"
+          },
+          {
+            "type": "doc",
+            "id": "integrate/plugins/community-plugin-marketplace",
+            "label": "Community plugins in the Marketplace"
+          },
+          {
+            "type": "doc",
+            "id": "integrate/plugins/community_process",
+            "label": "Process to include plugin on community"
+          },
+          {
+            "type": "doc",
+            "id": "integrate/plugins/manifest-reference",
+            "label": "Manifest reference"
+          },
+          {
+            "type": "doc",
+            "id": "integrate/plugins/source-available-license",
+            "label": "Source available license"
+          },
+          {
+            "type": "category",
+            "label": "Components",
+            "collapsed": true,
+            "link": {
+              "type": "doc",
+              "id": "integrate/plugins/components/index"
+            },
+            "items": [
+              {
+                "type": "category",
+                "label": "Server plugins",
+                "collapsed": true,
+                "link": {
+                  "type": "doc",
+                  "id": "integrate/plugins/components/server/index"
+                },
+                "items": [
+                  {
+                    "type": "doc",
+                    "id": "integrate/plugins/components/server/hello-world",
+                    "label": "Plugin quick start"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "integrate/plugins/components/server/best-practices",
+                    "label": "Best practices"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "integrate/plugins/components/server/ha",
+                    "label": "High availability"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "integrate/plugins/components/server/debugging",
+                    "label": "Debug Server plugins"
+                  }
+                ]
+              },
+              {
+                "type": "category",
+                "label": "Web app plugins",
+                "collapsed": true,
+                "link": {
+                  "type": "doc",
+                  "id": "integrate/plugins/components/webapp/index"
+                },
+                "items": [
+                  {
+                    "type": "doc",
+                    "id": "integrate/plugins/components/webapp/hello-world",
+                    "label": "Web app quick start"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "integrate/plugins/components/webapp/best-practices",
+                    "label": "Best practices"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "integrate/plugins/components/webapp/actions",
+                    "label": "Redux actions"
+                  }
+                ]
+              },
+              {
+                "type": "category",
+                "label": "Mobile plugins",
+                "collapsed": true,
+                "link": {
+                  "type": "doc",
+                  "id": "integrate/plugins/components/mobile/index"
+                },
+                "items": []
+              }
+            ]
+          },
+          {
+            "type": "category",
+            "label": "Interactive dialogs",
+            "collapsed": true,
+            "link": {
+              "type": "doc",
+              "id": "integrate/plugins/interactive-dialogs/index"
+            },
+            "items": []
+          },
+          {
+            "type": "category",
+            "label": "Interactive messages",
+            "collapsed": true,
+            "link": {
+              "type": "doc",
+              "id": "integrate/plugins/interactive-messages/index"
+            },
+            "items": []
+          }
+        ]
+      },
+      {
+        "type": "category",
+        "label": "Customize and embed",
+        "collapsed": true,
+        "link": {
+          "type": "doc",
+          "id": "integrate/customization/index"
+        },
+        "items": [
+          {
+            "type": "category",
+            "label": "Customize Mattermost",
+            "collapsed": true,
+            "link": {
+              "type": "doc",
+              "id": "integrate/customization/customization/index"
+            },
+            "items": [
+              {
+                "type": "doc",
+                "id": "integrate/customization/customization/server-build",
+                "label": "Server build (Team Edition)"
+              },
+              {
+                "type": "doc",
+                "id": "integrate/customization/customization/server-files",
+                "label": "Server files"
+              },
+              {
+                "type": "doc",
+                "id": "integrate/customization/customization/webapp",
+                "label": "Web app"
+              }
+            ]
+          },
+          {
+            "type": "category",
+            "label": "Embed Mattermost",
+            "collapsed": true,
+            "link": {
+              "type": "doc",
+              "id": "integrate/customization/embedding/index"
+            },
+            "items": []
+          }
+        ]
+      },
+      {
+        "type": "category",
+        "label": "Examples",
+        "collapsed": true,
+        "link": {
+          "type": "doc",
+          "id": "integrate/examples/index"
+        },
+        "items": []
+      },
+      {
+        "type": "category",
+        "label": "Frequently asked questions (FAQ)",
+        "collapsed": true,
+        "link": {
+          "type": "doc",
+          "id": "integrate/faq/index"
+        },
+        "items": []
+      },
+      {
+        "type": "category",
+        "label": "Quick reference",
+        "collapsed": true,
+        "link": {
+          "type": "doc",
+          "id": "integrate/reference/index"
+        },
+        "items": [
+          {
+            "type": "category",
+            "label": "REST API reference",
+            "collapsed": true,
+            "link": {
+              "type": "doc",
+              "id": "integrate/reference/rest-api/index"
+            },
+            "items": []
+          },
+          {
+            "type": "category",
+            "label": "Personal access tokens",
+            "collapsed": true,
+            "link": {
+              "type": "doc",
+              "id": "integrate/reference/personal-access-token/index"
+            },
+            "items": []
+          },
+          {
+            "type": "category",
+            "label": "Bot accounts",
+            "collapsed": true,
+            "link": {
+              "type": "doc",
+              "id": "integrate/reference/bot-accounts/index"
+            },
+            "items": []
+          },
+          {
+            "type": "category",
+            "label": "Message attachments",
+            "collapsed": true,
+            "link": {
+              "type": "doc",
+              "id": "integrate/reference/message-attachments/index"
+            },
+            "items": []
+          },
+          {
+            "type": "category",
+            "label": "Message priority",
+            "collapsed": true,
+            "link": {
+              "type": "doc",
+              "id": "integrate/reference/message-priority/index"
+            },
+            "items": []
+          },
+          {
+            "type": "category",
+            "label": "Server",
+            "collapsed": true,
+            "items": [
+              {
+                "type": "doc",
+                "id": "integrate/reference/server/server-reference",
+                "label": "Server plugin SDK reference"
+              }
+            ]
+          },
+          {
+            "type": "category",
+            "label": "Webapp",
+            "collapsed": true,
+            "items": [
+              {
+                "type": "doc",
+                "id": "integrate/reference/webapp/webapp-reference",
+                "label": "Web app plugin SDK reference"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "category",
+        "label": "Contribute to the Marketplace",
+        "collapsed": true,
+        "link": {
+          "type": "doc",
+          "id": "integrate/marketplace-submissions/index"
+        },
+        "items": []
+      },
+      {
+        "type": "category",
+        "label": "Integrate with Zapier",
+        "collapsed": true,
+        "link": {
+          "type": "doc",
+          "id": "integrate/zapier-integration/index"
+        },
+        "items": []
+      },
+      {
+        "type": "category",
+        "label": "Apps",
+        "collapsed": true,
+        "items": [
+          {
+            "type": "category",
+            "label": "Authentication",
+            "collapsed": true,
+            "items": [
+              {
+                "type": "category",
+                "label": "Use OAuth2.0 with Mattermost",
+                "collapsed": true,
+                "link": {
+                  "type": "doc",
+                  "id": "integrate/apps/authentication/oauth2/index"
+                },
+                "items": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "category",
+    "label": "Internal",
+    "collapsed": true,
+    "link": {
+      "type": "doc",
+      "id": "internal/index"
+    },
+    "items": [
+      {
+        "type": "doc",
+        "id": "internal/offboarding",
+        "label": "Offboarding"
+      },
+      {
+        "type": "doc",
+        "id": "internal/desktop-release-process",
+        "label": "Desktop Release Process"
+      },
+      {
+        "type": "doc",
+        "id": "internal/plugin-release-process",
+        "label": "Plugin Release Process"
+      },
+      {
+        "type": "doc",
+        "id": "internal/tips-and-best-practices",
+        "label": "Tips and Best Practices"
+      },
+      {
+        "type": "doc",
+        "id": "internal/writing-a-blog-post",
+        "label": "Writing a Blog Post"
+      },
+      {
+        "type": "doc",
+        "id": "internal/rd-teams",
+        "label": "R&D Teams"
+      },
+      {
+        "type": "doc",
+        "id": "internal/sustained-engineering",
+        "label": "Sustained Engineering Team"
+      },
+      {
+        "type": "doc",
+        "id": "internal/gitlab-omnibus",
+        "label": "GitLab Omnibus"
+      },
+      {
+        "type": "category",
+        "label": "Infrastructure",
+        "collapsed": true,
+        "link": {
+          "type": "doc",
+          "id": "internal/infrastructure/index"
+        },
+        "items": [
+          {
+            "type": "doc",
+            "id": "internal/infrastructure/grafana",
+            "label": "Community Grafana"
+          },
+          {
+            "type": "doc",
+            "id": "internal/infrastructure/vpn-cloud",
+            "label": "VPN(CLOUD)"
+          },
+          {
+            "type": "doc",
+            "id": "internal/infrastructure/aws",
+            "label": "AWS"
+          },
+          {
+            "type": "doc",
+            "id": "internal/infrastructure/plugins",
+            "label": "Adding a Plugin to Community"
+          },
+          {
+            "type": "doc",
+            "id": "internal/infrastructure/onelogin-aws",
+            "label": "OneLogin and AWS"
+          },
+          {
+            "type": "doc",
+            "id": "internal/infrastructure/build",
+            "label": "Build"
+          },
+          {
+            "type": "doc",
+            "id": "internal/infrastructure/guidelines",
+            "label": "Guidelines for New Infrastructure"
+          },
+          {
+            "type": "category",
+            "label": "Kubernetes",
+            "collapsed": true,
+            "link": {
+              "type": "doc",
+              "id": "internal/infrastructure/kubernetes/index"
+            },
+            "items": [
+              {
+                "type": "doc",
+                "id": "internal/infrastructure/kubernetes/kubernetes-troubleshooting",
+                "label": "Kubernetes Maintenance"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "category",
+        "label": "QA",
+        "collapsed": true,
+        "link": {
+          "type": "doc",
+          "id": "internal/qa/index"
+        },
+        "items": []
+      },
+      {
+        "type": "category",
+        "label": "Onboarding",
+        "collapsed": true,
+        "link": {
+          "type": "doc",
+          "id": "internal/onboarding/index"
+        },
+        "items": [
+          {
+            "type": "doc",
+            "id": "internal/onboarding/new-staff-guide",
+            "label": "New Staff Guide"
+          },
+          {
+            "type": "doc",
+            "id": "internal/onboarding/manager-guide",
+            "label": "Manager Guide"
+          }
+        ]
+      },
+      {
+        "type": "category",
+        "label": "Mobile Build Process",
+        "collapsed": true,
+        "link": {
+          "type": "doc",
+          "id": "internal/mobile-build-process/index"
+        },
+        "items": [
+          {
+            "type": "doc",
+            "id": "internal/mobile-build-process/bump-version-number",
+            "label": "Bump Version Number"
+          },
+          {
+            "type": "doc",
+            "id": "internal/mobile-build-process/bump-build-number",
+            "label": "Bump Build Number"
+          },
+          {
+            "type": "doc",
+            "id": "internal/mobile-build-process/troubleshooting",
+            "label": "Troubleshooting"
+          }
+        ]
+      }
+    ]
+  }
+]

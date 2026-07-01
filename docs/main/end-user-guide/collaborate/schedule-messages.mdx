@@ -1,0 +1,66 @@
+---
+title: "Schedule messages"
+---
+<PlanAvailability slug="all-commercial" />
+
+There are times when you want to send a message, but you don’t want it sent immediately. For example, it may be after working hours for the recipient. Scheduled messages can include a [priority](/end-user-guide/collaborate/message-priority), [request acknowledgements](/end-user-guide/collaborate/message-priority#request-acknowledgements), include [file attachments](/end-user-guide/collaborate/share-files-in-messages), and include anything that a non-scheduled message can contain, except [slash commands](/integrations-guide/run-slash-commands).
+
+<div class="tab">
+
+Web/Desktop
+
+From Mattermost v10.3, you can schedule messages to send in the future. Compose a message, then select the right side of **Send** to schedule when the message will be sent. You can choose from a fixed time or set a custom time, and Mattermost displays both your local time and the recipient’s local time.
+
+![Compose a message and select the right side of the \*\*Send\*\* button to schedule when the message will be sent.](/images/schedule-a-message.png)
+
+</div>
+
+<div class="tab">
+
+Mobile
+
+From Mattermost mobile v2.28, you can schedule messages to send in the future. Compose a message, then long press on **Send** to schedule when the message will be sent. You can choose from a fixed time or set a custom time, and Mattermost displays both your local time and the recipient’s local time.
+
+</div>
+
+## Manage scheduled messages
+
+Once you schedule a message to send in the future, that message is available within the [Drafts view](/end-user-guide/collaborate/send-messages#draft-messages), under the **Scheduled** tab.
+
+You can manage scheduled messages with the following actions:
+
+- **Delete scheduled post**: Confirm that you want to delete the message.
+- **Edit scheduled post**: Make changes to the draft inline before its sent.
+- **Copy text**: Copy the draft text.
+- **Reschedule message**: Change when the message should be sent.
+- **Send now**: Confirm that you want to send the message immediately.
+
+<img src="../../images/manage-scheduled-message.png" width="600" alt="Once a message is scheduled, you can delete, edit, and reschedule it, copy the message text, or send it immediately." />
+
+<Note>
+
+Once you schedule a message, file attachments are read-only and can't be changed.
+
+</Note>
+
+## Troubleshoot scheduled messages
+
+Scheduled messages may fail for the following reasons:
+
+- You're no longer a member of the channel.
+- The channel is archived.
+- The channel is read-only.
+- The Mattermost server was down for more than 24 hours. Mattermost processes scheduled posts up to 24 hours old, so in cases where the server is down for short time, scheduled messages will be processed. Scheduled messages older than 24 hours may fail to send.
+
+If a scheduled message fails to send, you'll be alerted 2 ways:
+
+- A red badge displays a total scheduled post count in the left pane next to **Drafts**. <img src="/img/ui/schedule-count-red-badge.png" alt="Total count of scheduled messages." />
+- An alert banner dislays on the **Scheduled** tab
+
+<img src="../../images/troubleshoot-scheduled-message.png" width="600" alt="If a scheduled draft message can&#39;t be sent, Mattermost provides context about why it can&#39;t be sent on the Scheduled tab under Drafts." />
+
+<Note>
+
+You can't reschedule a failed message, but you can schedule a new replacement message.
+
+</Note>
