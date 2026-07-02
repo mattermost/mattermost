@@ -1,0 +1,183 @@
+---
+title: "Deploy Mattermost manually from the tarball"
+sidebar_label: "Manual (tarball)"
+---
+
+<EditionAvailability tiers="free,professional,enterprise,enterprise-advanced" />
+<DeploymentAvailability modes="self-hosted,air-gapped" />
+
+Install Mattermost Server on any 64-bit Linux distribution directly from the release tarball. This is the most flexible install method and usually the choice for:
+
+- Distributions Mattermost doesn't package directly (Arch, SUSE, Gentoo, Alpine, …)
+- Air-gapped environments where tarballs are staged on an internal mirror
+- Custom paths, users, or systemd unit configurations
+- Environments where you control every version pin and don't want a package manager auto-upgrade
+
+:::tip Use a packaged install if it fits
+If you're on **Ubuntu / Debian**, use the [APT-based install](./deploy-ubuntu) for automatic security updates. If you're on **RHEL / Rocky / Alma / Oracle**, use the [RHEL install](./deploy-rhel) — it covers SELinux, firewalld, and fapolicyd configuration too.
+:::
+
+:::info Minimum requirements
+- **Operating system**: any 64-bit Linux distribution with `systemd` (or a comparable service manager).
+- **Hardware**: 1 vCPU and 2 GB RAM (supports up to ~1,000 users).
+- **Database**: [PostgreSQL 14+](/deployment-guide/postgres-migration).
+- **Network**: TCP 80/443 inbound (TLS), 8065 inbound (System Console), 10025 outbound (SMTP relay if used).
+:::
+
+## Step 1: Get a PostgreSQL database
+
+Choose one of:
+
+- **Install PostgreSQL locally** on the same host. See the [PostgreSQL installation documentation](https://www.postgresql.org/download/).
+- **Use an external PostgreSQL server** and collect connection credentials before Step 2.
+- **Use a managed database service** (AWS RDS, Azure Database for PostgreSQL, etc.).
+
+## Step 2: Prepare the database
+
+Follow the [database preparation](/deployment-guide/server/preparations#database-preparation) instructions to create the Mattermost database, user, and grants.
+
+## Step 3: Download the Mattermost Server tarball
+
+SSH onto the target host and download the release. Replace `amd64` with `arm64` for ARM-based hardware.
+
+<Tabs>
+<TabItem value="latest" label="Latest release" default>
+
+```sh
+wget https://releases.mattermost.com/11.6.1/mattermost-11.6.1-linux-amd64.tar.gz
+```
+
+</TabItem>
+<TabItem value="esr" label="Current ESR">
+
+```sh
+wget https://releases.mattermost.com/10.11.15/mattermost-10.11.15-linux-amd64.tar.gz
+```
+
+</TabItem>
+<TabItem value="archive" label="Older releases">
+
+Enterprise and Team Edition releases are listed in the [version archive](/product-overview/version-archive).
+
+</TabItem>
+</Tabs>
+
+:::note Air-gapped installs
+In an air-gapped environment, stage the tarball on your operator workstation, verify the SHA-256 and PGP signature, then transfer it across the boundary. See [Air-Gapped Operations → Quick-Start Runbook](/deployment-guide/air-gapped-operations/quick-start-runbook) for the full procedure.
+:::
+
+## Step 4: Install Mattermost Server
+
+Extract the tarball, move it into place, and set ownership.
+
+```sh
+tar -xvzf mattermost*.gz
+sudo mv mattermost /opt
+sudo mkdir /opt/mattermost/data
+sudo useradd --system --user-group mattermost
+sudo chown -R mattermost:mattermost /opt/mattermost
+sudo chmod -R g+w /opt/mattermost
+```
+
+:::note Custom paths and users
+If you use a path other than `/opt/mattermost` or a user/group name other than `mattermost`, use that name in every step that follows.
+:::
+
+Create the systemd unit file at `/lib/systemd/system/mattermost.service`:
+
+```ini
+[Unit]
+Description=Mattermost
+After=network.target
+
+[Service]
+Type=notify
+ExecStart=/opt/mattermost/bin/mattermost
+TimeoutStartSec=3600
+KillMode=mixed
+Restart=always
+RestartSec=10
+WorkingDirectory=/opt/mattermost
+User=mattermost
+Group=mattermost
+LimitNOFILE=49152
+
+[Install]
+WantedBy=multi-user.target
+```
+
+:::note Local database
+If PostgreSQL is on the same host, add to the `[Unit]` section so Mattermost won't start before the database is ready:
+
+```ini
+After=postgresql.service
+BindsTo=postgresql.service
+```
+:::
+
+Reload systemd:
+
+```sh
+sudo systemctl daemon-reload
+```
+
+## Step 5: Configure and start the server
+
+Back up the default config before editing:
+
+```sh
+sudo cp /opt/mattermost/config/config.json /opt/mattermost/config/config.defaults.json
+```
+
+Edit `/opt/mattermost/config/config.json` and set:
+
+- `SqlSettings.DriverName`: `"postgres"`
+- `SqlSettings.DataSource`: `"postgres://mmuser:<mmuser-password>@<host>:5432/mattermost?sslmode=disable&connect_timeout=10"` — replace each placeholder.
+- `ServiceSettings.SiteURL`: the public URL of your deployment (e.g., `https://mattermost.example.com`).
+- (Recommended) [`SupportSettings.SupportEmail`](/administration-guide/configure/site-configuration-settings#support-email-address): the email address users contact for help.
+
+Start the server:
+
+```sh
+sudo systemctl start mattermost
+curl http://localhost:8065
+```
+
+You should see the Mattermost HTML response. Enable on boot:
+
+```sh
+sudo systemctl enable mattermost.service
+```
+
+## Step 6: Update the server
+
+Tarball installs are upgraded manually — there's no package manager to pull the new version. See [Upgrading Mattermost Server](/administration-guide/upgrade/upgrading-mattermost-server) for the step-by-step procedure. The summary:
+
+1. Stop the running server (`sudo systemctl stop mattermost`).
+2. Back up `config/`, `data/`, `plugins/`, and your PostgreSQL database.
+3. Download the new tarball.
+4. Extract over the install directory (preserving `config/`, `data/`, `plugins/`).
+5. Reset ownership and permissions.
+6. Start the server.
+
+## Remove Mattermost
+
+Stop the server, back up data you need to keep, then remove the install:
+
+```sh
+sudo systemctl stop mattermost
+sudo rm -rf /opt/mattermost
+sudo rm /lib/systemd/system/mattermost.service
+sudo userdel mattermost
+```
+
+:::important Back up before removing
+`/opt/mattermost` contains `config/`, `logs/`, `plugins/`, `client/plugins/`, and `data/`. Back these up before running `rm -rf` if you may need to restore.
+:::
+
+## Next steps
+
+- [Set up an NGINX reverse proxy](/deployment-guide/server/setup-nginx-proxy)
+- [Set up TLS](/deployment-guide/server/setup-tls)
+- [Configure FIPS at install time](/deployment-guide/server/configure-fips-at-install-time)
+- For air-gapped deployments: [Air-Gapped Quick-Start Runbook](/deployment-guide/air-gapped-operations/quick-start-runbook), [Disable Phone-Home Features](/deployment-guide/air-gapped-operations/disable-phone-home-features)
