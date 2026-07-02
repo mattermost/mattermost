@@ -63,6 +63,7 @@ on:
 
 permissions:
   contents: read
+  actions: read    # for load-buildenv artifact listing
 
 jobs:
   test:
@@ -84,6 +85,12 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
+      - name: buildenv/load
+        id: buildenv
+        uses: ./.github/actions/load-buildenv
+        with:
+          go-version: ${{ inputs.go-version }}
+          fips-enabled: ${{ inputs.fips-enabled }}
 
       - name: Restore test timing data
         if: inputs.shard-total > 1
@@ -105,14 +112,12 @@ jobs:
           restore-keys: |
             server-test-timing-v2-
 
-      - name: Setup BUILD_IMAGE
-        id: build
+      - name: Setup log artifact name
+        id: log-artifact
         run: |
           if [[ ${{ inputs.fips-enabled }} == 'true' ]]; then
-            echo "BUILD_IMAGE=mattermost/mattermost-build-server-fips:${{ inputs.go-version }}" >> "${GITHUB_OUTPUT}"
             echo "LOG_ARTIFACT_NAME=${{ inputs.logsartifact }}-fips" >> "${GITHUB_OUTPUT}"
           else
-            echo "BUILD_IMAGE=mattermost/mattermost-build-server:${{ inputs.go-version }}" >> "${GITHUB_OUTPUT}"
             echo "LOG_ARTIFACT_NAME=${{ inputs.logsartifact }}" >> "${GITHUB_OUTPUT}"
           fi
 
@@ -198,7 +203,7 @@ jobs:
 
       - name: Run Tests
         env:
-          BUILD_IMAGE: ${{ steps.build.outputs.BUILD_IMAGE }}
+          BUILD_IMAGE: ${{ steps.buildenv.outputs.image }}
         run: |
           if [[ "${{ inputs.race-enabled }}" == "true" ]]; then
             export RACE_MODE="-race"
@@ -251,7 +256,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
-          name: ${{ steps.build.outputs.LOG_ARTIFACT_NAME }}
+          name: ${{ steps.log-artifact.outputs.LOG_ARTIFACT_NAME }}
           path: |
             server/gotestsum.json
             server/report.xml
