@@ -196,7 +196,7 @@ describe('components/team_settings/TeamMembershipTab', () => {
         });
     });
 
-    it('triggers createAccessControlTeamSyncJob when rules change and save confirmed', async () => {
+    it('triggers createAccessControlTeamSyncJob on a rule change even with auto-add off', async () => {
         const {createAccessControlTeamSyncJob} = require('mattermost-redux/actions/access_control');
 
         renderWithContext(
@@ -206,11 +206,11 @@ describe('components/team_settings/TeamMembershipTab', () => {
 
         await waitFor(() => expect(screen.getByTestId('table-editor')).toBeInTheDocument());
 
-        // Simulate expression change (enables autoAdd checkbox)
+        // Simulate an expression change; auto-add is left OFF on purpose. On a strict
+        // team the reconcile removal pass runs regardless of auto-add, so the save must
+        // still enqueue a sync job — membership changes apply on save, not on the
+        // hourly scheduler.
         await userEvent.click(screen.getByTestId('table-editor-change'));
-
-        // Enable auto-add so the sync job fires on rules change
-        await userEvent.click(screen.getByRole('checkbox', {name: /auto-add members/i}));
 
         // Trigger save
         await userEvent.click(screen.getByText('Save'));

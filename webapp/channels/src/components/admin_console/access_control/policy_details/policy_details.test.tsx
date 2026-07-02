@@ -372,6 +372,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
                         props: {team_count: 2, channel_count: 0, child_ids: ['t1', 't2']},
                     },
                 }),
+
                 // No channels assigned — only teams gate the deletion.
                 searchChannels: mockSearchChannels.mockResolvedValue({data: {channels: [], total_count: 0}}),
             },

@@ -560,7 +560,15 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                             saveNeeded = true;
                         }
 
-                        if (!saveNeeded && (hasTeamRules || teamRulesAutoSync)) {
+                        // Kick an immediate reconcile so membership changes apply on
+                        // save rather than waiting for the hourly scheduler. The sync
+                        // worker decides removal vs. add by team privacy and the
+                        // policy's active flag, so this must fire whenever an enforced
+                        // policy is saved — custom rules OR a linked parent policy —
+                        // not only when auto-add is on; otherwise non-qualifying
+                        // members linger on strict teams until the periodic scheduler
+                        // runs. On advisory (public) teams the worker no-ops.
+                        if (!saveNeeded && (hasTeamRules || hasParentPolicies || teamRulesAutoSync)) {
                             await actions.createAccessControlTeamSyncJob({policy_id: teamID});
                         }
 

@@ -765,4 +765,76 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await expect(rulesPanel.locator('.table-editor__row')).toHaveCount(0);
         await expect(rulesPanel.locator('.table-editor__blank-state')).toBeVisible();
     });
+
+    /**
+     * @objective Linking a parent policy from the per-team page enqueues a team sync
+     * job on save even with auto-add OFF — membership changes must apply on save, not
+     * wait for the hourly scheduler. On a strict team the reconcile removes
+     * non-qualifying members; the job must be created regardless of auto-add.
+     *
+     * Regression guard for the auto-add-only trigger: the console previously kicked a
+     * sync only when custom rules existed or auto-add was on, so a linked-parent-only
+     * strict team deferred removals to the periodic scheduler.
+     */
+    test('MM-68846-T15 - linking a parent policy triggers a sync job on save with auto-add off', async ({pw}) => {
+        test.setTimeout(120000);
+        await pw.skipIfNoLicense();
+
+        const {adminUser, adminClient, team} = await pw.initSetup();
+        cleanupClient = adminClient;
+        await enableTeamMembershipPolicies(adminClient);
+
+        // initSetup makes a strict team (type O, allow_open_invite false). Link a
+        // parent policy that admits everyone so no member is actually removed — the
+        // assertion is purely that a sync job is enqueued on save.
+        const policyName = `Immediate Sync Policy ${pw.random.id()}`;
+        const policy = await createTeamMembershipParentPolicy(adminClient, policyName, 'true');
+        createdPolicyIds.push(policy.id);
+
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        const {page} = systemConsolePage;
+        const policyFetchDoneT15 = page
+            .waitForResponse((resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`), {timeout: 20000})
+            .catch(() => {});
+        await openTeamConfig(page, team.display_name);
+        await policyFetchDoneT15;
+
+        const testStartTime = Date.now();
+
+        // # Enable the toggle and link the parent policy — leave auto-add OFF.
+        await setToggle(page, true);
+        await page.locator('[data-testid="link-to-a-policy"]').click();
+        const modal = page.locator('[role="dialog"]').filter({hasText: 'Select a Membership Policy'});
+        await modal.waitFor({state: 'visible', timeout: 5000});
+        const policyRow = await findPolicyRow(modal, policyName);
+        await policyRow.click();
+
+        const policyPanel = page.locator('#team_access_control_with_policy');
+        await expect(policyPanel.locator('.policy-name').filter({hasText: policyName})).toBeVisible({timeout: 5000});
+
+        // # Save and confirm the apply dialog.
+        await page.getByRole('button', {name: 'Save'}).click();
+        const applyBtn = page.getByRole('button', {name: 'Apply'});
+        await expect(applyBtn).toBeVisible({timeout: 5000});
+        await applyBtn.click();
+        await page.waitForLoadState('networkidle');
+
+        // * A team sync job was enqueued for this team even though auto-add is off.
+        await expect
+            .poll(
+                async () => {
+                    const jobs: any[] = await (adminClient as any).doFetch(
+                        `${adminClient.getBaseRoute()}/jobs/type/access_control_team_sync`,
+                        {method: 'GET'},
+                    );
+                    return jobs.some((j: any) => j.data?.policy_id === team.id && j.create_at >= testStartTime);
+                },
+                {
+                    timeout: 15000,
+                    intervals: [500, 1000, 2000, 3000],
+                    message: 'linking a parent policy should enqueue a team sync job on save',
+                },
+            )
+            .toBe(true);
+    });
 });

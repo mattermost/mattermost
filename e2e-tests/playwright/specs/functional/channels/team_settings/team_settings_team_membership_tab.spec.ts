@@ -180,7 +180,9 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         await teamSettings.close();
     });
 
-    test('MM-69100_13 Save attribute rules without auto-add — policy persisted, no sync job', async ({pw}) => {
+    test('MM-69100_13 Save attribute rules without auto-add still triggers a sync job (immediate reconcile)', async ({
+        pw,
+    }) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient, team} = await pw.initSetup();
         await enableTeamMembershipABACConfig(adminClient);
@@ -232,8 +234,17 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         );
         expect(JSON.stringify(policyResult)).toContain('Engineering');
 
-        // * No new sync job was created for this team (auto-add was OFF).
-        expect((await fetchTeamJobs()).length).toBe(teamJobCountBefore);
+        // * A sync job WAS created for this team even though auto-add is OFF —
+        // membership changes must apply on save, not wait for the hourly scheduler.
+        // On a strict (private) team the reconcile removes non-qualifying members;
+        // on advisory teams the worker no-ops, but the job is still enqueued.
+        await expect
+            .poll(async () => (await fetchTeamJobs()).length, {
+                timeout: 15000,
+                intervals: [500, 1000, 2000, 3000],
+                message: 'saving custom rules should enqueue a team sync job even with auto-add off',
+            })
+            .toBeGreaterThan(teamJobCountBefore);
 
         await teamSettings.close();
     });
