@@ -69,9 +69,7 @@ test.describe('System Console > Integrations > Revoke non-compliant tokens @syst
         expect(await tokenIsUsable(token.token)).toBe(true);
     });
 
-    test('shows a violation and reveals a confirmation modal that can be dismissed without revoking', async ({
-        pw,
-    }) => {
+    test('shows a violation and reveals a confirmation modal that can be dismissed without revoking', async ({pw}) => {
         const {adminUser, adminClient, user} = await pw.initSetup();
         await adminClient.patchConfig({ServiceSettings: {EnableUserAccessTokens: true}});
         await adminClient.updateUserRoles(user.id, TOKEN_ROLES);
@@ -127,7 +125,7 @@ test.describe('System Console > Integrations > Revoke non-compliant tokens @syst
         const compliantToken = await adminClient.createUserAccessToken(
             user.id,
             'compliant token',
-            Date.now() + (10 * DAY_MS),
+            Date.now() + 10 * DAY_MS,
         );
         const bot = await adminClient.createBot({
             username: `revoke-bot-${user.id.slice(0, 8)}`,
