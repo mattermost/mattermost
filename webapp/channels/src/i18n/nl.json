@@ -5085,7 +5085,7 @@
   "interactive_dialog.error.bad_email": "Dit moet een geldig e-mailadres zijn.",
   "interactive_dialog.error.bad_format": "Ongeldig datumformaat",
   "interactive_dialog.error.bad_number": "Moet een getal zijn.",
-  "interactive_dialog.error.bad_url": "URL moet http:// of https:// bevatten.",
+  "interactive_dialog.error.bad_url": "De URL moet http:// of https:// bevatten.",
   "interactive_dialog.error.before_min_date": "De geselecteerde tijd ligt vóór de minimaal toegestane datum.",
   "interactive_dialog.error.invalid_option": "Moet een geldige optie zijn",
   "interactive_dialog.error.required": "Dit is een verplicht veld.",
