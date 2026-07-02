@@ -35,7 +35,7 @@ func draftSliceColumns() []string {
 		"FileIds",
 		"Props",
 		"Priority",
-		"Type",
+		"COALESCE(Type, '') AS Type",
 	}
 }
 
