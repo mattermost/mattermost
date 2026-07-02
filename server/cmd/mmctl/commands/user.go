@@ -1114,44 +1114,40 @@ func demoteUserToGuestCmdF(c client.Client, _ *cobra.Command, userArgs []string)
 	return errs.ErrorOrNil()
 }
 
-// resolveStatusTargetUserID resolves the user whose status a command operates on.
+// resolveStatusTargetUser resolves the user whose status a command operates on.
 // When the --user flag is omitted, it falls back to the currently authenticated
 // user, which is unavailable in local mode.
-func resolveStatusTargetUserID(c client.Client, cmd *cobra.Command) (string, error) {
+func resolveStatusTargetUser(c client.Client, cmd *cobra.Command) (*model.User, error) {
 	userArg, _ := cmd.Flags().GetString("user")
 	if userArg != "" {
-		user, err := getUserFromArg(c, userArg)
-		if err != nil {
-			return "", err
-		}
-		return user.Id, nil
+		return getUserFromArg(c, userArg)
 	}
 
 	if viper.GetBool("local") {
-		return "", errors.New("the --user flag is required in local mode")
+		return nil, errors.New("the --user flag is required in local mode")
 	}
 
 	me, _, err := c.GetMe(context.TODO(), "")
 	if err != nil {
-		return "", fmt.Errorf("could not retrieve the current user: %w", err)
+		return nil, fmt.Errorf("could not retrieve the current user: %w", err)
 	}
-	return me.Id, nil
+	return me, nil
 }
 
 func userStatusGetCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 	printer.SetSingle(true)
 
-	userID, err := resolveStatusTargetUserID(c, cmd)
+	user, err := resolveStatusTargetUser(c, cmd)
 	if err != nil {
 		return err
 	}
 
-	status, _, err := c.GetUserStatus(context.TODO(), userID, "")
+	status, _, err := c.GetUserStatus(context.TODO(), user.Id, "")
 	if err != nil {
-		return fmt.Errorf("could not get status for user %s: %w", userID, err)
+		return fmt.Errorf("could not get status for user %s: %w", user.Id, err)
 	}
 
-	printer.PrintT("User {{.UserId}} has status: {{.Status}}", status)
+	printer.PrintT("@"+user.Username+" has status: {{.Status}}", status)
 	return nil
 }
 
@@ -1183,23 +1179,23 @@ func userStatusSetCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		dndEndTime = endTime.Unix()
 	}
 
-	userID, err := resolveStatusTargetUserID(c, cmd)
+	user, err := resolveStatusTargetUser(c, cmd)
 	if err != nil {
 		return err
 	}
 
 	status := &model.Status{
-		UserId:     userID,
+		UserId:     user.Id,
 		Status:     newStatus,
 		DNDEndTime: dndEndTime,
 	}
 
-	updatedStatus, _, err := c.UpdateUserStatus(context.TODO(), userID, status)
+	updatedStatus, _, err := c.UpdateUserStatus(context.TODO(), user.Id, status)
 	if err != nil {
-		return fmt.Errorf("could not set status for user %s: %w", userID, err)
+		return fmt.Errorf("could not set status for user %s: %w", user.Id, err)
 	}
 
-	printer.PrintT("User {{.UserId}} has status: {{.Status}}", updatedStatus)
+	printer.PrintT("Set status of @"+user.Username+" to status: {{.Status}}", updatedStatus)
 	return nil
 }
 
