@@ -71,9 +71,47 @@ test('blocks saving a team name shorter than the minimum length', {tag: '@system
 
     // * Verify an inline validation error is shown and the page stays on the team
     await expect(page.getByText('Team name must be 2 or more characters')).toBeVisible();
-    await expect(page).toHaveURL(new RegExp(`/admin_console/user_management/teams/${team.id}$`));
+    expect(new URL(page.url()).pathname).toBe(`/admin_console/user_management/teams/${team.id}`);
 
     // * Verify the team name was not changed on the server
     const unchangedTeam = await adminClient.getTeam(team.id);
     expect(unchangedTeam.display_name).toBe(team.display_name);
+});
+
+/**
+ * @objective Verify that toggling Archive Team with a too-short team name surfaces the
+ * inline validation error on Save instead of leaving the "Save and Archive Team"
+ * confirmation modal stuck open with no feedback.
+ */
+test('blocks archiving a team when the team name is invalid', {tag: '@system_console'}, async ({pw}) => {
+    const {adminUser, adminClient} = await pw.initSetup();
+
+    // # Create a team to edit
+    const team = await adminClient.createTeam(await pw.random.team());
+
+    // # Log in as a system admin and open the Team Configuration page
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+    const {page} = systemConsolePage;
+    await page.goto(`/admin_console/user_management/teams/${team.id}`);
+
+    const nameInput = page.getByTestId('teamNameInput');
+    await expect(nameInput).toHaveValue(team.display_name);
+
+    // # Enter a name below the minimum length, then toggle the team to be archived
+    await nameInput.fill('a');
+    await page.getByRole('button', {name: 'Archive Team'}).click();
+
+    // # Try to save the archive
+    await page.getByTestId('saveSetting').click();
+
+    // * Verify the inline validation error is shown
+    await expect(page.getByText('Team name must be 2 or more characters')).toBeVisible();
+
+    // * Verify the Save and Archive Team confirmation modal did not open
+    await expect(page.getByText('Save and Archive Team')).not.toBeVisible();
+
+    // * Verify the team was neither renamed nor archived on the server
+    const unchangedTeam = await adminClient.getTeam(team.id);
+    expect(unchangedTeam.display_name).toBe(team.display_name);
+    expect(unchangedTeam.delete_at).toBe(0);
 });
