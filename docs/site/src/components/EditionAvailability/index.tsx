@@ -6,7 +6,7 @@ import styles from './styles.module.css';
 // or configuration applies to. Renders a single-row inline badge at the
 // top of the page (paired with <DeploymentAvailability/>).
 //
-// Canonical tier slugs (see docs/_redesign/proposed-ia.md §3.3):
+// Canonical tier slugs:
 //   free                 — Mattermost Team Edition (free, OSS)
 //   professional         — Mattermost Professional
 //   enterprise           — Mattermost Enterprise

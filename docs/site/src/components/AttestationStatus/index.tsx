@@ -5,7 +5,7 @@ import styles from './styles.module.css';
 // Compliance / authorization status badge for framework pages
 // (FedRAMP, DoD IL, DISA STIG, HIPAA, FINRA, CMMC, Common Criteria…).
 //
-// Status semantics (docs/_redesign/proposed-ia.md §5 risk 4):
+// Status semantics:
 //   authorized   — formally authorized / certified; ATO or equivalent in place.
 //   in-process   — actively pursuing authorization; documented gap exists.
 //   roadmap      — committed for future authorization; no work in flight yet.

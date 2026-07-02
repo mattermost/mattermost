@@ -4,7 +4,7 @@ import styles from './styles.module.css';
 
 // Per-page deployment-mode badge. Paired with <EditionAvailability/>.
 //
-// Canonical mode slugs (docs/_redesign/proposed-ia.md §3.3):
+// Canonical mode slugs:
 //   cloud-shared      — Mattermost Cloud (multi-tenant)
 //   cloud-dedicated   — Mattermost Cloud Dedicated (single-tenant managed)
 //   cloud-government  — Mattermost Cloud Government (FedRAMP Moderate)
