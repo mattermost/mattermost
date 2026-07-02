@@ -192,7 +192,7 @@ test.describe('System Console > Integrations > Revoke non-compliant tokens @syst
         await expect(section).toBeVisible();
 
         // # Set a maximum lifetime and save, without leaving the page
-        const maxLifetimeInput = section.getByTestId('ServiceSettings.MaximumPersonalAccessTokenLifetimeDaysinput');
+        const maxLifetimeInput = section.getByTestId('ServiceSettings.MaximumPersonalAccessTokenLifetimeDaysnumber');
         await maxLifetimeInput.fill('30');
         await section.getByRole('button', {name: 'Save'}).click();
 
