@@ -1564,6 +1564,22 @@ func (mr *MockClientMockRecorder) GetUserByUsername(arg0, arg1, arg2 interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByUsername", reflect.TypeOf((*MockClient)(nil).GetUserByUsername), arg0, arg1, arg2)
 }
 
+// GetUserStatus mocks base method.
+func (m *MockClient) GetUserStatus(arg0 context.Context, arg1, arg2 string) (*model.Status, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserStatus", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*model.Status)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetUserStatus indicates an expected call of GetUserStatus.
+func (mr *MockClientMockRecorder) GetUserStatus(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserStatus", reflect.TypeOf((*MockClient)(nil).GetUserStatus), arg0, arg1, arg2)
+}
+
 // GetUsers mocks base method.
 func (m *MockClient) GetUsers(arg0 context.Context, arg1, arg2 int, arg3 string) ([]*model.User, *model.Response, error) {
 	m.ctrl.T.Helper()
@@ -2573,6 +2589,22 @@ func (m *MockClient) UpdateUserRoles(arg0 context.Context, arg1, arg2 string) (*
 func (mr *MockClientMockRecorder) UpdateUserRoles(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserRoles", reflect.TypeOf((*MockClient)(nil).UpdateUserRoles), arg0, arg1, arg2)
+}
+
+// UpdateUserStatus mocks base method.
+func (m *MockClient) UpdateUserStatus(arg0 context.Context, arg1 string, arg2 *model.Status) (*model.Status, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserStatus", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*model.Status)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// UpdateUserStatus indicates an expected call of UpdateUserStatus.
+func (mr *MockClientMockRecorder) UpdateUserStatus(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserStatus", reflect.TypeOf((*MockClient)(nil).UpdateUserStatus), arg0, arg1, arg2)
 }
 
 // UploadData mocks base method.

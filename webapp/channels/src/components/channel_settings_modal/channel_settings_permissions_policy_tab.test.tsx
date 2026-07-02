@@ -7,6 +7,7 @@ import {
     ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
     ACCESS_CONTROL_ACTION_UPLOAD_FILE,
     ACCESS_CONTROL_CHANNEL_ROLE_ADMIN,
+    ACCESS_CONTROL_CHANNEL_ROLE_USER,
 } from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
@@ -142,13 +143,18 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
         return calls[calls.length - 1][0];
     };
 
-    const openNewRuleEditorWithFields = async () => {
+    const openNewRuleEditor = async () => {
         renderWithContext(<ChannelSettingsPermissionsPolicyTab {...baseProps}/>, initialState);
 
         const addRuleButton = await screen.findByTestId('permissions-policy-add-rule');
         await waitFor(() => expect(addRuleButton).toBeEnabled());
         await userEvent.click(addRuleButton);
 
+        await screen.findByTestId('permissions-policy-editor');
+    };
+
+    const openNewRuleEditorWithFields = async () => {
+        await openNewRuleEditor();
         await screen.findByTestId('table-editor');
 
         // Populate the expression via TableEditor's onChange.
@@ -156,11 +162,55 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
             latestTableEditorProps().onChange(EXPRESSION);
         });
 
-        // Switch the role away from the default and add a second permission so
+        // Switch the role away from the default and add both file permissions so
         // every field carries a non-default value.
         await userEvent.click(screen.getByTestId(`cpp-role-option-${ACCESS_CONTROL_CHANNEL_ROLE_ADMIN}`));
+        await userEvent.click(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_UPLOAD_FILE}`));
         await userEvent.click(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_DOWNLOAD_FILE}`));
     };
+
+    test('new rule starts with no permissions selected', async () => {
+        await openNewRuleEditor();
+
+        // The permissions table must start empty rather than pre-selecting a
+        // permission (regression guard for MM-69505 where "Upload files" was
+        // selected by default).
+        expect(screen.getByText('Add a permission to this rule')).toBeInTheDocument();
+        expect(screen.queryByTestId(`permissions-policy-editor-action-${ACCESS_CONTROL_ACTION_UPLOAD_FILE}`)).not.toBeInTheDocument();
+    });
+
+    test('new rule offers both file permissions to add since none are pre-selected', async () => {
+        await openNewRuleEditor();
+
+        await userEvent.click(await screen.findByTestId('permissions-policy-editor-add-permission'));
+
+        // Assert on the option descriptions, which only render inside the
+        // "Add permission" dropdown (the selected-permission table rows show
+        // the label alone). This keeps the assertion a true guard: if upload
+        // were pre-selected again, it would drop out of the dropdown here.
+        expect(await screen.findByText('Allow users to attach files to messages in this channel')).toBeInTheDocument();
+        expect(screen.getByText('Allow users to download attached files from this channel')).toBeInTheDocument();
+    });
+
+    test('a new rule with no permissions selected fails validation on save', async () => {
+        await openNewRuleEditor();
+
+        await userEvent.type(await screen.findByTestId('permissions-policy-editor-name'), 'My rule');
+        await userEvent.click(screen.getByTestId('permissions-policy-editor-save'));
+
+        // The empty default now makes the "at least one permission" rule
+        // reachable for brand-new rules; saving without one is rejected.
+        expect(await screen.findByTestId('permissions-policy-editor-error')).toHaveTextContent('Select at least one permission action for each rule.');
+    });
+
+    test('adding the upload permission shows it in the rule', async () => {
+        await openNewRuleEditor();
+
+        await userEvent.click(await screen.findByTestId('permissions-policy-editor-add-permission'));
+        await userEvent.click(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_UPLOAD_FILE}`));
+
+        expect(await screen.findByTestId(`permissions-policy-editor-action-${ACCESS_CONTROL_ACTION_UPLOAD_FILE}`)).toBeInTheDocument();
+    });
 
     test('preserves all field values when saving a new rule with an empty name', async () => {
         await openNewRuleEditorWithFields();
@@ -213,7 +263,8 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
         // A fresh editor shows defaults, not the abandoned draft.
         expect(screen.getByTestId('table-editor-value')).toBeEmptyDOMElement();
         expect(within(screen.getByTestId('permissions-policy-editor-role')).getByText('Channel member')).toBeInTheDocument();
-        expect(screen.getByTestId(`permissions-policy-editor-action-${ACCESS_CONTROL_ACTION_UPLOAD_FILE}`)).toBeInTheDocument();
+        expect(screen.getByText('Add a permission to this rule')).toBeInTheDocument();
+        expect(screen.queryByTestId(`permissions-policy-editor-action-${ACCESS_CONTROL_ACTION_UPLOAD_FILE}`)).not.toBeInTheDocument();
         expect(screen.queryByTestId(`permissions-policy-editor-action-${ACCESS_CONTROL_ACTION_DOWNLOAD_FILE}`)).not.toBeInTheDocument();
     });
 
@@ -224,7 +275,7 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
             data: {
                 rules: [{
                     name: 'Existing rule',
-                    role: 'channel_user',
+                    role: ACCESS_CONTROL_CHANNEL_ROLE_USER,
                     actions: [ACCESS_CONTROL_ACTION_UPLOAD_FILE],
                     expression: 'user.attributes.team == "eng"',
                 }],
@@ -249,5 +300,6 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
         expect(await screen.findByTestId('permissions-policy-editor-error')).toHaveTextContent('Each permission rule needs a unique name.');
         expect(screen.getByTestId('permissions-policy-editor')).toBeInTheDocument();
         expect(screen.getByTestId('table-editor-value')).toHaveTextContent(newExpression);
+        expect(screen.getByTestId(`permissions-policy-editor-action-${ACCESS_CONTROL_ACTION_UPLOAD_FILE}`)).toBeInTheDocument();
     });
 });

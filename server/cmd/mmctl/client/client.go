@@ -91,6 +91,8 @@ type Client interface {
 	ConvertBotToUser(ctx context.Context, userID string, userPatch *model.UserPatch, setSystemAdmin bool) (*model.User, *model.Response, error)
 	PromoteGuestToUser(ctx context.Context, userID string) (*model.Response, error)
 	DemoteUserToGuest(ctx context.Context, guestID string) (*model.Response, error)
+	GetUserStatus(ctx context.Context, userID, etag string) (*model.Status, *model.Response, error)
+	UpdateUserStatus(ctx context.Context, userID string, userStatus *model.Status) (*model.Status, *model.Response, error)
 	CreateCommand(ctx context.Context, cmd *model.Command) (*model.Command, *model.Response, error)
 	ListCommands(ctx context.Context, teamID string, customOnly bool) ([]*model.Command, *model.Response, error)
 	GetCommandById(ctx context.Context, cmdID string) (*model.Command, *model.Response, error)

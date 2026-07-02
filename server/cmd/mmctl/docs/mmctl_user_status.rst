@@ -1,36 +1,41 @@
-.. _mmctl_channel_list:
+.. _mmctl_user_status:
 
-mmctl channel list
-------------------
+mmctl user status
+-----------------
 
-List all channels on specified teams.
+Get a user's status
 
 Synopsis
 ~~~~~~~~
 
 
-List all channels on specified teams.
-Archived channels are appended with ' (archived)'.
-Private channels the user is a member of or has access to are appended with ' (private)'.
+Get a user's presence status: online, away, dnd or offline.
 
 ::
 
-  mmctl channel list [teams] [flags]
+  mmctl user status [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    channel list myteam
+    # You can get the status of the currently authenticated user
+    $ mmctl user status
+
+    # You can get the status of a specific user
+    $ mmctl user status --user user@example.com
+
+    # In local mode there is no authenticated user, so the --user flag is required
+    $ mmctl --local user status --user user@example.com
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help       help for list
-  -i, --show-ids   Show channel IDs
+  -h, --help          help for status
+      --user string   Optional. The user (specified by email, username or ID) whose status to get. Defaults to the currently authenticated user. Required in local mode.
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -50,5 +55,6 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl channel <mmctl_channel.rst>`_ 	 - Management of channels
+* `mmctl user <mmctl_user.rst>`_ 	 - Management of users
+* `mmctl user status set <mmctl_user_status_set.rst>`_ 	 - Set a user's status
 
