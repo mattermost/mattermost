@@ -22,6 +22,7 @@ type Props = {
     emptyText?: ReactNode;
     emptyTextSearch?: JSX.Element;
     helpText?: ReactNode;
+    error?: ReactNode;
     loading: boolean;
     searchPlaceholder?: string;
     nextPage?: () => void;
@@ -151,6 +152,7 @@ const BackstageList = (remainingProps: Props) => {
                 </h1>
                 {addLink}
             </div>
+            {remainingProps.error}
             <div className='backstage-filters'>
                 <div className='backstage-filter__search'>
                     <SearchIcon/>
