@@ -1,6 +1,6 @@
 # Phase 2 — PDF pipeline
 
-Builds brand-aligned PDF books from the docs site using headless Chromium + a print-only stylesheet. Companion to PLAN.md §6.
+Builds brand-aligned PDF books from the docs site using headless Chromium + a print-only stylesheet.
 
 ## What's here
 

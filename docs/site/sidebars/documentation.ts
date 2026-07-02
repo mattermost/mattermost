@@ -7,8 +7,7 @@ import generated from './documentation.generated.json';
 // Documentation tab sidebar. Generated from the docs/ directory tree
 // (Product Overview, Use Case Guide, Deployment Guide, Administration
 // Guide, Security Guide, End User Guide, Integrations Guide, Get Help,
-// Agents, Recipes, Samples). Re-run the generator after content changes:
-//   node docs-site/scripts/gen-documentation-sidebar.mjs
+// Agents, Recipes, Samples).
 
 const sidebars: SidebarsConfig = {
   documentation: generated as any[],

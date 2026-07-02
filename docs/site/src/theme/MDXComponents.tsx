@@ -1,5 +1,5 @@
 // Globally-available MDX components. Authors can write <Note>...</Note>
-// in any .mdx file without an import. See PLAN.md §3.2.
+// in any .mdx file without an import.
 
 import MDXComponents from '@theme-original/MDXComponents';
 import {Note, Tip, Important, Warning, Security} from '@site/src/components/Callout';

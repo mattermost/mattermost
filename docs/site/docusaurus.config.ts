@@ -10,7 +10,7 @@ import activeRedirects from './sidebars/active-redirects.json';
 //   /          → Documentation (admin / end-user)        sources: ../docs
 //   /developers → Developers (contribute / integrate)    sources: ../develop
 //   /api        → API Reference (OpenAPI-generated)      sources: ../api
-// See PLAN.md §3.1 for the IA, §3.2 for design tokens, §5 for versioning.
+// See PLAN.md §3.1 for the IA, §3.2 for design tokens.
 
 const config: Config = {
   title: 'Mattermost Documentation',

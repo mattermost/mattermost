@@ -6,9 +6,7 @@ import generated from './developers.generated.json';
 
 // Developers tab sidebar. Generated from the develop/ directory tree
 // (Contribute, Integrate & Extend, Internal, with all sub-categories
-// derived from sub-directories). Re-run the generator after content
-// changes:
-//   node docs-site/scripts/gen-developer-sidebar.mjs
+// derived from sub-directories).
 
 const sidebars: SidebarsConfig = {
   developers: generated as any[],

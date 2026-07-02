@@ -11,8 +11,7 @@ import apiReference from '../../api/reference/sidebar';
 //                 docusaurus-plugin-openapi-docs from
 //                 openapi/mattermost-openapi-v4.yaml.
 //
-// Regenerate the reference with:
-//   node docs-site/scripts/build-openapi.mjs && npx docusaurus gen-api-docs all
+// See docs/site/README.md for local dev setup (includes regenerating this).
 
 const sidebars: SidebarsConfig = {
   api: [

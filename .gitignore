@@ -184,8 +184,6 @@ server/shard-*.txt
 docs/site/build/
 docs/site/.docusaurus/
 docs/site/node_modules/
-docs/site/versioned_docs/
-docs/site/versioned_sidebars/
 docs/api/reference/
 docs/pdf/build/
 docs/pdf/node_modules/
