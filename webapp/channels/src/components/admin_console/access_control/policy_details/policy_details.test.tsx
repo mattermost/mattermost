@@ -353,4 +353,44 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
             expect(mockDeletePolicy).toHaveBeenCalledWith('policy1');
         });
     });
+
+    test('should block deletion when the policy is assigned to teams (no channels)', async () => {
+        // team_count is stamped into policy Props by the GET handler. Teams are not
+        // editable from this editor, so a linked team must gate deletion the same way
+        // channels do — otherwise deleting orphans the team-type child policies.
+        const props = {
+            ...defaultProps,
+            policyId: 'policy1',
+            actions: {
+                ...defaultProps.actions,
+                deletePolicy: mockDeletePolicy.mockResolvedValue({data: {}}),
+                fetchPolicy: jest.fn().mockResolvedValue({
+                    data: {
+                        id: 'policy1',
+                        name: 'Policy 1',
+                        rules: [{expression: 'true'}],
+                        props: {team_count: 2, channel_count: 0, child_ids: ['t1', 't2']},
+                    },
+                }),
+                // No channels assigned — only teams gate the deletion.
+                searchChannels: mockSearchChannels.mockResolvedValue({data: {channels: [], total_count: 0}}),
+            },
+        };
+
+        renderWithContext(<PolicyDetails {...props}/>);
+
+        await waitFor(() => {
+            expect(screen.getByText('Delete policy')).toBeInTheDocument();
+        });
+
+        // The has-resources subtitle is shown instead of the deletable subtitle.
+        expect(screen.getByText(/Remove all assigned resources/)).toBeInTheDocument();
+
+        // Clicking Delete is a no-op — the confirmation modal never opens.
+        const deleteButtons = screen.getAllByText('Delete');
+        await userEvent.click(deleteButtons[deleteButtons.length - 1]);
+
+        expect(screen.queryByText('Confirm Policy Deletion')).not.toBeInTheDocument();
+        expect(mockDeletePolicy).not.toHaveBeenCalled();
+    });
 });

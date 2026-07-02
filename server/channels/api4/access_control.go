@@ -231,6 +231,11 @@ func getAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	// Stamp assigned-resource counts (channel_count, team_count, child_ids) so the
+	// policy editor can disable deletion while any channel or team is still linked,
+	// mirroring the policy list. GetAccessControlPolicy does not compute these.
+	c.App.PopulateAccessControlPolicyChildCounts(c.AppContext, policy)
+
 	if shouldRedactExpressions(c) {
 		c.App.MaskPolicyExpressions(c.AppContext, policy, c.AppContext.Session().UserId)
 	}

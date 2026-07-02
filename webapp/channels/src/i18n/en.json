@@ -323,7 +323,7 @@
   "admin.access_control.policy.edit_policy.delete_policy.masked_values_warning.text": "Removing this policy could affect access for users you cannot fully account for.",
   "admin.access_control.policy.edit_policy.delete_policy.masked_values_warning.title": "This policy contains restricted values - Deletion not allowed",
   "admin.access_control.policy.edit_policy.delete_policy.subtitle": "This policy will be deleted and cannot be recovered.",
-  "admin.access_control.policy.edit_policy.delete_policy.subtitle.has_resources": "Remove all assigned resources (eg. Channels) to be able to delete this policy",
+  "admin.access_control.policy.edit_policy.delete_policy.subtitle.has_resources": "Remove all assigned resources (eg. Channels and Teams) to be able to delete this policy",
   "admin.access_control.policy.edit_policy.delete_policy.title": "Delete policy",
   "admin.access_control.policy.edit_policy.error.assign_channels": "Error assigning channels: {error}",
   "admin.access_control.policy.edit_policy.error.create_job": "Error creating job: {error}",

@@ -101,6 +101,12 @@ function PolicyDetails({
     const [saving, setSaving] = useState(false);
     const [channelsCount, setChannelsCount] = useState(0);
 
+    // Teams assigned to this policy. In MVF teams are not editable from the policy
+    // editor (assignment is done from the per-team System Console page), so this is
+    // a static count read from the policy Props — used only to block deletion while
+    // any team is still linked, matching how channels gate deletion.
+    const [teamsCount, setTeamsCount] = useState(0);
+
     // Map of saved channelId → channel type. Lets the confirmation modal show
     // the right messaging for mixed / public-only / private-only policies.
     const [savedChannelTypes, setSavedChannelTypes] = useState<Record<string, string>>({});
@@ -152,6 +158,10 @@ function PolicyDetails({
                 setExpression(getMembershipRule(result.data?.rules)?.expression || '');
                 setExistingRules(result.data?.rules || []);
                 setAutoSyncMembership(result.data?.active || false);
+
+                // team_count is stamped by the GET handler (see PopulateAccessControlPolicyChildCounts).
+                // Teams aren't editable here, so the count is used as-is to gate deletion.
+                setTeamsCount((result.data?.props?.team_count as unknown as number) || 0);
             });
 
             // Fetch the full assigned-channel list (not just a page) to know
@@ -378,6 +388,11 @@ function PolicyDetails({
             (Object.keys(channelChanges.added).length > 0)
         );
     };
+
+    // Deletion is blocked while the policy still has ANY assigned resource —
+    // channels or teams. Teams aren't editable from this editor (MVF), so a
+    // linked team must be removed from the per-team System Console page first.
+    const hasAssignedResources = () => hasChannels() || teamsCount > 0;
 
     // Effective channel mix = (saved - removed) + added. Reused by the
     // mixed-channel notice below the channel list and by the confirmation
@@ -673,10 +688,10 @@ function PolicyDetails({
                                         />
                                     }
                                     subtitle={
-                                        hasChannels() ? (
+                                        hasAssignedResources() ? (
                                             <FormattedMessage
                                                 id='admin.access_control.policy.edit_policy.delete_policy.subtitle.has_resources'
-                                                defaultMessage='Remove all assigned resources (eg. Channels) to be able to delete this policy'
+                                                defaultMessage='Remove all assigned resources (eg. Channels and Teams) to be able to delete this policy'
                                             />
                                         ) : (
                                             <FormattedMessage
@@ -692,12 +707,12 @@ function PolicyDetails({
                                         />
                                     }
                                     onClick={() => {
-                                        if (hasChannels()) {
+                                        if (hasAssignedResources()) {
                                             return;
                                         }
                                         setShowDeleteConfirmationModal(true);
                                     }}
-                                    isDisabled={hasChannels() || hasMaskedRows}
+                                    isDisabled={hasAssignedResources() || hasMaskedRows}
                                 />
                             </Card.Header>
                         </Card>

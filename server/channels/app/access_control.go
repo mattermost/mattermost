@@ -1883,6 +1883,32 @@ func (a *App) channelPolicyIDsWithImport(rctx request.CTX, importID string) []st
 	return channelIDs
 }
 
+// PopulateAccessControlPolicyChildCounts stamps child_ids, channel_count and
+// team_count into a parent policy's Props, mirroring the shape SearchPolicies
+// returns for the policy list. The policy editor loads a single policy via the
+// GET endpoint (which does not run the list's child-count subqueries), so this
+// gives it the assigned-resource counts it needs to disable deletion while any
+// channel OR team is still linked. No-op for non-parent policies.
+func (a *App) PopulateAccessControlPolicyChildCounts(rctx request.CTX, policy *model.AccessControlPolicy) {
+	if policy == nil || policy.Type != model.AccessControlPolicyTypeParent {
+		return
+	}
+
+	channelIDs := a.channelPolicyIDsWithImport(rctx, policy.ID)
+	teamIDs := a.teamPolicyIDsWithImport(rctx, policy.ID)
+
+	childIDs := make([]string, 0, len(channelIDs)+len(teamIDs))
+	childIDs = append(childIDs, channelIDs...)
+	childIDs = append(childIDs, teamIDs...)
+
+	if policy.Props == nil {
+		policy.Props = make(map[string]any)
+	}
+	policy.Props["child_ids"] = childIDs
+	policy.Props["channel_count"] = len(channelIDs)
+	policy.Props["team_count"] = len(teamIDs)
+}
+
 // HydrateChannelPolicyActions populates ch.PolicyActions for a single channel
 // when ch.PolicyEnforced is true, by looking up the per-action union from
 // the AccessControlPolicies table. It's a no-op for channels without an
