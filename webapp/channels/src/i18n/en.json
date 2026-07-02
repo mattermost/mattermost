@@ -3936,6 +3936,8 @@
   "bots.manage.empty": "No bot accounts found",
   "bots.manage.header": "Bot Accounts",
   "bots.manage.help1": "Use {botAccounts} to integrate with Mattermost through plugins or the API. Bot accounts are available to everyone on your server. ",
+  "bots.manage.load_error.full": "Bot accounts could not be loaded. Refresh the page to try again.",
+  "bots.manage.load_error.partial": "Some bot accounts could not be loaded, so this list may be incomplete. Refresh the page to try again.",
   "bots.manage.search": "Search Bot Accounts",
   "bots.managed_by": "Managed by ",
   "bots.token.confirm": "Delete",
