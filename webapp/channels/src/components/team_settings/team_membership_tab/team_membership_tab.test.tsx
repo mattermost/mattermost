@@ -370,6 +370,64 @@ describe('components/team_settings/TeamMembershipTab', () => {
         });
     });
 
+    it('combines the custom rule with the system policy expression when computing confirm counts', async () => {
+        // The team has a system/parent policy applied plus a custom rule added in the
+        // editor. The confirm count must simulate the SAME expression the sync enforces:
+        // (customRule) && (systemPolicyRule). Before the fix, only the custom rule was
+        // evaluated, so the count diverged from what sync actually removes.
+        const parentPolicy = {
+            id: 'parent_policy_id',
+            name: 'Global Policy',
+            type: 'team',
+            active: true,
+            rules: [{actions: ['membership'], expression: 'user.attributes.location in ["US"]'}],
+            imports: [],
+        };
+
+        const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
+        getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
+            data: {
+                policy: {
+                    id: 'team_id',
+                    active: false,
+                    rules: [],
+                    imports: ['parent_policy_id'],
+                },
+                enforced: true,
+            },
+        }));
+        mockActions.getChannelPolicy.mockResolvedValue({data: parentPolicy});
+        mockActions.searchUsers.mockResolvedValue({data: {users: [], total: 3}});
+
+        const privateTeam = TestHelper.getTeamMock({
+            id: 'team_id',
+            display_name: 'Private Team',
+            type: 'I',
+            allow_open_invite: false,
+        });
+
+        renderWithContext(
+            <TeamMembershipTab {...{...baseProps, team: privateTeam}}/>,
+            initialState,
+        );
+
+        // Wait until the parent/system policy has been loaded into state.
+        await waitFor(() => expect(mockActions.getChannelPolicy).toHaveBeenCalledWith('parent_policy_id'));
+
+        // Add a custom rule via the editor, then save to open the confirm modal.
+        await userEvent.click(screen.getByTestId('table-editor-change'));
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => expect(mockActions.searchUsers).toHaveBeenCalled());
+
+        // The evaluated expression must AND the custom rule with the system policy rule.
+        const combinedCall = mockActions.searchUsers.mock.calls.find((c) => String(c[0]).includes('location'));
+        expect(combinedCall).toBeDefined();
+        expect(combinedCall![0]).toContain('user.attributes.department in ["Engineering"]');
+        expect(combinedCall![0]).toContain('user.attributes.location in ["US"]');
+        expect(combinedCall![0]).toContain('&&');
+    });
+
     it('preserves masked values when expression is loaded from policy', async () => {
         const maskedExpression = 'user.attributes.department in []';
         const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');

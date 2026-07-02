@@ -200,13 +200,38 @@ function TeamMembershipTab({
         }
     }, [actions, formatMessage]);
 
+    // The sync enforces the team's own membership rule ANDed with the expressions of
+    // any imported system/parent policies (see the server's ResolveRule/MergeExpressions).
+    // The confirm count must simulate that SAME combined expression, otherwise it
+    // misreports who is affected whenever a system policy is applied to the team.
+    const buildEffectiveExpression = useCallback((): string => {
+        const parts: string[] = [];
+        if (expression.trim()) {
+            parts.push(expression.trim());
+        }
+        for (const policy of systemPolicies) {
+            const systemExpr = getMembershipRule(policy.rules)?.expression;
+            if (systemExpr && systemExpr.trim()) {
+                parts.push(systemExpr.trim());
+            }
+        }
+        if (parts.length === 0) {
+            return '';
+        }
+        if (parts.length === 1) {
+            return parts[0]!;
+        }
+        return parts.map((part) => `(${part})`).join(' && ');
+    }, [expression, systemPolicies]);
+
     const computeConfirmCounts = useCallback(async (): Promise<{allowed: number | null; restricted: number | null}> => {
-        if (!expression.trim()) {
+        const effectiveExpression = buildEffectiveExpression();
+        if (!effectiveExpression.trim()) {
             return {allowed: null, restricted: null};
         }
         try {
             const [searchResult, statsResult] = await Promise.all([
-                actions.searchUsers(expression, '', '', MAX_USERS_SEARCH_LIMIT),
+                actions.searchUsers(effectiveExpression, '', '', MAX_USERS_SEARCH_LIMIT),
                 dispatch(getTeamStats(team.id)),
             ]);
 
@@ -222,7 +247,7 @@ function TeamMembershipTab({
         } catch {
             return {allowed: null, restricted: null};
         }
-    }, [actions, expression, team.id, dispatch]);
+    }, [actions, buildEffectiveExpression, team.id, dispatch]);
 
     const performSave = useCallback(async (): Promise<boolean> => {
         try {
