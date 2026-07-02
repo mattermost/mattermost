@@ -25,8 +25,13 @@ import {expect, test, testConfig} from '@mattermost/playwright-lib';
 const DAY_MS = 24 * 60 * 60 * 1000;
 const TOKEN_ROLES = 'system_user system_user_access_token';
 
-// Returns whether the given personal access token can still authenticate.
-async function tokenIsUsable(token: string): Promise<boolean> {
+// Returns whether the given personal access token can still authenticate. The token
+// secret is only present on the UserAccessToken returned at creation time.
+async function tokenIsUsable(token: string | undefined): Promise<boolean> {
+    if (!token) {
+        throw new Error('Expected a token secret, but none was returned by createUserAccessToken');
+    }
+
     const client = new Client4();
     client.setUrl(testConfig.baseURL);
     client.setToken(token);
