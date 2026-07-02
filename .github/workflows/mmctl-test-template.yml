@@ -56,19 +56,22 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - name: Setup BUILD_IMAGE
-        id: build
+      - name: buildenv/load
+        id: buildenv
+        uses: ./.github/actions/load-buildenv
+        with:
+          go-version: ${{ inputs.go-version }}
+          fips-enabled: ${{ inputs.fips-enabled }}
+      - name: Setup log artifact name
+        id: log-artifact
         run: |
           if [[ "$INPUT_FIPS_ENABLED" == 'true' ]]; then
-            echo "BUILD_IMAGE=mattermost/mattermost-build-server-fips:${INPUT_GO_VERSION}" >> "${GITHUB_OUTPUT}"
             echo "LOG_ARTIFACT_NAME=${INPUT_LOGSARTIFACT}-fips" >> "${GITHUB_OUTPUT}"
           else
-            echo "BUILD_IMAGE=mattermost/mattermost-build-server:${INPUT_GO_VERSION}" >> "${GITHUB_OUTPUT}"
             echo "LOG_ARTIFACT_NAME=${INPUT_LOGSARTIFACT}" >> "${GITHUB_OUTPUT}"
           fi
 
@@ -90,7 +93,7 @@ jobs:
 
       - name: Run mmctl Tests
         env:
-          BUILD_IMAGE: ${{ steps.build.outputs.BUILD_IMAGE }}
+          BUILD_IMAGE: ${{ steps.buildenv.outputs.image }}
         run: |
           if [[ "$REF_NAME" == 'master' ]]; then
             export TESTFLAGS="-timeout 90m -race"
@@ -120,13 +123,13 @@ jobs:
         with:
           report-path: server/report.xml
           zephyr-api-key: ${{ secrets.MM_E2E_ZEPHYR_API_KEY }}
-          build-image: ${{ steps.build.outputs.BUILD_IMAGE }}
+          build-image: ${{ steps.buildenv.outputs.image }}
 
       - name: Archive logs
         if: ${{ always() }}
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
-          name: ${{ steps.build.outputs.LOG_ARTIFACT_NAME }}
+          name: ${{ steps.log-artifact.outputs.LOG_ARTIFACT_NAME }}
           path: |
             server/gotestsum.json
             server/report.xml
