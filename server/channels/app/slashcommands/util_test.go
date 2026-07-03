@@ -58,5 +58,6 @@ func TestFormatTimestamp(t *testing.T) {
 		got := formatTimestamp(twoDaysAgo)
 		assert.NotEqual(t, "--", got)
 		assert.False(t, strings.HasPrefix(got, "Today "), "expected a full date, got %q", got)
+		assert.Equal(t, model.GetTimeForMillis(twoDaysAgo).Format("Jan 2 15:04:05 MST 2006"), got)
 	})
 }
