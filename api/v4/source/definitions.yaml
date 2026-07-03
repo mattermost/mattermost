@@ -1137,6 +1137,11 @@ components:
       required:
         - team_id
         - user_id
+        - roles
+        - delete_at
+        - scheme_user
+        - scheme_admin
+        - explicit_roles
       properties:
         team_id:
           description: The ID of the team this member belongs to.
@@ -1149,22 +1154,27 @@ components:
             space-separated list of role names, including any roles granted
             implicitly through permissions schemes.
           type: string
+          readOnly: true
         delete_at:
           description: The time in milliseconds that this team member was deleted.
           type: integer
+          readOnly: true
         scheme_user:
           description: Whether this team member holds the default user role defined by the
             team's permissions scheme.
           type: boolean
+          readOnly: true
         scheme_admin:
           description: Whether this team member holds the default admin role defined by the
             team's permissions scheme.
           type: boolean
+          readOnly: true
         explicit_roles:
           description: The list of roles explicitly assigned to this team member, as a
             space separated list of role names. This list does *not* include any
             roles granted implicitly through permissions schemes.
           type: string
+          readOnly: true
     TeamUnread:
       type: object
       required:
@@ -1510,6 +1520,7 @@ components:
         - user_id
         - post_id
         - emoji_name
+        - create_at
       properties:
         user_id:
           description: The ID of the user that made this reaction
@@ -1524,6 +1535,7 @@ components:
           description: The time in milliseconds this reaction was made
           type: integer
           format: int64
+          readOnly: true
     NewTeamMember:
       type: object
       properties:
@@ -1592,6 +1604,12 @@ components:
     Command:
       type: object
       required:
+        - id
+        - token
+        - create_at
+        - update_at
+        - delete_at
+        - creator_id
         - team_id
         - trigger
         - method
@@ -1600,23 +1618,29 @@ components:
         id:
           description: The ID of the slash command
           type: string
+          readOnly: true
         token:
           description: The token which is used to verify the source of the payload
           type: string
+          readOnly: true
         create_at:
           description: The time in milliseconds the command was created
           type: integer
+          readOnly: true
         update_at:
           description: The time in milliseconds the command was last updated
           type: integer
           format: int64
+          readOnly: true
         delete_at:
           description: The time in milliseconds the command was deleted, 0 if never deleted
           type: integer
           format: int64
+          readOnly: true
         creator_id:
           description: The user id for the commands creator
           type: string
+          readOnly: true
         team_id:
           description: The team id for which this command is configured
           type: string
