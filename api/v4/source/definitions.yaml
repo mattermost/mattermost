@@ -3623,6 +3623,12 @@ components:
     MarketplacePlugin:
       type: object
       required:
+        - homepage_url
+        - icon_data
+        - download_url
+        - release_notes_url
+        - signature
+        - manifest
         - installed_version
       properties:
         homepage_url:
@@ -3646,7 +3652,9 @@ components:
           type: string
           description: Base64 encoded signature of the plugin.
         manifest:
-          $ref: "#/components/schemas/PluginManifest"
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/PluginManifest"
         installed_version:
           type: string
           description: Version number of the already installed plugin, if any.
@@ -4040,6 +4048,8 @@ components:
         - id
         - creator_id
         - create_at
+        - name
+        - num_employees
         - billing_address
         - company_address
         - payment_method
@@ -4442,6 +4452,11 @@ components:
       description: User's sidebar category with it's channels
       type: object
       required:
+        - id
+        - user_id
+        - team_id
+        - display_name
+        - type
         - channel_ids
       properties:
         id:
