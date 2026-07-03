@@ -396,6 +396,11 @@ button {
         padding: 7px 12px;
         border: none;
         background: transparent;
+
+        &:hover,
+        &:active {
+            color: var(--button-color);
+        }
     }
 
     &.btn-inactive {

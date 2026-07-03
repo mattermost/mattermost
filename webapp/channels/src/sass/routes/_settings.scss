@@ -193,6 +193,10 @@
             text-decoration: none;
             transition: all 0.15s ease;
 
+            &:hover {
+                color: var(--button-color);
+            }
+
             span {
                 margin-top: -3px;
                 font-size: 22px;
