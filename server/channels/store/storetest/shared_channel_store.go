@@ -815,6 +815,28 @@ func testGetRemotesStatus(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err = ss.SharedChannel().SaveRemote(scr2)
 	require.NoError(t, err)
 
+	// Advance the sync cursors so the reported LastSyncAt reflects real activity.
+	// scr1 has a members sync that is newer than its post sync, so LastSyncAt must
+	// track the members cursor. scr2 has only a post sync.
+	now := model.GetMillis()
+	scr1PostSyncAt := now - 5000
+	scr1MembersSyncAt := now - 1000
+	scr2PostSyncAt := now - 3000
+
+	err = ss.SharedChannel().UpdateRemoteCursor(scr1.Id, model.GetPostsSinceForSyncCursor{
+		LastPostUpdateAt: scr1PostSyncAt,
+		LastPostUpdateID: model.NewId(),
+	})
+	require.NoError(t, err)
+	err = ss.SharedChannel().UpdateRemoteMembershipCursor(scr1.Id, scr1MembersSyncAt)
+	require.NoError(t, err)
+
+	err = ss.SharedChannel().UpdateRemoteCursor(scr2.Id, model.GetPostsSinceForSyncCursor{
+		LastPostUpdateAt: scr2PostSyncAt,
+		LastPostUpdateID: model.NewId(),
+	})
+	require.NoError(t, err)
+
 	t.Run("Get remotes status for channel", func(t *testing.T) {
 		statuses, err := ss.SharedChannel().GetRemotesStatus(channel.Id)
 		require.NoError(t, err)
@@ -833,6 +855,8 @@ func testGetRemotesStatus(t *testing.T, rctx request.CTX, ss store.Store) {
 		assert.Equal(t, rc1.DisplayName, s1.DisplayName)
 		assert.Equal(t, rc1.SiteURL, s1.SiteURL)
 		assert.True(t, s1.IsInviteAccepted)
+		// LastSyncAt is the greater of the post and members cursors.
+		assert.Equal(t, scr1MembersSyncAt, s1.LastSyncAt)
 
 		s2 := statusMap[rc2.RemoteId]
 		require.NotNil(t, s2)
@@ -841,6 +865,32 @@ func testGetRemotesStatus(t *testing.T, rctx request.CTX, ss store.Store) {
 		assert.Equal(t, rc2.DisplayName, s2.DisplayName)
 		assert.Equal(t, rc2.SiteURL, s2.SiteURL)
 		assert.False(t, s2.IsInviteAccepted)
+		// Only the post cursor advanced, so LastSyncAt tracks it.
+		assert.Equal(t, scr2PostSyncAt, s2.LastSyncAt)
+	})
+
+	t.Run("Reports zero last sync when the remote has never synced", func(t *testing.T) {
+		unsyncedChannel, err := createTestChannel(ss, rctx, "test_remotes_status_unsynced")
+		require.NoError(t, err)
+
+		_, scErr := shareChannel(ss, unsyncedChannel, true, "")
+		require.NoError(t, scErr)
+
+		scrUnsynced := &model.SharedChannelRemote{
+			Id:                model.NewId(),
+			ChannelId:         unsyncedChannel.Id,
+			RemoteId:          rc1.RemoteId,
+			CreatorId:         rc1.CreatorId,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+		}
+		_, err = ss.SharedChannel().SaveRemote(scrUnsynced)
+		require.NoError(t, err)
+
+		statuses, err := ss.SharedChannel().GetRemotesStatus(unsyncedChannel.Id)
+		require.NoError(t, err)
+		require.Len(t, statuses, 1)
+		assert.Zero(t, statuses[0].LastSyncAt)
 	})
 
 	t.Run("Get remotes status for channel with no remotes", func(t *testing.T) {
