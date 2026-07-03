@@ -4056,7 +4056,7 @@ components:
         name:
           type: string
         num_employees:
-          type: string
+          type: integer
         contact_first_name:
           type: string
         contact_last_name:
