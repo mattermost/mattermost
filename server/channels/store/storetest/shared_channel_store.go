@@ -816,12 +816,15 @@ func testGetRemotesStatus(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 
 	// Advance the sync cursors so the reported LastSyncAt reflects real activity.
-	// scr1 has a members sync that is newer than its post sync, so LastSyncAt must
-	// track the members cursor. scr2 has only a post sync.
+	// scr1's members sync is newer than its post sync, so LastSyncAt must track the
+	// members cursor. scr2's post sync is newer than its members sync, so LastSyncAt
+	// must track the post cursor. Together they exercise both sides of GREATEST with
+	// two non-zero operands.
 	now := model.GetMillis()
 	scr1PostSyncAt := now - 5000
 	scr1MembersSyncAt := now - 1000
 	scr2PostSyncAt := now - 3000
+	scr2MembersSyncAt := now - 7000
 
 	err = ss.SharedChannel().UpdateRemoteCursor(scr1.Id, model.GetPostsSinceForSyncCursor{
 		LastPostUpdateAt: scr1PostSyncAt,
@@ -835,6 +838,8 @@ func testGetRemotesStatus(t *testing.T, rctx request.CTX, ss store.Store) {
 		LastPostUpdateAt: scr2PostSyncAt,
 		LastPostUpdateID: model.NewId(),
 	})
+	require.NoError(t, err)
+	err = ss.SharedChannel().UpdateRemoteMembershipCursor(scr2.Id, scr2MembersSyncAt)
 	require.NoError(t, err)
 
 	t.Run("Get remotes status for channel", func(t *testing.T) {
@@ -865,7 +870,7 @@ func testGetRemotesStatus(t *testing.T, rctx request.CTX, ss store.Store) {
 		assert.Equal(t, rc2.DisplayName, s2.DisplayName)
 		assert.Equal(t, rc2.SiteURL, s2.SiteURL)
 		assert.False(t, s2.IsInviteAccepted)
-		// Only the post cursor advanced, so LastSyncAt tracks it.
+		// The post cursor is newer than the members cursor, so LastSyncAt tracks it.
 		assert.Equal(t, scr2PostSyncAt, s2.LastSyncAt)
 	})
 
