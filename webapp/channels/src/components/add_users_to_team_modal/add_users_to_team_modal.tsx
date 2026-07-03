@@ -98,13 +98,14 @@ export class AddUsersToTeamModal extends React.PureComponent<Props, State> {
     };
 
     // Public team (open invite) governance is advisory — adds are not blocked.
-    // Everything else with a policy is strict. Mirrors the server privacy test.
+    // Everything else with a policy is strict. Mirrors the server privacy test,
+    // which keys on allow_open_invite alone (master's open-directory model).
     private isStrictlyFilteredTeam = (): boolean => {
         const team = this.props.team;
         if (!team.policy_enforced) {
             return false;
         }
-        return !(team.allow_open_invite && team.type === 'O');
+        return !team.allow_open_invite;
     };
 
     private loadAbacMatchingIds = async () => {

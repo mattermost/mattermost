@@ -131,9 +131,9 @@ func (a *App) FilterNonQualifyingTeamsForUser(rctx request.CTX, teams []*model.T
 		}
 
 		// Public teams enforce the policy in advisory mode: it never hides the team.
-		// Mirrors isPublicTeam in the API layer; any half-configured team falls
-		// through to strict hiding.
-		if team.AllowOpenInvite && team.Type == model.TeamOpen {
+		// Privacy follows master's open-directory model, which keys on
+		// AllowOpenInvite alone.
+		if team.AllowOpenInvite {
 			filtered = append(filtered, team)
 			continue
 		}
@@ -229,8 +229,9 @@ func (a *App) AnnotateRecommendedTeamsForUser(rctx request.CTX, teams []*model.T
 		}
 
 		// Only public (advisory) governed teams carry the tag; private governed
-		// teams are hidden, never recommended.
-		if !(team.AllowOpenInvite && team.Type == model.TeamOpen) {
+		// teams are hidden, never recommended. Privacy keys on AllowOpenInvite,
+		// matching master's open-directory model.
+		if !team.AllowOpenInvite {
 			continue
 		}
 

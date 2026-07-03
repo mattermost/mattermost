@@ -300,9 +300,10 @@ test.describe('Team Settings Modal - Team Membership as Team Admin', {tag: ['@ab
         await teamSettings.save();
         await teamSettings.verifySavedMessage();
 
-        // * Team is now private
+        // * Team is now private. Privacy is driven by allow_open_invite alone; the
+        // feature never mutates team.type, so it stays 'O' from createPublicTeam.
         const updatedTeam = await adminClient.getTeam(team.id);
-        expect(updatedTeam.type).toBe('I');
+        expect(updatedTeam.type).toBe('O');
         expect(updatedTeam.allow_open_invite).toBe(false);
 
         // * A sync job was created

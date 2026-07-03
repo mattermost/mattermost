@@ -162,7 +162,8 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
     };
 
     // Public team (open invite) governance is advisory; everything else is
-    // strict. Mirrors the server's privacy test (AllowOpenInvite && Type==open).
+    // strict. Mirrors the server's privacy test, which keys on allow_open_invite
+    // alone (master's open-directory model).
     isStrictlyFilteredTeam = (): boolean => {
         return this.isStrictlyFilteredProp(this.props);
     };
@@ -172,7 +173,7 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
         if (!team?.policy_enforced) {
             return false;
         }
-        return !(team.allow_open_invite && team.type === 'O');
+        return !team.allow_open_invite;
     };
 
     loadAbacCandidates = async () => {

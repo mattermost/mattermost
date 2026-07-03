@@ -285,9 +285,10 @@ test.describe('Team Settings Modal - Access Tab - Discoverability', {tag: ['@aba
         await teamSettings.save();
         await teamSettings.verifySavedMessage();
 
-        // * Team is now private
+        // * Team is now private. Privacy is driven by allow_open_invite alone; the
+        // feature never mutates team.type, so it stays 'O' from createPublicTeam.
         const updatedTeam = await adminClient.getTeam(team.id);
-        expect(updatedTeam.type).toBe('I');
+        expect(updatedTeam.type).toBe('O');
         expect(updatedTeam.allow_open_invite).toBe(false);
 
         // * A sync job was created after the mode-flip was confirmed
@@ -335,9 +336,10 @@ test.describe('Team Settings Modal - Access Tab - Discoverability', {tag: ['@aba
         await teamSettings.save();
         await teamSettings.verifySavedMessage();
 
-        // * Team is now public
+        // * Team is now public. The feature never mutates team.type, so it stays
+        // 'I' from createPrivateTeam; discoverability is driven by allow_open_invite.
         const updatedTeam = await adminClient.getTeam(team.id);
-        expect(updatedTeam.type).toBe('O');
+        expect(updatedTeam.type).toBe('I');
         expect(updatedTeam.allow_open_invite).toBe(true);
 
         // * No new sync job was created by this Private→Public flip

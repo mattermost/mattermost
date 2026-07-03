@@ -30,7 +30,7 @@ type Props = PropsFromRedux & OwnProps;
 
 const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitchError, setAreThereUnsavedChanges, team, teamMembershipAccessControlEnabled, actions}: Props) => {
     const [allowedDomains, setAllowedDomains] = useState<string[]>(() => generateAllowedDomainOptions(team.allowed_domains));
-    const isPublicTeamInitial = team.type === 'O' && (team.allow_open_invite ?? false);
+    const isPublicTeamInitial = team.allow_open_invite ?? false;
 
     // ABAC governs this team only when the feature is enabled (license + flag +
     // config) and a policy is attached. A stale policy row on a disabled instance
@@ -61,17 +61,12 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
             return true;
         }
 
-        // Only ABAC-governed teams normalize both fields. Otherwise keep the legacy
-        // contract of touching only allow_open_invite, since some paths still treat
-        // type="I" differently (e.g. getInviteInfo).
-        if (teamAbacActive) {
-            const {error} = await actions.updateTeamPrivacy(team.id, isPublicTeam ? 'O' : 'I');
-            return !error;
-        }
-
+        // Privacy follows master's model on every path: patch allow_open_invite
+        // only, leaving team.type untouched. ABAC join/sync/directory logic keys on
+        // allow_open_invite alone, so there is nothing to normalize.
         const {error} = await actions.patchTeam({id: team.id, allow_open_invite: isPublicTeam});
         return !error;
-    }, [actions, isPublicTeam, isPublicTeamInitial, team, teamAbacActive]);
+    }, [actions, isPublicTeam, isPublicTeamInitial, team]);
 
     const computeModeFlipCount = useCallback(async (): Promise<number | null> => {
         try {
