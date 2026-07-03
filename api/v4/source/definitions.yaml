@@ -499,11 +499,6 @@ components:
     ViewPatch:
       type: object
       description: Fields that can be updated on a view via PATCH
-      required:
-        - title
-        - description
-        - sort_order
-        - props
       properties:
         title:
           type: string
