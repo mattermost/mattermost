@@ -6,6 +6,7 @@ package slashcommands
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -228,10 +229,20 @@ func (rp *RemoteProvider) doStatus(a *app.App, args *model.CommandArgs, _ map[st
 		return response("** " + args.T("api.command_remote.remotes_not_found") + " **")
 	}
 
+	// Show active connections first, then deleted ones, ordered by creation time within each group.
+	sort.SliceStable(list, func(i, j int) bool {
+		iDeleted := list[i].DeleteAt != 0
+		jDeleted := list[j].DeleteAt != 0
+		if iDeleted != jDeleted {
+			return !iDeleted
+		}
+		return list[i].CreateAt < list[j].CreateAt
+	})
+
 	var sb strings.Builder
 	fmt.Fprintf(&sb, "%s \n", args.T("api.command_remote.remote_table_header"))
 	// | Secure Connection | Display name | ConnectionID | Site URL | Default Team | Invite accepted | Online | Last ping | Deleted |
-	fmt.Fprintf(&sb, "| :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- | | :---- |\n")
+	fmt.Fprintf(&sb, "| :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- |\n")
 
 	for _, rc := range list {
 		accepted := formatBool(args.T, rc.IsConfirmed())
