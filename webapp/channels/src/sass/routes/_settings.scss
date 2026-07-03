@@ -606,7 +606,7 @@
                 }
 
                 .has-error {
-                    color: #a94442;
+                    color: var(--error-text);
                 }
 
                 .file-status {

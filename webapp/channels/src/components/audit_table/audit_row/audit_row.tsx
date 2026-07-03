@@ -12,6 +12,8 @@ import {getUser} from 'mattermost-redux/selectors/entities/users';
 
 import {toTitleCase} from 'utils/utils';
 
+import './audit_row.scss';
+
 import holders from '../holders';
 
 export type Props = {
@@ -84,13 +86,13 @@ export default function AuditRow({
     const userId = auditProfile ? auditProfile.email : audit.user_id;
     let uContent;
     if (showUserId) {
-        uContent = <td className='word-break--all'>{userId}</td>;
+        uContent = <td>{userId}</td>;
     }
 
     let iContent;
     if (showIp) {
         iContent = (
-            <td className='whitespace--nowrap word-break--all'>
+            <td>
                 {ip}
             </td>
         );
@@ -99,24 +101,24 @@ export default function AuditRow({
     let sContent;
     if (showSession) {
         sContent = (
-            <td className='whitespace--nowrap word-break--all'>
+            <td>
                 {sessionId}
             </td>
         );
     }
 
-    let descStyle = '';
+    let descStyle = 'AuditRowDesc';
     if (desc.toLowerCase().indexOf('fail') !== -1) {
-        descStyle = ' color--error';
+        descStyle = ' AuditRowDesc--error';
     }
 
     return (
-        <tr key={audit.id}>
-            <td className='whitespace--nowrap word-break--all'>
+        <tr className='AuditRow'>
+            <td>
                 {timestamp}
             </td>
             {uContent}
-            <td className={'word-break--all' + descStyle}>{desc}</td>
+            <td className={descStyle}>{desc}</td>
             {iContent}
             {sContent}
         </tr>
