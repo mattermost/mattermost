@@ -43,6 +43,7 @@ func TestProcessTask_RemoteClusterLookup(t *testing.T) {
 
 		mockServer := &MockServerIface{}
 		mockServer.On("GetStore").Return(mockStore)
+		mockServer.On("GetMetrics").Return(nil)
 		mockServer.On("Log").Return(mlog.CreateConsoleTestLogger(t))
 
 		return &Service{
@@ -64,8 +65,26 @@ func TestProcessTask_RemoteClusterLookup(t *testing.T) {
 		err := scs.processTask(newSyncTask(channelID, "", remoteID, nil, nil))
 
 		require.NoError(t, err, "an orphaned remote should be skipped, not surfaced as an error")
-		assert.Empty(t, scs.tasks, "the task should not be re-enqueued for retry")
+		scStore.AssertNumberOfCalls(t, "DeleteRemote", 1)
 		scStore.AssertCalled(t, "DeleteRemote", scr.Id)
+	})
+
+	t.Run("self-healed orphan is drained from the sync queue and not retried", func(t *testing.T) {
+		channelID := model.NewId()
+		remoteID := model.NewId()
+		scr := &model.SharedChannelRemote{Id: model.NewId(), ChannelId: channelID, RemoteId: remoteID, DeleteAt: 0}
+
+		scs, scStore := newService(t, remoteID, nil, notFound)
+		scStore.On("GetRemoteByIds", channelID, remoteID).Return(scr, nil)
+		scStore.On("DeleteRemote", scr.Id).Return(true, nil)
+
+		task := newSyncTask(channelID, "", remoteID, nil, nil)
+		scs.addTask(task)
+
+		scs.doSync()
+
+		assert.Empty(t, scs.tasks, "the orphaned task must be drained, not re-enqueued for retry")
+		scStore.AssertNumberOfCalls(t, "DeleteRemote", 1)
 	})
 
 	t.Run("already soft-deleted SCR row is not deleted again", func(t *testing.T) {
@@ -79,7 +98,6 @@ func TestProcessTask_RemoteClusterLookup(t *testing.T) {
 		err := scs.processTask(newSyncTask(channelID, "", remoteID, nil, nil))
 
 		require.NoError(t, err)
-		assert.Empty(t, scs.tasks)
 		scStore.AssertNotCalled(t, "DeleteRemote", mock.Anything)
 	})
 
@@ -93,8 +111,22 @@ func TestProcessTask_RemoteClusterLookup(t *testing.T) {
 		err := scs.processTask(newSyncTask(channelID, "", remoteID, nil, nil))
 
 		require.NoError(t, err)
-		assert.Empty(t, scs.tasks)
 		scStore.AssertNotCalled(t, "DeleteRemote", mock.Anything)
+	})
+
+	t.Run("failure to soft-delete the orphan is swallowed without retry", func(t *testing.T) {
+		channelID := model.NewId()
+		remoteID := model.NewId()
+		scr := &model.SharedChannelRemote{Id: model.NewId(), ChannelId: channelID, RemoteId: remoteID, DeleteAt: 0}
+
+		scs, scStore := newService(t, remoteID, nil, notFound)
+		scStore.On("GetRemoteByIds", channelID, remoteID).Return(scr, nil)
+		scStore.On("DeleteRemote", scr.Id).Return(false, errors.New("db is down"))
+
+		err := scs.processTask(newSyncTask(channelID, "", remoteID, nil, nil))
+
+		require.NoError(t, err, "a self-heal delete failure must not surface as a sync error or trigger a retry")
+		scStore.AssertCalled(t, "DeleteRemote", scr.Id)
 	})
 
 	t.Run("transient error is propagated for retry", func(t *testing.T) {
