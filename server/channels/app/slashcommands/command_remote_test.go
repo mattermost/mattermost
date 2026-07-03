@@ -66,7 +66,7 @@ func TestRemoteProviderDoStatus(t *testing.T) {
 	// separatorLine returns the Markdown table separator row (the line made up of
 	// alignment cells) from the command output.
 	separatorLine := func() string {
-		for _, line := range strings.Split(output, "\n") {
+		for line := range strings.SplitSeq(output, "\n") {
 			if strings.HasPrefix(strings.TrimSpace(line), "| :----") {
 				return line
 			}
@@ -83,7 +83,7 @@ func TestRemoteProviderDoStatus(t *testing.T) {
 	})
 
 	t.Run("data rows have nine cells matching the header", func(t *testing.T) {
-		for _, line := range strings.Split(output, "\n") {
+		for line := range strings.SplitSeq(output, "\n") {
 			if strings.Contains(line, "AAA Active") {
 				// A row with 9 cells is delimited by 10 pipe characters.
 				require.Equal(t, 10, strings.Count(line, "|"), "each data row must have nine cells")
