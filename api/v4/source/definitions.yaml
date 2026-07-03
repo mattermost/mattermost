@@ -113,7 +113,9 @@ components:
         locale:
           type: string
         notify_props:
-          $ref: "#/components/schemas/UserNotifyProps"
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/UserNotifyProps"
         props:
           type: object
         last_password_update:
@@ -127,7 +129,9 @@ components:
         mfa_active:
           type: boolean
         timezone:
-          $ref: "#/components/schemas/Timezone"
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/Timezone"
         terms_of_service_id:
           description: ID of accepted terms of service, if any. This field is not present
             if empty.
@@ -197,6 +201,7 @@ components:
           type: boolean
         policy_id:
           type: string
+          nullable: true
           description: >-
             The data retention policy to which this team has been assigned. If no such policy exists,
             or the caller does not have the `sysconsole_read_compliance_data_retention` permission,
@@ -309,7 +314,9 @@ components:
         mention_count:
           type: integer
         notify_props:
-          $ref: "#/components/schemas/ChannelNotifyProps"
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/ChannelNotifyProps"
         last_update_at:
           description: The time in milliseconds the channel member was last updated
           type: integer
@@ -339,9 +346,13 @@ components:
         - member
       properties:
         channel:
-          $ref: "#/components/schemas/Channel"
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/Channel"
         member:
-          $ref: "#/components/schemas/ChannelMember"
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/ChannelMember"
     ChannelWithTeamData:
       allOf:
         - $ref: "#/components/schemas/Channel"
@@ -350,6 +361,7 @@ components:
             - team_display_name
             - team_name
             - team_update_at
+            - policy_id
           properties:
             team_display_name:
               type: string
@@ -362,6 +374,7 @@ components:
               description: The time at which the team to which this channel belongs was last updated.
             policy_id:
               type: string
+              nullable: true
               description: >-
                 The data retention policy to which this team has been assigned. If no such policy exists,
                 or the caller does not have the `sysconsole_read_compliance_data_retention` permission, this field
@@ -596,16 +609,20 @@ components:
       properties:
         priority:
           type: string
+          nullable: true
           description: The priority label of a post, either empty, important, or urgent.
           enum:
             - ""
             - important
             - urgent
+            - null
         requested_ack:
           type: boolean
+          nullable: true
           description: Whether the post author has requested acknowledgements.
         persistent_notifications:
           type: boolean
+          nullable: true
           description: Whether persistent notifications are enabled for the post.
     PostInfo:
       type: object
@@ -4041,11 +4058,17 @@ components:
         contact_last_name:
           type: string
         billing_address:
-          $ref: "#/components/schemas/Address"
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/Address"
         company_address:
-          $ref: "#/components/schemas/Address"
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/Address"
         payment_method:
-          $ref: "#/components/schemas/PaymentMethod"
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/PaymentMethod"
     Subscription:
       type: object
       required:
@@ -4181,6 +4204,7 @@ components:
           type: string
         remote_id:
           type: string
+          nullable: true
         create_at:
           type: integer
           format: int64
@@ -4305,7 +4329,9 @@ components:
         name:
           type: string
         roles:
-          $ref: "#/components/schemas/ChannelModeratedRoles"
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/ChannelModeratedRoles"
     ChannelModeratedRoles:
       type: object
       required:
@@ -4313,9 +4339,13 @@ components:
         - members
       properties:
         guests:
-          $ref: "#/components/schemas/ChannelModeratedRole"
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/ChannelModeratedRole"
         members:
-          $ref: "#/components/schemas/ChannelModeratedRole"
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/ChannelModeratedRole"
     ChannelModeratedRole:
       type: object
       required:
@@ -4512,9 +4542,11 @@ components:
       properties:
         parent_id:
           type: string
+          nullable: true
           description: the id of the parent relation (table) entry.
         child_id:
           type: string
+          nullable: true
           description: the id of the child relation (table) entry.
     UserThread:
       description: a thread that user is following
@@ -4576,9 +4608,12 @@ components:
         - err
       properties:
         data:
-          $ref: "#/components/schemas/RelationalIntegrityCheckData"
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/RelationalIntegrityCheckData"
         err:
           type: string
+          nullable: true
           description: a string value set in case of error.
     UploadSession:
       description: an object containing information used to keep track of a file upload.
@@ -5213,7 +5248,9 @@ components:
           description: A unique identifier
           type: string
         allowed_ip_ranges:
-          $ref: "#/components/schemas/AllowedIPRange"
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/AllowedIPRange"
         state:
           description: The current state of the installation
           type: string
