@@ -458,10 +458,6 @@ export function applyTheme(theme: Theme) {
         changeCss('.app__body .btn-danger:active', 'background:' + blendColors(theme.errorTextColor, '#000000', 0.2));
     }
 
-    if (theme.mentionHighlightBg) {
-        changeCss('.app__body .post.post--highlight', 'background:' + changeOpacity(theme.mentionHighlightBg, 0.5));
-    }
-
     if (!theme.codeTheme) {
         theme.codeTheme = Constants.DEFAULT_CODE_THEME;
     }
