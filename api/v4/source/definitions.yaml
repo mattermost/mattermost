@@ -721,7 +721,6 @@ components:
     NotifyAdminToUpgradeRequest:
       type: object
       required:
-        - trial_notification
         - required_plan
         - required_feature
       properties:
@@ -905,10 +904,6 @@ components:
           description: User ID of the user who last updated this property field
     PropertyFieldPatch:
       type: object
-      required:
-        - name
-        - type
-        - attrs
       properties:
         name:
           type: string
@@ -1130,11 +1125,6 @@ components:
       required:
         - team_id
         - user_id
-        - roles
-        - delete_at
-        - scheme_user
-        - scheme_admin
-        - explicit_roles
       properties:
         team_id:
           description: The ID of the team this member belongs to.
@@ -1327,8 +1317,6 @@ components:
       required:
         - user_id
         - category
-        - name
-        - value
       properties:
         user_id:
           description: The ID of the user that owns this preference
@@ -1505,7 +1493,6 @@ components:
         - user_id
         - post_id
         - emoji_name
-        - create_at
       properties:
         user_id:
           description: The ID of the user that made this reaction
@@ -1588,22 +1575,9 @@ components:
     Command:
       type: object
       required:
-        - id
-        - token
-        - create_at
-        - update_at
-        - delete_at
-        - creator_id
         - team_id
         - trigger
         - method
-        - username
-        - icon_url
-        - auto_complete
-        - auto_complete_desc
-        - auto_complete_hint
-        - display_name
-        - description
         - url
       properties:
         id:
@@ -4031,13 +4005,6 @@ components:
           type: string
     Address:
       type: object
-      required:
-        - city
-        - country
-        - line1
-        - line2
-        - postal_code
-        - state
       properties:
         city:
           type: string
@@ -4366,9 +4333,6 @@ components:
           type: boolean
     ChannelModeratedRolesPatch:
       type: object
-      required:
-        - guests
-        - members
       properties:
         guests:
           type: boolean
@@ -4376,9 +4340,6 @@ components:
           type: boolean
     ChannelModerationPatch:
       type: object
-      required:
-        - name
-        - roles
       properties:
         name:
           type: string
@@ -4428,11 +4389,8 @@ components:
       description: User's sidebar category
       type: object
       required:
-        - id
         - user_id
         - team_id
-        - type
-        - display_name
       properties:
         id:
           type: string
