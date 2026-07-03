@@ -495,9 +495,17 @@ func (a *App) CreateWebhookPost(rctx request.CTX, userID string, channel *model.
 		return nil, err
 	}
 
+	triggerWebhooks := false
+	if a.Config().ServiceSettings.IncomingWebhooksTriggerOutgoingWebhooks != nil {
+		triggerWebhooks = *a.Config().ServiceSettings.IncomingWebhooksTriggerOutgoingWebhooks
+	}
+
 	var returnPost *model.Post
 	for i, split := range splits {
-		flags := model.CreatePostFlags{AllowMmBlocksActions: split.GetProp(model.PostPropsMmBlocksActions) != nil}
+		flags := model.CreatePostFlags{
+			AllowMmBlocksActions: split.GetProp(model.PostPropsMmBlocksActions) != nil,
+			TriggerWebhooks:      triggerWebhooks,
+		}
 		created, _, err := a.CreatePost(rctx, split, channel, flags)
 		if err != nil {
 			return nil, model.NewAppError("CreateWebhookPost", "api.post.create_webhook_post.creating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

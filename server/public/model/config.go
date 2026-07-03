@@ -383,6 +383,7 @@ type ServiceSettings struct {
 	DCRRedirectURIAllowlist                []string `access:"integrations_integration_management"`
 	EnableIncomingWebhooks                 *bool    `access:"integrations_integration_management"`
 	EnableOutgoingWebhooks                 *bool    `access:"integrations_integration_management"`
+	IncomingWebhooksTriggerOutgoingWebhooks *bool    `access:"integrations_integration_management"`
 	EnableOutgoingOAuthConnections         *bool    `access:"integrations_integration_management"`
 	EnableCommands                         *bool    `access:"integrations_integration_management"`
 	OutgoingIntegrationRequestsTimeout     *int64   `access:"integrations_integration_management"` // In seconds.
@@ -606,6 +607,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableOutgoingWebhooks == nil {
 		s.EnableOutgoingWebhooks = new(true)
+	}
+
+	if s.IncomingWebhooksTriggerOutgoingWebhooks == nil {
+		s.IncomingWebhooksTriggerOutgoingWebhooks = new(false)
 	}
 
 	if s.EnableOutgoingOAuthConnections == nil {
