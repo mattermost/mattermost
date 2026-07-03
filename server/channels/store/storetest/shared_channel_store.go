@@ -817,13 +817,15 @@ func testGetRemotesStatus(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	// Advance the sync cursors so the reported LastSyncAt reflects real activity.
 	// scr1's members sync is newer than its post sync, so LastSyncAt must track the
-	// members cursor. scr2's post sync is newer than its members sync, so LastSyncAt
-	// must track the post cursor. Together they exercise both sides of GREATEST with
-	// two non-zero operands.
+	// members cursor. scr2's post-create cursor is the newest of all three cursors,
+	// so LastSyncAt must track it. The post-create cursor advances independently of
+	// the post-update cursor (see GetPostsSinceForSync), so it can be the most recent
+	// sync activity and must be one of the GREATEST operands.
 	now := model.GetMillis()
 	scr1PostSyncAt := now - 5000
 	scr1MembersSyncAt := now - 1000
-	scr2PostSyncAt := now - 3000
+	scr2PostCreateAt := now - 500
+	scr2PostUpdateAt := now - 3000
 	scr2MembersSyncAt := now - 7000
 
 	err = ss.SharedChannel().UpdateRemoteCursor(scr1.Id, model.GetPostsSinceForSyncCursor{
@@ -835,7 +837,9 @@ func testGetRemotesStatus(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 
 	err = ss.SharedChannel().UpdateRemoteCursor(scr2.Id, model.GetPostsSinceForSyncCursor{
-		LastPostUpdateAt: scr2PostSyncAt,
+		LastPostCreateAt: scr2PostCreateAt,
+		LastPostCreateID: model.NewId(),
+		LastPostUpdateAt: scr2PostUpdateAt,
 		LastPostUpdateID: model.NewId(),
 	})
 	require.NoError(t, err)
@@ -870,8 +874,10 @@ func testGetRemotesStatus(t *testing.T, rctx request.CTX, ss store.Store) {
 		assert.Equal(t, rc2.DisplayName, s2.DisplayName)
 		assert.Equal(t, rc2.SiteURL, s2.SiteURL)
 		assert.False(t, s2.IsInviteAccepted)
-		// The post cursor is newer than the members cursor, so LastSyncAt tracks it.
-		assert.Equal(t, scr2PostSyncAt, s2.LastSyncAt)
+		// The post-create cursor is the newest cursor, so LastSyncAt tracks it. If the
+		// post-create cursor were excluded from GREATEST, this would report the older
+		// post-update cursor instead.
+		assert.Equal(t, scr2PostCreateAt, s2.LastSyncAt)
 	})
 
 	t.Run("Reports zero last sync when the remote has never synced", func(t *testing.T) {
