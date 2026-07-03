@@ -50,17 +50,6 @@
     }
 }
 
-@media screen and (max-width: 1440px) {
-    .Separator {
-        &.hovered--comment {
-            &::before,
-            &::after {
-                background: none !important;
-            }
-        }
-    }
-}
-
 @media print {
     .Separator .separator__hr {
         top: 1.7em;
