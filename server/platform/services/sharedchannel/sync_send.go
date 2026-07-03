@@ -484,7 +484,10 @@ func (scs *Service) selfHealOrphanedSharedChannelRemote(channelID, remoteID stri
 	}
 
 	if scr.DeleteAt != 0 {
-		scs.server.Log().Warn("Skipping sync for deleted remote cluster",
+		// The SCR row is already soft-deleted, so there is nothing to heal. A deleted
+		// remote no longer syncing is the expected steady state, so this is logged at
+		// debug rather than warn to avoid noise.
+		scs.server.Log().Debug("Skipping sync for deleted remote cluster",
 			mlog.String("channelId", channelID),
 			mlog.String("remoteId", remoteID),
 		)
