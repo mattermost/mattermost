@@ -37,13 +37,19 @@ func TestRemoteProviderDoStatus(t *testing.T) {
 		}
 	}
 
-	// Display names are chosen so the store's alphabetical ordering interleaves
-	// active and deleted entries (AAA active, BBB deleted, CCC active, DDD deleted).
-	// CreateAt values enforce a deterministic secondary ordering within each group.
-	seedRemote(t, "AAA Active", 100, false)
+	// The store returns rows ordered by DisplayName (see sqlRemoteClusterStore.GetAll),
+	// so without the fix the rows come back interleaved: AAA, BBB, CCC, DDD.
+	//
+	// CreateAt values are chosen so the fix's behavior is unambiguous:
+	//   - Active group: CCC (100) must sort before AAA (300), proving the CreateAt
+	//     ordering overrides the store's alphabetical order.
+	//   - Deleted group: BBB and DDD share a CreateAt, so the stable sort must
+	//     preserve their store order (BBB before DDD).
+	// Expected final order: CCC, AAA, BBB, DDD.
+	seedRemote(t, "AAA Active", 300, false)
 	seedRemote(t, "BBB Deleted", 200, true)
-	seedRemote(t, "CCC Active", 300, false)
-	seedRemote(t, "DDD Deleted", 400, true)
+	seedRemote(t, "CCC Active", 100, false)
+	seedRemote(t, "DDD Deleted", 200, true)
 
 	args := &model.CommandArgs{
 		T:         func(s string, args ...any) string { return s },
@@ -57,20 +63,43 @@ func TestRemoteProviderDoStatus(t *testing.T) {
 	require.NotNil(t, resp)
 	output := resp.Text
 
+	// separatorLine returns the Markdown table separator row (the line made up of
+	// alignment cells) from the command output.
+	separatorLine := func() string {
+		for _, line := range strings.Split(output, "\n") {
+			if strings.HasPrefix(strings.TrimSpace(line), "| :----") {
+				return line
+			}
+		}
+		return ""
+	}
+
 	t.Run("header separator has exactly nine cells matching the columns", func(t *testing.T) {
-		require.Contains(t, output, "| :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- |",
-			"expected a nine-cell separator row aligned with the nine column header")
-		require.NotContains(t, output, "| :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- | | :---- |",
-			"the malformed ten-cell separator with a spurious empty cell must not be present")
+		sep := separatorLine()
+		require.NotEmpty(t, sep, "expected a Markdown separator row in the output")
+		require.Equal(t, "| :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- |", sep,
+			"separator row must have exactly nine cells to match the nine-column header and data rows")
+		require.Equal(t, 9, strings.Count(sep, ":----"), "separator must contain exactly nine alignment cells")
 	})
 
-	t.Run("active connections are listed before deleted ones, ordered by CreateAt", func(t *testing.T) {
-		rowOrder := []string{"AAA Active", "CCC Active", "BBB Deleted", "DDD Deleted"}
+	t.Run("data rows have nine cells matching the header", func(t *testing.T) {
+		for _, line := range strings.Split(output, "\n") {
+			if strings.Contains(line, "AAA Active") {
+				// A row with 9 cells is delimited by 10 pipe characters.
+				require.Equal(t, 10, strings.Count(line, "|"), "each data row must have nine cells")
+				return
+			}
+		}
+		require.Fail(t, "expected to find the AAA Active data row in the output")
+	})
+
+	t.Run("active connections sort before deleted ones, by CreateAt then stably", func(t *testing.T) {
+		rowOrder := []string{"CCC Active", "AAA Active", "BBB Deleted", "DDD Deleted"}
 		lastIdx := -1
 		for _, name := range rowOrder {
 			idx := strings.Index(output, name)
 			require.GreaterOrEqual(t, idx, 0, "expected %q to appear in the status output", name)
-			require.Greater(t, idx, lastIdx, "expected %q to appear after the previous row; active entries must precede deleted ones", name)
+			require.Greater(t, idx, lastIdx, "expected %q to appear after the previous row", name)
 			lastIdx = idx
 		}
 	})
