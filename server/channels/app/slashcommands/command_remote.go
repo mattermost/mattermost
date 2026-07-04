@@ -222,7 +222,7 @@ func (rp *RemoteProvider) doRemove(a *app.App, args *model.CommandArgs, margs ma
 func (rp *RemoteProvider) doStatus(a *app.App, args *model.CommandArgs, _ map[string]string) *model.CommandResponse {
 	list, err := a.GetAllRemoteClusters(0, 999999, model.RemoteClusterQueryFilter{IncludeDeleted: true})
 	if err != nil {
-		response(args.T("api.command_remote.fetch_status.error", map[string]any{"Error": err.Error()}))
+		return response(args.T("api.command_remote.fetch_status.error", map[string]any{"Error": err.Error()}))
 	}
 
 	if len(list) == 0 {
