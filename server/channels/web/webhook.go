@@ -119,7 +119,7 @@ func commandWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if response != nil {
 		if vErr := response.IsValid(); vErr != nil {
-			c.Logger.Warn("Command response is not valid. Please update your integration to be compliant.", mlog.Err(appErr))
+			c.Logger.Warn("Command response is not valid. Please update your integration to be compliant.", mlog.Err(vErr))
 		}
 	}
 
