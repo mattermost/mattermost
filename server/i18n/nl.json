@@ -12586,5 +12586,9 @@
   {
     "id": "api.admin.test_azure.missing_azure_field",
     "translation": "Er ontbreekt een instelling voor Azure Blob Storage of deze is ongeldig."
+  },
+  {
+    "id": "shared_channel.system_message.no_longer_shared_unknown",
+    "translation": "Dit kanaal wordt niet langer gedeeld met een andere werkruimte."
   }
 ]
