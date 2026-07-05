@@ -113,9 +113,7 @@ components:
         locale:
           type: string
         notify_props:
-          nullable: true
-          allOf:
-            - $ref: "#/components/schemas/UserNotifyProps"
+          $ref: "#/components/schemas/UserNotifyProps"
         props:
           type: object
         last_password_update:
@@ -896,11 +894,10 @@ components:
           enum: [none, sysadmin, member]
         linked_field_id:
           type: string
-          nullable: true
           description: >
             The ID of the template field this field is linked to. When set, the field
             inherits its type and options from the source template. Can only be set at
-            creation time. Null when the field is not linked.
+            creation time. Absent when the field is not linked.
         create_at:
           type: integer
           format: int64
@@ -3952,19 +3949,14 @@ components:
       properties:
         boards:
           $ref: "#/components/schemas/BoardsLimits"
-          nullable: true
         files:
           $ref: "#/components/schemas/FilesLimits"
-          nullable: true
         integrations:
           $ref: "#/components/schemas/IntegrationsLimits"
-          nullable: true
         messages:
           $ref: "#/components/schemas/MessagesLimits"
-          nullable: true
         teams:
           $ref: "#/components/schemas/TeamsLimits"
-          nullable: true
     BoardsLimits:
       type: object
       properties:
