@@ -10273,7 +10273,7 @@
   },
   {
     "id": "app.import.validate_attachment_import_data.invalid_path.error",
-    "translation": "Failed to validate attachment import data. Invalid path: '\\{{.Path}}'\\"
+    "translation": "Failed to validate attachment import data. Invalid path: ''{{.Path}}''"
   },
   {
     "id": "app.import.validate_post_import_data.attachment.error",
@@ -10361,7 +10361,7 @@
   },
   {
     "id": "app.group.user_not_found",
-    "translation": "Error updating group. User with username '\\{{.Username}}'\\ could not be found."
+    "translation": "Error updating group. User with username ''{{.Username}}'' could not be found."
   },
   {
     "id": "app.pap.assign_access_control_policy_to_channels.app_error",
@@ -11814,5 +11814,9 @@
   {
     "id": "api.command_mobile_logs.user_not_found.app_error",
     "translation": "Could not find user \"{{.Username}}\"."
+  },
+  {
+    "id": "api.command_mobile_logs.you",
+    "translation": "you"
   }
 ]
