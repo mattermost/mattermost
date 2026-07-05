@@ -277,7 +277,7 @@
   },
   {
     "id": "model.user.is_valid.username.app_error",
-    "translation": "Username must begin with a letter, and contain between 3 to 22 lowercase characters made up of numbers, letters, and the symbols '.', '-', and '_'."
+    "translation": "Username must begin with a letter, and contain between 3 to 22 lowercase characters made up of numbers, letters and the symbols '.', '-' and '_'."
   },
   {
     "id": "model.user.is_valid.update_at.app_error",
@@ -289,7 +289,7 @@
   },
   {
     "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter, at least one number, and at least one symbol (e.g. '~!@#$%^&*()')."
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter, at least one number and at least one symbol (e.g. '~!@#$%^&*()')."
   },
   {
     "id": "model.user.is_valid.pwd_uppercase_number.app_error",
@@ -313,15 +313,15 @@
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter, and at least one symbol (e.g. '~!@#$%^&*()')."
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter and at least one symbol (e.g. '~!@#$%^&*()')."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter, at least one number, and at least one symbol (e.g. '~!@#$%^&*()')."
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter, at least one number and at least one symbol (e.g. '~!@#$%^&*()')."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter, and at least one number."
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one uppercase letter and at least one number."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
@@ -333,7 +333,7 @@
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one number, and at least one symbol (e.g. '~!@#$%^&*()')."
+    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter, at least one number and at least one symbol (e.g. '~!@#$%^&*()')."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_number.app_error",
@@ -6367,7 +6367,7 @@
   },
   {
     "id": "api.command_mute.desc",
-    "translation": "Turns off desktop, email, and push notifications for the current channel or the [channel] specified."
+    "translation": "Turns off desktop, email and push notifications for the current channel or the [channel] specified."
   },
   {
     "id": "api.command_msg.permission.app_error",
@@ -7259,7 +7259,7 @@
   },
   {
     "id": "api.command.execute_command.not_found.app_error",
-    "translation": "Command with a trigger of '{{.Trigger}}' not found. To send a message beginning with \"/\", try adding an empty space at the beginning of the message."
+    "translation": "Command with a trigger of '{{.Trigger}}' not found. To send a message beginning with '/', try adding an empty space at the beginning of the message."
   },
   {
     "id": "api.command.execute_command.format.app_error",
@@ -7315,7 +7315,7 @@
   },
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
-    "translation": "The provided role is managed by a Scheme, and therefore cannot be applied directly to a Team Member."
+    "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Team Member."
   },
   {
     "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
@@ -7335,7 +7335,7 @@
   },
   {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
-    "translation": "The provided role is managed by a Scheme, and therefore cannot be applied directly to a Channel Member."
+    "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Channel Member."
   },
   {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
@@ -7503,7 +7503,7 @@
   },
   {
     "id": "api.channel.create_group.bad_size.app_error",
-    "translation": "Group message channels must contain at least 3, and no more than 8 users."
+    "translation": "Group message channels must contain at least 3 and no more than 8 users."
   },
   {
     "id": "api.channel.create_direct_channel.invalid_user.app_error",
@@ -8323,7 +8323,7 @@
   },
   {
     "id": "api.command_help.success",
-    "translation": "Mattermost is an open-source platform for secure communication, collaboration, and orchestration of work across tools and teams.\nMattermost contains two key tools:\n\n**Channels** - Stay connected with your team via 1:1 and group messaging.\n**[Playbooks](/playbooks)** - Build and configure repeatable processes to achieve specific and predictable outcomes.\n\n[View documentation and guides]({{.HelpLink}})"
+    "translation": "Mattermost is an open-source platform for secure communication, collaboration and orchestration of work across tools and teams.\nMattermost contains two key tools:\n\n**Channels** - Stay connected with your team via 1:1 and group messaging.\n**[Playbooks](/playbooks)** - Build and configure repeatable processes to achieve specific and predictable outcomes.\n\n[View documentation and guides]({{.HelpLink}})"
   },
   {
     "id": "app.notify_admin.send_notification_post.app_error",
@@ -8751,7 +8751,7 @@
   },
   {
     "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
-    "translation": "You are not allowed to update the name, display_name, and purpose of direct or group messages."
+    "translation": "You are not allowed to update the name, display_name and purpose of direct or group messages."
   },
   {
     "id": "api.command_invite.channel_constrained_user_denied",
@@ -10273,7 +10273,7 @@
   },
   {
     "id": "app.import.validate_attachment_import_data.invalid_path.error",
-    "translation": "Failed to validate attachment import data. Invalid path: ''{{.Path}}''"
+    "translation": "Failed to validate attachment import data. Invalid path: '{{.Path}}'"
   },
   {
     "id": "app.import.validate_post_import_data.attachment.error",
@@ -10285,7 +10285,7 @@
   },
   {
     "id": "app.import.validate_emoji_import_data.invalid_image_path.error",
-    "translation": "Import emoji image field has an invalid path: ''{{.Path}}''"
+    "translation": "Import emoji image field has an invalid path: '{{.Path}}'"
   },
   {
     "id": "app.import.validate_reply_import_data.attachment.error",
@@ -10293,7 +10293,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.invalid_image_path.error",
-    "translation": "User profile image path is invalid: ''{{.Path}}''"
+    "translation": "User profile image path is invalid: '{{.Path}}'"
   },
   {
     "id": "ent.access_control.job_data_conversion.app_error",
@@ -10305,7 +10305,7 @@
   },
   {
     "id": "model.config.is_valid.directory_whitespace.app_error",
-    "translation": "Leading or trailing whitespace detected for {{.Setting}}. Found ''{{.Value}}''."
+    "translation": "Leading or trailing whitespace detected for {{.Setting}}. Found '{{.Value}}'."
   },
   {
     "id": "license_error.feature_unavailable.specific",
@@ -10361,7 +10361,7 @@
   },
   {
     "id": "app.group.user_not_found",
-    "translation": "Error updating group. User with username ''{{.Username}}'' could not be found."
+    "translation": "Error updating group. User with username '{{.Username}}' could not be found."
   },
   {
     "id": "app.pap.assign_access_control_policy_to_channels.app_error",
@@ -10541,11 +10541,11 @@
   },
   {
     "id": "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error",
-    "translation": "Common reviewers or additional reviewers must be set when \"Same reviewers for all teams\" is enabled."
+    "translation": "Common reviewers or additional reviewers must be set when 'Same reviewers for all teams' is enabled."
   },
   {
     "id": "model.config.is_valid.content_flagging.team_reviewers_not_set.app_error",
-    "translation": "Team reviewers or additional reviewers must be set when setting \"Enabled\" for a team."
+    "translation": "Team reviewers or additional reviewers must be set when setting 'Enabled' for a team."
   },
   {
     "id": "model.config.is_valid.notification_settings.invalid_target",
@@ -11813,7 +11813,7 @@
   },
   {
     "id": "api.command_mobile_logs.user_not_found.app_error",
-    "translation": "Could not find user \"{{.Username}}\"."
+    "translation": "Could not find user '{{.Username}}'."
   },
   {
     "id": "api.command_mobile_logs.you",
@@ -11853,7 +11853,7 @@
   },
   {
     "id": "api.data_spillage.error.post_not_in_progress",
-    "translation": "The quarantined post must be in ''pending'' or ''assigned'' status to be kept or removed."
+    "translation": "The quarantined post must be in 'pending' or 'assigned' status to be kept or removed."
   },
   {
     "id": "api.data_spillage.error.reason_invalid",
@@ -11874,5 +11874,29 @@
   {
     "id": "api.data_spillage.report.stat.app_error",
     "translation": "Failed to read the flagged post report file information."
+  },
+  {
+    "id": "shared_channel.system_message.no_longer_shared_unknown",
+    "translation": "This channel is no longer shared with another workspace."
+  },
+  {
+    "id": "app.session_attributes.field_immutable.app_error",
+    "translation": "Session attribute fields cannot be created or deleted and only their enabled, ttl_seconds and grace_period_seconds may be changed."
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.link_url.app_error",
+    "translation": "Board bookmark link URL must be a site-relative path starting with /, must not contain :// and must not exceed the maximum length."
+  },
+  {
+    "id": "api.file.test_connection_unsupported_driver.app_error",
+    "translation": "Unsupported file storage driver '{{.Driver}}'. Supported values are 'local', 'amazons3' and 'azureblob'."
+  },
+  {
+    "id": "app.data_spillage.report.detail.thread_data_deleted",
+    "translation": "Threads, reactions and associated data deleted."
+  },
+  {
+    "id": "app.data_spillage.report.step.thread_data",
+    "translation": "Thread, replies and reactions"
   }
 ]
