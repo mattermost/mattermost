@@ -723,6 +723,7 @@ components:
           type: string
         props:
           type: object
+          nullable: true
           additionalProperties: true
         file_ids:
           type: array
@@ -801,6 +802,7 @@ components:
         payload:
           description: Raw message payload.
           type: object
+          nullable: true
           additionalProperties: true
     RemoteClusterFrame:
       type: object
@@ -956,6 +958,7 @@ components:
           type: string
         value:
           type: string
+          nullable: true
         create_at:
           type: integer
           format: int64
@@ -1358,6 +1361,7 @@ components:
         users:
           description: A list of users that are the main result of the query
           type: array
+          nullable: true
           items:
             $ref: "#/components/schemas/User"
         out_of_channel:
@@ -1385,11 +1389,13 @@ components:
         in_channel:
           description: A list of user objects in the channel
           type: array
+          nullable: true
           items:
             $ref: "#/components/schemas/User"
         out_of_channel:
           description: A list of user objects not in the channel
           type: array
+          nullable: true
           items:
             $ref: "#/components/schemas/User"
     IncomingWebhook:
@@ -1483,6 +1489,7 @@ components:
         trigger_words:
           description: List of words for the webhook to trigger on
           type: array
+          nullable: true
           items:
             type: string
         trigger_when:
@@ -1492,6 +1499,7 @@ components:
         callback_urls:
           description: The URLs to POST the payloads to when the webhook is triggered
           type: array
+          nullable: true
           items:
             type: string
         content_type:
@@ -1993,6 +2001,7 @@ components:
           description: Optional error message if test failed
         sample_results:
           type: array
+          nullable: true
           description: Array of sample LDAP entries found
           items:
             type: object
@@ -3438,6 +3447,7 @@ components:
       properties:
         policies:
           type: array
+          nullable: true
           items:
             $ref: "#/components/schemas/DataRetentionPolicyForTeam"
           description: The list of team policies.
@@ -3461,6 +3471,7 @@ components:
       properties:
         policies:
           type: array
+          nullable: true
           items:
             $ref: "#/components/schemas/DataRetentionPolicyForChannel"
           description: The list of channel policies.
@@ -3917,6 +3928,7 @@ components:
           type: string
         add_ons:
           type: array
+          nullable: true
           items:
             $ref: "#/components/schemas/AddOn"
     AddOn:
@@ -4090,6 +4102,7 @@ components:
           type: string
         add_ons:
           type: array
+          nullable: true
           items:
             type: string
         start_at:
@@ -4177,6 +4190,7 @@ components:
           type: string
         metadata:
           type: array
+          nullable: true
           items:
             type: string
     Group:
@@ -4598,6 +4612,7 @@ components:
         records:
           description: the list of orphaned records found.
           type: array
+          nullable: true
           items:
             $ref: "#/components/schemas/OrphanedRecord"
     IntegrityCheckResult:
@@ -5110,6 +5125,7 @@ components:
           description: Service ID targeted by the bridge completion request
         messages:
           type: array
+          nullable: true
           items:
             $ref: "#/components/schemas/AIBridgeTestHelperMessage"
           description: Bridge messages sent for the recorded request
@@ -5149,6 +5165,7 @@ components:
           description: Whether bridge request recording is currently enabled
         recorded_requests:
           type: array
+          nullable: true
           description: Recorded bridge requests captured while record_requests was enabled
           items:
             $ref: "#/components/schemas/AIBridgeTestHelperRecordedRequest"
@@ -5382,6 +5399,7 @@ components:
           type: string
         props:
           type: object
+          nullable: true
         file_ids:
           type: array
           items:
