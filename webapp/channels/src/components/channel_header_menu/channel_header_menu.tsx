@@ -40,7 +40,6 @@ import MenuItemOpenInNewWindow from './menu_items/open_in_new_window';
 
 import ChannelHeaderTitleDirect from '../channel_header/channel_header_title_direct';
 import ChannelHeaderTitleGroup from '../channel_header/channel_header_title_group';
-import {usePluginVisibilityInSharedChannel} from '../common/hooks/usePluginVisibilityInSharedChannel';
 
 type Props = {
     dmUser?: UserProfile;
@@ -61,7 +60,6 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
     const isLicensedForLDAPGroups = useSelector(getLicense).LDAPGroups === 'true';
     const pluginMenuItems = useSelector(getChannelHeaderMenuPluginComponents);
     const isChannelBookmarksEnabled = useSelector(getIsChannelBookmarksEnabled);
-    const pluginItemsVisible = usePluginVisibilityInSharedChannel(channel?.id);
     const isChannelAutotranslated = useSelector((state: GlobalState) => (channel?.id ? isChannelAutotranslatedSelector(state, channel.id) : false));
 
     const isReadonly = false;
@@ -94,26 +92,22 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
         channelTitle = <ChannelHeaderTitleGroup gmMembers={gmMembers}/>;
     }
 
-    let pluginItems: JSX.Element[] = [];
+    const pluginItems = pluginMenuItems.map((item) => {
+        const handlePluginItemClick = () => {
+            if (item.action) {
+                item.action(channel.id);
+            }
+        };
 
-    if (pluginItemsVisible) {
-        pluginItems = pluginMenuItems.map((item) => {
-            const handlePluginItemClick = () => {
-                if (item.action) {
-                    item.action(channel.id);
-                }
-            };
-
-            return (
-                <Menu.Item
-                    id={item.id + '_pluginmenuitem'}
-                    key={item.id + '_pluginmenuitem'}
-                    onClick={handlePluginItemClick}
-                    labels={<span>{item.text}</span>}
-                />
-            );
-        });
-    }
+        return (
+            <Menu.Item
+                id={item.id + '_pluginmenuitem'}
+                key={item.id + '_pluginmenuitem'}
+                onClick={handlePluginItemClick}
+                labels={<span>{item.text}</span>}
+            />
+        );
+    });
 
     return (
         <Menu.Container

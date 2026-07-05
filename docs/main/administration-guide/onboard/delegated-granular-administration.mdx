@@ -1,0 +1,300 @@
+---
+title: "Delegated granular administration"
+draft: true
+---
+<PlanAvailability slug="ent-plus" />
+
+Mattermost supports the creation and customization of system administration roles with specific granular permissions and System Console access. This allows senior administrators in large organizations to delegate and de-centralize specialized administration and administrative tasks with specific admin roles.
+
+These admin roles permit granular access to specific areas of the System Console and related API endpoints. These roles enable users to perform certain administrative tasks without requiring access to all system administration areas. These system roles never supersede the user's original role or the user's permissions configured by the Permissions scheme.
+
+<Warning>
+
+Even when a role is set to **No Access** or **Read Only** for a System Console page, granting **Can Edit** on any System Console page enables access to the underlying configuration endpoint (`PUT /api/v4/config/patch`). This means a user with write access in one area can modify configuration values across all areas. Administrators should assign **Can Edit** permissions with caution.
+
+</Warning>
+
+## Available roles
+
+A system admin can configure the following delegated granular administration roles in the System Console. Each role has a set of default permissions, which can be adjusted as needed.
+
+- **System Manager:** This role can be configured to have read/write permissions in different management areas.
+- **User Manager:** This role can be configured to have read/write to all the user management areas and to authentication
+- **Custom Group Manager** This role has permissions to [create, edit, restore, and delete custom user groups](/end-user-guide/collaborate/organize-using-custom-user-groups). This role can be used to assign individual users the ability to manage custom groups when **Custom Groups** permissions are removed for **All Members** via **System Console \> Permissions \> Edit Scheme \> Custom Groups**.
+- **Shared Channel Manager** This role has the `manage_shared_channels` permission, allowing assigned users to share and unshare channels with existing connections to remote servers.
+- **Viewer:** The Viewer role can view all areas of the System Console, and can be configured with write access where needed.
+
+When a user is assigned a system role, they have role-based access to the System Console and the underlying API endpoints. Each role has a different set of default permissions, and what users can access or view depends on the role they've been assigned.
+
+The table below lists the default permissions for each role. Admins should carefully review and configure these settings to align with their organization's needs. Particular caution should be exercised with Permissions write access, as it enables modifications to the permissions of any role, except for the delegated granular administrator roles.
+
+<table style={{width: '73%'}}>
+<colgroup>
+<col style={{width: '19%'}} />
+<col style={{width: '20%'}} />
+<col style={{width: '33%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><strong>System role</strong></td>
+<td><strong>Read/Write access</strong></td>
+<td><strong>Read Only access</strong></td>
+</tr>
+<tr>
+<td>System Manager</td>
+<td><ul><li>User Management<ul><li>Groups</li><li>Teams</li><li>Channels</li><li>Permissions</li></ul></li><li>Environment</li><li>Site Configuration</li><li>Integrations</li></ul></td>
+<td><ul><li>Edition/License</li><li>Reporting</li><li>Authentication</li><li>Plugins</li></ul></td>
+</tr>
+<tr>
+<td>User Manager</td>
+<td><ul><li>User Management<ul><li>Groups</li><li>Teams</li><li>Channels</li></ul></li></ul></td>
+<td><ul><li>(User Management) Permissions</li><li>Authentication</li></ul></td>
+</tr>
+<tr>
+<td>Custom Group Manager</td>
+<td>Custom User Groups</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Shared Channel Manager</td>
+<td>Shared Channels</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Viewer</td>
+<td>N/A</td>
+<td><ul><li>All pages within the System Console</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+## Assign admin roles
+
+There are two ways to assign roles:
+
+1.  In the System Console under **User Management \> Delegated Granular Administration**.
+2.  Using the [mmctl tool](/administration-guide/manage/mmctl-command-line-tool). This can be done either locally or remotely.
+
+<table style={{width: '99%'}}>
+<colgroup>
+<col style={{width: '18%'}} />
+<col style={{width: '47%'}} />
+<col style={{width: '30%'}} />
+<col style={{width: '2%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><strong>You want to</strong></td>
+<td><strong>Using the System Console</strong></td>
+<td><strong>Using mmctl</strong></td>
+<td></td>
+</tr>
+<tr>
+<td>Assign roles</td>
+<td>Go to <strong>System Console &gt; User Management &gt; Delegated Granular Administration &gt; Assigned People</strong></td>
+<td><code>mmctl permissions role assign [role_name] [username...]</code></td>
+<td></td>
+</tr>
+<tr>
+<td>Grant the System Manager role to a user</td>
+<td><ol type="1"><li>Go to <strong>System Console &gt; User Management &gt; Delegated Granular Administration</strong>, then select the <strong>System Manager</strong> role.</li><li>Under <strong>Assigned People</strong>, select <strong>Add People</strong>.</li><li>Search for and select the user name, then select <strong>Add</strong> to grant the System Manager role to that user.</li></ol></td>
+<td><code>mmctl permissions role assign system_manager user-name</code></td>
+<td></td>
+</tr>
+<tr>
+<td>Grant the User Manager role to two users</td>
+<td><ol type="1"><li>Go to <strong>System Console &gt; User Management &gt; Delegated Granular Administration</strong>, then select the <strong>User Manager</strong> role.</li><li>Under <strong>Assigned People</strong>, select <strong>Add People</strong>.</li><li>Search for and select the two users, then select <strong>Add</strong> to grant the User Manager role to those users.</li></ol></td>
+<td><code>mmctl permissions role assign system_user_manager user-name1 user-name2</code></td>
+<td></td>
+</tr>
+<tr>
+<td>Grant the Viewer role to a user</td>
+<td><ol type="1"><li>Go to <strong>System Console &gt; User Management &gt; Delegated Granular Administration</strong>, then select the <strong>Viewer</strong> role.</li><li>Under <strong>Assigned People</strong>, select <strong>Add People</strong>.</li><li>Search for and select the user name, then select <strong>Add</strong> to grant the Viewer role to that user.</li></ol></td>
+<td><code>mmctl permissions role assign system_read_only_admin user-name</code></td>
+<td></td>
+</tr>
+<tr>
+<td>Grant the Custom Group Manager role to two users</td>
+<td><ol type="1"><li>Go to <strong>System Console &gt; User Management &gt; Delegated Granular Administration</strong>, then select the <strong>Custom Group Manager</strong> role.</li><li>Under <strong>Assigned People</strong>, select <strong>Add People</strong>.</li><li>Search for and select the two users, then select <strong>Add</strong> to grant the Custom Group Manager role to those users.</li><li>All users have the ability to create custom user groups by default. When you assign users to the Custom Group Manager role, you must manually remove these permissions from all users by going to <strong>System Console &gt; User Management &gt; Permissions &gt; Edit Scheme</strong>. Under <strong>All Members</strong>, clear all of the <strong>Custom Groups</strong> permissions, including <strong>Create</strong>, <strong>Manage members</strong>, <strong>Edit</strong>, and <strong>Delete</strong>.</li></ol></td>
+<td><code>mmctl permissions role assign system_custom_group_admin user-name1 user-name2</code></td>
+<td></td>
+</tr>
+<tr>
+<td>Grant the Shared Channel Manager role to a user</td>
+<td><ol type="1"><li>Go to <strong>System Console &gt; User Management &gt; Delegated Granular Administration</strong>, then select the <strong>Shared Channel Manager</strong> role.</li><li>Under <strong>Assigned People</strong>, select <strong>Add People</strong>.</li><li>Search for and select the user name, then select <strong>Add</strong> to grant the Shared Channel Manager role to that user.</li></ol></td>
+<td colspan="2"><dl><dt><code>mmctl permissions role assign system_shared_channel_manager user-name</code></dt><dd><h3 id="section">|</h3></dd></dl></td>
+</tr>
+<tr>
+<td>Remove the System Manager role from a single user</td>
+<td><ol type="1"><li>Go to <strong>System Console &gt; User Management &gt; Delegated Granular Administration</strong>, then select the <strong>System Manager</strong> role.</li><li>Under <strong>Assigned People</strong>, search for the user, then select <strong>Remove</strong>.</li></ol></td>
+<td><code>mmctl permissions role unassign system_manager bob-smith</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+
+## Edit privileges of admin roles (advanced)
+
+System admins can grant read/write access to other areas of the System Console, as well as remove read/write access (including default access), for all system roles except the Custom Group Manager and Shared Channel Manager roles.
+
+There are two ways to assign roles:
+
+1.  In the System Console under **User Management \> Delegated Granular Administration**.
+2.  Using the [mmctl tool](/administration-guide/manage/mmctl-command-line-tool). This can be done either locally or remotely.
+
+<table style={{width: '100%'}}>
+<colgroup>
+<col style={{width: '18%'}} />
+<col style={{width: '49%'}} />
+<col style={{width: '31%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><strong>You want to</strong></td>
+<td><strong>Using the System Console</strong></td>
+<td><strong>Using mmctl</strong></td>
+</tr>
+<tr>
+<td>Edit role privileges</td>
+<td><ol type="1"><li>Go to <strong>System Console &gt; User Management &gt; Delegated Granular Administration</strong>, then select the <strong>System Manager</strong>, <strong>User Manager</strong>, or <strong>Viewer</strong> role.</li><li>For each set of privileges, select the access level as <strong>Can edit</strong>, <strong>Read only</strong>, or <strong>No access</strong>.</li></ol><div class="note"><p>If you set privilege subsections to different access levels, then the privilege access level displays as <strong>Mixed Access</strong>.</p></div></td>
+<td><code>mmctl permissions add [role_name] [permission...]</code> <code>mmctl permissions reset system_read_only_admin</code></td>
+</tr>
+<tr>
+<td>Grant write access to the Authentication section of the System Console for all users with the User Manager role</td>
+<td><ol type="1"><li>Go to <strong>System Console &gt; User Management &gt; Delegated Granular Administration</strong>, then select the <strong>User Manager</strong> role.</li><li>Under <strong>Privileges &gt; Authentication</strong> select <strong>Can edit</strong>, then select <strong>Save</strong>.</li></ol></td>
+<td><code>mmctl permissions add system_user_manager sysconsole_write_authentication</code></td>
+</tr>
+<tr>
+<td>Grant read-only access to the Authentication section of the System Console for all users with the User Manager role</td>
+<td><ol type="1"><li>Go to <strong>System Console &gt; User Management &gt; Delegated Granular Administration</strong>. then select the <strong>User Manager</strong> role.</li><li>Under <strong>Privileges &gt; Authentication</strong> select <strong>Read only</strong>, then select <strong>Save</strong>.</li></ol></td>
+<td><code>mmctl permissions remove system_user_manager sysconsole_read_authentication</code></td>
+</tr>
+<tr>
+<td>Remove write access to the Authentication section of the System Console for all users with the User Manager role</td>
+<td><ol type="1"><li>Go to <strong>System Console &gt; User Management &gt; Delegated Granular Administration</strong>, then select the <strong>User Manager</strong> role.</li><li>Under <strong>Privileges &gt; Authentication</strong> select <strong>No access</strong>, then choose <strong>Save</strong>.</li></ol></td>
+<td><code>mmctl permissions remove system_user_manager sysconsole_write_authentication</code></td>
+</tr>
+<tr>
+<td>Reset a role to its default set of permissions</td>
+<td>This is completed using the mmctl tool only.</td>
+<td><code>mmctl permissions reset [role_name]</code> For example, to reset the permissions of the <code>system_read_only_admin</code> role: <code>mmctl permissions reset system_read_only_admin</code></td>
+</tr>
+</tbody>
+</table>
+
+## Admin roles and privileges
+
+#### Roles
+
+- `system_manager`
+- `system_user_manager`
+- `system_custom_group_admin`
+- `system_shared_channel_manager`
+- `system_read_only_admin`
+
+#### Privileges
+
+<table style={{width: '83%'}}>
+<colgroup>
+<col style={{width: '20%'}} />
+<col style={{width: '62%'}} />
+</colgroup>
+<thead>
+<tr>
+<th>System Console section</th>
+<th>Permissions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>About</td>
+<td><blockquote><ul><li>PERMISSION_SYSCONSOLE_READ_ABOUT_EDITION_AND_LICENSE</li><li>PERMISSION_SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE</li></ul></blockquote></td>
+</tr>
+<tr>
+<td>Reporting</td>
+<td><dl><dt><strong>Site Statistics</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_REPORTING_SITE_STATISTICS</li><li>PERMISSION_SYSCONSOLE_WRITE_REPORTING_SITE_STATISTICS</li></ul></dd><dt><strong>Team Statistics</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_REPORTING_TEAM_STATISTICS</li><li>PERMISSION_SYSCONSOLE_WRITE_REPORTING_TEAM_STATISTICS</li></ul></dd><dt><strong>Server Logs</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_REPORTING_SERVER_LOGS</li><li>PERMISSION_SYSCONSOLE_WRITE_REPORTING_SERVER_LOGS</li></ul></dd></dl></td>
+</tr>
+<tr>
+<td>User Management</td>
+<td><dl><dt><strong>Users</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS</li><li>PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_USERS</li></ul></dd><dt><strong>Groups</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS</li><li>PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_GROUPS</li></ul></dd><dt><strong>Teams</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_TEAMS</li><li>PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_TEAMS</li></ul></dd><dt><strong>Channels</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_CHANNELS</li><li>PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_CHANNELS</li></ul></dd><dt><strong>Permissions</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_PERMISSIONS</li><li>PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS</li></ul></dd></dl></td>
+</tr>
+<tr>
+<td>Environment</td>
+<td><dl><dt><strong>Web Server</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_WEB_SERVER</li><li>PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_WEB_SERVER</li></ul></dd><dt><strong>Database</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_DATABASE</li><li>PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_DATABASE</li></ul></dd><dt><strong>Elasticsearch</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_ELASTICSEARCH</li><li>PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_ELASTICSEARCH</li></ul></dd><dt><strong>File Storage</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_FILE_STORAGE</li><li>PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_FILE_STORAGE</li></ul></dd><dt><strong>Image Proxy</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_IMAGE_PROXY</li><li>PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_IMAGE_PROXY</li></ul></dd><dt><strong>SMTP</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_SMTP</li><li>PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_SMTP</li></ul></dd><dt><strong>Push Notification Server</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_PUSH_NOTIFICATION_SERVER</li><li>PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_PUSH_NOTIFICATION_SERVER</li></ul></dd><dt><strong>High Availability</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_HIGH_AVAILABILITY</li><li>PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_HIGH_AVAILABILITY</li></ul></dd><dt><strong>Rate Limiting</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_RATE_LIMITING</li><li>PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_RATE_LIMITING</li></ul></dd><dt><strong>Logging</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_LOGGING</li><li>PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_LOGGING</li></ul></dd><dt><strong>Session Lengths</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_SESSION_LENGTHS</li><li>PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_SESSION_LENGTHS</li></ul></dd><dt><strong>Performance Monitoring</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_PERFORMANCE_MONITORING</li><li>PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_PERFORMANCE_MONITORING</li></ul></dd><dt><strong>Developer</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_ENVIRONMENT_DEVELOPER</li><li>PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_DEVELOPER</li></ul></dd></dl></td>
+</tr>
+<tr>
+<td>Site Configuration</td>
+<td><dl><dt><strong>Customization</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_SITE_CUSTOMIZATION</li><li>PERMISSION_SYSCONSOLE_WRITE_SITE_CUSTOMIZATION</li></ul></dd><dt><strong>Localization</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_SITE_LOCALIZATION</li><li>PERMISSION_SYSCONSOLE_WRITE_SITE_LOCALIZATION</li></ul></dd><dt><strong>Users and Teams</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_SITE_USERS_AND_TEAMS</li><li>PERMISSION_SYSCONSOLE_WRITE_SITE_USERS_AND_TEAMS</li></ul></dd><dt><strong>Notifications</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_SITE_NOTIFICATIONS</li><li>PERMISSION_SYSCONSOLE_WRITE_SITE_NOTIFICATIONS</li></ul></dd><dt><strong>Announcement Banner</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_SITE_ANNOUNCEMENT_BANNER</li><li>PERMISSION_SYSCONSOLE_WRITE_SITE_ANNOUNCEMENT_BANNER</li></ul></dd><dt><strong>Emoji</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_SITE_EMOJI</li><li>PERMISSION_SYSCONSOLE_WRITE_SITE_EMOJI</li></ul></dd><dt><strong>Posts</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_SITE_POSTS</li><li>PERMISSION_SYSCONSOLE_WRITE_SITE_POSTS</li></ul></dd><dt><strong>File Sharing and Downloads</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_SITE_FILE_SHARING_AND_DOWNLOADS</li><li>PERMISSION_SYSCONSOLE_WRITE_SITE_FILE_SHARING_AND_DOWNLOADS</li></ul></dd><dt><strong>Public Links</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_SITE_PUBLIC_LINKS</li><li>PERMISSION_SYSCONSOLE_WRITE_SITE_PUBLIC_LINKS</li></ul></dd><dt><strong>Notices</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_SITE_NOTICES</li><li>PERMISSION_SYSCONSOLE_WRITE_SITE_NOTICES</li></ul></dd></dl></td>
+</tr>
+<tr>
+<td>Authentication</td>
+<td><dl><dt><strong>Signup</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_SIGNUP</li><li>PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_SIGNUP</li></ul></dd><dt><strong>Email</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_EMAIL</li><li>PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_EMAIL</li></ul></dd><dt><strong>Password</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_PASSWORD</li><li>PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_PASSWORD</li></ul></dd><dt><strong>MFA</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_MFA</li><li>PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_MFA</li></ul></dd><dt><strong>AD/LDAP</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_MFA</li><li>PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_MFA</li></ul></dd><dt><strong>SAML 2.0</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_SAML</li><li>PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_SAML</li></ul></dd><dt><strong>OpenID Connect</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_OPENID</li><li>PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_OPENID</li></ul></dd><dt><strong>Guest Access</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_AUTHENTICATION_GUEST_ACCESS</li><li>PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION_GUEST_ACCESS</li></ul></dd></dl></td>
+</tr>
+<tr>
+<td>Plugin</td>
+<td><blockquote><ul><li>PERMISSION_SYSCONSOLE_READ_PLUGINS</li><li>PERMISSION_SYSCONSOLE_WRITE_PLUGINS</li></ul></blockquote></td>
+</tr>
+<tr>
+<td>Integrations</td>
+<td><dl><dt><strong>Integration Management</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_INTEGRATIONS_INTEGRATION_MANAGEMENT</li><li>PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS_INTEGRATION_MANAGEMENT</li></ul></dd><dt><strong>Bot Accounts</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_INTEGRATIONS_BOT_ACCOUNTS</li><li>PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS_BOT_ACCOUNTS</li></ul></dd><dt><strong>GIF (Beta)</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_INTEGRATIONS_GIF</li><li>PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS_GIF</li></ul></dd><dt><strong>CORS</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_INTEGRATIONS_CORS</li><li>PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS_CORS</li></ul></dd></dl></td>
+</tr>
+<tr>
+<td>Compliance</td>
+<td><dl><dt><strong>Data Retention Policy</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_COMPLIANCE_DATA_RETENTION_POLICY</li><li>PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_DATA_RETENTION_POLICY</li></ul></dd><dt><strong>Compliance Export</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_COMPLIANCE_COMPLIANCE_EXPORT</li><li>PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_COMPLIANCE_EXPORT</li></ul></dd><dt><strong>Compliance Monitoring</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_COMPLIANCE_COMPLIANCE_MONITORING</li><li>PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_COMPLIANCE_MONITORING</li></ul></dd><dt><strong>Custom Terms of Service</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_COMPLIANCE_CUSTOM_TERMS_OF_SERVICE</li><li>PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE_CUSTOM_TERMS_OF_SERVICE</li></ul></dd></dl></td>
+</tr>
+<tr>
+<td>Experimental</td>
+<td><dl><dt><strong>Features</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL_FEATURES</li><li>PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_FEATURES</li></ul></dd><dt><strong>Feature Flags</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL_FEATURE_FLAGS</li><li>PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_FEATURE_FLAGS</li></ul></dd><dt><strong>Bleve</strong></dt><dd><ul><li>PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL_BLEVE</li><li>PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_BLEVE</li></ul></dd></dl></td>
+</tr>
+</tbody>
+</table>
+
+## Frequently Asked Questions
+
+#### Can a User Manager or System Manager reset an administrator’s email or password without their knowledge?
+
+This is not possible with the default privileges of these roles. The ability to reset passwords or email addresses of administrators is limited to system admins.
+
+#### Can a User Manager or System Manager access the configuration file?
+
+Yes. However, they will only have access to read actual values and modify values in accordance with their permissions. If appropriate read permissions do not exist, the default key values will be displayed.
+
+#### Are all actions of admin roles logged?
+
+Every change made by any admin is included in the audit log.
+
+#### Can a System Manager change their own permissions or elevate their role?
+
+No. System Managers can't elevate their role, and aren't able to elevate other members' roles.
+
+#### Can any of the new roles view API keys/passwords or other sensitive information within the System Console (such as SMTP, AWS, Elastic Search)?
+
+No, password information is only visible to system admins and is obfuscated for other roles.
+
+#### If download links for compliance exports are enabled in the System Console, can a Read Only Admin download the reports?
+
+Only roles that are explicitly granted access to **System Console \> Compliance** have access to download compliance reports.
+
+#### Can any of the new roles force-join Private channels?
+
+Yes at this time they can, however, we will be improving on this behavior in the future with a prompt that lets them know they are entering a private channel. We are also planning on adding a permission which would remove the ability to access Private channels.
+
+#### Can I create a new role or clone an existing role?
+
+No, but we are actively seeking feedback on this capability.
+
+#### Can I use an LDAP filter to assign these roles?
+
+No, but we are considering this functionality for a future enhancement.
+
+#### Can I rename the roles?
+
+This is being considered for future development.
+
+#### Can a System Manager or User Manager demote or deactivate another Admin or Manager?
+
+A System or User Manager can demote or deactivate another System or User Manager, but can't demote or deactivate a system admin.
+
+#### Can a System Manager or User Manager assign or unassign admin roles?
+
+Only the system admin has access to edit system roles.

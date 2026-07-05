@@ -63,7 +63,7 @@ describe('Incoming webhook', () => {
         const payload = {
             channel: 'town-square',
             username: 'new-username',
-            attachments: [{fallback: 'fallback text', pretext: 'Optional text that appears above the attachment block', author_name: 'Authors Name', author_link: 'http://mattermost.org', author_icon: 'http://www.mattermost.org/wp-content/uploads/2016/04/icon.png', text: 'This is the text of the attachment. It should appear just above the image. \nIts very long, so it makes the text collapse behind a \\"Show More\\" button. If you click \\"Show More\\" the text should expand, and then if you click "Show Less" it should collapse again. The rest of the attachment should include one image of a graph and one thumbnail image of the Mattermost logo on the right hand side of the attachment. It should also include additional fields below the image that are formatted more like a table, in two columns. The left border of the attachment should be colored green. At the top of the attachment, there should be an author name followed by a bolded title. Both the author name and the title should be hyperlinks.', thumb_url: 'http://www.mattermost.org/wp-content/uploads/2016/04/icon.png', title: 'Testing Integration Attachments', title_link: 'https://www.google.com', color: '#00ff00', image_url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/ScientificGraphSpeedVsTime.svg/2000px-ScientificGraphSpeedVsTime.svg.png', fields: [{short: false, title: 'Area', value: 'Testing with a very long piece of text that will take up the whole width of the table. And then some more space even because it is really not a short field.'}, {short: true, title: 'Iteration', value: 'Testing'}, {short: true, title: 'State', value: 'New'}, {short: false, title: 'Reason', value: 'New defect reported'}]}],
+            attachments: [{fallback: 'fallback text', pretext: 'Optional text that appears above the attachment block', author_name: 'Authors Name', author_link: 'http://mattermost.org', author_icon: 'http://www.mattermost.org/wp-content/uploads/2016/04/icon.png', text: 'This is the text of the attachment. It should appear just above the image. \nIts very long, so it makes the text collapse behind a \\"Show More\\" button. If you click \\"Show More\\" the text should expand, and then if you click "Show Less" it should collapse again. The rest of the attachment should include one image of a graph and one thumbnail image of the Mattermost logo on the right hand side of the attachment. It should also include additional fields below the image that are formatted more like a table, in two columns. The left border of the attachment should be colored green. At the top of the attachment, there should be an author name followed by a bolded title. Both the author name and the title should be hyperlinks.', thumb_url: 'http://www.mattermost.org/wp-content/uploads/2016/04/icon.png', title: 'Testing Integration Attachments', title_link: 'https://www.google.com', color: '#00ff00', image_url: 'http://www.mattermost.org/wp-content/uploads/2016/04/icon.png', fields: [{short: false, title: 'Area', value: 'Testing with a very long piece of text that will take up the whole width of the table. And then some more space even because it is really not a short field.'}, {short: true, title: 'Iteration', value: 'Testing'}, {short: true, title: 'State', value: 'New'}, {short: false, title: 'Reason', value: 'New defect reported'}]}],
         };
         cy.postIncomingWebhook({url: incomingWebhook.url, data: payload});
 
@@ -75,11 +75,11 @@ describe('Incoming webhook', () => {
         cy.get('.post-list__dynamic').scrollTo('bottom');
 
         cy.getLastPost().within(() => {
-            cy.get('.attachment__image').should('be.visible');
-            cy.get(':nth-child(2) > thead > tr > .attachment-field__caption').should('have.text', 'Area');
-            cy.get(':nth-child(3) > thead > tr > :nth-child(1)').should('have.text', 'Iteration');
-            cy.get('thead > tr > :nth-child(2)').should('have.text', 'State');
-            cy.get(':nth-child(4) > thead > tr > .attachment-field__caption').should('have.text', 'Reason');
+            cy.get('.mm-blocks-image').should('be.visible');
+            cy.contains('.mm-blocks-text', 'Area').should('be.visible');
+            cy.contains('.mm-blocks-text', 'Iteration').should('be.visible');
+            cy.contains('.mm-blocks-text', 'State').should('be.visible');
+            cy.contains('.mm-blocks-text', 'Reason').should('be.visible');
         });
     });
 });

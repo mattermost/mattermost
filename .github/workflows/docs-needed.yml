@@ -1,4 +1,3 @@
----
 # .github/workflows/docs-needed.yml
 #
 # Place this file in ALL of:
@@ -35,9 +34,9 @@
 #     Comment posted on the dev PR linking to the new docs PR.
 #   If Docs/Needed is re-applied after removal, a fresh run creates or
 #   updates the same branch (idempotent via the exists check).
- 
+
 name: "docs/needed - Open Docs PR"
- 
+
 on:
   pull_request:
     types: [labeled]
@@ -52,7 +51,7 @@ on:
           (3) validate the workflow against a known PR during development or review.
         required: true
         type: string
- 
+
 # One run at a time per dev PR prevents a race if the label bounces quickly.
 # cancel-in-progress is false because a mid-run cancellation can leave the
 # docs branch in a partial state (e.g. commit pushed but PR not yet opened).
@@ -61,12 +60,10 @@ concurrency:
   group: >-
     docs-needed-${{ github.repository }}-${{ github.event.pull_request.number || inputs.pr_number }}
   cancel-in-progress: false
- 
+
 jobs:
   open-docs-pr:
-    name: >-
-      Open docs PR for
-      ${{ github.repository }}#${{ github.event.pull_request.number || inputs.pr_number }}
+    name: "Open Docs PR"
     runs-on: ubuntu-latest
     # Fork guard: only run on PRs opened from within this repo, not forks.
     # Draft guard: skip draft PRs - apply Docs/Needed when the PR is ready.
@@ -79,7 +76,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
- 
+
     steps:
       # 0. Generate short-lived installation tokens — one per app.
       #    Tokens expire automatically after 1 hour and are not tied to any
@@ -95,7 +92,7 @@ jobs:
           app-id: ${{ vars.CHANGELOG_READ_CLIENT_ID }}
           private-key: ${{ secrets.CHANGELOG_READ_PRIVATE_KEY }}
           repositories: mattermost
- 
+
       - name: Generate write token
         id: write-token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
@@ -103,7 +100,7 @@ jobs:
           app-id: ${{ vars.CHANGELOG_WRITE_CLIENT_ID }}
           private-key: ${{ secrets.CHANGELOG_WRITE_PRIVATE_KEY }}
           repositories: docs
- 
+
       # 0b. Resolve PR data — normalises pull_request event fields and
       #     workflow_dispatch inputs into one set of outputs so all subsequent
       #     steps are trigger-agnostic. For workflow_dispatch the PR is fetched
@@ -136,7 +133,7 @@ jobs:
             echo "pr_title=$EVENT_PR_TITLE"             >> "$GITHUB_OUTPUT"
             echo "pr_author=$EVENT_PR_AUTHOR"           >> "$GITHUB_OUTPUT"
           fi
- 
+
       # 1. Guard: milestone is required
       - name: Require milestone
         env:
@@ -146,7 +143,7 @@ jobs:
             echo "::error title=Missing milestone::Set a milestone on this PR before applying Docs/Needed."
             exit 1
           fi
- 
+
       # 2. Compute shared variables
       - name: Set variables
         id: vars
@@ -161,7 +158,7 @@ jobs:
           REPO_NAME="${SOURCE_REPO##*/}"
           BRANCH="docs/${REPO_NAME}-pr-${PR_NUMBER}"
           DOCS_FILE="source/about/drafts/${REPO_NAME}-pr-${PR_NUMBER}.md"
- 
+
           echo "repo_name=$REPO_NAME" >> "$GITHUB_OUTPUT"
           echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
           echo "docs_file=$DOCS_FILE" >> "$GITHUB_OUTPUT"
@@ -171,7 +168,7 @@ jobs:
           echo "pr_title=$PR_TITLE" >> "$GITHUB_OUTPUT"
           echo "pr_author=$PR_AUTHOR" >> "$GITHUB_OUTPUT"
           echo "source_repo=$SOURCE_REPO" >> "$GITHUB_OUTPUT"
- 
+
       # 3. Resolve the versioned base branch in mattermost/docs
       #    mattermost/mattermost milestones (e.g. "v11.7.0") map directly to
       #    the docs branch (e.g. "v11.7-documentation").
@@ -193,7 +190,7 @@ jobs:
             version=$(echo "$title" | grep -oE 'v[0-9]+\.[0-9]+' | head -1)
             echo "$version"
           }
- 
+
           if [ "$REPO_NAME" == "mattermost" ]; then
             VERSION=$(derive_branch_from_title "$MILESTONE_TITLE")
             if [ -z "$VERSION" ]; then
@@ -203,7 +200,7 @@ jobs:
               exit 0
             fi
             echo "Derived docs branch: ${VERSION}-documentation"
- 
+
           else
             if [ -z "$MILESTONE_DUE" ] || [ "$MILESTONE_DUE" == "null" ]; then
               echo "::warning::Milestone '${MILESTONE_TITLE}' has no due date" \
@@ -211,21 +208,21 @@ jobs:
               echo "base=master" >> "$GITHUB_OUTPUT"
               exit 0
             fi
- 
+
             MILESTONE_DATE="${MILESTONE_DUE%%T*}"
             MM_MILESTONE=$(gh api repos/mattermost/mattermost/milestones \
               --paginate \
               | jq -r --arg date "$MILESTONE_DATE" \
                   '.[] | select(((.due_on // "")[0:10]) == $date) | .title' \
               | head -1)
- 
+
             if [ -z "$MM_MILESTONE" ]; then
               echo "::warning::No mattermost/mattermost milestone found with" \
                 "due date '${MILESTONE_DUE}'. Targeting master."
               echo "base=master" >> "$GITHUB_OUTPUT"
               exit 0
             fi
- 
+
             VERSION=$(derive_branch_from_title "$MM_MILESTONE")
             if [ -z "$VERSION" ]; then
               echo "::warning::Could not parse vMAJOR.MINOR from matched" \
@@ -233,16 +230,16 @@ jobs:
               echo "base=master" >> "$GITHUB_OUTPUT"
               exit 0
             fi
- 
+
             echo "Matched '${MILESTONE_TITLE}' to '${MM_MILESTONE}'" \
               "=> ${VERSION}-documentation"
           fi
- 
+
           DOCS_BRANCH="${VERSION}-documentation"
- 
+
           EXISTS=$(gh api "repos/mattermost/docs/branches/${DOCS_BRANCH}" \
             --jq '.name' 2>/dev/null || echo "")
- 
+
           if [ -n "$EXISTS" ]; then
             echo "base=$DOCS_BRANCH" >> "$GITHUB_OUTPUT"
             echo "Docs branch '${DOCS_BRANCH}' found."
@@ -252,7 +249,7 @@ jobs:
               "mattermost/docs - targeting master." \
               "Ensure docs-branch-create.yml has run for this milestone."
           fi
- 
+
       # 4. Check for an existing docs PR (idempotency)
       - name: Check for existing docs PR
         id: existing
@@ -266,7 +263,7 @@ jobs:
             --state open \
             --json number,url \
             --jq 'first // empty')
- 
+
           if [ -n "$RESULT" ]; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
             echo "number=$(echo "$RESULT" | jq -r .number)" >> "$GITHUB_OUTPUT"
@@ -276,7 +273,7 @@ jobs:
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
- 
+
       # 5. Checkout docs repo
       #    Pinned to a specific commit SHA for supply-chain security.
       #    To update: find the SHA for the desired tag at
@@ -288,13 +285,13 @@ jobs:
           token: ${{ steps.write-token.outputs.token }}
           path: docs-repo
           fetch-depth: 1
- 
+
       - name: Configure git identity
         working-directory: docs-repo
         run: |
           git config user.name "${{ vars.CHANGELOG_GIT_USERNAME }}"
           git config user.email "${{ vars.CHANGELOG_GIT_EMAIL }}"
- 
+
       - name: Set up branch
         working-directory: docs-repo
         env:
@@ -308,7 +305,7 @@ jobs:
             git fetch origin "$BASE_BRANCH"
             git checkout -b "$BRANCH" "origin/$BASE_BRANCH"
           fi
- 
+
       # 6. Fetch PR content for Claude
       - name: Fetch PR diff and description
         env:
@@ -318,10 +315,10 @@ jobs:
         run: |
           gh pr diff "$PR_NUMBER" --repo "$SOURCE_REPO" 2>/dev/null \
             | head -c 20000 > /tmp/pr-diff.txt || true
- 
+
           gh pr view "$PR_NUMBER" --repo "$SOURCE_REPO" \
             --json body --jq '.body // ""' > /tmp/pr-body.txt
- 
+
       # 7. Generate documentation draft via Claude
       #
       #    System prompt is read from mattermost/docs at runtime so it can be
@@ -353,7 +350,7 @@ jobs:
             exit 1
           fi
           cp "$PROMPT_FILE" /tmp/system_prompt.txt
- 
+
           # Untrusted PR content is HTML-escaped then wrapped in XML tags.
           # Escaping converts < > & to &lt; &gt; &amp; so that an attacker
           # cannot inject a closing tag (e.g. </pr_description>) to break out
@@ -362,16 +359,16 @@ jobs:
             python3 -c \
               'import sys,html;print(html.escape(sys.stdin.read(),quote=False),end="")'
           }
- 
+
           escape_xml < /tmp/pr-body.txt > /tmp/pr-body-safe.txt
           escape_xml < /tmp/pr-diff.txt > /tmp/pr-diff-safe.txt
- 
+
           # Escape user-controlled metadata fields for the prompt.
           # PR title is set by the PR author; milestone title is set by
           # maintainers but escaped here for defence-in-depth.
           PR_TITLE_SAFE=$(printf '%s' "$PR_TITLE" | escape_xml)
           MILESTONE_SAFE=$(printf '%s' "$MILESTONE_TITLE" | escape_xml)
- 
+
           PR_URL="https://github.com/${SOURCE_REPO}/pull/${PR_NUMBER}"
           {
             echo "<pr_metadata>"
@@ -389,7 +386,7 @@ jobs:
             cat /tmp/pr-diff-safe.txt
             echo "</code_diff>"
           } > /tmp/user_message.txt
- 
+
           PAYLOAD=$(jq -n \
             --rawfile system /tmp/system_prompt.txt \
             --rawfile content /tmp/user_message.txt \
@@ -402,7 +399,7 @@ jobs:
                 content: $content
               }]
             }')
- 
+
           # --max-time 60: fail fast if the API is unresponsive.
           # Capture the full response before piping so we can inspect it.
           RESPONSE=$(curl -sf --max-time 60 \
@@ -414,9 +411,9 @@ jobs:
             echo "::error::Claude API call failed (timeout or HTTP error)."
             exit 1
           }
- 
+
           echo "$RESPONSE" | jq -r '.content[0].text' > /tmp/generated-docs.md
- 
+
           # Fail immediately if the API returned null or an empty body.
           # Log only the error type and message from the JSON response - not
           # the full body - to avoid exposing API metadata in workflow logs.
@@ -429,7 +426,7 @@ jobs:
             echo "::error::Claude API returned empty/null content. ${ERROR_INFO}"
             exit 1
           fi
- 
+
           # Validate the output matches the required structure defined in the
           # system prompt. Missing sections indicate the model was steered away
           # from its instructions - a signal of possible prompt injection.
@@ -443,7 +440,7 @@ jobs:
               "Possible prompt injection. Aborting."
             exit 1
           fi
- 
+
       # 8. Write docs file
       - name: Write docs file
         working-directory: docs-repo
@@ -455,13 +452,13 @@ jobs:
           PR_AUTHOR: ${{ steps.vars.outputs.pr_author }}
         run: |
           mkdir -p "$(dirname "$DOCS_FILE")"
- 
+
           # Sanitize PR title for the Markdown heading to prevent XSS if the
           # docs are rendered as HTML (e.g. < > become &lt; &gt;).
           PR_TITLE_SAFE=$(printf '%s' "$PR_TITLE" | \
             python3 -c \
               'import sys,html;print(html.escape(sys.stdin.read(),quote=False),end="")')
- 
+
           {
             printf '# %s\n\n' "$PR_TITLE_SAFE"
             printf '> **Status:** Draft - auto-generated. Requires editorial review.\n'
@@ -471,7 +468,7 @@ jobs:
             printf -- '---\n\n'
             cat /tmp/generated-docs.md
           } > "$DOCS_FILE"
- 
+
       # 9. Commit and push
       - name: Commit and push
         working-directory: docs-repo
@@ -500,7 +497,7 @@ jobs:
               | git commit -F -
             git push origin "$BRANCH"
           fi
- 
+
       # 10. Sync milestone to mattermost/docs
       - name: Sync milestone
         id: docs-milestone
@@ -515,7 +512,7 @@ jobs:
             --jq '.[] | select(.title == $title) | .number' \
             --arg title "$MILESTONE_TITLE" \
             | head -1)
- 
+
           if [ -z "$NUM" ]; then
             NUM=$(gh api repos/mattermost/docs/milestones \
               --method POST \
@@ -523,9 +520,9 @@ jobs:
               --jq '.number')
             echo "::notice::Created milestone '$MILESTONE_TITLE' (#$NUM) in mattermost/docs."
           fi
- 
+
           echo "number=$NUM" >> "$GITHUB_OUTPUT"
- 
+
       # 11a. Create docs PR
       - name: Create docs PR
         id: create-pr
@@ -551,10 +548,10 @@ jobs:
             "| **Dev reviewer** | @${PR_AUTHOR} |" \
             "| **Milestone** | ${MILESTONE_TITLE} |" \
             "<!-- dev-pr: ${SOURCE_REPO}#${PR_NUMBER} -->")
- 
+
           # Sanitize PR title for the docs PR title: same rules as commit message.
           PR_TITLE_SHORT=$(printf '%s' "$PR_TITLE" | tr -d '\n\r' | cut -c1-72)
- 
+
           # Open as a draft so a human must explicitly un-draft before merging.
           # This is the primary control against auto-committing injected content.
           URL=$(gh pr create \
@@ -565,10 +562,10 @@ jobs:
             --body "$BODY" \
             --milestone "$MILESTONE_NUMBER" \
             --draft)
- 
+
           echo "number=$(echo "$URL" | grep -oE '[0-9]+$')" >> "$GITHUB_OUTPUT"
           echo "url=$URL" >> "$GITHUB_OUTPUT"
- 
+
       # 11b. Update existing docs PR milestone (re-trigger path)
       - name: Update existing docs PR
         if: steps.existing.outputs.exists == 'true'
@@ -580,7 +577,7 @@ jobs:
           gh pr edit "$DOCS_PR" \
             --repo mattermost/docs \
             --milestone "$MILESTONE_NUMBER"
- 
+
       # 12. Resolve final docs PR reference
       - name: Resolve docs PR reference
         id: resolve
@@ -592,7 +589,7 @@ jobs:
             echo "number=${{ steps.create-pr.outputs.number }}" >> "$GITHUB_OUTPUT"
             echo "url=${{ steps.create-pr.outputs.url }}" >> "$GITHUB_OUTPUT"
           fi
- 
+
       # 13. Add dev PR author as reviewer
       - name: Add reviewer
         env:
@@ -604,7 +601,7 @@ jobs:
             --add-reviewer "$PR_AUTHOR" \
           || echo "::warning::Could not add @${PR_AUTHOR} as reviewer" \
             "- they may need docs repo access first."
- 
+
       # 14. Comment on the dev PR
       - name: Comment on dev PR
         env:
@@ -619,13 +616,13 @@ jobs:
           else
             ACTION="opened at"
           fi
- 
+
           DOCS_LINK="[mattermost/docs#${DOCS_PR_NUMBER}](${DOCS_PR_URL})"
           COMMENT=$(printf '%s\n\n%s\n\n%s' \
             "A documentation draft has been ${ACTION} ${DOCS_LINK}." \
             "The docs PR is opened as a **draft**. Please review the AI-generated content, edit as needed, then mark it ready for review before merging." \
             "The Docs/Needed label will be replaced with Docs/Done once the docs PR is merged or closed.")
- 
+
           gh pr comment "$PR_NUMBER" \
             --repo "$SOURCE_REPO" \
             --body "$COMMENT"

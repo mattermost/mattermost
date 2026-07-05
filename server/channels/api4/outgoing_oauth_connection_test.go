@@ -1312,11 +1312,23 @@ func TestHandlerOutgoingOAuthConnectionHandlerValidate(t *testing.T) {
 		conn.CreatorId = model.NewId()
 		conn.OAuthTokenURL = server.URL + "/invalid"
 
+		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = new(true)
+		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
+		// Use mock.Anything matchers so the expectation matches both the
+		// direct handler call below and the API-layer call that follows.
+		outgoingOauthIface.Mock.On("RetrieveTokenForConnection", mock.Anything, mock.Anything).Return(
+			&model.OutgoingOAuthConnectionToken{},
+			model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error", nil, "error", http.StatusBadRequest),
+		)
+
+		th.AddPermissionToRole(t, model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
+
+		// Direct handler call: verify c.Err is populated with the correct status.
 		c := &Context{}
 		c.AppContext = th.Context
 		c.App = th.App
 		c.Logger = th.App.Srv().Log()
-
 		session := model.Session{
 			Id:     model.NewId(),
 			UserId: conn.CreatorId,
@@ -1324,28 +1336,25 @@ func TestHandlerOutgoingOAuthConnectionHandlerValidate(t *testing.T) {
 		}
 		c.AppContext = th.Context.WithSession(&session)
 
-		th.AddPermissionToRole(t, model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
-
 		body := &bytes.Buffer{}
 		require.NoError(t, json.NewEncoder(body).Encode(conn))
 		req, err := http.NewRequest("POST", "/", body)
-		if err != nil {
-			t.Error(err)
-		}
-
-		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
-		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = new(true)
-		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
-		outgoingOauthIface.Mock.On("RetrieveTokenForConnection", c.AppContext, conn).Return(&model.OutgoingOAuthConnectionToken{}, model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error", nil, "error", http.StatusBadRequest))
+		require.NoError(t, err)
 
 		httpRecorder := httptest.NewRecorder()
-		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			validateOutgoingOAuthConnectionCredentials(c, w, r)
-		})
+		}).ServeHTTP(httpRecorder, req)
 
-		handler.ServeHTTP(httpRecorder, req)
+		require.Equal(t, http.StatusBadRequest, c.Err.StatusCode)
 
-		require.Equal(t, http.StatusBadRequest, httpRecorder.Code)
+		// API-layer call: verify the framework translates c.Err into a non-200
+		// HTTP response, catching any regression where the error is set but not
+		// written to the response.
+		apiResp, apiErr := th.SystemAdminClient.DoAPIPostJSON(context.Background(), "/oauth/outgoing_connections/validate", conn)
+		require.Error(t, apiErr)
+		require.Equal(t, http.StatusBadRequest, apiResp.StatusCode)
+		apiResp.Body.Close()
 	})
 
 	t.Run("success", func(t *testing.T) {

@@ -1,0 +1,712 @@
+/*
+ * Print stylesheet for Mattermost docs PDF capture.
+ *
+ * Loaded by the PDF builder (pdf/scripts/build-*.mjs) via:
+ *   page.addStyleTag({ path: 'pdf/styles/print.css' })
+ * before printing.
+ *
+ * Why this lives here instead of docs-site/src/css:
+ *   The docs site is media-screen first; print is a publishing artifact
+ *   produced by a separate pipeline. Keeping the print CSS next to the
+ *   PDF builder makes the dependency obvious and lets us iterate on
+ *   pagination without touching the live site CSS.
+ *
+ * If you need to move it back into the docs site (e.g., to enable a
+ * "Download PDF" button that does in-browser print-preview), drop it
+ * into docs-site/src/css/ and add a `<link rel="stylesheet"
+ * media="print" …>` reference.
+ */
+
+/* ============================================================
+ * @page rules
+ * ========================================================== */
+
+@page {
+  size: A4;
+  margin: 22mm 18mm 24mm 18mm;
+  @bottom-left   { content: "Mattermost · API v4"; font-family: 'Inter', system-ui, sans-serif; font-size: 8pt; color: #5B77B1; }
+  @bottom-right  { content: counter(page) " / " counter(pages); font-family: 'Inter', system-ui, sans-serif; font-size: 8pt; color: #5B77B1; }
+  @top-right     { content: string(chapter); font-family: 'Archivo Black', 'Trade Gothic Next Heavy', system-ui, sans-serif; font-size: 8pt; letter-spacing: 0.1em; text-transform: uppercase; color: #1E325C; }
+}
+
+@page :first {
+  margin: 0;
+  @top-right    { content: none; }
+  @bottom-left  { content: none; }
+  @bottom-right { content: none; }
+}
+
+/* ============================================================
+ * Hide on print: non-content site chrome
+ * ========================================================== */
+
+.navbar,
+.theme-doc-sidebar-container,
+.theme-doc-toc-mobile,
+.theme-doc-toc-desktop,
+.table-of-contents,
+.theme-doc-breadcrumbs,
+.theme-edit-this-page,
+.pagination-nav,
+.theme-back-to-top-button,
+nav[aria-label="Breadcrumbs"],
+.footer,
+button[aria-label*="navigation"],
+button[aria-label*="theme"],
+.openapi-tabs__container,
+.openapi-right-panel__container,
+.mm-cta {
+  display: none !important;
+}
+
+/* ============================================================
+ * Article container — reset to print-friendly column
+ * ========================================================== */
+
+html, body {
+  background: #FFFFFF !important;
+  color: #1B1D22 !important;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 10pt;
+  line-height: 1.55;
+}
+
+main,
+.docMainContainer_TBSr,
+[class*='docMainContainer'],
+.docItemContainer_Djhp,
+[class*='docItemContainer'],
+article,
+.theme-doc-markdown {
+  display: block !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+.theme-doc-markdown > * { max-width: none !important; }
+
+/* ============================================================
+ * Headings — Trade Gothic Heavy in denim, with running-header binding
+ * ========================================================== */
+
+h1, h2, h3, h4 {
+  font-family: 'Archivo Black', 'Trade Gothic Next Heavy', 'Helvetica Neue', system-ui, sans-serif;
+  color: #1E325C;
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+  page-break-after: avoid;
+  break-after: avoid;
+}
+
+h1 {
+  font-size: 26pt;
+  margin: 0 0 8pt;
+  padding-bottom: 6pt;
+  border-bottom: 2pt solid #FFBC1F;
+  string-set: chapter content();          /* feeds @top-right via @page */
+  page-break-before: always;
+  break-before: page;
+}
+
+h1:first-of-type {
+  page-break-before: avoid;
+  break-before: avoid;
+}
+
+h2 {
+  font-size: 16pt;
+  margin: 18pt 0 6pt;
+  padding-top: 8pt;
+  border-top: 1pt solid #D6DDEC;
+}
+
+h3 { font-size: 12pt; margin: 12pt 0 4pt; color: #182849; }
+h4 { font-size: 10.5pt; margin: 10pt 0 3pt; color: #182849; text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* ============================================================
+ * Body type
+ * ========================================================== */
+
+p, li {
+  orphans: 3;
+  widows: 3;
+}
+p { margin: 0 0 6pt; }
+ul, ol { margin: 0 0 8pt 18pt; padding: 0; }
+li { margin-bottom: 2pt; }
+
+a {
+  color: #1E325C;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+strong, b { color: #182849; }
+
+/* ============================================================
+ * Code blocks
+ * ========================================================== */
+
+code {
+  background: #EEF1F8;
+  border: 0.5pt solid #D6DDEC;
+  border-radius: 2pt;
+  padding: 0.5pt 3pt;
+  font-family: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 8.5pt;
+  color: #182849;
+}
+
+pre, .theme-code-block {
+  background: #EEF1F8 !important;
+  border: 0.5pt solid #D6DDEC !important;
+  border-radius: 3pt;
+  padding: 8pt 10pt;
+  margin: 6pt 0 10pt;
+  font-size: 8.5pt;
+  line-height: 1.45;
+  overflow: visible !important;
+  white-space: pre-wrap;
+  word-break: break-word;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+pre code, .theme-code-block code {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  color: #1B1D22;
+}
+
+.copyButton, .clean-btn { display: none !important; }
+
+/* ============================================================
+ * Tables
+ * ========================================================== */
+
+table {
+  width: 100% !important;
+  border-collapse: collapse;
+  margin: 8pt 0 12pt;
+  page-break-inside: auto;
+  font-size: 9pt;
+}
+thead { background: #1E325C; color: #FFFFFF; }
+thead th {
+  font-family: 'Archivo Black', 'Trade Gothic Next Heavy', system-ui, sans-serif;
+  font-size: 7.5pt;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: left;
+  padding: 5pt 7pt;
+  border: none !important;
+}
+tbody td { padding: 4pt 7pt; border-bottom: 0.4pt solid #D6DDEC; vertical-align: top; }
+tbody tr:nth-child(even) { background: #F8FAFD; }
+tbody tr { page-break-inside: avoid; }
+
+/* ============================================================
+ * Branded MDX components
+ * ========================================================== */
+
+/* Hero — flatten in print (no full-bleed band, no hex camo). The hero
+ * was a screen marketing surface; in print it just becomes a section
+ * intro. */
+.mm-hero {
+  background: transparent !important;
+  color: #1B1D22 !important;
+  padding: 0 !important;
+  margin: 0 0 8pt !important;
+  border: none !important;
+  border-bottom: 2pt solid #FFBC1F !important;
+}
+.mm-hero * { color: #1B1D22 !important; }
+.mm-hero [class*="ctaPrimary"],
+.mm-hero [class*="ctaGhost"] { display: none !important; }
+.mm-hero [class*="pillars"] { border-top-color: #D6DDEC !important; }
+
+/* Eyebrow — use as a section marker. Stays small, marigold-bordered. */
+[class*="eyebrow"] {
+  display: inline-block;
+  font-family: 'Archivo Black', system-ui, sans-serif;
+  font-size: 7.5pt;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #B27F00 !important;
+  border-bottom: 1pt solid #FFBC1F;
+  padding-bottom: 1pt;
+  margin-bottom: 6pt;
+}
+
+/* Callouts — denim left bar + label, no shadow, page-break-avoid */
+[class*="callout"] {
+  border: 0.5pt solid #D6DDEC !important;
+  border-left: 4pt solid #1E325C !important;
+  border-radius: 2pt;
+  padding: 6pt 9pt;
+  margin: 6pt 0 10pt;
+  page-break-inside: avoid;
+  break-inside: avoid;
+  background: #F8FAFD;
+}
+[class*="callout"] [class*="bar"] { display: none !important; }
+[class*="callout"] [class*="label"] {
+  font-family: 'Archivo Black', system-ui, sans-serif;
+  font-size: 7.5pt;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #1E325C;
+  margin-bottom: 3pt;
+}
+
+/* StatStrip — wrap as a 4-up grid in print */
+[class*="strip"] {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6pt 12pt;
+  margin: 8pt 0 12pt;
+  padding: 8pt 0;
+  border-top: 1pt solid #FFBC1F;
+  border-bottom: 0.5pt solid #D6DDEC;
+  list-style: none !important;
+}
+[class*="strip"] [class*="stat"] { display: flex !important; flex-direction: column; }
+[class*="strip"] [class*="value"] { font-family: 'Archivo Black', system-ui, sans-serif; font-size: 18pt; color: #1E325C; }
+[class*="strip"] [class*="label"] { font-family: 'Archivo Black', system-ui, sans-serif; font-size: 7pt; letter-spacing: 0.16em; text-transform: uppercase; color: #5B77B1; margin-top: 2pt; }
+[class*="strip"] [class*="hint"]  { font-size: 7.5pt; color: #5B77B1; margin-top: 1pt; }
+
+/* MethodLegend — render flat in print */
+[class*="legend"] {
+  list-style: none;
+  padding: 0;
+  margin: 4pt 0 10pt;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4pt 10pt;
+  font-size: 8pt;
+}
+[class*="legend"] [class*="badge"] {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 7pt;
+  font-weight: 600;
+  padding: 1pt 4pt;
+  border-radius: 2pt;
+  color: #FFF;
+  margin-right: 3pt;
+}
+
+/* CardGrid — collapse to a clean list in print */
+[class*="grid"] {
+  display: block !important;
+}
+[class*="card"] {
+  display: block !important;
+  margin: 4pt 0 !important;
+  padding: 6pt 8pt !important;
+  border: 0.5pt solid #D6DDEC !important;
+  border-left: 3pt solid #FFBC1F !important;
+  border-radius: 2pt !important;
+  background: #FFFFFF !important;
+  box-shadow: none !important;
+  page-break-inside: avoid;
+}
+[class*="card"] [class*="title"] {
+  font-family: 'Archivo Black', system-ui, sans-serif;
+  font-size: 10pt;
+  color: #1E325C !important;
+}
+[class*="card"] [class*="description"] {
+  font-size: 9pt;
+  color: #1B1D22 !important;
+  margin: 2pt 0;
+}
+[class*="card"] [class*="meta"] {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 7.5pt;
+  color: #B27F00 !important;
+  background: transparent !important;
+}
+[class*="card"] [class*="arrow"] { display: none !important; }
+[class*="card"] [class*="icon"]  { display: none !important; }
+
+/* ============================================================
+ * OpenAPI plugin — print-specific overrides
+ * ========================================================== */
+
+/* Method endpoint header: render the verb badge + path inline.
+ * (On screen the plugin uses a <pre> with a block-level <h2> child,
+ * which stacks vertically when print CSS resets. Force a flex row.) */
+pre.openapi__method-endpoint {
+  display: flex !important;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8pt;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 0 12pt !important;
+  font-family: 'Inter', sans-serif !important;
+  white-space: normal !important;
+  page-break-inside: avoid;
+}
+.openapi__method-endpoint .badge {
+  flex: 0 0 auto;
+  display: inline-block;
+  padding: 2pt 7pt !important;
+  border-radius: 2pt !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 8pt !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.06em !important;
+  color: #FFFFFF !important;
+  border: none !important;
+}
+.openapi__method-endpoint .badge--success { background: #2C7A4F !important; }
+.openapi__method-endpoint .badge--info,
+.openapi__method-endpoint .badge--primary { background: #2D7BD2 !important; }
+.openapi__method-endpoint .badge--warning { background: #A86A1F !important; }
+.openapi__method-endpoint .badge--danger  { background: #8B1F1F !important; }
+.openapi__method-endpoint .badge--secondary { background: #6B4FA0 !important; }
+
+.openapi__method-endpoint-path {
+  flex: 1 1 auto !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 11pt !important;
+  font-weight: 600 !important;
+  color: #1B1D22 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  /* This is an h2; break my generic h2 styling. */
+  padding-top: 0 !important;
+  border-top: none !important;
+  page-break-before: avoid !important;
+  break-before: avoid !important;
+}
+.openapi__method-endpoint-path::before {
+  display: none !important;          /* kill the h2::before marigold rule */
+}
+.openapi__divider { display: none; }
+
+/* Hide tab pickers — interactive only. The tab CONTENT below them
+ * stays visible (we just don't show the buttons since you can't click
+ * in a PDF). */
+ul[role="tablist"],
+.openapi-tabs__mime-list-container,
+.openapi-tabs__schema-list-container,
+.openapi-tabs__response-list-container,
+.openapi-tabs__code-list-container {
+  display: none !important;
+}
+
+/* Tab panels: show only the active one (others stay rendered as DOM
+ * but are aria-hidden). The plugin sets `hidden` attribute on
+ * inactive panels — we just lean on that. */
+[role="tabpanel"][hidden] {
+  display: none !important;
+}
+
+/* The right-side interactive panel ("Authorization", "Request" form,
+ * "Send API Request" button) — meaningless in print. */
+.openapi-right-panel__container {
+  display: none !important;
+}
+
+/* Schema parameter rows — add spacing between name / type / required */
+.openapi-schema__container {
+  display: block !important;
+  padding: 4pt 0 !important;
+  border-bottom: 0.4pt dotted #D6DDEC;
+  margin-bottom: 0 !important;
+  page-break-inside: avoid;
+}
+.openapi-schema__property {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 9pt !important;
+  font-weight: 600 !important;
+  color: #1B1D22 !important;
+}
+.openapi-schema__name {
+  display: inline-block;
+  margin-left: 6pt !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 8.5pt !important;
+  font-style: italic !important;
+  color: #5B77B1 !important;
+  font-weight: 400 !important;
+}
+.openapi-schema__required {
+  display: inline-block;
+  margin-left: 6pt !important;
+  font-family: 'Archivo Black', system-ui, sans-serif !important;
+  font-size: 7pt !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8B1F1F !important;
+  font-weight: 900 !important;
+}
+.openapi-schema__divider { display: none !important; }
+
+/* The expandable "▼" caret next to nested schemas — irrelevant on paper */
+[class*='collapsibleHeader'] svg,
+.openapi-schema__list-item button svg,
+[class*='SchemaItem'] svg { display: none !important; }
+
+/* The collapsible content is always visible in print (no toggling) */
+[class*='collapsibleContent'] {
+  height: auto !important;
+  overflow: visible !important;
+  display: block !important;
+}
+
+/* Section headings inside endpoint pages (Request, Responses) — make
+ * them stand out with a marigold underline like other content h2s,
+ * but tighter. */
+.openapi-tabs__heading,
+.openapi-tabs__response-header {
+  font-family: 'Archivo Black', system-ui, sans-serif !important;
+  font-size: 13pt !important;
+  color: #1E325C !important;
+  margin: 14pt 0 6pt !important;
+  padding: 0 0 3pt !important;
+  border-bottom: 1pt solid #D6DDEC !important;
+  border-top: none !important;
+  page-break-before: avoid;
+  page-break-after: avoid;
+  break-after: avoid;
+}
+.openapi-tabs__heading::before,
+.openapi-tabs__response-header::before { display: none !important; }
+
+/* Response code chips (200, 400, 401) when shown in body */
+.openapi-tabs__response-code-item.active {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-weight: 600 !important;
+  font-size: 8pt !important;
+  color: #FFFFFF !important;
+  background: #2C7A4F;
+  padding: 1pt 6pt !important;
+  border-radius: 2pt !important;
+  margin-right: 6pt;
+}
+
+/* Each endpoint page's h1 should start a new page (already covered by
+ * the generic h1 rule) — but we make the h1 itself tighter for endpoints. */
+.docs-doc-id-reference h1:first-child,
+.docs-doc-id-reference\/login h1:first-child,
+[class*='docs-doc-id-reference'] h1:first-child {
+  font-size: 22pt !important;
+  margin-bottom: 4pt !important;
+  padding-bottom: 4pt !important;
+}
+
+/* ============================================================
+ * Cover page (rendered as the first .mm-print-cover element on the page)
+ * ========================================================== */
+
+.mm-print-cover {
+  width: 100vw;
+  height: 100vh;
+  page-break-after: always;
+  break-after: page;
+  background: #1E325C;
+  color: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 30mm 24mm;
+  box-sizing: border-box;
+  margin: -22mm -18mm 22mm -18mm;
+}
+.mm-print-cover .cover-meta {
+  font-family: 'Archivo Black', system-ui, sans-serif;
+  font-size: 9pt;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #FFBC1F;
+}
+.mm-print-cover .cover-title {
+  font-family: 'Archivo Black', system-ui, sans-serif;
+  font-size: 56pt;
+  line-height: 0.95;
+  letter-spacing: -0.025em;
+  color: #FFFFFF;
+}
+.mm-print-cover .cover-subtitle {
+  font-size: 14pt;
+  line-height: 1.4;
+  color: rgba(255,255,255,0.75);
+  margin-top: 10mm;
+  max-width: 60ch;
+}
+.mm-print-cover .cover-bottom {
+  border-top: 2pt solid #FFBC1F;
+  padding-top: 6mm;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+.mm-print-cover .cover-version {
+  font-family: 'Archivo Black', system-ui, sans-serif;
+  font-size: 12pt;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.mm-print-cover .cover-tagline {
+  font-family: 'Archivo Black', system-ui, sans-serif;
+  font-size: 9pt;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #FFBC1F;
+}
+
+/* ============================================================
+ * Table of Contents (rendered after the cover, before chapter 1)
+ * ========================================================== */
+
+.mm-print-toc {
+  page-break-before: always;
+  page-break-after: always;
+  break-before: page;
+  break-after: page;
+  padding: 0;
+  margin: 0;
+  /* Suppress the running chapter title until the first real article. */
+  string-set: chapter "";
+}
+
+.mm-print-toc .toc-header {
+  margin-bottom: 14mm;
+  padding-bottom: 6pt;
+  border-bottom: 2pt solid #FFBC1F;
+}
+
+.mm-print-toc .toc-eyebrow {
+  font-family: 'Archivo Black', system-ui, sans-serif;
+  font-size: 8pt;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #B27F00;
+  margin-bottom: 4pt;
+}
+
+.mm-print-toc .toc-heading {
+  font-family: 'Archivo Black', 'Trade Gothic Next Heavy', system-ui, sans-serif;
+  font-size: 32pt;
+  color: #1E325C;
+  margin: 0;
+  padding: 0;
+  border: none;
+  letter-spacing: -0.02em;
+  /* Override the article H1 rules so the ToC heading doesn't force a new page
+   * or feed the running header with "Table of Contents". */
+  page-break-before: avoid !important;
+  break-before: avoid !important;
+  string-set: chapter "";
+}
+
+.mm-print-toc .toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: toc-chapter;
+}
+
+.mm-print-toc .toc-chapter {
+  margin: 0 0 8pt;
+  padding: 0;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.mm-print-toc .toc-chapter > a {
+  display: flex;
+  align-items: baseline;
+  gap: 6pt;
+  text-decoration: none;
+  color: #1E325C;
+  font-family: 'Archivo Black', system-ui, sans-serif;
+  font-size: 11pt;
+  line-height: 1.3;
+  padding: 3pt 0;
+  border-bottom: 0.4pt solid #EEF1F8;
+}
+
+.mm-print-toc .toc-num {
+  flex: 0 0 auto;
+  font-family: 'Archivo Black', system-ui, sans-serif;
+  font-size: 9pt;
+  color: #B27F00;
+  letter-spacing: 0.08em;
+  min-width: 22pt;
+}
+
+.mm-print-toc .toc-text {
+  flex: 0 1 auto;
+  color: #1E325C;
+}
+
+.mm-print-toc .toc-leader {
+  flex: 1 1 auto;
+  border-bottom: 0.4pt dotted #B9C3D9;
+  position: relative;
+  top: -2pt;
+  margin: 0 4pt;
+  min-width: 12pt;
+}
+
+.mm-print-toc .toc-page {
+  flex: 0 0 auto;
+  font-family: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 9pt;
+  color: #5B77B1;
+  min-width: 18pt;
+  text-align: right;
+}
+
+.mm-print-toc .toc-page::after {
+  content: target-counter(attr(data-href), page);
+}
+
+.mm-print-toc .toc-sub {
+  list-style: none;
+  margin: 2pt 0 4pt 28pt;
+  padding: 0;
+}
+
+.mm-print-toc .toc-sub li {
+  margin: 0;
+}
+
+.mm-print-toc .toc-sub a {
+  display: flex;
+  align-items: baseline;
+  gap: 6pt;
+  text-decoration: none;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 9.5pt;
+  color: #182849;
+  padding: 1.5pt 0;
+}
+
+.mm-print-toc .toc-sub .toc-text { color: #182849; font-weight: 500; }
+.mm-print-toc .toc-sub .toc-page { color: #5B77B1; }
+.mm-print-toc .toc-sub .toc-leader { border-bottom-color: #D6DDEC; }
+
+/* ============================================================
+ * Page-break helpers
+ * ========================================================== */
+
+img, figure, .mm-no-break {
+  page-break-inside: avoid;
+  break-inside: avoid;
+  max-width: 100% !important;
+  height: auto;
+}
+
+hr { display: none; }     /* most hr's are visual section breaks; redundant in print */

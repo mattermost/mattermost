@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost/server/public/model"
@@ -1810,5 +1811,175 @@ func (s *MmctlE2ETestSuite) TestUserEditAuthdataCmd() {
 		s.Require().Nil(appErr)
 		s.Require().NotNil(updatedUser.AuthData)
 		s.Require().Equal(newAuthdata, *updatedUser.AuthData)
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestUserStatusGetCmd() {
+	s.SetupTestHelper().InitBasic(s.T())
+
+	s.RunForSystemAdminAndLocal("Get the status of a specific user", func(c client.Client) {
+		printer.Clean()
+
+		s.th.App.SaveAndBroadcastStatus(&model.Status{UserId: s.th.BasicUser.Id, Status: model.StatusOnline, Manual: true})
+
+		cmd := newUserStatusCmd()
+		s.Require().NoError(cmd.Flags().Set("user", s.th.BasicUser.Email))
+
+		err := userStatusGetCmdF(c, cmd, []string{})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+
+		status, ok := printer.GetLines()[0].(*model.Status)
+		s.Require().True(ok)
+		s.Require().Equal(s.th.BasicUser.Id, status.UserId)
+		s.Require().Equal(model.StatusOnline, status.Status)
+	})
+
+	s.Run("Get the status of the authenticated user when --user is omitted", func() {
+		printer.Clean()
+
+		s.th.App.SaveAndBroadcastStatus(&model.Status{UserId: s.th.SystemAdminUser.Id, Status: model.StatusOnline, Manual: true})
+
+		err := userStatusGetCmdF(s.th.SystemAdminClient, newUserStatusCmd(), []string{})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+
+		status, ok := printer.GetLines()[0].(*model.Status)
+		s.Require().True(ok)
+		s.Require().Equal(s.th.SystemAdminUser.Id, status.UserId)
+		s.Require().Equal(model.StatusOnline, status.Status)
+	})
+
+	s.Run("A regular user can read another user's status", func() {
+		printer.Clean()
+
+		s.th.App.SaveAndBroadcastStatus(&model.Status{UserId: s.th.BasicUser2.Id, Status: model.StatusOnline, Manual: true})
+
+		cmd := newUserStatusCmd()
+		s.Require().NoError(cmd.Flags().Set("user", s.th.BasicUser2.Email))
+
+		err := userStatusGetCmdF(s.th.Client, cmd, []string{})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+
+		status, ok := printer.GetLines()[0].(*model.Status)
+		s.Require().True(ok)
+		s.Require().Equal(s.th.BasicUser2.Id, status.UserId)
+		s.Require().Equal(model.StatusOnline, status.Status)
+	})
+
+	s.RunForAllClients("Get the status of a nonexistent user", func(c client.Client) {
+		printer.Clean()
+
+		cmd := newUserStatusCmd()
+		s.Require().NoError(cmd.Flags().Set("user", "nonexistent@example.com"))
+
+		err := userStatusGetCmdF(c, cmd, []string{})
+		s.Require().EqualError(err, "user nonexistent@example.com not found")
+		s.Require().Len(printer.GetLines(), 0)
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestUserStatusSetCmd() {
+	s.SetupTestHelper().InitBasic(s.T())
+
+	s.RunForSystemAdminAndLocal("Set the status of a specific user", func(c client.Client) {
+		printer.Clean()
+
+		cmd := newUserStatusSetCmd()
+		s.Require().NoError(cmd.Flags().Set("user", s.th.BasicUser.Email))
+
+		err := userStatusSetCmdF(c, cmd, []string{model.StatusDnd})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+
+		status, ok := printer.GetLines()[0].(*model.Status)
+		s.Require().True(ok)
+		s.Require().Equal(model.StatusDnd, status.Status)
+
+		stored, appErr := s.th.App.GetStatus(s.th.BasicUser.Id)
+		s.Require().Nil(appErr)
+		s.Require().Equal(model.StatusDnd, stored.Status)
+	})
+
+	s.RunForSystemAdminAndLocal("Set a dnd status with an end time", func(c client.Client) {
+		printer.Clean()
+
+		endTimeArg := time.Now().Add(2 * time.Hour).Format(ISO8601Layout)
+		endTime, err := time.Parse(ISO8601Layout, endTimeArg)
+		s.Require().NoError(err)
+
+		cmd := newUserStatusSetCmd()
+		s.Require().NoError(cmd.Flags().Set("user", s.th.BasicUser.Email))
+		s.Require().NoError(cmd.Flags().Set("dnd-end-time", endTimeArg))
+
+		err = userStatusSetCmdF(c, cmd, []string{model.StatusDnd})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+
+		stored, appErr := s.th.App.GetStatus(s.th.BasicUser.Id)
+		s.Require().Nil(appErr)
+		s.Require().Equal(model.StatusDnd, stored.Status)
+		// The server truncates the DND end time to the minute to align with the expiry job.
+		s.Require().Equal(endTime.Truncate(model.DNDExpiryInterval).Unix(), stored.DNDEndTime)
+	})
+
+	s.Run("Set the status of the authenticated user when --user is omitted", func() {
+		printer.Clean()
+
+		err := userStatusSetCmdF(s.th.SystemAdminClient, newUserStatusSetCmd(), []string{model.StatusAway})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+
+		stored, appErr := s.th.App.GetStatus(s.th.SystemAdminUser.Id)
+		s.Require().Nil(appErr)
+		s.Require().Equal(model.StatusAway, stored.Status)
+	})
+
+	s.Run("A regular user can set their own status when --user is omitted", func() {
+		printer.Clean()
+
+		// Seed a distinct starting status so the read-back proves the write happened
+		// rather than passing on leftover state from earlier subtests.
+		s.th.App.SaveAndBroadcastStatus(&model.Status{UserId: s.th.BasicUser.Id, Status: model.StatusDnd, Manual: true})
+
+		err := userStatusSetCmdF(s.th.Client, newUserStatusSetCmd(), []string{model.StatusAway})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+
+		status, ok := printer.GetLines()[0].(*model.Status)
+		s.Require().True(ok)
+		s.Require().Equal(model.StatusAway, status.Status)
+
+		stored, appErr := s.th.App.GetStatus(s.th.BasicUser.Id)
+		s.Require().Nil(appErr)
+		s.Require().Equal(model.StatusAway, stored.Status)
+	})
+
+	s.Run("A regular user cannot set another user's status", func() {
+		printer.Clean()
+
+		cmd := newUserStatusSetCmd()
+		s.Require().NoError(cmd.Flags().Set("user", s.th.SystemAdminUser.Email))
+
+		err := userStatusSetCmdF(s.th.Client, cmd, []string{model.StatusOnline})
+		s.Require().Error(err)
+		s.CheckErrorID(err, "api.context.permissions.app_error")
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("Reject an invalid status value", func() {
+		printer.Clean()
+
+		err := userStatusSetCmdF(s.th.SystemAdminClient, newUserStatusSetCmd(), []string{"busy"})
+		s.Require().EqualError(err, "invalid status \"busy\", must be one of: online, away, dnd, offline")
+		s.Require().Len(printer.GetLines(), 0)
 	})
 }

@@ -3,7 +3,8 @@
 
 import type {Page} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
-import type {UserPropertyField, UserPropertyFieldPatch, FieldType} from '@mattermost/types/properties';
+import type {FieldType} from '@mattermost/types/properties';
+import type {UserPropertyField, UserPropertyFieldPatch} from '@mattermost/types/properties_user';
 
 import type {ChannelsPage} from '@mattermost/playwright-lib';
 import {expect} from '@mattermost/playwright-lib';
