@@ -10305,7 +10305,7 @@
   },
   {
     "id": "model.config.is_valid.directory_whitespace.app_error",
-    "translation": "Leading or trailing whitespace detected for {{.Setting}}. Found '\\{{.Value}}'\\."
+    "translation": "Leading or trailing whitespace detected for {{.Setting}}. Found ''{{.Value}}''."
   },
   {
     "id": "license_error.feature_unavailable.specific",
