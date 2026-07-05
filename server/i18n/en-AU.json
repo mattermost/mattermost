@@ -10293,7 +10293,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.invalid_image_path.error",
-    "translation": "User profile image path is invalid: '\\{{.Path}}'\\"
+    "translation": "User profile image path is invalid: ''{{.Path}}''"
   },
   {
     "id": "ent.access_control.job_data_conversion.app_error",
