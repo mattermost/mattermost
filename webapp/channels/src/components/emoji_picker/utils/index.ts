@@ -59,9 +59,10 @@ function isEmojiIdEqual(firstEmoji: Emoji, secondEmoji: Emoji): boolean {
 }
 
 export function getFilteredEmojis(allEmojis: Record<string, Emoji>, filter: string, recentEmojisString: string[], userSkinTone: string): Emoji[] {
-    // Normalize filter: replace spaces with underscores to match emoji aliases
+    // Normalize filter: trim and replace spaces with underscores to match emoji aliases
     // e.g. "umbrella with rain drops" -> "umbrella_with_rain_drops"
-    const normalizedFilter = filter.toLowerCase().replace(/\s+/g, '_');
+    // Trim first so whitespace-only queries don't normalize to "_"
+    const normalizedFilter = filter.trim().toLowerCase().replace(/\s+/g, '_');
 
     const filteredEmojisWithRecent = Object.values(allEmojis).filter((emoji) => {
         const aliases = isSystemEmoji(emoji) ? emoji.short_names : [emoji.name];
