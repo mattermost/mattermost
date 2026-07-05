@@ -9519,7 +9519,7 @@
   },
   {
     "id": "model.user.is_valid.pwd_max_length.app_error",
-    "translation": "Your password can't contain more than 72 characters."
+    "translation": "Your password must not contain more than 72 characters."
   },
   {
     "id": "api.post.check_for_out_of_team_mentions.message.multiple",
@@ -11898,5 +11898,9 @@
   {
     "id": "app.data_spillage.report.step.thread_data",
     "translation": "Thread, replies and reactions"
+  },
+  {
+    "id": "model.user_access_token.is_valid.expires_at.app_error",
+    "translation": "Invalid expires_at, must be zero or a positive Unix timestamp, in milliseconds."
   }
 ]
