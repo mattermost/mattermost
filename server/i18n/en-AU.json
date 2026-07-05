@@ -10285,7 +10285,7 @@
   },
   {
     "id": "app.import.validate_emoji_import_data.invalid_image_path.error",
-    "translation": "Import emoji image field has an invalid path: '\\{{.Path}}'\\"
+    "translation": "Import emoji image field has an invalid path: ''{{.Path}}''"
   },
   {
     "id": "app.import.validate_reply_import_data.attachment.error",
@@ -11818,5 +11818,9 @@
   {
     "id": "api.command_mobile_logs.you",
     "translation": "you"
+  },
+  {
+    "id": "api.file.get_file.abac_denied.app_error",
+    "translation": "You do not have the required access to download this file."
   }
 ]
