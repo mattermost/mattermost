@@ -77,11 +77,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 144+"
+    "translation": "Version 146+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 144+"
+    "translation": "Version 146+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -6367,7 +6367,7 @@
   },
   {
     "id": "api.command_mute.desc",
-    "translation": "Turns off desktop, email and push notifications for the current channel or the [channel] specified."
+    "translation": "Turns off desktop, email, and push notifications for the current channel or the [channel] specified."
   },
   {
     "id": "api.command_msg.permission.app_error",
@@ -11822,5 +11822,37 @@
   {
     "id": "api.file.get_file.abac_denied.app_error",
     "translation": "You do not have the required access to download this file."
+  },
+  {
+    "id": "model.channel_join_request.is_valid.channel_id.app_error",
+    "translation": "Invalid channel ID."
+  },
+  {
+    "id": "api.data_spillage.error.comment_required",
+    "translation": "Please add a comment explaining your reason for flagging this message."
+  },
+  {
+    "id": "api.data_spillage.error.comment_too_long",
+    "translation": "Message quarantine reason cannot be longer than {{.MaxLength}} characters."
+  },
+  {
+    "id": "api.data_spillage.error.disabled",
+    "translation": "Data Spillage Handling feature is disabled."
+  },
+  {
+    "id": "api.data_spillage.error.invalid_post_type",
+    "translation": "Quarantining a post of type '{{.PostType}}' is not allowed."
+  },
+  {
+    "id": "api.data_spillage.error.license",
+    "translation": "Your licence does not support Data Spillage Handling."
+  },
+  {
+    "id": "api.data_spillage.error.not_available_on_team",
+    "translation": "Data Spillage Handling feature is not enabled on this team."
+  },
+  {
+    "id": "api.data_spillage.error.post_not_in_progress",
+    "translation": "The quarantined post must be in ''pending'' or ''assigned'' status to be kept or removed."
   }
 ]
