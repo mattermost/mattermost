@@ -2887,25 +2887,44 @@ func (a *App) applyPostsWillBeConsumedHook(rctx request.CTX, posts map[string]*m
 		return
 	}
 
+	metadataByPostID := make(map[string]*model.PostMetadata, len(posts))
 	postsSlice := make([]*model.Post, 0, len(posts))
-
-	for _, post := range posts {
-		postsSlice = append(postsSlice, post.ForPlugin())
+	rebuildPostsSlice := func() {
+		postsSlice = postsSlice[:0]
+		for _, post := range posts {
+			postsSlice = append(postsSlice, post.ForPlugin())
+		}
 	}
-	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-		postReplacements := hooks.MessagesWillBeConsumed(postsSlice)
+	for postID, post := range posts {
+		metadataByPostID[postID] = post.Metadata
+	}
+	rebuildPostsSlice()
+	applyReplacements := func(postReplacements []*model.Post) {
 		for _, postReplacement := range postReplacements {
+			if postReplacement == nil {
+				continue
+			}
+			// if the plugin returned a post with a new id, ignore it.
+			metadata, ok := metadataByPostID[postReplacement.Id]
+			if !ok {
+				continue
+			}
+			postReplacement.Metadata = metadata
 			posts[postReplacement.Id] = postReplacement
 		}
+		rebuildPostsSlice()
+	}
+
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+		postReplacements := hooks.MessagesWillBeConsumed(postsSlice)
+		applyReplacements(postReplacements)
 		return true
 	}, plugin.MessagesWillBeConsumedID)
 
 	pluginContext := pluginContext(rctx)
 	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 		postReplacements := hooks.MessagesWillBeConsumedWithContext(pluginContext, postsSlice)
-		for _, postReplacement := range postReplacements {
-			posts[postReplacement.Id] = postReplacement
-		}
+		applyReplacements(postReplacements)
 		return true
 	}, plugin.MessagesWillBeConsumedWithContextID)
 }
@@ -2921,25 +2940,29 @@ func (a *App) applyPostWillBeConsumedHook(rctx request.CTX, post **model.Post) {
 	}
 
 	metadata := (*post).Metadata
-	ps := []*model.Post{(*post).ForPlugin()}
+	postsSlice := []*model.Post{(*post).ForPlugin()}
 	applyReplacement := func(replacements []*model.Post) {
 		if len(replacements) == 0 || replacements[0] == nil {
 			return
 		}
+		// if the plugin returned a post with a different id, ignore it.
+		if replacements[0].Id != (*post).Id {
+			return
+		}
 		*post = replacements[0]
 		(*post).Metadata = metadata
-		ps = []*model.Post{(*post).ForPlugin()}
+		postsSlice = []*model.Post{(*post).ForPlugin()}
 	}
 
 	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-		rp := hooks.MessagesWillBeConsumed(ps)
+		rp := hooks.MessagesWillBeConsumed(postsSlice)
 		applyReplacement(rp)
 		return true
 	}, plugin.MessagesWillBeConsumedID)
 
 	pluginContext := pluginContext(rctx)
 	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-		rp := hooks.MessagesWillBeConsumedWithContext(pluginContext, ps)
+		rp := hooks.MessagesWillBeConsumedWithContext(pluginContext, postsSlice)
 		applyReplacement(rp)
 		return true
 	}, plugin.MessagesWillBeConsumedWithContextID)
