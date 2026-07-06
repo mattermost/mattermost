@@ -7,9 +7,11 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"mime"
 	"net"
 	"net/mail"
 	"net/smtp"
+	"net/textproto"
 	"os"
 	"strings"
 	"testing"
@@ -302,7 +304,8 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 	require.Contains(t, mail.htmlBody, resultsEmail.Body.Text, "Wrong received message")
 
 	// verify that the To header of the email message is set to the MIME recipient, even though we got it out of the SMTP recipient's email inbox
-	assert.Equal(t, mail.mimeTo, resultsEmail.Header["To"][0])
+	require.NotEmpty(t, resultsEmail.Header["To"], "missing To header")
+	assert.Contains(t, resultsEmail.Header["To"][0], mail.mimeTo)
 
 	// verify that the MIME from address is correct - unfortunately, we can't verify the SMTP from address
 	assert.Equal(t, mail.from.String(), resultsEmail.Header["From"][0])
@@ -366,6 +369,25 @@ func TestAuthMethods(t *testing.T) {
 			assert.True(t, got == test.err, "%d. got error = %q; want %q", i, got, test.err)
 		})
 	}
+}
+
+func TestLoginAuthNext(t *testing.T) {
+	auth := &loginAuth{username: "user", password: "pass", host: "host:25"}
+
+	resp, err := auth.Next([]byte("Username:"), true)
+	require.NoError(t, err)
+	assert.Equal(t, []byte("user"), resp)
+
+	resp, err = auth.Next([]byte("Password:"), true)
+	require.NoError(t, err)
+	assert.Equal(t, []byte("pass"), resp)
+
+	_, err = auth.Next([]byte("Unknown:"), true)
+	require.Error(t, err)
+
+	resp, err = auth.Next(nil, false)
+	require.NoError(t, err)
+	assert.Nil(t, resp)
 }
 
 type mockMailer struct {
@@ -462,9 +484,49 @@ func TestSendMail(t *testing.T) {
 		},
 	}
 
+	t.Run("sets exactly one message-id header when provided", func(t *testing.T) {
+		m := mailData{
+			mimeTo:    "test@example.com",
+			smtpTo:    "test@example.com",
+			from:      mail.Address{Address: "from@example.com"},
+			messageID: "<abc123@mattermost.com>",
+		}
+		err = sendMail(mocm, m, time.Now(), getConfig())
+		require.NoError(t, err)
+		assert.Equal(t, 1, strings.Count(string(mocm.data), "Message-ID:"), "expected exactly one Message-ID header, got:\n%s", string(mocm.data))
+		assert.Contains(t, string(mocm.data), "\r\nMessage-ID: <abc123@mattermost.com>\r\n")
+		mocm.data = []byte{}
+	})
+
+	t.Run("sets exactly one message-id header when generated", func(t *testing.T) {
+		m := mailData{
+			mimeTo: "test@example.com",
+			smtpTo: "test@example.com",
+			from:   mail.Address{Address: "from@example.com"},
+		}
+		err = sendMail(mocm, m, time.Now(), getConfig())
+		require.NoError(t, err)
+		assert.Equal(t, 1, strings.Count(string(mocm.data), "Message-ID:"), "expected exactly one Message-ID header, got:\n%s", string(mocm.data))
+		mocm.data = []byte{}
+	})
+
+	t.Run("adds sendgrid category header", func(t *testing.T) {
+		m := mailData{
+			mimeTo:   "test@example.com",
+			smtpTo:   "test@example.com",
+			from:     mail.Address{Address: "from@example.com"},
+			category: "transactional",
+		}
+		err = sendMail(mocm, m, time.Now(), getConfig())
+		require.NoError(t, err)
+		require.Contains(t, string(mocm.data), SendGridXSMTPAPIHeader)
+		require.Contains(t, string(mocm.data), `"transactional"`)
+		mocm.data = []byte{}
+	})
+
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			mail := mailData{"", "", mail.Address{}, "", tc.replyTo, "", "", nil, nil, tc.messageID, tc.inReplyTo, tc.references, ""}
+			mail := mailData{"test@example.com", "test@example.com", mail.Address{Address: "from@example.com"}, "", tc.replyTo, "", "", nil, nil, tc.messageID, tc.inReplyTo, tc.references, ""}
 			cfg := getConfig()
 			err = sendMail(mocm, mail, time.Now(), cfg)
 			require.NoError(t, err)
@@ -477,4 +539,227 @@ func TestSendMail(t *testing.T) {
 			mocm.data = []byte{}
 		})
 	}
+}
+
+// mailHeaderValue returns the value of the named header (case-insensitive) from
+// the raw RFC 5322 message, unfolding any continuation lines. It fails the test
+// if the message is not parseable, and returns "" and false if the header is
+// absent.
+func mailHeaderValue(t *testing.T, raw, name string) (string, bool) {
+	t.Helper()
+	msg, err := mail.ReadMessage(strings.NewReader(raw))
+	require.NoError(t, err, "message must be RFC 5322 parseable")
+	if _, ok := msg.Header[textproto.CanonicalMIMEHeaderKey(name)]; !ok {
+		return "", false
+	}
+	return msg.Header.Get(name), true
+}
+
+// TestSendMailSubjectEncoding verifies that a non-ASCII subject is emitted as
+// an RFC 2047 encoded-word, never as raw UTF-8 bytes in the header. A library
+// swap that stopped encoding the subject would corrupt it on the wire.
+func TestSendMailSubjectEncoding(t *testing.T) {
+	mocm := &mockMailer{}
+	m := mailData{
+		mimeTo:   "test@example.com",
+		smtpTo:   "test@example.com",
+		from:     mail.Address{Address: "from@example.com"},
+		subject:  "Café ☕ 你好",
+		htmlBody: "hi",
+	}
+	err := sendMail(mocm, m, time.Now(), getConfig())
+	require.NoError(t, err)
+
+	subject, ok := mailHeaderValue(t, string(mocm.data), "Subject")
+	require.True(t, ok, "Subject header must be present")
+
+	// The value must be an RFC 2047 encoded-word, not the raw UTF-8 string.
+	assert.Contains(t, strings.ToLower(subject), "=?utf-8?", "Subject must be RFC 2047 encoded")
+	assert.NotContains(t, subject, "Café", "raw UTF-8 subject must not leak into the header")
+	assert.NotContains(t, subject, "你好", "raw UTF-8 subject must not leak into the header")
+
+	// Decoding the encoded-word(s) must round-trip back to the original subject,
+	// without locking in the exact encoding go-mail happens to emit.
+	decoded, err := new(mime.WordDecoder).DecodeHeader(subject)
+	require.NoError(t, err)
+	assert.Equal(t, m.subject, decoded)
+}
+
+// TestSendMailMIMEStructure verifies the multipart container layout: with text
+// and HTML bodies a multipart/alternative is produced, and with an embedded
+// file the whole thing is wrapped in a multipart/related whose embedded part
+// carries a Content-ID and inline disposition.
+func TestSendMailMIMEStructure(t *testing.T) {
+	t.Run("text and html without embed produce multipart/alternative", func(t *testing.T) {
+		mocm := &mockMailer{}
+		m := mailData{
+			mimeTo:   "test@example.com",
+			smtpTo:   "test@example.com",
+			from:     mail.Address{Address: "from@example.com"},
+			htmlBody: "<p>Hello <b>world</b></p>",
+		}
+		err := sendMail(mocm, m, time.Now(), getConfig())
+		require.NoError(t, err)
+
+		data := string(mocm.data)
+		ct, ok := mailHeaderValue(t, data, "Content-Type")
+		require.True(t, ok, "Content-Type header must be present")
+		assert.Contains(t, ct, "multipart/alternative", "top-level container should be multipart/alternative")
+		assert.NotContains(t, ct, "multipart/related", "no embedded files means no multipart/related wrapper")
+		assert.Contains(t, data, "text/plain", "plain text part must be present")
+		assert.Contains(t, data, "text/html", "html part must be present")
+	})
+
+	t.Run("embedded file produces multipart/related with inline Content-ID part", func(t *testing.T) {
+		mocm := &mockMailer{}
+		m := mailData{
+			mimeTo:   "test@example.com",
+			smtpTo:   "test@example.com",
+			from:     mail.Address{Address: "from@example.com"},
+			htmlBody: "<p>Hello <b>world</b></p>",
+			embeddedFiles: map[string]io.Reader{
+				"logo.png": bytes.NewReader([]byte("PNGDATA")),
+			},
+		}
+		err := sendMail(mocm, m, time.Now(), getConfig())
+		require.NoError(t, err)
+
+		data := string(mocm.data)
+		ct, ok := mailHeaderValue(t, data, "Content-Type")
+		require.True(t, ok, "Content-Type header must be present")
+		assert.Contains(t, ct, "multipart/related", "an embedded file must be wrapped in multipart/related")
+
+		// Both alternatives still exist inside the related container.
+		assert.Contains(t, data, "multipart/alternative", "multipart/alternative must remain nested inside multipart/related")
+		assert.Contains(t, data, "text/plain")
+		assert.Contains(t, data, "text/html")
+
+		lower := strings.ToLower(data)
+		assert.Contains(t, lower, "content-id: <logo.png>", "embedded part must carry a Content-ID")
+		assert.Contains(t, lower, "content-disposition: inline", "embedded part must be inline")
+		assert.Contains(t, data, `filename="logo.png"`, "embedded part must reference its filename")
+	})
+}
+
+// TestSendMailDateHeader verifies a Date header is present and RFC 5322 shaped
+// (parseable by net/mail). SetDateWithValue regressions would break this.
+func TestSendMailDateHeader(t *testing.T) {
+	mocm := &mockMailer{}
+	date := time.Date(2026, 7, 6, 12, 0, 0, 0, time.UTC)
+	m := mailData{
+		mimeTo:   "test@example.com",
+		smtpTo:   "test@example.com",
+		from:     mail.Address{Address: "from@example.com"},
+		htmlBody: "hi",
+	}
+	err := sendMail(mocm, m, date, getConfig())
+	require.NoError(t, err)
+
+	value, ok := mailHeaderValue(t, string(mocm.data), "Date")
+	require.True(t, ok, "Date header must be present")
+
+	parsed, err := mail.ParseDate(value)
+	require.NoError(t, err, "Date header %q must be RFC 5322 parseable", value)
+	assert.True(t, parsed.Equal(date), "parsed Date %s should match the supplied time %s", parsed, date)
+}
+
+// TestSendMailComplianceHeaders verifies the bulk/auto-generated headers used to
+// signal automated mail are present.
+func TestSendMailComplianceHeaders(t *testing.T) {
+	mocm := &mockMailer{}
+	m := mailData{
+		mimeTo:   "test@example.com",
+		smtpTo:   "test@example.com",
+		from:     mail.Address{Address: "from@example.com"},
+		htmlBody: "hi",
+	}
+	err := sendMail(mocm, m, time.Now(), getConfig())
+	require.NoError(t, err)
+
+	autoSubmitted, ok := mailHeaderValue(t, string(mocm.data), "Auto-Submitted")
+	require.True(t, ok, "Auto-Submitted header must be present")
+	assert.Equal(t, "auto-generated", autoSubmitted)
+
+	precedence, ok := mailHeaderValue(t, string(mocm.data), "Precedence")
+	require.True(t, ok, "Precedence header must be present")
+	assert.Equal(t, "bulk", precedence)
+}
+
+// TestSendMailBodyCharset verifies the body parts declare a UTF-8 charset,
+// tolerant of casing and quoting differences between libraries.
+func TestSendMailBodyCharset(t *testing.T) {
+	mocm := &mockMailer{}
+	m := mailData{
+		mimeTo:   "test@example.com",
+		smtpTo:   "test@example.com",
+		from:     mail.Address{Address: "from@example.com"},
+		htmlBody: "<p>hi</p>",
+	}
+	err := sendMail(mocm, m, time.Now(), getConfig())
+	require.NoError(t, err)
+
+	lower := strings.ToLower(string(mocm.data))
+	// Be tolerant of charset=UTF-8 vs charset="UTF-8".
+	hasCharset := strings.Contains(lower, "charset=utf-8") || strings.Contains(lower, `charset="utf-8"`)
+	assert.True(t, hasCharset, "body parts must declare a UTF-8 charset")
+}
+
+// TestSendMailFromDisplayName verifies that a From display name renders and that
+// a non-ASCII display name is RFC 2047 encoded rather than emitted raw.
+func TestSendMailFromDisplayName(t *testing.T) {
+	t.Run("ASCII display name renders literally", func(t *testing.T) {
+		mocm := &mockMailer{}
+		m := mailData{
+			mimeTo:   "test@example.com",
+			smtpTo:   "test@example.com",
+			from:     mail.Address{Name: "Plain Name", Address: "from@example.com"},
+			htmlBody: "hi",
+		}
+		err := sendMail(mocm, m, time.Now(), getConfig())
+		require.NoError(t, err)
+
+		from, ok := mailHeaderValue(t, string(mocm.data), "From")
+		require.True(t, ok, "From header must be present")
+		assert.Contains(t, from, "Plain Name")
+		assert.Contains(t, from, "<from@example.com>")
+		assert.NotContains(t, from, "=?", "an ASCII display name must not be RFC 2047 encoded")
+	})
+
+	t.Run("non-ASCII display name is RFC 2047 encoded", func(t *testing.T) {
+		mocm := &mockMailer{}
+		m := mailData{
+			mimeTo:   "test@example.com",
+			smtpTo:   "test@example.com",
+			from:     mail.Address{Name: "Café Admin ☕", Address: "from@example.com"},
+			htmlBody: "hi",
+		}
+		err := sendMail(mocm, m, time.Now(), getConfig())
+		require.NoError(t, err)
+
+		from, ok := mailHeaderValue(t, string(mocm.data), "From")
+		require.True(t, ok, "From header must be present")
+		assert.Contains(t, strings.ToLower(from), "=?utf-8?", "non-ASCII display name must be RFC 2047 encoded")
+		assert.NotContains(t, from, "Café", "raw UTF-8 display name must not leak into the header")
+		assert.Contains(t, from, "<from@example.com>")
+	})
+}
+
+// TestSendMailCcDisplayName verifies a Cc address with a display name renders
+// correctly through the address parser.
+func TestSendMailCcDisplayName(t *testing.T) {
+	mocm := &mockMailer{}
+	m := mailData{
+		mimeTo:   "test@example.com",
+		smtpTo:   "test@example.com",
+		from:     mail.Address{Address: "from@example.com"},
+		cc:       `"Cc Person" <cc@example.com>`,
+		htmlBody: "hi",
+	}
+	err := sendMail(mocm, m, time.Now(), getConfig())
+	require.NoError(t, err)
+
+	cc, ok := mailHeaderValue(t, string(mocm.data), "Cc")
+	require.True(t, ok, "Cc header must be present")
+	assert.Contains(t, cc, "Cc Person")
+	assert.Contains(t, cc, "<cc@example.com>")
 }
