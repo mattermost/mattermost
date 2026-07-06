@@ -10,11 +10,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
-// isChannelMemberSyncEnabled checks if the feature flag is enabled and remote cluster service is available
 func (scs *Service) isChannelMemberSyncEnabled() bool {
-	featureFlagEnabled := scs.server.Config().FeatureFlags.EnableSharedChannelsMemberSync
-	remoteClusterService := scs.server.GetRemoteClusterService()
-	return featureFlagEnabled && remoteClusterService != nil
+	return scs.server.GetRemoteClusterService() != nil
 }
 
 // NotifyMembershipChanged is called when users are added or removed from a shared channel.

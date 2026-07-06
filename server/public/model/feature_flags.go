@@ -16,17 +16,8 @@ type FeatureFlags struct {
 	// all other values as false.
 	TestBoolFeature bool
 
-	// Enable the remote cluster service for shared channels.
-	EnableRemoteClusterService bool
-
 	// Enable DMs and GMs for shared channels.
 	EnableSharedChannelsDMs bool
-
-	// Enable plugins in shared channels.
-	EnableSharedChannelsPlugins bool
-
-	// Enable synchronization of channel members in shared channels
-	EnableSharedChannelsMemberSync bool
 
 	// Enable syncing all users for remote clusters in shared channels
 	EnableSyncAllUsersForRemoteCluster bool
@@ -48,8 +39,6 @@ type FeatureFlags struct {
 	StreamlinedMarketplace bool
 
 	CloudDedicatedExportUI bool
-
-	ChannelBookmarks bool
 
 	WebSocketEventScope bool
 
@@ -151,16 +140,16 @@ type FeatureFlags struct {
 
 	// Requires AttributeBasedAccessControl to also be enabled.
 	TeamMembershipAccessControl bool
+
+	// Enable the new mm_blocks Interactive Messages framework
+	MmBlocksEnabled bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
 	f.TestFeature = "off"
 	f.TestBoolFeature = false
-	f.EnableRemoteClusterService = false
 	f.EnableSharedChannelsDMs = false
-	f.EnableSharedChannelsMemberSync = false
 	f.EnableSyncAllUsersForRemoteCluster = false
-	f.EnableSharedChannelsPlugins = true
 	f.AppsEnabled = false
 	f.NormalizeLdapDNs = false
 	f.WysiwygEditor = false
@@ -169,17 +158,16 @@ func (f *FeatureFlags) SetDefaults() {
 	f.MoveThreadsEnabled = false
 	f.StreamlinedMarketplace = true
 	f.CloudDedicatedExportUI = false
-	f.ChannelBookmarks = true
 	f.WebSocketEventScope = true
 	f.NotificationMonitoring = true
 	f.ExperimentalAuditSettingsSystemConsoleUI = true
 	f.CustomProfileAttributes = true
 	f.AttributeBasedAccessControl = true
-	f.AttributeValueMasking = false
-	f.PermissionPolicies = false
+	f.AttributeValueMasking = true
+	f.PermissionPolicies = true
 	f.TeamMembershipAccessControl = false
-	f.ChannelPermissionPolicies = false
-	f.PolicySimulation = false
+	f.ChannelPermissionPolicies = true
+	f.PolicySimulation = true
 	f.ContentFlagging = true
 	f.EnableMattermostEntry = true
 
@@ -212,7 +200,9 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.MobileEphemeralMode = false
 
-	f.PropertyFieldRank = false
+	f.PropertyFieldRank = true
+
+	f.MmBlocksEnabled = true
 }
 
 // IsChannelPermissionPoliciesEnabled reports whether channel-scope

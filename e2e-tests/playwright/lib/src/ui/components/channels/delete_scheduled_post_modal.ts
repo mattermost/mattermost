@@ -14,9 +14,9 @@ export default class DeleteScheduledPostModal {
     constructor(container: Locator) {
         this.container = container;
 
-        this.body = container.locator('.modal-body');
-        this.deleteButton = container.locator('button:has-text("Yes, delete")');
-        this.cancelButton = container.locator('button:has-text("Cancel")');
+        this.body = container.locator('#confirmModalBody');
+        this.deleteButton = container.getByRole('button', {name: 'Yes, delete'});
+        this.cancelButton = container.getByRole('button', {name: 'Cancel'});
         this.closeButton = container.getByRole('button', {name: 'Close'});
     }
 

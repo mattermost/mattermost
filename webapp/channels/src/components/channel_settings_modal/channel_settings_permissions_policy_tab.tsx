@@ -23,7 +23,7 @@ import {
     hasOverlappingPermissionRules,
 } from '@mattermost/types/access_control';
 import type {Channel} from '@mattermost/types/channels';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
 import {isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
@@ -587,7 +587,7 @@ function ChannelSettingsPermissionsPolicyTab({
             key: '__new__',
             name: '',
             role: ACCESS_CONTROL_CHANNEL_ROLE_USER,
-            actions: [ACCESS_CONTROL_ACTION_UPLOAD_FILE],
+            actions: [],
             expression: '',
         } : rules.find((r) => r.key === editingKey);
 
@@ -600,6 +600,7 @@ function ChannelSettingsPermissionsPolicyTab({
 
         return (
             <PermissionRuleEditor
+                key={editingKey}
                 initial={initial}
                 isNew={isNew}
                 channelId={channel.id}
@@ -921,13 +922,13 @@ function PermissionRuleEditor({
     policySimulationEnabled,
 }: PermissionRuleEditorProps) {
     const {formatMessage} = useIntl();
+
+    // Seed once on mount. The parent passes a stable `key` so switching
+    // rules remounts and re-seeds here. Re-seeding from an effect keyed on
+    // `initial` instead would wipe in-progress edits on any parent re-render
+    // that rebuilds `initial` (e.g. surfacing a validation error on save).
     const [draft, setDraft] = useState<EditableRule>(initial);
     const [showTest, setShowTest] = useState(false);
-
-    // Re-seed when the editor is opened on a different rule.
-    useEffect(() => {
-        setDraft(initial);
-    }, [initial]);
 
     const actionLabels = useMemo(() => {
         const labels: Record<string, string> = {};

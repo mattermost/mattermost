@@ -5,6 +5,8 @@ package app
 
 import (
 	"context"
+	"encoding/json"
+	"maps"
 	"sync"
 	"testing"
 
@@ -488,6 +490,15 @@ func TestDoSetupBoardsProperties(t *testing.T) {
 		require.True(t, status.Protected)
 		require.NotNil(t, status.Attrs["options"])
 
+		// v2 seeds a default colour per status option. Verify the three seeded
+		// options carry the expected colours so kanban columns render with
+		// their intended palette out of the box.
+		assertStatusColors(t, status.Attrs, map[string]string{
+			model.BoardsStatusOptionTodo:       model.BoardsStatusColorTodo,
+			model.BoardsStatusOptionInProgress: model.BoardsStatusColorInProgress,
+			model.BoardsStatusOptionComplete:   model.BoardsStatusColorComplete,
+		})
+
 		data, sysErr := th.Store.System().GetByName(boardsPropertySetupDoneKey)
 		require.NoError(t, sysErr)
 		require.Equal(t, boardsPropertyMigrationVersion, data.Value)
@@ -514,4 +525,116 @@ func TestDoSetupBoardsProperties(t *testing.T) {
 		require.NoError(t, sysErr)
 		require.Equal(t, boardsPropertyMigrationVersion, data.Value)
 	})
+
+	t.Run("upgrading v1 → v2 layers colours onto existing options without rewriting their IDs", func(t *testing.T) {
+		// Setup() already runs v2 cleanly. Simulate a workspace that was
+		// previously seeded with v1 (no colours) by stripping every colour
+		// from the Status options and rolling the system flag back to v1.
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.BoardsPropertyGroupName)
+		require.Nil(t, appErr)
+
+		fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+
+		var statusBefore *model.PropertyField
+		for _, f := range fields {
+			if f.Name == model.BoardsPropertyFieldStatus {
+				statusBefore = f
+				break
+			}
+		}
+		require.NotNil(t, statusBefore)
+
+		// Snapshot the option IDs assigned by the v1 seed run so we can verify
+		// they survive the v2 upgrade.
+		idsBefore := optionIDsByName(t, statusBefore.Attrs)
+		require.Len(t, idsBefore, 3)
+		for _, id := range idsBefore {
+			require.NotEmpty(t, id)
+		}
+
+		// Strip colours to simulate the v1 shape, then rewind the version flag.
+		stripped := stripStatusColors(t, statusBefore.Attrs)
+		statusBefore.Attrs = stripped
+		_, _, _, updateErr := th.Server.propertyService.UpdatePropertyFields(th.Context, group.ID, []*model.PropertyField{statusBefore})
+		require.NoError(t, updateErr)
+
+		sysErr := th.Store.System().SaveOrUpdate(&model.System{Name: boardsPropertySetupDoneKey, Value: "v1"})
+		require.NoError(t, sysErr)
+
+		// Run the migration again — should layer colours back on without
+		// changing option IDs.
+		require.NoError(t, th.Server.doSetupBoardsProperties())
+
+		fields, appErr = th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		var statusAfter *model.PropertyField
+		for _, f := range fields {
+			if f.Name == model.BoardsPropertyFieldStatus {
+				statusAfter = f
+				break
+			}
+		}
+		require.NotNil(t, statusAfter)
+
+		assertStatusColors(t, statusAfter.Attrs, map[string]string{
+			model.BoardsStatusOptionTodo:       model.BoardsStatusColorTodo,
+			model.BoardsStatusOptionInProgress: model.BoardsStatusColorInProgress,
+			model.BoardsStatusOptionComplete:   model.BoardsStatusColorComplete,
+		})
+
+		idsAfter := optionIDsByName(t, statusAfter.Attrs)
+		require.Equal(t, idsBefore, idsAfter, "v2 upgrade must preserve every existing option ID")
+	})
+}
+
+func assertStatusColors(t *testing.T, attrs model.StringInterface, want map[string]string) {
+	t.Helper()
+	got := map[string]string{}
+	encoded, err := json.Marshal(attrs["options"])
+	require.NoError(t, err)
+	var options []map[string]any
+	require.NoError(t, json.Unmarshal(encoded, &options))
+	for _, opt := range options {
+		name, _ := opt["name"].(string)
+		color, _ := opt["color"].(string)
+		if name != "" {
+			got[name] = color
+		}
+	}
+	require.Equal(t, want, got)
+}
+
+func optionIDsByName(t *testing.T, attrs model.StringInterface) map[string]string {
+	t.Helper()
+	out := map[string]string{}
+	encoded, err := json.Marshal(attrs["options"])
+	require.NoError(t, err)
+	var options []map[string]any
+	require.NoError(t, json.Unmarshal(encoded, &options))
+	for _, opt := range options {
+		name, _ := opt["name"].(string)
+		id, _ := opt["id"].(string)
+		if name != "" {
+			out[name] = id
+		}
+	}
+	return out
+}
+
+func stripStatusColors(t *testing.T, attrs model.StringInterface) model.StringInterface {
+	t.Helper()
+	encoded, err := json.Marshal(attrs["options"])
+	require.NoError(t, err)
+	var options []map[string]any
+	require.NoError(t, json.Unmarshal(encoded, &options))
+	for _, opt := range options {
+		delete(opt, "color")
+	}
+	out := make(model.StringInterface, len(attrs))
+	maps.Copy(out, attrs)
+	out["options"] = options
+	return out
 }

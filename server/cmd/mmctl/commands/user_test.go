@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 
@@ -18,6 +19,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func (s *MmctlUnitTestSuite) TestUserActivateCmd() {
@@ -612,6 +614,27 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(userOut{User: mockUser, Deactivated: false, AuthData: "1234"}, printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Plain output includes the user's roles", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+		defer printer.SetFormat(printer.FormatJSON)
+
+		emailArg := "example@example.com"
+		mockUser := &model.User{Username: "ExampleUser", Email: emailArg, Roles: "system_user system_admin"}
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(context.TODO(), emailArg, "").
+			Return(mockUser, &model.Response{}, nil).
+			Times(1)
+
+		err := searchUserCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Contains(printer.GetLines()[0], "roles: system_user system_admin")
 	})
 
 	s.Run("Search for a nonexistent user", func() {
@@ -3117,5 +3140,364 @@ func (s *MmctlUnitTestSuite) TestUserEditAuthdataCmd() {
 		err := userEditAuthdataCmdF(s.client, &command, []string{userArg, newAuthdata})
 
 		s.Require().EqualError(err, "failed to update user authdata: API error")
+	})
+}
+
+func newUserStatusCmd() *cobra.Command {
+	cmd := &cobra.Command{}
+	cmd.Flags().String("user", "", "")
+	return cmd
+}
+
+func newUserStatusSetCmd() *cobra.Command {
+	cmd := newUserStatusCmd()
+	cmd.Flags().String("dnd-end-time", "", "")
+	return cmd
+}
+
+func (s *MmctlUnitTestSuite) TestUserStatusCmdWiring() {
+	s.Run("status command is registered under user with a set subcommand", func() {
+		s.Require().True(UserCmd.HasSubCommands())
+		s.Require().Contains(UserCmd.Commands(), UserStatusCmd)
+		s.Require().Contains(UserStatusCmd.Commands(), UserStatusSetCmd)
+	})
+
+	s.Run("the expected flags are registered", func() {
+		s.Require().NotNil(UserStatusCmd.Flags().Lookup("user"))
+		s.Require().NotNil(UserStatusSetCmd.Flags().Lookup("user"))
+		s.Require().NotNil(UserStatusSetCmd.Flags().Lookup("dnd-end-time"))
+	})
+
+	s.Run("argument contracts are enforced", func() {
+		s.Require().NoError(UserStatusCmd.Args(UserStatusCmd, []string{}))
+		s.Require().Error(UserStatusCmd.Args(UserStatusCmd, []string{"online"}))
+		s.Require().NoError(UserStatusSetCmd.Args(UserStatusSetCmd, []string{"online"}))
+		s.Require().Error(UserStatusSetCmd.Args(UserStatusSetCmd, []string{}))
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestUserStatusGetCmd() {
+	s.Run("Get status of the current user when --user is omitted", func() {
+		printer.Clean()
+
+		mockUser := model.User{Id: "me-id", Username: "me"}
+		mockStatus := &model.Status{UserId: "me-id", Status: model.StatusOnline}
+
+		s.client.
+			EXPECT().
+			GetMe(context.TODO(), "").
+			Return(&mockUser, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserStatus(context.TODO(), "me-id", "").
+			Return(mockStatus, &model.Response{}, nil).
+			Times(1)
+
+		err := userStatusGetCmdF(s.client, newUserStatusCmd(), []string{})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(mockStatus, printer.GetLines()[0])
+	})
+
+	s.Run("Get status of a specific user via --user", func() {
+		printer.Clean()
+
+		cmd := newUserStatusCmd()
+		err := cmd.Flags().Set("user", "target@example.com")
+		s.Require().NoError(err)
+
+		mockUser := model.User{Id: "target-id", Username: "target", Email: "target@example.com"}
+		mockStatus := &model.Status{UserId: "target-id", Status: model.StatusDnd}
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(context.TODO(), "target@example.com", "").
+			Return(&mockUser, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserStatus(context.TODO(), "target-id", "").
+			Return(mockStatus, &model.Response{}, nil).
+			Times(1)
+
+		err = userStatusGetCmdF(s.client, cmd, []string{})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(mockStatus, printer.GetLines()[0])
+	})
+
+	s.Run("Require --user in local mode", func() {
+		printer.Clean()
+		prevLocal := viper.GetBool("local")
+		viper.Set("local", true)
+		defer viper.Set("local", prevLocal)
+
+		err := userStatusGetCmdF(s.client, newUserStatusCmd(), []string{})
+		s.Require().EqualError(err, "the --user flag is required in local mode")
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("Return error when status retrieval fails", func() {
+		printer.Clean()
+
+		mockUser := model.User{Id: "me-id", Username: "me"}
+
+		s.client.
+			EXPECT().
+			GetMe(context.TODO(), "").
+			Return(&mockUser, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserStatus(context.TODO(), "me-id", "").
+			Return(nil, &model.Response{}, errors.New("status error")).
+			Times(1)
+
+		err := userStatusGetCmdF(s.client, newUserStatusCmd(), []string{})
+		s.Require().EqualError(err, "could not get status for user me-id: status error")
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("Return error when user cannot be found", func() {
+		printer.Clean()
+
+		cmd := newUserStatusCmd()
+		err := cmd.Flags().Set("user", "ghost")
+		s.Require().NoError(err)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), "ghost", "").
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUser(context.TODO(), "ghost", "").
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		err = userStatusGetCmdF(s.client, cmd, []string{})
+		s.Require().EqualError(err, "user ghost not found")
+		s.Require().Len(printer.GetLines(), 0)
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestUserStatusSetCmd() {
+	s.Run("Set status of the current user when --user is omitted", func() {
+		printer.Clean()
+
+		mockUser := model.User{Id: "me-id", Username: "me"}
+		wantStatus := &model.Status{UserId: "me-id", Status: model.StatusAway}
+		returnedStatus := &model.Status{UserId: "me-id", Status: model.StatusAway, Manual: true}
+
+		s.client.
+			EXPECT().
+			GetMe(context.TODO(), "").
+			Return(&mockUser, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUserStatus(context.TODO(), "me-id", wantStatus).
+			Return(returnedStatus, &model.Response{}, nil).
+			Times(1)
+
+		err := userStatusSetCmdF(s.client, newUserStatusSetCmd(), []string{model.StatusAway})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(returnedStatus, printer.GetLines()[0])
+	})
+
+	s.Run("Set status of a specific user via --user", func() {
+		printer.Clean()
+
+		cmd := newUserStatusSetCmd()
+		err := cmd.Flags().Set("user", "target@example.com")
+		s.Require().NoError(err)
+
+		mockUser := model.User{Id: "target-id", Username: "target", Email: "target@example.com"}
+		wantStatus := &model.Status{UserId: "target-id", Status: model.StatusOffline}
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(context.TODO(), "target@example.com", "").
+			Return(&mockUser, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUserStatus(context.TODO(), "target-id", wantStatus).
+			Return(wantStatus, &model.Response{}, nil).
+			Times(1)
+
+		err = userStatusSetCmdF(s.client, cmd, []string{model.StatusOffline})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(wantStatus, printer.GetLines()[0])
+	})
+
+	s.Run("Set dnd status with an end time", func() {
+		printer.Clean()
+
+		endTimeArg := time.Now().Add(24 * time.Hour).Format(ISO8601Layout)
+		endTime, err := time.Parse(ISO8601Layout, endTimeArg)
+		s.Require().NoError(err)
+
+		cmd := newUserStatusSetCmd()
+		err = cmd.Flags().Set("dnd-end-time", endTimeArg)
+		s.Require().NoError(err)
+
+		mockUser := model.User{Id: "me-id", Username: "me"}
+		wantStatus := &model.Status{UserId: "me-id", Status: model.StatusDnd, DNDEndTime: endTime.Unix()}
+
+		s.client.
+			EXPECT().
+			GetMe(context.TODO(), "").
+			Return(&mockUser, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUserStatus(context.TODO(), "me-id", wantStatus).
+			Return(wantStatus, &model.Response{}, nil).
+			Times(1)
+
+		err = userStatusSetCmdF(s.client, cmd, []string{model.StatusDnd})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(wantStatus, printer.GetLines()[0])
+	})
+
+	s.Run("Reject an invalid status value", func() {
+		printer.Clean()
+
+		err := userStatusSetCmdF(s.client, newUserStatusSetCmd(), []string{"busy"})
+		s.Require().EqualError(err, "invalid status \"busy\", must be one of: online, away, dnd, offline")
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("Reject --dnd-end-time with a non-dnd status", func() {
+		printer.Clean()
+
+		cmd := newUserStatusSetCmd()
+		err := cmd.Flags().Set("dnd-end-time", time.Now().Add(time.Hour).Format(ISO8601Layout))
+		s.Require().NoError(err)
+
+		err = userStatusSetCmdF(s.client, cmd, []string{model.StatusAway})
+		s.Require().EqualError(err, "the --dnd-end-time flag can only be used with the \"dnd\" status")
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("Set dnd status with a UTC end time", func() {
+		printer.Clean()
+
+		endTime := time.Now().Add(24 * time.Hour).UTC().Truncate(time.Second)
+		endTimeArg := endTime.Format(time.RFC3339)
+
+		cmd := newUserStatusSetCmd()
+		err := cmd.Flags().Set("dnd-end-time", endTimeArg)
+		s.Require().NoError(err)
+
+		mockUser := model.User{Id: "me-id", Username: "me"}
+		wantStatus := &model.Status{UserId: "me-id", Status: model.StatusDnd, DNDEndTime: endTime.Unix()}
+
+		s.client.
+			EXPECT().
+			GetMe(context.TODO(), "").
+			Return(&mockUser, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUserStatus(context.TODO(), "me-id", wantStatus).
+			Return(wantStatus, &model.Response{}, nil).
+			Times(1)
+
+		err = userStatusSetCmdF(s.client, cmd, []string{model.StatusDnd})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(wantStatus, printer.GetLines()[0])
+	})
+
+	s.Run("Reject a dnd-end-time in the past", func() {
+		printer.Clean()
+
+		cmd := newUserStatusSetCmd()
+		err := cmd.Flags().Set("dnd-end-time", time.Now().Add(-time.Hour).Format(ISO8601Layout))
+		s.Require().NoError(err)
+
+		err = userStatusSetCmdF(s.client, cmd, []string{model.StatusDnd})
+		s.Require().EqualError(err, "dnd-end-time must be in the future")
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("Reject a malformed dnd-end-time", func() {
+		printer.Clean()
+
+		cmd := newUserStatusSetCmd()
+		err := cmd.Flags().Set("dnd-end-time", "not-a-time")
+		s.Require().NoError(err)
+
+		err = userStatusSetCmdF(s.client, cmd, []string{model.StatusDnd})
+		s.Require().EqualError(err, "invalid dnd-end-time \"not-a-time\", expected RFC3339 format (e.g. 2006-01-02T15:04:05-07:00 or 2006-01-02T15:04:05Z)")
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("Return error when the current user cannot be resolved", func() {
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			GetMe(context.TODO(), "").
+			Return(nil, &model.Response{}, errors.New("me error")).
+			Times(1)
+
+		err := userStatusSetCmdF(s.client, newUserStatusSetCmd(), []string{model.StatusOnline})
+		s.Require().EqualError(err, "could not retrieve the current user: me error")
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("Require --user in local mode", func() {
+		printer.Clean()
+		prevLocal := viper.GetBool("local")
+		viper.Set("local", true)
+		defer viper.Set("local", prevLocal)
+
+		err := userStatusSetCmdF(s.client, newUserStatusSetCmd(), []string{model.StatusOnline})
+		s.Require().EqualError(err, "the --user flag is required in local mode")
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("Return error when status update fails", func() {
+		printer.Clean()
+
+		mockUser := model.User{Id: "me-id", Username: "me"}
+		wantStatus := &model.Status{UserId: "me-id", Status: model.StatusOnline}
+
+		s.client.
+			EXPECT().
+			GetMe(context.TODO(), "").
+			Return(&mockUser, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUserStatus(context.TODO(), "me-id", wantStatus).
+			Return(nil, &model.Response{}, errors.New("update error")).
+			Times(1)
+
+		err := userStatusSetCmdF(s.client, newUserStatusSetCmd(), []string{model.StatusOnline})
+		s.Require().EqualError(err, "could not set status for user me-id: update error")
+		s.Require().Len(printer.GetLines(), 0)
 	})
 }

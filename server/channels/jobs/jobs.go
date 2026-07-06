@@ -122,6 +122,11 @@ func (srv *JobServer) SetJobWarning(job *model.Job) *model.AppError {
 	if _, err := srv.Store.Job().UpdateStatus(job.Id, model.JobStatusWarning); err != nil {
 		return model.NewAppError("SetJobWarning", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	if srv.metrics != nil {
+		srv.metrics.DecrementJobActive(job.Type)
+	}
+
 	return nil
 }
 

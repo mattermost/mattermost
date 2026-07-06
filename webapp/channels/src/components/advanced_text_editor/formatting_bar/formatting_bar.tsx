@@ -2,8 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {useFloating, offset, useClick, useDismiss, useInteractions} from '@floating-ui/react';
+import type {Editor} from '@tiptap/react';
 import classNames from 'classnames';
-import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {CSSTransition} from 'react-transition-group';
 import styled from 'styled-components';
@@ -11,10 +12,12 @@ import styled from 'styled-components';
 import {DotsHorizontalIcon} from '@mattermost/compass-icons/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
-import type {ApplyMarkdownOptions, MarkdownMode} from 'utils/markdown/apply_markdown';
+import type {MarkdownMode} from 'utils/markdown/apply_markdown';
 
 import FormattingIcon, {IconContainer} from './formatting_icon';
 import {LayoutModes, useFormattingBarControls} from './hooks';
+import LinkPopover from './link_popover';
+import TextStyleDropdown from './text_style_dropdown';
 
 export const Separator = styled.div.attrs({'data-testid': 'formatting-bar-separator'})`
     display: block;
@@ -41,6 +44,8 @@ const FormattingBarContainer = styled.div`
     gap: 2px;
     transform-origin: top;
     transition: height 0.25s ease;
+    overflow: hidden;
+    flex-wrap: nowrap;
 `;
 
 const HiddenControlsContainer = styled.div`
@@ -93,26 +98,17 @@ const HiddenControlsContainer = styled.div`
     }
 `;
 
+export interface FormattingBarHandle {
+    openLinkPopover: () => void;
+}
+
 interface FormattingBarProps {
 
     /**
-     * the current inputValue
-     * This is needed to apply the markdown to the correct place
+     * Apply a formatting toggle for the given markdown mode. The parent decides
+     * whether this targets the legacy markdown textbox or the WYSIWYG editor.
      */
-    getCurrentMessage: () => string;
-
-    /**
-     * The textbox element tied to the advanced texteditor
-     * NOTE: Since the only thing we need from that is the current selection
-     *       range we should probably refactor this and only pass down the
-     *       selectionStart and selectionEnd values
-     */
-    getCurrentSelection: () => {start: number; end: number};
-
-    /**
-     * the handler function that applies the markdown to the value
-     */
-    applyMarkdown: (options: ApplyMarkdownOptions) => void;
+    applyFormatting: (mode: MarkdownMode) => void;
 
     /**
      * disable formatting controls when the texteditor is in preview state
@@ -134,27 +130,105 @@ interface FormattingBarProps {
      * AI actions menu rendered at the far left of the formatting bar
      */
     aiActionsMenu?: React.ReactNode;
+
+    /**
+     * When in WYSIWYG mode, the parent passes a getter for the live TipTap
+     * editor. The bar uses it for active-state subscriptions, the heading
+     * dropdown, and the link popover. Formatting commands themselves go
+     * through `applyFormatting` regardless of editor type.
+     */
+    getEditor?: () => Editor | null;
 }
 
 const DEFAULT_MIN_MODE_X_COORD = 55;
 
-const FormattingBar = (props: FormattingBarProps): JSX.Element => {
+const WYSIWYG_NODE_FOR_MODE: Partial<Record<MarkdownMode, string>> = {
+    bold: 'bold',
+    italic: 'italic',
+    strike: 'strike',
+    code: 'codeBlock',
+    quote: 'blockquote',
+    heading: 'heading',
+    ul: 'bulletList',
+    ol: 'orderedList',
+    link: 'link',
+};
+
+function computeActiveModes(editor: Editor | null, modes: MarkdownMode[]): Partial<Record<MarkdownMode, boolean>> {
+    const result: Partial<Record<MarkdownMode, boolean>> = {};
+    if (!editor) {
+        return result;
+    }
+    for (const mode of modes) {
+        const node = WYSIWYG_NODE_FOR_MODE[mode];
+        if (node) {
+            result[mode] = editor.isActive(node);
+        }
+    }
+    return result;
+}
+
+const ALL_FORMATTING_MODES: MarkdownMode[] = ['bold', 'italic', 'strike', 'heading', 'link', 'code', 'quote', 'ul', 'ol'];
+
+const FormattingBar = forwardRef<FormattingBarHandle, FormattingBarProps>((props, ref) => {
     const {
-        applyMarkdown,
-        getCurrentSelection,
-        getCurrentMessage,
+        applyFormatting,
         disableControls,
         location,
         additionalControls,
         aiActionsMenu,
+        getEditor,
     } = props;
     const [showHiddenControls, setShowHiddenControls] = useState(false);
+    const [linkPopoverOpen, setLinkPopoverOpen] = useState(false);
 
     const additionalControlsCount = useMemo(() => {
         return Array.isArray(additionalControls) ? additionalControls.filter(Boolean).length : 0;
     }, [additionalControls]);
 
-    const {formattingBarRef, controls, hiddenControls, layoutMode} = useFormattingBarControls(additionalControlsCount, location);
+    const {formattingBarRef, controls, hiddenControls, layoutMode, showTextStyleDropdown} = useFormattingBarControls(additionalControlsCount, location, Boolean(getEditor));
+
+    const editorInstance = getEditor?.() ?? null;
+    const [activeModes, setActiveModes] = useState<Partial<Record<MarkdownMode, boolean>>>(() =>
+        computeActiveModes(editorInstance, ALL_FORMATTING_MODES),
+    );
+
+    useEffect(() => {
+        const editor = getEditor?.();
+        if (!editor || editor.isDestroyed) {
+            setActiveModes({});
+            return undefined;
+        }
+
+        const recompute = () => {
+            const next = computeActiveModes(editor, ALL_FORMATTING_MODES);
+            setActiveModes((prev) => {
+                for (const mode of ALL_FORMATTING_MODES) {
+                    if (prev[mode] !== next[mode]) {
+                        return next;
+                    }
+                }
+                return prev;
+            });
+        };
+
+        recompute();
+        editor.on('selectionUpdate', recompute);
+        editor.on('transaction', recompute);
+
+        return () => {
+            editor.off('selectionUpdate', recompute);
+            editor.off('transaction', recompute);
+        };
+    }, [getEditor]);
+
+    useImperativeHandle(ref, () => ({
+        openLinkPopover: () => {
+            if (getEditor?.()) {
+                setLinkPopoverOpen(true);
+            }
+        },
+    }), [getEditor]);
 
     const {formatMessage} = useIntl();
     const HiddenControlsButtonAriaLabel = formatMessage({id: 'accessibility.button.hidden_controls_button', defaultMessage: 'show hidden formatting options'});
@@ -188,32 +262,21 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
      * the FormattingIcon component. This should improve render-performance
      */
     const makeFormattingHandler = useCallback((mode: MarkdownMode) => () => {
-        // if the formatting is disabled just return without doing anything
         if (disableControls) {
             return;
         }
 
-        // get the current selection values and return early (doing nothing) when we don't get valid values
-        const {start, end} = getCurrentSelection();
-
-        if (start === null || end === null) {
+        if (mode === 'link' && getEditor?.()) {
+            setLinkPopoverOpen(true);
             return;
         }
 
-        const value = getCurrentMessage();
+        applyFormatting(mode);
 
-        applyMarkdown({
-            markdownMode: mode,
-            selectionStart: start,
-            selectionEnd: end,
-            message: value,
-        });
-
-        // if hidden controls are currently open close them
         if (showHiddenControls) {
             setShowHiddenControls(true);
         }
-    }, [getCurrentSelection, getCurrentMessage, applyMarkdown, showHiddenControls, disableControls]);
+    }, [applyFormatting, disableControls, getEditor, showHiddenControls]);
 
     const leftPosition = layoutMode === LayoutModes.Min ? (x ?? 0) + DEFAULT_MIN_MODE_X_COORD : x ?? 0;
 
@@ -225,6 +288,20 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
 
     const showSeparators = layoutMode === LayoutModes.Wide;
 
+    const renderFormattingIcon = (mode: MarkdownMode, key?: React.Key) => {
+        const isActive = getEditor ? activeModes[mode] : undefined;
+        return (
+            <FormattingIcon
+                key={key ?? mode}
+                mode={mode}
+                className='control'
+                onClick={makeFormattingHandler(mode)}
+                disabled={disableControls}
+                isActive={isActive}
+            />
+        );
+    };
+
     return (
         <FormattingBarContainer
             ref={formattingBarRef}
@@ -232,19 +309,21 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
         >
             {aiActionsMenu}
             {aiActionsMenu && showSeparators && <Separator/>}
-            {controls.map((mode) => {
-                return (
-                    <React.Fragment key={mode}>
-                        <FormattingIcon
-                            mode={mode}
-                            className='control'
-                            onClick={makeFormattingHandler(mode)}
-                            disabled={disableControls}
-                        />
-                        {mode === 'heading' && showSeparators && <Separator/>}
-                    </React.Fragment>
-                );
-            })}
+            {getEditor && showTextStyleDropdown && (
+                <>
+                    <TextStyleDropdown
+                        getWysiwygEditor={getEditor}
+                        disabled={disableControls}
+                    />
+                    {showSeparators && <Separator/>}
+                </>
+            )}
+            {controls.map((mode) => (
+                <React.Fragment key={mode}>
+                    {renderFormattingIcon(mode)}
+                    {mode === 'heading' && showSeparators && <Separator/>}
+                </React.Fragment>
+            ))}
 
             {Array.isArray(additionalControls) && additionalControls.length > 0 && (
                 <>
@@ -292,21 +371,20 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
                     {...getClickFloatingProps()}
                     {...getDismissFloatingProps()}
                 >
-                    {hiddenControls.map((mode) => {
-                        return (
-                            <FormattingIcon
-                                key={mode}
-                                mode={mode}
-                                className='control'
-                                onClick={makeFormattingHandler(mode)}
-                                disabled={disableControls}
-                            />
-                        );
-                    })}
+                    {hiddenControls.map((mode) => renderFormattingIcon(mode))}
                 </HiddenControlsContainer>
             </CSSTransition>
+
+            {linkPopoverOpen && editorInstance && !editorInstance.isDestroyed && (
+                <LinkPopover
+                    editor={editorInstance}
+                    onClose={() => setLinkPopoverOpen(false)}
+                />
+            )}
         </FormattingBarContainer>
     );
-};
+});
+
+FormattingBar.displayName = 'FormattingBar';
 
 export default memo(FormattingBar);

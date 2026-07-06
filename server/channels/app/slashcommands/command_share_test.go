@@ -127,6 +127,87 @@ func TestShareProviderDoCommand(t *testing.T) {
 	})
 }
 
+func TestShareProviderDoStatus(t *testing.T) {
+	seedInvitedRemote := func(t *testing.T, th *TestHelper, channelID string) *model.SharedChannelRemote {
+		t.Helper()
+		rc, err := th.App.AddRemoteCluster(&model.RemoteCluster{
+			RemoteId:    model.NewId(),
+			Name:        "remote-" + model.NewId(),
+			DisplayName: "Remote Status Display",
+			SiteURL:     "https://remote-status.example.com",
+			Token:       model.NewId(),
+			Topics:      "topic",
+			CreateAt:    model.GetMillis(),
+			LastPingAt:  model.GetMillis(),
+			CreatorId:   model.NewId(),
+		})
+		require.Nil(t, err)
+
+		scr, saveErr := th.App.SaveSharedChannelRemote(&model.SharedChannelRemote{
+			Id:                model.NewId(),
+			ChannelId:         channelID,
+			RemoteId:          rc.RemoteId,
+			CreatorId:         th.BasicUser.Id,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+		})
+		require.NoError(t, saveErr)
+		return scr
+	}
+
+	statusArgs := func(th *TestHelper, channelID string) *model.CommandArgs {
+		return &model.CommandArgs{
+			T:         func(s string, args ...any) string { return s },
+			ChannelId: channelID,
+			UserId:    th.BasicUser.Id,
+			TeamId:    th.BasicTeam.Id,
+			Command:   "/share-channel status",
+		}
+	}
+
+	t.Run("renders the last sync timestamp for a remote that has synced", func(t *testing.T) {
+		th := setupForSharedChannels(t).initBasic(t)
+		th.addPermissionToRole(t, model.PermissionManageSharedChannels.Id, th.BasicUser.Roles)
+
+		mockSyncService := app.NewMockSharedChannelService(th.Server.GetSharedChannelSyncService())
+		th.Server.SetSharedChannelSyncService(mockSyncService)
+
+		channel := th.CreateChannel(t, th.BasicTeam, WithShared(true))
+		scr := seedInvitedRemote(t, th, channel.Id)
+
+		syncAt := model.GetMillis() - 5000
+		require.NoError(t, th.App.Srv().Store().SharedChannel().UpdateRemoteCursor(scr.Id, model.GetPostsSinceForSyncCursor{
+			LastPostUpdateAt: syncAt,
+			LastPostUpdateID: model.NewId(),
+		}))
+
+		commandProvider := ShareProvider{}
+		response := commandProvider.DoCommand(th.App, th.Context, statusArgs(th, channel.Id), "")
+
+		require.Contains(t, response.Text, "Remote Status Display")
+		assert.Contains(t, response.Text, "Today ", "expected a rendered timestamp in the Last Sync column, got:\n%s", response.Text)
+		assert.NotContains(t, response.Text, "| -- |", "Last Sync column should not be the placeholder for a synced remote:\n%s", response.Text)
+	})
+
+	t.Run("renders a placeholder when the remote has never synced", func(t *testing.T) {
+		th := setupForSharedChannels(t).initBasic(t)
+		th.addPermissionToRole(t, model.PermissionManageSharedChannels.Id, th.BasicUser.Roles)
+
+		mockSyncService := app.NewMockSharedChannelService(th.Server.GetSharedChannelSyncService())
+		th.Server.SetSharedChannelSyncService(mockSyncService)
+
+		channel := th.CreateChannel(t, th.BasicTeam, WithShared(true))
+		seedInvitedRemote(t, th, channel.Id)
+
+		commandProvider := ShareProvider{}
+		response := commandProvider.DoCommand(th.App, th.Context, statusArgs(th, channel.Id), "")
+
+		require.Contains(t, response.Text, "Remote Status Display")
+		assert.Contains(t, response.Text, "| -- |", "expected the Last Sync placeholder for an unsynced remote, got:\n%s", response.Text)
+		assert.NotContains(t, response.Text, "Today ", "unsynced remote should not render a timestamp:\n%s", response.Text)
+	})
+}
+
 func TestShareProviderGetAutoCompleteListItemsPermission(t *testing.T) {
 	connectionIDArg := func() *model.AutocompleteArg {
 		return &model.AutocompleteArg{Name: "connectionID"}

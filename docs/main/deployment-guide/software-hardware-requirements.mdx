@@ -1,0 +1,317 @@
+---
+title: "Software and hardware requirements"
+sidebar_label: "Software & hardware requirements"
+---
+This guide outlines minimum software and hardware requirements for deploying Mattermost. Requirements may vary based on utilization and observing performance of pilot projects is recommended prior to scale out.
+
+## Deployment overview
+
+Please see the [Application architecture](/deployment-guide/reference-architecture/application-architecture) documentation for a summary of software systems and components whose requirements are described in this document.
+
+## Software requirements
+
+### Client software
+
+#### Desktop apps
+
+<table>
+<thead>
+<tr>
+<th>Operating System</th>
+<th>Self-Hosted Technical Requirement</th>
+<th>Cloud Technical Requirement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Windows</td>
+<td>Windows 11+</td>
+<td>Windows 11+</td>
+</tr>
+<tr>
+<td>Mac</td>
+<td>macOS 14+</td>
+<td>macOS 14+</td>
+</tr>
+<tr>
+<td>Linux</td>
+<td>Ubuntu LTS releases 22.04 or later</td>
+<td>Ubuntu LTS releases 22.04 or later</td>
+</tr>
+</tbody>
+</table>
+
+Though not officially supported, the Linux desktop app also runs on RHEL/CentOS 7+.
+
+##### Flatpak package requirements (Linux)
+
+From Mattermost Desktop v6.1, Flatpak packages are available for Linux (currently in beta). The Flatpak version requires:
+
+- Flatpak runtime installed on the system
+- Freedesktop Platform/SDK 25.08
+- Electron BaseApp 25.08
+- Access to Flathub or compatible Flatpak repository for dependencies
+
+Flatpak packages are available for x86_64 (Intel/AMD) and aarch64 (ARM) architectures. The Flatpak version includes Wayland display server support enabled by default.
+
+<Note>
+
+- <code>\*</code> Integrated Windows Authentication is not supported by Mattermost desktop apps. If you use ADFS we recommend [configuring intranet forms-based authentication for devices that do not support WIA](https://learn.microsoft.com/en-us/windows-server/identity/ad-fs/operations/configure-intranet-forms-based-authentication-for-devices-that-do-not-support-wia).
+- From Windows Desktop v6.1.0, the MSI installer installs per-machine (system-wide) by default and requires administrator privileges for installation. This meets enterprise compliance requirements.
+- The minimum content size is 800 x 600 pixels.
+
+</Note>
+
+#### PC web
+
+<table>
+<thead>
+<tr>
+<th>Browser</th>
+<th>Self-Hosted Technical Requirement</th>
+<th>Cloud Technical Requirement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Chrome</td>
+<td>v144+</td>
+<td>v144+</td>
+</tr>
+<tr>
+<td>Firefox</td>
+<td>v140+</td>
+<td>v140+</td>
+</tr>
+<tr>
+<td>Safari</td>
+<td>v26.2+</td>
+<td>v26.2+</td>
+</tr>
+<tr>
+<td>Edge</td>
+<td>v144+</td>
+<td>v144+</td>
+</tr>
+</tbody>
+</table>
+
+<code>\*</code> Internet Explorer (IE11) is no longer supported. We recommend using the [Mattermost desktop app](https://mattermost.com/apps/) or another supported browser. See [this forum post](https://forum.mattermost.com/t/mattermost-is-dropping-support-for-internet-explorer-ie11-in-v5-16/7575) to learn more.
+
+#### Mobile apps
+
+<table>
+<thead>
+<tr>
+<th>Operating System</th>
+<th>Technical Requirement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>iOS</td>
+<td>iPhone 8+ devices and later with iOS 16.0+</td>
+</tr>
+<tr>
+<td>Android</td>
+<td>Android devices with Android 7+</td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+- <code>\*</code> Integrated Windows Authentication is not supported by Mattermost mobile apps. If you use ADFS we recommend [configuring intranet forms-based authentication for devices that do not support WIA](https://learn.microsoft.com/en-us/windows-server/identity/ad-fs/operations/configure-intranet-forms-based-authentication-for-devices-that-do-not-support-wia).
+- The minimum and target content size is 320 x 460 pixels, matching the available space when the mobile app is opened in Safari on the minimum supported iOS device.
+- The Mattermost mobile app for Android isn't supported on Chromebooks. Access Mattermost using the Chrome web browser, or install the web app as a Progressive Web App (PWA) directly from the browser for an app-like experience with a desktop icon and windowed view.
+
+</Note>
+
+#### Mobile web
+
+<table>
+<thead>
+<tr>
+<th>Browser</th>
+<th>Technical Requirement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>iOS</td>
+<td>iOS 16.0+ with Safari 26.2+ or Chrome 144+</td>
+</tr>
+<tr>
+<td>Android</td>
+<td>Android 7+ with Chrome 144+</td>
+</tr>
+</tbody>
+</table>
+
+#### Email client
+
+- *Desktop clients:* Outlook 2010+, Apple Mail version 7+, Thunderbird 38.2+
+- *Web based clients:* Entra ID, Outlook, Gmail, Yahoo, AOL
+- *Mobile clients:* iOS Mail App (iOS 7+), Gmail Mobile App (Android, iOS)
+
+### Server software
+
+#### Mattermost server operating system
+
+- Ubuntu, Debian Buster, CentOS 6+, CentOS 7+, RedHat Enterprise Linux 7+, Oracle Linux 6+, Oracle Linux 7+.
+- Using the Mattermost [Docker deployment](https://github.com/mattermost/docker) on a Docker-compatible operating system (Linux-based OS) is still recommended.
+
+While community support exists for Fedora, FreeBSD, and Arch Linux, Mattermost does not currently include production support for these platforms.
+
+#### Database software
+
+- PostgreSQL 14.0+
+
+Amazon Aurora equivalents of PostgreSQL is also supported. Our [Migration Guide](https://docs.mattermost.com/deployment-guide/postgres-migration.html) outlines the steps, tools and support available for migrating from MySQL to PostgreSQL.
+
+<Important>
+
+- MariaDB v10+ no longer functions as a MySQL drop-in replacement, and it's not supported for Mattermost due to the requirement of MySQL 5.7.12. Prior versions of MariaDB were not officially supported but may have functioned in older Mattermost releases. If you are running MariaDB now, migrating from MariaDB to the MySQL equivalent is recommended.
+- MySQL deployments requiring searching in Chinese, Japanese, and Korean languages require the configuration of [ngram Full-Text parser](https://dev.mysql.com/doc/refman/8.4/en/fulltext-search-ngram.html). For searching two characters, you will also need to set `ft_min_word_len` and `innodb_ft_min_token_size` to `2` and restart MySQL. See [CJK discussion](https://github.com/mattermost/mattermost/issues/2033#issuecomment-183872616) for details.
+
+</Important>
+
+##### Minimum PostgreSQL database support policy
+
+To make planning easier and ensure your Mattermost deployment remains fast and secure, we are introducing a policy for updating the minimum supported version of PostgreSQL. The oldest supported PostgreSQL version Mattermost supports will match the oldest version supported by the PostgreSQL community. This ensures you benefit from the latest features and security updates.
+
+This policy change takes effect from Mattermost v10.6, where the minimum PostgreSQL version required will be PostgreSQL 13. This aligns with the PostgreSQL community's support policy, which provides 5 years of support for each major version.
+
+<Note>
+
+Mattermost v10.6 is not an [Extended Support Release (ESR)](/product-overview/release-policy#extended-support-releases). Going forward, this database version support policy will only apply to ESR releases.
+
+</Note>
+
+When a PostgreSQL version reaches its end of life (EOL), Mattermost will require a newer version starting with the next scheduled ESR release. This means the following future PostgreSQL minimum version increases as follows:
+
+<table style={{width: '98%'}}>
+<colgroup>
+<col style={{width: '50%'}} />
+<col style={{width: '15%'}} />
+<col style={{width: '27%'}} />
+<col style={{width: '3%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td colspan="4"><blockquote>
+<p><strong>Mattermost Version</strong> | <strong>Release Date</strong> | <strong>Minimum PostgreSQL Version</strong> |</p>
+</blockquote>
+<dl>
+<dt>============================================================+==================+================================+</dt>
+<dd>
+<p><a href="mm-ref:release-v9-11-extended-support-release">v9.11 ESR</a> | 2024-8-15 | 11.x</p>
+</dd>
+</dl></td>
+</tr>
+<tr>
+<td colspan="4"><a href="mm-ref:release-v10.5-extended-support-release">v10.5 ESR</a> | 2025-2-15 | 11.x</td>
+</tr>
+<tr>
+<td colspan="4"><a href="mm-ref:release-v10.6-feature-release">v10.6</a> | 2025-3-15 | 13.x</td>
+</tr>
+<tr>
+<td colspan="4"><a href="mm-ref:release-v10.11-extended-support-release">v10.11 ESR</a>| 2025-8-15 | 13.x</td>
+</tr>
+<tr>
+<td>v11.7 ESR <code>*</code></td>
+<td>2026-5-15</td>
+<td>14.x (EOL 2026-11-12)</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+
+`*` Forcasted release version and date.
+
+Customers will have 9 months to plan, test, and upgrade their PostgreSQL version before the new requirement takes effect. This policy aims to provide clarity and transparency so you can align database upgrades with the Mattermost release schedule. Contact a [Mattermost Expert](https://mattermost.com/contact-sales/). to discuss your options.
+
+##### Database Search limitations
+
+Common limitations:
+
+- Only the initial **1 MB** of the file content is available for search, even though much bigger files can be uploaded.
+
+Search limitations on PostgreSQL:
+
+- Email addresses do not return results.
+- Hashtags or recent mentions of usernames containing a dash do not return search results.
+- Terms containing a dash return incorrect results as dashes are ignored in the search query.
+- Limitations set by [PostgreSQL itself](https://www.postgresql.org/docs/current/textsearch-limitations.html):
+  - One of them is: `The length of a tsvector (lexemes + positions) must be less than 1 megabyte`, which means that, based on the file content, even files with content less than 1 MB won't be searchable if they hit the `tsvector` limit of 1 MB.
+- If any of the above is an issue, you can [set up and enable enterprise search](/administration-guide/scale/enterprise-search).
+
+##### MySQL Support
+
+[MySQL database support](/deployment-guide/server/prepare-mattermost-mysql-database) is being deprecated starting with Mattermost v11. See the [PostgreSQL migration](/deployment-guide/postgres-migration) documentation for guidance on migrating from MySQL to PostgreSQL.
+
+- Search limitations on MySQL: Hashtags or recent mentions of usernames containing a dot do not return search results.
+- The migration system requires the MySQL database user to have additional <code>EXECUTE</code>, <code>CREATE ROUTINE</code>, <code>ALTER ROUTINE</code> and <code>REFERENCES</code> privileges to run schema migrations.
+- MariaDB v10+ no longer functions as a MySQL drop-in replacement, and it's not supported for Mattermost due to the requirement of MySQL 5.7.12. Prior versions of MariaDB were not officially supported but may have functioned in older Mattermost releases. If you are running MariaDB now, migrating from MariaDB to the MySQL equivalent is recommended.
+- Deployments requiring searching in Chinese, Japanese, and Korean languages require MySQL 5.7.6+ and the configuration of [ngram Full-Text parser](https://dev.mysql.com/doc/refman/5.7/en/fulltext-search-ngram.html). For searching two characters, you will also need to set `ft_min_word_len` and `innodb_ft_min_token_size` to `2` and restart MySQL. See [CJK discussion](https://github.com/mattermost/mattermost/issues/2033#issuecomment-183872616) for details.
+
+<Important>
+
+MySQL 8.0.22 contains an [issue with JSON column types](https://bugs.mysql.com/bug.php?id=101284) changing string values to integers which is preventing Mattermost from working properly. Users are advised to avoid this database version.
+
+</Important>
+
+In MySQL 8.0.4, the default authentication plugin was changed from `mysql_native_password` to `caching_sha2_password`. Therefore, you will need to enable `mysql_native_password` by adding the following entry in your MySQL configuration file:
+
+> ``` text
+> [mysqld]
+> default-authentication-plugin=mysql_native_password
+> ```
+
+In MySQL 8, the default collation changed to `utf8mb4_0900_ai_ci` ([https://dev.mysql.com/doc/mysqld-version-reference/en/optvar-changes-8-0.html](https://dev.mysql.com/doc/mysqld-version-reference/en/optvar-changes-8-0.html)). Therefore, if you update your MySQL installation to version 8, you'll need to convert your database tables to use the new default collation:
+
+``` sql
+ALTER TABLE table_name CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+```
+
+If this change isn't made, tables in the database may end up having different collations which will cause errors when executing queries.
+
+In MySQL versions 8.0.0 - 8.0.11 `ADMIN` is a [reserved keyword](https://dev.mysql.com/doc/refman/8.0/en/keywords.html), which is why our requirement for MySQL is version 8.0.12.
+
+MySQL 8.0.22 contains an [issue with JSON column types](https://bugs.mysql.com/bug.php?id=101284) changing string values to integers which is preventing Mattermost from working properly. Users are advised to avoid this database version.
+
+## Hardware requirements
+
+Usage of CPU, RAM, and storage space can vary significantly based on user behavior. These hardware recommendations are based on traditional deployments and may grow or shrink depending on how active your users are.
+
+Moreover, memory requirements can be driven by peak file sharing activity. Recommendation is based on default 50 MB maximum file size, which can be [adjusted from the System Console](/administration-guide/configure/environment-configuration-settings#maximum-file-size). Changing this number may change memory requirements.
+
+For deployments larger than 2,000 users, it is recommended to use the Mattermost open source load testing framework to simulate usage of your system at full scale: [https://github.com/mattermost/mattermost-load-test-ng](https://github.com/mattermost/mattermost-load-test-ng).
+
+Mattermost supports any 64-bit x86 processor architecture.
+
+### Hardware requirements for team deployments
+
+Most small to medium Mattermost team deployments can be supported on a single server with the following specifications based on registered users:
+
+- 1 - 1,000 users - 1 vCPU/cores, 2 GB RAM
+- 1,000 - 2,000 users - 2 vCPUs/cores, 4 GB RAM
+
+### Hardware requirements for enterprise deployments (multi-server)
+
+#### Scale requirements
+
+For Enterprise Edition deployments with a multi-server setup, see [our scaling guide](/administration-guide/scale/scaling-for-enterprise).
+
+It is highly recommended that pilots are run before enterprise-wide deployments in order to estimate full scale usage based on your specific organizational needs. You can use the Mattermost open source load testing framework to simulate usage of your system: [https://github.com/mattermost/mattermost-load-test-ng](https://github.com/mattermost/mattermost-load-test-ng).
+
+Mattermost's [performance monitoring](/administration-guide/scale/deploy-prometheus-grafana-for-performance-monitoring) tools can be used for detailed performance measurements and to inspect the running system to ensure sizing and installation is correct.
+
+#### System requirements
+
+For Enterprise Edition deployments with a multi-server setup, we highly recommend the following systems to support your Mattermost deployment:
+
+- Prometheus to track system health of your Mattermost deployment, through [performance monitoring feature](/administration-guide/scale/deploy-prometheus-grafana-for-performance-monitoring) available in Mattermost Enterprise.
+- Grafana to visualize the system health metrics collected by Prometheus with the [performance monitoring feature](/administration-guide/scale/deploy-prometheus-grafana-for-performance-monitoring). Grafana 5.0.0 and later is recommended.
+- Elasticsearch to support highly efficient database searches in a cluster environment. Elasticsearch v7.17+ is supported, and Elasticsearch v8.x or AWS OpenSearch is recommended from Mattermost v9.11. [Learn more](/administration-guide/scale/enterprise-search).
+- AWS S3 or any S3-compatible service. Mattermost is compatible with object storage systems which implement the S3 API. You can also use local storage or a network drive using NFS. Learn more about file storage configuration options [in our documentation](/administration-guide/configure/environment-configuration-settings#file-storage).
