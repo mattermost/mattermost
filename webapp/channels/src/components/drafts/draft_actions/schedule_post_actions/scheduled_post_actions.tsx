@@ -101,9 +101,10 @@ function ScheduledPostActions({scheduledPost, channel, onReschedule, onDelete, o
                 channelId: scheduledPost.channel_id,
                 onConfirm: onReschedule,
                 initialTime,
+                onRemoveSchedule: () => onDelete(scheduledPost.id),
             },
         }));
-    }, [dispatch, onReschedule, scheduledPost.channel_id, scheduledPost.scheduled_at, userTimezone]);
+    }, [dispatch, onDelete, onReschedule, scheduledPost.channel_id, scheduledPost.id, scheduledPost.scheduled_at, userTimezone]);
 
     const handleDelete = useCallback(() => {
         dispatch(openModal({

@@ -2,19 +2,25 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import {openModal} from 'actions/views/modals';
 
-import CoreMenuOptions from 'components/advanced_text_editor/send_button/send_post_options/core_menu_options';
+import {isOneToOneDmChannel} from 'components/advanced_text_editor/send_button/schedule_message_utils';
+import ScheduleRecipientTimezoneCheckbox from 'components/advanced_text_editor/send_button/schedule_recipient_timezone_checkbox';
+import RecentUsedCustomDate from 'components/advanced_text_editor/send_button/send_post_options/recent_used_custom_date';
+import ScheduleMenuOptions from 'components/advanced_text_editor/send_button/send_post_options/schedule_menu_options';
+import {useScheduleRecipientInfo} from 'components/advanced_text_editor/use_post_box_indicator';
 import * as Menu from 'components/menu';
 
 import {ModalIdentifiers} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import ScheduledPostCustomTimeModal from '../scheduled_post_custom_time_modal/scheduled_post_custom_time_modal';
 
@@ -29,6 +35,13 @@ type Props = {
 export function SendPostOptions({disabled, onSelect, channelId}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
+    const isDmChannel = useSelector((state: GlobalState) => isOneToOneDmChannel(state, channelId));
+    const {userCurrentTimezone, recipientTimezoneString, teammateDisplayName} = useScheduleRecipientInfo(channelId);
+    const [useRecipientTimezone, setUseRecipientTimezone] = useState(true);
+
+    useEffect(() => {
+        setUseRecipientTimezone(true);
+    }, [channelId]);
 
     const handleOnSelect = useCallback((e: React.FormEvent, scheduledAt: number) => {
         e.preventDefault();
@@ -57,9 +70,10 @@ export function SendPostOptions({disabled, onSelect, channelId}: Props) {
             dialogProps: {
                 channelId,
                 onConfirm: handleSelectCustomTime,
+                useRecipientTimezone,
             },
         }));
-    }, [channelId, dispatch, handleSelectCustomTime]);
+    }, [channelId, dispatch, handleSelectCustomTime, useRecipientTimezone]);
 
     return (
         <Menu.Container
@@ -102,9 +116,31 @@ export function SendPostOptions({disabled, onSelect, channelId}: Props) {
                 }
             />
 
-            <CoreMenuOptions
+            {isDmChannel && (
+                <>
+                    <ScheduleRecipientTimezoneCheckbox
+                        checked={useRecipientTimezone}
+                        recipientTimezone={recipientTimezoneString}
+                        onChange={setUseRecipientTimezone}
+                        variant='menu'
+                    />
+                    <Menu.Separator/>
+                </>
+            )}
+
+            <ScheduleMenuOptions
                 handleOnSelect={handleOnSelect}
                 channelId={channelId}
+                useRecipientTimezone={useRecipientTimezone}
+            />
+
+            <RecentUsedCustomDate
+                handleOnSelect={handleOnSelect}
+                userCurrentTimezone={userCurrentTimezone}
+                showRecipientTimezoneLabels={isDmChannel}
+                recipientTimezoneString={recipientTimezoneString}
+                useRecipientTimezone={useRecipientTimezone}
+                recipientDisplayName={teammateDisplayName}
             />
 
             <Menu.Separator/>

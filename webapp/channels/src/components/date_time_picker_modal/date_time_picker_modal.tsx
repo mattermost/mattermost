@@ -35,6 +35,8 @@ type Props = {
     className?: string;
     errorText?: string | React.ReactNode;
     timePickerInterval?: number;
+    timezone?: string;
+    footerContent?: React.ReactNode;
 };
 
 export default function DateTimePickerModal({
@@ -54,14 +56,23 @@ export default function DateTimePickerModal({
     className,
     errorText,
     timePickerInterval,
+    timezone: timezoneProp,
+    footerContent,
 }: Props) {
     const userTimezone = useSelector(getCurrentTimezone);
-    const currentTime = getCurrentMomentForTimezone(userTimezone);
+    const activeTimezone = timezoneProp || userTimezone;
+    const currentTime = getCurrentMomentForTimezone(activeTimezone);
     const initialRoundedTime = getRoundedTime(currentTime);
 
     const [dateTime, setDateTime] = useState(initialTime || initialRoundedTime);
 
     const [isInteracting, setIsInteracting] = useState(false);
+
+    useEffect(() => {
+        if (initialTime) {
+            setDateTime(initialTime);
+        }
+    }, [initialTime?.valueOf()]); // eslint-disable-line react-hooks/exhaustive-deps -- sync when parent updates time
 
     useEffect(() => {
         function handleKeyDown(event: KeyboardEvent) {
@@ -96,6 +107,8 @@ export default function DateTimePickerModal({
         }
     }, [handleConfirm, isInteracting]);
 
+    const useCustomFooter = Boolean(footerContent);
+
     return (
         <GenericModal
             id='DateTimePickerModal'
@@ -103,24 +116,25 @@ export default function DateTimePickerModal({
             onExited={onExited}
             modalHeaderText={header}
             modalSubheaderText={subheading}
-            confirmButtonText={confirmButtonText}
-            handleConfirm={handleConfirm}
-            handleCancel={onCancel}
+            confirmButtonText={useCustomFooter ? undefined : confirmButtonText}
+            handleConfirm={useCustomFooter ? undefined : handleConfirm}
+            handleCancel={useCustomFooter ? undefined : onCancel}
             handleEnterKeyPress={handleEnterKeyPress}
             className={classnames('date-time-picker-modal', className)}
             compassDesign={true}
             keyboardEscape={true}
             enforceFocus={false}
-            cancelButtonText={cancelButtonText}
+            cancelButtonText={useCustomFooter ? undefined : cancelButtonText}
             autoCloseOnConfirmButton={false}
             errorText={errorText}
+            footerContent={footerContent}
         >
             {bodyPrefix}
 
             <DateTimeInput
                 time={dateTime}
                 handleChange={handleChange}
-                timezone={userTimezone}
+                timezone={activeTimezone}
                 setIsInteracting={setIsInteracting}
                 relativeDate={relativeDate}
                 timePickerInterval={timePickerInterval}

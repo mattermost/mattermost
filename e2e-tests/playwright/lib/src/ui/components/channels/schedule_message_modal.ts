@@ -12,6 +12,9 @@ export default class ScheduleMessageModal {
     readonly closeButton: Locator;
     readonly scheduleButton: Locator;
     readonly cancelButton: Locator;
+    readonly removeScheduleButton: Locator;
+    readonly recipientTimezoneCheckbox: Locator;
+    readonly timezoneConversionLine: Locator;
 
     constructor(container: Locator) {
         this.container = container;
@@ -19,8 +22,11 @@ export default class ScheduleMessageModal {
         this.timeButton = container.getByTestId('time_button');
         this.timeOptionDropdown = container.getByLabel('Choose a time');
         this.closeButton = container.getByRole('button', {name: 'Close'});
-        this.scheduleButton = container.locator('button:has-text("Schedule")');
+        this.scheduleButton = container.getByRole('button', {name: 'Schedule', exact: true});
         this.cancelButton = container.locator('button:has-text("Cancel")');
+        this.removeScheduleButton = container.locator('button:has-text("Remove schedule")');
+        this.recipientTimezoneCheckbox = container.getByRole('checkbox', {name: /Use recipient's timezone/});
+        this.timezoneConversionLine = container.locator('.ScheduleTimezoneConversionLine');
     }
 
     async toBeVisible() {
@@ -73,11 +79,9 @@ export default class ScheduleMessageModal {
 
         await dateLocator.click();
 
-        // Wait for the date-picker calendar to fully close before returning.
         const calendarPopper = this.container.locator('.date-picker__popper');
         await calendarPopper.waitFor({state: 'hidden'});
 
-        // if day is single digit then prefix with a 0
         if (day < 10) {
             return `${month} 0${day}`;
         }
@@ -88,10 +92,7 @@ export default class ScheduleMessageModal {
     async selectTime(optionIndex: number = 0) {
         await this.timeButton.click();
         const timeOption = this.container.page().getByTestId(`time_option_${optionIndex}`);
-        // Use a generous timeout: the time-picker dropdown can be slow to render in CI.
         await expect(timeOption).toBeVisible({timeout: 30000});
-        // Capture text BEFORE clicking — clicking closes the dropdown and detaches the
-        // option element from the DOM, so textContent() would time out if called after.
         const text = await timeOption.textContent();
         await timeOption.click();
 
@@ -108,7 +109,6 @@ export default class ScheduleMessageModal {
         const selectedTime = await this.selectTime(timeOptionIndex);
         await this.scheduleButton.click();
 
-        // if selectedDate is Today or Tomorrow then return Today or Tomorrow
         if (fromDateButtonText.includes('Today')) {
             return {selectedDate: 'Today', selectedTime};
         }
@@ -116,7 +116,6 @@ export default class ScheduleMessageModal {
             return {selectedDate: 'Tomorrow', selectedTime};
         }
 
-        // if selectedDate is a date in the future then return the date
         return {selectedDate, selectedTime};
     }
 }
