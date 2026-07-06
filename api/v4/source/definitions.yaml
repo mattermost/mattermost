@@ -5320,9 +5320,10 @@ components:
           description: A unique identifier
           type: string
         allowed_ip_ranges:
+          type: array
           nullable: true
-          allOf:
-            - $ref: "#/components/schemas/AllowedIPRange"
+          items:
+            $ref: "#/components/schemas/AllowedIPRange"
         state:
           description: The current state of the installation
           type: string
