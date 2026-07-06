@@ -6,6 +6,7 @@ package mail
 import (
 	"bytes"
 	"context"
+	"errors"
 	"io"
 	"mime"
 	"net"
@@ -390,6 +391,88 @@ func TestLoginAuthNext(t *testing.T) {
 	assert.Nil(t, resp)
 }
 
+type errReader struct {
+	err     error
+	payload []byte
+}
+
+func (r *errReader) Read(p []byte) (int, error) {
+	if len(r.payload) > 0 {
+		n := copy(p, r.payload)
+		r.payload = r.payload[n:]
+		return n, nil
+	}
+	return 0, r.err
+}
+
+func TestSendMailEmbedReaderError(t *testing.T) {
+	mocm := &mockMailer{}
+	m := mailData{
+		mimeTo: "test@example.com",
+		smtpTo: "test@example.com",
+		from:   mail.Address{Address: "from@example.com"},
+		embeddedFiles: map[string]io.Reader{
+			"attachment.txt": &errReader{payload: []byte("partial data"), err: errors.New("read failure")},
+		},
+	}
+	err := sendMail(mocm, m, time.Now(), getConfig())
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to embed file")
+}
+
+func TestSendMailRejectsMultipleAddresses(t *testing.T) {
+	multiAddress := []string{
+		"a@example.com, b@example.com",
+		"a@example.com,b@example.com",
+		`"A" <a@example.com>, "B" <b@example.com>`,
+	}
+
+	t.Run("rejects multiple To addresses", func(t *testing.T) {
+		for _, to := range multiAddress {
+			mocm := &mockMailer{}
+			m := mailData{
+				mimeTo: to,
+				smtpTo: to,
+				from:   mail.Address{Address: "from@example.com"},
+			}
+			err := sendMail(mocm, m, time.Now(), getConfig())
+			require.Error(t, err, "expected %q to be rejected", to)
+			assert.Contains(t, err.Error(), "invalid To header: must contain exactly one address")
+			assert.Empty(t, mocm.data, "no message should be written when the To address is rejected")
+		}
+	})
+
+	t.Run("rejects multiple Cc addresses", func(t *testing.T) {
+		for _, cc := range multiAddress {
+			mocm := &mockMailer{}
+			m := mailData{
+				mimeTo: "test@example.com",
+				smtpTo: "test@example.com",
+				from:   mail.Address{Address: "from@example.com"},
+				cc:     cc,
+			}
+			err := sendMail(mocm, m, time.Now(), getConfig())
+			require.Error(t, err, "expected %q to be rejected", cc)
+			assert.Contains(t, err.Error(), "invalid Cc header: must contain exactly one address")
+			assert.Empty(t, mocm.data, "no message should be written when the Cc address is rejected")
+		}
+	})
+
+	t.Run("accepts a single To and Cc address", func(t *testing.T) {
+		mocm := &mockMailer{}
+		m := mailData{
+			mimeTo:   "test@example.com",
+			smtpTo:   "test@example.com",
+			from:     mail.Address{Address: "from@example.com"},
+			cc:       "cc@example.com",
+			htmlBody: "<p>hello</p>",
+		}
+		err := sendMail(mocm, m, time.Now(), getConfig())
+		require.NoError(t, err)
+		assert.NotEmpty(t, mocm.data)
+	})
+}
+
 type mockMailer struct {
 	data []byte
 }
@@ -507,6 +590,19 @@ func TestSendMail(t *testing.T) {
 		err = sendMail(mocm, m, time.Now(), getConfig())
 		require.NoError(t, err)
 		assert.Equal(t, 1, strings.Count(string(mocm.data), "Message-ID:"), "expected exactly one Message-ID header, got:\n%s", string(mocm.data))
+		mocm.data = []byte{}
+	})
+
+	t.Run("adds cc header", func(t *testing.T) {
+		m := mailData{
+			mimeTo: "test@example.com",
+			smtpTo: "test@example.com",
+			from:   mail.Address{Address: "from@example.com"},
+			cc:     "cc@example.com",
+		}
+		err = sendMail(mocm, m, time.Now(), getConfig())
+		require.NoError(t, err)
+		require.Contains(t, string(mocm.data), "\r\nCc: <cc@example.com>\r\n")
 		mocm.data = []byte{}
 	})
 

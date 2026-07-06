@@ -111,11 +111,15 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 	}
 
 	originalTransportType := msg.Transport
-	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
 		var replacementNotification *model.PushNotification
 		replacementNotification, rejectionReason = hooks.NotificationWillBePushed(msg, userID)
 		if rejectionReason != "" {
-			rctx.Logger().Info("Notification cancelled by plugin.", mlog.String("rejection reason", rejectionReason))
+			rctx.Logger().Info("Notification cancelled by plugin.",
+				mlog.String("rejection_reason", rejectionReason),
+				mlog.String("plugin_id", manifest.Id),
+				mlog.String("user_id", userID),
+				mlog.String("channel_id", msg.ChannelId))
 			return false
 		}
 		if replacementNotification != nil {
@@ -128,7 +132,10 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 				msg.Transport = originalTransportType
 			}
 
-			rctx.Logger().Info("Notification modified by plugin.")
+			rctx.Logger().Info("Notification modified by plugin.",
+				mlog.String("plugin_id", manifest.Id),
+				mlog.String("user_id", userID),
+				mlog.String("channel_id", msg.ChannelId))
 		}
 		return true
 	}, plugin.NotificationWillBePushedID)
