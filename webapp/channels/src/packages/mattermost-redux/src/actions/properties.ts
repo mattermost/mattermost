@@ -1,10 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {
-    PropertyField,
-    PropertyValue,
-} from '@mattermost/types/properties';
+import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';

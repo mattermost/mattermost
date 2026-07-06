@@ -1,0 +1,82 @@
+/* Branded callouts. Denim-tinted surface with a colored left bar
+ * that signals the kind. Title in Trade Gothic Heavy uppercase. */
+
+.callout {
+  display: grid;
+  grid-template-columns: 3.25rem 1fr;
+  gap: 0;
+  margin: 1.5rem 0;
+  border: 1px solid var(--mm-border-subtle);
+  border-radius: 4px;
+  background: var(--mm-bg-surface);
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(30, 50, 92, 0.04);
+}
+
+[data-theme='dark'] .callout {
+  background: var(--mm-denim-800);
+}
+
+.bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 0.95rem;
+  background: var(--mm-color-denim);
+  color: var(--mm-color-white);
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  font-family: var(--mm-font-heading);
+  font-weight: 900;
+  font-size: 1rem;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  line-height: 1;
+}
+
+.body {
+  padding: 0.85rem 1.1rem 0.95rem;
+}
+
+.label {
+  font-family: var(--mm-font-heading);
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mm-text-secondary);
+  margin-bottom: 0.35rem;
+}
+
+.content > :first-child { margin-top: 0; }
+.content > :last-child  { margin-bottom: 0; }
+.content p              { margin: 0.4rem 0; line-height: 1.6; }
+
+/* Kind variants */
+.note    .bar { background: var(--mm-color-denim); }
+.note    .label { color: var(--mm-denim-600); }
+
+.tip     .bar { background: #2C7A4F; }            /* operational green */
+.tip     .label { color: #1F5A39; }
+[data-theme='dark'] .tip .label { color: #6FBF8E; }
+
+/* Important = stronger emphasis than Note, softer than Warning. Marigold accent. */
+.important .bar { background: var(--mm-color-marigold); color: var(--mm-color-black); }
+.important .icon { border-color: var(--mm-color-black); }
+.important .label { color: var(--mm-marigold-700); }
+[data-theme='dark'] .important .label { color: var(--mm-marigold-300); }
+
+/* Warning = stop sign. Bark/red treatment via custom token. */
+.warning .bar { background: var(--mm-color-bark); color: var(--mm-color-white); }
+.warning .label { color: var(--mm-color-bark); }
+[data-theme='dark'] .warning .label { color: var(--mm-color-sand); }
+
+.security .bar { background: #8B1F1F; }           /* sec red */
+.security .label { color: #8B1F1F; }
+[data-theme='dark'] .security .label { color: #E9A0A0; }

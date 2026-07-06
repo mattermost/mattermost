@@ -12,6 +12,7 @@ import (
 	"os"
 	"sort"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/require"
@@ -22,6 +23,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var UserCmd = &cobra.Command{
@@ -211,6 +213,38 @@ var DemoteUserToGuestCmd = &cobra.Command{
 	Args:    cobra.MinimumNArgs(1),
 }
 
+var UserStatusCmd = &cobra.Command{
+	Use:   "status",
+	Short: "Get a user's status",
+	Long:  "Get a user's presence status: online, away, dnd or offline.",
+	Example: `  # You can get the status of the currently authenticated user
+  $ mmctl user status
+
+  # You can get the status of a specific user
+  $ mmctl user status --user user@example.com
+
+  # In local mode there is no authenticated user, so the --user flag is required
+  $ mmctl --local user status --user user@example.com`,
+	Args: cobra.NoArgs,
+	RunE: withClient(userStatusGetCmdF),
+}
+
+var UserStatusSetCmd = &cobra.Command{
+	Use:   "set [status]",
+	Short: "Set a user's status",
+	Long:  "Set a user's presence status. Allowed values are online, away, dnd and offline.",
+	Example: `  # You can set the status of the currently authenticated user
+  $ mmctl user status set away
+
+  # You can set the status of a specific user
+  $ mmctl user status set --user user@example.com dnd
+
+  # You can set a "dnd" status that expires at a given time (ISO 8601)
+  $ mmctl user status set --user user@example.com --dnd-end-time 2100-01-02T15:04:05-07:00 dnd`,
+	Args: cobra.ExactArgs(1),
+	RunE: withClient(userStatusSetCmdF),
+}
+
 var UserConvertCmd = &cobra.Command{
 	Use:   "convert (--bot [emails] [usernames] [userIds] | --user <username> --password PASSWORD [--email EMAIL])",
 	Short: "Convert users to bots, or a bot to a user",
@@ -368,6 +402,10 @@ func init() {
 	UserConvertCmd.Flags().String("locale", "", "The locale (ex: en, fr) for converted new user account. Required when the \"bot\" flag is set")
 	UserConvertCmd.Flags().Bool("system-admin", false, "If supplied, the converted user will be a system administrator. Defaults to false. Required when the \"bot\" flag is set")
 
+	UserStatusCmd.Flags().String("user", "", "Optional. The user (specified by email, username or ID) whose status to get. Defaults to the currently authenticated user. Required in local mode.")
+	UserStatusSetCmd.Flags().String("user", "", "Optional. The user (specified by email, username or ID) whose status to set. Defaults to the currently authenticated user. Required in local mode.")
+	UserStatusSetCmd.Flags().String("dnd-end-time", "", "Optional. The time at which a \"dnd\" status expires, formatted as ISO 8601 (e.g. 2006-01-02T15:04:05-07:00). Only valid with the \"dnd\" status.")
+
 	ChangePasswordUserCmd.Flags().StringP("current", "c", "", "The current password of the user. Use only if changing your own password")
 	ChangePasswordUserCmd.Flags().StringP("password", "p", "", "The new password for the user")
 	ChangePasswordUserCmd.Flags().Bool("hashed", false, "The supplied password is already hashed")
@@ -423,7 +461,11 @@ Global Flags:
 		MigrateAuthCmd,
 		PromoteGuestToUserCmd,
 		DemoteUserToGuestCmd,
+		UserStatusCmd,
 		PreferenceCmd,
+	)
+	UserStatusCmd.AddCommand(
+		UserStatusSetCmd,
 	)
 	PreferenceCmd.AddCommand(
 		PreferenceListCmd,
@@ -746,7 +788,8 @@ first_name: {{.FirstName}}
 last_name: {{.LastName}}
 email: {{.Email}}
 auth_service: {{.AuthService}}
-auth_data: {{.AuthData}}`
+auth_data: {{.AuthData}}
+roles: {{.Roles}}`
 		if i > 0 {
 			tpl = "------------------------------\n" + tpl
 		}
@@ -1070,6 +1113,91 @@ func demoteUserToGuestCmdF(c client.Client, _ *cobra.Command, userArgs []string)
 	}
 
 	return errs.ErrorOrNil()
+}
+
+// resolveStatusTargetUser resolves the user whose status a command operates on.
+// When the --user flag is omitted, it falls back to the currently authenticated
+// user, which is unavailable in local mode.
+func resolveStatusTargetUser(c client.Client, cmd *cobra.Command) (*model.User, error) {
+	userArg, _ := cmd.Flags().GetString("user")
+	if userArg != "" {
+		return getUserFromArg(c, userArg)
+	}
+
+	if viper.GetBool("local") {
+		return nil, errors.New("the --user flag is required in local mode")
+	}
+
+	me, _, err := c.GetMe(context.TODO(), "")
+	if err != nil {
+		return nil, fmt.Errorf("could not retrieve the current user: %w", err)
+	}
+	return me, nil
+}
+
+func userStatusGetCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
+	printer.SetSingle(true)
+
+	user, err := resolveStatusTargetUser(c, cmd)
+	if err != nil {
+		return err
+	}
+
+	status, _, err := c.GetUserStatus(context.TODO(), user.Id, "")
+	if err != nil {
+		return fmt.Errorf("could not get status for user %s: %w", user.Id, err)
+	}
+
+	printer.PrintT("@"+user.Username+" has status: {{.Status}}", status)
+	return nil
+}
+
+func userStatusSetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	printer.SetSingle(true)
+
+	newStatus := args[0]
+	switch newStatus {
+	case model.StatusOnline, model.StatusAway, model.StatusDnd, model.StatusOffline:
+	default:
+		return fmt.Errorf("invalid status %q, must be one of: %s, %s, %s, %s", newStatus, model.StatusOnline, model.StatusAway, model.StatusDnd, model.StatusOffline)
+	}
+
+	dndEndTimeArg, _ := cmd.Flags().GetString("dnd-end-time")
+	if dndEndTimeArg != "" && newStatus != model.StatusDnd {
+		return fmt.Errorf("the --dnd-end-time flag can only be used with the %q status", model.StatusDnd)
+	}
+
+	var dndEndTime int64
+	if dndEndTimeArg != "" {
+		endTime, err := time.Parse(time.RFC3339, dndEndTimeArg)
+		if err != nil {
+			return fmt.Errorf("invalid dnd-end-time %q, expected RFC3339 format (e.g. 2006-01-02T15:04:05-07:00 or 2006-01-02T15:04:05Z)", dndEndTimeArg)
+		}
+		if !endTime.After(time.Now()) {
+			return errors.New("dnd-end-time must be in the future")
+		}
+		// DNDEndTime is expressed in seconds rather than milliseconds.
+		dndEndTime = endTime.Unix()
+	}
+
+	user, err := resolveStatusTargetUser(c, cmd)
+	if err != nil {
+		return err
+	}
+
+	status := &model.Status{
+		UserId:     user.Id,
+		Status:     newStatus,
+		DNDEndTime: dndEndTime,
+	}
+
+	updatedStatus, _, err := c.UpdateUserStatus(context.TODO(), user.Id, status)
+	if err != nil {
+		return fmt.Errorf("could not set status for user %s: %w", user.Id, err)
+	}
+
+	printer.PrintT("Set status of @"+user.Username+" to status: {{.Status}}", updatedStatus)
+	return nil
 }
 
 func userEditCompletionF(ctx context.Context, c client.Client, cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
