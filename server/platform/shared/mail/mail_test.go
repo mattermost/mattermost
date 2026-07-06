@@ -20,6 +20,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const embeddedFileMinSize = 1500
+
 func getConfig() *SMTPConfig {
 	server := os.Getenv("MM_EMAILSETTINGS_SMTPSERVER")
 	if server == "" {
@@ -240,7 +242,7 @@ func TestSendMailWithEmbeddedFilesUsingConfig(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		if resultsEmail.Size <= 1500 {
+		if resultsEmail.Size <= embeddedFileMinSize {
 			return fmt.Errorf("message size %d does not yet reflect embedded attachments", resultsEmail.Size)
 		}
 
@@ -254,7 +256,7 @@ func TestSendMailWithEmbeddedFilesUsingConfig(t *testing.T) {
 			require.Contains(t, resultsMailbox[0].To[0], emailTo, "Wrong To: recipient")
 			require.Contains(t, emailBody, resultsEmail.Body.Text, "Wrong received message %s", resultsEmail.Body.Text)
 			// Usign the message size because the inbucket API doesn't return embedded attachments through the API
-			require.Greater(t, resultsEmail.Size, 1500, "the file size should be more because the embedded attachments")
+			require.Greater(t, resultsEmail.Size, embeddedFileMinSize, "the file size should be more because the embedded attachments")
 		}
 	}
 }
