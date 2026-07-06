@@ -599,7 +599,7 @@ components:
           $ref: "#/components/schemas/PostMetadata"
     PostPriority:
       type: object
-      description: Priority metadata associated with a post or draft.
+      description: Priority metadata associated with a post.
       required:
         - priority
         - requested_ack
@@ -622,6 +622,30 @@ components:
           type: boolean
           nullable: true
           description: Whether persistent notifications are enabled for the post.
+    DraftPriority:
+      type: object
+      description: >-
+        Priority metadata associated with a draft. Unlike post priority, the
+        server stores this as free-form data, so no field is guaranteed to be
+        present.
+      properties:
+        priority:
+          type: string
+          nullable: true
+          description: The priority label of the draft, either empty, important, or urgent.
+          enum:
+            - ""
+            - important
+            - urgent
+            - null
+        requested_ack:
+          type: boolean
+          nullable: true
+          description: Whether acknowledgements will be requested when the draft is posted.
+        persistent_notifications:
+          type: boolean
+          nullable: true
+          description: Whether persistent notifications will be enabled when the draft is posted.
     PostInfo:
       type: object
       description: Additional team and channel context metadata for a post.
@@ -703,7 +727,7 @@ components:
         metadata:
           $ref: "#/components/schemas/PostMetadata"
         priority:
-          $ref: "#/components/schemas/PostPriority"
+          $ref: "#/components/schemas/DraftPriority"
     DraftUpsertRequest:
       type: object
       required:
@@ -728,7 +752,7 @@ components:
           items:
             type: string
         priority:
-          $ref: "#/components/schemas/PostPriority"
+          $ref: "#/components/schemas/DraftPriority"
     NotifyAdminToUpgradeRequest:
       type: object
       required:
