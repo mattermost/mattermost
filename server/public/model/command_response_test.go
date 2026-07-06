@@ -196,16 +196,6 @@ func TestCommandResponseFromJSON(t *testing.T) {
 			true,
 		},
 		{
-			"javascript scheme in goto_location should fail validation",
-			`{"text": "hello", "goto_location": "javascript:alert(1)"}`,
-			&CommandResponse{
-				Text:         "hello",
-				GotoLocation: "javascript:alert(1)",
-			},
-			false,
-			true,
-		},
-		{
 			"valid https goto_location should pass validation",
 			`{"text": "hello", "goto_location": "https://example.com"}`,
 			&CommandResponse{

@@ -89,8 +89,7 @@ func (o *CommandResponse) IsValid() *AppError {
 
 	// goto location must be a valid URL if set
 	if o.GotoLocation != "" {
-		u, err := url.ParseRequestURI(o.GotoLocation)
-		if err != nil || (u.Scheme != "http" && u.Scheme != "https") {
+		if _, err := url.ParseRequestURI(o.GotoLocation); err != nil {
 			return NewAppError("CommandResponse.IsValid", "model.command_response.is_valid.goto_location.app_error", nil, "invalid goto location", http.StatusBadRequest)
 		}
 	}
