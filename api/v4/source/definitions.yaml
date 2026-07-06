@@ -3111,36 +3111,33 @@ components:
         emails:
           type: string
     ClusterInfo:
-      type: array
+      type: object
+      required:
+        - id
+        - version
+        - schema_version
+        - config_hash
+        - ipaddress
+        - hostname
       properties:
-        items:
-          type: object
-          required:
-            - id
-            - version
-            - schema_version
-            - config_hash
-            - ipaddress
-            - hostname
-          properties:
-            id:
-              description: The unique ID for the node
-              type: string
-            version:
-              description: The server version the node is on
-              type: string
-            schema_version:
-              description: The number of the latest DB migration successfully executed for the node
-              type: string
-            config_hash:
-              description: The hash of the configuration file the node is using
-              type: string
-            ipaddress:
-              description: The IP address of the node
-              type: string
-            hostname:
-              description: The hostname for this node
-              type: string
+        id:
+          description: The unique ID for the node
+          type: string
+        version:
+          description: The server version the node is on
+          type: string
+        schema_version:
+          description: The number of the latest DB migration successfully executed for the node
+          type: string
+        config_hash:
+          description: The hash of the configuration file the node is using
+          type: string
+        ipaddress:
+          description: The IP address of the node
+          type: string
+        hostname:
+          description: The hostname for this node
+          type: string
     AppError:
       type: object
       required:
