@@ -148,7 +148,7 @@ const DotMenu = ({
 
     const handleDuplicate = () => {
         const name = `${slugifyForCEL(field.name)}_copy`;
-        const {owners, ...attrs} = field.attrs;
+        const {owners: _owners, ...attrs} = field.attrs;
         createField({...field, attrs, name});
     };
 
