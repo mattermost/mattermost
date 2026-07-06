@@ -118,6 +118,10 @@ func (h *AccessControlHook) PreCreatePropertyField(rctx request.CTX, field *mode
 		}
 	}
 
+	if err := h.enforceOwnerMutationRules(nil, field, callerID); err != nil {
+		return nil, err
+	}
+
 	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
 		if err := h.validateAndInheritLinkedFieldSecurity(callerID, field); err != nil {
 			return nil, fmt.Errorf("PreCreatePropertyField: %w", err)
@@ -196,6 +200,10 @@ func (h *AccessControlHook) PreUpdatePropertyField(rctx request.CTX, groupID str
 		return nil, err
 	}
 
+	if err := h.enforceOwnerMutationRules(existingField, field, callerID); err != nil {
+		return nil, err
+	}
+
 	if err := h.ensureSourcePluginIDUnchanged(existingField, field); err != nil {
 		return nil, err
 	}
@@ -243,6 +251,10 @@ func (h *AccessControlHook) PreUpdatePropertyFields(rctx request.CTX, groupID st
 		}
 
 		if err := h.checkFieldWriteAccess(existingField, callerID); err != nil {
+			return nil, fmt.Errorf("field %s: %w", field.ID, err)
+		}
+
+		if err := h.enforceOwnerMutationRules(existingField, field, callerID); err != nil {
 			return nil, fmt.Errorf("field %s: %w", field.ID, err)
 		}
 
@@ -718,6 +730,98 @@ func (h *AccessControlHook) checkOwnerFieldWriteAccess(field *model.PropertyFiel
 	}
 
 	return fmt.Errorf("field %s is owner-managed and caller %q is not a listed owner: %w", field.ID, callerID, ErrAccessDenied)
+}
+
+// enforceOwnerMutationRules validates a change to attrs.owners. Owners are a
+// plugin-only, self-managed mechanism: a plugin may add, change, or remove only
+// its own entry (type=plugin, id == caller manifest id) and may never touch
+// another id's entry. Non-plugin callers may not change owners at all.
+// existing is the stored field (nil on create).
+func (h *AccessControlHook) enforceOwnerMutationRules(existing, updated *model.PropertyField, callerID string) error {
+	existingOwners := model.GetPropertyFieldOwners(existing)
+	updatedOwners := model.GetPropertyFieldOwners(updated)
+
+	if ownerSetsEqual(existingOwners, updatedOwners) {
+		return nil
+	}
+
+	// Human callers (e.g. sysadmins) may manage the owners list freely; the
+	// field's pinned permission level gates them to sysadmin at the API layer.
+	if !h.isCallerPlugin(callerID) {
+		return nil
+	}
+
+	// A plugin may only add, change, or remove its OWN entry, and that entry
+	// must be a plugin-type owner. Entries for any other id must be unchanged.
+	for _, o := range updatedOwners {
+		if strings.TrimSpace(o.ID) == callerID && strings.TrimSpace(o.Type) != model.PropertyOwnerTypePlugin {
+			return fmt.Errorf("a plugin may only own via a plugin-type entry: %w", ErrAccessDenied)
+		}
+	}
+	if !othersUnchanged(existingOwners, updatedOwners, callerID) {
+		return fmt.Errorf("a plugin may only manage its own ownership (id %q), not another plugin's: %w", callerID, ErrAccessDenied)
+	}
+	return nil
+}
+
+func ownerKey(owner model.PropertyOwner) string {
+	return strings.TrimSpace(owner.Type) + "\x00" + strings.TrimSpace(owner.ID)
+}
+
+func normalizeOwnerScopes(scopes []string) []string {
+	normalized := make([]string, 0, len(scopes))
+	for _, scope := range scopes {
+		scope = strings.ToLower(strings.TrimSpace(scope))
+		if scope == "" || slices.Contains(normalized, scope) {
+			continue
+		}
+		normalized = append(normalized, scope)
+	}
+	slices.Sort(normalized)
+	return normalized
+}
+
+func ownerScopeSet(owners []model.PropertyOwner) map[string][]string {
+	set := make(map[string][]string, len(owners))
+	for _, owner := range owners {
+		key := ownerKey(owner)
+		parts := strings.SplitN(key, "\x00", 2)
+		if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+			continue
+		}
+		set[key] = normalizeOwnerScopes(owner.Scopes)
+	}
+	return set
+}
+
+func ownerSetsEqual(a, b []model.PropertyOwner) bool {
+	return maps.EqualFunc(ownerScopeSet(a), ownerScopeSet(b), slices.Equal)
+}
+
+func othersUnchanged(existing, updated []model.PropertyOwner, callerID string) bool {
+	existingSet := ownerScopeSet(existing)
+	updatedSet := ownerScopeSet(updated)
+
+	for key, updatedScopes := range updatedSet {
+		_, id, ok := strings.Cut(key, "\x00")
+		if !ok || id == callerID {
+			continue
+		}
+		existingScopes, found := existingSet[key]
+		if !found || !slices.Equal(existingScopes, updatedScopes) {
+			return false
+		}
+	}
+	for key := range existingSet {
+		_, id, ok := strings.Cut(key, "\x00")
+		if !ok || id == callerID {
+			continue
+		}
+		if _, found := updatedSet[key]; !found {
+			return false
+		}
+	}
+	return true
 }
 
 // getSourcePluginID extracts the source_plugin_id from a PropertyField's attrs.
