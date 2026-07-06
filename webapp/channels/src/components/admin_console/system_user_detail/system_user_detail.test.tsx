@@ -20,12 +20,14 @@ import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 // Mock user profile data
-const user = Object.assign(TestHelper.getUserMock(), {auth_service: ''}) as UserProfile;
+const user = Object.assign(TestHelper.getUserMock(), {auth_service: '', email_verified: true}) as UserProfile;
 const ldapUser = {...user, auth_service: Constants.LDAP_SERVICE} as UserProfile;
+const unverifiedUser = {...user, email_verified: false} as UserProfile;
 
 // Mock getUser action result
 const getUserMock = jest.fn().mockResolvedValue({data: user, error: null});
 const getLdapUserMock = jest.fn().mockResolvedValue({data: ldapUser, error: null});
+const getUnverifiedUserMock = jest.fn().mockResolvedValue({data: unverifiedUser, error: null});
 
 describe('SystemUserDetail', () => {
     const defaultProps: Props = {
@@ -38,6 +40,7 @@ describe('SystemUserDetail', () => {
         patchUser: jest.fn(),
         updateUserAuth: jest.fn(),
         updateUserMfa: jest.fn(),
+        verifyUserEmailWithoutToken: jest.fn().mockResolvedValue({data: unverifiedUser, error: null}),
         getUser: getUserMock,
         updateUserActive: jest.fn(),
         setNavigationBlocked: jest.fn(),
@@ -366,6 +369,77 @@ describe('SystemUserDetail', () => {
 
             await waitFor(() => {
                 expect(screen.getByText('Activation failed')).toBeInTheDocument();
+            });
+
+            consoleSpy.mockRestore();
+        });
+    });
+
+    describe('email verification', () => {
+        test('should show verified status and hide Verify Email button for verified users', async () => {
+            renderWithContext(<SystemUserDetail {...defaultProps}/>);
+
+            await waitForLoadingToFinish();
+
+            expect(screen.getByText('Email verified')).toBeInTheDocument();
+            expect(screen.queryByText('Verify Email')).not.toBeInTheDocument();
+        });
+
+        test('should show pending status and Verify Email button for unverified users', async () => {
+            const props = {
+                ...defaultProps,
+                getUser: getUnverifiedUserMock,
+            };
+            renderWithContext(<SystemUserDetail {...props}/>);
+
+            await waitForLoadingToFinish();
+
+            expect(screen.getByText('Email verification pending')).toBeInTheDocument();
+            expect(screen.getByText('Verify Email')).toBeInTheDocument();
+        });
+
+        test('should call verifyUserEmailWithoutToken and refresh when Verify Email is clicked', async () => {
+            const userEventInstance = userEvent.setup();
+            const verifyUserEmailWithoutToken = jest.fn().mockResolvedValue({data: {...unverifiedUser, email_verified: true}, error: null});
+            const getUser = jest.fn().mockResolvedValue({data: unverifiedUser, error: null});
+
+            const props = {
+                ...defaultProps,
+                getUser,
+                verifyUserEmailWithoutToken,
+            };
+            renderWithContext(<SystemUserDetail {...props}/>);
+
+            await waitForLoadingToFinish();
+
+            await userEventInstance.click(screen.getByText('Verify Email'));
+
+            await waitFor(() => {
+                expect(verifyUserEmailWithoutToken).toHaveBeenCalledWith(unverifiedUser.id);
+            });
+
+            // getUser is called once on mount and again after verifying.
+            expect(getUser).toHaveBeenCalledTimes(2);
+        });
+
+        test('should show error when verification fails', async () => {
+            const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+            const userEventInstance = userEvent.setup();
+            const verifyUserEmailWithoutToken = jest.fn().mockResolvedValue({data: null, error: {message: 'Verification failed'}});
+
+            const props = {
+                ...defaultProps,
+                getUser: getUnverifiedUserMock,
+                verifyUserEmailWithoutToken,
+            };
+            renderWithContext(<SystemUserDetail {...props}/>);
+
+            await waitForLoadingToFinish();
+
+            await userEventInstance.click(screen.getByText('Verify Email'));
+
+            await waitFor(() => {
+                expect(screen.getByText('Verification failed')).toBeInTheDocument();
             });
 
             consoleSpy.mockRestore();

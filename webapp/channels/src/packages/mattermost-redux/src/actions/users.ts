@@ -1136,6 +1136,15 @@ export function verifyUserEmail(token: string) {
     });
 }
 
+export function verifyUserEmailWithoutToken(userId: string) {
+    return bindClientFunc({
+        clientFunc: Client4.verifyUserEmailWithoutToken,
+        params: [
+            userId,
+        ],
+    });
+}
+
 export function sendVerificationEmail(email: string) {
     return bindClientFunc({
         clientFunc: Client4.sendVerificationEmail,
@@ -1459,6 +1468,7 @@ export default {
     updateUserPassword,
     updateUserActive,
     verifyUserEmail,
+    verifyUserEmailWithoutToken,
     sendVerificationEmail,
     resetUserPassword,
     sendPasswordResetEmail,
