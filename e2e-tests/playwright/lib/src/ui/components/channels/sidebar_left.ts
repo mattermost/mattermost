@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 export default class ChannelsSidebarLeft {
     readonly container: Locator;
@@ -19,8 +20,8 @@ export default class ChannelsSidebarLeft {
         this.teamMenuButton = container.locator('#sidebarTeamMenuButton');
         this.browseOrCreateChannelButton = container.locator('#browseOrAddChannelMenuButton');
         this.findChannelButton = container.getByRole('button', {name: 'Find Channels'});
-        this.scheduledPostBadge = container.locator('span.scheduledPostBadge');
-        this.unreadChannelFilter = container.locator('.SidebarFilters_filterButton');
+        this.scheduledPostBadge = container.getByTestId('scheduled-post-badge');
+        this.unreadChannelFilter = container.getByTestId('sidebar-unread-filter-button');
         this.openDirectMessageButton = container.getByRole('button', {name: 'Write a direct message'});
     }
 
@@ -60,7 +61,7 @@ export default class ChannelsSidebarLeft {
      * Verifies if 'unreads' filter is applied to sidebar.
      */
     async isUnreadsFilterActive(): Promise<boolean> {
-        return await this.unreadChannelFilter.evaluate((el) => el.classList.contains('active'));
+        return this.unreadChannelFilter.evaluate((el) => el.classList.contains('active'));
     }
 
     /**
@@ -74,6 +75,6 @@ export default class ChannelsSidebarLeft {
      * Gets all unread channel items in the sidebar.
      */
     getUnreadChannels(): Locator {
-        return this.container.locator('.SidebarLink.unread-title');
+        return this.container.getByTestId('sidebar-unread-channel');
     }
 }

@@ -95,7 +95,7 @@ export interface HangleCharacter {
     jamo?: string[];
 }
 
-export function decomposeKorean(text: string): Array<HangleCharacter> {
+export function decomposeKorean(text: string): HangleCharacter[] {
     // Adapted from https://useless-factor.blogspot.com/2007/08/unicode-implementers-guide-part-3.html and
     // https://web.archive.org/web/20190512031142/http://www.programminginkorean.com/programming/hangul-in-unicode/composing-syllables-in-unicode/
 

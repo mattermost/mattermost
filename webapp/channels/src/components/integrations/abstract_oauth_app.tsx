@@ -60,7 +60,7 @@ type Props = {
     */
     action: (app: OAuthApp) => Promise<void>;
 
-}
+};
 
 type State = {
     name: string;

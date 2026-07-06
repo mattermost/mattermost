@@ -40,7 +40,7 @@ test('should install and enable demo plugin from URL', async ({pw}) => {
     // Verify it's active (API validation, no UI)
     await expect
         .poll(async () => {
-            return await pw.isPluginActive(adminClient, 'com.mattermost.demo-plugin');
+            return pw.isPluginActive(adminClient, 'com.mattermost.demo-plugin');
         })
         .toBe(true);
 

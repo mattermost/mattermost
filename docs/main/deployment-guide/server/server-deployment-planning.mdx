@@ -1,0 +1,136 @@
+---
+title: "Server deployment planning"
+---
+This section provides comprehensive guidance on deploying and managing your Mattermost server. Mattermost is a flexible, high-performance messaging platform built with Go and React, designed to provide secure team collaboration at scale. Use the navigation below to learn more about how Mattermost supports a wide range of deployment options, from single-server installations to complex, distributed architectures:
+
+- [Preparations](/deployment-guide/server/preparations) - Software and hardware requirements, proxy setup, TLS configuration, and other pre-deployment tasks.
+- [Deploy with Kubernetes](/deployment-guide/server/deploy-kubernetes) - Scalable deployment on various Kubernetes platforms with high availability support.
+- [Deploy with Linux](/deployment-guide/server/deploy-linux) - Direct installation on Linux servers for full control over the deployment.
+- [Deploy with Containers](/deployment-guide/server/deploy-containers) - Docker-based deployment suitable for smaller installations.
+- [Pre-authentication secrets](/deployment-guide/server/pre-authentication-secrets) - Configure reverse proxy validation for mobile and desktop applications using pre-authentication headers.
+- [Deployment Solution Programs](/deployment-guide/server/orchestration) - Automated deployment tools and orchestration solutions.
+
+## Core technology stack
+
+Mattermost's architecture is built on modern, reliable technologies:
+
+- **Backend**: Written in Go, providing high performance and concurrent processing
+- **Frontend**: React-based web application and mobile apps
+- **Database**: PostgreSQL for primary data storage
+- **Search**: Elasticsearch (optional) for advanced search capabilities
+- **File Storage**: Local filesystem, network storage using NFS, or cloud storage (S3 or S3-compatible services) for media and attachments
+- **Caching**: Built-in support for Redis for enhanced performance
+
+## Deployment options
+
+Mattermost offers several deployment options to suit your organization's needs:
+
+1.  [Kubernetes (Recommended)](/deployment-guide/server/deploy-kubernetes)
+
+    Our recommended approach for production deployments offers:
+
+    - Scalability and high availability
+    - Automated updates and rollbacks
+    - Infrastructure as code
+    - Built-in monitoring and logging
+    - Easy integration with existing DevOps workflows
+
+2.  [Linux Server Installation](/deployment-guide/server/deploy-linux)
+
+    A direct installation on Linux servers offers:
+
+    - Simple, straightforward setup
+    - Full control over the installation
+    - For situations where containers aren't preferred
+
+3.  [Container-Based Deployment](/deployment-guide/server/deploy-containers)
+
+    Docker containers are suitable for smaller deployments only as it offers:
+
+    - Simplified installation and updates
+    - Consistent environments
+    - Easy dependency management
+    - No support for high availability
+
+## Prerequisites
+
+Before deploying Mattermost, ensure you have reviewed the [software and hardware requirements](/deployment-guide/software-hardware-requirements), and have:
+
+- A supported Linux distribution
+- Database server (PostgreSQL 14+)
+- Reverse proxy (NGINX recommended)
+- SSL/TLS certificates for secure communication
+- Adequate storage for files and database
+- Network access and firewall configurations
+- System requirements met based on expected user load
+
+## Plan your deployment
+
+When planning your Mattermost deployment, consider the following when choosing the deployment method that best aligns with your organization's requirements, technical expertise, and infrastructure capabilities:
+
+- Expected user count and growth
+- High availability requirements
+- Backup and disaster recovery needs
+- Integration with existing systems
+- Security and compliance requirements
+- Monitoring and maintenance strategy
+
+The following server, desktop, and mobile application sections provide detailed instructions for each deployment approach.
+
+### Minimum database version policy
+
+To make planning easier and ensure your Mattermost deployment remains fast and secure, we are introducing a policy for updating the minimum supported version of PostgreSQL. The oldest supported PostgreSQL version Mattermost supports will match the oldest version supported by the PostgreSQL community. This ensures you benefit from the latest features and security updates.
+
+This policy change takes effect from Mattermost v10.6, where the minimum PostgreSQL version required will be PostgreSQL 13. This aligns with the PostgreSQL community's support policy, which provides 5 years of support for each major version.
+
+<Note>
+
+Mattermost v10.6 is not an [Extended Support Release (ESR)](/product-overview/release-policy#extended-support-releases). Going forward, this database version support policy will only apply to ESR releases.
+
+</Note>
+
+When a PostgreSQL version reaches its end of life (EOL), Mattermost will require a newer version starting with the next scheduled ESR release. This means the following future PostgreSQL minimum version increases as follows:
+
+<table style={{width: '97%'}}>
+<colgroup>
+<col style={{width: '50%'}} />
+<col style={{width: '15%'}} />
+<col style={{width: '27%'}} />
+<col style={{width: '3%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td colspan="4"><blockquote>
+<p><strong>Mattermost Version</strong> | <strong>Release Date</strong> | <strong>Minimum PostgreSQL Version</strong> |</p>
+</blockquote>
+<dl>
+<dt>===========================================================+==================+================================+</dt>
+<dd>
+<p><a href="mm-ref:release-v9-11-extended-support-release">v9.11 ESR</a> | 2024-8-15 | 11.x</p>
+</dd>
+</dl></td>
+</tr>
+<tr>
+<td colspan="4"><a href="mm-ref:release-v10.5-extended-support-release">v10.5 ESR</a> | 2025-2-15 | 11.x</td>
+</tr>
+<tr>
+<td colspan="4"><a href="mm-ref:release-v10.6-feature-release">v10.6</a> | 2025-3-15 | 13.x</td>
+</tr>
+<tr>
+<td>v10.11 ESR</td>
+<td>2025-8-15</td>
+<td>13.x</td>
+<td></td>
+</tr>
+<tr>
+<td>v11.5 ESR <code>*</code></td>
+<td>2026-2-15</td>
+<td>14.x (EOL 2026-11-12)</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+
+`*` Forcasted release version and date.
+
+Customers will have 9 months to plan, test, and upgrade their PostgreSQL version before the new requirement takes effect. This policy aims to provide clarity and transparency so you can align database upgrades with the Mattermost release schedule. Contact a [Mattermost Expert](https://mattermost.com/contact-sales/). to discuss your options.

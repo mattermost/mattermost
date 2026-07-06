@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 import ChannelsPostCreate from './post_create';
 import ChannelsPostEdit from './post_edit';
@@ -30,15 +31,19 @@ export default class ChannelsSidebarRight {
         this.container = container;
 
         this.scheduledPostIndicator = new ScheduledPostIndicator(container.getByTestId('scheduledPostIndicator'));
-        this.scheduledDraftChannelInfoMessage = container.locator('div.ScheduledPostIndicator span');
-        this.scheduledDraftSeeAllLink = container.locator('a:has-text("See all")');
-        this.scheduledDraftChannelInfoMessageText = container.locator('span:has-text("Message scheduled for")');
-        this.rhsPostBody = container.locator('.post-message__text');
+        this.scheduledDraftChannelInfoMessage = container.getByTestId('scheduledPostIndicator').locator('span');
+        this.scheduledDraftSeeAllLink = container
+            .getByTestId('scheduledPostIndicator')
+            .getByRole('link', {name: 'See all.'});
+        this.scheduledDraftChannelInfoMessageText = container
+            .getByTestId('scheduledPostIndicator')
+            .getByText(/Message scheduled for/);
+        this.rhsPostBody = container.getByTestId('post-message-text');
         this.postCreate = new ChannelsPostCreate(container.getByTestId('comment-create'), true);
-        this.closeButton = container.locator('.sidebar--right__close');
+        this.closeButton = container.getByRole('button', {name: 'Close'});
 
         this.editTextbox = container.locator('#edit_textbox');
-        this.postEdit = new ChannelsPostEdit(container.locator('.post-edit__container'));
+        this.postEdit = new ChannelsPostEdit(container.getByTestId('post-edit-container'));
         this.currentVersionEditedPosttext = (postID: any) => container.locator(`#rhsPostMessageText_${postID} p`);
         this.restorePreviousPostVersionIcon = container.locator(
             'button[aria-label="Select to restore an old message."]',

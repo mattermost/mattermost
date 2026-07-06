@@ -5,6 +5,7 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -459,6 +460,125 @@ func TestChannelMentionsBroadcastHook(t *testing.T) {
 		gotJSON, ok := msg.Get("post").(string)
 		require.True(t, ok)
 		assert.Equal(t, cleanJSON, gotJSON)
+	})
+
+	t.Run("retains same-team public channel mention for non-member recipient under compliance", func(t *testing.T) {
+		th.App.UpdateConfig(func(c *model.Config) {
+			c.ComplianceSettings.Enable = model.NewPointer(true)
+		})
+		defer th.App.UpdateConfig(func(c *model.Config) {
+			c.ComplianceSettings.Enable = model.NewPointer(false)
+		})
+
+		// BasicUser is a BasicTeam member (via InitBasic) but NOT a member of this fresh
+		// channel (created without adding the creator as a member).
+		pub, appErr := th.App.CreateChannel(th.Context, &model.Channel{
+			TeamId:      th.BasicTeam.Id,
+			Name:        "name_" + model.NewId(),
+			DisplayName: "Public Channel",
+			Type:        model.ChannelTypeOpen,
+		}, false)
+		require.Nil(t, appErr)
+
+		msg := platform.MakeHookedWebSocketEvent(wsEvent)
+		err = hook.Process(msg, wc, map[string]any{
+			"channel_mentions": map[string]any{
+				pub.Name: map[string]any{
+					"id":           pub.Id,
+					"display_name": pub.DisplayName,
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		gotJSON, ok := msg.Get("post").(string)
+		require.True(t, ok)
+
+		var gotPost model.Post
+		err = json.Unmarshal([]byte(gotJSON), &gotPost)
+		require.NoError(t, err)
+
+		mentions := gotPost.GetProp(model.PostPropsChannelMentions)
+		require.NotNil(t, mentions)
+		mentionsMap, ok := mentions.(map[string]any)
+		require.True(t, ok)
+		assert.Contains(t, mentionsMap, pub.Name)
+	})
+
+	t.Run("strips cross-team public channel mention for non-member recipient regardless of compliance", func(t *testing.T) {
+		team2 := th.CreateTeam(t)
+		// Created without adding the creator so BasicUser is neither a team nor channel member.
+		ch, appErr := th.App.CreateChannel(th.Context, &model.Channel{
+			TeamId:      team2.Id,
+			Name:        "name_" + model.NewId(),
+			DisplayName: "Cross Team Channel",
+			Type:        model.ChannelTypeOpen,
+		}, false)
+		require.Nil(t, appErr)
+
+		for _, compliance := range []bool{true, false} {
+			t.Run(fmt.Sprintf("compliance=%t", compliance), func(t *testing.T) {
+				th.App.UpdateConfig(func(c *model.Config) {
+					c.ComplianceSettings.Enable = model.NewPointer(compliance)
+				})
+				defer th.App.UpdateConfig(func(c *model.Config) {
+					c.ComplianceSettings.Enable = model.NewPointer(false)
+				})
+
+				msg := platform.MakeHookedWebSocketEvent(wsEvent)
+				err = hook.Process(msg, wc, map[string]any{
+					"channel_mentions": map[string]any{
+						ch.Name: map[string]any{
+							"id":           ch.Id,
+							"display_name": ch.DisplayName,
+						},
+					},
+				})
+				require.NoError(t, err)
+
+				gotJSON, ok := msg.Get("post").(string)
+				require.True(t, ok)
+
+				var gotPost model.Post
+				err = json.Unmarshal([]byte(gotJSON), &gotPost)
+				require.NoError(t, err)
+
+				assert.Nil(t, gotPost.GetProp(model.PostPropsChannelMentions))
+			})
+		}
+	})
+
+	t.Run("strips private channel mention for non-member recipient regardless of compliance", func(t *testing.T) {
+		for _, compliance := range []bool{true, false} {
+			t.Run(fmt.Sprintf("compliance=%t", compliance), func(t *testing.T) {
+				th.App.UpdateConfig(func(c *model.Config) {
+					c.ComplianceSettings.Enable = model.NewPointer(compliance)
+				})
+				defer th.App.UpdateConfig(func(c *model.Config) {
+					c.ComplianceSettings.Enable = model.NewPointer(false)
+				})
+
+				msg := platform.MakeHookedWebSocketEvent(wsEvent)
+				err = hook.Process(msg, wc, map[string]any{
+					"channel_mentions": map[string]any{
+						privateChannel.Name: map[string]any{
+							"id":           privateChannel.Id,
+							"display_name": privateChannel.DisplayName,
+						},
+					},
+				})
+				require.NoError(t, err)
+
+				gotJSON, ok := msg.Get("post").(string)
+				require.True(t, ok)
+
+				var gotPost model.Post
+				err = json.Unmarshal([]byte(gotJSON), &gotPost)
+				require.NoError(t, err)
+
+				assert.Nil(t, gotPost.GetProp(model.PostPropsChannelMentions))
+			})
+		}
 	})
 }
 

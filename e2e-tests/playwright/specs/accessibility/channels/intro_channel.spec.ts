@@ -81,7 +81,7 @@ test('Post actions tab support', async ({pw, axe}) => {
     await channelsPage.postDotMenu.remindMenuItem.press('ArrowDown');
     await expect(channelsPage.postDotMenu.pinToChannelMenuItem).toBeFocused();
 
-    if (config.FeatureFlags['MoveThreadsEnabled'] && license.IsLicensed === 'true') {
+    if (config.FeatureFlags.MoveThreadsEnabled && license.IsLicensed === 'true') {
         // * Should move focus to Move Thread after arrow down
         await channelsPage.postDotMenu.pinToChannelMenuItem.press('ArrowDown');
         await expect(channelsPage.postDotMenu.moveThreadMenuItem).toBeFocused();

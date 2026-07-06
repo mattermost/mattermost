@@ -43,11 +43,11 @@ type Props = WrappedComponentProps & {
 };
 
 type State = {
-    serverError: string|null;
+    serverError: string | null;
     showDemoteModal: boolean;
-    user: UserProfile|null;
-    role: string|null;
-}
+    user: UserProfile | null;
+    role: string | null;
+};
 
 class TeamMembersDropdown extends React.PureComponent<Props, State> {
     constructor(props: Props) {

@@ -129,7 +129,7 @@ func TestCreateBot(t *testing.T) {
 		_, appErr = th.App.UpdateUserRoles(th.Context, bot.UserId, model.TeamUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 		assert.Nil(t, appErr)
 
-		rtoken, _, err := th.Client.CreateUserAccessToken(context.Background(), bot.UserId, "test token")
+		rtoken, _, err := th.Client.CreateUserAccessToken(context.Background(), bot.UserId, "test token", 0)
 		require.NoError(t, err)
 		th.Client.AuthToken = rtoken.Token
 

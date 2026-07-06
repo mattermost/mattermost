@@ -9,7 +9,7 @@
 
 // Group: @channels @enterprise @system_console @authentication @mfa
 
-import {UserProfile} from '@mattermost/types/users';
+import type {UserProfile} from '@mattermost/types/users';
 import * as authenticator from 'authenticator';
 
 import * as TIMEOUTS from '@/fixtures/timeouts';

@@ -21,7 +21,7 @@ export type Props = {
     teamId: string;
     users: UserProfileValue[];
     guests: UserProfileValue[];
-}
+};
 
 const TeamWarningBanner = (props: Props) => {
     const {

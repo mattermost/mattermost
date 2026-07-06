@@ -1398,7 +1398,10 @@ func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID strin
 		}
 
 		if !role.SchemeManaged {
-			// The role is not scheme-managed, so it's OK to apply it to the explicit roles field.
+			if model.IsBuiltInRole(roleName) && !model.IsChannelScopedBuiltInRole(roleName) {
+				err = model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.scheme_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
+				return nil, err
+			}
 			newExplicitRoles = append(newExplicitRoles, roleName)
 		} else {
 			// The role is scheme-managed, so need to check if it is part of the scheme for this channel or not.
@@ -2320,7 +2323,23 @@ func (s *Server) getChannelsForTeamForUser(rctx request.CTX, teamID string, user
 }
 
 func (a *App) GetChannelsForTeamForUser(rctx request.CTX, teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
-	return a.Srv().getChannelsForTeamForUser(rctx, teamID, userID, opts)
+	channels, appErr := a.Srv().getChannelsForTeamForUser(rctx, teamID, userID, opts)
+	if appErr != nil {
+		return nil, appErr
+	}
+	// Hydrate the policy action set so the frontend can distinguish a
+	// membership policy from a permission-only one (e.g. file upload) without
+	// a second round-trip. Without this the guest-invite picker reads the bare
+	// PolicyEnforced flag and wrongly hides permission-only channels. No-op for
+	// channels without an attached policy, keeping the no-policy path free.
+	if appErr := a.HydrateChannelsPolicyActions(rctx, channels); appErr != nil {
+		rctx.Logger().Warn("Failed to hydrate channel policy actions for team channels; returning channels without action map",
+			mlog.String("team_id", teamID),
+			mlog.String("user_id", userID),
+			mlog.Err(appErr),
+		)
+	}
+	return channels, nil
 }
 
 func (a *App) GetChannelsForUser(rctx request.CTX, userID string, includeDeleted bool, lastDeleteAt, pageSize int, fromChannelID string) (model.ChannelList, *model.AppError) {
@@ -2880,6 +2899,19 @@ func (a *App) postRemoveFromChannelMessage(rctx request.CTX, removerUserId strin
 	return nil
 }
 
+// removeChannelMembership strips a user's channel membership and the associated
+// thread memberships. Keeping these together ensures channel access cannot be
+// revoked without also dropping the thread state that depends on it.
+func (a *App) removeChannelMembership(rctx request.CTX, userID, channelID, caller string) *model.AppError {
+	if err := a.Srv().Store().Channel().RemoveMember(rctx, channelID, userID); err != nil {
+		return model.NewAppError(caller, "app.channel.remove_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if err := a.Srv().Store().Thread().DeleteMembershipsForChannel(userID, channelID); err != nil {
+		return model.NewAppError(caller, model.NoTranslation, nil, "failed to delete threadmemberships upon leaving channel", http.StatusInternalServerError).Wrap(err)
+	}
+	return nil
+}
+
 func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
 	user, nErr := a.Srv().Store().User().Get(context.Background(), userIDToRemove)
 	if nErr != nil {
@@ -2914,14 +2946,11 @@ func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 		return err
 	}
 
-	if err := a.Srv().Store().Channel().RemoveMember(rctx, channel.Id, userIDToRemove); err != nil {
-		return model.NewAppError("removeUserFromChannel", "app.channel.remove_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	if appErr := a.removeChannelMembership(rctx, userIDToRemove, channel.Id, "removeUserFromChannel"); appErr != nil {
+		return appErr
 	}
 	if err := a.Srv().Store().ChannelMemberHistory().LogLeaveEvent(userIDToRemove, channel.Id, model.GetMillis()); err != nil {
 		return model.NewAppError("removeUserFromChannel", "app.channel_member_history.log_leave_event.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	if err := a.Srv().Store().Thread().DeleteMembershipsForChannel(userIDToRemove, channel.Id); err != nil {
-		return model.NewAppError("removeUserFromChannel", model.NoTranslation, nil, "failed to delete threadmemberships upon leaving channel", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if isGuest {
@@ -3361,6 +3390,17 @@ func (a *App) SearchChannels(rctx request.CTX, teamID string, term string) (mode
 		return nil, model.NewAppError("SearchChannels", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// Hydrate policy actions so search results carry the same action map as the
+	// bootstrap channel list; otherwise a search would overwrite a hydrated
+	// channel in the frontend store with an unhydrated copy. No-op without a
+	// policy attached.
+	if appErr := a.HydrateChannelsPolicyActions(rctx, channelList); appErr != nil {
+		rctx.Logger().Warn("Failed to hydrate channel policy actions for search results; returning channels without action map",
+			mlog.String("team_id", teamID),
+			mlog.Err(appErr),
+		)
+	}
+
 	return channelList, nil
 }
 
@@ -3372,6 +3412,18 @@ func (a *App) SearchChannelsForUser(rctx request.CTX, userID, teamID, term strin
 	channelList, err := a.Srv().Store().Channel().SearchForUserInTeam(userID, teamID, term, includeDeleted)
 	if err != nil {
 		return nil, model.NewAppError("SearchChannelsForUser", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Hydrate policy actions so search results carry the same action map as the
+	// bootstrap channel list; otherwise a search would overwrite a hydrated
+	// channel in the frontend store with an unhydrated copy. No-op without a
+	// policy attached.
+	if appErr := a.HydrateChannelsPolicyActions(rctx, channelList); appErr != nil {
+		rctx.Logger().Warn("Failed to hydrate channel policy actions for user search results; returning channels without action map",
+			mlog.String("team_id", teamID),
+			mlog.String("user_id", userID),
+			mlog.Err(appErr),
+		)
 	}
 
 	return channelList, nil
@@ -4563,15 +4615,21 @@ func (a *App) addChannelToDefaultCategory(rctx request.CTX, userID string, chann
 		// Find the original category if the channel is already in a category
 		var originalCategory *model.SidebarCategoryWithChannels
 		for _, category := range categories.Categories {
-			if category.Type == model.SidebarCategoryCustom && category.Channels != nil && slices.Contains(category.Channels, channel.Id) {
+			if category.Type != model.SidebarCategoryDirectMessages && slices.Contains(category.Channels, channel.Id) {
 				originalCategory = category
 				break
 			}
 		}
 
+		// The channel is already in the target category, so there's nothing to move.
+		if originalCategory != nil && originalCategory == targetCategory {
+			return
+		}
+
 		var categoriesToUpdate []*model.SidebarCategoryWithChannels
 		if originalCategory != nil {
-			originalCategory.Channels = slices.Delete(originalCategory.Channels, slices.Index(originalCategory.Channels, channel.Id), 1)
+			idx := slices.Index(originalCategory.Channels, channel.Id)
+			originalCategory.Channels = slices.Delete(originalCategory.Channels, idx, idx+1)
 			categoriesToUpdate = append(categoriesToUpdate, originalCategory)
 		}
 

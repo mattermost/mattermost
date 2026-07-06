@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 import BurnOnReadBadge from './burn_on_read_badge';
 import BurnOnReadConcealedPlaceholder from './burn_on_read_concealed_placeholder';
@@ -28,20 +29,20 @@ export default class ChannelsPost {
     constructor(container: Locator) {
         this.container = container;
 
-        this.body = container.locator('.post__body');
+        this.body = container.getByTestId('post-body');
 
-        this.profileIcon = container.locator('.profile-icon');
+        this.profileIcon = container.getByTestId('profile-icon');
 
-        this.removePostButton = container.locator('.post__remove');
+        this.removePostButton = container.getByTestId('post-remove-button');
 
-        this.postMenu = new PostMenu(container.locator('.post-menu'));
-        this.threadFooter = new ThreadFooter(container.locator('.ThreadFooter'));
+        this.postMenu = new PostMenu(container.getByTestId(/^post-menu($|-)/));
+        this.threadFooter = new ThreadFooter(container.getByTestId('thread-footer'));
 
         // Burn-on-Read components
-        this.burnOnReadBadge = new BurnOnReadBadge(container.locator('.BurnOnReadBadge'));
-        this.burnOnReadTimerChip = new BurnOnReadTimerChip(container.locator('.BurnOnReadTimerChip'));
+        this.burnOnReadBadge = new BurnOnReadBadge(container.getByTestId(/^burn-on-read-badge-/));
+        this.burnOnReadTimerChip = new BurnOnReadTimerChip(container.getByTestId('burn-on-read-timer-chip'));
         this.concealedPlaceholder = new BurnOnReadConcealedPlaceholder(
-            container.locator('.BurnOnReadConcealedPlaceholder'),
+            container.getByTestId(/^burn-on-read-concealed-/),
         );
     }
 
@@ -126,7 +127,7 @@ export default class ChannelsPost {
      * Check if the BoR post is concealed (not yet revealed)
      */
     async isConcealed(): Promise<boolean> {
-        return await this.concealedPlaceholder.container.isVisible();
+        return this.concealedPlaceholder.container.isVisible();
     }
 
     /**

@@ -13,7 +13,7 @@ import {updateUserActive, updateUserAuth, getUser, patchUser, updateUserMfa, get
 import {getConfig, getCustomProfileAttributes, getLicense, isCustomProfileAttributesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {setNavigationBlocked} from 'actions/admin_actions.jsx';
+import {setNavigationBlocked} from 'actions/admin_actions';
 import {openModal} from 'actions/views/modals';
 import {getShowLockedManageUserSettings, getShowManageUserSettings} from 'selectors/admin_console';
 

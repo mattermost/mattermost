@@ -11,8 +11,26 @@ type SessionAttributeStore struct {
 	mock.Mock
 }
 
+// Clear provides a mock function with no fields
+func (_m *SessionAttributeStore) Clear() error {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Clear")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Get provides a mock function with given fields: sessionID
-func (_m *SessionAttributeStore) Get(sessionID string) (map[string]interface{}, error) {
+func (_m *SessionAttributeStore) Get(sessionID string) (map[string]interface{}, map[string]int64, error) {
 	ret := _m.Called(sessionID)
 
 	if len(ret) == 0 {
@@ -20,8 +38,9 @@ func (_m *SessionAttributeStore) Get(sessionID string) (map[string]interface{}, 
 	}
 
 	var r0 map[string]interface{}
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (map[string]interface{}, error)); ok {
+	var r1 map[string]int64
+	var r2 error
+	if rf, ok := ret.Get(0).(func(string) (map[string]interface{}, map[string]int64, error)); ok {
 		return rf(sessionID)
 	}
 	if rf, ok := ret.Get(0).(func(string) map[string]interface{}); ok {
@@ -32,26 +51,52 @@ func (_m *SessionAttributeStore) Get(sessionID string) (map[string]interface{}, 
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
+	if rf, ok := ret.Get(1).(func(string) map[string]int64); ok {
 		r1 = rf(sessionID)
 	} else {
-		r1 = ret.Error(1)
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(map[string]int64)
+		}
 	}
 
-	return r0, r1
+	if rf, ok := ret.Get(2).(func(string) error); ok {
+		r2 = rf(sessionID)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
-// Refresh provides a mock function with given fields: sessionID, attrs
-func (_m *SessionAttributeStore) Refresh(sessionID string, attrs map[string]interface{}) error {
-	ret := _m.Called(sessionID, attrs)
+// Invalidate provides a mock function with given fields: sessionID
+func (_m *SessionAttributeStore) Invalidate(sessionID string) error {
+	ret := _m.Called(sessionID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Invalidate")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(sessionID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// Refresh provides a mock function with given fields: sessionID, attrs, updatedAt
+func (_m *SessionAttributeStore) Refresh(sessionID string, attrs map[string]interface{}, updatedAt int64) error {
+	ret := _m.Called(sessionID, attrs, updatedAt)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Refresh")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, map[string]interface{}) error); ok {
-		r0 = rf(sessionID, attrs)
+	if rf, ok := ret.Get(0).(func(string, map[string]interface{}, int64) error); ok {
+		r0 = rf(sessionID, attrs, updatedAt)
 	} else {
 		r0 = ret.Error(0)
 	}

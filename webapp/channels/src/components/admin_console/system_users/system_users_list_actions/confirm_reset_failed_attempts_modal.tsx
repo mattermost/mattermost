@@ -17,7 +17,7 @@ type Props = {
     onError: (error: ServerError) => void;
     onSuccess: () => void;
     onExited: () => void;
-}
+};
 
 export default function ConfirmResetFailedAttemptsModal({user, onSuccess, onError, onExited}: Props) {
     const dispatch = useDispatch();

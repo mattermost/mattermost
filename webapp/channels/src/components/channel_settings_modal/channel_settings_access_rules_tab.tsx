@@ -11,7 +11,7 @@ import {
     buildRulesWithMembership,
 } from '@mattermost/types/access_control';
 import type {Channel} from '@mattermost/types/channels';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
 import {getChannelMessageCount} from 'mattermost-redux/selectors/entities/channels';
@@ -137,7 +137,7 @@ function ChannelSettingsAccessRulesTab({
                     setAutoSyncMembers(existingAutoSync);
                     setOriginalAutoSyncMembers(existingAutoSync);
                 }
-            } catch (error) {
+            } catch {
                 // If no policy exists (404), that's fine - use defaults
                 setExpression('');
                 setOriginalExpression('');

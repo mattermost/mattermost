@@ -19,6 +19,7 @@ exports[`/components/common/InfiniteScroll should not show loading screen if the
     <div />
     <div
       class="loading-screen"
+      data-testid="loading-screen"
       style="position: relative;"
     >
       <div

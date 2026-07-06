@@ -30,12 +30,12 @@ export type Props = {
         searchProfiles: (term: string, options?: Record<string, unknown>) => Promise<ActionResult<UserProfile[]>>;
         setModalSearchTerm: (term: string) => void;
     };
-}
+};
 
 type State = {
     loading: boolean;
     page: number;
-}
+};
 
 export default class MemberListGroup extends React.PureComponent<Props, State> {
     private searchTimeoutId: number;

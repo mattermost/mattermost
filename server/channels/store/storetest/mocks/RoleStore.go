@@ -304,6 +304,36 @@ func (_m *RoleStore) Save(role *model.Role) (*model.Role, error) {
 	return r0, r1
 }
 
+// SavePreservingUnknownPermissions provides a mock function with given fields: role
+func (_m *RoleStore) SavePreservingUnknownPermissions(role *model.Role) (*model.Role, error) {
+	ret := _m.Called(role)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SavePreservingUnknownPermissions")
+	}
+
+	var r0 *model.Role
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.Role) (*model.Role, error)); ok {
+		return rf(role)
+	}
+	if rf, ok := ret.Get(0).(func(*model.Role) *model.Role); ok {
+		r0 = rf(role)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Role)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.Role) error); ok {
+		r1 = rf(role)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // NewRoleStore creates a new instance of RoleStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewRoleStore(t interface {

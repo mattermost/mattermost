@@ -78,7 +78,7 @@ export type Props = {
     * Whether or not outgoing webhooks are enabled.
     */
     enableOutgoingWebhooks: boolean;
-}
+};
 
 type State = {
     loading: boolean;

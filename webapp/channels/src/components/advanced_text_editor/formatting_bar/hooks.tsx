@@ -26,9 +26,9 @@ const THRESHOLDS_CENTER: Threshold[] = [
 ];
 
 const THRESHOLDS_RHS: Threshold[] = [
-    [521, LayoutModes.Wide],
-    [380, LayoutModes.Normal],
-    [280, LayoutModes.Narrow],
+    [620, LayoutModes.Wide],
+    [460, LayoutModes.Normal],
+    [340, LayoutModes.Narrow],
 ];
 
 const DEBOUNCE_DELAY = 10;
@@ -97,41 +97,62 @@ function getVisibleControlsCount(layoutMode: LayoutMode, additionalControlsCount
     return Math.max(0, base - reduction);
 }
 
-export function splitFormattingBarControls(layoutMode: LayoutMode, additionalControlsCount: number = 0, isRHS: boolean = false) {
-    const visibleControlsCount = getVisibleControlsCount(layoutMode, additionalControlsCount, isRHS);
+function canFitTextStyleDropdown(layoutMode: LayoutMode): boolean {
+    return layoutMode === LayoutModes.Wide || layoutMode === LayoutModes.Normal;
+}
 
-    const controls = ALL_CONTROLS.slice(0, visibleControlsCount);
-    const hiddenControls = ALL_CONTROLS.slice(visibleControlsCount);
+export function splitFormattingBarControls(
+    layoutMode: LayoutMode,
+    additionalControlsCount: number = 0,
+    isRHS: boolean = false,
+    hasTextStyleDropdown: boolean = false,
+) {
+    const showTextStyleDropdown = hasTextStyleDropdown && canFitTextStyleDropdown(layoutMode);
+
+    let visibleControlsCount = getVisibleControlsCount(layoutMode, additionalControlsCount, isRHS);
+
+    if (showTextStyleDropdown && layoutMode !== LayoutModes.Wide) {
+        visibleControlsCount = Math.max(0, visibleControlsCount - 3);
+    }
+
+    const sourceControls = showTextStyleDropdown ? ALL_CONTROLS.filter((c) => c !== 'heading') : ALL_CONTROLS;
+
+    const controls = sourceControls.slice(0, visibleControlsCount);
+    const hiddenControls = sourceControls.slice(visibleControlsCount);
 
     return {
         controls,
         hiddenControls,
+        showTextStyleDropdown,
     };
 }
 
 export const useFormattingBarControls = (
     additionalControlsCount: number = 0,
     location: string = '',
+    hasTextStyleDropdown: boolean = false,
 ): {
-        formattingBarRef: (node: HTMLDivElement | null) => void;
-        controls: MarkdownMode[];
-        hiddenControls: MarkdownMode[];
-        layoutMode: LayoutMode;
-    } => {
+    formattingBarRef: (node: HTMLDivElement | null) => void;
+    controls: MarkdownMode[];
+    hiddenControls: MarkdownMode[];
+    layoutMode: LayoutMode;
+    showTextStyleDropdown: boolean;
+} => {
     const [element, setElement] = useState<HTMLDivElement | null>(null);
 
     const isRHS = useMemo(() => isRHSLocation(location), [location]);
     const layoutMode = useResponsiveFormattingBar(element, isRHS);
 
-    const {controls, hiddenControls} = useMemo(() => {
-        return splitFormattingBarControls(layoutMode, additionalControlsCount, isRHS);
-    }, [layoutMode, additionalControlsCount, isRHS]);
+    const {controls, hiddenControls, showTextStyleDropdown} = useMemo(() => {
+        return splitFormattingBarControls(layoutMode, additionalControlsCount, isRHS, hasTextStyleDropdown);
+    }, [layoutMode, additionalControlsCount, isRHS, hasTextStyleDropdown]);
 
     return {
         formattingBarRef: setElement,
         controls,
         hiddenControls,
         layoutMode,
+        showTextStyleDropdown,
     };
 };
 

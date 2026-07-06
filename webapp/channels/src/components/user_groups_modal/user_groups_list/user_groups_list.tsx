@@ -39,7 +39,7 @@ export type Props = {
         restoreGroup: (groupId: string) => Promise<ActionResult>;
         openModal: <P>(modalData: ModalData<P>) => void;
     };
-}
+};
 
 const UserGroupsList = (props: Props) => {
     const {

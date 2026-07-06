@@ -23,6 +23,7 @@ import {a11yFocus} from 'utils/utils';
 import EnableConcurrentReactExperimentalSection from './enable_concurrent_react_experimental_section';
 import JoinLeaveSection from './join_leave_section';
 import PerformanceDebuggingSection from './performance_debugging_section';
+import WysiwygEditorSection from './wysiwyg_editor_section';
 
 import SettingDesktopHeader from '../headers/setting_desktop_header';
 import SettingMobileHeader from '../headers/setting_mobile_header';
@@ -46,7 +47,7 @@ export type OwnProps = {
     activeSection: string;
     closeModal: () => void;
     collapseModal: () => void;
-}
+};
 
 export type Props = OwnProps & PropsFromRedux;
 
@@ -55,7 +56,7 @@ type State = {
     isSaving: boolean;
     showDeactivateAccountModal: boolean;
     serverError: string;
-}
+};
 
 export default class AdvancedSettingsDisplay extends React.PureComponent<Props, State> {
     constructor(props: Props) {
@@ -764,6 +765,13 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                     />
                     <div className='divider-dark first'/>
                     {ctrlSendSection}
+                    <div className='divider-light'/>
+                    <WysiwygEditorSection
+                        active={this.props.activeSection === 'wysiwygEditor'}
+                        areAllSectionsInactive={this.props.activeSection === ''}
+                        onUpdateSection={this.handleUpdateSection}
+                        user={this.props.user}
+                    />
                     {formattingSectionDivider}
                     {formattingSection}
                     <div className='divider-light'/>

@@ -12,11 +12,11 @@ import ModalController from '.';
 
 type TestModalProps = {
     onExited: () => void;
-}
+};
 
 type TestModalState = {
     show: boolean;
-}
+};
 
 class TestModal extends React.PureComponent<TestModalProps, TestModalState> {
     constructor(props: TestModalProps) {

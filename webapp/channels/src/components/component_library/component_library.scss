@@ -17,6 +17,44 @@
     background-color: var(--sidebar-bg);
 }
 
+.clJsonEditor {
+    display: block;
+    width: 100%;
+    max-width: 56rem;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
+    border-radius: 4px;
+    margin-top: 8px;
+    background: var(--center-channel-bg);
+    color: var(--center-channel-color);
+    font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.45;
+    resize: vertical;
+}
+
+.clJsonError {
+    max-width: 56rem;
+    padding: 10px 12px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    background: rgba(var(--error-text-color-rgb), 0.08);
+    color: var(--error-text);
+    font-size: 13px;
+    white-space: pre-wrap;
+}
+
+.clJsonHint {
+    max-width: 56rem;
+    padding: 10px 12px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    background: rgba(var(--center-channel-color-rgb), 0.08);
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    font-size: 13px;
+}
+
 .clTable {
     width: 100%;
     max-width: 970px;

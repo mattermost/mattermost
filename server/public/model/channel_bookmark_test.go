@@ -670,3 +670,124 @@ func TestChannelBookmarkPatch(t *testing.T) {
 	require.Equal(t, *p.LinkUrl, b.LinkUrl)
 	require.Equal(t, ChannelBookmarkLink, b.Type)
 }
+
+func validBoardChannelBookmark() *ChannelBookmark {
+	boardID := NewId()
+	return &ChannelBookmark{
+		Id:          NewId(),
+		CreateAt:    GetMillis(),
+		UpdateAt:    GetMillis(),
+		DeleteAt:    0,
+		ChannelId:   NewId(),
+		OwnerId:     NewId(),
+		FileId:      "",
+		DisplayName: "Board tab",
+		SortOrder:   0,
+		LinkUrl:     "/teamname/boards/" + boardID,
+		ImageUrl:    "",
+		Emoji:       "",
+		Type:        ChannelBookmarkBoard,
+		TargetId:    boardID,
+	}
+}
+
+func TestChannelBookmarkIsValidBoard(t *testing.T) {
+	t.Run("valid board bookmark", func(t *testing.T) {
+		require.Nil(t, validBoardChannelBookmark().IsValid())
+	})
+	t.Run("missing target id", func(t *testing.T) {
+		b := validBoardChannelBookmark()
+		b.TargetId = ""
+		err := b.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel_bookmark.is_valid.board.target_id.app_error", err.Id)
+	})
+	t.Run("invalid target id", func(t *testing.T) {
+		b := validBoardChannelBookmark()
+		b.TargetId = "notaulid"
+		err := b.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel_bookmark.is_valid.board.target_id.app_error", err.Id)
+	})
+	t.Run("link url without leading slash", func(t *testing.T) {
+		b := validBoardChannelBookmark()
+		b.LinkUrl = "team/boards/" + b.TargetId
+		err := b.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel_bookmark.is_valid.board.link_url.app_error", err.Id)
+	})
+	t.Run("link url contains scheme", func(t *testing.T) {
+		b := validBoardChannelBookmark()
+		b.LinkUrl = "http://x/" + b.TargetId
+		err := b.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel_bookmark.is_valid.board.link_url.app_error", err.Id)
+	})
+	t.Run("link url is protocol-relative", func(t *testing.T) {
+		b := validBoardChannelBookmark()
+		b.LinkUrl = "//evil.com/" + b.TargetId
+		err := b.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel_bookmark.is_valid.board.link_url.app_error", err.Id)
+	})
+	t.Run("link url exceeds max runes", func(t *testing.T) {
+		b := validBoardChannelBookmark()
+		b.LinkUrl = "/" + strings.Repeat("a", LinkMaxRunes)
+		err := b.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel_bookmark.is_valid.board.link_url.app_error", err.Id)
+	})
+	t.Run("non-empty file id", func(t *testing.T) {
+		b := validBoardChannelBookmark()
+		b.FileId = NewId()
+		err := b.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel_bookmark.is_valid.board.file_id.app_error", err.Id)
+	})
+	t.Run("non-empty image url", func(t *testing.T) {
+		b := validBoardChannelBookmark()
+		b.ImageUrl = "https://example.com/x.png"
+		err := b.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel_bookmark.is_valid.board.image_url.app_error", err.Id)
+	})
+	t.Run("link type with target id", func(t *testing.T) {
+		b := &ChannelBookmark{
+			Id:          NewId(),
+			CreateAt:    GetMillis(),
+			UpdateAt:    GetMillis(),
+			ChannelId:   NewId(),
+			OwnerId:     NewId(),
+			DisplayName: "x",
+			LinkUrl:     "https://mattermost.com",
+			Type:        ChannelBookmarkLink,
+			TargetId:    NewId(),
+		}
+		err := b.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel_bookmark.is_valid.target_id.app_error", err.Id)
+	})
+	t.Run("file type with target id", func(t *testing.T) {
+		b := &ChannelBookmark{
+			Id:          NewId(),
+			CreateAt:    GetMillis(),
+			UpdateAt:    GetMillis(),
+			ChannelId:   NewId(),
+			OwnerId:     NewId(),
+			DisplayName: "x",
+			FileId:      NewId(),
+			Type:        ChannelBookmarkFile,
+			TargetId:    NewId(),
+		}
+		err := b.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel_bookmark.is_valid.target_id.app_error", err.Id)
+	})
+}
+
+func TestIsExternallyManagedChannelBookmarkType(t *testing.T) {
+	assert.True(t, IsExternallyManagedChannelBookmarkType(ChannelBookmarkBoard))
+	assert.False(t, IsExternallyManagedChannelBookmarkType(ChannelBookmarkLink))
+	assert.False(t, IsExternallyManagedChannelBookmarkType(ChannelBookmarkFile))
+	assert.False(t, IsExternallyManagedChannelBookmarkType(ChannelBookmarkType("unknown")))
+}

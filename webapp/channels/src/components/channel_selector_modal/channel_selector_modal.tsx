@@ -10,11 +10,11 @@ import type {Channel, ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import ChannelTypeIcon from 'components/channel_type_icon';
 import MultiSelect from 'components/multiselect/multiselect';
 import type {Value} from 'components/multiselect/multiselect';
 
 import Constants from 'utils/constants';
-
 import './channel_selector_modal.scss';
 
 type ChannelWithTeamDataValue = ChannelWithTeamData & Value;
@@ -41,7 +41,7 @@ type Props = {
     excludeRemote?: boolean;
     customNoOptionsMessage?: React.ReactNode;
     isStacked?: boolean;
-}
+};
 
 type State = {
     values: ChannelWithTeamDataValue[];
@@ -49,7 +49,7 @@ type State = {
     search: boolean;
     loadingChannels: boolean;
     channels: ChannelWithTeamData[];
-}
+};
 
 const CHANNELS_PER_PAGE = 50;
 
@@ -213,10 +213,9 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
                     className='more-modal__details'
                 >
                     <div className='channel-info-block'>
-                        {option.type === Constants.PRIVATE_CHANNEL &&
-                            <i className='icon icon-lock-outline'/>}
-                        {option.type === Constants.OPEN_CHANNEL &&
-                            <i className='icon icon-globe'/>}
+                        {(option.type === Constants.OPEN_CHANNEL || option.type === Constants.PRIVATE_CHANNEL) && (
+                            <ChannelTypeIcon channel={option}/>
+                        )}
                         <span className='channel-name'>{option.display_name}</span>
                         {!this.props.teamId && option.team_display_name && (
                             <span className='team-name'>{'(' + option.team_display_name + ')'}</span>

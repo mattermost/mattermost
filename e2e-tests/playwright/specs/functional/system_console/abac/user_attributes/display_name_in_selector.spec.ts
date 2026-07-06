@@ -2,12 +2,12 @@
 // See LICENSE.txt for license information.
 
 import type {Client4} from '@mattermost/client';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {expect, test, enableABAC, navigateToABACPage} from '@mattermost/playwright-lib';
 
+import type {CustomProfileAttribute} from '../../../channels/custom_profile_attributes/helpers';
 import {
-    CustomProfileAttribute,
     deleteCustomProfileAttributes,
     setupCustomProfileAttributeFields,
 } from '../../../channels/custom_profile_attributes/helpers';

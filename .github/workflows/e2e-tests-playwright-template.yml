@@ -130,8 +130,10 @@ jobs:
     steps:
       - name: ci/generate-workers
         id: generate-workers
+        env:
+          INPUT_WORKERS: ${{ inputs.workers }}
         run: |
-          echo "workers=$(jq -nc '[range(1; ${{ inputs.workers }} + 1)]')" >> $GITHUB_OUTPUT
+          echo "workers=$(jq -nc --argjson n "${INPUT_WORKERS}" '[range(1; $n + 1)]')" >> $GITHUB_OUTPUT
           echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
 
   run-tests:
@@ -165,6 +167,7 @@ jobs:
         # overwrites the workspace with inputs.commit_sha.
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           sparse-checkout: .github/actions
           sparse-checkout-cone-mode: true
       - name: ci/runner-prep-for-openldap
@@ -172,6 +175,7 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-node
@@ -206,7 +210,7 @@ jobs:
         # tar for all future runs — no need for a retry loop.
         run: |
           set -euo pipefail
-          IMAGE="mcr.microsoft.com/playwright:v1.59.1-noble"
+          IMAGE="mcr.microsoft.com/playwright:v1.61.0-noble"
           TAR="/tmp/playwright-docker-image.tar"
           if [ -f "${TAR}" ]; then
             echo "Loading Playwright image from GitHub Actions cache"
@@ -289,6 +293,8 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: ci/setup-node
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
@@ -354,6 +360,8 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: ci/setup-node
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
@@ -462,19 +470,21 @@ jobs:
           PR_NUMBER: ${{ inputs.pr_number }}
           DURATION_DISPLAY: ${{ steps.duration.outputs.duration_display }}
           RETEST_DISPLAY: ${{ steps.duration.outputs.retest_display }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          SERVER_IMAGE: ${{ env.SERVER_IMAGE }}
         run: |
           # Capitalize test type
           TEST_TYPE_CAP=$(echo "$TEST_TYPE" | sed 's/.*/\u&/')
 
           # Build source line based on report type
           COMMIT_SHORT="${COMMIT_SHA::7}"
-          COMMIT_URL="https://github.com/${{ github.repository }}/commit/${COMMIT_SHA}"
+          COMMIT_URL="https://github.com/${GITHUB_REPOSITORY}/commit/${COMMIT_SHA}"
           if [ "$REPORT_TYPE" = "RELEASE_CUT" ]; then
             SOURCE_LINE=":github_round: [${COMMIT_SHORT}](${COMMIT_URL}) on \`${REF_BRANCH}\`"
           elif [ "$REPORT_TYPE" = "MASTER" ] || [ "$REPORT_TYPE" = "RELEASE" ]; then
             SOURCE_LINE=":git_merge: [${COMMIT_SHORT}](${COMMIT_URL}) on \`${REF_BRANCH}\`"
           else
-            SOURCE_LINE=":open-pull-request: [mattermost-pr-${PR_NUMBER}](https://github.com/${{ github.repository }}/pull/${PR_NUMBER})"
+            SOURCE_LINE=":open-pull-request: [mattermost-pr-${PR_NUMBER}](https://github.com/${GITHUB_REPOSITORY}/pull/${PR_NUMBER})"
           fi
 
           # Build retest part for message
@@ -490,7 +500,7 @@ jobs:
             "icon_url": "https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png",
             "attachments": [{
               "color": "${COLOR}",
-              "text": "**Results - Playwright ${TEST_TYPE_CAP} Tests**\n\n${SOURCE_LINE}\n:docker: \`${{ env.SERVER_IMAGE }}\`\n${COMMIT_STATUS_MESSAGE}${RETEST_PART} | [full report](${REPORT_URL})\n${DURATION_DISPLAY}"
+              "text": "**Results - Playwright ${TEST_TYPE_CAP} Tests**\n\n${SOURCE_LINE}\n:docker: \`${SERVER_IMAGE}\`\n${COMMIT_STATUS_MESSAGE}${RETEST_PART} | [full report](${REPORT_URL})\n${DURATION_DISPLAY}"
             }]
           }
           EOF
@@ -554,8 +564,10 @@ jobs:
             echo "[View Full Report](${REPORT_URL})"
           } >> $GITHUB_STEP_SUMMARY
       - name: ci/assert-results
+        env:
+          FINAL_RESULTS_FAILED: ${{ steps.final-results.outputs.failed }}
         run: |
-          [ "${{ steps.final-results.outputs.failed }}" = "0" ]
+          [ "${FINAL_RESULTS_FAILED}" = "0" ]
 
   update-success-status:
     runs-on: ubuntu-24.04

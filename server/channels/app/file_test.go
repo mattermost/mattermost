@@ -1207,3 +1207,53 @@ func TestFilterFilesByChannelPermissions_ABAC(t *testing.T) {
 		mockACS.AssertNotCalled(t, "AccessEvaluation")
 	})
 }
+
+func TestSendFileUploadRejectedEvent(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	info := &model.FileInfo{
+		Id:        model.NewId(),
+		Name:      "secret.tdf",
+		ChannelId: th.BasicChannel.Id,
+		CreatorId: th.BasicUser.Id,
+	}
+
+	t.Run("publishes the event with populated fields", func(t *testing.T) {
+		wsMessages, closeWS := connectFakeWebSocket(t, th, th.BasicUser.Id, "", []model.WebsocketEventType{model.WebsocketEventFileUploadRejected})
+		defer closeWS()
+
+		th.App.sendFileUploadRejectedEvent(info, th.BasicUser.Id, "", "blocked by policy")
+
+		var received *model.WebSocketEvent
+		require.Eventually(t, func() bool {
+			select {
+			case received = <-wsMessages:
+				return true
+			default:
+				return false
+			}
+		}, 5*time.Second, 100*time.Millisecond, "did not receive file_upload_rejected event in time")
+
+		data := received.GetData()
+		assert.Equal(t, info.Name, data["file_name"])
+		assert.Equal(t, "blocked by policy", data["rejection_reason"])
+		assert.Equal(t, info.ChannelId, data["channel_id"])
+	})
+
+	t.Run("does not publish when userID is empty", func(t *testing.T) {
+		wsMessages, closeWS := connectFakeWebSocket(t, th, th.BasicUser.Id, "", []model.WebsocketEventType{model.WebsocketEventFileUploadRejected})
+		defer closeWS()
+
+		th.App.sendFileUploadRejectedEvent(info, "", "", "blocked by policy")
+
+		require.Never(t, func() bool {
+			select {
+			case <-wsMessages:
+				return true
+			default:
+				return false
+			}
+		}, 1*time.Second, 100*time.Millisecond, "should not publish file_upload_rejected event when userID is empty")
+	})
+}

@@ -14,7 +14,6 @@ import {verifyExportedMessagesCount, gotoTeamAndPostImage} from './helpers';
 
 import * as TIMEOUTS from '@/fixtures/timeouts';
 
-
 describe('Compliance Export', () => {
     let teamName;
 

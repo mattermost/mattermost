@@ -204,6 +204,99 @@ describe('Client4', () => {
         });
     });
 
+    describe('team access control routes', () => {
+        let client: Client4;
+
+        beforeEach(() => {
+            client = new Client4();
+            client.setUrl('http://mattermost.example.com');
+        });
+
+        test('assignTeamsToAccessControlPolicy POSTs team_ids to the assign route', async () => {
+            let receivedBody: any;
+            nock(client.getBaseRoute()).
+                post('/access_control_policies/pol1/assign', (body) => {
+                    receivedBody = body;
+                    return true;
+                }).
+                reply(200, {status: 'OK'});
+
+            const result = await client.assignTeamsToAccessControlPolicy('pol1', ['team1', 'team2']);
+
+            expect(receivedBody).toEqual({team_ids: ['team1', 'team2']});
+            expect(result).toEqual({status: 'OK'});
+        });
+
+        test('unassignTeamsFromAccessControlPolicy DELETEs team_ids to the unassign route', async () => {
+            let receivedBody: any;
+            nock(client.getBaseRoute()).
+                delete('/access_control_policies/pol1/unassign', (body) => {
+                    receivedBody = body;
+                    return true;
+                }).
+                reply(200, {status: 'OK'});
+
+            const result = await client.unassignTeamsFromAccessControlPolicy('pol1', ['team1']);
+
+            expect(receivedBody).toEqual({team_ids: ['team1']});
+            expect(result).toEqual({status: 'OK'});
+        });
+
+        test('getTeamAccessControlPolicy GETs the per-team policy route', async () => {
+            const response = {policy: null, enforced: false};
+            nock(client.getBaseRoute()).
+                get('/teams/team1/access_control/policy').
+                reply(200, response);
+
+            const result = await client.getTeamAccessControlPolicy('team1');
+            expect(result).toEqual(response);
+        });
+
+        test('getProfilesMatchingTeamPolicy GETs users with not_in_team + abac_match_only', async () => {
+            const profiles = [{id: 'u1'}];
+            nock(client.getBaseRoute()).
+                get('/users').
+                query({not_in_team: 'team1', per_page: '60', abac_match_only: 'true'}).
+                reply(200, profiles);
+
+            const result = await client.getProfilesMatchingTeamPolicy('team1');
+            expect(result).toEqual(profiles);
+        });
+
+        test('getProfilesMatchingTeamPolicy includes cursor_id when provided', async () => {
+            const profiles: any[] = [];
+            nock(client.getBaseRoute()).
+                get('/users').
+                query({not_in_team: 'team1', per_page: '60', abac_match_only: 'true', cursor_id: 'u9'}).
+                reply(200, profiles);
+
+            const result = await client.getProfilesMatchingTeamPolicy('team1', 60, 'u9');
+            expect(result).toEqual(profiles);
+        });
+
+        test('getTeams sends for_directory=true so admins are filtered on the directory listing', async () => {
+            const teams = [{id: 't1'}];
+            nock(client.getBaseRoute()).
+                get('/teams').
+                query({page: '0', per_page: '60', include_total_count: 'true', exclude_policy_constrained: 'false', for_directory: 'true'}).
+                reply(200, teams);
+
+            const result = await client.getTeams(0, 60, true, false, true);
+            expect(result).toEqual(teams);
+        });
+
+        test('getTeams defaults for_directory to false so the management listing stays complete', async () => {
+            const teams = [{id: 't1'}];
+            nock(client.getBaseRoute()).
+                get('/teams').
+                query({page: '0', per_page: '60', include_total_count: 'false', exclude_policy_constrained: 'false', for_directory: 'false'}).
+                reply(200, teams);
+
+            const result = await client.getTeams(0, 60);
+            expect(result).toEqual(teams);
+        });
+    });
+
     describe('doFetchWithResponse', () => {
         test('serverVersion should be set from response header', async () => {
             const client = new Client4();

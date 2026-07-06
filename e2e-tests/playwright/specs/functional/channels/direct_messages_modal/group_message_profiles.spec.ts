@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
+import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 import type {Page} from '@playwright/test';
 
@@ -132,7 +132,7 @@ test(
 );
 
 async function getCurrentChannel(page: Page) {
-    return await page.evaluate<Channel>(
+    return page.evaluate<Channel>(
         'store.getState().entities.channels.channels[store.getState().entities.channels.currentChannelId]',
     );
 }

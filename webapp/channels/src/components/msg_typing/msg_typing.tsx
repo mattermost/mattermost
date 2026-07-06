@@ -14,7 +14,7 @@ type Props = {
     typingUsers: string[];
     userStartedTyping: (userId: string, channelId: string, rootId: string, now: number) => void;
     userStoppedTyping: (userId: string, channelId: string, rootId: string, now: number) => void;
-}
+};
 
 export default function MsgTyping(props: Props) {
     const {userStartedTyping, userStoppedTyping} = props;

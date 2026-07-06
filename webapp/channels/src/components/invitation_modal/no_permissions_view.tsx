@@ -14,7 +14,7 @@ import './no_permissions_view.scss';
 type Props = {
     footerClass: string;
     onDone: () => void;
-}
+};
 
 export default function NoPermissionsView(props: Props) {
     return (

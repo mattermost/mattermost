@@ -80,7 +80,7 @@ export type Props = {
 type State = {
     pickerExtended: boolean;
     pickerMounted: boolean;
-}
+};
 
 export class EmojiPickerSkin extends React.PureComponent<Props, State> {
     constructor(props: Props) {

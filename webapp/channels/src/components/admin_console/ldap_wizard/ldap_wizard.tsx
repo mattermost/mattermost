@@ -45,26 +45,26 @@ const SECTION_OBSERVER_OPTIONS: IntersectionObserverInit = {
 };
 
 export type LDAPDefinitionSettingButton = AdminDefinitionSettingButton & {
-    action: (success: () => void, error: (error: { message: string }) => void, settings?: Record<string, any>) => void;
-}
+    action: (success: () => void, error: (error: {message: string}) => void, settings?: Record<string, any>) => void;
+};
 
 export type LDAPDefinitionSetting = AdminDefinitionSetting & {
     help_text_more_info?: string | JSX.Element | MessageDescriptor;
-}
+};
 
 export type LDAPAdminDefinitionConfigSchemaSettings = AdminDefinitionSubSectionSchema & {
     sections?: LDAPAdminDefinitionConfigSchemaSection[];
-}
+};
 
 export type LDAPAdminDefinitionConfigSchemaSection = Omit<AdminDefinitionConfigSchemaSection, 'settings'> & {
     sectionTitle?: string;
     settings: LDAPDefinitionSetting[];
-}
+};
 
 export type GeneralSettingProps = {
     setting: LDAPDefinitionSetting;
     schema: AdminDefinitionSubSectionSchema | null;
-}
+};
 
 type Props = {
     config: Partial<AdminConfig>;
@@ -79,7 +79,7 @@ type Props = {
     cloud: CloudState;
     isCurrentUserSystemAdmin: boolean;
     enterpriseReady: boolean;
-} & WrappedComponentProps
+} & WrappedComponentProps;
 
 type State = {
     [x: string]: unknown;
@@ -90,7 +90,7 @@ type State = {
     showConfirmId: string;
     clientWarning: string | boolean;
     prevSchemaId?: string;
-}
+};
 
 const LDAPWizard = (props: Props) => {
     const schema = ldapWizardAdminDefinition;
@@ -115,7 +115,7 @@ const LDAPWizard = (props: Props) => {
         }
     }, [props.config, props.roles, schema]);
 
-    const [saveActions, setSaveActions] = useState<Array<() => Promise<{ error?: { message?: string } }>>>([]);
+    const [saveActions, setSaveActions] = useState<Array<() => Promise<{error?: {message?: string}}>>>([]);
 
     // Combined test results - both filter and attribute test results in one array
     const [testResults, setTestResults] = useState<TestLdapFiltersResponse | null>(null);
@@ -501,11 +501,11 @@ const LDAPWizard = (props: Props) => {
         }
     };
 
-    const unRegisterSaveAction = useCallback((saveAction: () => Promise<{ error?: { message?: string } }>) => {
+    const unRegisterSaveAction = useCallback((saveAction: () => Promise<{error?: {message?: string}}>) => {
         setSaveActions((prev) => prev.filter((action) => action !== saveAction));
     }, []);
 
-    const registerSaveAction = useCallback((saveAction: () => Promise<{ error?: { message?: string } }>) => {
+    const registerSaveAction = useCallback((saveAction: () => Promise<{error?: {message?: string}}>) => {
         setSaveActions((prev) => [...prev, saveAction]);
     }, []);
 

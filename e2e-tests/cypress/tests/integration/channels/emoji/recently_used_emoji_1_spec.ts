@@ -15,7 +15,6 @@ import {getCustomEmoji} from './helpers';
 import * as TIMEOUTS from '@/fixtures/timeouts';
 import * as MESSAGES from '@/fixtures/messages';
 
-
 describe('Recent Emoji', () => {
     const largeEmojiFile = 'gif-image-file.gif';
 

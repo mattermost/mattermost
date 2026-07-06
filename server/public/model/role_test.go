@@ -430,6 +430,79 @@ func TestRoleIsValidWithoutId(t *testing.T) {
 	})
 }
 
+func TestRoleUnknownPermissions(t *testing.T) {
+	t.Run("returns nil when all permissions are known", func(t *testing.T) {
+		r := &Role{
+			Permissions: []string{PermissionCreatePost.Id, PermissionCreateEmojis.Id},
+		}
+		assert.Empty(t, r.UnknownPermissions())
+	})
+
+	t.Run("tolerates deprecated permissions", func(t *testing.T) {
+		require.NotEmpty(t, DeprecatedPermissions)
+		r := &Role{
+			Permissions: []string{PermissionCreatePost.Id, DeprecatedPermissions[0].Id},
+		}
+		assert.Empty(t, r.UnknownPermissions())
+	})
+
+	t.Run("returns only the permissions this build does not recognize", func(t *testing.T) {
+		r := &Role{
+			Permissions: []string{PermissionCreatePost.Id, "manage_own_agent_from_the_future", "another_unknown"},
+		}
+		assert.ElementsMatch(t, []string{"manage_own_agent_from_the_future", "another_unknown"}, r.UnknownPermissions())
+	})
+
+	t.Run("empty permissions yields no unknowns", func(t *testing.T) {
+		assert.Empty(t, (&Role{}).UnknownPermissions())
+	})
+}
+
+func TestRoleClone(t *testing.T) {
+	schemeId := NewId()
+	original := &Role{
+		Id:            NewId(),
+		Name:          "test_role",
+		DisplayName:   "Test Role",
+		Description:   "desc",
+		CreateAt:      1000,
+		UpdateAt:      2000,
+		DeleteAt:      0,
+		Permissions:   []string{"invite_user", "add_user_to_team"},
+		SchemeManaged: true,
+		BuiltIn:       false,
+		SchemeId:      &schemeId,
+	}
+
+	t.Run("clone equals original", func(t *testing.T) {
+		cloned := original.Clone()
+		assert.Equal(t, original, cloned)
+	})
+
+	t.Run("permissions are deep copied", func(t *testing.T) {
+		cloned := original.Clone()
+		cloned.Permissions[0] = "mutated"
+		assert.Equal(t, "invite_user", original.Permissions[0])
+	})
+
+	t.Run("scheme id pointer is deep copied", func(t *testing.T) {
+		cloned := original.Clone()
+		require.NotSame(t, original.SchemeId, cloned.SchemeId)
+		*cloned.SchemeId = NewId()
+		assert.Equal(t, schemeId, *original.SchemeId)
+	})
+
+	t.Run("nil permissions stays nil", func(t *testing.T) {
+		r := &Role{}
+		assert.Nil(t, r.Clone().Permissions)
+	})
+
+	t.Run("nil scheme id stays nil", func(t *testing.T) {
+		r := &Role{}
+		assert.Nil(t, r.Clone().SchemeId)
+	})
+}
+
 func TestRoleIsValid(t *testing.T) {
 	validRole := func() *Role {
 		return &Role{
@@ -461,6 +534,59 @@ func TestRoleIsValid(t *testing.T) {
 		r.DisplayName = ""
 		assert.ErrorContains(t, r.IsValid(), "display name must not be empty")
 	})
+}
+
+func TestIsValidChannelMemberRoles(t *testing.T) {
+	tests := []struct {
+		name  string
+		roles string
+		valid bool
+	}{
+		{name: "channel user only", roles: ChannelUserRoleId, valid: true},
+		{name: "channel user and admin", roles: ChannelUserRoleId + " " + ChannelAdminRoleId, valid: true},
+		{name: "channel guest only", roles: ChannelGuestRoleId, valid: true},
+		{name: "custom role with channel user", roles: ChannelUserRoleId + " custom_role", valid: true},
+		{name: "prefixed custom team role with channel user", roles: ChannelUserRoleId + " team_custom", valid: true},
+		{name: "prefixed custom system role with channel user", roles: ChannelUserRoleId + " system_custom", valid: true},
+		{name: "team user with channel user", roles: ChannelUserRoleId + " " + TeamUserRoleId, valid: false},
+		{name: "team post all with channel user", roles: ChannelUserRoleId + " " + TeamPostAllRoleId, valid: false},
+		{name: "system user with channel user", roles: ChannelUserRoleId + " " + SystemUserRoleId, valid: false},
+		{name: "system manager with channel user", roles: ChannelUserRoleId + " " + SystemManagerRoleId, valid: false},
+		{name: "system post all with channel user", roles: ChannelUserRoleId + " " + SystemPostAllRoleId, valid: false},
+		{name: "system read only admin with channel user", roles: ChannelUserRoleId + " " + SystemReadOnlyAdminRoleId, valid: false},
+		{name: "custom group user with channel user", roles: ChannelUserRoleId + " " + CustomGroupUserRoleId, valid: false},
+		{name: "system custom group admin with channel user", roles: ChannelUserRoleId + " " + SystemCustomGroupAdminRoleId, valid: false},
+		{name: "invalid role name", roles: "invalid-role", valid: false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.valid, IsValidChannelMemberRoles(tc.roles))
+		})
+	}
+}
+
+func TestIsBuiltInRole(t *testing.T) {
+	tests := []struct {
+		name     string
+		roleName string
+		builtIn  bool
+	}{
+		{name: "channel user", roleName: ChannelUserRoleId, builtIn: true},
+		{name: "system manager", roleName: SystemManagerRoleId, builtIn: true},
+		{name: "system custom group admin", roleName: SystemCustomGroupAdminRoleId, builtIn: true},
+		// custom_group_user is built-in even though its role.BuiltIn flag is false.
+		{name: "custom group user", roleName: CustomGroupUserRoleId, builtIn: true},
+		{name: "custom role", roleName: "custom_role", builtIn: false},
+		{name: "prefixed custom system role", roleName: "system_custom", builtIn: false},
+		{name: "empty", roleName: "", builtIn: false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.builtIn, IsBuiltInRole(tc.roleName))
+		})
+	}
 }
 
 func TestManageAgentPermissionsDefaultRoles(t *testing.T) {

@@ -16,8 +16,12 @@ on:
         required: true
         description: "Docker image tag (e.g., 'abc1234_def5678' or 'master')"
 
+permissions: {}
+
 jobs:
   generate-build-variables:
+    permissions:
+      contents: read
     runs-on: ubuntu-24.04
     outputs:
       report_type: "${{ steps.vars.outputs.report_type }}"
@@ -27,6 +31,7 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           ref: ${{ inputs.branch }}
           fetch-depth: 50
       - name: ci/generate-variables

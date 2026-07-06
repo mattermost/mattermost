@@ -18,10 +18,10 @@ import * as Utils from 'utils/utils';
 
 type Actions = {
     patchChannel: (channelId: string, patch: Partial<Channel>) => Promise<ActionResult>;
-}
+};
 type ServerError = {
     message: string;
-}
+};
 const purposeMaxLength = 250;
 
 type Props = {
@@ -30,7 +30,7 @@ type Props = {
     ctrlSend: boolean;
     actions: Actions;
     intl: IntlShape;
-}
+};
 
 type State = {
     purpose: string;
@@ -38,7 +38,7 @@ type State = {
     show: boolean;
     submitted: boolean;
     requestStarted: boolean;
-}
+};
 
 export class EditChannelPurposeModal extends React.PureComponent<Props, State> {
     private purpose: React.RefObject<HTMLTextAreaElement>;

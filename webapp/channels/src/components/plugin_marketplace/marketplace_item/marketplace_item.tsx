@@ -63,7 +63,7 @@ export type MarketplaceItemProps = {
 
     button: JSX.Element;
     updateDetails: JSX.Element | null;
-    versionLabel: JSX.Element| null;
+    versionLabel: JSX.Element | null;
 };
 
 type MarketplaceItemState = {

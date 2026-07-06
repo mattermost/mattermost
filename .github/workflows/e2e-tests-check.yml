@@ -5,8 +5,14 @@ on:
     paths:
       - "e2e-tests/**"
       - "webapp/platform/client/**"
+      - "webapp/platform/eslint-plugin/**"
       - "webapp/platform/types/**"
       - ".github/workflows/e2e-*.yml"
+
+permissions:
+  actions: write
+  contents: read
+  pull-requests: read
 
 jobs:
   check:
@@ -15,6 +21,7 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: ci/setup-node
@@ -32,6 +39,11 @@ jobs:
         # failures in npm's cacache writer.
         run: npm cache verify
 
+      # Set up web app subpackages and eslint plugin
+      - name: ci/get-webapp-node-modules
+        working-directory: webapp
+        run: make node_modules
+
       # Cypress check
       - name: ci/cypress/npm-install
         working-directory: e2e-tests/cypress
@@ -41,9 +53,6 @@ jobs:
         run: npm run check
 
       # Playwright check
-      - name: ci/get-webapp-node-modules
-        working-directory: webapp
-        run: make node_modules
       - name: ci/playwright/npm-install
         working-directory: e2e-tests/playwright
         run: npm ci

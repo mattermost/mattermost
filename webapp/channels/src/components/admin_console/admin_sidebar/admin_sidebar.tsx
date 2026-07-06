@@ -33,7 +33,7 @@ export interface Props extends PropsFromRedux {
 type State = {
     sections: string[] | null;
     filter: string;
-}
+};
 
 class AdminSidebar extends React.PureComponent<Props, State> {
     searchRef: React.RefObject<HTMLInputElement>;
@@ -268,7 +268,10 @@ class AdminSidebar extends React.PureComponent<Props, State> {
     render() {
         const {showTaskList} = this.props;
         return (
-            <div className='admin-sidebar'>
+            <div
+                className='admin-sidebar'
+                data-testid='admin-sidebar'
+            >
                 <AdminSidebarHeader/>
                 <div className='filter-container'>
                     <SearchIcon

@@ -28,7 +28,6 @@ func TestProcessSyncMessage(t *testing.T) {
 	makeConfig := func() *model.Config {
 		cfg := &model.Config{}
 		cfg.SetDefaults()
-		cfg.FeatureFlags.EnableSharedChannelsMemberSync = false
 		return cfg
 	}
 
@@ -297,5 +296,70 @@ func TestUpsertSyncUserStatus(t *testing.T) {
 		assert.ErrorIs(t, err, ErrRemoteIDMismatch)
 		assert.Contains(t, err.Error(), "error updating user status")
 		mockApp.AssertNotCalled(t, "SaveAndBroadcastStatus")
+	})
+}
+
+func TestUpsertSyncPost(t *testing.T) {
+	remoteID := model.NewId()
+	channelID := model.NewId()
+	channel := &model.Channel{Id: channelID, Type: model.ChannelTypeOpen}
+	rc := &model.RemoteCluster{RemoteId: remoteID, Name: "test-remote"}
+
+	setup := func(t *testing.T, existing *model.Post) (*Service, *MockAppIface) {
+		mockPostStore := &mocks.PostStore{}
+		mockPostStore.On("GetSingle", mock.Anything, existing.Id, true).Return(existing, nil)
+
+		mockStore := &mocks.Store{}
+		mockStore.On("Post").Return(mockPostStore)
+
+		logger := mlog.CreateConsoleTestLogger(t)
+		mockServer := &MockServerIface{}
+		mockServer.On("GetStore").Return(mockStore)
+		mockServer.On("Log").Return(logger)
+
+		mockApp := &MockAppIface{}
+
+		return &Service{server: mockServer, app: mockApp}, mockApp
+	}
+
+	t.Run("rejects edit of a post owned by a different remote", func(t *testing.T) {
+		otherRemoteID := model.NewId()
+		postID := model.NewId()
+		existing := &model.Post{Id: postID, ChannelId: channelID, Message: "original", RemoteId: new(otherRemoteID)}
+
+		scs, mockApp := setup(t, existing)
+
+		_, err := scs.upsertSyncPost(&model.Post{Id: postID, ChannelId: channelID, Message: "tampered"}, channel, rc, nil)
+
+		require.Error(t, err)
+		assert.ErrorIs(t, err, ErrRemoteIDMismatch)
+		mockApp.AssertNotCalled(t, "UpdatePost", mock.Anything, mock.Anything, mock.Anything)
+	})
+
+	t.Run("rejects delete of a post owned by a local user", func(t *testing.T) {
+		postID := model.NewId()
+		existing := &model.Post{Id: postID, ChannelId: channelID, Message: "original", RemoteId: nil}
+
+		scs, mockApp := setup(t, existing)
+
+		_, err := scs.upsertSyncPost(&model.Post{Id: postID, ChannelId: channelID, DeleteAt: model.GetMillis()}, channel, rc, nil)
+
+		require.Error(t, err)
+		assert.ErrorIs(t, err, ErrRemoteIDMismatch)
+		mockApp.AssertNotCalled(t, "DeletePost", mock.Anything, mock.Anything, mock.Anything)
+	})
+
+	t.Run("allows edit of a post owned by the sending remote", func(t *testing.T) {
+		postID := model.NewId()
+		existing := &model.Post{Id: postID, ChannelId: channelID, Message: "original", RemoteId: new(remoteID)}
+
+		scs, mockApp := setup(t, existing)
+		updated := &model.Post{Id: postID, ChannelId: channelID, Message: "updated"}
+		mockApp.On("UpdatePost", mock.Anything, mock.Anything, mock.Anything).Return(updated, false, (*model.AppError)(nil))
+
+		_, err := scs.upsertSyncPost(&model.Post{Id: postID, ChannelId: channelID, Message: "updated"}, channel, rc, nil)
+
+		require.NoError(t, err)
+		mockApp.AssertCalled(t, "UpdatePost", mock.Anything, mock.Anything, mock.Anything)
 	})
 }

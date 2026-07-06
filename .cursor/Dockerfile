@@ -5,7 +5,6 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ARG GO_VERSION=1.25.9
 ARG NODE_VERSION=24.11.1
 ARG NVM_VERSION=0.40.3
-ARG AGENT_BROWSER_VERSION=0.27.0
 ARG DOCKER_VERSION=5:28.5.2-1~ubuntu.24.04~noble
 ARG CONTAINERD_VERSION=2.2.3-1~ubuntu.24.04~noble
 ARG DOCKER_BUILDX_VERSION=0.33.0-1~ubuntu.24.04~noble
@@ -145,11 +144,10 @@ RUN install -m 0755 -d /var/run/sshd && \
 
 RUN git clone --depth 1 --branch "v${NVM_VERSION}" https://github.com/nvm-sh/nvm.git "${NVM_DIR}" && \
     chown -R ubuntu:ubuntu "${NVM_DIR}" "${GOPATH}" && \
-    su ubuntu -c "bash -lc 'set -e; source ${NVM_DIR}/nvm.sh; nvm install ${NODE_VERSION}; nvm alias default ${NODE_VERSION}; nvm use default; npm install -g agent-browser@${AGENT_BROWSER_VERSION}; agent-browser install || true'" && \
+    su ubuntu -c "bash -lc 'set -e; source ${NVM_DIR}/nvm.sh; nvm install ${NODE_VERSION}; nvm alias default ${NODE_VERSION}; nvm use default'" && \
     ln -sfn "${NVM_DIR}/versions/node/v${NODE_VERSION}/bin/node" /usr/local/bin/node && \
     ln -sfn "${NVM_DIR}/versions/node/v${NODE_VERSION}/bin/npm" /usr/local/bin/npm && \
-    ln -sfn "${NVM_DIR}/versions/node/v${NODE_VERSION}/bin/npx" /usr/local/bin/npx && \
-    ln -sfn "${NVM_DIR}/versions/node/v${NODE_VERSION}/bin/agent-browser" /usr/local/bin/agent-browser
+    ln -sfn "${NVM_DIR}/versions/node/v${NODE_VERSION}/bin/npx" /usr/local/bin/npx
 
 RUN { \
       echo 'export NVM_DIR="$HOME/.nvm"'; \

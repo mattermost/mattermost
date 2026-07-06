@@ -10,14 +10,12 @@ import {expect, type Page} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 import type {UserProfile} from '@mattermost/types/users';
 import type {Channel} from '@mattermost/types/channels';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {newTestPassword} from '@mattermost/playwright-lib';
 
-import {
-    CustomProfileAttribute,
-    setupCustomProfileAttributeValuesForUser,
-} from '../../channels/custom_profile_attributes/helpers';
+import type {CustomProfileAttribute} from '../../channels/custom_profile_attributes/helpers';
+import {setupCustomProfileAttributeValuesForUser} from '../../channels/custom_profile_attributes/helpers';
 
 /**
  * Verify policy exists with better waiting and retry logic
@@ -61,8 +59,8 @@ export async function verifyPolicyNotExists(page: Page, policyName: string): Pro
 export async function createUserAttributeField(client: Client4, name: string, type: string = 'text'): Promise<any> {
     const url = `${client.getBaseRoute()}/custom_profile_attributes/fields`;
     const field = {
-        name: name,
-        type: type,
+        name,
+        type,
         attrs: {
             managed: 'admin', // Admin-managed attribute
             visibility: 'when_set',
@@ -191,7 +189,7 @@ export async function createUserForABAC(
     const user = await adminClient.createUser(
         {
             email: `${username}@example.com`,
-            username: username,
+            username,
             password: newTestPassword(),
         } as any,
         '',
@@ -249,11 +247,11 @@ export async function testAccessRule(
     if (countText) {
         const totalMatch = countText.match(/of\s*(\d+)\s*total/i);
         if (totalMatch) {
-            totalMatches = parseInt(totalMatch[1]);
+            totalMatches = parseInt(totalMatch[1], 10);
         } else {
             const matchesMatch = countText.match(/(\d+)\s*match/i);
             if (matchesMatch) {
-                totalMatches = parseInt(matchesMatch[1]);
+                totalMatches = parseInt(matchesMatch[1], 10);
             }
         }
     }
@@ -407,7 +405,9 @@ export async function createBasicPolicy(
 
             // Wait for attributes to become available (up to 10 s in 2 s increments)
             for (let i = 0; i < 5; i++) {
-                if (!(await addAttributeButton.isDisabled())) break;
+                if (!(await addAttributeButton.isDisabled())) {
+                    break;
+                }
                 await page.waitForTimeout(2000);
             }
         }
@@ -863,7 +863,7 @@ export async function createAdvancedPolicy(
     const saveEnabled = await saveButton.isEnabled({timeout: 5000}).catch(() => false);
     if (!saveEnabled) {
         // console.error(`❌ Save button is disabled - cannot save policy`);
-        throw new Error(`Save button is disabled`);
+        throw new Error('Save button is disabled');
     }
 
     await saveButton.click();
@@ -882,7 +882,7 @@ export async function createAdvancedPolicy(
     const applyVisible = await applyPolicyButton.isVisible({timeout: 10000}).catch(() => false);
 
     if (!applyVisible) {
-        throw new Error(`Apply Policy button not visible after Save`);
+        throw new Error('Apply Policy button not visible after Save');
     }
 
     // Arm the response interceptor BEFORE the click so we never miss the POST.
@@ -937,7 +937,9 @@ export async function waitForLatestSyncJob(
                             const resp = await fetch(`/api/v4/jobs/${encodeURIComponent(id)}`, {
                                 credentials: 'include',
                             });
-                            if (!resp.ok) return {status: `http_${resp.status}`};
+                            if (!resp.ok) {
+                                return {status: `http_${resp.status}`};
+                            }
                             return resp.json();
                         }, expectedJobId);
                         const status = (job?.status ?? '').toLowerCase();
@@ -946,7 +948,9 @@ export async function waitForLatestSyncJob(
                         }
                         return status;
                     } catch (err) {
-                        if (err instanceof Error && err.message.startsWith('Sync job')) throw err;
+                        if (err instanceof Error && err.message.startsWith('Sync job')) {
+                            throw err;
+                        }
                         return 'pending'; // network hiccup — keep polling
                     }
                 },
@@ -996,7 +1000,7 @@ export async function waitForLatestSyncJob(
  * Uses `expect.poll` with 500 ms intervals and a 30 s timeout so jobs that are
  * briefly delayed in the queue do not cause spurious failures.
  */
-export async function waitForPolicySyncJob(client: Client4, policyId: string): Promise<void> {
+export async function waitForPolicySyncJob(client: Client4, policyId: string, timeoutMs = 60_000): Promise<void> {
     await expect
         .poll(
             async () => {
@@ -1005,7 +1009,9 @@ export async function waitForPolicySyncJob(client: Client4, policyId: string): P
                         `${client.getBaseRoute()}/jobs/type/access_control_sync?policy_id=${encodeURIComponent(policyId)}&page=0&per_page=5`,
                         {method: 'GET'},
                     );
-                    if (!Array.isArray(jobs) || jobs.length === 0) return 'pending';
+                    if (!Array.isArray(jobs) || jobs.length === 0) {
+                        return 'pending';
+                    }
                     // Sort by create_at descending so jobs[0] is the latest.
                     // The API does not guarantee order, so without this sort
                     // jobs[0] can be an older already-successful job, causing
@@ -1017,14 +1023,16 @@ export async function waitForPolicySyncJob(client: Client4, policyId: string): P
                     }
                     return status;
                 } catch (err) {
-                    if (err instanceof Error && err.message.startsWith('Policy sync job')) throw err;
+                    if (err instanceof Error && err.message.startsWith('Policy sync job')) {
+                        throw err;
+                    }
                     return 'pending'; // network hiccup — keep polling
                 }
             },
             {
-                timeout: 30_000,
+                timeout: timeoutMs,
                 intervals: [500, 500, 500, 1000, 1000, 2000],
-                message: `Policy sync job for ${policyId} did not reach success within 30 s`,
+                message: `Policy sync job for ${policyId} did not reach success within ${timeoutMs / 1000} s`,
             },
         )
         .toBe('success');
@@ -1073,7 +1081,7 @@ export async function getJobDetailsForChannel(
             if (await addedTab.isVisible({timeout: 2000})) {
                 const addedText = await addedTab.textContent();
                 const addedMatch = addedText?.match(/Added\s*\((\d+)\)/i);
-                added = addedMatch ? parseInt(addedMatch[1]) : 0;
+                added = addedMatch ? parseInt(addedMatch[1], 10) : 0;
             }
 
             // Parse Removed count from the tab: "Removed (X)"
@@ -1081,7 +1089,7 @@ export async function getJobDetailsForChannel(
             if (await removedTab.isVisible({timeout: 2000})) {
                 const removedText = await removedTab.textContent();
                 const removedMatch = removedText?.match(/Removed\s*\((\d+)\)/i);
-                removed = removedMatch ? parseInt(removedMatch[1]) : 0;
+                removed = removedMatch ? parseInt(removedMatch[1], 10) : 0;
             }
 
             // Close the Channel Membership Changes modal
@@ -1103,8 +1111,8 @@ export async function getJobDetailsForChannel(
             const addedMatch = countsText?.match(/\+(\d+)/);
             const removedMatch = countsText?.match(/-(\d+)/);
 
-            added = addedMatch ? parseInt(addedMatch[1]) : 0;
-            removed = removedMatch ? parseInt(removedMatch[1]) : 0;
+            added = addedMatch ? parseInt(addedMatch[1], 10) : 0;
+            removed = removedMatch ? parseInt(removedMatch[1], 10) : 0;
         }
     }
 
@@ -1233,17 +1241,13 @@ export async function getPolicyIdByName(
 
                 if (policy) {
                     return policy.id;
-                } else {
-                    // Wait before retrying
-                    if (attempt < retries) {
-                        await new Promise((resolve) => setTimeout(resolve, 2000));
-                    }
                 }
-            } else {
                 // Wait before retrying
                 if (attempt < retries) {
                     await new Promise((resolve) => setTimeout(resolve, 2000));
                 }
+            } else if (attempt < retries) {
+                await new Promise((resolve) => setTimeout(resolve, 2000));
             }
         } catch {
             // console.error(`Failed to search policies (attempt ${attempt}):`, _error.message || String(_error));

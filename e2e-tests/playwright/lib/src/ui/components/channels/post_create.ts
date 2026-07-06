@@ -3,7 +3,8 @@
 
 import path from 'node:path';
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 import {duration} from '@/util';
 import {assetPath} from '@/file';
@@ -28,10 +29,10 @@ export default class ChannelsPostCreate {
     constructor(container: Locator, isRHS = false) {
         this.container = container;
 
-        if (!isRHS) {
-            this.input = container.getByTestId('post_textbox');
-        } else {
+        if (isRHS) {
             this.input = container.getByTestId('reply_textbox');
+        } else {
+            this.input = container.getByTestId('post_textbox');
         }
 
         this.attachmentButton = container.locator('#fileUploadButton');
@@ -40,12 +41,12 @@ export default class ChannelsPostCreate {
         this.scheduleMessageButton = container.getByLabel('Schedule message');
         this.priorityButton = container.getByLabel('Message priority');
         this.suggestionList = container.getByRole('listbox', {name: 'Suggestions'});
-        this.filePreview = container.locator('.file-preview__container');
+        this.filePreview = container.getByTestId('file-preview-container');
 
         // Burn-on-Read elements
         // Use a flexible locator that matches the aria-label pattern
         this.burnOnReadButton = container.getByRole('button', {name: /Burn-on-read/i});
-        this.burnOnReadLabel = container.locator('.BurnOnReadLabel');
+        this.burnOnReadLabel = container.getByTestId('burn-on-read-label');
     }
 
     async toBeVisible() {
@@ -71,7 +72,7 @@ export default class ChannelsPostCreate {
      */
     async getInputValue() {
         await expect(this.input).toBeVisible();
-        return await this.input.inputValue();
+        return this.input.inputValue();
     }
 
     /**
@@ -169,8 +170,8 @@ export default class ChannelsPostCreate {
     async waitUntilFilePreviewContains(files: string[], timeout = duration.ten_sec) {
         await waitUntil(
             async () => {
-                const previews = this.filePreview.locator('.file-preview');
-                const details = this.filePreview.locator('.post-image__details');
+                const previews = this.filePreview.getByTestId('file-preview-item');
+                const details = this.filePreview.getByTestId('post-image-details');
 
                 const [previewsCount, detailsCount] = await Promise.all([previews.count(), details.count()]);
 
@@ -193,6 +194,6 @@ export default class ChannelsPostCreate {
      * BoR is considered enabled if the label is visible above the input
      */
     async isBurnOnReadEnabled(): Promise<boolean> {
-        return await this.burnOnReadLabel.isVisible();
+        return this.burnOnReadLabel.isVisible();
     }
 }

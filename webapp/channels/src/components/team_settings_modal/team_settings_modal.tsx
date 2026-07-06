@@ -29,7 +29,7 @@ type Props = {
     isOpen: boolean;
     onExited: () => void;
     focusOriginElement?: string;
-}
+};
 
 const TeamSettingsModal = ({isOpen, onExited, focusOriginElement}: Props) => {
     const [activeTab, setActiveTab] = useState('info');

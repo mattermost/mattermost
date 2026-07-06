@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 export default class ProfileModal {
     readonly container: Locator;
@@ -26,8 +27,8 @@ export default class ProfileModal {
         this.securityTab = new SecurityTab(container.getByRole('tabpanel', {name: 'Security'}));
 
         this.closeButton = container.getByRole('button', {name: 'Close'});
-        this.saveButton = container.locator('button:has-text("Save")');
-        this.cancelButton = container.locator('button:has-text("Cancel")');
+        this.saveButton = container.getByRole('button', {name: 'Save'});
+        this.cancelButton = container.getByRole('button', {name: 'Cancel'});
     }
 
     async toBeVisible() {

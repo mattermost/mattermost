@@ -19,7 +19,7 @@ type Props = {
     postId: string;
     translationState: PostTranslation['state'] | undefined;
     postType: PostType;
-}
+};
 function PostHeaderTranslateIcon({
     postId,
     translationState,

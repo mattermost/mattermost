@@ -4,13 +4,13 @@
 import type {ComponentProps} from 'react';
 import React from 'react';
 
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {Client4} from 'mattermost-redux/client';
 
 import ModalController from 'components/modal_controller';
 
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 
 import DotMenu from './user_properties_dot_menu';
 import {useUserPropertyFields} from './user_properties_utils';
@@ -186,6 +186,55 @@ describe('UserPropertyDotMenu', () => {
         expect(screen.getByText('Edit SAML link')).toBeInTheDocument();
     });
 
+    it('sets ldap from the modal without adding managed to an unmanaged field', async () => {
+        renderComponent();
+
+        const menuButton = screen.getByTestId(`user-property-field_dotmenu-${baseField.id}`);
+        await userEvent.click(menuButton);
+        await userEvent.click(screen.getByText('Link attribute to AD/LDAP'));
+
+        await userEvent.type(await screen.findByRole('textbox'), 'employeeID');
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        expect(updateField).toHaveBeenCalledWith({
+            ...baseField,
+            type: 'text',
+            attrs: {
+                ...baseField.attrs,
+                ldap: 'employeeID',
+            },
+        });
+    });
+
+    it('sets ldap from the modal without changing managed on an admin-managed field', async () => {
+        const adminManagedField: UserPropertyField = {
+            ...baseField,
+            id: 'admin-managed-ldap-modal',
+            attrs: {
+                ...baseField.attrs,
+                managed: 'admin',
+            },
+        };
+
+        renderComponent(adminManagedField);
+
+        const menuButton = screen.getByTestId(`user-property-field_dotmenu-${adminManagedField.id}`);
+        await userEvent.click(menuButton);
+        await userEvent.click(screen.getByText('Link attribute to AD/LDAP'));
+
+        await userEvent.type(await screen.findByRole('textbox'), 'employeeID');
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        expect(updateField).toHaveBeenCalledWith({
+            ...adminManagedField,
+            type: 'text',
+            attrs: {
+                ...adminManagedField.attrs,
+                ldap: 'employeeID',
+            },
+        });
+    });
+
     it('clears admin-managed by setting managed to empty string, not by removing the key', async () => {
         const adminManagedField: UserPropertyField = {
             ...baseField,
@@ -216,6 +265,112 @@ describe('UserPropertyDotMenu', () => {
                 managed: '',
             },
         });
+    });
+
+    it('keeps the "Editable by users" toggle enabled for an admin-managed field that is not synced', async () => {
+        const adminManagedField: UserPropertyField = {
+            ...baseField,
+            id: 'admin-managed-unsynced',
+            attrs: {
+                ...baseField.attrs,
+                managed: 'admin',
+            },
+        };
+
+        renderComponent(adminManagedField);
+
+        const menuButton = screen.getByTestId(`user-property-field_dotmenu-${adminManagedField.id}`);
+        await userEvent.click(menuButton);
+
+        const editableItem = screen.getByRole('menuitemcheckbox', {name: /Editable by users/});
+        expect(editableItem).toHaveAttribute('aria-checked', 'false');
+        expect(within(editableItem).getByRole('button')).toBeEnabled();
+        expect(screen.queryByText('Synced attributes are managed by AD/LDAP or SAML')).not.toBeInTheDocument();
+    });
+
+    it('disables the "Editable by users" toggle and reports it off when the field is synced via LDAP', async () => {
+        const ldapSyncedField: UserPropertyField = {
+            ...baseField,
+            id: 'ldap-synced-field',
+            attrs: {
+                ...baseField.attrs,
+                ldap: 'employeeID',
+            },
+        };
+
+        renderComponent(ldapSyncedField);
+
+        const menuButton = screen.getByTestId(`user-property-field_dotmenu-${ldapSyncedField.id}`);
+        await userEvent.click(menuButton);
+
+        const editableItem = screen.getByRole('menuitemcheckbox', {name: /Editable by users/});
+        expect(editableItem).toHaveAttribute('aria-checked', 'false');
+        expect(within(editableItem).getByRole('button')).toBeDisabled();
+        expect(screen.getByText('Synced attributes are managed by AD/LDAP or SAML')).toBeInTheDocument();
+    });
+
+    it('does not update a synced field when clicking the "Editable by users" toggle', async () => {
+        const ldapSyncedField: UserPropertyField = {
+            ...baseField,
+            id: 'ldap-synced-toggle-click',
+            attrs: {
+                ...baseField.attrs,
+                ldap: 'employeeID',
+            },
+        };
+
+        renderComponent(ldapSyncedField);
+
+        const menuButton = screen.getByTestId(`user-property-field_dotmenu-${ldapSyncedField.id}`);
+        await userEvent.click(menuButton);
+
+        const editableItem = screen.getByRole('menuitemcheckbox', {name: /Editable by users/});
+        editableItem.click();
+
+        expect(updateField).not.toHaveBeenCalled();
+    });
+
+    it('disables the "Editable by users" toggle when the field is synced via SAML', async () => {
+        const samlSyncedField: UserPropertyField = {
+            ...baseField,
+            id: 'saml-synced-field',
+            attrs: {
+                ...baseField.attrs,
+                saml: 'position',
+            },
+        };
+
+        renderComponent(samlSyncedField);
+
+        const menuButton = screen.getByTestId(`user-property-field_dotmenu-${samlSyncedField.id}`);
+        await userEvent.click(menuButton);
+
+        const editableItem = screen.getByRole('menuitemcheckbox', {name: /Editable by users/});
+        expect(editableItem).toHaveAttribute('aria-checked', 'false');
+        expect(within(editableItem).getByRole('button')).toBeDisabled();
+        expect(screen.getByText('Synced attributes are managed by AD/LDAP or SAML')).toBeInTheDocument();
+    });
+
+    it('disables the "Editable by users" toggle when the field is both admin-managed and synced', async () => {
+        const adminManagedSyncedField: UserPropertyField = {
+            ...baseField,
+            id: 'admin-managed-synced-field',
+            attrs: {
+                ...baseField.attrs,
+                managed: 'admin',
+                ldap: 'employeeID',
+            },
+        };
+
+        renderComponent(adminManagedSyncedField);
+
+        const menuButton = screen.getByTestId(`user-property-field_dotmenu-${adminManagedSyncedField.id}`);
+        await userEvent.click(menuButton);
+
+        const editableItem = screen.getByRole('menuitemcheckbox', {name: /Editable by users/});
+        expect(editableItem).toHaveAttribute('aria-checked', 'false');
+        expect(within(editableItem).getByRole('button')).toBeDisabled();
+        expect(screen.getByText('Synced attributes are managed by AD/LDAP or SAML')).toBeInTheDocument();
     });
 
     it('handles field duplication', async () => {

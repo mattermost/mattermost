@@ -23,12 +23,13 @@ on:
         type: string
         required: false
 
-permissions:
-  contents: read
-  statuses: write
+permissions: {}
 
 jobs:
   resolve-pr:
+    permissions:
+      contents: read
+      pull-requests: read
     runs-on: ubuntu-24.04
     outputs:
       PR_NUMBER: "${{ steps.resolve.outputs.PR_NUMBER }}"
@@ -39,12 +40,14 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: ci/resolve-pr-and-commit
         id: resolve
         env:
           GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
           INPUT_PR_NUMBER: ${{ inputs.pr_number }}
           INPUT_COMMIT_SHA: ${{ inputs.commit_sha }}
         run: |
@@ -61,7 +64,7 @@ jobs:
           # Manual trigger: PR number provided, resolve commit SHA from PR head
           if [ -n "$INPUT_PR_NUMBER" ]; then
             echo "Manual trigger: resolving commit SHA from PR #${INPUT_PR_NUMBER}"
-            PR_DATA=$(gh api "repos/${{ github.repository }}/pulls/${INPUT_PR_NUMBER}")
+            PR_DATA=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${INPUT_PR_NUMBER}")
             COMMIT_SHA=$(echo "$PR_DATA" | jq -r '.head.sha')
 
             if [ -z "$COMMIT_SHA" ] || [ "$COMMIT_SHA" = "null" ]; then
@@ -78,7 +81,7 @@ jobs:
           # Argo Events trigger: commit SHA provided, resolve PR number
           if [ -n "$INPUT_COMMIT_SHA" ]; then
             echo "Automated trigger: resolving PR number from commit ${INPUT_COMMIT_SHA}"
-            PR_DATA=$(gh api "repos/${{ github.repository }}/commits/${INPUT_COMMIT_SHA}/pulls" \
+            PR_DATA=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${INPUT_COMMIT_SHA}/pulls" \
               --jq '.[0] // empty' 2>/dev/null || echo "")
             PR_NUMBER=$(echo "$PR_DATA" | jq -r '.number // empty' 2>/dev/null || echo "")
             if [ -z "$PR_NUMBER" ]; then
@@ -121,6 +124,9 @@ jobs:
 
 
   check-changes:
+    permissions:
+      contents: read
+      pull-requests: read
     needs: resolve-pr
     if: needs.resolve-pr.outputs.PR_NUMBER != ''
     runs-on: ubuntu-24.04
@@ -131,19 +137,21 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           ref: ${{ needs.resolve-pr.outputs.COMMIT_SHA }}
           fetch-depth: 0
       - name: ci/check-relevant-changes
         id: check
         env:
           GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ needs.resolve-pr.outputs.PR_NUMBER }}
           COMMIT_SHA: ${{ needs.resolve-pr.outputs.COMMIT_SHA }}
           INPUT_PR_NUMBER: ${{ inputs.pr_number }}
           HEAD_REF: ${{ needs.resolve-pr.outputs.HEAD_REF }}
         run: |
           # Get the base branch of the PR and changed files
-          BASE_SHA=$(gh api "repos/${{ github.repository }}/pulls/${PR_NUMBER}" --jq '.base.sha')
+          BASE_SHA=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.base.sha')
           CHANGED_FILES=$(git diff --name-only "${BASE_SHA}...${COMMIT_SHA}")
 
           echo "Changed files:"

@@ -24,7 +24,7 @@ type OwnProps = {
     skipCommit: boolean;
     onAddCallback: (groupIDs: string[]) => void;
     excludeGroups: Group[];
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const searchTerm = state.views.search.modalSearch;

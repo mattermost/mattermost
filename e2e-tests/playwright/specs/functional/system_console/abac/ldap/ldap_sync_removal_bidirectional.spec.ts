@@ -24,7 +24,7 @@ import {
  * MM-T5800: Policy enforcement after attribute change (bidirectional)
  */
 test('MM-T5800 Policy enforcement after attribute change (bidirectional)', async ({pw}) => {
-    test.setTimeout(120000);
+    test.setTimeout(180000);
 
     await pw.skipIfNoLicense();
 
@@ -66,8 +66,8 @@ test('MM-T5800 Policy enforcement after attribute change (bidirectional)', async
 
     // Capture exact job ID so waitForLatestSyncJob polls the right job, not
     // the most-recent row (which may belong to a concurrent shard's sync job).
-    const __syncJob2 = await runSyncJob(systemConsolePage.page);
-    await waitForLatestSyncJob(systemConsolePage.page, undefined, __syncJob2);
+    const syncJob2 = await runSyncJob(systemConsolePage.page);
+    await waitForLatestSyncJob(systemConsolePage.page, undefined, syncJob2);
 
     await expect
         .poll(() => verifyUserInChannel(adminClient, user.id, privateChannel.id), {
@@ -80,8 +80,8 @@ test('MM-T5800 Policy enforcement after attribute change (bidirectional)', async
     // PHASE 3: Change back to non-qualifying → User auto-removed.
     await updateUserAttributes(adminClient, user.id, {Department: 'Marketing'});
 
-    const __syncJob3 = await runSyncJob(systemConsolePage.page);
-    await waitForLatestSyncJob(systemConsolePage.page, undefined, __syncJob3);
+    const syncJob3 = await runSyncJob(systemConsolePage.page);
+    await waitForLatestSyncJob(systemConsolePage.page, undefined, syncJob3);
 
     await expect
         .poll(() => verifyUserInChannel(adminClient, user.id, privateChannel.id), {

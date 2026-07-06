@@ -3,8 +3,7 @@
 
 import {getRandomId} from '../utils';
 
-import {ChainableT} from '@/types';
-
+import type {ChainableT} from '@/types';
 
 const ldapTmpFolder = 'ldap_tmp';
 

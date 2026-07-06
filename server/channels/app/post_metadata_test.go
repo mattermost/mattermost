@@ -312,8 +312,6 @@ func TestPreparePostForClient(t *testing.T) {
 		th := setup(t)
 
 		fileInfo, err := th.App.DoUploadFile(th.Context, time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "test.txt", []byte("test"), true)
-		fileInfo.Content = "test"
-		fileInfo.ChannelId = th.BasicChannel.Id
 		require.Nil(t, err)
 
 		post, _, err := th.App.CreatePost(th.Context, &model.Post{
@@ -323,15 +321,29 @@ func TestPreparePostForClient(t *testing.T) {
 		}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
-		fileInfo.PostId = post.Id
-
-		var clientPost *model.Post
-		assert.Eventually(t, func() bool {
-			clientPost = th.App.PreparePostForClient(th.Context, post, &model.PreparePostForClientOpts{})
-			return assert.ObjectsAreEqual([]*model.FileInfo{fileInfo}, clientPost.Metadata.Files)
+		// DoUploadFile kicks off async content extraction; wait for attach + extraction on
+		// master before PreparePostForClient so the file-info cache is not seeded early.
+		require.EventuallyWithT(t, func(c *assert.CollectT) {
+			attached, storeErr := th.App.Srv().Store().FileInfo().GetFromMaster(fileInfo.Id)
+			if !assert.NoError(c, storeErr) || attached == nil {
+				return
+			}
+			assert.Equal(c, post.Id, attached.PostId)
+			if *th.App.Config().FileSettings.ExtractContent {
+				assert.Equal(c, "test", attached.Content)
+			}
 		}, 10*time.Second, 25*time.Millisecond)
 
-		assert.Equal(t, []*model.FileInfo{fileInfo}, clientPost.Metadata.Files, "should've populated Files")
+		expectedFileInfo, storeErr := th.App.Srv().Store().FileInfo().GetFromMaster(fileInfo.Id)
+		require.NoError(t, storeErr)
+
+		var clientPost *model.Post
+		assert.EventuallyWithT(t, func(c *assert.CollectT) {
+			clientPost = th.App.PreparePostForClient(th.Context, post, &model.PreparePostForClientOpts{})
+			assert.True(c, assert.ObjectsAreEqual([]*model.FileInfo{expectedFileInfo}, clientPost.Metadata.Files))
+		}, 10*time.Second, 25*time.Millisecond)
+
+		assert.Equal(t, []*model.FileInfo{expectedFileInfo}, clientPost.Metadata.Files, "should've populated Files")
 	})
 
 	t.Run("emojis without custom emojis enabled", func(t *testing.T) {
@@ -1324,12 +1336,13 @@ func TestGetImagesForPost(t *testing.T) {
 			require.NoError(t, err)
 		}))
 
+		imageURL := server.URL + "/image.png"
 		post := &model.Post{
+			Message:  "![img](" + imageURL + ")",
 			Metadata: &model.PostMetadata{},
 		}
-		imageURL := server.URL + "/image.png"
 
-		images := th.App.getImagesForPost(th.Context, post, []string{imageURL}, false)
+		images := th.App.getImagesForPost(th.Context, post, false)
 
 		assert.Equal(t, images, map[string]*model.PostImage{
 			imageURL: {
@@ -1351,12 +1364,13 @@ func TestGetImagesForPost(t *testing.T) {
 			w.WriteHeader(http.StatusInternalServerError)
 		}))
 
+		imageURL := server.URL + "/bad_image.png"
 		post := &model.Post{
+			Message:  "![img](" + imageURL + ")",
 			Metadata: &model.PostMetadata{},
 		}
-		imageURL := server.URL + "/bad_image.png"
 
-		images := th.App.getImagesForPost(th.Context, post, []string{imageURL}, false)
+		images := th.App.getImagesForPost(th.Context, post, false)
 
 		assert.Equal(t, images, map[string]*model.PostImage{})
 	})
@@ -1404,7 +1418,7 @@ func TestGetImagesForPost(t *testing.T) {
 			},
 		}
 
-		images := th.App.getImagesForPost(th.Context, post, []string{}, false)
+		images := th.App.getImagesForPost(th.Context, post, false)
 
 		assert.Equal(t, images, map[string]*model.PostImage{
 			imageURL: {
@@ -1458,7 +1472,7 @@ func TestGetImagesForPost(t *testing.T) {
 			},
 		}
 
-		images := th.App.getImagesForPost(th.Context, post, []string{}, false)
+		images := th.App.getImagesForPost(th.Context, post, false)
 
 		assert.Equal(t, images, map[string]*model.PostImage{
 			imageURL: {
@@ -1512,7 +1526,7 @@ func TestGetImagesForPost(t *testing.T) {
 			},
 		}
 
-		images := th.App.getImagesForPost(th.Context, post, []string{}, false)
+		images := th.App.getImagesForPost(th.Context, post, false)
 
 		assert.Equal(t, images, map[string]*model.PostImage{
 			imageURL: {
@@ -1541,7 +1555,7 @@ func TestGetImagesForPost(t *testing.T) {
 			},
 		}
 
-		images := th.App.getImagesForPost(th.Context, post, []string{}, false)
+		images := th.App.getImagesForPost(th.Context, post, false)
 		assert.Equal(t, images, map[string]*model.PostImage{})
 	})
 
@@ -1582,9 +1596,164 @@ func TestGetImagesForPost(t *testing.T) {
 		mockStore.On("Post").Return(&mockPostStore)
 		mockStore.On("LinkMetadata").Return(&mockLinkMetadataStore)
 
-		images := th.App.getImagesForPost(th.Context, post, []string{}, false)
+		images := th.App.getImagesForPost(th.Context, post, false)
 		assert.Equal(t, 0, len(images))
 		assert.Equal(t, images, map[string]*model.PostImage{})
+	})
+
+	t.Run("with message attachment image URLs", func(t *testing.T) {
+		th := Setup(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
+		})
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			file, err := testutils.ReadTestFile("test.png")
+			require.NoError(t, err)
+
+			w.Header().Set("Content-Type", "image/png")
+			_, err = w.Write(file)
+			require.NoError(t, err)
+		}))
+		defer server.Close()
+
+		imageURL := server.URL + "/attachment.png"
+		thumbURL := server.URL + "/thumb.png"
+		authorIconURL := server.URL + "/author.png"
+		footerIconURL := server.URL + "/footer.png"
+		post := &model.Post{
+			Metadata: &model.PostMetadata{},
+			Props: model.StringInterface{
+				model.PostPropsAttachments: []*model.MessageAttachment{
+					{
+						ImageURL:   imageURL,
+						ThumbURL:   thumbURL,
+						AuthorIcon: authorIconURL,
+						FooterIcon: footerIconURL,
+					},
+				},
+			},
+		}
+
+		images := th.App.getImagesForPost(th.Context, post, false)
+
+		expected := &model.PostImage{
+			Format: "png",
+			Width:  408,
+			Height: 336,
+		}
+		assert.Equal(t, map[string]*model.PostImage{
+			imageURL:      expected,
+			thumbURL:      expected,
+			authorIconURL: expected,
+			footerIconURL: expected,
+		}, images)
+	})
+
+	t.Run("skips all when unsafe links including interactive props", func(t *testing.T) {
+		th := Setup(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
+		})
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			t.Fatalf("unexpected HTTP request to test server: %s %s", r.Method, r.URL.String())
+		}))
+		t.Cleanup(server.Close)
+
+		post := &model.Post{
+			Metadata: &model.PostMetadata{
+				Embeds: []*model.PostEmbed{
+					{Type: model.PostEmbedImage, URL: server.URL + "/embed.png"},
+				},
+			},
+			Props: model.StringInterface{
+				model.PostPropsUnsafeLinks: "true",
+				model.PostPropsMmBlocks: []any{
+					map[string]any{"type": "image", "url": server.URL + "/mm1.png"},
+					map[string]any{"type": "image", "url": server.URL + "/mm2.png"},
+				},
+				model.PostPropsBlockKitBlocks: []any{
+					map[string]any{"type": "image", "image_url": server.URL + "/bk1.png"},
+					map[string]any{
+						"type": "section",
+						"accessory": map[string]any{
+							"type":      "image",
+							"image_url": server.URL + "/bk2.png",
+						},
+					},
+				},
+				model.PostPropsAdaptiveCards: []any{
+					map[string]any{
+						"type": "AdaptiveCard",
+						"body": []any{
+							map[string]any{"type": "Image", "url": server.URL + "/ac1.png"},
+							map[string]any{"type": "Image", "url": server.URL + "/ac2.png"},
+						},
+					},
+				},
+			},
+		}
+
+		out := th.App.getImagesForPost(th.Context, post, false)
+		assert.Empty(t, out)
+	})
+
+	t.Run("skips interactive prop images when mmBlocksEnabled is false", func(t *testing.T) {
+		th := Setup(t)
+
+		th.ConfigStore.SetReadOnlyFF(false)
+		defer th.ConfigStore.SetReadOnlyFF(true)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
+			cfg.FeatureFlags.MmBlocksEnabled = false
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.MmBlocksEnabled = true })
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			switch r.URL.Path {
+			case "/attach.png":
+				file, err := testutils.ReadTestFile("test.png")
+				require.NoError(t, err)
+				w.Header().Set("Content-Type", "image/png")
+				_, err = w.Write(file)
+				require.NoError(t, err)
+			default:
+				t.Fatalf("unexpected HTTP request: %s", r.URL.String())
+			}
+		}))
+		defer server.Close()
+
+		attachURL := server.URL + "/attach.png"
+		post := &model.Post{
+			Metadata: &model.PostMetadata{},
+			Props: model.StringInterface{
+				model.PostPropsMmBlocks: []any{
+					map[string]any{"type": "image", "url": server.URL + "/mm.png"},
+				},
+				model.PostPropsBlockKitBlocks: []any{
+					map[string]any{"type": "image", "image_url": server.URL + "/bk.png"},
+				},
+				model.PostPropsAdaptiveCards: []any{
+					map[string]any{
+						"type": "AdaptiveCard",
+						"body": []any{
+							map[string]any{"type": "Image", "url": server.URL + "/ac.png"},
+						},
+					},
+				},
+				model.PostPropsAttachments: []*model.MessageAttachment{
+					{ImageURL: attachURL},
+				},
+			},
+		}
+
+		images := th.App.getImagesForPost(th.Context, post, false)
+		require.Len(t, images, 1)
+		require.Contains(t, images, attachURL)
 	})
 }
 
@@ -1726,14 +1895,78 @@ func TestGetEmojiNamesForPost(t *testing.T) {
 			},
 			Expected: []string{"emoji1", "emoji2", "emoji3"},
 		},
+		{
+			Description: "in interactive mm_blocks, blocks, and cards",
+			Post: &model.Post{
+				Message: "body :smile:",
+				Props: map[string]any{
+					model.PostPropsMmBlocks: []any{
+						map[string]any{"type": "text", "text": "mm :coffee:"},
+						map[string]any{"type": "button", "text": "btn :thumbsup:", "action_id": "a"},
+					},
+					model.PostPropsBlockKitBlocks: []any{
+						map[string]any{
+							"type": "section",
+							"text": map[string]any{
+								"type": "mrkdwn",
+								"text": "block kit :rocket:",
+							},
+						},
+					},
+					model.PostPropsAdaptiveCards: []any{
+						map[string]any{
+							"type": "AdaptiveCard",
+							"body": []any{
+								map[string]any{"type": "TextBlock", "text": "card :tada:"},
+							},
+						},
+					},
+				},
+			},
+			// Button labels are not included in Post.AllStrings (see model.TestPost_AllStrings_interactiveProps).
+			Expected: []string{"smile", "coffee", "rocket", "tada"},
+		},
 	}
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
-			emojis := getEmojiNamesForPost(testCase.Post, testCase.Reactions)
+			emojis := getEmojiNamesForPost(testCase.Post, testCase.Reactions, true)
 			assert.ElementsMatch(t, emojis, testCase.Expected, "received incorrect emoji names")
 		})
 	}
+
+	t.Run("omits interactive block emojis when mmBlocksEnabled is false", func(t *testing.T) {
+		post := &model.Post{
+			Message: "body :smile:",
+			Props: map[string]any{
+				model.PostPropsMmBlocks: []any{
+					map[string]any{"type": "text", "text": "mm :coffee:"},
+				},
+				model.PostPropsBlockKitBlocks: []any{
+					map[string]any{
+						"type": "section",
+						"text": map[string]any{
+							"type": "mrkdwn",
+							"text": "block kit :rocket:",
+						},
+					},
+				},
+				model.PostPropsAdaptiveCards: []any{
+					map[string]any{
+						"type": "AdaptiveCard",
+						"body": []any{
+							map[string]any{"type": "TextBlock", "text": "card :tada:"},
+						},
+					},
+				},
+			},
+		}
+		reactions := []*model.Reaction{{EmojiName: "wave"}}
+
+		emojis := getEmojiNamesForPost(post, reactions, false)
+
+		assert.ElementsMatch(t, []string{"smile", "wave"}, emojis)
+	})
 }
 
 func TestGetCustomEmojisForPost(t *testing.T) {
@@ -1813,9 +2046,57 @@ func TestGetCustomEmojisForPost(t *testing.T) {
 		assert.Nil(t, err, "failed to get emojis for post")
 		assert.ElementsMatch(t, emojisForPost, []*model.Emoji{}, "should have received no emojis")
 	})
+
+	t.Run("includes interactive block emojis when mmBlocksEnabled is true", func(t *testing.T) {
+		th.ConfigStore.SetReadOnlyFF(false)
+		defer th.ConfigStore.SetReadOnlyFF(true)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.MmBlocksEnabled = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.MmBlocksEnabled = true })
+
+		messageEmoji := emojis[0]
+		blockEmoji := th.CreateEmoji(t)
+
+		post := &model.Post{
+			Message: ":" + messageEmoji.Name + ":",
+			Props: map[string]any{
+				model.PostPropsMmBlocks: []any{
+					map[string]any{"type": "text", "text": "mm :" + blockEmoji.Name + ":"},
+				},
+			},
+		}
+
+		emojisForPost, err := th.App.getCustomEmojisForPost(th.Context, post, nil)
+		require.Nil(t, err)
+		assert.ElementsMatch(t, []*model.Emoji{messageEmoji, blockEmoji}, emojisForPost)
+	})
+
+	t.Run("omits interactive block emojis when mmBlocksEnabled is false", func(t *testing.T) {
+		th.ConfigStore.SetReadOnlyFF(false)
+		defer th.ConfigStore.SetReadOnlyFF(true)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.MmBlocksEnabled = false })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.MmBlocksEnabled = true })
+
+		messageEmoji := emojis[0]
+		blockEmoji := th.CreateEmoji(t)
+
+		post := &model.Post{
+			Message: ":" + messageEmoji.Name + ":",
+			Props: map[string]any{
+				model.PostPropsMmBlocks: []any{
+					map[string]any{"type": "text", "text": "mm :" + blockEmoji.Name + ":"},
+				},
+			},
+		}
+
+		emojisForPost, err := th.App.getCustomEmojisForPost(th.Context, post, nil)
+		require.Nil(t, err)
+		assert.ElementsMatch(t, []*model.Emoji{messageEmoji}, emojisForPost)
+	})
 }
 
-func TestGetFirstLinkAndImages(t *testing.T) {
+func TestGetFirstLink(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -1890,10 +2171,8 @@ func TestGetFirstLinkAndImages(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			firstLink, images := th.App.getFirstLinkAndImages(th.Context, testCase.Input)
-
-			assert.Equal(t, testCase.ExpectedFirstLink, firstLink)
-			assert.Equal(t, testCase.ExpectedImages, images)
+			assert.Equal(t, testCase.ExpectedFirstLink, th.App.getFirstLink(th.Context, testCase.Input))
+			assert.Equal(t, testCase.ExpectedImages, th.App.getImages(th.Context, testCase.Input))
 		})
 	}
 
@@ -1975,225 +2254,8 @@ func TestGetFirstLinkAndImages(t *testing.T) {
 		})
 
 		t.Run(name, func(t *testing.T) {
-			firstLink, images := th.App.getFirstLinkAndImages(th.Context, testCase.Input)
-
-			assert.Equal(t, firstLink, testCase.ExpectedFirstLink)
-			assert.Equal(t, images, testCase.ExpectedImages)
-		})
-	}
-}
-
-func TestGetImagesInMessageAttachments(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
-
-	for _, test := range []struct {
-		Name     string
-		Post     *model.Post
-		Expected []string
-	}{
-		{
-			Name:     "no attachments",
-			Post:     &model.Post{},
-			Expected: []string{},
-		},
-		{
-			Name: "empty attachments",
-			Post: &model.Post{
-				Props: map[string]any{
-					model.PostPropsAttachments: []*model.MessageAttachment{},
-				},
-			},
-			Expected: []string{},
-		},
-		{
-			Name: "attachment with no fields that can contain images",
-			Post: &model.Post{
-				Props: map[string]any{
-					model.PostPropsAttachments: []*model.MessageAttachment{
-						{
-							Title: "This is the title",
-						},
-					},
-				},
-			},
-			Expected: []string{},
-		},
-		{
-			Name: "images in text",
-			Post: &model.Post{
-				Props: map[string]any{
-					model.PostPropsAttachments: []*model.MessageAttachment{
-						{
-							Text: "![logo](https://example.com/logo) and ![icon](https://example.com/icon)",
-						},
-					},
-				},
-			},
-			Expected: []string{"https://example.com/logo", "https://example.com/icon"},
-		},
-		{
-			Name: "images in pretext",
-			Post: &model.Post{
-				Props: map[string]any{
-					model.PostPropsAttachments: []*model.MessageAttachment{
-						{
-							Pretext: "![logo](https://example.com/logo1) and ![icon](https://example.com/icon1)",
-						},
-					},
-				},
-			},
-			Expected: []string{"https://example.com/logo1", "https://example.com/icon1"},
-		},
-		{
-			Name: "images in fields",
-			Post: &model.Post{
-				Props: map[string]any{
-					model.PostPropsAttachments: []*model.MessageAttachment{
-						{
-							Fields: []*model.MessageAttachmentField{
-								{
-									Value: "![logo](https://example.com/logo2) and ![icon](https://example.com/icon2)",
-								},
-							},
-						},
-					},
-				},
-			},
-			Expected: []string{"https://example.com/logo2", "https://example.com/icon2"},
-		},
-		{
-			Name: "image in author_icon",
-			Post: &model.Post{
-				Props: map[string]any{
-					model.PostPropsAttachments: []*model.MessageAttachment{
-						{
-							AuthorIcon: "https://example.com/icon2",
-						},
-					},
-				},
-			},
-			Expected: []string{"https://example.com/icon2"},
-		},
-		{
-			Name: "image in image_url",
-			Post: &model.Post{
-				Props: map[string]any{
-					model.PostPropsAttachments: []*model.MessageAttachment{
-						{
-							ImageURL: "https://example.com/image",
-						},
-					},
-				},
-			},
-			Expected: []string{"https://example.com/image"},
-		},
-		{
-			Name: "image in thumb_url",
-			Post: &model.Post{
-				Props: map[string]any{
-					model.PostPropsAttachments: []*model.MessageAttachment{
-						{
-							ThumbURL: "https://example.com/image",
-						},
-					},
-				},
-			},
-			Expected: []string{"https://example.com/image"},
-		},
-		{
-			Name: "image in footer_icon",
-			Post: &model.Post{
-				Props: map[string]any{
-					model.PostPropsAttachments: []*model.MessageAttachment{
-						{
-							FooterIcon: "https://example.com/image",
-						},
-					},
-				},
-			},
-			Expected: []string{"https://example.com/image"},
-		},
-		{
-			Name: "images in multiple fields",
-			Post: &model.Post{
-				Props: map[string]any{
-					model.PostPropsAttachments: []*model.MessageAttachment{
-						{
-							Fields: []*model.MessageAttachmentField{
-								{
-									Value: "![logo](https://example.com/logo)",
-								},
-								{
-									Value: "![icon](https://example.com/icon)",
-								},
-							},
-						},
-					},
-				},
-			},
-			Expected: []string{"https://example.com/logo", "https://example.com/icon"},
-		},
-		{
-			Name: "non-string field",
-			Post: &model.Post{
-				Props: map[string]any{
-					model.PostPropsAttachments: []*model.MessageAttachment{
-						{
-							Fields: []*model.MessageAttachmentField{
-								{
-									Value: 77,
-								},
-							},
-						},
-					},
-				},
-			},
-			Expected: []string{},
-		},
-		{
-			Name: "images in multiple locations",
-			Post: &model.Post{
-				Props: map[string]any{
-					model.PostPropsAttachments: []*model.MessageAttachment{
-						{
-							Text:    "![text](https://example.com/text)",
-							Pretext: "![pretext](https://example.com/pretext)",
-							Fields: []*model.MessageAttachmentField{
-								{
-									Value: "![field1](https://example.com/field1)",
-								},
-								{
-									Value: "![field2](https://example.com/field2)",
-								},
-							},
-						},
-					},
-				},
-			},
-			Expected: []string{"https://example.com/text", "https://example.com/pretext", "https://example.com/field1", "https://example.com/field2"},
-		},
-		{
-			Name: "multiple attachments",
-			Post: &model.Post{
-				Props: map[string]any{
-					model.PostPropsAttachments: []*model.MessageAttachment{
-						{
-							Text: "![logo](https://example.com/logo)",
-						},
-						{
-							Text: "![icon](https://example.com/icon)",
-						},
-					},
-				},
-			},
-			Expected: []string{"https://example.com/logo", "https://example.com/icon"},
-		},
-	} {
-		t.Run(test.Name, func(t *testing.T) {
-			images := th.App.getImagesInMessageAttachments(th.Context, test.Post)
-
-			assert.ElementsMatch(t, images, test.Expected)
+			assert.Equal(t, testCase.ExpectedFirstLink, th.App.getFirstLink(th.Context, testCase.Input))
+			assert.Equal(t, testCase.ExpectedImages, th.App.getImages(th.Context, testCase.Input))
 		})
 	}
 }
@@ -2749,6 +2811,107 @@ func TestGetLinkMetadata(t *testing.T) {
 
 		_, _, _, err := th.App.getLinkMetadata(th.Context, requestURL, timestamp, true, "")
 		assert.Error(t, err)
+	})
+
+	t.Run("from cache", func(t *testing.T) {
+		testURL := "https://example.com/test"
+		testTimestamp := int64(1640995200000) // 2022-01-01 00:00:00 UTC
+
+		setup := func(t *testing.T) {
+			err := platform.PurgeLinkCache()
+			require.NoError(t, err)
+		}
+
+		assertCached := func(t *testing.T, url string, expectedOG *opengraph.OpenGraph, expectedImage *model.PostImage, expectedPermalink *model.Permalink) {
+			og, image, permalink, found := getLinkMetadataFromCache(url, testTimestamp)
+			assert.True(t, found)
+			assert.Equal(t, expectedOG, og)
+			assert.Equal(t, expectedImage, image)
+			assert.Equal(t, expectedPermalink, permalink)
+		}
+
+		assertNotCached := func(t *testing.T, url string) {
+			og, image, permalink, found := getLinkMetadataFromCache(url, testTimestamp)
+			assert.False(t, found)
+			assert.Nil(t, og)
+			assert.Nil(t, image)
+			assert.Nil(t, permalink)
+		}
+
+		t.Run("should return false when cache is empty", func(t *testing.T) {
+			setup(t)
+			assertNotCached(t, testURL)
+		})
+
+		t.Run("should return cached data when URL matches", func(t *testing.T) {
+			setup(t)
+			expectedOG := &opengraph.OpenGraph{
+				Title: "Test Title",
+				URL:   testURL,
+			}
+			expectedImage := &model.PostImage{
+				Width:  100,
+				Height: 200,
+			}
+			expectedPermalink := &model.Permalink{
+				PreviewPost: &model.PreviewPost{
+					PostID: "test-post-id",
+				},
+			}
+
+			ctx := request.TestContext(t)
+			cacheLinkMetadata(ctx, testURL, testTimestamp, expectedOG, expectedImage, expectedPermalink)
+
+			assertCached(t, testURL, expectedOG, expectedImage, expectedPermalink)
+		})
+
+		t.Run("should return false when different url not cached", func(t *testing.T) {
+			setup(t)
+
+			cachedURL := "https://example.com/cached"
+			requestedURL := "https://example.com/different"
+
+			expectedOG := &opengraph.OpenGraph{
+				Title: "Cached Title",
+				URL:   cachedURL,
+			}
+			ctx := request.TestContext(t)
+			cacheLinkMetadata(ctx, cachedURL, testTimestamp, expectedOG, nil, nil)
+
+			assertNotCached(t, requestedURL)
+		})
+
+		t.Run("should return false when different url not cached, even if hash collides with a cached url", func(t *testing.T) {
+			setup(t)
+
+			url1 := "http://test.com/w4xg6hpvomau9j5iz371"
+			url2 := "http://collision.comupio5zw28x1m36c"
+
+			hash1 := model.GenerateLinkMetadataHash(url1, testTimestamp)
+			hash2 := model.GenerateLinkMetadataHash(url2, testTimestamp)
+			assert.Equal(t, hash1, hash2, "URLs should have colliding hashes")
+
+			og1 := &opengraph.OpenGraph{
+				Title: "First URL Title",
+				URL:   url1,
+			}
+			ctx := request.TestContext(t)
+			cacheLinkMetadata(ctx, url1, testTimestamp, og1, nil, nil)
+
+			assertCached(t, url1, og1, nil, nil)
+			assertNotCached(t, url2)
+		})
+
+		t.Run("should handle cached nil values correctly", func(t *testing.T) {
+			setup(t)
+
+			nilURL := "https://example.com/nil-test"
+
+			ctx := request.TestContext(t)
+			cacheLinkMetadata(ctx, nilURL, testTimestamp, nil, nil, nil)
+
+			assertCached(t, nilURL, nil, nil, nil)
+		})
 	})
 }
 
@@ -3347,109 +3510,6 @@ func TestSanitizePostMetadataForUser(t *testing.T) {
 	})
 }
 
-func TestGetLinkMetadataFromCache(t *testing.T) {
-	mainHelper.Parallel(t)
-
-	testURL := "https://example.com/test"
-	testTimestamp := int64(1640995200000) // 2022-01-01 00:00:00 UTC
-
-	setup := func(t *testing.T) {
-		err := platform.PurgeLinkCache()
-		require.NoError(t, err)
-	}
-
-	assertCached := func(t *testing.T, url string, expectedOG *opengraph.OpenGraph, expectedImage *model.PostImage, expectedPermalink *model.Permalink) {
-		og, image, permalink, found := getLinkMetadataFromCache(url, testTimestamp)
-		assert.True(t, found)
-		assert.Equal(t, expectedOG, og)
-		assert.Equal(t, expectedImage, image)
-		assert.Equal(t, expectedPermalink, permalink)
-	}
-
-	assertNotCached := func(t *testing.T, url string) {
-		og, image, permalink, found := getLinkMetadataFromCache(url, testTimestamp)
-		assert.False(t, found)
-		assert.Nil(t, og)
-		assert.Nil(t, image)
-		assert.Nil(t, permalink)
-	}
-
-	t.Run("should return false when cache is empty", func(t *testing.T) {
-		setup(t)
-		assertNotCached(t, testURL)
-	})
-
-	t.Run("should return cached data when URL matches", func(t *testing.T) {
-		setup(t)
-		expectedOG := &opengraph.OpenGraph{
-			Title: "Test Title",
-			URL:   testURL,
-		}
-		expectedImage := &model.PostImage{
-			Width:  100,
-			Height: 200,
-		}
-		expectedPermalink := &model.Permalink{
-			PreviewPost: &model.PreviewPost{
-				PostID: "test-post-id",
-			},
-		}
-
-		ctx := request.TestContext(t)
-		cacheLinkMetadata(ctx, testURL, testTimestamp, expectedOG, expectedImage, expectedPermalink)
-
-		assertCached(t, testURL, expectedOG, expectedImage, expectedPermalink)
-	})
-
-	t.Run("should return false when different url not cached", func(t *testing.T) {
-		setup(t)
-
-		cachedURL := "https://example.com/cached"
-		requestedURL := "https://example.com/different"
-
-		expectedOG := &opengraph.OpenGraph{
-			Title: "Cached Title",
-			URL:   cachedURL,
-		}
-		ctx := request.TestContext(t)
-		cacheLinkMetadata(ctx, cachedURL, testTimestamp, expectedOG, nil, nil)
-
-		assertNotCached(t, requestedURL)
-	})
-
-	t.Run("should return false when different url not cached, even if hash collides with a cached url", func(t *testing.T) {
-		setup(t)
-
-		url1 := "http://test.com/w4xg6hpvomau9j5iz371"
-		url2 := "http://collision.comupio5zw28x1m36c"
-
-		hash1 := model.GenerateLinkMetadataHash(url1, testTimestamp)
-		hash2 := model.GenerateLinkMetadataHash(url2, testTimestamp)
-		assert.Equal(t, hash1, hash2, "URLs should have colliding hashes")
-
-		og1 := &opengraph.OpenGraph{
-			Title: "First URL Title",
-			URL:   url1,
-		}
-		ctx := request.TestContext(t)
-		cacheLinkMetadata(ctx, url1, testTimestamp, og1, nil, nil)
-
-		assertCached(t, url1, og1, nil, nil)
-		assertNotCached(t, url2)
-	})
-
-	t.Run("should handle cached nil values correctly", func(t *testing.T) {
-		setup(t)
-
-		nilURL := "https://example.com/nil-test"
-
-		ctx := request.TestContext(t)
-		cacheLinkMetadata(ctx, nilURL, testTimestamp, nil, nil, nil)
-
-		assertCached(t, nilURL, nil, nil, nil)
-	})
-}
-
 func TestPreparePostForClient_BurnOnReadSenderExpireAt(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
@@ -3614,6 +3674,97 @@ func TestSanitizeChannelMentionsForUser(t *testing.T) {
 		// Should have current display name from database, not stale data
 		require.Equal(t, th.BasicChannel.DisplayName, channelData["display_name"])
 	})
+
+	t.Run("retains same-team public channel mention for non-channel-member under compliance", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ComplianceSettings.Enable = model.NewPointer(true)
+		})
+
+		// BasicUser2 is a member of BasicTeam (via InitBasic) but NOT of this fresh channel.
+		ch := th.CreateChannel(t, th.BasicTeam)
+
+		post := &model.Post{
+			Message: "Check ~" + ch.Name,
+		}
+		post.AddProp(model.PostPropsChannelMentions, map[string]any{
+			ch.Name: map[string]any{
+				"display_name": ch.DisplayName,
+				"team_name":    th.BasicTeam.Name,
+			},
+		})
+
+		result, _, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser2.Id)
+		require.Nil(t, err)
+		require.NotNil(t, result)
+
+		mentions := result.GetProp(model.PostPropsChannelMentions)
+		require.NotNil(t, mentions)
+		mentionsMap, ok := mentions.(map[string]any)
+		require.True(t, ok)
+		require.Contains(t, mentionsMap, ch.Name)
+	})
+
+	t.Run("strips cross-team public channel mention for non-member regardless of compliance", func(t *testing.T) {
+		for _, compliance := range []bool{true, false} {
+			t.Run(fmt.Sprintf("compliance=%t", compliance), func(t *testing.T) {
+				th := Setup(t).InitBasic(t)
+
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					cfg.ComplianceSettings.Enable = model.NewPointer(compliance)
+				})
+
+				team2 := th.CreateTeam(t)
+				ch := th.CreateChannel(t, team2)
+
+				post := &model.Post{
+					Message: "Check ~" + ch.Name,
+				}
+				post.AddProp(model.PostPropsChannelMentions, map[string]any{
+					ch.Name: map[string]any{
+						"display_name": ch.DisplayName,
+						"team_name":    team2.Name,
+					},
+				})
+
+				result, _, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser2.Id)
+				require.Nil(t, err)
+				require.NotNil(t, result)
+				require.Nil(t, result.GetProp(model.PostPropsChannelMentions))
+			})
+		}
+	})
+
+	t.Run("strips private channel mention for non-member regardless of compliance", func(t *testing.T) {
+		for _, compliance := range []bool{true, false} {
+			t.Run(fmt.Sprintf("compliance=%t", compliance), func(t *testing.T) {
+				th := Setup(t).InitBasic(t)
+
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					cfg.ComplianceSettings.Enable = model.NewPointer(compliance)
+				})
+
+				priv := th.CreatePrivateChannel(t, th.BasicTeam)
+				_ = th.App.RemoveUserFromChannel(th.Context, th.BasicUser2.Id, "", priv)
+
+				post := &model.Post{
+					Message: "Check ~" + priv.Name,
+				}
+				post.AddProp(model.PostPropsChannelMentions, map[string]any{
+					priv.Name: map[string]any{
+						"display_name": priv.DisplayName,
+						"team_name":    th.BasicTeam.Name,
+					},
+				})
+
+				result, _, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser2.Id)
+				require.Nil(t, err)
+				require.NotNil(t, result)
+				require.Nil(t, result.GetProp(model.PostPropsChannelMentions))
+			})
+		}
+	})
 }
 
 func TestFillInPostPropsWithCurrentTeamId(t *testing.T) {
@@ -3679,6 +3830,31 @@ func TestFillInPostPropsWithCurrentTeamId(t *testing.T) {
 		require.Equal(t, channel2.DisplayName, channelData["display_name"])
 		require.Equal(t, team2.Name, channelData["team_name"])
 		require.NotEqual(t, channel1.DisplayName, channelData["display_name"]) // Should NOT be from team1
+	})
+
+	t.Run("omits channel mentions from interactive blocks when mmBlocksEnabled is false", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		th.ConfigStore.SetReadOnlyFF(false)
+		defer th.ConfigStore.SetReadOnlyFF(true)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.MmBlocksEnabled = false })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.MmBlocksEnabled = true })
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "plain text only",
+			Props: model.StringInterface{
+				model.PostPropsMmBlocks: []any{
+					map[string]any{"type": "text", "text": "see ~off-topic in blocks"},
+				},
+			},
+		}
+
+		appErr := th.App.FillInPostProps(th.Context, post, th.BasicChannel)
+		require.Nil(t, appErr)
+		assert.Nil(t, post.GetProp(model.PostPropsChannelMentions))
 	})
 
 	t.Run("uses channel team_id for regular channels, ignores current_team_id", func(t *testing.T) {

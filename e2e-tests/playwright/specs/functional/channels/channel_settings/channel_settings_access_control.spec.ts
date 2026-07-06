@@ -22,6 +22,8 @@ import {
     waitForAttributeViewToInclude,
 } from '../team_settings/helpers';
 
+import {waitForJobCompletion} from './helpers';
+
 /** Unique CPA value so only users this test sets match the rule (avoids clashing with leftover Engineering users on the server). */
 function uniqueDepartmentValue(testId: string): string {
     return `E2E-${testId}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -556,5 +558,113 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
         await confirmModal.waitFor({state: 'hidden', timeout: 10000});
 
         await channelSettings.close();
+    });
+
+    test('MM-67326_c14 Applying access rules removes non-matching member from channel and RHS members', async ({
+        pw,
+    }) => {
+        await pw.skipIfNoLicense();
+        const {adminUser, adminClient, team} = await pw.initSetup();
+        await enableABACConfig(adminClient);
+        await ensureDepartmentAttribute(adminClient);
+
+        const departmentValue = uniqueDepartmentValue('c14');
+
+        // # Admin satisfies the rule
+        await setUserAttribute(adminClient, adminUser.id, 'Department', departmentValue);
+
+        const channel = await createPrivateChannel(adminClient, team.id);
+
+        // # Existing member does not satisfy the rule and should be removed when it is applied
+        const memberToRemove = await createTeamAdmin(adminClient, team.id);
+        await setUserAttribute(adminClient, memberToRemove.id, 'Department', `${departmentValue}-other`);
+        await adminClient.addToChannel(memberToRemove.id, channel.id);
+
+        // See c9: wait for the materialized AttributeView to surface the admin's
+        // freshly-written CPA value before clicking Save.
+        await waitForAttributeViewToInclude(adminClient, `user.attributes.Department == "${departmentValue}"`, [
+            adminUser.id,
+        ]);
+
+        const {page} = await pw.testBrowser.login(adminUser);
+        const channelsPage = new ChannelsPage(page);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
+
+        const channelSettings = await channelsPage.openChannelSettings();
+
+        // # Navigate to Access Control tab
+        await channelSettings.container.getByTestId('access_rules-tab-button').click();
+
+        const tab = channelSettings.container.locator('.ChannelSettingsModal__accessRulesTab');
+        await expect(tab).toBeVisible({timeout: 10000});
+
+        // # Add rule (unique value -> only admin remains allowed in the private channel)
+        await addAttributeRule(tab, page, departmentValue);
+
+        // # Click Save - confirmation modal appears because memberToRemove will be removed
+        const saveBtn = tab.locator('[data-testid="SaveChangesPanel__save-btn"]');
+        await expect(saveBtn).toBeEnabled({timeout: 10000});
+        await saveBtn.click();
+
+        const confirmModal = page.locator('#channel-access-rules-confirm-modal');
+        await confirmModal.waitFor({state: 'visible', timeout: 30000});
+
+        // * Summary message shows 0 users added and 1 member removed
+        await expect(confirmModal).toContainText('remove 1 current channel member');
+
+        // # Confirm and wait for the access-control sync job that applies the removal
+        const [syncJobResponse] = await Promise.all([
+            page.waitForResponse(
+                (response) => response.url().includes('/api/v4/jobs') && response.request().method() === 'POST',
+                {timeout: 10000},
+            ),
+            confirmModal.getByRole('button', {name: 'Save'}).click(),
+        ]);
+        await confirmModal.waitFor({state: 'hidden', timeout: 15000});
+
+        if (!syncJobResponse.ok()) {
+            throw new Error(`Failed to create access-control sync job: ${syncJobResponse.status()}`);
+        }
+        const syncJob = await syncJobResponse.json();
+        const syncJobId = syncJob.id as string;
+        const finished = await waitForJobCompletion(adminClient, syncJobId, {timeoutMs: 90_000});
+        expect(finished.status, `sync job did not succeed: ${JSON.stringify(finished)}`).toBe('success');
+
+        // * Poll until memberToRemove is no longer a channel member
+        await expect
+            .poll(
+                async () => {
+                    try {
+                        await adminClient.getChannelMember(channel.id, memberToRemove.id);
+                        return true;
+                    } catch {
+                        return false;
+                    }
+                },
+                {
+                    timeout: 15000,
+                    intervals: [500, 1000, 1000, 2000],
+                    message: `${memberToRemove.username} should be removed from the channel`,
+                },
+            )
+            .toBe(false);
+
+        await channelSettings.close();
+
+        // * The ABAC removal system message is the last visible post in the channel
+        await channelsPage.centerView.waitUntilLastPostContains('was removed from the channel', 30000);
+        const lastPost = await channelsPage.getLastPost();
+        await expect(lastPost.container).toContainText(memberToRemove.username);
+        await expect(lastPost.container).toContainText('was removed from the channel');
+
+        // # Open channel members RHS from the affected channel
+        await channelsPage.centerView.header.openChannelMenu();
+        await page.locator('#channelMembers').click();
+        await channelsPage.sidebarRight.toBeVisible();
+
+        // * Admin remains in the RHS members list, and removed member is absent
+        await expect(page.getByTestId(`memberline-${adminUser.id}`)).toBeVisible({timeout: 10000});
+        await expect(page.getByTestId(`memberline-${memberToRemove.id}`)).not.toBeVisible();
     });
 });

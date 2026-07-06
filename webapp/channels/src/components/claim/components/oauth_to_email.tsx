@@ -10,7 +10,7 @@ import type {AuthChangeResponse} from '@mattermost/types/users';
 
 import type {PasswordConfig} from 'mattermost-redux/selectors/entities/general';
 
-import {oauthToEmail} from 'actions/admin_actions.jsx';
+import {oauthToEmail} from 'actions/admin_actions';
 
 import Constants from 'utils/constants';
 import {isValidPassword} from 'utils/password';
@@ -19,11 +19,11 @@ import {toTitleCase} from 'utils/utils';
 import ErrorLabel from './error_label';
 
 type Props = {
-    currentType: string | null;
-    email: string | null;
+    currentType: string;
+    email: string;
     siteName?: string;
     passwordConfig?: PasswordConfig;
-}
+};
 
 const OAuthToEmail = (props: Props) => {
     const intl = useIntl();

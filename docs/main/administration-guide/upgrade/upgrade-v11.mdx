@@ -1,0 +1,44 @@
+---
+title: Upgrade Guide v11
+sidebar_position: 20
+description: Operator-facing upgrade procedure for moving a Mattermost cluster to v11.
+slug: /upgrade-guide/upgrade-v11
+---
+
+<EditionAvailability tiers="free,professional,enterprise,enterprise-advanced" />
+<DeploymentAvailability modes="self-hosted,air-gapped" />
+
+# Upgrade Guide v11
+
+Per-major-version upgrade guides give operators a single canonical procedure for moving a Mattermost cluster to that major version. They are paired with the corresponding [What's New in v11](../../product-overview/whats-new-in-v11.mdx) page (release-management facing) — both share the same source-of-truth for breaking changes, but this page focuses on the operator runbook.
+
+URL convention: `/upgrade-guide/upgrade-v{X.Y}/` (Grafana pattern). Predictable, deep-linkable, per-version.
+
+:::note Status
+This page is a stub seeded by the IA redesign Phase 1 (see `docs/_redesign/proposed-ia.md` §6 in the repo). Content authored by the release-management + technical-writing team.
+:::
+
+## Before you upgrade
+
+- Confirm the source version is within the supported upgrade matrix. See [Important Upgrade Notes](./important-upgrade-notes.mdx) for non-sequential upgrade paths.
+- Read [Prepare to Upgrade Mattermost](./prepare-to-upgrade-mattermost.mdx).
+- For air-gapped deployments, stage the v11 release artifacts following [Air-Gapped Quick-Start Runbook](../../deployment-guide/air-gapped-operations/quick-start-runbook) steps 1–3.
+
+## Procedure
+
+*Per-release, version-specific procedure authored by release-management team.*
+
+## Validation
+
+*Post-upgrade verification checklist.*
+
+## Rollback
+
+*Documented rollback procedure for this version, if any. See [Downgrading Mattermost Server](./downgrading-mattermost-server.mdx) for cross-version downgrade guidance.*
+
+## Related
+
+- [What's New in v11](../../product-overview/whats-new-in-v11.mdx) — feature and behavior changes.
+- [v11 Changelog](../../product-overview/mattermost-v11-changelog.mdx) — commit-level release notes.
+- [Important Upgrade Notes](./important-upgrade-notes.mdx) — version-by-version notes for non-sequential upgrades.
+- [Upgrading Mattermost Server](./upgrading-mattermost-server.mdx) — general upgrade procedure (cross-version).

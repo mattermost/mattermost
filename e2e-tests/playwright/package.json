@@ -34,19 +34,21 @@
     "@mattermost/types": "file:../../webapp/platform/types"
   },
   "devDependencies": {
-    "@playwright/test": "1.59.1",
-    "@types/luxon": "3.7.1",
-    "@typescript-eslint/eslint-plugin": "8.58.1",
+    "@mattermost/eslint-plugin": "file:../../webapp/platform/eslint-plugin",
+    "@playwright/test": "1.61.1",
+    "@types/luxon": "3.7.2",
+    "@types/pg": "8.20.0",
+    "@typescript-eslint/eslint-plugin": "8.62.0",
     "cross-env": "10.1.0",
-    "dayjs": "1.11.20",
-    "eslint": "9.39.2",
-    "eslint-import-resolver-typescript": "4.4.4",
-    "eslint-plugin-header": "3.1.1",
-    "eslint-plugin-import": "2.32.0",
+    "dayjs": "1.11.21",
+    "eslint": "9.39.4",
+    "eslint-import-resolver-typescript": "4.4.5",
+    "globals": "17.7.0",
     "glob": "13.0.6",
     "luxon": "3.7.2",
-    "prettier": "3.8.2",
-    "typescript": "6.0.2",
-    "zod": "4.3.6"
+    "pg": "8.22.0",
+    "prettier": "3.9.1",
+    "typescript": "6.0.3",
+    "zod": "4.4.3"
   }
 }

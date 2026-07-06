@@ -5,6 +5,8 @@ package sharedchannel
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"slices"
 	"time"
@@ -430,6 +432,13 @@ func (scs *Service) processTask(task syncTask) error {
 	} else {
 		rc, err := scs.server.GetStore().RemoteCluster().Get(task.remoteID, false)
 		if err != nil {
+			// The remote cluster has been deleted or no longer exists; there is
+			// nothing to sync, so drop the task rather than retrying and logging
+			// an error on every change for the orphaned reference.
+			if errors.Is(err, sql.ErrNoRows) {
+				scs.selfHealOrphanedSharedChannelRemote(task.channelID, task.remoteID)
+				return nil
+			}
 			return err
 		}
 		if !rc.IsOnline() {
@@ -455,6 +464,51 @@ func (scs *Service) processTask(task syncTask) error {
 		}
 	}
 	return nil
+}
+
+// selfHealOrphanedSharedChannelRemote handles a SharedChannelRemote row that still
+// references a RemoteCluster which has been soft-deleted or removed. Left alone, the
+// live SCR row (DeleteAt = 0) keeps getting picked up by the sync loop, spamming a log
+// entry on every tick. Soft-deleting the orphaned SCR row stops the recurrence without
+// requiring manual DB intervention.
+func (scs *Service) selfHealOrphanedSharedChannelRemote(channelID, remoteID string) {
+	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(channelID, remoteID)
+	if err != nil {
+		// The SCR row is already gone (or unreadable); nothing left to self-heal.
+		scs.server.Log().Warn("Skipping sync for deleted remote cluster",
+			mlog.String("channelId", channelID),
+			mlog.String("remoteId", remoteID),
+			mlog.Err(err),
+		)
+		return
+	}
+
+	if scr.DeleteAt != 0 {
+		// The SCR row is already soft-deleted, so there is nothing to heal. A deleted
+		// remote no longer syncing is the expected steady state, so this is logged at
+		// debug rather than warn to avoid noise.
+		scs.server.Log().Debug("Skipping sync for deleted remote cluster",
+			mlog.String("channelId", channelID),
+			mlog.String("remoteId", remoteID),
+		)
+		return
+	}
+
+	if _, err := scs.server.GetStore().SharedChannel().DeleteRemote(scr.Id); err != nil {
+		scs.server.Log().Warn("Failed to self-heal orphaned shared channel remote for deleted remote cluster",
+			mlog.String("channelId", channelID),
+			mlog.String("remoteId", remoteID),
+			mlog.String("sharedChannelRemoteId", scr.Id),
+			mlog.Err(err),
+		)
+		return
+	}
+
+	scs.server.Log().Warn("Self-healed orphaned shared channel remote for deleted remote cluster",
+		mlog.String("channelId", channelID),
+		mlog.String("remoteId", remoteID),
+		mlog.String("sharedChannelRemoteId", scr.Id),
+	)
 }
 
 func (scs *Service) handlePostError(postId string, task syncTask, rc *model.RemoteCluster) {

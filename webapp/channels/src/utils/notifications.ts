@@ -9,7 +9,7 @@ export type NotificationResult = {
     status: 'error' | 'not_sent' | 'success' | 'unsupported';
     reason?: string;
     data?: string;
-}
+};
 
 let requestedNotificationPermission = Boolean('Notification' in window && Notification.permission !== 'default');
 
@@ -114,7 +114,7 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
     try {
         const notificationPermission = await Notification.requestPermission();
         return notificationPermission;
-    } catch (error) {
+    } catch {
         return null;
     }
 }

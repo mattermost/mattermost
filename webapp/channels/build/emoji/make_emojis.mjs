@@ -213,7 +213,7 @@ fullEmoji.forEach((emoji) => {
 // add built-in custom emojis
 fullEmoji.push({
     id: 'mattermost',
-    name: 'Mattermost',
+    name: 'mattermost',
     unified: '',
     image: 'mattermost.png',
     short_name: 'mattermost',

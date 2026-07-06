@@ -1,4 +1,4 @@
-/* eslint-disable header/header */
+/* eslint-disable headers/header-format */
 
 // taken from https://github.com/guilryder/chrome-extensions/tree/master/xframe_ignore
 

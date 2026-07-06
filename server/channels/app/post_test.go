@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -712,6 +713,160 @@ func TestPostChannelMentions(t *testing.T) {
 	require.True(t, isMemberForPreviews)
 	require.Nil(t, err)
 	assert.Nil(t, result.GetProp(model.PostPropsChannelMentions))
+}
+
+// TestFillInPostPropsChannelMentionResolution locks in the author-side persistence of the
+// channel_mentions prop after FillInPostProps switched from HasPermissionToReadChannel to
+// HasPermissionToResolveChannelMention. The post author is the subject of every case.
+func TestFillInPostPropsChannelMentionResolution(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// Author is a member of BasicTeam (and BasicChannel) but NOT of the referenced channels below.
+	author := th.BasicUser
+	postChannel := th.BasicChannel
+
+	// Public channel on the author's team where the author is NOT a member.
+	// Created with membership=false so the creator is not added as a member.
+	publicNonMember, err := th.App.CreateChannel(th.Context, &model.Channel{
+		DisplayName: "Public Non-Member",
+		Name:        "public-non-member-" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+		TeamId:      th.BasicTeam.Id,
+	}, false)
+	require.Nil(t, err)
+
+	// Private channel on the author's team where the author is NOT a member.
+	privateNonMember, err := th.App.CreateChannel(th.Context, &model.Channel{
+		DisplayName: "Private Non-Member",
+		Name:        "private-non-member-" + model.NewId(),
+		Type:        model.ChannelTypePrivate,
+		TeamId:      th.BasicTeam.Id,
+	}, false)
+	require.Nil(t, err)
+
+	// Public channel on the author's team where the author IS a member.
+	publicMember, err := th.App.CreateChannel(th.Context, &model.Channel{
+		DisplayName: "Public Member",
+		Name:        "public-member-" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+		TeamId:      th.BasicTeam.Id,
+	}, false)
+	require.Nil(t, err)
+	_, err = th.App.AddUserToChannel(th.Context, author, publicMember, false)
+	require.Nil(t, err)
+
+	// A second team the author does NOT belong to, with a public channel on it. The post used for
+	// the cross-team case lives on this team so that GetChannelsByNames (scoped to the post's team)
+	// actually resolves the channel and the permission check is what drops it.
+	otherTeam := th.CreateTeam(t)
+	otherTeamPublic, err := th.App.CreateChannel(th.Context, &model.Channel{
+		DisplayName: "Other Team Public",
+		Name:        "other-team-public-" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+		TeamId:      otherTeam.Id,
+	}, false)
+	require.Nil(t, err)
+	otherTeamPostChannel, err := th.App.CreateChannel(th.Context, &model.Channel{
+		DisplayName: "Other Team Post Channel",
+		Name:        "other-team-post-" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+		TeamId:      otherTeam.Id,
+	}, false)
+	require.Nil(t, err)
+
+	setCompliance := func(enabled bool) {
+		th.App.UpdateConfig(func(c *model.Config) {
+			c.ComplianceSettings.Enable = model.NewPointer(enabled)
+		})
+	}
+
+	// resolve runs FillInPostProps for a post authored by `author` mentioning the given channels in
+	// `inChannel`, and returns the persisted channel_mentions map (or nil).
+	resolve := func(t *testing.T, inChannel *model.Channel, mentioned ...*model.Channel) map[string]any {
+		t.Helper()
+		var builder strings.Builder
+		builder.WriteString("hello")
+		for _, m := range mentioned {
+			fmt.Fprintf(&builder, " ~%s", m.Name)
+		}
+		message := builder.String()
+		post := &model.Post{
+			Message:   message,
+			ChannelId: inChannel.Id,
+			UserId:    author.Id,
+		}
+		appErr := th.App.FillInPostProps(th.Context, post, inChannel)
+		require.Nil(t, appErr)
+
+		prop := post.GetProp(model.PostPropsChannelMentions)
+		if prop == nil {
+			return nil
+		}
+		mentions, ok := prop.(map[string]any)
+		require.True(t, ok)
+		return mentions
+	}
+
+	assertResolved := func(t *testing.T, mentions map[string]any, channel *model.Channel, teamName string) {
+		t.Helper()
+		require.Contains(t, mentions, channel.Name)
+		entry, ok := mentions[channel.Name].(map[string]any)
+		require.True(t, ok)
+		assert.Equal(t, channel.DisplayName, entry["display_name"])
+		assert.Equal(t, teamName, entry["team_name"])
+	}
+
+	t.Run("public channel, author is a team member but not a channel member, compliance ON => persisted", func(t *testing.T) {
+		setCompliance(true)
+		defer setCompliance(false)
+
+		mentions := resolve(t, postChannel, publicNonMember)
+		require.NotNil(t, mentions, "channel_mentions prop must be persisted under compliance")
+		assertResolved(t, mentions, publicNonMember, th.BasicTeam.Name)
+	})
+
+	t.Run("public channel, author is a team member but not a channel member, compliance OFF => persisted", func(t *testing.T) {
+		setCompliance(false)
+
+		mentions := resolve(t, postChannel, publicNonMember)
+		require.NotNil(t, mentions)
+		assertResolved(t, mentions, publicNonMember, th.BasicTeam.Name)
+	})
+
+	t.Run("public channel on a team the author does not belong to => not persisted", func(t *testing.T) {
+		setCompliance(false)
+
+		mentions := resolve(t, otherTeamPostChannel, otherTeamPublic)
+		assert.Nil(t, mentions)
+	})
+
+	t.Run("private channel the author is not a member of => not persisted", func(t *testing.T) {
+		setCompliance(false)
+
+		mentions := resolve(t, postChannel, privateNonMember)
+		assert.Nil(t, mentions)
+	})
+
+	t.Run("channel the author is a member of => persisted", func(t *testing.T) {
+		setCompliance(true)
+		defer setCompliance(false)
+
+		mentions := resolve(t, postChannel, publicMember)
+		require.NotNil(t, mentions)
+		assertResolved(t, mentions, publicMember, th.BasicTeam.Name)
+	})
+
+	t.Run("mixed mentions resolve per-channel boundary", func(t *testing.T) {
+		setCompliance(true)
+		defer setCompliance(false)
+
+		mentions := resolve(t, postChannel, publicNonMember, privateNonMember, publicMember)
+		require.NotNil(t, mentions)
+		assertResolved(t, mentions, publicNonMember, th.BasicTeam.Name)
+		assertResolved(t, mentions, publicMember, th.BasicTeam.Name)
+		assert.NotContains(t, mentions, privateNonMember.Name)
+	})
 }
 
 func TestImageProxy(t *testing.T) {

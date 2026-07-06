@@ -179,3 +179,11 @@ docker-compose.override.yaml
 server/prev-report.xml
 server/prev-gotestsum.json
 server/shard-*.txt
+
+# Docusaurus docs site (docs/)
+docs/site/build/
+docs/site/.docusaurus/
+docs/site/node_modules/
+docs/api/reference/
+docs/pdf/build/
+docs/pdf/node_modules/

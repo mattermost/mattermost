@@ -24,6 +24,9 @@ export class TestConfig {
     snapshotEnabled: boolean;
     percyEnabled: boolean;
 
+    /** Base URL of the Cypress/Playwright webhook sidecar (`e2e-tests/cypress`: `npm run start:webhook`). */
+    webhookBaseUrl: string;
+
     constructor() {
         // Server
         this.baseURL = process.env.PW_BASE_URL || 'http://localhost:8065';
@@ -40,7 +43,7 @@ export class TestConfig {
         this.pushNotificationServer = process.env.PW_PUSH_NOTIFICATION_SERVER || 'https://push-test.mattermost.com';
         this.resetBeforeTest = parseBool(process.env.PW_RESET_BEFORE_TEST, false);
         // CI
-        this.isCI = !!process.env.CI;
+        this.isCI = Boolean(process.env.CI);
         // Playwright
         this.headless = parseBool(process.env.PW_HEADLESS, true);
         this.slowMo = parseNumber(process.env.PW_SLOWMO, 0);
@@ -48,6 +51,7 @@ export class TestConfig {
         // Visual tests
         this.snapshotEnabled = parseBool(process.env.PW_SNAPSHOT_ENABLE, false);
         this.percyEnabled = parseBool(process.env.PW_PERCY_ENABLE, false);
+        this.webhookBaseUrl = process.env.PW_WEBHOOK_BASE_URL || 'http://localhost:3000';
     }
 }
 

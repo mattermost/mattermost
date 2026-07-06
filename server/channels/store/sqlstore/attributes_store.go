@@ -39,6 +39,17 @@ func attributesSliceColumns(prefix ...string) []string {
 	}
 }
 
+// qualify prefixes each column with the given table name. The members-to-remove
+// queries join Users, whose columns (Roles, DeleteAt, CreateAt) collide with the
+// member columns, so the member SELECT must be table-qualified to stay unambiguous.
+func qualify(table string, columns []string) []string {
+	qualified := make([]string, len(columns))
+	for i, c := range columns {
+		qualified[i] = table + "." + c
+	}
+	return qualified
+}
+
 func newSqlAttributesStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.AttributesStore {
 	s := &SqlAttributesStore{
 		SqlStore: sqlStore,
@@ -136,7 +147,11 @@ func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSea
 
 	if opts.Cursor.TargetID != "" {
 		argCount++
-		query = query.Where(sq.Expr(fmt.Sprintf("TargetID > $%d", argCount), opts.Cursor.TargetID))
+		// Paginate on Users.Id (the ORDER BY column), not AttributeView.TargetID.
+		// The cursor value is a user id, and TargetID comes from a LEFT JOIN so it
+		// is NULL for users with no custom-attribute row — comparing against it
+		// silently drops those users (e.g. matches of a native-only policy).
+		query = query.Where(sq.Expr(fmt.Sprintf("Users.Id > $%d", argCount), opts.Cursor.TargetID))
 	}
 
 	searchFields := make([]string, 0, len(UserSearchTypeNames))
@@ -177,11 +192,20 @@ func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSea
 
 func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error) {
 	query := s.getQueryBuilder().
-		Select(channelMemberSliceColumns()...).From("ChannelMembers").LeftJoin("AttributeView ON ChannelMembers.UserId = AttributeView.TargetID").
+		Select(qualify("ChannelMembers", channelMemberSliceColumns())...).From("ChannelMembers").
+		// Join Users so native-attribute expressions (e.g. Users.EmailVerified)
+		// resolve here, mirroring SearchUsers on the add path.
+		LeftJoin("Users ON Users.Id = ChannelMembers.UserId").
+		LeftJoin("AttributeView ON ChannelMembers.UserId = AttributeView.TargetID").
 		OrderBy("ChannelMembers.UserId ASC")
 
 	if opts.Query != "" {
-		query = query.Where(sq.Expr(fmt.Sprintf("(NOT COALESCE((%s), FALSE) OR AttributeView.TargetID IS NULL)", opts.Query), opts.Args...))
+		// A member is removed when they do NOT satisfy the policy; a NULL result
+		// (e.g. a missing custom attribute) counts as "does not satisfy" via
+		// COALESCE. We must not additionally remove members just because they
+		// lack an AttributeView row — a native-only policy matches against the
+		// Users table, so a user with zero custom attributes can still satisfy it.
+		query = query.Where(sq.Expr(fmt.Sprintf("NOT COALESCE((%s), FALSE)", opts.Query), opts.Args...))
 	}
 
 	argCount := len(opts.Args)
@@ -208,6 +232,58 @@ func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channel
 	members := []*model.ChannelMember{}
 	if err := s.GetReplica().Select(&members, q, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find channel members with for channel id=%s", channelID)
+	}
+
+	return members, nil
+}
+
+func (s *SqlAttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID string, opts model.SubjectSearchOptions) ([]*model.TeamMember, error) {
+	query := s.getQueryBuilder().
+		Select(qualify("TeamMembers", teamMemberSliceColumns())...).From("TeamMembers").
+		// Join Users so native-attribute expressions (e.g. Users.EmailVerified)
+		// resolve here, mirroring SearchUsers on the add path.
+		LeftJoin("Users ON Users.Id = TeamMembers.UserId").
+		LeftJoin("AttributeView ON TeamMembers.UserId = AttributeView.TargetID").
+		Where("TeamMembers.DeleteAt = 0").
+		OrderBy("TeamMembers.UserId ASC")
+
+	if opts.Query != "" {
+		// A member is removed when they do NOT satisfy the policy; a NULL result
+		// (e.g. a missing custom attribute) counts as "does not satisfy" via
+		// COALESCE. We must not additionally remove members just because they
+		// lack an AttributeView row — a native-only policy matches against the
+		// Users table, so a user with zero custom attributes can still satisfy it.
+		query = query.Where(sq.Expr(fmt.Sprintf("NOT COALESCE((%s), FALSE)", opts.Query), opts.Args...))
+	}
+
+	argCount := len(opts.Args)
+
+	argCount++
+	query = query.Where(sq.Expr(fmt.Sprintf("TeamMembers.TeamId = $%d", argCount), teamID))
+
+	// An explicit limit is capped at MaxPerPage; an unset limit (0) intentionally
+	// returns every removal candidate for the team. The membership-sync caller
+	// consumes the full set in one pass, so capping an unset limit here would
+	// permanently leave members beyond the cap in a team they no longer qualify
+	// for. The result is naturally bounded by the team's membership.
+	if opts.Limit > 0 {
+		limit := min(opts.Limit, MaxPerPage)
+		query = query.Limit(uint64(limit))
+	}
+
+	if opts.Cursor.TargetID != "" {
+		argCount++
+		query = query.Where(sq.Expr(fmt.Sprintf("TeamMembers.UserId > $%d", argCount), opts.Cursor.TargetID))
+	}
+
+	q, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to build query for subjects")
+	}
+
+	members := []*model.TeamMember{}
+	if err := s.GetReplica().Select(&members, q, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to find team members for team id=%s", teamID)
 	}
 
 	return members, nil

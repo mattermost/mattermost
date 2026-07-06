@@ -3,7 +3,7 @@
 
 import debounce from 'lodash/debounce';
 import type {ChangeEvent} from 'react';
-import React, {useEffect, useCallback, useState, useRef} from 'react';
+import React, {useEffect, useMemo, useState, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
@@ -34,7 +34,7 @@ export type Props = {
     group: Group;
     hide: () => void;
     returnFocus: () => void;
-}
+};
 
 const UserGroupPopover = ({
     group,
@@ -50,7 +50,7 @@ const UserGroupPopover = ({
 
     const [searchState, setSearchState] = useState(Load.DONE);
 
-    const doSearch = useCallback(debounce(async (term) => {
+    const doSearch = useMemo(() => debounce(async (term) => {
         const res = await dispatch(searchProfiles(term, {in_group_id: group.id}));
         if (res.data) {
             setSearchState(Load.DONE);

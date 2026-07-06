@@ -23,7 +23,7 @@ export async function createUserWithAttributes(
     const user = await client.createUser(
         {
             email: `${username}@example.com`,
-            username: username,
+            username,
             password: newTestPassword(),
         } as any,
         '',

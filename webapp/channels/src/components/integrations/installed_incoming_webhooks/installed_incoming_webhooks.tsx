@@ -35,12 +35,12 @@ type Props = {
         loadIncomingHooksAndProfilesForTeam: (teamId: string, startPageNumber: number,
             pageSize: number, includeTotalCount: boolean) => Promise<ActionResult<IncomingWebhook[] | IncomingWebhooksWithCount>>;
     };
-}
+};
 
 type State = {
     page: number;
     loading: boolean;
-}
+};
 
 export default class InstalledIncomingWebhooks extends React.PureComponent<Props, State> {
     constructor(props: Props) {

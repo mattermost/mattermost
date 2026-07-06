@@ -14,6 +14,34 @@ type UserAccessTokenStore struct {
 	mock.Mock
 }
 
+// CountNonCompliantExpiry provides a mock function with given fields: maxExpiresAt
+func (_m *UserAccessTokenStore) CountNonCompliantExpiry(maxExpiresAt int64) (int64, error) {
+	ret := _m.Called(maxExpiresAt)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CountNonCompliantExpiry")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(int64) (int64, error)); ok {
+		return rf(maxExpiresAt)
+	}
+	if rf, ok := ret.Get(0).(func(int64) int64); ok {
+		r0 = rf(maxExpiresAt)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(int64) error); ok {
+		r1 = rf(maxExpiresAt)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Delete provides a mock function with given fields: tokenID
 func (_m *UserAccessTokenStore) Delete(tokenID string) error {
 	ret := _m.Called(tokenID)
@@ -78,29 +106,29 @@ func (_m *UserAccessTokenStore) DeleteByIds(tokenIDs []string) (int64, error) {
 	return r0, r1
 }
 
-// GetExpiredBefore provides a mock function with given fields: cutoff, limit
-func (_m *UserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*model.UserAccessToken, error) {
-	ret := _m.Called(cutoff, limit)
+// DeleteNonCompliantExpiry provides a mock function with given fields: maxExpiresAt, limit
+func (_m *UserAccessTokenStore) DeleteNonCompliantExpiry(maxExpiresAt int64, limit int) ([]string, error) {
+	ret := _m.Called(maxExpiresAt, limit)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetExpiredBefore")
+		panic("no return value specified for DeleteNonCompliantExpiry")
 	}
 
-	var r0 []*model.UserAccessToken
+	var r0 []string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(int64, int) ([]*model.UserAccessToken, error)); ok {
-		return rf(cutoff, limit)
+	if rf, ok := ret.Get(0).(func(int64, int) ([]string, error)); ok {
+		return rf(maxExpiresAt, limit)
 	}
-	if rf, ok := ret.Get(0).(func(int64, int) []*model.UserAccessToken); ok {
-		r0 = rf(cutoff, limit)
+	if rf, ok := ret.Get(0).(func(int64, int) []string); ok {
+		r0 = rf(maxExpiresAt, limit)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.UserAccessToken)
+			r0 = ret.Get(0).([]string)
 		}
 	}
 
 	if rf, ok := ret.Get(1).(func(int64, int) error); ok {
-		r1 = rf(cutoff, limit)
+		r1 = rf(maxExpiresAt, limit)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -221,6 +249,36 @@ func (_m *UserAccessTokenStore) GetByUser(userID string, page int, perPage int) 
 
 	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
 		r1 = rf(userID, page, perPage)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetExpiredBefore provides a mock function with given fields: cutoff, limit
+func (_m *UserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*model.UserAccessToken, error) {
+	ret := _m.Called(cutoff, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetExpiredBefore")
+	}
+
+	var r0 []*model.UserAccessToken
+	var r1 error
+	if rf, ok := ret.Get(0).(func(int64, int) ([]*model.UserAccessToken, error)); ok {
+		return rf(cutoff, limit)
+	}
+	if rf, ok := ret.Get(0).(func(int64, int) []*model.UserAccessToken); ok {
+		r0 = rf(cutoff, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.UserAccessToken)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(int64, int) error); ok {
+		r1 = rf(cutoff, limit)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -1104,6 +1104,192 @@ func TestSendPushNotifications(t *testing.T) {
 	})
 }
 
+func TestSendPushNotificationsTransportRouting(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	const (
+		standardToken = model.PushNotifyAppleReactNative + ":standardtoken"
+		voIPToken     = model.PushNotifyAppleReactNative + ":voiptoken"
+	)
+
+	for _, tc := range []struct {
+		name              string
+		deviceId          string
+		voIPDeviceId      string
+		sessionProps      map[string]string
+		transport         model.PushTransport
+		expectSent        bool
+		expectedDeviceID  string
+		expectedTransport model.PushTransport
+	}{
+		{
+			name:              "VoIP transport with VoIP token registered uses VoIP token",
+			deviceId:          standardToken,
+			voIPDeviceId:      voIPToken,
+			transport:         model.PushTransportVoIP,
+			expectSent:        true,
+			expectedDeviceID:  "voiptoken",
+			expectedTransport: model.PushTransportVoIP,
+		},
+		{
+			name:              "VoIP transport without VoIP token downgrades to standard",
+			deviceId:          standardToken,
+			voIPDeviceId:      "",
+			transport:         model.PushTransportVoIP,
+			expectSent:        true,
+			expectedDeviceID:  "standardtoken",
+			expectedTransport: model.PushTransportStandard,
+		},
+		{
+			name:         "VoIP transport with invalidated VoIP token downgrades to standard",
+			deviceId:     standardToken,
+			voIPDeviceId: voIPToken,
+			// The proxy previously reported "remove" for this VoIP token, so
+			// the session is marked. Subsequent VoIP-transport pushes must
+			// fall back to the standard alert path on the standard token.
+			sessionProps:      map[string]string{model.SessionPropLastRemovedVoIPDeviceId: voIPToken},
+			transport:         model.PushTransportVoIP,
+			expectSent:        true,
+			expectedDeviceID:  "standardtoken",
+			expectedTransport: model.PushTransportStandard,
+		},
+		{
+			name:              "standard transport ignores VoIP token even when present",
+			deviceId:          standardToken,
+			voIPDeviceId:      voIPToken,
+			transport:         model.PushTransportStandard,
+			expectSent:        true,
+			expectedDeviceID:  "standardtoken",
+			expectedTransport: model.PushTransportStandard,
+		},
+		{
+			// "Silence chat, keep ringing": iOS user turned off notifications,
+			// the standard alert token went 410 (last_removed_device_id set),
+			// but PushKit registration is independent and stays alive.
+			name:              "VoIP transport with dead standard but live VoIP uses VoIP",
+			deviceId:          standardToken,
+			voIPDeviceId:      voIPToken,
+			sessionProps:      map[string]string{model.SessionPropLastRemovedDeviceId: standardToken},
+			transport:         model.PushTransportVoIP,
+			expectSent:        true,
+			expectedDeviceID:  "voiptoken",
+			expectedTransport: model.PushTransportVoIP,
+		},
+		{
+			// Companion to "silence chat, keep ringing": a chat push must NOT
+			// fall through to the VoIP token; the user explicitly opted out.
+			name:         "standard transport with dead standard token sends nothing",
+			deviceId:     standardToken,
+			voIPDeviceId: voIPToken,
+			sessionProps: map[string]string{model.SessionPropLastRemovedDeviceId: standardToken},
+			transport:    model.PushTransportStandard,
+			expectSent:   false,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			th := Setup(t).InitBasic(t)
+
+			handler := &testPushNotificationHandler{t: t, behavior: "simple"}
+			pushServer := httptest.NewServer(http.HandlerFunc(handler.handleReq))
+			defer pushServer.Close()
+
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+			})
+
+			_, err := th.App.CreateSession(th.Context, &model.Session{
+				UserId:       th.BasicUser.Id,
+				DeviceId:     tc.deviceId,
+				VoIPDeviceId: tc.voIPDeviceId,
+				Props:        tc.sessionProps,
+				ExpiresAt:    model.GetMillis() + 100000,
+			})
+			require.Nil(t, err)
+
+			msg := &model.PushNotification{
+				Type:      model.PushTypeMessage,
+				SubType:   model.PushSubTypeCalls,
+				Transport: tc.transport,
+			}
+			appErr := th.App.sendPushNotificationToAllSessions(th.Context, msg, th.BasicUser.Id, "")
+			require.Nil(t, appErr)
+
+			if !tc.expectSent {
+				assert.Never(t, func() bool {
+					return len(handler.notifications()) > 0
+				}, 500*time.Millisecond, 10*time.Millisecond, "expected no push notifications")
+				return
+			}
+
+			require.Eventually(t, func() bool {
+				return len(handler.notifications()) == 1
+			}, 2*time.Second, 10*time.Millisecond, "expected exactly one push notification")
+
+			notifications := handler.notifications()
+			assert.Equal(t, tc.expectedDeviceID, notifications[0].DeviceId)
+			assert.Equal(t, tc.expectedTransport, notifications[0].Transport)
+		})
+	}
+}
+
+func TestSendPushNotificationsVoIPRemoveTracking(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+
+	handler := &testPushNotificationHandler{t: t, behavior: "always_remove"}
+	pushServer := httptest.NewServer(http.HandlerFunc(handler.handleReq))
+	defer pushServer.Close()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+	})
+
+	session, err := th.App.CreateSession(th.Context, &model.Session{
+		UserId:       th.BasicUser.Id,
+		DeviceId:     model.PushNotifyAppleReactNative + ":standardtoken",
+		VoIPDeviceId: model.PushNotifyAppleReactNative + ":voiptoken",
+		ExpiresAt:    model.GetMillis() + 100000,
+	})
+	require.Nil(t, err)
+
+	msg := &model.PushNotification{
+		Type:      model.PushTypeMessage,
+		SubType:   model.PushSubTypeCalls,
+		Transport: model.PushTransportVoIP,
+	}
+	appErr := th.App.sendPushNotificationToAllSessions(th.Context, msg, th.BasicUser.Id, "")
+	require.Nil(t, appErr)
+
+	require.Eventually(t, func() bool {
+		return len(handler.notifications()) == 1
+	}, 2*time.Second, 10*time.Millisecond)
+
+	// The recorded "last removed" prop should be VoIP-specific, not the standard one.
+	updated, err := th.App.GetSession(session.Token)
+	require.Nil(t, err)
+	assert.Equal(t, session.VoIPDeviceId, updated.Props[model.SessionPropLastRemovedVoIPDeviceId])
+	assert.Empty(t, updated.Props[model.SessionPropLastRemovedDeviceId], "standard remove prop must not be touched")
+
+	// Send a second VoIP push: the VoIP token is now marked removed, so the
+	// dispatch should downgrade to the standard transport and use DeviceId.
+	msg2 := &model.PushNotification{
+		Type:      model.PushTypeMessage,
+		SubType:   model.PushSubTypeCalls,
+		Transport: model.PushTransportVoIP,
+	}
+	appErr = th.App.sendPushNotificationToAllSessions(th.Context, msg2, th.BasicUser.Id, "")
+	require.Nil(t, appErr)
+
+	require.Eventually(t, func() bool {
+		return len(handler.notifications()) == 2
+	}, 2*time.Second, 10*time.Millisecond)
+
+	second := handler.notifications()[1]
+	assert.Equal(t, "standardtoken", second.DeviceId, "should have downgraded to the standard token")
+	assert.Equal(t, model.PushTransportStandard, second.Transport, "Transport should have been downgraded")
+}
+
 func TestShouldSendPushNotifications(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -1246,9 +1432,14 @@ func (h *testPushNotificationHandler) handleReq(w http.ResponseWriter, r *http.R
 		}
 
 		var resp model.PushResponse
-		if h.behavior == "simple" {
+		switch h.behavior {
+		case "simple":
 			resp = model.NewOkPushResponse()
-		} else {
+		case "fail":
+			resp = model.NewErrorPushResponse("device error")
+		case "always_remove":
+			resp = model.NewRemovePushResponse()
+		default:
 			// alternating between ok and remove response to test both code paths.
 			if h._numReqs%2 == 0 {
 				resp = model.NewOkPushResponse()
@@ -1287,7 +1478,7 @@ func TestClearPushNotificationSync(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 
-	handler := &testPushNotificationHandler{t: t}
+	handler := &testPushNotificationHandler{t: t, behavior: "simple"}
 	pushServer := httptest.NewServer(
 		http.HandlerFunc(handler.handleReq),
 	)
@@ -1519,14 +1710,14 @@ func TestAllPushNotifications(t *testing.T) {
 		u := th.CreateUser(t)
 		sess, err := th.App.CreateSession(th.Context, &model.Session{
 			UserId:    u.Id,
-			DeviceId:  "deviceID" + u.Id,
+			DeviceId:  "deviceId" + u.Id,
 			ExpiresAt: model.GetMillis() + 100000,
 		})
 		require.Nil(t, err)
 		// We don't need to track the 2nd session.
 		_, err = th.App.CreateSession(th.Context, &model.Session{
 			UserId:    u.Id,
-			DeviceId:  "deviceID" + u.Id,
+			DeviceId:  "deviceId" + u.Id,
 			ExpiresAt: model.GetMillis() + 100000,
 		})
 		require.Nil(t, err)
@@ -1754,13 +1945,13 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 		sess1 := &model.Session{
 			Id:        "id1",
 			UserId:    u.Id,
-			DeviceId:  "deviceID" + u.Id,
+			DeviceId:  "deviceId" + u.Id,
 			ExpiresAt: model.GetMillis() + 100000,
 		}
 		sess2 := &model.Session{
 			Id:        "id2",
 			UserId:    u.Id,
-			DeviceId:  "deviceID" + u.Id,
+			DeviceId:  "deviceId" + u.Id,
 			ExpiresAt: model.GetMillis() + 100000,
 		}
 		mockSessionStore.On("GetSessionsWithActiveDeviceIds", u.Id).Return([]*model.Session{sess1, sess2}, nil)

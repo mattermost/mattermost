@@ -115,14 +115,16 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 1
       - name: ci/composite-identity
         id: composite-identity
         env:
           CONTEXT_NAME: ${{ inputs.context_name }}
-          MM_SHA: ${{ inputs.commit_sha }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
           MM_BRANCH: ${{ inputs.branch }}
+          MM_SHA: ${{ inputs.commit_sha }}
           PR_NUMBER: ${{ inputs.pr_number }}
         run: |
           # Derive the test-system-io run name from the GitHub commit-status
@@ -134,7 +136,7 @@ jobs:
           NAME="${NAME//\//-}"
           if [ -n "$PR_NUMBER" ]; then
             COMPOSITE_IDENTITY=$(jq -nc \
-              --arg repo "${{ github.repository }}" \
+              --arg repo "${GITHUB_REPOSITORY}" \
               --arg sha "${MM_SHA}" \
               --arg run_id "${GITHUB_RUN_ID}" \
               --arg name "${NAME}" \
@@ -144,7 +146,7 @@ jobs:
               '{repository:$repo, commit_sha:$sha, gh_run_id:$run_id, name:$name, gh_run_attempt:$attempt, branch:$branch, gh_pr_number:$pr}')
           else
             COMPOSITE_IDENTITY=$(jq -nc \
-              --arg repo "${{ github.repository }}" \
+              --arg repo "${GITHUB_REPOSITORY}" \
               --arg sha "${MM_SHA}" \
               --arg run_id "${GITHUB_RUN_ID}" \
               --arg name "${NAME}" \
@@ -155,13 +157,15 @@ jobs:
           echo "composite-identity-json=${COMPOSITE_IDENTITY}" >> $GITHUB_OUTPUT
       - name: ci/matrix
         id: matrix
+        env:
+          INPUT_WORKERS: ${{ inputs.workers }}
         run: |
-          echo "workers=$(jq -nc --argjson n ${{ inputs.workers }} '[range(1; $n+1)]')" >> $GITHUB_OUTPUT
+          echo "workers=$(jq -nc --argjson n "${INPUT_WORKERS}" '[range(1; $n+1)]')" >> $GITHUB_OUTPUT
           echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
 
-  # Build @mattermost/client + @mattermost/types and install playwright deps once,
-  # then workers restore from cache. Playwright only consumes those two packages
-  # from webapp, so we cache just their built lib/ instead of all of webapp/node_modules.
+  # Install webapp node_modules once via the shared webapp-setup action, then
+  # workers restore the same stable cache. The node_modules cache is keyed only
+  # on webapp/package-lock.json and is shared with webapp-ci.yml jobs.
   prep-deps:
     name: prep-deps
     runs-on: ubuntu-24.04
@@ -172,34 +176,11 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 1
-      - name: ci/setup-node
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
-        with:
-          node-version-file: ".nvmrc"
-      - name: ci/cache-platform-pkgs
-        # `webapp/node_modules/@mattermost/{client,types}` are the workspace
-        # symlinks Node walks up to find when platform/client requires
-        # @mattermost/types. Without them, module resolution fails inside
-        # the slim slice.
-        id: cache-platform-pkgs
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
-        with:
-          path: |
-            webapp/node_modules/@mattermost/client
-            webapp/node_modules/@mattermost/types
-            webapp/platform/client/lib
-            webapp/platform/client/node_modules
-            webapp/platform/types/lib
-            webapp/platform/types/node_modules
-          key: e2e-platform-pkgs-${{ runner.os }}-${{ hashFiles('webapp/package-lock.json', 'webapp/platform/client/src/**', 'webapp/platform/client/tsconfig*.json', 'webapp/platform/types/src/**', 'webapp/platform/types/tsconfig*.json') }}
-      - name: ci/build-platform-pkgs
-        # Full webapp install is needed for tsc + workspace linking; the
-        # postinstall builds platform/{client,types}/lib. We only cache those.
-        if: steps.cache-platform-pkgs.outputs.cache-hit != 'true'
-        working-directory: webapp
-        run: make node_modules
+      - name: ci/setup-webapp-node-modules
+        uses: ./.github/actions/webapp-setup
       - name: ci/cache-playwright-deps
         # Caches node_modules + the rolled-up @mattermost/playwright-lib dist
         # so workers don't re-run rollup on every job.
@@ -247,6 +228,7 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 1
       - name: ci/dispatch-begin
@@ -292,6 +274,7 @@ jobs:
         # overwrites the workspace with inputs.commit_sha.
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           sparse-checkout: .github/actions
           sparse-checkout-cone-mode: true
       - name: ci/runner-prep-for-openldap
@@ -299,26 +282,13 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
-      - name: ci/setup-node
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+      - name: ci/setup-webapp-node-modules
+        uses: ./.github/actions/webapp-setup
         with:
-          node-version-file: ".nvmrc"
-      - name: ci/restore-platform-pkgs
-        # Built lib/ for @mattermost/client and @mattermost/types, plus the
-        # webapp workspace symlinks under webapp/node_modules/@mattermost/.
-        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
-        with:
-          path: |
-            webapp/node_modules/@mattermost/client
-            webapp/node_modules/@mattermost/types
-            webapp/platform/client/lib
-            webapp/platform/client/node_modules
-            webapp/platform/types/lib
-            webapp/platform/types/node_modules
-          key: e2e-platform-pkgs-${{ runner.os }}-${{ hashFiles('webapp/package-lock.json', 'webapp/platform/client/src/**', 'webapp/platform/client/tsconfig*.json', 'webapp/platform/types/src/**', 'webapp/platform/types/tsconfig*.json') }}
-          fail-on-cache-miss: true
+          read-only: "true"
       - name: ci/restore-playwright-deps
         uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
@@ -388,6 +358,8 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: ci/run-summary
         id: summary
         continue-on-error: true

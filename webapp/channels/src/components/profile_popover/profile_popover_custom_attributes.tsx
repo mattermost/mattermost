@@ -4,7 +4,7 @@
 import React, {useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import type {UserPropertyValueType} from '@mattermost/types/properties';
+import type {UserPropertyValueType} from '@mattermost/types/properties_user';
 
 import {getCustomProfileAttributeValues} from 'mattermost-redux/actions/users';
 import {getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
@@ -22,7 +22,7 @@ import ProfilePopoverUrl from './profile_popover_url';
 type Props = {
     userID: string;
     hideStatus?: boolean;
-}
+};
 const ProfilePopoverCustomAttributes = ({
     userID,
     hideStatus = false,
@@ -54,7 +54,7 @@ const ProfilePopoverCustomAttributes = ({
 
             if (!hasValue && visibility === 'when_set') {
                 return null;
-            } else if (visibility === 'when_set' && (attribute.type === 'multiselect' || attribute.type === 'select')) {
+            } else if (visibility === 'when_set' && (attribute.type === 'multiselect' || attribute.type === 'select' || attribute.type === 'rank')) {
                 const attributeValue = userProfile.custom_profile_attributes[attribute.id];
 
                 // make sure attribute contains legitimate values
@@ -87,7 +87,7 @@ const ProfilePopoverCustomAttributes = ({
                     >
                         {getUserPropertyFieldLabel(attribute)}
                     </strong>
-                    {(attribute.type === 'multiselect' || attribute.type === 'select') && (
+                    {(attribute.type === 'multiselect' || attribute.type === 'select' || attribute.type === 'rank') && (
                         <ProfilePopoverSelectAttribute
                             attribute={attribute}
                             userProfile={userProfile}

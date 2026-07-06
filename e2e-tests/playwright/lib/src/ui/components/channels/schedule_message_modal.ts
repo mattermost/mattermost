@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 export default class ScheduleMessageModal {
     readonly container: Locator;
@@ -18,8 +19,8 @@ export default class ScheduleMessageModal {
         this.timeButton = container.getByTestId('time_button');
         this.timeOptionDropdown = container.getByLabel('Choose a time');
         this.closeButton = container.getByRole('button', {name: 'Close'});
-        this.scheduleButton = container.locator('button:has-text("Schedule")');
-        this.cancelButton = container.locator('button:has-text("Cancel")');
+        this.scheduleButton = container.getByRole('button', {name: 'Schedule'});
+        this.cancelButton = container.getByRole('button', {name: 'Cancel'});
     }
 
     async toBeVisible() {
@@ -27,7 +28,9 @@ export default class ScheduleMessageModal {
     }
 
     getDaySuffix(day: number): string {
-        if (day > 3 && day < 21) return 'th';
+        if (day > 3 && day < 21) {
+            return 'th';
+        }
 
         switch (day % 10) {
             case 1:
@@ -71,7 +74,7 @@ export default class ScheduleMessageModal {
         await dateLocator.click();
 
         // Wait for the date-picker calendar to fully close before returning.
-        const calendarPopper = this.container.locator('.date-picker__popper');
+        const calendarPopper = this.container.getByTestId('date-picker-popper');
         await calendarPopper.waitFor({state: 'hidden'});
 
         // if day is single digit then prefix with a 0

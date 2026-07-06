@@ -11,7 +11,7 @@
 // Group: @channels @enterprise @saml
 // Skip:  @headless @electron @firefox // run on Chrome (headed) only
 
-import {UserCollection} from '@/support/okta_commands';
+import type {UserCollection} from '@/support/okta_commands';
 import users from '@/fixtures/saml_users.json';
 
 //Manual Setup required: Follow the instructions mentioned in the mattermost/platform-private/config/saml-okta-setup.txt file

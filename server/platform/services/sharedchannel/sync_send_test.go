@@ -4,10 +4,17 @@
 package sharedchannel
 
 import (
+	"database/sql"
+	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -16,6 +23,124 @@ func newTestService() *Service {
 		changeSignal: make(chan struct{}, 1),
 		tasks:        make(map[string]syncTask),
 	}
+}
+
+func TestProcessTask_RemoteClusterLookup(t *testing.T) {
+	// Mirror how the store wraps the not-found case for a soft-deleted/missing remote.
+	notFound := fmt.Errorf("failed to find RemoteCluster: %w", sql.ErrNoRows)
+
+	newService := func(t *testing.T, remoteID string, rc *model.RemoteCluster, getErr error) (*Service, *mocks.SharedChannelStore) {
+		t.Helper()
+
+		mockRemoteClusterStore := &mocks.RemoteClusterStore{}
+		mockRemoteClusterStore.On("Get", remoteID, false).Return(rc, getErr)
+
+		mockSharedChannelStore := &mocks.SharedChannelStore{}
+
+		mockStore := &mocks.Store{}
+		mockStore.On("RemoteCluster").Return(mockRemoteClusterStore)
+		mockStore.On("SharedChannel").Return(mockSharedChannelStore)
+
+		mockServer := &MockServerIface{}
+		mockServer.On("GetStore").Return(mockStore)
+		mockServer.On("GetMetrics").Return(nil)
+		mockServer.On("Log").Return(mlog.CreateConsoleTestLogger(t))
+
+		return &Service{
+			server:       mockServer,
+			changeSignal: make(chan struct{}, 1),
+			tasks:        make(map[string]syncTask),
+		}, mockSharedChannelStore
+	}
+
+	t.Run("orphaned remote self-heals by soft-deleting the live SCR row", func(t *testing.T) {
+		channelID := model.NewId()
+		remoteID := model.NewId()
+		scr := &model.SharedChannelRemote{Id: model.NewId(), ChannelId: channelID, RemoteId: remoteID, DeleteAt: 0}
+
+		scs, scStore := newService(t, remoteID, nil, notFound)
+		scStore.On("GetRemoteByIds", channelID, remoteID).Return(scr, nil)
+		scStore.On("DeleteRemote", scr.Id).Return(true, nil)
+
+		err := scs.processTask(newSyncTask(channelID, "", remoteID, nil, nil))
+
+		require.NoError(t, err, "an orphaned remote should be skipped, not surfaced as an error")
+		scStore.AssertNumberOfCalls(t, "DeleteRemote", 1)
+		scStore.AssertCalled(t, "DeleteRemote", scr.Id)
+	})
+
+	t.Run("self-healed orphan is drained from the sync queue and not retried", func(t *testing.T) {
+		channelID := model.NewId()
+		remoteID := model.NewId()
+		scr := &model.SharedChannelRemote{Id: model.NewId(), ChannelId: channelID, RemoteId: remoteID, DeleteAt: 0}
+
+		scs, scStore := newService(t, remoteID, nil, notFound)
+		scStore.On("GetRemoteByIds", channelID, remoteID).Return(scr, nil)
+		scStore.On("DeleteRemote", scr.Id).Return(true, nil)
+
+		task := newSyncTask(channelID, "", remoteID, nil, nil)
+		scs.addTask(task)
+
+		scs.doSync()
+
+		assert.Empty(t, scs.tasks, "the orphaned task must be drained, not re-enqueued for retry")
+		scStore.AssertNumberOfCalls(t, "DeleteRemote", 1)
+	})
+
+	t.Run("already soft-deleted SCR row is not deleted again", func(t *testing.T) {
+		channelID := model.NewId()
+		remoteID := model.NewId()
+		scr := &model.SharedChannelRemote{Id: model.NewId(), ChannelId: channelID, RemoteId: remoteID, DeleteAt: model.GetMillis()}
+
+		scs, scStore := newService(t, remoteID, nil, notFound)
+		scStore.On("GetRemoteByIds", channelID, remoteID).Return(scr, nil)
+
+		err := scs.processTask(newSyncTask(channelID, "", remoteID, nil, nil))
+
+		require.NoError(t, err)
+		scStore.AssertNotCalled(t, "DeleteRemote", mock.Anything)
+	})
+
+	t.Run("missing SCR row is skipped without error or delete", func(t *testing.T) {
+		channelID := model.NewId()
+		remoteID := model.NewId()
+
+		scs, scStore := newService(t, remoteID, nil, notFound)
+		scStore.On("GetRemoteByIds", channelID, remoteID).Return(nil, store.NewErrNotFound("SharedChannelRemote", "missing"))
+
+		err := scs.processTask(newSyncTask(channelID, "", remoteID, nil, nil))
+
+		require.NoError(t, err)
+		scStore.AssertNotCalled(t, "DeleteRemote", mock.Anything)
+	})
+
+	t.Run("failure to soft-delete the orphan is swallowed without retry", func(t *testing.T) {
+		channelID := model.NewId()
+		remoteID := model.NewId()
+		scr := &model.SharedChannelRemote{Id: model.NewId(), ChannelId: channelID, RemoteId: remoteID, DeleteAt: 0}
+
+		scs, scStore := newService(t, remoteID, nil, notFound)
+		scStore.On("GetRemoteByIds", channelID, remoteID).Return(scr, nil)
+		scStore.On("DeleteRemote", scr.Id).Return(false, errors.New("db is down"))
+
+		err := scs.processTask(newSyncTask(channelID, "", remoteID, nil, nil))
+
+		require.NoError(t, err, "a self-heal delete failure must not surface as a sync error or trigger a retry")
+		scStore.AssertCalled(t, "DeleteRemote", scr.Id)
+	})
+
+	t.Run("transient error is propagated for retry", func(t *testing.T) {
+		remoteID := model.NewId()
+		dbErr := errors.New("write tcp: connection reset by peer")
+		scs, scStore := newService(t, remoteID, nil, dbErr)
+
+		err := scs.processTask(newSyncTask("channel-1", "", remoteID, nil, nil))
+
+		require.Error(t, err, "a transient lookup error must still be returned so the task retries")
+		assert.ErrorContains(t, err, "connection reset by peer")
+		scStore.AssertNotCalled(t, "GetRemoteByIds", mock.Anything, mock.Anything)
+		scStore.AssertNotCalled(t, "DeleteRemote", mock.Anything)
+	})
 }
 
 func TestAddTask_OriginRemoteIDMerge(t *testing.T) {

@@ -799,7 +799,7 @@ func TestUserWillLogIn_Blocked(t *testing.T) {
 
 	r := &http.Request{}
 	w := httptest.NewRecorder()
-	session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+	session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, model.LoginOptions{})
 
 	assert.Contains(t, err.Id, "Login rejected by plugin", "Expected Login rejected by plugin, got %s", err.Id)
 	assert.Nil(t, session)
@@ -840,7 +840,7 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 
 	r := &http.Request{}
 	w := httptest.NewRecorder()
-	session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+	session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, model.LoginOptions{})
 
 	assert.Nil(t, err, "Expected nil, got %s", err)
 	require.NotNil(t, session)
@@ -883,7 +883,7 @@ func TestUserHasLoggedIn(t *testing.T) {
 
 	r := &http.Request{}
 	w := httptest.NewRecorder()
-	session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+	session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, model.LoginOptions{})
 
 	assert.Nil(t, err, "Expected nil, got %s", err)
 	assert.NotNil(t, session)
@@ -1644,6 +1644,86 @@ func TestHookNotificationWillBePushed(t *testing.T) {
 	}
 }
 
+func TestHookNotificationWillBePushedTransportPreserved(t *testing.T) {
+	mainHelper.Parallel(t)
+	if testing.Short() {
+		t.Skip("skipping TestHookNotificationWillBePushedTransportPreserved test in short mode")
+	}
+
+	const (
+		standardToken = model.PushNotifyAppleReactNative + ":standardtoken"
+		voIPToken     = model.PushNotifyAppleReactNative + ":voiptoken"
+	)
+
+	// A plugin compiled against an older model.PushNotification struct can't see
+	// the Transport field, so returning a replacement notification would zero it.
+	// The server must ignore any plugin-driven change to Transport and keep the
+	// original routing (here, VoIP).
+	tests := []struct {
+		name     string
+		testCode string
+	}{
+		{
+			name: "plugin zeroing the transport keeps the original routing",
+			testCode: `notification.Transport = ""
+	return notification, ""`,
+		},
+		{
+			name: "plugin overriding the transport keeps the original routing",
+			testCode: `notification.Transport = model.PushTransportStandard
+	return notification, ""`,
+		},
+		{
+			name:     "plugin leaving the transport untouched keeps the original routing",
+			testCode: `return notification, ""`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mainHelper.Parallel(t)
+
+			th := Setup(t).InitBasic(t)
+
+			templatedPlugin := fmt.Sprintf(hookNotificationWillBePushedTmpl, tt.testCode)
+			tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{templatedPlugin}, th.App, th.NewPluginAPI)
+			defer tearDown()
+
+			handler := &testPushNotificationHandler{t: t, behavior: "simple"}
+			pushServer := httptest.NewServer(http.HandlerFunc(handler.handleReq))
+			defer pushServer.Close()
+
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+			})
+
+			_, err := th.App.CreateSession(th.Context, &model.Session{
+				UserId:       th.BasicUser.Id,
+				DeviceId:     standardToken,
+				VoIPDeviceId: voIPToken,
+				ExpiresAt:    model.GetMillis() + 100000,
+			})
+			require.Nil(t, err)
+
+			msg := &model.PushNotification{
+				Type:      model.PushTypeMessage,
+				SubType:   model.PushSubTypeCalls,
+				Transport: model.PushTransportVoIP,
+			}
+			appErr := th.App.sendPushNotificationToAllSessions(th.Context, msg, th.BasicUser.Id, "")
+			require.Nil(t, appErr)
+
+			require.Eventually(t, func() bool {
+				return len(handler.notifications()) == 1
+			}, 2*time.Second, 10*time.Millisecond, "expected exactly one push notification")
+
+			notifications := handler.notifications()
+			assert.Equal(t, model.PushTransportVoIP, notifications[0].Transport, "plugin must not be able to change the transport")
+			assert.Equal(t, "voiptoken", notifications[0].DeviceId, "VoIP routing must be preserved despite the plugin")
+		})
+	}
+}
+
 //go:embed test_templates/hook_email_notification_will_be_sent.tmpl
 var hookEmailNotificationWillBeSentTmpl string
 
@@ -1771,11 +1851,108 @@ func TestHookEmailNotificationWillBeSent(t *testing.T) {
 func TestHookMessagesWillBeConsumed(t *testing.T) {
 	mainHelper.Parallel(t)
 
+	th := Setup(t).InitBasic(t)
+
+	var mockAPI plugintest.API
+	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+	mockAPI.On("LogDebug", "message").Return(nil)
+
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessagesWillBeConsumed(posts []*model.Post) []*model.Post {
+			for _, post := range posts {
+				post.Message = "mwbc_plugin:" + post.Message
+			}
+			return posts
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+	t.Cleanup(tearDown)
+
+	newPost := &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "message",
+		CreateAt:  model.GetMillis() - 10000,
+	}
+	_, _, err := th.App.CreatePost(th.Context, newPost, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, err)
+
+	post, err := th.App.GetSinglePost(th.Context, newPost.Id, true)
+	require.Nil(t, err)
+	assert.Equal(t, "mwbc_plugin:message", post.Message)
+}
+
+func TestApplyPostWillBeConsumedHook(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+
+	var mockAPI plugintest.API
+	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+	mockAPI.On("LogDebug", mock.Anything).Return(nil)
+
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessagesWillBeConsumed(posts []*model.Post) []*model.Post {
+			for _, post := range posts {
+				post.Message = "mwbc_plugin:" + post.Message
+			}
+			return posts
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+	t.Cleanup(tearDown)
+
+	t.Run("regular post is passed to the hook", func(t *testing.T) {
+		post := &model.Post{Message: "message"}
+		th.App.applyPostWillBeConsumedHook(th.Context, &post)
+		assert.Equal(t, "mwbc_plugin:message", post.Message)
+	})
+
+	t.Run("burn-on-read post is not passed to the hook", func(t *testing.T) {
+		post := &model.Post{Message: "message", Type: model.PostTypeBurnOnRead}
+		th.App.applyPostWillBeConsumedHook(th.Context, &post)
+		assert.Equal(t, "message", post.Message)
+	})
+}
+
+func TestHookMessagesWillBeConsumedWithContext(t *testing.T) {
+	mainHelper.Parallel(t)
+
 	setupPlugin := func(t *testing.T, th *TestHelper) {
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
 		mockAPI.On("LogDebug", "message").Return(nil)
 
+		// The plugin records whether it received a non-nil context to confirm the context is
+		// threaded all the way through to the hook.
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{`
 			package main
 
@@ -1788,9 +1965,13 @@ func TestHookMessagesWillBeConsumed(t *testing.T) {
 				plugin.MattermostPlugin
 			}
 
-			func (p *MyPlugin) MessagesWillBeConsumed(posts []*model.Post) []*model.Post {
+			func (p *MyPlugin) MessagesWillBeConsumedWithContext(c *plugin.Context, posts []*model.Post) []*model.Post {
+				prefix := "mwbcwc_plugin:"
+				if c == nil {
+					prefix = "nilctx:"
+				}
 				for _, post := range posts {
-					post.Message = "mwbc_plugin:" + post.Message
+					post.Message = prefix + post.Message
 				}
 				return posts
 			}
@@ -1802,12 +1983,10 @@ func TestHookMessagesWillBeConsumed(t *testing.T) {
 		t.Cleanup(tearDown)
 	}
 
-	t.Run("feature flag disabled", func(t *testing.T) {
+	t.Run("hook is applied", func(t *testing.T) {
 		mainHelper.Parallel(t)
 
-		th := SetupConfig(t, func(cfg *model.Config) {
-			cfg.FeatureFlags.ConsumePostHook = false
-		}).InitBasic(t)
+		th := Setup(t).InitBasic(t)
 
 		setupPlugin(t, th)
 
@@ -1822,39 +2001,14 @@ func TestHookMessagesWillBeConsumed(t *testing.T) {
 
 		post, err := th.App.GetSinglePost(th.Context, newPost.Id, true)
 		require.Nil(t, err)
-		assert.Equal(t, "message", post.Message)
-	})
-
-	t.Run("feature flag enabled", func(t *testing.T) {
-		mainHelper.Parallel(t)
-
-		th := SetupConfig(t, func(cfg *model.Config) {
-			cfg.FeatureFlags.ConsumePostHook = true
-		}).InitBasic(t)
-
-		setupPlugin(t, th)
-
-		newPost := &model.Post{
-			UserId:    th.BasicUser.Id,
-			ChannelId: th.BasicChannel.Id,
-			Message:   "message",
-			CreateAt:  model.GetMillis() - 10000,
-		}
-		_, _, err := th.App.CreatePost(th.Context, newPost, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
-		require.Nil(t, err)
-
-		post, err := th.App.GetSinglePost(th.Context, newPost.Id, true)
-		require.Nil(t, err)
-		assert.Equal(t, "mwbc_plugin:message", post.Message)
+		assert.Equal(t, "mwbcwc_plugin:message", post.Message)
 	})
 }
 
 func TestUpdatePostFiresConsumeHook(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.ConsumePostHook = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	var mockAPI plugintest.API
 	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
@@ -1937,66 +2091,10 @@ drainLoop:
 	}
 }
 
-func TestUpdatePostNoConsumeHookWhenFlagDisabled(t *testing.T) {
-	mainHelper.Parallel(t)
-
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.ConsumePostHook = false
-	}).InitBasic(t)
-
-	var mockAPI plugintest.API
-	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
-	mockAPI.On("LogDebug", mock.Anything).Return(nil)
-
-	tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{`
-		package main
-
-		import (
-			"strings"
-
-			"github.com/mattermost/mattermost/server/public/plugin"
-			"github.com/mattermost/mattermost/server/public/model"
-		)
-
-		type MyPlugin struct {
-			plugin.MattermostPlugin
-		}
-
-		func (p *MyPlugin) MessagesWillBeConsumed(posts []*model.Post) []*model.Post {
-			for _, post := range posts {
-				post.Message = strings.ToUpper(post.Message)
-			}
-			return posts
-		}
-
-		func main() {
-			plugin.ClientMain(&MyPlugin{})
-		}
-	`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
-	t.Cleanup(tearDown)
-
-	basePost, _, err := th.App.CreatePost(th.Context, &model.Post{
-		UserId:    th.BasicUser.Id,
-		ChannelId: th.BasicChannel.Id,
-		Message:   "original body",
-	}, th.BasicChannel, model.CreatePostFlags{SetOnline: false})
-	require.Nil(t, err)
-
-	editedMessage := "edited body"
-	patchedPost, _, err := th.App.PatchPost(th.Context, basePost.Id, &model.PostPatch{
-		Message: &editedMessage,
-	}, nil)
-	require.Nil(t, err)
-
-	assert.Equal(t, "edited body", patchedPost.Message)
-}
-
 func TestUpdatePostNoOpWhenNoPlugin(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.ConsumePostHook = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	basePost, _, err := th.App.CreatePost(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
@@ -2752,27 +2850,16 @@ func TestHookServeMetrics(t *testing.T) {
 	})
 }
 
-func assertHookPostExists(t *testing.T, th *TestHelper, channelID, expectedMessage string) {
-	t.Helper()
-
-	assert.Eventually(t, func() bool {
-		posts, appErr := th.App.GetPosts(th.Context, channelID, 0, 30)
-		require.Nil(t, appErr)
-
-		for _, postID := range posts.Order {
-			post := posts.Posts[postID]
-			if post.Message == expectedMessage {
-				return true
-			}
-		}
-
-		return false
-	}, 10*time.Second, 100*time.Millisecond)
-}
-
 func TestUserHasJoinedChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	getPluginCode := func(th *TestHelper) string {
+
+	// These tests use the KV store to track whether the plugin is activated and whether its hook has been called
+	const pluginActivatedKey = "activated"
+	joinedKey := func(channelID, userID string) string {
+		return fmt.Sprintf("joined_%s_%s", channelID, userID)
+	}
+
+	getPluginCode := func() string {
 		return `
 			package main
 
@@ -2783,26 +2870,19 @@ func TestUserHasJoinedChannel(t *testing.T) {
 				"github.com/mattermost/mattermost/server/public/model"
 			)
 
-			const (
-				adminUserID = "` + th.SystemAdminUser.Id + `"
-			)
-
 			type MyPlugin struct {
 				plugin.MattermostPlugin
 			}
 
-			func (p *MyPlugin) UserHasJoinedChannel(c *plugin.Context, channelMember *model.ChannelMember, actor *model.User) {
-				message := fmt.Sprintf("Test: User %s joined %s", channelMember.UserId, channelMember.ChannelId)
-				if actor != nil && actor.Id != channelMember.UserId {
-					message = fmt.Sprintf("Test: User %s added to %s by %s", channelMember.UserId, channelMember.ChannelId, actor.Id)
+			func (p *MyPlugin) OnActivate() error {
+				if appErr := p.API.KVSet("` + pluginActivatedKey + `", []byte("true")); appErr != nil {
+					return appErr
 				}
+				return nil
+			}
 
-				_, appErr := p.API.CreatePost(&model.Post{
-					UserId: adminUserID,
-					ChannelId: channelMember.ChannelId,
-					Message: message,
-				})
-				if appErr != nil {
+			func (p *MyPlugin) UserHasJoinedChannel(c *plugin.Context, channelMember *model.ChannelMember, actor *model.User) {
+				if appErr := p.API.KVSet(fmt.Sprintf("joined_%s_%s", channelMember.ChannelId, channelMember.UserId), []byte("true")); appErr != nil {
 					panic(appErr)
 				}
 			}
@@ -2814,6 +2894,37 @@ func TestUserHasJoinedChannel(t *testing.T) {
 	}
 	pluginID := "testplugin"
 	pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}}`
+
+	waitForPluginActivated := func(t *testing.T, th *TestHelper) {
+		t.Helper()
+		require.EventuallyWithT(t, func(c *assert.CollectT) {
+			value, appErr := th.App.GetPluginKey(pluginID, pluginActivatedKey)
+			assert.Nil(c, appErr)
+			assert.Equal(c, []byte("true"), value)
+		}, 5*time.Second, 100*time.Millisecond)
+	}
+
+	assertHookCalled := func(t *testing.T, th *TestHelper, channelID, userID string) {
+		t.Helper()
+		assert.EventuallyWithT(t, func(c *assert.CollectT) {
+			value, appErr := th.App.GetPluginKey(pluginID, joinedKey(channelID, userID))
+			assert.Nil(c, appErr)
+			assert.Equal(c, []byte("true"), value)
+		}, 5*time.Second, 100*time.Millisecond)
+	}
+
+	assertHookNotCalled := func(t *testing.T, th *TestHelper, channelID string, userIDs ...string) {
+		t.Helper()
+		assert.Never(t, func() bool {
+			for _, userID := range userIDs {
+				value, appErr := th.App.GetPluginKey(pluginID, joinedKey(channelID, userID))
+				if appErr == nil && value != nil {
+					return true
+				}
+			}
+			return false
+		}, 1*time.Second, 100*time.Millisecond)
+	}
 
 	t.Run("should call hook when a user joins an existing channel", func(t *testing.T) {
 		mainHelper.Parallel(t)
@@ -2834,16 +2945,15 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		require.NotNil(t, channel)
 
 		// Setup plugin after creating the channel
-		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
-		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID), "plugin %q failed to activate", pluginID)
+		setupPluginAPITest(t, getPluginCode(), pluginManifest, pluginID, th.App, th.Context)
+		waitForPluginActivated(t, th)
 
 		_, appErr = th.App.AddChannelMember(th.Context, user2.Id, channel, ChannelMemberOpts{
 			UserRequestorID: user2.Id,
 		})
 		require.Nil(t, appErr)
 
-		expectedMessage := fmt.Sprintf("Test: User %s joined %s", user2.Id, channel.Id)
-		assertHookPostExists(t, th, channel.Id, expectedMessage)
+		assertHookCalled(t, th, channel.Id, user2.Id)
 	})
 
 	t.Run("should call hook when a user is added to an existing channel", func(t *testing.T) {
@@ -2865,16 +2975,15 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		require.NotNil(t, channel)
 
 		// Setup plugin after creating the channel
-		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
-		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID), "plugin %q failed to activate", pluginID)
+		setupPluginAPITest(t, getPluginCode(), pluginManifest, pluginID, th.App, th.Context)
+		waitForPluginActivated(t, th)
 
 		_, appErr = th.App.AddChannelMember(th.Context, user2.Id, channel, ChannelMemberOpts{
 			UserRequestorID: user1.Id,
 		})
 		require.Nil(t, appErr)
 
-		expectedMessage := fmt.Sprintf("Test: User %s added to %s by %s", user2.Id, channel.Id, user1.Id)
-		assertHookPostExists(t, th, channel.Id, expectedMessage)
+		assertHookCalled(t, th, channel.Id, user2.Id)
 	})
 
 	t.Run("should not call hook when a regular channel is created", func(t *testing.T) {
@@ -2882,7 +2991,8 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		th := Setup(t, StartMetrics).InitBasic(t)
 
 		// Setup plugin
-		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
+		setupPluginAPITest(t, getPluginCode(), pluginManifest, pluginID, th.App, th.Context)
+		waitForPluginActivated(t, th)
 
 		user1 := th.CreateUser(t)
 
@@ -2895,20 +3005,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, channel)
 
-		var posts *model.PostList
-		require.EventuallyWithT(t, func(c *assert.CollectT) {
-			posts, appErr = th.App.GetPosts(th.Context, channel.Id, 0, 10)
-			assert.Nil(t, appErr)
-		}, 2*time.Second, 100*time.Millisecond)
-
-		for _, postID := range posts.Order {
-			post := posts.Posts[postID]
-
-			if strings.HasPrefix(post.Message, "Test: ") {
-				t.Log("Plugin message found:", post.Message)
-				t.FailNow()
-			}
-		}
+		assertHookNotCalled(t, th, channel.Id, user1.Id)
 	})
 
 	t.Run("should not call hook when a DM is created", func(t *testing.T) {
@@ -2916,7 +3013,8 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		th := Setup(t, StartMetrics).InitBasic(t)
 
 		// Setup plugin
-		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
+		setupPluginAPITest(t, getPluginCode(), pluginManifest, pluginID, th.App, th.Context)
+		waitForPluginActivated(t, th)
 
 		user1 := th.CreateUser(t)
 		user2 := th.CreateUser(t)
@@ -2925,20 +3023,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, channel)
 
-		var posts *model.PostList
-		require.EventuallyWithT(t, func(c *assert.CollectT) {
-			posts, appErr = th.App.GetPosts(th.Context, channel.Id, 0, 10)
-			assert.Nil(t, appErr)
-		}, 2*time.Second, 100*time.Millisecond)
-
-		for _, postID := range posts.Order {
-			post := posts.Posts[postID]
-
-			if strings.HasPrefix(post.Message, "Test: ") {
-				t.Log("Plugin message found:", post.Message)
-				t.FailNow()
-			}
-		}
+		assertHookNotCalled(t, th, channel.Id, user1.Id, user2.Id)
 	})
 
 	t.Run("should not call hook when a GM is created", func(t *testing.T) {
@@ -2946,7 +3031,8 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		th := Setup(t, StartMetrics).InitBasic(t)
 
 		// Setup plugin
-		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
+		setupPluginAPITest(t, getPluginCode(), pluginManifest, pluginID, th.App, th.Context)
+		waitForPluginActivated(t, th)
 
 		user1 := th.CreateUser(t)
 		user2 := th.CreateUser(t)
@@ -2956,20 +3042,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, channel)
 
-		var posts *model.PostList
-		require.EventuallyWithT(t, func(c *assert.CollectT) {
-			posts, appErr = th.App.GetPosts(th.Context, channel.Id, 0, 10)
-			assert.Nil(t, appErr)
-		}, 2*time.Second, 100*time.Millisecond)
-
-		for _, postID := range posts.Order {
-			post := posts.Posts[postID]
-
-			if strings.HasPrefix(post.Message, "Test: ") {
-				t.Log("Plugin message found:", post.Message)
-				t.FailNow()
-			}
-		}
+		assertHookNotCalled(t, th, channel.Id, user1.Id, user2.Id)
 	})
 }
 

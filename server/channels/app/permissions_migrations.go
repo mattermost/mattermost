@@ -237,7 +237,10 @@ func (s *Server) doPermissionsMigration(key string, migrationMap permissionsMap,
 
 	for _, role := range roles {
 		role.Permissions = applyPermissionsMap(role, roleMap, migrationMap)
-		if _, err := s.Store().Role().Save(role); err != nil {
+		// Use SavePreservingUnknownPermissions so a server that was downgraded from a
+		// newer release (which wrote permissions this binary doesn't recognize) does
+		// not fail fatally here. Unknown permissions are logged and preserved (MM-68830).
+		if _, err := s.Store().Role().SavePreservingUnknownPermissions(role); err != nil {
 			var invErr *store.ErrInvalidInput
 			switch {
 			case errors.As(err, &invErr):

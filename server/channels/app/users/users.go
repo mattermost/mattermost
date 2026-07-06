@@ -43,11 +43,16 @@ func (us *UserService) CreateUser(rctx request.CTX, user *model.User, opts UserC
 	}
 
 	// Below is a special case where the first user in the entire
-	// system is granted the system_admin role
-	if ok, err := us.store.IsEmpty(true); err != nil {
-		return nil, errors.Wrap(UserStoreIsEmptyError, err.Error())
-	} else if ok {
-		user.Roles = model.SystemAdminRoleId + " " + model.SystemUserRoleId
+	// system is granted the system_admin role. Bot users must never be
+	// granted this role: on a fresh install the bots created by plugins
+	// can be the only accounts present, and they should not be treated
+	// as the "first user".
+	if !user.IsBot {
+		if ok, err := us.store.IsEmpty(true); err != nil {
+			return nil, errors.Wrap(UserStoreIsEmptyError, err.Error())
+		} else if ok {
+			user.Roles = model.SystemAdminRoleId + " " + model.SystemUserRoleId
+		}
 	}
 
 	if _, ok := i18n.GetSupportedLocales()[user.Locale]; !ok {

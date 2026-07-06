@@ -9,7 +9,7 @@ import {Button} from '@mattermost/shared/components/button';
 type Props = {
     teamId: string;
     handleRemoveUserFromTeam: (team: string) => void;
-}
+};
 
 const RemoveFromTeamButton = ({teamId, handleRemoveUserFromTeam}: Props) => {
     const handleClick = (e: React.MouseEvent) => {

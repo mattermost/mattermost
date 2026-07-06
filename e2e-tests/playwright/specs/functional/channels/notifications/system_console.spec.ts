@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AdminConfig} from '@mattermost/types/config';
+import type {AdminConfig} from '@mattermost/types/config';
 import type {Locator} from '@playwright/test';
 
-import {expect, mergeWithOnPremServerConfig, test, TextInputSetting} from '@mattermost/playwright-lib';
+import type {TextInputSetting} from '@mattermost/playwright-lib';
+import {expect, mergeWithOnPremServerConfig, test} from '@mattermost/playwright-lib';
 
 /**
  * Patch the Notifications page required fields to known valid values so tests

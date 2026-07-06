@@ -5,7 +5,7 @@ import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {AccessControlVisualAST} from '@mattermost/types/access_control';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -19,7 +19,7 @@ import ValueSelectorMenu from './value_selector_menu';
 
 import CELHelpModal from '../../modals/cel_help/cel_help_modal';
 import TestResultsModal from '../../modals/policy_test/test_modal';
-import {AddAttributeButton, TestButton, HelpText, OPERATOR_CONFIG, OPERATOR_LABELS, OperatorLabel, isMultiValueOperator} from '../shared';
+import {AddAttributeButton, TestButton, HelpText, OPERATOR_CONFIG, OPERATOR_LABELS, OperatorLabel, isMultiValueOperator, isMultiselectOperator, isRankOperator} from '../shared';
 
 import './table_editor.scss';
 
@@ -137,6 +137,31 @@ export const findFirstAvailableAttributeFromList = (
     });
 };
 
+// Returns the operator a freshly-selected attribute of the given type should
+// default to. Ranked attributes default to "is at least" (the canonical
+// "Secret or above" clearance comparison).
+const defaultOperatorForType = (type?: string): OperatorLabel => {
+    if (type === 'multiselect') {
+        return OperatorLabel.HAS_ANY_OF;
+    }
+    if (type === 'rank') {
+        return OperatorLabel.IS_AT_LEAST;
+    }
+    return OperatorLabel.IS;
+};
+
+// Whether an operator is valid for an attribute of the given type. Mirrors the
+// per-type operator sets shown by OperatorSelectorMenu.
+const isOperatorValidForType = (op: string, type?: string): boolean => {
+    if (type === 'multiselect') {
+        return isMultiselectOperator(op);
+    }
+    if (type === 'rank') {
+        return isRankOperator(op) || op === OperatorLabel.IS_NOT;
+    }
+    return !isMultiselectOperator(op) && !isRankOperator(op);
+};
+
 // Parses a CEL (Common Expression Language) string into a structured array of TableRow objects.
 // This allows the expression to be displayed and edited in a user-friendly table format.
 export const parseExpression = (visualAST: AccessControlVisualAST): TableRow[] => {
@@ -160,6 +185,12 @@ export const parseExpression = (visualAST: AccessControlVisualAST): TableRow[] =
         if (!op) {
             // Fallback for unknown operators, defaulting to 'is' logic
             op = OperatorLabel.IS;
+        }
+
+        // OPERATOR_LABELS maps '==' to the generic "is". On a ranked attribute the
+        // same operator reads as "is exactly" so it round-trips to the ranked menu.
+        if (node.attribute_type === 'rank' && op === OperatorLabel.IS) {
+            op = OperatorLabel.IS_EXACTLY;
         }
 
         let values;
@@ -314,7 +345,7 @@ function TableEditor({
         setRows((currentRows) => {
             const newRow: TableRow = {
                 attribute: firstAvailableAttribute.name,
-                operator: firstAvailableAttribute.type === 'multiselect' ? OperatorLabel.HAS_ANY_OF : OperatorLabel.IS,
+                operator: defaultOperatorForType(firstAvailableAttribute.type),
                 values: [],
                 attribute_type: firstAvailableAttribute.type || '',
                 hasMaskedValues: false,
@@ -350,14 +381,14 @@ function TableEditor({
                 newRows[index].values = [];
 
                 const newAttributeObj = userAttributes.find((attr) => attr.name === attribute);
-                newRows[index].attribute_type = newAttributeObj?.type || '';
+                const newType = newAttributeObj?.type || '';
+                newRows[index].attribute_type = newType;
 
-                const isMultiselect = newAttributeObj?.type === 'multiselect';
-                const wasMultiselect = currentRows[index].attribute_type === 'multiselect';
-                if (isMultiselect && !wasMultiselect) {
-                    newRows[index].operator = OperatorLabel.HAS_ANY_OF;
-                } else if (!isMultiselect && wasMultiselect) {
-                    newRows[index].operator = OperatorLabel.IS;
+                // Reset the operator to a valid default when the current one
+                // isn't offered for the new attribute type (e.g. switching a
+                // select row to a ranked attribute, or to/from multiselect).
+                if (!isOperatorValidForType(currentRows[index].operator, newType)) {
+                    newRows[index].operator = defaultOperatorForType(newType);
                 }
 
                 // Values were cleared — row is in an intermediate editing state.
@@ -526,7 +557,7 @@ function TableEditor({
                 />
                 <TestButton
                     onClick={onTestClick ?? (() => setShowTestResults(true))}
-                    disabled={(testButtonDisabled ?? false) || disabled || (!onTestClick && !value) || userWouldBeExcluded}
+                    disabled={(testButtonDisabled ?? false) || disabled || (!onTestClick && !value) || userWouldBeExcluded || hasMaskedRows}
                     disabledTooltip={
 
                         // Precedence: an explicit parent-supplied

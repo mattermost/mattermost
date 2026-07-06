@@ -9,13 +9,13 @@
 
 // Group: @channels @collapsed_reply_threads
 
-import {Channel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import * as TIMEOUTS from '@/fixtures/timeouts';
 import {isMac} from '@/utils';
-import {ChainableT} from '@/types';
+import type {ChainableT} from '@/types';
 
 describe('Collapsed Reply Threads', () => {
     let testTeam: Team;

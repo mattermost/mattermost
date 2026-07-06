@@ -7,9 +7,13 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"io"
 	"net"
+	"net/http"
+	"net/url"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/require"
@@ -23,6 +27,7 @@ func TestBuildAzureServiceURL(t *testing.T) {
 		name     string
 		cloud    string
 		scheme   string
+		account  string // defaults to the package-level account const when empty
 		endpoint string
 		expected string
 		wantErr  bool
@@ -32,6 +37,27 @@ func TestBuildAzureServiceURL(t *testing.T) {
 			cloud:    model.AzureCloudCommercial,
 			scheme:   "https",
 			expected: "https://acmemattermost.blob.core.windows.net/",
+		},
+		{
+			name:    "commercial cloud rejects an account name with a hash character",
+			cloud:   model.AzureCloudCommercial,
+			scheme:  "https",
+			account: "account#",
+			wantErr: true,
+		},
+		{
+			name:    "commercial cloud rejects an account name with a slash character",
+			cloud:   model.AzureCloudCommercial,
+			scheme:  "https",
+			account: "account/",
+			wantErr: true,
+		},
+		{
+			name:    "government cloud rejects a malformed account name",
+			cloud:   model.AzureCloudGovernment,
+			scheme:  "https",
+			account: "account#",
+			wantErr: true,
 		},
 		{
 			name:     "empty cloud falls back to commercial for legacy configs",
@@ -103,7 +129,11 @@ func TestBuildAzureServiceURL(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := buildAzureServiceURL(tt.cloud, tt.scheme, account, tt.endpoint)
+			acct := account
+			if tt.account != "" {
+				acct = tt.account
+			}
+			got, err := buildAzureServiceURL(tt.cloud, tt.scheme, acct, tt.endpoint)
 			if tt.wantErr {
 				require.Error(t, err)
 				return
@@ -221,14 +251,16 @@ func azuriteSettings(t *testing.T) FileBackendSettings {
 		port = "10000"
 	}
 	return FileBackendSettings{
-		DriverName:                      driverAzure,
-		AzureStorageAccount:             azuriteWellKnownAccount,
-		AzureAuthMode:                   model.AzureAuthModeSharedKey,
-		AzureAccessKey:                  azuriteWellKnownKey,
-		AzureContainer:                  "mattermost-test",
-		AzureCloud:                      model.AzureCloudCustom,
-		AzureEndpoint:                   "http://" + net.JoinHostPort(host, port) + "/" + azuriteWellKnownAccount + "/",
-		AzureRequestTimeoutMilliseconds: 30000,
+		DriverName:          driverAzure,
+		AzureStorageAccount: azuriteWellKnownAccount,
+		AzureAuthMode:       model.AzureAuthModeSharedKey,
+		AzureAccessKey:      azuriteWellKnownKey,
+		AzureContainer:      "mattermost-test",
+		AzureCloud:          model.AzureCloudCustom,
+		AzureEndpoint:       "http://" + net.JoinHostPort(host, port) + "/" + azuriteWellKnownAccount + "/",
+		// The emulator runs on an internal address, so its host must be allowed.
+		AllowedUntrustedInternalConnections: host,
+		AzureRequestTimeoutMilliseconds:     30000,
 	}
 }
 
@@ -310,4 +342,125 @@ func TestCheckMandatoryAzureFieldsAuthMode(t *testing.T) {
 
 func TestAzureFileBackendTestSuite(t *testing.T) {
 	suite.Run(t, &FileBackendTestSuite{settings: azuriteSettings(t)})
+}
+
+// TestAzureGeneratePublicLink exercises the Service SAS path against Azurite.
+// The user-delegation SAS path requires Entra ID and cannot run in CI; it is
+// covered by the manual verification recipe in the PR description.
+func TestAzureGeneratePublicLink(t *testing.T) {
+	t.Run("refuses to issue a link when presign expiration is unset", func(t *testing.T) {
+		settings := azuriteSettings(t)
+		// Deliberately leave AzurePresignExpiresSeconds at zero - the
+		// shape an admin would hit if they enabled the export-direct-
+		// download feature without ever configuring the field.
+		be, err := NewAzureFileBackend(settings)
+		require.NoError(t, err)
+
+		_, _, err = be.GeneratePublicLink("any/path")
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "presign expiration is not configured")
+	})
+
+	t.Run("shared-key SAS round-trips through Azurite", func(t *testing.T) {
+		settings := azuriteSettings(t)
+		settings.AzurePresignExpiresSeconds = 300
+		be, err := NewAzureFileBackend(settings)
+		require.NoError(t, err)
+
+		var noBucket *FileBackendNoBucketError
+		if connErr := be.TestConnection(); errors.As(connErr, &noBucket) {
+			require.NoError(t, be.MakeContainer())
+		} else {
+			require.NoError(t, connErr)
+		}
+
+		path := "tests/presign-" + model.NewId() + ".bin"
+		payload := bytes.Repeat([]byte("mattermost"), 4096) // 40 KiB
+		_, writeErr := be.WriteFile(bytes.NewReader(payload), path)
+		require.NoError(t, writeErr)
+		t.Cleanup(func() { _ = be.RemoveFile(path) })
+
+		link, expiry, err := be.GeneratePublicLink(path)
+		require.NoError(t, err)
+		require.NotEmpty(t, link)
+		require.Equal(t, 300*time.Second, expiry)
+
+		// SAS query parameters Azurite expects to see.
+		u, err := url.Parse(link)
+		require.NoError(t, err)
+		require.NotEmpty(t, u.Query().Get("sig"))
+		require.Equal(t, "r", u.Query().Get("sp"))
+		require.Equal(t, "attachment", u.Query().Get("rscd"))
+
+		resp, err := http.Get(link)
+		require.NoError(t, err)
+		t.Cleanup(func() { _ = resp.Body.Close() })
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		require.Equal(t, "attachment", resp.Header.Get("Content-Disposition"))
+
+		got, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
+		require.Equal(t, payload, got)
+	})
+
+	t.Run("tampered SAS is rejected by the storage service", func(t *testing.T) {
+		settings := azuriteSettings(t)
+		settings.AzurePresignExpiresSeconds = 300
+		be, err := NewAzureFileBackend(settings)
+		require.NoError(t, err)
+
+		var noBucket *FileBackendNoBucketError
+		if connErr := be.TestConnection(); errors.As(connErr, &noBucket) {
+			require.NoError(t, be.MakeContainer())
+		} else {
+			require.NoError(t, connErr)
+		}
+
+		path := "tests/tamper-" + model.NewId() + ".bin"
+		_, writeErr := be.WriteFile(bytes.NewReader([]byte("contents")), path)
+		require.NoError(t, writeErr)
+		t.Cleanup(func() { _ = be.RemoveFile(path) })
+
+		link, _, err := be.GeneratePublicLink(path)
+		require.NoError(t, err)
+
+		// Flip the last character of the signature so the link no longer
+		// matches what Azurite signed.
+		u, err := url.Parse(link)
+		require.NoError(t, err)
+		q := u.Query()
+		sig := q.Get("sig")
+		require.NotEmpty(t, sig)
+		swapped := sig[:len(sig)-1] + flipBase64Char(sig[len(sig)-1])
+		q.Set("sig", swapped)
+		u.RawQuery = q.Encode()
+
+		resp, err := http.Get(u.String())
+		require.NoError(t, err)
+		t.Cleanup(func() { _ = resp.Body.Close() })
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("unknown auth mode is rejected", func(t *testing.T) {
+		// Build a backend by hand so we can exercise the default-branch
+		// guard. Going through NewAzureFileBackend would be rejected by
+		// CheckMandatoryAzureFields first.
+		be := &AzureFileBackend{
+			authMode:       "totally-not-real",
+			presignExpires: time.Minute,
+		}
+		_, _, err := be.GeneratePublicLink("any/path")
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "unknown azure auth mode")
+	})
+}
+
+// flipBase64Char swaps a base64 character for another in the same alphabet
+// to produce a still-valid-but-wrong signature character. Used only by the
+// tamper test above.
+func flipBase64Char(c byte) string {
+	if c == 'A' {
+		return "B"
+	}
+	return "A"
 }

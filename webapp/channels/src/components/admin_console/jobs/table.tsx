@@ -42,14 +42,14 @@ export type Props = {
         cancelJob: (jobId: string) => Promise<ActionResult>;
         createJob: (job: {type: JobType}) => Promise<ActionResult>;
     };
-}
+};
 
 type State = {
     currentPage: number;
-}
+};
 
 class JobTable extends React.PureComponent<Props, State> {
-    interval: ReturnType<typeof setInterval>|null = null;
+    interval: ReturnType<typeof setInterval> | null = null;
 
     constructor(props: Props) {
         super(props);

@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 export default class FindChannelsModal {
     readonly container: Locator;
@@ -12,7 +13,7 @@ export default class FindChannelsModal {
         this.container = container;
 
         this.input = container.getByRole('combobox', {name: 'quick switch input'});
-        this.searchList = container.locator('.suggestion-list__item');
+        this.searchList = container.getByRole('option');
     }
 
     async toBeVisible() {

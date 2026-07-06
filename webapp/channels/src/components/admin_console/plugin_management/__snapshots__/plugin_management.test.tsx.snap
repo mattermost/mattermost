@@ -11,6 +11,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Plugin Management
       </div>
@@ -424,6 +425,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Plugin Management
       </div>
@@ -840,6 +842,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Plugins
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Plugin Management
       </div>
@@ -912,6 +915,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Plugin Management
       </div>
@@ -1326,6 +1330,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Plugin Management
       </div>
@@ -1741,6 +1746,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Plugin Management
       </div>
@@ -2155,6 +2161,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Plugin Management
       </div>
@@ -2568,6 +2575,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Plugin Management
       </div>
@@ -2977,6 +2985,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Plugin Management
       </div>
@@ -3390,6 +3399,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Plugin Management
       </div>
@@ -3817,6 +3827,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Plugin Management
       </div>
@@ -4475,6 +4486,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Plugin Management
       </div>
@@ -4950,6 +4962,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Plugin Management
       </div>
@@ -5425,6 +5438,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Plugin Management
       </div>
@@ -5900,6 +5914,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Plugin Management
       </div>

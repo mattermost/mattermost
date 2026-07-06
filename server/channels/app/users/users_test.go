@@ -86,3 +86,37 @@ func TestFirstUserPromoted(t *testing.T) {
 
 	require.Equal(t, model.SystemUserRoleId, user4.Roles)
 }
+
+func TestFirstUserNotPromotedIfBot(t *testing.T) {
+	th := Setup(t)
+
+	// On a completely fresh install the store is empty, but a bot user
+	// (one created by a plugin) must never become the first system admin.
+	botUser, err := th.service.CreateUser(th.Context, &model.User{
+		Username: model.NewUsername(),
+		Password: model.NewId(),
+		Email:    "bot@example.com",
+		IsBot:    true,
+	}, UserCreateOptions{})
+	require.NoError(t, err)
+	require.NotNil(t, botUser)
+	require.Equal(t, model.SystemUserRoleId, botUser.Roles)
+
+	// Record the corresponding bot so the store correctly excludes it.
+	_, err = th.dbStore.Bot().Save(&model.Bot{
+		UserId:   botUser.Id,
+		OwnerId:  model.NewId(),
+		Username: botUser.Username,
+	})
+	require.NoError(t, err)
+
+	// The first non-bot user is still promoted to system admin.
+	user, err := th.service.CreateUser(th.Context, &model.User{
+		Username: model.NewUsername(),
+		Password: model.NewId(),
+		Email:    "user@example.com",
+	}, UserCreateOptions{})
+	require.NoError(t, err)
+	require.NotNil(t, user)
+	require.Equal(t, model.SystemAdminRoleId+" "+model.SystemUserRoleId, user.Roles)
+}

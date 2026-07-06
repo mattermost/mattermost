@@ -196,6 +196,10 @@ func (ps *PropertyService) getPropertyFieldByName(groupID, targetID, name string
 	return ps.fieldStore.GetFieldByName(context.Background(), groupID, targetID, name)
 }
 
+func (ps *PropertyService) getPropertyFieldByNameForObjectType(groupID, targetID, objectType, name string) (*model.PropertyField, error) {
+	return ps.fieldStore.GetFieldByNameForObjectType(context.Background(), groupID, targetID, objectType, name)
+}
+
 func (ps *PropertyService) countActivePropertyFieldsForGroup(groupID string) (int64, error) {
 	return ps.fieldStore.CountForGroup(groupID, false)
 }
@@ -487,10 +491,32 @@ func (ps *PropertyService) GetPropertyFields(rctx request.CTX, groupID string, i
 	return ps.runPostGetPropertyFields(rctx, fields)
 }
 
+func (ps *PropertyService) GetPropertyFieldsForGroup(rctx request.CTX, groupID string) ([]*model.PropertyField, error) {
+	fields, err := ps.fieldStore.GetForGroup(context.Background(), groupID)
+	if err != nil {
+		return nil, fmt.Errorf("GetPropertyFieldsForGroup: %w", err)
+	}
+
+	return ps.runPostGetPropertyFields(rctx, fields)
+}
+
+// GetPropertyFieldByName looks up a field by name within a group and target.
+//
+// Deprecated: name is not unique within a group when fields of different object
+// types share a name. Use GetPropertyFieldByNameForObjectType to disambiguate.
 func (ps *PropertyService) GetPropertyFieldByName(rctx request.CTX, groupID, targetID, name string) (*model.PropertyField, error) {
 	field, err := ps.getPropertyFieldByName(groupID, targetID, name)
 	if err != nil {
 		return nil, fmt.Errorf("GetPropertyFieldByName: %w", err)
+	}
+
+	return ps.runPostGetPropertyField(rctx, field)
+}
+
+func (ps *PropertyService) GetPropertyFieldByNameForObjectType(rctx request.CTX, groupID, targetID, objectType, name string) (*model.PropertyField, error) {
+	field, err := ps.getPropertyFieldByNameForObjectType(groupID, targetID, objectType, name)
+	if err != nil {
+		return nil, fmt.Errorf("GetPropertyFieldByNameForObjectType: %w", err)
 	}
 
 	return ps.runPostGetPropertyField(rctx, field)

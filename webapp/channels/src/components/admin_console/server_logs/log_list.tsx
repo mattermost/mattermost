@@ -30,7 +30,7 @@ type State = {
     modalOpen: boolean;
     page: number;
     dateAsc: boolean;
-}
+};
 
 const PAGE_SIZE = 50;
 

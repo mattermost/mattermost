@@ -29,11 +29,11 @@ type Props = {
     actions: {
         openModal: <P>(modalData: ModalData<P>) => void;
     };
-}
+};
 
 type State = {
     show: boolean;
-}
+};
 
 export default class TeamMembersModal extends React.PureComponent<Props, State> {
     constructor(props: Props) {

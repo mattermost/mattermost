@@ -11,7 +11,7 @@ import {buttonClassNames} from '@mattermost/shared/components/button';
 
 import {getCloudCustomer, updateCloudCustomer, updateCloudCustomerAddress} from 'mattermost-redux/actions/cloud';
 
-import {setNavigationBlocked} from 'actions/admin_actions.jsx';
+import {setNavigationBlocked} from 'actions/admin_actions';
 
 import BlockableLink from 'components/admin_console/blockable_link';
 import CountrySelector from 'components/payment_form/country_selector';

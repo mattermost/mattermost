@@ -29,7 +29,7 @@ import './invitation_modal.scss';
 // 'static' means backdrop clicks do not close
 // true means backdrop clicks do close
 // false means no backdrop
-type Backdrop = 'static' | boolean
+type Backdrop = 'static' | boolean;
 
 const messages = defineMessages({
     notValidChannel: {
@@ -59,7 +59,7 @@ export type Props = {
         sendMembersInvites: (
             teamId: string,
             users: UserProfile[],
-            emails: string[]
+            emails: string[],
         ) => Promise<ActionResult<InviteResults>>;
         sendMembersInvitesToChannels: (
             teamId: string,
@@ -84,7 +84,7 @@ export type Props = {
     initialValue?: string;
     inviteAsGuest?: boolean;
     focusOriginElement?: string;
-}
+};
 
 export const View = {
     INVITE: 'INVITE',
@@ -357,7 +357,7 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
         }
         try {
             this.debouncedSearchProfiles(term, callback);
-        } catch (error) {
+        } catch {
             callback([]);
         }
     };

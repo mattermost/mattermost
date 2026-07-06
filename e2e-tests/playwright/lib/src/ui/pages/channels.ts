@@ -1,21 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, Page} from '@playwright/test';
+import type {Page} from '@playwright/test';
+import {expect} from '@playwright/test';
 import {waitUntil} from 'async-wait-until';
 
-import {
-    BrowseChannelsModal,
+import type {
     ChannelsPost,
-    ChannelSettingsModal,
-    CreateTeamForm,
-    NewChannelModal,
     SettingsModal,
     TeamSettingsModal,
-    components,
     InvitePeopleModal,
     MembersInvitedModal,
 } from '@/ui/components';
+import {BrowseChannelsModal, ChannelSettingsModal, CreateTeamForm, NewChannelModal, components} from '@/ui/components';
 import {duration} from '@/util';
 export default class ChannelsPage {
     readonly channels = 'Channels';
@@ -67,13 +64,13 @@ export default class ChannelsPage {
         this.centerView = new components.ChannelsCenterView(page.getByTestId('channel_view'), page);
         this.sidebarLeft = new components.ChannelsSidebarLeft(page.locator('#SidebarContainer'));
         this.sidebarRight = new components.ChannelsSidebarRight(page.locator('#sidebar-right'));
-        this.appBar = new components.ChannelsAppBar(page.locator('.app-bar'));
+        this.appBar = new components.ChannelsAppBar(page.getByTestId('app-bar'));
         this.messagePriority = new components.MessagePriority(page.locator('body'));
         this.userAccountMenuButton = page.getByRole('button', {name: "User's account menu"});
 
         // Modals
         this.channelSettingsModal = new ChannelSettingsModal(page.getByRole('dialog', {name: 'Channel Settings'}));
-        this.createTeamForm = new CreateTeamForm(page.locator('.signup-team__container'));
+        this.createTeamForm = new CreateTeamForm(page.getByTestId('create-team-form'));
         this.deletePostModal = new components.DeletePostModal(page.locator('#deletePostModal'));
         this.findChannelsModal = new components.FindChannelsModal(page.getByRole('dialog', {name: 'Find Channels'}));
         this.newChannelModal = new NewChannelModal(page.getByRole('dialog', {name: 'Create a new channel'}));
@@ -97,14 +94,14 @@ export default class ChannelsPage {
 
         // Popovers
         this.emojiGifPickerPopup = new components.EmojiGifPicker(page.locator('#emojiGifPicker'));
-        this.scheduledDraftModal = new components.ScheduledDraftModal(page.locator('div.modal-content'));
+        this.scheduledDraftModal = new components.ScheduledDraftModal(page.getByRole('dialog', {name: /scheduled/i}));
         this.scheduleMessageModal = new components.ScheduleMessageModal(
             page.getByRole('dialog', {name: 'Schedule message'}),
         );
-        this.userProfilePopover = new components.UserProfilePopover(page.locator('.user-profile-popover'));
+        this.userProfilePopover = new components.UserProfilePopover(page.getByTestId('user-profile-popover'));
 
         // Posts
-        this.postContainer = page.locator('div.post-message__text');
+        this.postContainer = page.getByTestId('post-message-text');
         this.archivedChannelMessage = page.locator('#channelArchivedMessage');
 
         page.locator('#channelHeaderDropdownMenu');
@@ -309,7 +306,7 @@ export default class ChannelsPage {
         await this.scheduleMessageMenu.toBeVisible();
         await this.scheduleMessageMenu.selectCustomTime();
 
-        return await this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
+        return this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
     }
 
     async scheduleMessageFromThread(message: string, dayFromToday: number = 0, timeOptionIndex: number = 0) {
@@ -321,7 +318,7 @@ export default class ChannelsPage {
         await this.scheduleMessageMenu.toBeVisible();
         await this.scheduleMessageMenu.selectCustomTime();
 
-        return await this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
+        return this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
     }
 
     async getFlaggedPostViewDetailButton(flaggedPostId: string) {

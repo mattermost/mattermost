@@ -5,7 +5,7 @@ import type React from 'react';
 
 import {FINISHED} from './constant';
 
-export type ActionType = 'next' | 'prev' | 'dismiss' | 'jump' | 'skipped'
+export type ActionType = 'next' | 'prev' | 'dismiss' | 'jump' | 'skipped';
 
 export interface ChannelsTourTipManager {
     show: boolean;

@@ -27,7 +27,7 @@ type Props = {
     actions: {
         prefetchChannelPosts: (channelId: string, delay?: number) => Promise<ActionResult>;
     };
-}
+};
 
 /*
     This component is responsible for prefetching data. As of now component only fetches for channel posts based on the below set of rules.

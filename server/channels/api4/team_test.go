@@ -5062,3 +5062,71 @@ func TestGetTeamMembersForUserRoleDataSanitization(t *testing.T) {
 		require.Fail(t, "basic team membership not found")
 	})
 }
+
+func TestGetAllTeamsDirectoryHiding(t *testing.T) {
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.AttributeBasedAccessControl = true
+		cfg.FeatureFlags.TeamMembershipAccessControl = true
+	}).InitBasic(t)
+
+	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	require.True(t, ok, "SetLicense should return true")
+	defer th.App.Srv().SetLicense(nil)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+	})
+
+	mockACS := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().Channels().AccessControl = mockACS
+	defer func() { th.App.Srv().Channels().AccessControl = nil }()
+	// The requesting system admin does not satisfy the policy.
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+		Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
+
+	// An open-invite team governed by an active membership policy. th.CreateTeam
+	// uses th.Client (BasicUser), so the system admin is not a member.
+	team := th.CreateTeam(t)
+	policy := &model.AccessControlPolicy{
+		ID:       team.Id,
+		Type:     model.AccessControlPolicyTypeTeam,
+		Name:     "policy-" + team.Id,
+		Active:   true,
+		Revision: 1,
+		Version:  model.AccessControlPolicyVersionV0_3,
+		Imports:  []string{},
+		Rules:    []model.AccessControlPolicyRule{{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: "true"}},
+	}
+	_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+	require.NoError(t, err)
+	defer func() { _ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, team.Id) }()
+
+	reloaded, appErr := th.App.GetTeam(team.Id)
+	require.Nil(t, appErr)
+	require.True(t, reloaded.PolicyEnforced, "team must be reported as policy-enforced")
+
+	listTeamIDs := func(t *testing.T, forDirectory bool) []string {
+		t.Helper()
+		url := "/teams?page=0&per_page=200"
+		if forDirectory {
+			url += "&for_directory=true"
+		}
+		resp, err := th.SystemAdminClient.DoAPIGet(context.Background(), url, "")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		var teams []*model.Team
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&teams))
+		ids := make([]string, 0, len(teams))
+		for _, tm := range teams {
+			ids = append(ids, tm.Id)
+		}
+		return ids
+	}
+
+	t.Run("system admin sees a governed team in the management listing", func(t *testing.T) {
+		require.Contains(t, listTeamIDs(t, false), team.Id, "the console listing must stay complete for admins")
+	})
+
+	t.Run("system admin does not see a governed team in the directory listing", func(t *testing.T) {
+		require.NotContains(t, listTeamIDs(t, true), team.Id, "for_directory must hide a non-qualifying team even from an admin")
+	})
+}

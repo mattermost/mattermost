@@ -8,7 +8,7 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 type Props = {
     type: 'channel' | 'thread';
-}
+};
 
 export default function PlaceholderScheduledPostsTitle({type}: Props) {
     let title;

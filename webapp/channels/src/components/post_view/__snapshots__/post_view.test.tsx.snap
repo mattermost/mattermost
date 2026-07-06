@@ -7,6 +7,7 @@ exports[`components/post_view/post_view should match snapshot for channel loadin
   >
     <div
       class="loading-screen loading-screen--in-middle"
+      data-testid="loading-screen"
       style="position: relative;"
     >
       <div
@@ -37,6 +38,7 @@ exports[`components/post_view/post_view should match snapshot for loaderForChang
   >
     <div
       class="loading-screen loading-screen--in-middle"
+      data-testid="loading-screen"
       style="position: relative;"
     >
       <div

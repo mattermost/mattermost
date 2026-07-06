@@ -433,12 +433,17 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 	// Successful remove
 	webSocketClient := th.CreateConnectedWebSocketClientWithClient(t, th.SystemAdminClient)
 
+	var statusesPresent bool
+	var receivedStatuses any
 	done := make(chan bool)
 	go func() {
 		for {
 			select {
 			case resp := <-webSocketClient.EventChannel:
-				if resp.EventType() == model.WebsocketEventPluginStatusesChanged && len(resp.GetData()["plugin_statuses"].([]any)) == 0 {
+				// The event only signals admins to refetch statuses; it carries an empty
+				// plugin_statuses array (compatibility shim), not the full slice.
+				if resp.EventType() == model.WebsocketEventPluginStatusesChanged {
+					receivedStatuses, statusesPresent = resp.GetData()["plugin_statuses"]
 					done <- true
 					return
 				}
@@ -455,6 +460,8 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 
 	result := <-done
 	require.True(t, result, "plugin_statuses_changed websocket event was not received")
+	require.True(t, statusesPresent, "plugin_statuses field should be present")
+	assert.Empty(t, receivedStatuses, "plugin_statuses should be an empty array")
 
 	messages = testCluster.GetMessages()
 

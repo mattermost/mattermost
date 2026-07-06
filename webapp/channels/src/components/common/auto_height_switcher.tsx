@@ -26,7 +26,7 @@ const AutoHeightSwitcher = ({showSlot, onTransitionEnd, slot1 = null, slot2 = nu
     const wrapperRef = useRef<HTMLDivElement>(null);
     const childRef = useRef<HTMLDivElement>(null);
     const prevSlot = useRef<AutoHeightProps['showSlot']>(showSlot);
-    const prevHeight = useRef<number|null>(null);
+    const prevHeight = useRef<number | null>(null);
     const [animate, setAnimate] = useState<boolean>(false);
     const [height, setHeight] = useState<string | number>('auto');
     const [overflow, setOverflow] = useState<string>('visible');

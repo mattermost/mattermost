@@ -27,7 +27,7 @@ type Props = {
     outgoingHooks: IDMappedObjects<OutgoingWebhook>;
     bots: Record<string, Bot>;
     outgoingOAuthConnections: Record<string, OutgoingOAuthConnection>;
-}
+};
 
 const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks, outgoingHooks, bots, outgoingOAuthConnections}: Props): JSX.Element | null => {
     const history = useHistory();

@@ -3,10 +3,8 @@
 
 import {expect, test, enableABAC, navigateToABACPage} from '@mattermost/playwright-lib';
 
-import {
-    CustomProfileAttribute,
-    setupCustomProfileAttributeFields,
-} from '../../../channels/custom_profile_attributes/helpers';
+import type {CustomProfileAttribute} from '../../../channels/custom_profile_attributes/helpers';
+import {setupCustomProfileAttributeFields} from '../../../channels/custom_profile_attributes/helpers';
 import {createPrivateChannelForABAC, createBasicPolicy, enableUserManagedAttributes} from '../support';
 
 /**

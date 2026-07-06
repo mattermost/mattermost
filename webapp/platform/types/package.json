@@ -1,6 +1,6 @@
 {
   "name": "@mattermost/types",
-  "version": "11.8.0",
+  "version": "11.9.0",
   "description": "Shared type definitions used by the Mattermost web app",
   "keywords": [
     "mattermost"
@@ -40,7 +40,8 @@
   },
   "scripts": {
     "build": "tsc --build --verbose",
-    "check": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet",
+    "check": "eslint ./src eslint.config.mjs --quiet",
+    "fix": "eslint ./src eslint.config.mjs --quiet --fix",
     "run": "tsc --watch --preserveWatchOutput",
     "clean": "rm -rf lib node_modules *.tsbuildinfo"
   }

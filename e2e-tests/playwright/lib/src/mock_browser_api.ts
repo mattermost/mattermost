@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Page} from '@playwright/test';
+import type {Page} from '@playwright/test';
 
 type NotificationData = {title: string} & NotificationOptions;
 
 // Extend the Window interface to add custom properties
 declare global {
     interface Window {
-        _originalNotification: typeof Notification;
-        _notifications: NotificationData[];
+        originalNotification: typeof Notification;
+        capturedNotifications: NotificationData[];
         getNotifications: () => NotificationData[];
     }
 }
@@ -30,19 +30,19 @@ export async function stubNotification(page: Page, permission: NotificationPermi
         window.Notification.requestPermission = () => Promise.resolve(permission);
 
         // Copy the original Notification
-        if (!window._originalNotification) {
-            window._originalNotification = window.Notification;
+        if (!window.originalNotification) {
+            window.originalNotification = window.Notification;
         }
 
         // Initialize a list where to capture the notifications
-        window._notifications = [];
+        window.capturedNotifications = [];
 
         // Override the Notification constructor
-        class CustomNotification extends window._originalNotification {
+        class CustomNotification extends window.originalNotification {
             constructor(title: string, options?: NotificationOptions) {
                 super(title, options);
                 const notification = {title, ...options};
-                window._notifications.push(notification);
+                window.capturedNotifications.push(notification);
             }
         }
 
@@ -60,7 +60,7 @@ export async function stubNotification(page: Page, permission: NotificationPermi
         window.Notification = CustomNotification as unknown as typeof Notification;
 
         // Method to get all notifications
-        window.getNotifications = () => window._notifications;
+        window.getNotifications = () => window.capturedNotifications;
     }, permission);
 }
 

@@ -19,12 +19,12 @@ type Props = {
     compactDisplay: boolean;
     overflowType?: AttachmentTextOverflowType;
     maxHeight?: number;
-}
+};
 
 type State = {
     isCollapsed: boolean;
     isOverflow: boolean;
-}
+};
 
 export default class ShowMore extends React.PureComponent<Props, State> {
     private maxHeight: number;
@@ -115,9 +115,11 @@ export default class ShowMore extends React.PureComponent<Props, State> {
         let collapsedMaxHeightStyle: number | undefined;
         if (isCollapsed) {
             className += ' post-message--collapsed';
-            if (!(overflowType === 'ellipsis' && isOverflow)) {
-                collapsedMaxHeightStyle = this.maxHeight;
-            }
+
+            // Always apply maxHeight on the shared text container so permalink
+            // previews clip the full body (markdown + interactive blocks), not
+            // only the markdown child via preview-specific line-clamp CSS.
+            collapsedMaxHeightStyle = this.maxHeight;
         } else {
             className += ' post-message--expanded';
         }

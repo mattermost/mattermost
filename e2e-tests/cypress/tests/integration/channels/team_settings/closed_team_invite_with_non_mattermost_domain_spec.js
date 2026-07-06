@@ -14,7 +14,6 @@ import {allowOnlyUserFromSpecificDomain, inviteUserByEmail, verifyEmailInviteAnd
 import {getAdminAccount} from '@/support/env';
 import {generateRandomUser} from '@/support/api/user';
 
-
 describe('Team Settings', () => {
     const sysadmin = getAdminAccount();
     const {username, password} = generateRandomUser();

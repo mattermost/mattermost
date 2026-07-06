@@ -149,14 +149,16 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 1
       - name: ci/composite-identity
         id: composite-identity
         env:
           CONTEXT_NAME: ${{ inputs.context_name }}
-          MM_SHA: ${{ inputs.commit_sha }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
           MM_BRANCH: ${{ inputs.branch }}
+          MM_SHA: ${{ inputs.commit_sha }}
           PR_NUMBER: ${{ inputs.pr_number }}
         run: |
           # Derive the test-system-io run name from the GitHub commit-status
@@ -169,7 +171,7 @@ jobs:
           # gh_pr_number is optional; include it only when present.
           if [ -n "$PR_NUMBER" ]; then
             COMPOSITE_IDENTITY=$(jq -nc \
-              --arg repo "${{ github.repository }}" \
+              --arg repo "${GITHUB_REPOSITORY}" \
               --arg sha "${MM_SHA}" \
               --arg run_id "${GITHUB_RUN_ID}" \
               --arg name "${NAME}" \
@@ -179,7 +181,7 @@ jobs:
               '{repository:$repo, commit_sha:$sha, gh_run_id:$run_id, name:$name, gh_run_attempt:$attempt, branch:$branch, gh_pr_number:$pr}')
           else
             COMPOSITE_IDENTITY=$(jq -nc \
-              --arg repo "${{ github.repository }}" \
+              --arg repo "${GITHUB_REPOSITORY}" \
               --arg sha "${MM_SHA}" \
               --arg run_id "${GITHUB_RUN_ID}" \
               --arg name "${NAME}" \
@@ -190,11 +192,15 @@ jobs:
           echo "composite-identity-json=${COMPOSITE_IDENTITY}" >> $GITHUB_OUTPUT
       - name: ci/matrix
         id: matrix
+        env:
+          INPUT_WORKERS: ${{ inputs.workers }}
         run: |
-          echo "workers=$(jq -nc --argjson n ${{ inputs.workers }} '[range(1; $n+1)]')" >> $GITHUB_OUTPUT
+          echo "workers=$(jq -nc --argjson n "${INPUT_WORKERS}" '[range(1; $n+1)]')" >> $GITHUB_OUTPUT
           echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
 
-  # Install cypress node_modules once, then workers restore from cache.
+  # Install webapp node_modules once via the shared webapp-setup action, then
+  # workers restore the same stable cache. The node_modules cache is keyed only
+  # on webapp/package-lock.json and is shared with webapp-ci.yml jobs.
   prep-deps:
     name: prep-deps
     runs-on: ubuntu-24.04
@@ -205,12 +211,11 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 1
-      - name: ci/setup-node
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
-        with:
-          node-version-file: ".nvmrc"
+      - name: ci/setup-webapp-node-modules
+        uses: ./.github/actions/webapp-setup
       - name: ci/cache-cypress-deps
         # node_modules + the cypress binary (downloaded to ~/.cache/Cypress by
         # cypress's postinstall, not into node_modules). Both must be cached;
@@ -240,6 +245,7 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 1
       - name: ci/dispatch-begin
@@ -296,6 +302,7 @@ jobs:
         # overwrites the workspace with inputs.commit_sha.
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           sparse-checkout: .github/actions
           sparse-checkout-cone-mode: true
       - name: ci/runner-prep-for-openldap
@@ -303,12 +310,13 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
-      - name: ci/setup-node
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+      - name: ci/setup-webapp-node-modules
+        uses: ./.github/actions/webapp-setup
         with:
-          node-version-file: ".nvmrc"
+          read-only: "true"
       - name: ci/restore-cypress-deps
         uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
@@ -364,6 +372,8 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: ci/run-summary
         id: summary
         continue-on-error: true

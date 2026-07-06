@@ -68,7 +68,7 @@ type Actions = {
     setGlobalItem: (name: string, value: string) => void;
     closeRightHandSide: () => void;
     getChannelsMemberCount: (channelIds: string[]) => Promise<ActionResult>;
-}
+};
 
 export type Props = {
     channels: Channel[];
@@ -86,7 +86,7 @@ export type Props = {
     accessControlEnabled: boolean;
     initialFilter?: FilterType;
     actions: Actions;
-}
+};
 
 type State = {
     loading: boolean;
@@ -97,7 +97,7 @@ type State = {
     searching: boolean;
     searchTerm: string;
     recommendedChannels: Channel[];
-}
+};
 
 export default class BrowseChannels extends React.PureComponent<Props, State> {
     public searchTimeoutId: number;
@@ -257,7 +257,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                     } else {
                         this.setState({searchedChannels: [], searching: false});
                     }
-                } catch (ignoredErr) {
+                } catch {
                     this.setState({searchedChannels: [], searching: false});
                 }
             },

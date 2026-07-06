@@ -21,7 +21,7 @@ type Props = {
     helpText: React.ReactNode;
     regenerateText?: React.ReactNode;
     regenerateHelpText?: React.ReactNode;
-}
+};
 
 const GeneratedSetting = ({
     id,

@@ -11,7 +11,7 @@ export type LearnMoreActionButtonProps = {
     message: string;
     onClick?: () => void;
     styleLink?: boolean; // show as a anchor link
-}
+};
 
 const LearnMoreActionButton = (
     {

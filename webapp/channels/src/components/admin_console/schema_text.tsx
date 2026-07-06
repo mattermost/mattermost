@@ -12,7 +12,7 @@ type Props = {
     isMarkdown?: boolean;
     text: string | MessageDescriptor | JSX.Element;
     textValues?: Record<string, string | (() => React.ReactNode)>;
-}
+};
 
 const SchemaText = ({
     isMarkdown,

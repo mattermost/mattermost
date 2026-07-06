@@ -16,10 +16,11 @@ import {
     InformationOutlineIcon,
     SyncIcon,
     ShieldAlertOutlineIcon,
+    SortAscendingIcon,
 } from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import * as Menu from 'components/menu';
 
@@ -40,7 +41,7 @@ const AttributeLabel = ({displayName, name}: AttributeLabelProps) => (
 );
 
 // Define AttributeIcon outside the main component
-const AttributeIcon = (props: IconProps & { attribute?: UserPropertyField }) => {
+const AttributeIcon = (props: IconProps & {attribute?: UserPropertyField}) => {
     const {attribute, ...iconProps} = props;
     if (attribute) {
         const valueType = attribute.attrs?.value_type;
@@ -58,6 +59,8 @@ const AttributeIcon = (props: IconProps & { attribute?: UserPropertyField }) => 
         switch (attribute.type) {
         case 'select':
             return <ChevronDownCircleOutlineIcon {...iconProps}/>;
+        case 'rank':
+            return <SortAscendingIcon {...iconProps}/>;
         case 'multiselect':
             return <FormatListBulletedIcon {...iconProps}/>;
         case 'text':

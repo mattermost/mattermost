@@ -31,6 +31,7 @@ export function focusElement(
         // It's an ID string
         target = document.getElementById(elementOrId);
     } else if (
+
         // It's a React ref object
         typeof elementOrId === 'object' &&
         'current' in elementOrId &&

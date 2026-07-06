@@ -7010,10 +7010,6 @@
     "translation": "Cài đặt email có giá trị chưa được đặt."
   },
   {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "Cài đặt lưu trữ tệp có giá trị chưa được đặt."
-  },
-  {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
     "translation": "Không thể tải tập tin lên. ID kênh không chính xác: {{.channelId}}"
   },

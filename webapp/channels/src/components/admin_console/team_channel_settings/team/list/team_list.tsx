@@ -31,7 +31,7 @@ type Props = {
         getData(page: number, size: number): void;
     };
     isLicensedForLDAPGroups?: boolean;
-}
+};
 
 type State = {
     loading: boolean;
@@ -41,7 +41,7 @@ type State = {
     total: number;
     searchErrored: boolean;
     filters: TeamSearchOpts;
-}
+};
 export default class TeamList extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);

@@ -148,6 +148,27 @@ describe('channel_members_rhs/channel_members_rhs', () => {
         expect(screen.getByTestId('member-list')).toBeInTheDocument();
     });
 
+    test('reloads the first page authoritatively on mount so removed members are pruned', () => {
+        const loadProfilesAndReloadChannelMembers = jest.fn();
+        const props = {
+            ...baseProps,
+            actions: {
+                ...baseProps.actions,
+                loadProfilesAndReloadChannelMembers,
+            },
+        };
+
+        renderWithContext(
+            <ChannelMembersRHS
+                {...props as any}
+            />,
+        );
+
+        // The trailing `true` enables reconciliation so the first-page reload prunes
+        // members the server no longer returns (e.g. ABAC access-rule removals).
+        expect(loadProfilesAndReloadChannelMembers).toHaveBeenCalledWith(0, 100, 'channel_id', 'admin', {}, true);
+    });
+
     test('should show search bar when there are more than 20 members', () => {
         const props = {
             ...baseProps,

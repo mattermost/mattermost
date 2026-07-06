@@ -172,6 +172,18 @@ func (m *Migrator) MigrateWithPlan(plan *models.Plan, dryRun bool) error {
 	return m.engine.ApplyPlan(plan)
 }
 
+// PreMigrate runs the pre-migration handlers that normally execute during
+// server startup. Callers on the CLI up-migration path (e.g. `mattermost db
+// migrate`, used by cloud upgrades) must invoke this before MigrateWithPlan so
+// the same fixes apply outside of server startup. Skipped under dryRun because
+// preMigration writes directly via GetMaster().Exec and does not participate
+// in Morph's dry-run.
+// This is intentionally only called for forward migrations and skipped for
+// downgrades.
+func (m *Migrator) PreMigrate() error {
+	return m.store.preMigration()
+}
+
 func (m *Migrator) DowngradeMigrations(dryRun bool, versions ...string) error {
 	migrations, err := m.engine.Diff(models.Down)
 	if err != nil {

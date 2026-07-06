@@ -16,11 +16,11 @@ export type Props = {
     actions: {
         deleteChannel: (channelId: string) => void;
     };
-}
+};
 
 type State = {
     show: boolean;
-}
+};
 
 export default class DeleteChannelModal extends React.PureComponent<Props, State> {
     constructor(props: Props) {

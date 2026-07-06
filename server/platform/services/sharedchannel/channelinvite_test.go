@@ -69,13 +69,10 @@ var _ remotecluster.RemoteClusterServiceIFace = (*stubRemoteClusterService)(nil)
 
 // setupMockServerWithConfig sets up the standard mocks that all tests need
 func setupMockServerWithConfig(mockServer *MockServerIface) {
-	// Mock Config for feature flag check - disable membership sync to avoid complex mocking
 	mockConfig := model.Config{}
 	mockConfig.SetDefaults()
-	mockConfig.FeatureFlags.EnableSharedChannelsMemberSync = false
 	mockServer.On("Config").Return(&mockConfig)
 
-	// Mock GetRemoteClusterService for feature flag check
 	mockServer.On("GetRemoteClusterService").Return(nil)
 }
 

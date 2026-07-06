@@ -10,7 +10,7 @@ type Props = {
     loading?: boolean;
     text?: MessageDescriptor | React.ReactNode;
     children?: React.ReactNode;
-}
+};
 
 const LoadingWrapper = ({loading = true, text, children}: Props) => {
     return (

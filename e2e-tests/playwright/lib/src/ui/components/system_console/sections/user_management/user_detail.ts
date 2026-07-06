@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 import {ConfirmModal} from '@/ui/components/system_console/base_modal';
 
@@ -16,7 +17,7 @@ export class SaveChangesModal extends ConfirmModal {
     constructor(container: Locator) {
         super(container);
         this.messageBody = this.container.locator('#confirmModalBody');
-        this.changesList = this.messageBody.locator('ul.changes-list');
+        this.changesList = this.messageBody.getByTestId('changesList');
     }
 
     /**
@@ -59,19 +60,17 @@ export default class UserDetail {
     readonly errorMessage: Locator;
 
     constructor(container: Locator) {
-        this.container = container.locator('.SystemUserDetail');
+        this.container = container.getByTestId('systemUserDetail');
 
         // Header
-        this.backLink = this.container.locator('.admin-console__header .back');
+        this.backLink = this.container.getByTestId('adminHeader-backLink');
         this.header = this.container.getByText('User Configuration', {exact: true});
 
         // User Card
-        this.userCard = new AdminUserCard(this.container.locator('.AdminUserCard'));
+        this.userCard = new AdminUserCard(this.container.getByTestId('adminUserCard'));
 
         // Team Membership Panel
-        this.teamMembershipPanel = new TeamMembershipPanel(
-            this.container.locator('.AdminPanel').filter({hasText: 'Team Membership'}),
-        );
+        this.teamMembershipPanel = new TeamMembershipPanel(this.container.locator('#teamMembershipPanel'));
 
         // Save Changes confirmation modal (page-level, rendered outside container via portal)
         this.saveChangesModal = new SaveChangesModal(
@@ -81,7 +80,7 @@ export default class UserDetail {
         // Save section
         this.saveButton = this.container.getByTestId('saveSetting');
         this.cancelButton = this.container.getByRole('button', {name: 'Cancel'});
-        this.errorMessage = this.container.locator('.error-message');
+        this.errorMessage = this.container.getByTestId('saveChangesPanel-errorMessage');
     }
 
     async toBeVisible() {
@@ -137,25 +136,26 @@ class AdminUserCard {
         this.container = container;
 
         // Header
-        const header = container.locator('.AdminUserCard__header');
-        this.profileImage = header.locator('.Avatar');
-        this.displayName = header.locator('.AdminUserCard__user-info span').first();
-        this.nickname = header.locator('.AdminUserCard__user-nickname');
-        this.userId = header.locator('.AdminUserCard__user-id');
+        const header = container.getByTestId('adminUserCard-header');
+        this.profileImage = header.locator('img').first();
+        this.displayName = container.getByTestId('adminUserCard-userInfo').locator('span').first();
+        this.nickname = container.getByTestId('adminUserCard-userNickname');
+        this.userId = container.getByTestId('adminUserCard-userId');
 
         // Body
-        this.body = container.locator('.AdminUserCard__body');
-        this.twoColumnLayout = this.body.locator('.two-column-layout');
-        this.fieldRows = this.body.locator('.field-row');
+        this.body = container.getByTestId('adminUserCard-body');
+        this.twoColumnLayout = this.body.getByTestId('twoColumnLayout');
+        this.fieldRows = this.body.getByTestId('fieldRow');
 
         // System fields — use exact label text to avoid substring matches (e.g., "Email" vs "Work Email")
         this.usernameInput = this.getFieldInputByExactLabel('Username');
         this.emailInput = this.getFieldInputByExactLabel('Email');
         this.authDataInput = this.getFieldInputByExactLabel('Auth Data');
-        this.authenticationMethod = this.getFieldColumn('Authentication Method').locator('label > span').last();
+        this.authenticationMethod =
+            this.getFieldColumn('Authentication Method').getByTestId('authenticationMethodValue');
 
         // Footer
-        const footer = container.locator('.AdminUserCard__footer');
+        const footer = container.getByTestId('adminUserCard-footer');
         this.resetPasswordButton = footer.getByRole('button', {name: 'Reset Password'});
         this.deactivateButton = footer.getByRole('button', {name: 'Deactivate'});
         this.manageUserSettingsButton = footer.getByRole('button', {name: 'Manage User Settings'});
@@ -166,12 +166,10 @@ class AdminUserCard {
     }
 
     /**
-     * Get the .field-column container for a field by its exact label text.
+     * Get the field-column container for a field by its exact label text.
      */
     private getFieldColumn(labelText: string): Locator {
-        return this.body
-            .locator('.field-column')
-            .filter({has: this.body.page().locator(`span:text-is("${labelText}")`)});
+        return this.body.getByTestId('fieldColumn').filter({has: this.body.page().getByText(labelText, {exact: true})});
     }
 
     /**
@@ -190,10 +188,10 @@ class AdminUserCard {
     }
 
     /**
-     * Get the .field-error validation message locator for a field by its exact label text.
+     * Get the field-error validation message locator for a field by its exact label text.
      */
     getFieldError(labelText: string): Locator {
-        return this.getFieldColumn(labelText).locator('.field-error');
+        return this.getFieldColumn(labelText).getByTestId('fieldError');
     }
 
     /**
@@ -202,6 +200,33 @@ class AdminUserCard {
      */
     getCpaMultiselectContainer(labelText: string): Locator {
         return this.getFieldColumn(labelText);
+    }
+
+    // ── Ranked CPA picker ───────────────────────────────────────────────
+
+    /** The menu-button for a ranked CPA field, located by its exact label. */
+    getCpaRankPicker(labelText: string): Locator {
+        return this.getFieldColumn(labelText).getByRole('button');
+    }
+
+    /** The open ranked-value menu (rendered at page level via portal). */
+    cpaRankMenu(): Locator {
+        return this.body.page().getByRole('menu', {name: 'Select an option'});
+    }
+
+    /** Menu option rows, in DOM order (highest rank first). */
+    cpaRankMenuItems(): Locator {
+        return this.cpaRankMenu().getByRole('menuitemradio');
+    }
+
+    async openCpaRankPicker(labelText: string): Promise<void> {
+        await this.getCpaRankPicker(labelText).click();
+    }
+
+    /** Open the picker and choose an option by its exact label. */
+    async selectCpaRankValue(labelText: string, optionName: string): Promise<void> {
+        await this.openCpaRankPicker(labelText);
+        await this.cpaRankMenu().getByText(optionName, {exact: true}).click();
     }
 }
 
@@ -217,7 +242,7 @@ class TeamMembershipPanel {
         this.title = container.getByRole('heading', {name: 'Team Membership'});
         this.description = container.getByText('Teams to which this user belongs');
         this.addTeamButton = container.getByRole('button', {name: 'Add Team'});
-        this.teamRows = container.locator('.TeamRow');
+        this.teamRows = container.getByTestId('teamRow');
     }
 
     async toBeVisible() {

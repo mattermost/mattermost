@@ -3,12 +3,14 @@
 
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
+import {useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 import type {ServerError} from '@mattermost/types/errors';
 import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {removeContentFlaggingPost} from 'mattermost-redux/actions/content_flagging';
 import {Client4} from 'mattermost-redux/client';
 
 import {useChannel} from 'components/common/hooks/useChannel';
@@ -33,12 +35,13 @@ type Props = {
     onExited: () => void;
     flaggedPost: Post;
     reportingUser: UserProfile;
-}
+};
 
 type Step = 'form' | 'skip_confirm' | 'generating' | 'generated' | 'error';
 
 export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExited, flaggedPost, reportingUser}: Props) {
     const {formatMessage} = useIntl();
+    const dispatch = useDispatch();
 
     const flaggedPostChannel = useChannel(flaggedPost.channel_id);
     const contentFlaggingConfig = useContentFlaggingConfig(flaggedPostChannel?.team_id || '');
@@ -91,6 +94,9 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
             setSubmitting(true);
             setRequestError('');
             await actionFunc(flaggedPost.id, comment);
+            if (action === 'remove') {
+                dispatch(removeContentFlaggingPost(flaggedPost.id));
+            }
             handleClose();
         } catch (error) {
             // eslint-disable-next-line no-console
@@ -99,7 +105,7 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
         } finally {
             setSubmitting(false);
         }
-    }, [action, comment, flaggedPost.id, handleClose]);
+    }, [action, comment, dispatch, flaggedPost.id, handleClose]);
 
     const handleFormPrimary = useCallback(() => {
         if (validateForm()) {

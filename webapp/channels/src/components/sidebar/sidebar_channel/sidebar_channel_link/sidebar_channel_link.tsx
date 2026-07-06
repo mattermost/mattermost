@@ -254,9 +254,8 @@ export class SidebarChannelLink extends React.PureComponent<Props, State> {
         const content = (
             <>
                 <SidebarChannelIcon
-                    isDeleted={channel.delete_at !== 0}
+                    channel={channel}
                     icon={icon}
-                    channelType={channel.type}
                 />
                 <div
                     className='SidebarChannelLinkLabel_wrapper'
@@ -312,6 +311,7 @@ export class SidebarChannelLink extends React.PureComponent<Props, State> {
                 to={link}
                 onClick={this.handleChannelClick}
                 tabIndex={0}
+                data-testid={this.props.isUnread ? 'sidebar-unread-channel' : undefined}
             >
                 {content}
                 {channelsTutorialTip}

@@ -233,6 +233,11 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	}
 
 	if !store.skipMigrations {
+		err = store.preMigration()
+		if err != nil {
+			return nil, errors.Wrap(err, "error while running pre-migrations")
+		}
+
 		err = store.migrate(migrationsDirectionUp, false, !store.disableMorphLogging)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to apply database migrations")
@@ -1137,4 +1142,151 @@ func (ss *SqlStore) ScheduledPost() store.ScheduledPostStore {
 
 func (ss *SqlStore) ContentFlagging() store.ContentFlaggingStore {
 	return ss.stores.ContentFlagging
+}
+
+// preMigration	runs before running the actual Morph migrations.
+// The main reason for having a preMigration is to fix https://mattermost.atlassian.net/browse/MM-68848?focusedCommentId=217769
+// However, using that as an opportunity, a general purpose system is created that allows running
+// arbitrary code just before the Morph migrations run. This allows us to have a way to fix
+// any issues in the DB that might prevent the Morph migrations from running successfully.
+// The pre-migrations are tracked in the Systems table to make sure they run only once.
+func (ss *SqlStore) preMigration() error {
+	type sqlMigration struct {
+		name string
+		// minDBMigration is the schema migration version that must already have
+		// been applied (recorded in db_migrations) before this pre-migration is
+		// allowed to run. A pre-migration that touches data in a table created
+		// by schema migration N should set this to N.
+		minDBMigration int
+		handler        func() error
+	}
+
+	migrations := []sqlMigration{
+		{"renumber_roles_schemeid_migrations", 144, ss.doRenumberRolesSchemeIdMigrations},
+	}
+
+	// To check for empty DB and skip
+	exists, err := ss.tableExists("db_migrations")
+	if err != nil {
+		return errors.Wrap(err, "failed to check if db_migrations table exists")
+	}
+	if !exists {
+		return nil
+	}
+
+	// Checking for systems table because that's where the run status of individual pre migrations are stored
+	exists, err = ss.tableExists("systems")
+	if err != nil {
+		return errors.Wrap(err, "failed to check if Systems table exists")
+	}
+	if !exists {
+		return nil
+	}
+
+	for _, m := range migrations {
+		applied, err := ss.isDBMigrationApplied(m.minDBMigration)
+		if err != nil {
+			return errors.Wrapf(err, "failed to check DB migration %d status", m.minDBMigration)
+		}
+		if !applied {
+			continue
+		}
+
+		done, err := ss.isPreMigrationComplete(m.name)
+		if err != nil {
+			return errors.Wrapf(err, "failed to check pre-migration %q status", m.name)
+		}
+		if done {
+			continue
+		}
+
+		ss.logger.Debug("Running pre-migration", mlog.String("name", m.name), mlog.Int("min_db_migration", m.minDBMigration))
+		if err := m.handler(); err != nil {
+			return errors.Wrapf(err, "failed to run pre-migration %q", m.name)
+		}
+
+		if err := ss.markPreMigrationComplete(m.name); err != nil {
+			return errors.Wrapf(err, "failed to mark pre-migration %q complete", m.name)
+		}
+		ss.logger.Debug("Completed pre-migration", mlog.String("name", m.name))
+	}
+
+	return nil
+}
+
+// This is for resolving the issue described here - https://mattermost.atlassian.net/browse/MM-68848?focusedCommentId=217769
+// Briefly describing here for quick reference -
+// The DB migrations originally numbered 156, 157 and 158 were cherrypicked onto v10.11 release branch but their numbers
+// were changed. When upgrading from v10.11.17 to v11.7, the migrations which were actually supposed to be 142, 143 and 144
+// could never run due to migration version conflict in db_migrations table.
+// This pre-migration functon fixes that issue. When someone upgrades from v10.11 to new release, this function fixes the migration
+// numbers to what they originally were. For example, 142 gets renamed to 156. This lets the missing migrations run successfully and complete the upgrade.
+func (ss *SqlStore) doRenumberRolesSchemeIdMigrations() error {
+	query := `
+UPDATE db_migrations
+SET Version = CASE
+    WHEN Version = 142 AND Name = 'add_schemeid_to_roles'    THEN 156
+    WHEN Version = 143 AND Name = 'backfill_roles_schemeid'  THEN 157
+    WHEN Version = 144 AND Name = 'add_roles_schemeid_index' THEN 158
+END
+WHERE (Version, Name) IN (
+    (142, 'add_schemeid_to_roles'),
+    (143, 'backfill_roles_schemeid'),
+    (144, 'add_roles_schemeid_index')
+)`
+
+	if _, err := ss.GetMaster().Exec(query); err != nil {
+		return errors.Wrap(err, "failed to renumber schema ID related migrations")
+	}
+
+	return nil
+}
+
+func (ss *SqlStore) isDBMigrationApplied(version int) (bool, error) {
+	var exists bool
+	if err := ss.GetMaster().Get(&exists, `
+		SELECT EXISTS (
+			SELECT 1 FROM db_migrations WHERE Version >= $1
+		)
+	`, version); err != nil {
+		return false, errors.Wrap(err, "unable to query db_migrations")
+	}
+	return exists, nil
+}
+
+func (ss *SqlStore) tableExists(tableName string) (bool, error) {
+	var exists bool
+	if err := ss.GetMaster().Get(&exists, `
+		SELECT EXISTS (
+			SELECT 1 FROM information_schema.tables
+			WHERE LOWER(table_name) = $1
+		    AND table_schema = current_schema()
+		)
+	`, strings.ToLower(tableName)); err != nil {
+		return false, errors.Wrap(err, "unable to query information_schema.tables")
+	}
+	return exists, nil
+}
+
+func (ss *SqlStore) isPreMigrationComplete(name string) (bool, error) {
+	var value string
+	err := ss.GetMaster().Get(&value, "SELECT Value FROM Systems WHERE Name = $1", name)
+	if errors.Is(err, sql.ErrNoRows) {
+		return false, nil
+	}
+	if err != nil {
+		return false, errors.Wrap(err, "unable to select from Systems")
+	}
+	return value == "true", nil
+}
+
+func (ss *SqlStore) markPreMigrationComplete(name string) error {
+	if _, err := ss.GetMaster().Exec(
+		`INSERT INTO Systems (Name, Value) VALUES ($1, $2)
+		 ON CONFLICT (Name) DO UPDATE SET Value = $2`,
+		name, "true",
+	); err != nil {
+		return errors.Wrap(err, "failed to upsert system property")
+	}
+	return nil
 }

@@ -11,7 +11,7 @@ import type {Channel, ChannelModeration as ChannelPermissions, ChannelModeration
 import {SyncableType} from '@mattermost/types/groups';
 import type {SyncablePatch, Group} from '@mattermost/types/groups';
 import type {JobTypeBase} from '@mattermost/types/jobs';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {Scheme} from '@mattermost/types/schemes';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
@@ -140,7 +140,7 @@ export type ChannelDetailsActions = {
     getVisualAST: (expression: string, channelId?: string) => Promise<ActionResult>;
     saveChannelAccessPolicy: (policy: AccessControlPolicy) => Promise<ActionResult>;
     validateChannelExpression: (expression: string, channelId: string) => Promise<ActionResult>;
-    createAccessControlSyncJob: (job: JobTypeBase & { data: any }) => Promise<ActionResult>;
+    createAccessControlSyncJob: (job: JobTypeBase & {data: any}) => Promise<ActionResult>;
     updateAccessControlPoliciesActive: (states: AccessControlPolicyActiveUpdate[]) => Promise<ActionResult>;
     searchUsersForExpression: (expression: string, term: string, after: string, limit: number, channelId?: string) => Promise<ActionResult>;
     getChannelMembers: (channelId: string, page?: number, perPage?: number) => Promise<ActionResult>;
@@ -813,7 +813,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                             // EXACT SAME LOGIC as Channel Settings Modal
                                 if (channelRulesExpression.trim()) {
                                     try {
-                                        const job: JobTypeBase & { data: {policy_id: string} } = {
+                                        const job: JobTypeBase & {data: {policy_id: string}} = {
                                             type: JobTypes.ACCESS_CONTROL_SYNC,
                                             data: {
                                                 policy_id: channelID, // Sync only this specific channel policy
@@ -1174,7 +1174,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                     });
                 }
             }
-        } catch (error) {
+        } catch {
             // No channel policy exists, continue with empty rules
         }
     };

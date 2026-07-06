@@ -17,28 +17,28 @@ export type AccessControlPolicy = {
     rules: AccessControlPolicyRule[];
     scope?: string;
     scope_id?: string;
-}
+};
 
 export type AccessControlPolicyCursor = {
     id: string;
-}
+};
 
 export type AccessControlPoliciesResult = {
     policies: AccessControlPolicy[];
     total: number;
-}
+};
 
 export type AccessControlPolicySearchOpts = {
     term: string;
     type: string;
     cursor: AccessControlPolicyCursor;
     limit: number;
-}
+};
 
 export type AccessControlPolicyChannelsResult = {
     channels: ChannelWithTeamData[];
     total: number;
-}
+};
 
 export type AccessControlPolicyRule = {
     actions?: string[];
@@ -56,7 +56,7 @@ export type AccessControlPolicyRule = {
      * empty.
      */
     role?: string;
-}
+};
 
 export const ACCESS_CONTROL_POLICY_VERSION_V0_3 = 'v0.3';
 export const ACCESS_CONTROL_POLICY_VERSION_V0_4 = 'v0.4';
@@ -165,21 +165,21 @@ export type CELExpressionError = {
     message: string;
     line: number;
     column: number;
-}
+};
 
 export type AccessControlTestResult = {
     users: UserProfile[];
     total: number;
-}
+};
 
 export type AccessControlAttribute = {
     name: string;
     values: string[];
-}
+};
 
 export type AccessControlVisualAST = {
     conditions: AccessControlVisualASTNode[];
-}
+};
 
 export type AccessControlVisualASTNode = {
     attribute: string;
@@ -188,7 +188,7 @@ export type AccessControlVisualASTNode = {
     value_type: number;
     attribute_type: string;
     has_masked_values?: boolean;
-}
+};
 
 /**
  * Type definition for access control attributes
@@ -209,7 +209,7 @@ export interface AccessControlled {
 export type AccessControlPolicyActiveUpdate = {
     id: string;
     active: boolean;
-}
+};
 
 /**
  * Sources of deny attribution returned by the simulate endpoint.

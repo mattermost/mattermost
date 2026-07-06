@@ -61,7 +61,7 @@ export type Props = Attrs & {
 
 type State = {
     isLoading: boolean;
-}
+};
 
 export default class ThreadViewer extends React.PureComponent<Props, State> {
     public constructor(props: Props) {

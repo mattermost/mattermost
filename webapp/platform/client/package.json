@@ -1,6 +1,6 @@
 {
   "name": "@mattermost/client",
-  "version": "11.8.0",
+  "version": "11.9.0",
   "description": "JavaScript/TypeScript client for Mattermost",
   "keywords": [
     "mattermost"
@@ -27,7 +27,7 @@
     "typescript": "^5.0.0"
   },
   "peerDependencies": {
-    "@mattermost/types": "11.8.0",
+    "@mattermost/types": "11.9.0",
     "typescript": "^4.3.0 || ^5.0.0"
   },
   "peerDependenciesMeta": {
@@ -37,7 +37,8 @@
   },
   "scripts": {
     "build": "tsc --build tsconfig.build.json --verbose",
-    "check": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet",
+    "check": "eslint ./src eslint.config.mjs --quiet",
+    "fix": "eslint ./src eslint.config.mjs --quiet --fix",
     "run": "tsc --watch --preserveWatchOutput",
     "test": "jest",
     "test-ci": "jest --ci --forceExit --detectOpenHandles --maxWorkers=100% --logHeapUsage",
