@@ -1,0 +1,77 @@
+/* AttestationStatus — framework header + status pill + optional metadata.
+ * Distinct from edition/deployment badges: this is a full-width block at
+ * the top of compliance-framework pages, not an inline chip. */
+
+.box {
+  display: block;
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  background: var(--mm-denim-50, rgba(30, 50, 92, 0.05));
+  border-left: 4px solid var(--mm-color-denim, #1E325C);
+  color: var(--mm-text-primary);
+}
+
+[data-theme='dark'] .box {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.framework {
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.01em;
+}
+
+.status {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.75rem;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+}
+
+.status[data-status='authorized']  { color: #1d6f42; background: rgba(29, 111, 66, 0.08); }
+.status[data-status='in-process']  { color: #8a5d00; background: rgba(255, 188, 31, 0.18); }
+.status[data-status='roadmap']     { color: #1E325C; background: rgba(30, 50, 92, 0.08); }
+.status[data-status='not-pursued'] { color: #6c757d; background: rgba(108, 117, 125, 0.10); }
+
+[data-theme='dark'] .status[data-status='authorized']  { color: #6dd49b; }
+[data-theme='dark'] .status[data-status='in-process']  { color: #FFBC1F; }
+[data-theme='dark'] .status[data-status='roadmap']     { color: #9eb1da; }
+[data-theme='dark'] .status[data-status='not-pursued'] { color: #b0b6bd; }
+
+/* Variant left-borders per status, for at-a-glance scanning. */
+.authorized  { border-left-color: #1d6f42; }
+.inProcess   { border-left-color: #FFBC1F; }
+.roadmap     { border-left-color: #1E325C; }
+.notPursued  { border-left-color: #6c757d; }
+
+.meta {
+  margin-top: 0.55rem;
+  font-size: 0.88rem;
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  color: var(--mm-text-secondary, var(--mm-text-primary));
+}
+
+.meta strong {
+  font-weight: 700;
+}
+
+.unknown {
+  background: #fff3cd;
+  color: #664d03;
+  border-left-color: #ffc107;
+}

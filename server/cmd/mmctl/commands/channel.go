@@ -133,6 +133,8 @@ func init() {
 	ChannelRenameCmd.Flags().String("name", "", "Channel Name")
 	ChannelRenameCmd.Flags().String("display-name", "", "Channel Display Name")
 
+	ListChannelsCmd.Flags().BoolP("show-ids", "i", false, "Show channel IDs")
+
 	SearchChannelCmd.Flags().String("team", "", "Team name or ID")
 
 	MoveChannelCmd.Flags().Bool("force", false, "Remove users that are not members of target team before moving the channel.")
@@ -270,6 +272,12 @@ func getAllDeletedChannelsForTeam(c client.Client, teamID string) ([]*model.Chan
 func listChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	teams := getTeamsFromTeamArgs(c, args)
 
+	showIds, _ := cmd.Flags().GetBool("show-ids")
+	namePrefix := "{{.Name}}"
+	if showIds {
+		namePrefix = "{{.Id}}: {{.Name}}"
+	}
+
 	var multierr *multierror.Error
 	for i, team := range teams {
 		if team == nil {
@@ -285,7 +293,7 @@ func listChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 			multierr = multierror.Append(multierr, err)
 		}
 		for _, channel := range publicChannels {
-			printer.PrintT("{{.Name}}", channel)
+			printer.PrintT(namePrefix, channel)
 		}
 
 		deletedChannels, err := getAllDeletedChannelsForTeam(c, team.Id)
@@ -294,7 +302,7 @@ func listChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 			multierr = multierror.Append(multierr, err)
 		}
 		for _, channel := range deletedChannels {
-			printer.PrintT("{{.Name}} (archived)", channel)
+			printer.PrintT(namePrefix+" (archived)", channel)
 		}
 
 		privateChannels, appErr := getPrivateChannels(c, team.Id)
@@ -303,7 +311,7 @@ func listChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 			multierr = multierror.Append(multierr, appErr)
 		}
 		for _, channel := range privateChannels {
-			printer.PrintT("{{.Name}} (private)", channel)
+			printer.PrintT(namePrefix+" (private)", channel)
 		}
 	}
 

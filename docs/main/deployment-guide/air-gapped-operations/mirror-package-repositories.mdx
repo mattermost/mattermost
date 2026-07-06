@@ -1,0 +1,66 @@
+---
+title: Mirror Package Repositories
+sidebar_position: 2
+description: Stand up internal Linux package mirrors and container registries that host Mattermost artifacts inside the enclave.
+---
+
+<EditionAvailability tiers="free,professional,enterprise,enterprise-advanced" />
+<DeploymentAvailability modes="self-hosted,air-gapped" />
+
+# Mirror Package Repositories
+
+In an air-gapped enclave, every package and container image Mattermost depends on must come from a mirror inside the enclave. There is no fall-through to upstream registries. This page enumerates the artifacts that need mirroring and the trust topology that ties them together.
+
+## What needs mirroring
+
+### Linux distribution packages
+
+Mirror the upstream Linux package repositories for the OS image you run Mattermost on. Mattermost requires recent versions of `glibc`, `ca-certificates`, and (for plugins) `ImageMagick` and `xpdf-utils`. PostgreSQL is the only supported database for new installs.
+
+- **Ubuntu / Debian**: mirror the upstream `apt` repos for the release you use (e.g., `noble`, `jammy`). Tools: `apt-mirror`, `aptly`, internal Pulp 3.
+- **RHEL / Rocky / Alma / SUSE**: mirror upstream `dnf` / `zypper` repos. Tools: `reposync`, Red Hat Satellite, Pulp.
+
+### Mattermost release artifacts
+
+Mattermost publishes three artifact families. Stage all three on your operator workstation, verify checksums and signatures, then transfer across the air gap.
+
+| Artifact | Source | Verification |
+|---|---|---|
+| Server tarball (`mattermost-VERSION-linux-amd64.tar.gz`) | `releases.mattermost.com` | SHA-256 + PGP signature |
+| Container images (`mattermost/mattermost-enterprise-edition:VERSION`, `mattermost/mattermost-mobile-push-proxy:VERSION`) | Docker Hub | Image digest (`sha256:…`) |
+| Mattermost Operator Helm chart | `chartmuseum.mattermost.com` | SHA-256 of `.tgz` |
+
+### Plugin and integration artifacts
+
+Pre-built plugins ship as signed `.tar.gz` files from the Mattermost Marketplace. Stage the bundle of plugins you intend to install (e.g., Channel Export, Legal Hold, Calls, AI Agents) before the air-gap transfer.
+
+:::important
+The Mattermost Marketplace itself **cannot reach your enclave**. After air-gapped install, the Marketplace UI surface is disabled (see [Disable Phone-Home Features](./disable-phone-home-features)). Plugins are installed via `mmctl plugin add` from the local file system.
+:::
+
+## Internal container registry
+
+For Kubernetes / container deployments, push the Mattermost container images to your internal registry (Harbor, Artifactory, Quay, GitLab Container Registry, AWS ECR inside GovCloud). Tag images with the same version strings you pulled upstream.
+
+Configure your Kubernetes cluster's `imagePullSecrets` to authenticate to the internal registry, and configure the Mattermost Operator Helm chart's `image.repository` value to point at the internal path (e.g., `registry.enclave.example/mattermost/mattermost-enterprise-edition`).
+
+## Trust topology
+
+The artifact-trust chain inside the enclave depends on:
+
+1. **Your internal CA** signing the TLS certificate served by the internal package mirror and container registry.
+2. **The enclave OS trust store** including your internal CA. Without this, `apt update` / `dnf install` will fail with TLS errors.
+3. **A verified signature chain** for the Mattermost artifacts themselves. The enclave operator should verify checksums and PGP signatures *before* publishing to the internal mirror.
+
+## Validation
+
+After mirroring is complete:
+
+- `apt update` (or distribution equivalent) succeeds against only the internal mirror.
+- `docker pull registry.enclave.example/mattermost/mattermost-enterprise-edition:VERSION` succeeds.
+- `helm pull oci://registry.enclave.example/charts/mattermost-operator --version VERSION` succeeds.
+- Outbound traffic capture at the enclave boundary shows **no connections to `releases.mattermost.com`, `chartmuseum.mattermost.com`, or Docker Hub** during install.
+
+## Reference
+
+This page is a stub — Phase 2 will add per-distribution `apt-mirror` / `reposync` configuration examples and a Harbor + GovCloud ECR worked example. Tracked in `docs/_redesign/proposed-ia.md` §6 in the repo.

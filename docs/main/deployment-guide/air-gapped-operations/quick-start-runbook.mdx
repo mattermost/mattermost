@@ -1,0 +1,54 @@
+---
+title: Quick-Start Runbook
+sidebar_position: 1
+description: 12-step procedure to stand up a working Mattermost cluster in an air-gapped enclave from scratch.
+---
+
+<EditionAvailability tiers="enterprise,enterprise-advanced" />
+<DeploymentAvailability modes="self-hosted,air-gapped" />
+
+# Air-Gapped Quick-Start Runbook
+
+This runbook brings a Mattermost cluster online inside a network-isolated enclave. It assumes you are the **deploying operator** with administrative access to the enclave's package mirror, container registry, certificate authority, and DNS.
+
+:::important Prerequisites
+- An enclave with internal-only DNS, an internal package mirror (Linux distro repos), and an internal container registry (Harbor / Artifactory / equivalent).
+- An offline-activatable Enterprise or Enterprise Advanced license — see [Offline License Activation](./offline-license-activation).
+- A staged Mattermost Server release tarball + checksums verified out-of-band, and a Mattermost Operator Helm chart (Kubernetes) or Linux package (`.deb` / `.rpm`).
+- A PostgreSQL database reachable from the Mattermost host(s) inside the enclave.
+- An NTP source reachable from inside the enclave.
+:::
+
+## The 12 steps
+
+1. **Stage the release artifacts on the operator workstation.** Download the Mattermost Server tarball, container images, Helm chart, and Vale + plugin assets from `releases.mattermost.com` on an internet-connected workstation. Verify SHA-256 checksums and PGP signatures against the published list. *Never* let a non-verified artifact cross the air gap.
+2. **Transfer artifacts across the air gap.** Use the enclave's approved transfer mechanism (one-way diode, manual media, or cross-domain solution). Re-verify checksums on the enclave side before staging in the internal mirror.
+3. **Publish artifacts to the internal package mirror and container registry.** Mirror the Linux package repos (Ubuntu, RHEL, SLES — whichever your hosts use) and push container images (e.g., `mattermost/mattermost-enterprise-edition`, `mattermost/mattermost-mobile-push-proxy`) to the internal registry. Tag images with the same version strings published upstream.
+4. **Provision PostgreSQL.** Provision the database inside the enclave per [Reference Architecture](../reference-architecture/). Set `max_connections`, `shared_buffers`, and `effective_cache_size` per the [scale tier](../reference-architecture/) you're targeting.
+5. **Configure DNS and TLS inside the enclave.** Create an internal DNS A record for the Mattermost host (e.g., `mattermost.enclave.example`). Issue a TLS certificate from your internal CA. Configure NGINX or your reverse proxy with [TLS](../setup-tls.mdx).
+6. **Install the Mattermost binary.** Install on Linux ([deploy-linux](../server/deploy-linux.mdx)), Kubernetes via the Mattermost Operator ([deploy-kubernetes](../server/deploy-kubernetes.mdx)), or containers ([deploy-containers](../server/deploy-containers.mdx)). Point image references at your internal registry, not Docker Hub.
+7. **Apply the air-gapped configuration profile.** See [Disable Phone-Home Features](./disable-phone-home-features) for the complete list. At minimum, disable: `EnableDiagnostics`, `EnableSecurityFixAlert`, `EnableMarketplace`, automated license utilization reporting, image proxy, and the in-product version check.
+8. **Activate the license.** Apply the offline license file produced by the Customer Account team — see [Offline License Activation](./offline-license-activation).
+9. **Mediate push notifications.** Apple APNs and Google FCM are reachable only from internet-connected networks. Deploy a mediated push proxy at your enclave boundary; see *Push Notifications without Direct APNs / FCM Egress* (Phase 2).
+10. **Configure NTP.** Mattermost relies on accurate clocks for token validation, audit-log timestamps, and rate-limiting. Point hosts at the enclave's internal NTP source.
+11. **Configure FIPS at install time** if required for the enclave (DoD IL4 / IL5, FedRAMP Moderate). FIPS cannot be enabled post-deploy. See [Configure FIPS at Install Time](../server/configure-fips-at-install-time).
+12. **Verify and run smoke tests.** Confirm the cluster passes the [post-install verification checklist](../server/server-deployment-planning.mdx). Run a manual smoke: log in as system admin, create a team, send a message, install one bundled plugin, trigger an audit-log export.
+
+## Validation
+
+After completing all 12 steps, your air-gapped cluster should:
+
+- Reach the in-product login page over TLS from inside the enclave.
+- Authenticate users against your internal directory (AD/LDAP, SAML, OIDC) — no public IdP.
+- Make **no outbound DNS queries to public resolvers** during steady-state operation. Verify with packet capture at the enclave boundary.
+- Show no "Mattermost installation telemetry" or "Marketplace pings" in egress logs.
+
+## What this runbook does *not* cover
+
+- **Hardening beyond the install procedure** — see [Security & Compliance → Hardening Guides](../../security-guide/security-guide-index.mdx).
+- **Upgrade procedure for an already-installed air-gapped cluster** — see *Air-Gapped Upgrade Procedure* (Phase 2).
+- **Tactical edge / DDIL operation** — for forward-deployed nodes that sync intermittently to a parent enclave, see *Tactical Edge / DDIL Operations* (Phase 2).
+
+## Reference
+
+This runbook is modelled on GitLab's [Offline GitLab Quick Start Guide](https://docs.gitlab.com/topics/offline/quick_start_guide/) and Red Hat OpenShift's [Disconnected installation chapter](https://docs.okd.io/4.18/installing/disconnected_install/index.html). Both treat air-gapped deployment as a first-class, runbook-shaped operation rather than a "contact sales" stub.

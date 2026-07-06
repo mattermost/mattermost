@@ -10,7 +10,8 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import {DragVerticalIcon, PlusIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import {GenericModal} from '@mattermost/components';
-import type {PropertyFieldOption, UserPropertyField} from '@mattermost/types/properties';
+import type {PropertyFieldOption} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import Constants from 'utils/constants';
 

@@ -1,0 +1,504 @@
+---
+title: "Calls Offloader Setup and Configuration"
+---
+<PlanAvailability slug="ent-plus" />
+
+This guide provides detailed instructions for setting up, configuring, and validating the Mattermost calls-offloader service used for call recording and transcription features.
+
+- [Overview](#overview)
+- [Prerequisites](#prerequisites)
+- [Installation and deployment](#installation-and-deployment)
+- [Configuration](#configuration)
+- [Validation and testing](#validation-and-testing)
+- [Integration with Mattermost](#integration-with-mattermost)
+- [Troubleshooting](#troubleshooting)
+- [Air-Gapped Deployments](#air-gapped-deployments)
+
+## Overview
+
+The calls-offloader service is a dedicated microservice that handles resource-intensive tasks for Mattermost Calls, including:
+
+- **Call recording**: Captures audio and screen sharing content from calls
+- **Call transcription**: Provides automated transcription of recorded calls
+- **Live captions** (Experimental): Real-time transcription during active calls
+
+By offloading these tasks to a dedicated service, the main Mattermost server and RTCD service can focus on core functionality while maintaining optimal performance.
+
+## Prerequisites
+
+Before deploying calls-offloader, ensure you have:
+
+- A Mattermost Enterprise license
+- A properly configured Mattermost Calls deployment (either integrated or with RTCD)
+- A moderately powerful server with Docker installed and running
+- Sufficient storage space for recordings (see [Storage Requirements](#storage-requirements))
+
+### System Requirements
+
+For detailed system requirements and performance recommendations, refer to the [calls-offloader performance documentation](https://github.com/mattermost/calls-offloader/blob/master/docs/performance.md).
+
+### Storage Requirements
+
+Call recordings can consume significant storage space. Based on average recording sizes with screen sharing on (including one audio track), storage usage by quality chosen is approximately:
+
+- **Low**: ~0.5GB/hour (or ~8MB/minute)
+- **Medium**: ~0.7GB/hour (or ~12MB/minute)
+- **High**: ~1.2GB/hour (or ~20MB/minute)
+
+*Note: Audio-only recordings consume approximately 1MB per minute per participant.*
+
+## Installation and Deployment
+
+### Bare Metal or VM Deployment
+
+<Tip>
+
+Looking for an automated setup? Check out these community-maintained [Calls Installation Scripts](https://github.com/bgardner8008/calls-install-scripts) for quick provisioning of the Calls Offloader service on Ubuntu/Debian systems.
+
+</Tip>
+
+1. Download the latest release from the [calls-offloader GitHub repository](https://github.com/mattermost/calls-offloader/releases)
+
+2. Create the necessary directories:
+
+   ```bash
+   sudo mkdir -p /opt/calls-offloader/data/db
+   sudo useradd --system --home /opt/calls-offloader calls-offloader
+   sudo chown -R calls-offloader:calls-offloader /opt/calls-offloader
+   ```
+
+3. Create a configuration file (`/opt/calls-offloader/config.toml`):
+
+   ```toml
+   [api]
+   http.listen_address = ":4545"
+   http.tls.enable = false
+   http.tls.cert_file = ""
+   http.tls.cert_key = ""
+   security.allow_self_registration = true
+   security.enable_admin = false
+   security.admin_secret_key = ""
+   security.session_cache.expiration_minutes = 1440
+
+   [store]
+   data_source = "/opt/calls-offloader/data/db"
+
+   [jobs]
+   api_type = "docker"
+   max_concurrent_jobs = 100
+   failed_jobs_retention_time = "30d"
+   image_registry = "mattermost"
+
+   [logger]
+   enable_console = true
+   console_json = false
+   console_level = "INFO"
+   enable_file = true
+   file_json = true
+   file_level = "DEBUG"
+   file_location = "/opt/calls-offloader/calls-offloader.log"
+   enable_color = true
+   ```
+
+4. Create a systemd service file (`/etc/systemd/system/calls-offloader.service`):
+
+   ```ini
+   [Unit]
+   Description=Mattermost Calls Offloader Service
+   After=network.target docker.service
+   Requires=docker.service
+
+   [Service]
+   Type=simple
+   User=calls-offloader
+   WorkingDirectory=/opt/calls-offloader
+   ExecStart=/opt/calls-offloader/calls-offloader --config /opt/calls-offloader/config.toml
+   Restart=always
+   RestartSec=10
+   LimitNOFILE=65536
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+5. Enable and start the service:
+
+   ```bash
+   sudo systemctl daemon-reload
+   sudo systemctl enable calls-offloader
+   sudo systemctl start calls-offloader
+   ```
+
+6. Check the service status:
+
+   ```bash
+   sudo systemctl status calls-offloader
+   ```
+
+7. Verify the service is responding:
+
+   ```bash
+   curl http://localhost:4545/version
+   # Example output:
+   # {"buildDate":"2025-03-10 19:13","buildVersion":"v0.9.2","buildHash":"a4bd418","goVersion":"go1.23.6"}
+   ```
+
+## Configuration
+
+### API Configuration
+
+The API section controls how the service accepts requests:
+
+- **http.listen_address**: The address and port where the service listens (default: `:4545`)
+- **http.tls.enable**: Whether to use TLS encryption for the API
+- **security.allow_self_registration**: Allow clients to self-register for job management
+- **security.enable_admin**: Enable admin functionality
+- **security.admin_secret_key**: Secret key for admin authentication (change from default!)
+
+### Store Configuration
+
+Controls persistent data storage:
+
+- **data_source**: Path to directory for storing client (i.e., connecting Mattermost nodes) IDs and credentials
+
+### Jobs Configuration
+
+Controls job processing behavior:
+
+- **api_type**: Job execution backend (`docker` or `kubernetes`)
+- **max_concurrent_jobs**: Maximum number of simultaneous recording/transcription jobs
+- **failed_jobs_retention_time**: How long to keep failed job data before cleanup
+- **image_registry**: Docker registry for job runner images (typically `mattermost`)
+
+### Logger Configuration
+
+Controls logging output:
+
+- **enable_console**: Log to console output
+- **console_json**: Use JSON format for console logs
+- **console_level**: Log level for console (DEBUG, INFO, WARN, ERROR)
+- **enable_file**: Log to file
+- **file_location**: Path to log file
+- **enable_color**: Use colored output for console logs
+
+### Private Network Configuration
+
+When the Mattermost deployment is running in a private network, additional configuration may be necessary for the jobs spawned by the calls-offloader service to reach the Mattermost server.
+
+In such cases, you can override the site URL used by recorder jobs or transcriber jobs to connect to Mattermost by setting the following environment variables on the Mattermost server:
+
+- **MM_CALLS_RECORDER_SITE_URL**: Override the site URL used by recording jobs
+- **MM_CALLS_TRANSCRIBER_SITE_URL**: Override the site URL used by transcription jobs
+
+<Note>
+
+When these Site URL overrides are used, the `ServiceSettings.AllowCorsFrom` setting on your Mattermost server may need to be adjusted accordingly to ensure CORS does not block requests.
+
+This override configuration lets the recorder and transcriber jobs connect to mattermost server using HTTP instead of HTTPS, which should only be used in a private network.
+
+</Note>
+
+Example configuration:
+
+Create or edit the Mattermost environment file (`/opt/mattermost/config/mattermost.environment`):
+
+```bash
+MM_CALLS_RECORDER_SITE_URL="http://internal-mattermost-server:8065"
+MM_CALLS_TRANSCRIBER_SITE_URL="http://internal-mattermost-server:8065"
+```
+
+Then ensure your Mattermost systemd service references this environment file:
+
+```ini
+[Unit]
+Description=Mattermost
+After=network.target
+
+[Service]
+Type=notify
+EnvironmentFile=/opt/mattermost/config/mattermost.environment
+ExecStart=/opt/mattermost/bin/mattermost
+TimeoutStartSec=3600
+KillMode=mixed
+Restart=always
+RestartSec=10
+WorkingDirectory=/opt/mattermost
+User=mattermost
+Group=mattermost
+
+[Install]
+WantedBy=multi-user.target
+```
+
+This is particularly useful when:
+
+- The calls-offloader service runs in a different network segment than clients
+- Internal DNS resolution differs from external URLs
+- You need to use internal load balancer endpoints for job communication
+
+## Validation and Testing
+
+After deploying calls-offloader, validate the installation:
+
+1. **Check service status**:
+
+   ```bash
+   # For systemd
+   sudo systemctl status calls-offloader
+   ```
+
+2. **Test API connectivity**:
+
+   **From the calls-offloader server (localhost test)**:
+
+   ```bash
+   curl http://localhost:4545/version
+   # Should return version information
+   # Example: {"buildDate":"2025-03-10 19:13","buildVersion":"v0.9.2","buildHash":"a4bd418","goVersion":"go1.23.6"}
+   ```
+
+   **From the Mattermost server**:
+
+   ```bash
+   curl http://YOUR_CALLS_OFFLOADER_SERVER:4545/version
+   # Should return the same version information
+   # This confirms network connectivity from Mattermost to calls-offloader
+   ```
+
+   If the localhost test works but the Mattermost server test fails, check:
+   
+   - Firewall rules or SELinux policies on the calls-offloader server (port 4545 must be accessible)
+   - Network connectivity between Mattermost and calls-offloader servers
+
+3. **Verify Docker service** (if using docker api_type):
+
+   ```bash
+   # Check that system user running calls-offloader can access Docker
+   sudo -u calls-offloader docker ps
+   ```
+
+## Integration with Mattermost
+
+Once calls-offloader is properly set up and validated, configure Mattermost to use it:
+
+1. Go to **System Console > Plugins > Calls**
+
+2. In the **Job Service** section:
+
+   - Set **Job Service URL** to your calls-offloader service (e.g., `http://calls-offloader-server:4545`)
+
+3. Enable recording and transcription features as needed:
+
+   - **Enable Call Recordings**: Toggle to allow call recordings
+   - **Enable Call Transcriptions**: Toggle to allow call transcriptions  
+   - **Enable Live Captions** (Experimental): Toggle to allow real-time transcription
+
+4. Save the configuration
+
+5. Restart the Calls plugin to re-establish state:
+
+   - Go to **System Console > Plugins > Plugin Management**
+   - Find the **Calls** plugin and click **Disable**
+   - Wait a few seconds, then click **Enable**
+
+6. Test by starting a call and starting a recording
+
+## Troubleshooting
+
+### Common Issues
+
+**"failed to create recording job: max concurrent jobs reached"**
+
+This error occurs when the calls-offloader service has reached its configured job limit, and it will usually result in a failure message on the Mattermost Calls plugin side (such as a timeout).
+
+Solutions:
+
+- Increase `max_concurrent_jobs` in the configuration
+- Check if jobs are hanging and restart the service
+- Monitor system resources and scale up if needed
+
+**Jobs not processing**
+
+Check the following:
+
+- Verify the calls-offloader service is running: `sudo systemctl status calls-offloader`
+- Ensure network connectivity between Mattermost and calls-offloader
+- Check Docker daemon is running and accessible by the user running the Calls Offloader service (E.g., user: ``calls-offloader``)
+- Verify authentication configuration matches between services
+- Review service logs for specific error messages
+
+**Docker permission issues**
+
+If using Docker API and seeing permission errors:
+
+```bash
+# Add calls-offloader user to docker group
+sudo usermod -a -G docker calls-offloader
+sudo systemctl restart calls-offloader
+```
+
+### Debugging Commands
+
+Monitor calls-offloader job containers:
+
+```bash
+# View running job containers
+docker ps --format "{{.ID}} {{.Image}}" | grep "calls"
+
+# Follow logs for debugging
+docker ps --format "{{.ID}} {{.Image}}" | grep "calls" | awk '{print $1}' | xargs -I {} docker logs -f {}
+
+# View completed job containers
+docker ps -a --filter "status=exited"
+```
+
+Monitor service health:
+
+```bash
+# Check service version and health
+curl http://localhost:4545/version
+```
+
+Check service logs:
+
+```bash
+# View recent logs
+sudo journalctl -u calls-offloader -f
+
+# View log file (if file logging enabled)
+tail -f /opt/calls-offloader/calls-offloader.log
+```
+
+### Performance Monitoring
+
+Monitor calls-offloader performance and resource usage to ensure optimal operation. See [Calls Metrics and Monitoring](calls-metrics-monitoring.md) for details on setting up metrics and observability.
+
+## Air-Gapped Installation of `calls-offloader`
+
+This guide covers deploying `calls-offloader` in an environment without internet access. The process uses scripts from the [calls-install-scripts](https://github.com/bgardner8008/calls-install-scripts) repository and follows a two-phase workflow: preparing a transfer bundle on an internet-connected machine, then deploying it on the isolated target machine.
+
+### Overview
+
+Because `calls-offloader` relies on Docker images for the recorder and transcriber jobs, an air-gapped deployment requires that those images be pre-pulled and packaged alongside the `calls-offloader` binary before being transferred to the target environment.
+
+The install scripts handle this in two stages:
+
+1. **Prepare** (internet-connected machine) — `setup-airgap-offloader.sh` pulls the required Docker images and downloads the `calls-offloader` binary, then packages everything into a transfer bundle and generates a ready-to-run deployment script.
+2. **Deploy** (air-gapped machine) — Transfer the bundle and run the generated `deploy-airgap-offloader.sh` script, which loads the Docker images into a local registry and installs the service.
+
+### Prerequisites
+
+- An internet-connected Linux machine with Docker installed (for the preparation phase)
+- A target air-gapped Linux machine with:
+  - systemd
+  - Docker installed
+  - Root or sudo access
+- The [calls-install-scripts](https://github.com/bgardner8008/calls-install-scripts) repository cloned on the internet-connected machine
+
+### Phase 1: Prepare the Transfer Bundle
+
+On the **internet-connected machine**, run `setup-airgap-offloader.sh` specifying the versions of each component to package:
+
+```bash
+./setup-airgap-offloader.sh \
+  --offloader v0.9.5 \
+  --recorder v0.9.0 \
+  --transcriber v0.3.0 \
+  --arch amd64
+```
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--offloader VERSION` | `calls-offloader` binary version (e.g. `v0.9.5`) | required |
+| `--recorder VERSION` | `calls-recorder` Docker image version | required |
+| `--transcriber VERSION` | `calls-transcriber` Docker image version | required |
+| `--arch amd64\|arm64` | Target CPU architecture | `amd64` |
+
+The script will:
+
+1. Pull the `calls-recorder` and `calls-transcriber` Docker images from Docker Hub
+2. Download the `calls-offloader` binary from GitHub releases
+3. Save the Docker images as `.tar` archives
+4. Generate a `deploy-airgap-offloader.sh` deployment script configured for the selected versions
+5. Produce a transfer bundle containing all of the above
+
+### Phase 2: Transfer to the Air-Gapped Machine
+
+Copy the generated bundle to the target machine using whatever transfer mechanism is available in your environment (USB drive, secure file transfer, etc.):
+
+```bash
+scp calls-offloader-airgap-bundle.tar.gz user@airgap-host:/tmp/
+```
+
+On the air-gapped machine, extract the bundle:
+
+```bash
+tar -xzf calls-offloader-airgap-bundle.tar.gz
+cd calls-offloader-airgap-bundle/
+```
+
+### Phase 3: Deploy on the Air-Gapped Machine
+
+Run the generated deployment script with root or sudo privileges:
+
+```bash
+sudo ./deploy-airgap-offloader.sh
+```
+
+This script will:
+
+1. Configure the local Docker daemon to use a local image registry
+2. Load the packaged Docker images into that registry
+3. Install the `calls-offloader` binary to `/usr/local/bin/`
+4. Create the `mattermost` system user and add it to the `docker` group
+5. Generate and enable a systemd service unit
+6. Start the service and verify it is running
+
+Once complete, verify the service is up:
+
+```bash
+curl http://localhost:4545/version
+```
+
+### Connecting to Mattermost
+
+Configure the Mattermost Calls plugin to use the offloader service via **System Console > Plugins > Calls > Job service URL**, setting it to `http://&lt;offloader-host&gt;:4545`.
+
+> [!NOTE]
+> The first time Mattermost connects to the offloader it will self-register and store its authentication key in the database, provided `API_SECURITY_ALLOWSELFREGISTRATION=true` is set (the default in the deployment script).
+
+### Private Network Considerations
+
+In air-gapped environments the recorder and transcriber containers typically need to reach the Mattermost server via an internal URL. Set the following environment variables on the **Mattermost server** to override the site URL used by spawned jobs:
+
+```
+MM_CALLS_RECORDER_SITE_URL=http://internal-mattermost-server:8065
+MM_CALLS_TRANSCRIBER_SITE_URL=http://internal-mattermost-server:8065
+```
+
+You may also need to add the internal URL to [`ServiceSettings.AllowCorsFrom`](https://docs.mattermost.com/configure/integrations-configuration-settings.html#enable-cross-origin-requests-from) in the Mattermost server configuration.
+
+> [!NOTE]
+> In particularly restrictive environments (e.g., VMs with strict network isolation), set `DOCKER_NETWORK=host` in the `calls-offloader` service environment so that job containers can reach the Mattermost server via its local address.
+
+### Custom Docker Registry
+
+If your air-gapped environment already has an internal Docker registry, you can point `install-offloader.sh` at it directly instead of using the local registry set up by the deployment script:
+
+```bash
+sudo ./install-offloader.sh \
+  --binary ./calls-offloader-linux-amd64 \
+  --image-registry registry.internal.example.com/mattermost \
+  --arch amd64
+```
+
+The `--image-registry` flag sets the registry prefix used when the offloader pulls recorder and transcriber images for each job.
+
+## Other Calls Documentation
+
+- [Calls Deployment Guide](calls-deployment-guide.md): Overview of deployment options and architecture
+- [RTCD Setup and Configuration](calls-rtcd-setup.md): Comprehensive guide for setting up the dedicated RTCD service
+- [Calls Metrics and Monitoring](calls-metrics-monitoring.md): Guide to monitoring Calls performance using metrics and observability
+- [Calls Deployment on Kubernetes](calls-kubernetes.md): Detailed guide for deploying Calls in Kubernetes environments
+- [Calls Logging](calls-logging.md): Detailed guidance for collecting Calls logs and client diagnostics
+- [calls-offloader performance documentation](https://github.com/mattermost/calls-offloader/blob/master/docs/performance.md): Detailed performance tuning and monitoring recommendations

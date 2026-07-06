@@ -819,7 +819,7 @@ const defaultServerConfig: AdminConfig = {
         BurnOnRead: true,
         EnableAIPluginBridge: false,
         EnableAIRecaps: false,
-        IntegratedBoards: false,
+        IntegratedBoards: true,
         CJKSearch: true,
         AggregatePluginMetrics: false,
         ManagedChannelCategories: false,

@@ -8,7 +8,7 @@ import React from 'react';
 import type {IntlShape} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {UserProfile} from '@mattermost/types/users';
 
 import SystemUserDetail, {getUserAuthenticationTextField} from 'components/admin_console/system_user_detail/system_user_detail';

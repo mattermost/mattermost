@@ -12,8 +12,34 @@ jest.mock('./team_members/index', () => {
     return () => <div>{'TeamMembers'}</div>;
 });
 
+// Lightweight stand-in that mirrors the real TeamProfile's name/description
+// editing contract. The real component pulls in cloud usage hooks that are not
+// relevant here and is exercised directly in team_profile.test.tsx; this fake
+// lets us drive TeamDetails' own save/validation logic through real state.
 jest.mock('./team_profile', () => ({
-    TeamProfile: () => <div>{'TeamProfile'}</div>,
+    TeamProfile: (props: {name: string; description: string; nameError?: React.ReactNode; onNameChange: (v: string) => void; onDescriptionChange: (v: string) => void; onToggleArchive?: () => void; isArchived?: boolean}) => (
+        <div>
+            <input
+                aria-label='Team Name'
+                value={props.name}
+                onChange={(e) => props.onNameChange(e.target.value)}
+            />
+            <textarea
+                aria-label='Team Description'
+                value={props.description}
+                onChange={(e) => props.onDescriptionChange(e.target.value)}
+            />
+            {props.nameError ? <div>{props.nameError}</div> : null}
+            {props.onToggleArchive ? (
+                <button
+                    type='button'
+                    onClick={props.onToggleArchive}
+                >
+                    {props.isArchived ? 'Unarchive Team' : 'Archive Team'}
+                </button>
+            ) : null}
+        </div>
+    ),
 }));
 
 jest.mock('utils/browser_history', () => ({
@@ -89,6 +115,251 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             />,
         );
         expect(container).toMatchSnapshot();
+    });
+
+    test('saves the edited team name and description through patchTeam', async () => {
+        const patchTeam = jest.fn().mockResolvedValue({data: {}});
+        const props = {
+            ...baseProps,
+            actions: {...baseProps.actions, patchTeam},
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        const nameInput = screen.getByLabelText('Team Name');
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, 'Renamed Team');
+
+        const descriptionInput = screen.getByLabelText('Team Description');
+        await userEvent.clear(descriptionInput);
+        await userEvent.type(descriptionInput, 'A new description');
+
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => {
+            expect(patchTeam).toHaveBeenCalledWith(expect.objectContaining({
+                display_name: 'Renamed Team',
+                description: 'A new description',
+            }));
+        });
+    });
+
+    test('trims surrounding whitespace from the team name before saving', async () => {
+        const patchTeam = jest.fn().mockResolvedValue({data: {}});
+        const props = {
+            ...baseProps,
+            actions: {...baseProps.actions, patchTeam},
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        const nameInput = screen.getByLabelText('Team Name');
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, '  Padded Name  ');
+
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => {
+            expect(patchTeam).toHaveBeenCalledWith(expect.objectContaining({display_name: 'Padded Name'}));
+        });
+    });
+
+    test('blocks the save and shows a validation error when the team name is too short', async () => {
+        const patchTeam = jest.fn().mockResolvedValue({data: {}});
+        const props = {
+            ...baseProps,
+            actions: {...baseProps.actions, patchTeam},
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        const nameInput = screen.getByLabelText('Team Name');
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, 'a');
+
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => {
+            expect(screen.getByText(/Team name must be 2 or more characters/)).toBeInTheDocument();
+        });
+        expect(patchTeam).not.toHaveBeenCalled();
+    });
+
+    test('blocks the save when the team name is only whitespace', async () => {
+        const patchTeam = jest.fn().mockResolvedValue({data: {}});
+        const props = {
+            ...baseProps,
+            actions: {...baseProps.actions, patchTeam},
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        const nameInput = screen.getByLabelText('Team Name');
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, '   ');
+
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => {
+            expect(screen.getByText(/Team name must be 2 or more characters/)).toBeInTheDocument();
+        });
+        expect(patchTeam).not.toHaveBeenCalled();
+    });
+
+    test('clears the name error and saves once a valid name is entered after a failed validation', async () => {
+        const patchTeam = jest.fn().mockResolvedValue({data: {}});
+        const props = {
+            ...baseProps,
+            actions: {...baseProps.actions, patchTeam},
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        const nameInput = screen.getByLabelText('Team Name');
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, 'a');
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => {
+            expect(screen.getByText(/Team name must be 2 or more characters/)).toBeInTheDocument();
+        });
+
+        await userEvent.type(nameInput, 'cme Team');
+        await waitFor(() => {
+            expect(screen.queryByText(/Team name must be 2 or more characters/)).not.toBeInTheDocument();
+        });
+
+        await userEvent.click(screen.getByText('Save'));
+        await waitFor(() => {
+            expect(patchTeam).toHaveBeenCalledWith(expect.objectContaining({display_name: 'acme Team'}));
+        });
+    });
+
+    test('blocks navigation once the team name is edited', async () => {
+        const setNavigationBlocked = jest.fn();
+        const props = {
+            ...baseProps,
+            actions: {...baseProps.actions, setNavigationBlocked},
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        await userEvent.type(screen.getByLabelText('Team Name'), '!');
+
+        expect(setNavigationBlocked).toHaveBeenCalledWith(true);
+    });
+
+    test('resets the edited fields when a different team is loaded', () => {
+        const {rerender} = renderWithContext(<TeamDetails {...baseProps}/>);
+
+        expect(screen.getByLabelText('Team Name')).toHaveValue('team');
+
+        const otherTeam = TestHelper.getTeamMock({
+            id: '456',
+            display_name: 'Another Team',
+            description: 'Another description',
+            delete_at: 0,
+        });
+        rerender(
+            <TeamDetails
+                {...baseProps}
+                team={otherTeam}
+                teamID={otherTeam.id}
+            />,
+        );
+
+        expect(screen.getByLabelText('Team Name')).toHaveValue('Another Team');
+        expect(screen.getByLabelText('Team Description')).toHaveValue('Another description');
+    });
+
+    test('does not reset edited fields when only totalGroups changes', async () => {
+        const {rerender} = renderWithContext(<TeamDetails {...baseProps}/>);
+
+        const nameInput = screen.getByLabelText('Team Name');
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, 'Edited Name');
+
+        rerender(
+            <TeamDetails
+                {...baseProps}
+                totalGroups={baseProps.totalGroups + 1}
+            />,
+        );
+
+        expect(screen.getByLabelText('Team Name')).toHaveValue('Edited Name');
+    });
+
+    test('patches profile fields before archiving the team', async () => {
+        const patchTeam = jest.fn().mockResolvedValue({data: {}});
+        const deleteTeam = jest.fn().mockResolvedValue({data: {}});
+        const props = {
+            ...baseProps,
+            actions: {...baseProps.actions, patchTeam, deleteTeam},
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        const nameInput = screen.getByLabelText('Team Name');
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, 'Archived Team');
+
+        await userEvent.click(screen.getByText('Archive Team'));
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => {
+            expect(screen.getByText('Save and Archive Team')).toBeInTheDocument();
+        });
+        await userEvent.click(screen.getByText('Archive'));
+
+        await waitFor(() => {
+            expect(patchTeam).toHaveBeenCalledWith(expect.objectContaining({
+                display_name: 'Archived Team',
+            }));
+            expect(deleteTeam).toHaveBeenCalledWith('123');
+        });
+        expect(patchTeam.mock.invocationCallOrder[0]).toBeLessThan(deleteTeam.mock.invocationCallOrder[0]);
+    });
+
+    test('blocks the save-and-archive flow and shows a validation error when the team name is invalid', async () => {
+        const patchTeam = jest.fn().mockResolvedValue({data: {}});
+        const deleteTeam = jest.fn().mockResolvedValue({data: {}});
+        const props = {
+            ...baseProps,
+            actions: {...baseProps.actions, patchTeam, deleteTeam},
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        const nameInput = screen.getByLabelText('Team Name');
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, 'a');
+
+        await userEvent.click(screen.getByText('Archive Team'));
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => {
+            expect(screen.getByText(/Team name must be 2 or more characters/)).toBeInTheDocument();
+        });
+
+        // The confirm modal must not open and no destructive action should run.
+        expect(screen.queryByText('Save and Archive Team')).not.toBeInTheDocument();
+        expect(patchTeam).not.toHaveBeenCalled();
+        expect(deleteTeam).not.toHaveBeenCalled();
+    });
+
+    test('blocks restore when the edited team name is invalid', async () => {
+        const unarchiveTeam = jest.fn().mockResolvedValue({data: {}});
+        const archivedTeam = {...baseProps.team, delete_at: 16465313};
+        const props = {
+            ...baseProps,
+            team: archivedTeam,
+            actions: {...baseProps.actions, unarchiveTeam},
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        const nameInput = screen.getByLabelText('Team Name');
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, 'a');
+
+        await userEvent.click(screen.getByText('Unarchive Team'));
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => {
+            expect(screen.getByText(/Team name must be 2 or more characters/)).toBeInTheDocument();
+        });
+        expect(unarchiveTeam).not.toHaveBeenCalled();
     });
 
     test('does not render the ABAC toggle when ABAC is unsupported', () => {

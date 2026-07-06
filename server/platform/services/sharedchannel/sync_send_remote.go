@@ -359,10 +359,6 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 
 // fetchMembershipsForSync populates the sync data with membership changes from ChannelMemberHistory.
 func (scs *Service) fetchMembershipsForSync(sd *syncData) error {
-	if !scs.server.Config().FeatureFlags.EnableSharedChannelsMemberSync {
-		return nil
-	}
-
 	start := time.Now()
 	defer func() {
 		if metrics := scs.server.GetMetrics(); metrics != nil {

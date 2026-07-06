@@ -1,13 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {SortDirection, Table} from '@tanstack/react-table';
 import {flexRender} from '@tanstack/react-table';
+import type {SortDirection, Table, Row} from '@tanstack/react-table';
 import classNames from 'classnames';
-import React, {useMemo} from 'react';
-import type {AriaAttributes, MouseEvent, ReactNode} from 'react';
-import type {DropResult} from 'react-beautiful-dnd';
-import {DragDropContext, Draggable, Droppable} from 'react-beautiful-dnd';
+import React, {useMemo, useState} from 'react';
+import type {AriaAttributes, KeyboardEvent, MouseEvent, ReactNode} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
 import type {IndicatorsContainerProps, OnChangeValue} from 'react-select';
@@ -16,7 +14,10 @@ import {DragVerticalIcon} from '@mattermost/compass-icons/components';
 
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
+import {useListTableDnd} from './hooks/use_list_table_dnd';
+import {useListTableRowDnd} from './hooks/use_list_table_row_dnd';
 import {Pagination} from './pagination';
+import {RowDropIndicator} from './row_drop_indicator';
 
 import './list_table.scss';
 
@@ -61,6 +62,14 @@ export type TableMeta = {
     emptyDataMessage?: ReactNode;
     onRowClick?: (row: string) => void;
     onReorder?: (prev: number, next: number) => void;
+    isRowDragDisabled?: (rowId: string) => boolean;
+
+    // Optional: returns a detached HTMLElement used as the native drag
+    // preview when a row is being dragged. If omitted, the browser uses the
+    // dragged row element itself, which can be visually noisy for wide
+    // tables. Consumers build their own preview DOM so styling stays
+    // scoped to the consuming screen (not the shared list-table primitive).
+    getRowDragPreview?: (rowId: string) => HTMLElement | undefined;
     disablePrevPage?: boolean;
     disableNextPage?: boolean;
     disablePaginationControls?: boolean;
@@ -77,6 +86,111 @@ interface TableMandatoryTypes {
 type Props<TableType extends TableMandatoryTypes> = {
     table: Table<TableType>;
 };
+
+type DraggableRowProps<T extends TableMandatoryTypes> = {
+    row: Row<T>;
+    totalRows: number;
+    tableMeta: TableMeta;
+    rowIdPrefix: string;
+    cellIdPrefix: string;
+    headerIdPrefix: string;
+    handleRowClick: (e: MouseEvent<HTMLTableRowElement>) => void;
+};
+
+function DraggableRow<T extends TableMandatoryTypes>({
+    row,
+    totalRows,
+    tableMeta,
+    rowIdPrefix,
+    cellIdPrefix,
+    headerIdPrefix,
+    handleRowClick,
+}: DraggableRowProps<T>) {
+    const {formatMessage} = useIntl();
+    const [rowElement, setRowElement] = useState<HTMLElement | null>(null);
+    const [handleElement, setHandleElement] = useState<HTMLElement | null>(null);
+
+    const dragEnabled =
+        Boolean(tableMeta.onReorder) &&
+        tableMeta.isRowDragDisabled?.(row.original.id) !== true;
+
+    const dragKind = `list-table-row:${tableMeta.tableId}`;
+
+    const {closestEdge} = useListTableRowDnd({
+        dragKind,
+        rowId: row.original.id,
+        rowIndex: row.index,
+        rowElement,
+        handleElement,
+        enabled: dragEnabled,
+        getDragPreview: () => tableMeta.getRowDragPreview?.(row.original.id),
+    });
+
+    const handleKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
+        if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (row.index > 0) {
+                tableMeta.onReorder?.(row.index, row.index - 1);
+            }
+        } else if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (row.index < totalRows - 1) {
+                tableMeta.onReorder?.(row.index, row.index + 1);
+            }
+        }
+    };
+
+    return (
+        <tr
+            ref={setRowElement}
+            id={`${rowIdPrefix}${row.original.id}`}
+            key={row.id}
+            data-testid='listTableBodyRow'
+            onClick={handleRowClick}
+            className={classNames({clickable: Boolean(tableMeta.onRowClick)})}
+        >
+            {row.getVisibleCells().map((cell, i) => (
+                <td
+                    key={cell.id}
+                    id={`${cellIdPrefix}${cell.id}`}
+                    headers={`${headerIdPrefix}${cell.column.id}`}
+                    className={classNames(`${cell.column.id}`, {
+                        [PINNED_CLASS]: cell.column.getCanPin(),
+                    })}
+                    data-testid={cell.column.id}
+                    style={{width: cell.column.getSize()}}
+                >
+                    {tableMeta.onReorder && i === 0 && (
+                        tableMeta.isRowDragDisabled?.(row.original.id) === true ? (
+                            <span className='dragHandle dragHandle--disabled'/>
+                        ) : (
+                            <button
+                                ref={setHandleElement}
+                                type='button'
+                                className='dragHandle'
+                                aria-label={formatMessage({
+                                    id: 'adminConsole.list.table.dragHandleLabel',
+                                    defaultMessage: 'Reorder row',
+                                })}
+                                onClick={(e) => e.stopPropagation()}
+                                onKeyDown={handleKeyDown}
+                            >
+                                <DragVerticalIcon size={18}/>
+                            </button>
+                        )
+                    )}
+                    {cell.getIsPlaceholder() ? null : flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </td>
+            ))}
+            {closestEdge && rowElement && (
+                <RowDropIndicator
+                    rowElement={rowElement}
+                    edge={closestEdge}
+                />
+            )}
+        </tr>
+    );
+}
 
 /**
  * A wrapper around the react-table component that provides a consistent look and feel for the admin console list tables.
@@ -122,13 +236,10 @@ export function ListTable<TableType extends TableMandatoryTypes>(
         }
     }
 
-    const handleDragEnd = (result: DropResult) => {
-        const {source, destination} = result;
-        if (!destination) {
-            return;
-        }
-        tableMeta.onReorder?.(source.index, destination.index);
-    };
+    useListTableDnd({
+        dragKind: `list-table-row:${tableMeta.tableId}`,
+        onReorder: tableMeta.onReorder,
+    });
 
     const colCount = props.table.getAllColumns().length;
     const rowCount = props.table.getRowModel().rows.length;
@@ -210,106 +321,61 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                         </tr>
                     ))}
                 </thead>
-                <DragDropContext onDragEnd={handleDragEnd}>
-                    <Droppable droppableId='table-body'>
-                        {(provided, snap) => (
-                            <tbody
-                                ref={provided.innerRef}
-                                {...provided.droppableProps}
+                <tbody>
+                    {props.table.getRowModel().rows.map((row, _, rows) => (
+                        <DraggableRow
+                            key={row.original.id}
+                            row={row}
+                            totalRows={rows.length}
+                            tableMeta={tableMeta}
+                            rowIdPrefix={rowIdPrefix}
+                            cellIdPrefix={cellIdPrefix}
+                            headerIdPrefix={headerIdPrefix}
+                            handleRowClick={handleRowClick}
+                        />
+                    ))}
+
+                    {/* State where it is initially loading the data */}
+                    {(tableMeta.loadingState === LoadingStates.Loading && rowCount === 0) && (
+                        <tr>
+                            <td
+                                colSpan={colCount}
+                                className='noRows'
+                                disabled={true}
                             >
-                                {props.table.getRowModel().rows.map((row) => (
-                                    <Draggable
-                                        draggableId={row.original.id}
-                                        key={row.original.id}
-                                        index={row.index}
-                                        isDragDisabled={!tableMeta.onReorder}
-                                    >
-                                        {(provided) => {
-                                            return (
-                                                <tr
-                                                    id={`${rowIdPrefix}${row.original.id}`}
-                                                    key={row.id}
-                                                    data-testid='listTableBodyRow'
-                                                    onClick={handleRowClick}
-                                                    className={classNames({clickable: Boolean(tableMeta.onRowClick) && !snap.isDraggingOver})}
-                                                    ref={provided.innerRef}
-                                                    {...provided.draggableProps}
-                                                >
-                                                    {row.getVisibleCells().map((cell, i) => (
-                                                        <td
-                                                            key={cell.id}
-                                                            id={`${cellIdPrefix}${cell.id}`}
-                                                            headers={`${headerIdPrefix}${cell.column.id}`}
-                                                            className={classNames(`${cell.column.id}`, {
-                                                                [PINNED_CLASS]: cell.column.getCanPin(),
-                                                            })}
-                                                            data-testid={cell.column.id}
-                                                            style={{width: cell.column.getSize()}}
-                                                        >
-                                                            {tableMeta.onReorder && i === 0 && (
-                                                                <span
-                                                                    className='dragHandle'
-                                                                    {...provided.dragHandleProps}
-                                                                >
-                                                                    <DragVerticalIcon size={18}/>
-                                                                </span>
-                                                            )}
-                                                            {cell.getIsPlaceholder() ? null : flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                                        </td>
-                                                    ))}
-                                                </tr>
-                                            );
-                                        }}
-                                    </Draggable>
+                                <LoadingSpinner
+                                    text={formatMessage({id: 'adminConsole.list.table.genericLoading', defaultMessage: 'Loading'})}
+                                />
+                            </td>
+                        </tr>
+                    )}
 
-                                ))}
+                    {/* State where there is no data */}
+                    {(tableMeta.loadingState === LoadingStates.Loaded && rowCount === 0) && (
+                        <tr>
+                            <td
+                                colSpan={colCount}
+                                className='noRows'
+                                disabled={true}
+                            >
+                                {tableMeta.emptyDataMessage || formatMessage({id: 'adminConsole.list.table.genericNoData', defaultMessage: 'No data'})}
+                            </td>
+                        </tr>
+                    )}
 
-                                {provided.placeholder}
-
-                                {/* State where it is initially loading the data */}
-                                {(tableMeta.loadingState === LoadingStates.Loading && rowCount === 0) && (
-                                    <tr>
-                                        <td
-                                            colSpan={colCount}
-                                            className='noRows'
-                                            disabled={true}
-                                        >
-                                            <LoadingSpinner
-                                                text={formatMessage({id: 'adminConsole.list.table.genericLoading', defaultMessage: 'Loading'})}
-                                            />
-                                        </td>
-                                    </tr>
-                                )}
-
-                                {/* State where there is no data */}
-                                {(tableMeta.loadingState === LoadingStates.Loaded && rowCount === 0) && (
-                                    <tr>
-                                        <td
-                                            colSpan={colCount}
-                                            className='noRows'
-                                            disabled={true}
-                                        >
-                                            {tableMeta.emptyDataMessage || formatMessage({id: 'adminConsole.list.table.genericNoData', defaultMessage: 'No data'})}
-                                        </td>
-                                    </tr>
-                                )}
-
-                                {/* State where there is an error loading the data */}
-                                {tableMeta.loadingState === LoadingStates.Failed && (
-                                    <tr>
-                                        <td
-                                            colSpan={colCount}
-                                            className='noRows'
-                                            disabled={true}
-                                        >
-                                            {formatMessage({id: 'adminConsole.list.table.genericError', defaultMessage: 'There was an error loading the data, please try again'})}
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        )}
-                    </Droppable>
-                </DragDropContext>
+                    {/* State where there is an error loading the data */}
+                    {tableMeta.loadingState === LoadingStates.Failed && (
+                        <tr>
+                            <td
+                                colSpan={colCount}
+                                className='noRows'
+                                disabled={true}
+                            >
+                                {formatMessage({id: 'adminConsole.list.table.genericError', defaultMessage: 'There was an error loading the data, please try again'})}
+                            </td>
+                        </tr>
+                    )}
+                </tbody>
                 <tfoot>
                     {props.table.getFooterGroups().map((footerGroup) => (
                         <tr key={footerGroup.id}>

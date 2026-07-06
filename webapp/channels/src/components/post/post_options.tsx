@@ -14,7 +14,6 @@ import {isPostEphemeral} from 'mattermost-redux/utils/post_utils';
 
 import ActionsMenu from 'components/actions_menu';
 import CommentIcon from 'components/common/comment_icon';
-import {usePluginVisibilityInSharedChannel} from 'components/common/hooks/usePluginVisibilityInSharedChannel';
 import DotMenu from 'components/dot_menu';
 import PostFlagIcon from 'components/post_view/post_flag_icon';
 import PostReaction from 'components/post_view/post_reaction';
@@ -215,9 +214,8 @@ const PostOptions = (props: Props): JSX.Element => {
     );
 
     let pluginItems: ReactNode = null;
-    const pluginItemsVisible = usePluginVisibilityInSharedChannel(post.channel_id);
 
-    if ((!isEphemeral && !post.failed && !systemMessage && !isBurnOnReadPost) && hoverLocal && pluginItemsVisible) {
+    if ((!isEphemeral && !post.failed && !systemMessage && !isBurnOnReadPost) && hoverLocal) {
         pluginItems = props.pluginActions?.
             map((item) => {
                 if (item.component) {
