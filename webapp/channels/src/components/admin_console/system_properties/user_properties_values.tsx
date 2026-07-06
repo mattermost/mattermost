@@ -90,13 +90,13 @@ const UserPropertyValues = ({
         event.preventDefault();
     };
 
-    // Owner-managed fields are read-only here: ownership is assigned by the
-    // owning integration (e.g. the SCIM plugin), not from this screen. Render
-    // a non-interactive badge per owner showing the plugin provenance and its
-    // scope(s).
+    // Externally managed fields are read-only here. Render every source in the
+    // same "Synced with" row: LDAP/SAML links (editable from this screen when
+    // allowed) and owner pills (assigned by integrations such as SCIM).
     const owners = field.attrs?.owners ?? [];
-    if (owners.length > 0) {
-        const ownerBadges = owners.map((owner, idx) => {
+    const hasSyncedSources = Boolean(field.attrs.ldap || field.attrs.saml || owners.length > 0);
+    if (hasSyncedSources) {
+        const ownerPills = owners.map((owner, idx) => {
             const provenance = owner.type === 'plugin' ? (pluginsById[owner.id]?.name || owner.id) : owner.id;
             const key = `${field.name}-owner-${owner.type}-${owner.id}-${idx}`;
 
@@ -124,21 +124,7 @@ const UserPropertyValues = ({
             );
         });
 
-        return (
-            <span className='user-property-field-values'>
-                <PowerPlugOutlineIcon size={18}/>
-                <FormattedMessage
-                    id='admin.system_properties.user_properties.table.values.managed_by'
-                    defaultMessage='Managed by: {owners}'
-                    values={{owners: <FormattedList value={ownerBadges}/>}}
-                />
-            </span>
-        );
-    }
-
-    if (field.attrs.ldap || field.attrs.saml) {
         const syncedProperties = [
-
             field.attrs.ldap && (
                 <a
                     className='user-property-field-values__chip-link'
@@ -181,20 +167,18 @@ const UserPropertyValues = ({
                     />
                 </a>
             ),
-
+            ...ownerPills,
         ].filter(Boolean);
 
         return (
-            <>
-                <span className='user-property-field-values'>
-                    <SyncIcon size={18}/>
-                    <FormattedMessage
-                        id='admin.system_properties.user_properties.table.values.synced_with'
-                        defaultMessage='Synced with: {syncedProperties}'
-                        values={{syncedProperties: <FormattedList value={syncedProperties}/>}}
-                    />
-                </span>
-            </>
+            <span className='user-property-field-values'>
+                <SyncIcon size={18}/>
+                <FormattedMessage
+                    id='admin.system_properties.user_properties.table.values.synced_with'
+                    defaultMessage='Synced with: {syncedProperties}'
+                    values={{syncedProperties: <FormattedList value={syncedProperties}/>}}
+                />
+            </span>
         );
     }
 

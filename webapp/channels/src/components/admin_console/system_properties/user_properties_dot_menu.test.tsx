@@ -373,7 +373,7 @@ describe('UserPropertyDotMenu', () => {
         expect(screen.getByText('Synced attributes are managed by AD/LDAP or SAML')).toBeInTheDocument();
     });
 
-    it('disables the "Editable by users" toggle and hides link options for owner-managed fields', async () => {
+    it('disables the "Editable by users" toggle and still offers link options for owner-managed fields', async () => {
         const ownerManagedField: UserPropertyField = {
             ...baseField,
             id: 'owner-managed-field',
@@ -393,9 +393,8 @@ describe('UserPropertyDotMenu', () => {
         expect(within(editableItem).getByRole('button')).toBeDisabled();
         expect(screen.getByText('This attribute is managed by an integration')).toBeInTheDocument();
 
-        // No link/unlink action is offered for owner-managed attributes here.
-        expect(screen.queryByText('Link attribute to AD/LDAP')).not.toBeInTheDocument();
-        expect(screen.queryByText('Link attribute to SAML')).not.toBeInTheDocument();
+        expect(screen.getByText('Link attribute to AD/LDAP')).toBeInTheDocument();
+        expect(screen.getByText('Link attribute to SAML')).toBeInTheDocument();
     });
 
     it('does not update an owner-managed field when clicking the "Editable by users" toggle', async () => {

@@ -265,9 +265,8 @@ func NewServer(options ...Option) (*Server, error) {
 			callerID, _ := CallerIDFromRequestContext(rctx)
 			return callerID
 		},
-		ActingAsScopeExtractor: func(rctx request.CTX) string {
-			scope, _ := ActingAsScopeFromRequestContext(rctx)
-			return scope
+		RequestOptionsExtractor: func(rctx request.CTX) model.PropertyRequestOptions {
+			return model.PropertyRequestOptionsFromContext(rctx.Context())
 		},
 	})
 	if err != nil {

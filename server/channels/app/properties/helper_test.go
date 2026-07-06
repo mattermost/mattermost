@@ -45,12 +45,11 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 			callerID, _ := model.CallerIDFromContext(rctx.Context())
 			return callerID
 		},
-		ActingAsScopeExtractor: func(rctx request.CTX) string {
+		RequestOptionsExtractor: func(rctx request.CTX) model.PropertyRequestOptions {
 			if rctx == nil {
-				return ""
+				return model.PropertyRequestOptions{}
 			}
-			scope, _ := model.ActingAsScopeFromContext(rctx.Context())
-			return scope
+			return model.PropertyRequestOptionsFromContext(rctx.Context())
 		},
 	})
 	require.NoError(tb, err)

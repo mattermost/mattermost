@@ -65,15 +65,16 @@ type PropertyRequestOptions struct {
 // ctx so the server can read them alongside the caller ID.
 func WithPropertyRequestOptions(ctx context.Context, options PropertyRequestOptions) context.Context {
 	if options.ActingAsScope != "" {
-		ctx = WithActingAsScope(ctx, options.ActingAsScope)
+		ctx = context.WithValue(ctx, AccessControlScopeContextKey, options.ActingAsScope)
 	}
 	return ctx
 }
 
-// WithActingAsScope adds the caller's acting-as scope to a context.Context for
-// access control purposes.
-func WithActingAsScope(ctx context.Context, scope string) context.Context {
-	return context.WithValue(ctx, AccessControlScopeContextKey, scope)
+// PropertyRequestOptionsFromContext reconstructs the caller's per-call
+// declarations from ctx. Returns zero-value options when none were set.
+func PropertyRequestOptionsFromContext(ctx context.Context) PropertyRequestOptions {
+	scope, _ := ActingAsScopeFromContext(ctx)
+	return PropertyRequestOptions{ActingAsScope: scope}
 }
 
 // ActingAsScopeFromContext extracts the caller's acting-as scope from a

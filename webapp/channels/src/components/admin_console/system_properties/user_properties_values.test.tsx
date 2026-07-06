@@ -221,7 +221,7 @@ describe('UserPropertyValues', () => {
         expect(samlLinkElement).toBeInTheDocument();
     });
 
-    it('shows a read-only owner badge with the plugin provenance and scope', () => {
+    it('shows a read-only owner pill with plugin provenance and scope under Synced with', () => {
         const ownedField = {
             ...baseField,
             attrs: {
@@ -234,7 +234,7 @@ describe('UserPropertyValues', () => {
 
         renderComponent(ownedField);
 
-        expect(screen.getByText(/Managed by:/)).toBeInTheDocument();
+        expect(screen.getByText(/Synced with:/)).toBeInTheDocument();
         expect(screen.getByTestId(`user-property-field-values__owner-${ownedField.name}-com.mattermost.scim`)).toBeInTheDocument();
         expect(screen.getByText('com.mattermost.scim: entra')).toBeInTheDocument();
 

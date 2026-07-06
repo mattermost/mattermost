@@ -360,7 +360,7 @@ const DotMenu = ({
                     />
                 )}
             />
-            {field.create_at !== 0 && !isOwnerManaged && ([
+            {field.create_at !== 0 && ([
                 <Menu.Item
                     key={`${menuId}_link_ad-ldap`}
                     id={`${menuId}_link_ad-ldap`}

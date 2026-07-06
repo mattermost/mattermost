@@ -619,7 +619,7 @@ func (h *AccessControlHook) extractCallerID(rctx request.CTX) string {
 // extractActingAsScope gets the caller's acting-as scope from a request context
 // using the property service's extractor.
 func (h *AccessControlHook) extractActingAsScope(rctx request.CTX) string {
-	return h.propertyService.extractActingAsScope(rctx)
+	return h.propertyService.extractRequestOptions(rctx).ActingAsScope
 }
 
 // isCallerPlugin checks whether the callerID corresponds to an installed plugin.
