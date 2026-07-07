@@ -37,6 +37,7 @@ export default function SessionAttributesPage(props: Props) {
     const {formatMessage} = useIntl();
 
     const [loaded, setLoaded] = useState(false);
+    const [loadError, setLoadError] = useState(false);
 
     const groupId = useSelector((state: GlobalState) =>
         getPropertyGroupByName(state, SESSION_ATTRIBUTES_GROUP_ID)?.id ?? '',
@@ -51,6 +52,21 @@ export default function SessionAttributesPage(props: Props) {
     useEffect(() => {
         let active = true;
         Promise.resolve(dispatch(fetchPropertyFields(SESSION_ATTRIBUTES_GROUP_ID, SESSION_ATTRIBUTES_OBJECT_TYPE, SESSION_ATTRIBUTES_TARGET_TYPE))).
+            then(
+                () => {
+                    if (active) {
+                        setLoadError(false);
+                    }
+                },
+
+                // Handle the rejection so it isn't left uncaught, and surface an
+                // error state instead of the (misleading) empty state.
+                () => {
+                    if (active) {
+                        setLoadError(true);
+                    }
+                },
+            ).
             finally(() => {
                 if (active) {
                     setLoaded(true);
@@ -94,7 +110,7 @@ export default function SessionAttributesPage(props: Props) {
                                 className='SessionAttributes__table-region'
                                 aria-disabled={props.disabled}
                             >
-                                {renderRegion(loaded, edits)}
+                                {renderRegion(loaded, loadError, edits, props.disabled)}
                             </div>
                         </SectionContent>
                     </AdminSection>
@@ -119,9 +135,20 @@ export default function SessionAttributesPage(props: Props) {
     );
 }
 
-function renderRegion(loaded: boolean, edits: SessionAttributeEdits) {
+function renderRegion(loaded: boolean, loadError: boolean, edits: SessionAttributeEdits, disabled: boolean) {
     if (!loaded) {
         return <LoadingScreen/>;
+    }
+
+    if (loadError) {
+        return (
+            <div className='SessionAttributes__empty'>
+                <FormattedMessage
+                    id='admin.session_attributes.load_error'
+                    defaultMessage='There was an error while loading the session attributes.'
+                />
+            </div>
+        );
     }
 
     if (edits.merged.length === 0) {
@@ -139,6 +166,7 @@ function renderRegion(loaded: boolean, edits: SessionAttributeEdits) {
         <SessionAttributesTable
             data={edits.merged}
             onStageChange={edits.stage}
+            disabled={disabled}
         />
     );
 }

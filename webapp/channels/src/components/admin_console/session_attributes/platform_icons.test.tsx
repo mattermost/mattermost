@@ -30,4 +30,12 @@ describe('PlatformIcons', () => {
         const slots = screen.getByTestId('session-attribute-platforms').querySelectorAll('[data-active]');
         expect(Array.from(slots).every((slot) => slot.getAttribute('data-active') === 'false')).toBe(true);
     });
+
+    it('conveys active/inactive state in each icon accessible name', () => {
+        renderWithContext(<PlatformIcons platforms={['desktop']}/>);
+
+        expect(screen.getByLabelText('Desktop (active)')).toBeInTheDocument();
+        expect(screen.getByLabelText('Mobile (inactive)')).toBeInTheDocument();
+        expect(screen.getByLabelText('Browser (inactive)')).toBeInTheDocument();
+    });
 });

@@ -21,11 +21,12 @@ import type {SessionAttributeField} from './utils';
 type Props = {
     field: SessionAttributeField;
     onStageChange: (fieldId: string, partial: StagedAttrs) => void;
+    disabled?: boolean;
 };
 
 const CHECK_COLOR = 'var(--button-bg, #1c58d9)';
 
-export default function SessionAttributesDotMenu({field, onStageChange}: Props) {
+export default function SessionAttributesDotMenu({field, onStageChange, disabled = false}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
@@ -70,6 +71,7 @@ export default function SessionAttributesDotMenu({field, onStageChange}: Props) 
                 class: 'btn btn-transparent',
                 children: <DotsVerticalIcon size={18}/>,
                 dataTestId: menuId,
+                disabled,
             }}
             menu={{
                 id: `${menuId}-menu`,

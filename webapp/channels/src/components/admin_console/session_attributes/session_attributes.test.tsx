@@ -172,6 +172,15 @@ describe('SessionAttributesPage', () => {
         expect(screen.queryByRole('columnheader', {name: 'Display Name'})).not.toBeInTheDocument();
     });
 
+    it('shows an error state (not the empty state) when the fetch fails', async () => {
+        getPropertyFields.mockRejectedValue(new Error('boom'));
+
+        renderWithContext(<SessionAttributesPage disabled={false}/>, getBaseState());
+
+        expect(await screen.findByText('There was an error while loading the session attributes.')).toBeInTheDocument();
+        expect(screen.queryByText('No session attributes found.')).not.toBeInTheDocument();
+    });
+
     it('renders the configure intro on mount', async () => {
         getPropertyFields.mockResolvedValueOnce(representativeFields).mockResolvedValue([]);
 

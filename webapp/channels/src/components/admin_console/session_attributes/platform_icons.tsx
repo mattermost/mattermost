@@ -43,7 +43,10 @@ export default function PlatformIcons({platforms}: Props) {
                     >
                         <Icon
                             size={18}
-                            aria-label={formatMessage(platformLabels[platform])}
+                            aria-label={formatMessage(
+                                active ? platformStateLabels.active : platformStateLabels.inactive,
+                                {platform: formatMessage(platformLabels[platform])},
+                            )}
                         />
                     </span>
                 );
@@ -56,4 +59,11 @@ const platformLabels = defineMessages({
     desktop: {id: 'admin.session_attributes.platform.desktop', defaultMessage: 'Desktop'},
     mobile: {id: 'admin.session_attributes.platform.mobile', defaultMessage: 'Mobile'},
     browser: {id: 'admin.session_attributes.platform.browser', defaultMessage: 'Browser'},
+});
+
+// Icons only differ by styling, so the active/inactive state must be spelled out
+// in the accessible name for screen-reader users.
+const platformStateLabels = defineMessages({
+    active: {id: 'admin.session_attributes.platform.active', defaultMessage: '{platform} (active)'},
+    inactive: {id: 'admin.session_attributes.platform.inactive', defaultMessage: '{platform} (inactive)'},
 });

@@ -33,9 +33,10 @@ const TYPE_ICONS: Record<SessionAttributeDisplayType, ComponentType<IconProps>> 
 type Props = {
     data: SessionAttributeField[];
     onStageChange: (fieldId: string, partial: StagedAttrs) => void;
+    disabled?: boolean;
 };
 
-export default function SessionAttributesTable({data, onStageChange}: Props) {
+export default function SessionAttributesTable({data, onStageChange, disabled = false}: Props) {
     const rows = useMemo(
         () => [...data].sort((a, b) => ((a.attrs?.sort_order ?? 0) - (b.attrs?.sort_order ?? 0)) || a.name.localeCompare(b.name)),
         [data],
@@ -220,6 +221,7 @@ export default function SessionAttributesTable({data, onStageChange}: Props) {
                         <SessionAttributesDotMenu
                             field={row.original}
                             onStageChange={onStageChange}
+                            disabled={disabled}
                         />
                     </div>
                 ),
@@ -227,7 +229,7 @@ export default function SessionAttributesTable({data, onStageChange}: Props) {
                 enableSorting: false,
             }),
         ];
-    }, [onStageChange]);
+    }, [onStageChange, disabled]);
 
     const table = useReactTable<SessionAttributeField>({
         data: rows,
