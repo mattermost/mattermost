@@ -16,6 +16,8 @@ import './audit_row.scss';
 
 import holders from '../holders';
 
+import classNames from 'classnames';
+
 export type Props = {
     audit: Audit;
     actionURL: string;
@@ -107,18 +109,17 @@ export default function AuditRow({
         );
     }
 
-    let descStyle = 'AuditRowDesc';
-    if (desc.toLowerCase().indexOf('fail') !== -1) {
-        descStyle = ' AuditRowDesc--error';
-    }
-
     return (
         <tr className='AuditRow'>
             <td>
                 {timestamp}
             </td>
             {uContent}
-            <td className={descStyle}>{desc}</td>
+            <td
+                className={classNames('AuditRowDesc', {
+                    'AuditRowDesc--error': desc.toLowerCase().indexOf('fail') !== -1,
+                })}
+            >{desc}</td>
             {iContent}
             {sContent}
         </tr>
