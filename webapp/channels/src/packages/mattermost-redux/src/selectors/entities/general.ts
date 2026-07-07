@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {ClientConfig, FeatureFlags, ClientLicense} from '@mattermost/types/config';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {General} from 'mattermost-redux/constants';

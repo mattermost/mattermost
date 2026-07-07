@@ -1,0 +1,131 @@
+---
+title: "Optimize your Mattermost workspace"
+draft: true
+---
+<PlanAvailability slug="all-commercial" />
+
+With workspace optimizations, system admins can review their workspace health and growth scores, then take advantage of recommended actions for ensuring their workspace is running smoothly and teams are maximizing productivity.
+
+System admins can access their workspace optimization page in the System Console by selecting the **Product** <img src="/img/ui/products_E82F.svg" alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> menu, selecting **System Console**, and going to **Reporting \> Workspace Optimization**.
+
+![Review your workspace health and growth scores, then take advantage of recommended optimizations.](/images/workspace-optimization.png)
+
+## How is the overall score calculated?
+
+The highest score possible is 100. Your score is calculated based on the type of issue reported and the level of potential security risk introduced to your Mattermost deployment if ignored.
+
+Each item on the dashboard is calculated based on its individual impact score. These differ depending on whether they're problems, warnings, or suggestions. For example, if SSL encryption isn't configured in your workspace, Mattermost reports that as a problem, which reduces your score until it's addressed.
+
+Warnings impact your score less than problems, and suggestions have the least impact on your score.
+
+Want to improve your overall workspace optimization score? Take action towards the problems, warnings, and suggestions reported on this dashboard. We recommend the following workspace optimizations.
+
+## Recommendations
+
+The following optimization areas can alert you to workspace suggestions, warnings, or problems that may require your attention:
+
+<table style={{width: '100%'}}>
+<colgroup>
+<col style={{width: '7%'}} />
+<col style={{width: '34%'}} />
+<col style={{width: '57%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td rowspan="2"><blockquote>
+<p>Optimization category</p>
+</blockquote>
+<dl>
+<dt>=======================</dt>
+<dd>
+<p>Mattermost release</p>
+</dd>
+</dl></td>
+<td rowspan="2"><blockquote>
+<p>Suggestions, Warnings, or Problems Detected</p>
+</blockquote>
+<dl>
+<dt>==========================================================================================================</dt>
+<dd>
+<p>Are you on the latest Mattermost release?</p>
+</dd>
+</dl></td>
+<td rowspan="2"><blockquote>
+<p>Additional Information |</p>
+</blockquote>
+<dl>
+<dt>======================================================================================================================================================================+</dt>
+<dd>
+<p>You're notified when updates are available. | See the <a href="mm-doc:%2Fadministration-guide%2Fupgrade%2Fupgrading-mattermost-server">Upgrade Mattermost</a> product documentation for details on upgrading your workspace. |</p>
+</dd>
+</dl></td>
+</tr>
+<tr>
+</tr>
+<tr>
+<td>Configuration issues</td>
+<td><ul>
+<li><strong>SSL</strong>: Should your workspace be more secure with SSL?</li>
+<li><strong>Session Length</strong>: The default value may not provide an optimal user experience.</li>
+<li><strong>File Storage</strong>: Write access to the configured file storage location is required.</li>
+</ul></td>
+<td><dl>
+<dt>See the product documentation to learn more: |</dt>
+<dd>
+<div class="line-block"></div>
+</dd>
+</dl>
+<ul>
+<li><a href="mm-doc:%2Fadministration-guide%2Fonboard%2Fssl-client-certificate">Set up SSL</a> |</li>
+<li><a href="mm-ref:administration-guide%2Fconfigure%2Fenvironment-configuration-settings%3Asession%20lengths">Configure session length</a></li>
+<li><dl>
+<dt><a href="mm-ref:administration-guide%2Fconfigure%2Fenvironment-configuration-settings%3Afile%20storage">Configure file storage</a></dt>
+<dd>
+<h3 id="section">|</h3>
+</dd>
+</dl></li>
+</ul></td>
+</tr>
+<tr>
+<td>Workspace access</td>
+<td>Is the Mattermost workspace accessible to users?</td>
+<td>If your web server settings don't pass a live URL test, your workspace may not be accessible to others. | See the <a href="mm-ref:administration-guide%2Fconfigure%2Fenvironment-configuration-settings%3Aweb%20server">Web server configuration settings</a> product documentation to learn more:</td>
+</tr>
+<tr>
+<td>Search performance</td>
+<td>As your user base grows, is search getting slower?</td>
+<td>See the <a href="mm-doc:%2Fadministration-guide%2Fscale%2Fenterprise-search">Enterprise search</a> product documentation to learn more. |</td>
+</tr>
+<tr>
+<td>Data privacy</td>
+<td>Do you need more control and insights into your data?</td>
+<td><dl>
+<dt>See the product documentation to learn more: |</dt>
+<dd>
+<div class="line-block"></div>
+</dd>
+</dl>
+<ul>
+<li><a href="mm-doc:%2Fadministration-guide%2Fcomply%2Fdata-retention-policy">Data Retention</a> |</li>
+<li><a href="mm-doc:%2Fadministration-guide%2Fcomply%2Fcompliance-export">Compliance Export</a> |</li>
+</ul></td>
+</tr>
+<tr>
+<td>User authentication</td>
+<td><ul>
+<li><strong>AD/LDAP</strong>: As your user base grows, would you benefit from easier onboarding, automated deactivations, and role assignments?</li>
+<li><strong>Guest accounts</strong>: Do you want to control user access to channels and teams with guest accounts?</li>
+</ul></td>
+<td><dl>
+<dt>See the product documentation to learn more: |</dt>
+<dd>
+<div class="line-block"></div>
+</dd>
+</dl>
+<ul>
+<li><a href="mm-ref:administration-guide%2Fconfigure%2Fauthentication-configuration-settings%3Aad%2Fldap">AD/LDAP</a></li>
+<li><a href="mm-doc:%2Fadministration-guide%2Fonboard%2Fguest-accounts">Guest accounts</a> |</li>
+</ul></td>
+</tr>
+</tbody>
+</table>

@@ -25,6 +25,7 @@ const RankBadge = ({rank, className}: Props) => {
     return (
         <span
             className={classNames('rank-badge', className)}
+            data-testid='rank-badge'
             aria-label={formatMessage({
                 id: 'admin.system_properties.user_properties.rank_badge.aria_label',
                 defaultMessage: 'Rank {rank}',

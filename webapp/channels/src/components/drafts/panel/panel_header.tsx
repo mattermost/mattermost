@@ -49,7 +49,10 @@ function PanelHeader({
     const timestampDateObject = useMemo(() => new Date(timestamp), [timestamp]);
 
     return (
-        <div className='PanelHeader'>
+        <div
+            className='PanelHeader'
+            data-testid='draft-panel-header'
+        >
             <div className='PanelHeader__left'>{title}</div>
             <div className='PanelHeader__right'>
                 <div className='PanelHeader__actions'>

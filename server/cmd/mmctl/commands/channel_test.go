@@ -800,6 +800,130 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		s.Require().Equal(printer.GetLines()[1], publicChannel2)
 	})
 
+	s.Run("Show channel IDs with --show-ids", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+		defer printer.SetFormat(printer.FormatJSON)
+
+		args := []string{teamID}
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("show-ids", true, "")
+
+		team := &model.Team{
+			Id: teamID,
+		}
+
+		publicChannel := &model.Channel{Id: "publicChannelId1", Name: "publicChannel1"}
+		archivedChannel := &model.Channel{Id: "archivedChannelId1", Name: "archivedChannel1"}
+		privateChannel := &model.Channel{Id: "privateChannelId1", Name: "privateChannel1"}
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), teamID, "").
+			Return(team, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetPublicChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			Return([]*model.Channel{publicChannel}, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetPublicChannelsForTeam(context.TODO(), teamID, 1, web.PerPageMaximum, "").
+			Return(emptyChannels, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetDeletedChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			Return([]*model.Channel{archivedChannel}, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetDeletedChannelsForTeam(context.TODO(), teamID, 1, web.PerPageMaximum, "").
+			Return(emptyChannels, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetPrivateChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			Return([]*model.Channel{privateChannel}, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetPrivateChannelsForTeam(context.TODO(), teamID, 1, web.PerPageMaximum, "").
+			Return(emptyChannels, &model.Response{}, nil).
+			Times(1)
+
+		err := listChannelsCmdF(s.client, cmd, args)
+
+		s.Require().Nil(err)
+		s.Len(printer.GetErrorLines(), 0)
+		s.Len(printer.GetLines(), 3)
+		s.Require().Equal("publicChannelId1: publicChannel1", printer.GetLines()[0])
+		s.Require().Equal("archivedChannelId1: archivedChannel1 (archived)", printer.GetLines()[1])
+		s.Require().Equal("privateChannelId1: privateChannel1 (private)", printer.GetLines()[2])
+	})
+
+	s.Run("Omit channel IDs without --show-ids", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+		defer printer.SetFormat(printer.FormatJSON)
+
+		args := []string{teamID}
+		cmd := &cobra.Command{}
+
+		team := &model.Team{
+			Id: teamID,
+		}
+
+		publicChannel := &model.Channel{Id: "publicChannelId1", Name: "publicChannel1"}
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), teamID, "").
+			Return(team, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetPublicChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			Return([]*model.Channel{publicChannel}, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetPublicChannelsForTeam(context.TODO(), teamID, 1, web.PerPageMaximum, "").
+			Return(emptyChannels, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetDeletedChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			Return(emptyChannels, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetPrivateChannelsForTeam(context.TODO(), teamID, 0, web.PerPageMaximum, "").
+			Return(emptyChannels, &model.Response{}, nil).
+			Times(1)
+
+		err := listChannelsCmdF(s.client, cmd, args)
+
+		s.Require().Nil(err)
+		s.Len(printer.GetErrorLines(), 0)
+		s.Len(printer.GetLines(), 1)
+		s.Require().Equal("publicChannel1", printer.GetLines()[0])
+	})
+
+	s.Run("show-ids flag is registered on the command", func() {
+		flag := ListChannelsCmd.Flags().Lookup("show-ids")
+		s.Require().NotNil(flag)
+		s.Require().Equal("i", flag.Shorthand)
+		s.Require().Equal("false", flag.DefValue)
+	})
+
 	s.Run("Team with archived channels", func() {
 		printer.Clean()
 
