@@ -455,6 +455,25 @@ describe('findFirstAvailableAttributeFromList', () => {
         const result = findFirstAvailableAttributeFromList(attributes, false);
         expect(result?.name).toBe('valid_synced_attribute');
     });
+
+    test('returns a session attribute even when not synced/managed and user-managed is off', () => {
+        // Session attributes are always selectable in the picker, so addRow must
+        // be able to default to one when it is the only usable option.
+        const sessionAttr: UserPropertyField = {
+            ...createMockAttribute('ip_address'),
+            group_id: 'session_attributes',
+            object_type: 'session',
+            target_type: 'system',
+        };
+        const attributes = [
+            createMockAttribute('unsafe_attribute'), // user, not synced/managed → not selectable
+            sessionAttr,
+        ];
+
+        const result = findFirstAvailableAttributeFromList(attributes, false);
+        expect(result?.name).toBe('ip_address');
+        expect(result?.object_type).toBe('session');
+    });
 });
 
 describe('celStringLiteral', () => {

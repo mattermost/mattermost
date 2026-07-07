@@ -6,7 +6,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {AccessControlVisualAST} from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
-import {SESSION_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties_user';
+import {SESSION_ATTRIBUTES_OBJECT_TYPE, isSessionAttributeField} from '@mattermost/types/properties_user';
 
 import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -132,10 +132,14 @@ export const findFirstAvailableAttributeFromList = (
 ): UserPropertyField | undefined => {
     return userAttributes.find((attr) => {
         const isValidCELIdentifier = CPA_FIELD_NAME_PATTERN.test(attr.name);
+
+        // Mirror AttributeSelectorMenu: session attributes are always
+        // selectable, so a session-only attribute set must yield a usable
+        // default instead of failing rule creation.
         const isSynced = attr.attrs?.ldap || attr.attrs?.saml;
         const isAdminManaged = attr.attrs?.managed === 'admin';
         const isProtected = attr.attrs?.protected;
-        const allowed = isSynced || isAdminManaged || isProtected || enableUserManagedAttributes;
+        const allowed = isSessionAttributeField(attr) || isSynced || isAdminManaged || isProtected || enableUserManagedAttributes;
         return isValidCELIdentifier && allowed;
     });
 };
@@ -526,7 +530,12 @@ function TableEditor({
                                         currentOperator={row.operator}
                                         disabled={disabled || row.hasMaskedValues}
                                         onChange={(operator) => updateRowOperator(index, operator)}
-                                        attributeType={userAttributes.find((attr) => attr.name === row.attribute)?.type}
+
+                                        // Use the row's own type, kept in sync by
+                                        // addRow/updateRowAttribute/parseExpression. A name-only
+                                        // lookup could resolve the wrong namespace when a user and
+                                        // a session attribute share a name.
+                                        attributeType={row.attribute_type || undefined}
                                     />
                                 </td>
                                 <td className='table-editor__cell'>
@@ -534,7 +543,11 @@ function TableEditor({
                                         row={row}
                                         disabled={disabled || row.hasMaskedValues}
                                         updateValues={(values: string[]) => updateRowValues(index, values)}
-                                        options={row.attribute ? userAttributes.find((attr) => attr.name === row.attribute)?.attrs?.options || [] : []}
+
+                                        // Match on both name and namespace so a name collision
+                                        // between a user and a session attribute resolves the
+                                        // correct options.
+                                        options={row.attribute ? userAttributes.find((attr) => attr.name === row.attribute && (attr.object_type || 'user') === (row.attribute_object_type || 'user'))?.attrs?.options || [] : []}
                                     />
                                 </td>
                                 <td className='table-editor__cell-actions'>
