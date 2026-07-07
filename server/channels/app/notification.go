@@ -1812,7 +1812,7 @@ func (a *App) notificationMetricsDisabled() bool {
 		return true
 	}
 
-	if a.Config().FeatureFlags.NotificationMonitoring && *a.Config().MetricsSettings.EnableNotificationMetrics {
+	if *a.Config().MetricsSettings.EnableNotificationMetrics {
 		return false
 	}
 
