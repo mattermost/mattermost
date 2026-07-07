@@ -199,7 +199,8 @@ function ChannelSettingsPermissionsPolicyTab({
     const [userAttributes, setUserAttributes] = useState<UserPropertyField[]>([]);
     const [attributesLoaded, setAttributesLoaded] = useState(false);
 
-    // The CEL autocomplete endpoint doesn't return session attributes, so fetch
+    // The CEL autocomplete endpoint returns access control group attributes
+    // and does not return session attributes, so fetch
     // the enabled ones separately and merge them into the picker.
     const sessionFields = useEnabledSessionAttributeFields(sessionAttributesEnabled);
     const mergedAttributes = useMemo(

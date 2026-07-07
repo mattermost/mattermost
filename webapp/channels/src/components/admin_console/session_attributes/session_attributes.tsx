@@ -59,8 +59,7 @@ export default function SessionAttributesPage(props: Props) {
                     }
                 },
 
-                // Handle the rejection so it isn't left uncaught, and surface an
-                // error state instead of the (misleading) empty state.
+                // Surface an error state instead of a misleading empty state.
                 () => {
                     if (active) {
                         setLoadError(true);

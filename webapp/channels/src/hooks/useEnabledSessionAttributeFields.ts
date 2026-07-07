@@ -18,8 +18,8 @@ import type {GlobalState} from 'types/store';
 const EMPTY_FIELDS: UserPropertyField[] = [];
 
 // Fetches the session-attribute property group once and returns the ENABLED
-// session fields. The CEL autocomplete endpoint does not return session
-// attributes, so permission-policy pickers fetch them separately through this
+// session fields. The CEL autocomplete endpoint returns access control group attributes 
+// and does not return session attributes, so permission-policy pickers fetch them separately through this
 // hook and merge them in. Returns [] until enabled and the fetch resolves.
 export function useEnabledSessionAttributeFields(enabled: boolean): UserPropertyField[] {
     const dispatch = useDispatch();

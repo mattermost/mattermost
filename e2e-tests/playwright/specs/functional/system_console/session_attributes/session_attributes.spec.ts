@@ -9,9 +9,10 @@
  * ABAC picker polarity (enabled session attributes appear in permission-policy
  * editors and are absent from membership-policy editors).
  *
- * The CEL autocomplete endpoint does not return session attributes; the webapp
- * fetches the enabled ones separately and merges them into the permission-policy
- * pickers client-side, where they generate `user.session.<name>` references.
+ * The CEL autocomplete endpoint returns access control group attributes and
+ * does not return session attributes; the webapp fetches the enabled ones separately
+ * and merges them into the permission-policy pickers client-side,
+ * where they generate `user.session.<name>` references.
  *
  * The session_attributes Property group is gated server-side: it requires an
  * Enterprise Advanced license (returns HTTP 501 otherwise) and the
