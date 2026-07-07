@@ -87,6 +87,13 @@ const MarketplaceModal = () => {
         }
     }, [pluginStatuses]);
 
+    useEffect(() => {
+        const maxPage = Math.max(0, Math.ceil(listing.length / ITEMS_PER_PAGE) - 1);
+        if (page > maxPage) {
+            setPage(maxPage);
+        }
+    }, [listing.length, page]);
+
     const scrollListToTop = useCallback(() => {
         if (listRef.current) {
             listRef.current.scrollTop = 0;
