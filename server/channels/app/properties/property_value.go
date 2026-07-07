@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
@@ -328,8 +329,17 @@ func (ps *PropertyService) UpsertPropertyValues(rctx request.CTX, values []*mode
 func (ps *PropertyService) DeletePropertyValue(rctx request.CTX, groupID, id string) (err error) {
 	// Snapshot before the gates so post-hooks have the target/field metadata
 	// the row ID alone does not carry, and so a denied delete is observable.
-	// Best-effort: a missing snapshot (already gone) yields nil to the hooks.
-	deleted, _ := ps.getPropertyValue(groupID, id)
+	// A genuine miss (ErrNotFound) yields a nil snapshot; a real read failure
+	// (e.g. replica lag or a transient error) is logged so it does not silently
+	// suppress the delete audit with incomplete metadata.
+	deleted, getErr := ps.getPropertyValue(groupID, id)
+	if getErr != nil {
+		rctx.Logger().Warn("DeletePropertyValue: failed to snapshot value before delete; audit metadata may be incomplete",
+			mlog.String("group_id", groupID),
+			mlog.String("value_id", id),
+			mlog.Err(getErr),
+		)
+	}
 	defer func() { ps.runPostDeletePropertyValue(rctx, deleted, err) }()
 
 	if err = ps.runPreDeletePropertyValue(rctx, groupID, id); err != nil {
