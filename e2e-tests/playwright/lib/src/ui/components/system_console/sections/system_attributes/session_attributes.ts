@@ -123,7 +123,11 @@ export default class SessionAttributes {
      * never stacks a second popover on top of a half-open one.
      */
     private async chooseDurationPreset(fieldId: string, kind: 'ttl' | 'grace', triggerName: RegExp, seconds: number) {
-        const trigger = this.page.getByRole('menuitem', {name: triggerName});
+        // Scope the trigger to this row's open menu. The "Time-to-live"/"Grace
+        // Period" labels are identical across every row, so a page-wide lookup
+        // could match a not-yet-unmounted menu from another row and trip
+        // Playwright's strict mode.
+        const trigger = this.dotMenu(fieldId).getByRole('menuitem', {name: triggerName});
         const option = this.page.getByTestId(`session-attribute-${kind}-option-${fieldId}-${seconds}`);
 
         await expect(async () => {
@@ -175,8 +179,12 @@ export default class SessionAttributes {
     }
 
     /**
-     * Click Save and wait for the property-field PATCH round-trip(s) to complete,
+     * Click Save and wait for the property-field PATCH round-trip to complete,
      * then assert the button returns to disabled (no pending changes).
+     *
+     * Note: this awaits the first matching PATCH only, so it assumes edits were
+     * staged on a single field. Every current spec stages one field per save; a
+     * future multi-field save would need to await one response per changed field.
      */
     async saveAndWaitForSettled() {
         await expect(this.saveButton).toBeEnabled();
