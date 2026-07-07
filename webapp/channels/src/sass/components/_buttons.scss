@@ -399,6 +399,7 @@ button {
 
         &:hover,
         &:active {
+            background: var(--button-bg);
             color: var(--button-color);
         }
     }

@@ -143,6 +143,10 @@
             text-decoration: none;
             transition: all 0.15s ease;
 
+            &:hover {
+                background: var(--button-bg);
+            }
+
             span {
                 margin-top: -3px;
                 font-size: 22px;
@@ -194,6 +198,7 @@
             transition: all 0.15s ease;
 
             &:hover {
+                background: var(--button-bg);
                 color: var(--button-color);
             }
 

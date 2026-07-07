@@ -54,7 +54,7 @@
                 color: var(--button-color) !important;
 
                 &::before {
-                    background-color: rgba(var(--center-channel-color-rgb), 0.08) !important;
+                    background-color: var(--button-bg) !important;
                 }
             }
         }
