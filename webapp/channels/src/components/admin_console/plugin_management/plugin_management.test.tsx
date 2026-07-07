@@ -486,7 +486,6 @@ describe('components/PluginManagement', () => {
                 },
             },
             appsFeatureFlagEnabled: false,
-            streamlinedMarketplaceFlagEnabled: false,
             actions: {
                 uploadPlugin: jest.fn(),
                 installPluginFromUrl: jest.fn(),
