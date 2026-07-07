@@ -8,7 +8,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
-	"mime"
 	"net"
 	"net/mail"
 	"net/smtp"
@@ -67,10 +66,6 @@ type smtpClient interface {
 	Mail(string) error
 	Rcpt(string) error
 	Data() (io.WriteCloser, error)
-}
-
-func encodeRFC2047Word(s string) string {
-	return mime.BEncoding.Encode("utf-8", s)
 }
 
 type authChooser struct {
@@ -330,7 +325,7 @@ func sendMail(c smtpClient, mail mailData, date time.Time, config *SMTPConfig) e
 	if err = m.SetAddrHeader(gomail.HeaderTo, mail.mimeTo); err != nil {
 		return errors.Wrap(err, "failed to set To address")
 	}
-	m.SetGenHeaderPreformatted(gomail.HeaderSubject, encodeRFC2047Word(mail.subject))
+	m.SetGenHeader(gomail.HeaderSubject, mail.subject)
 	m.SetGenHeader(gomail.Header("Content-Transfer-Encoding"), "8bit")
 	m.SetGenHeader(gomail.Header("Auto-Submitted"), "auto-generated")
 	m.SetGenHeader(gomail.Header("Precedence"), "bulk")
@@ -369,7 +364,7 @@ func sendMail(c smtpClient, mail mailData, date time.Time, config *SMTPConfig) e
 	}
 
 	for k, v := range mail.mimeHeaders {
-		m.SetGenHeaderPreformatted(gomail.Header(k), encodeRFC2047Word(v))
+		m.SetGenHeader(gomail.Header(k), v)
 	}
 
 	m.SetDateWithValue(date)
