@@ -291,6 +291,23 @@ export default class ChannelsPage {
         return this.userAccountMenu;
     }
 
+    /**
+     * Switches to another team via its button in the team sidebar.
+     */
+    async switchToTeam(teamName: string) {
+        const teamButton = this.page.locator(`#${teamName}TeamButton`);
+        await teamButton.waitFor();
+        await teamButton.click();
+    }
+
+    /**
+     * Logs the current user out via the user account menu.
+     */
+    async logout() {
+        const menu = await this.openUserAccountMenu();
+        await menu.logout.click();
+    }
+
     async openProfileModal() {
         await this.openUserAccountMenu();
         await this.userAccountMenu.profile.click();
