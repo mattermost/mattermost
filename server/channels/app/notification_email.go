@@ -180,7 +180,9 @@ func (a *App) sendNotificationEmail(rctx request.CTX, notification *PostNotifica
 		if rejectionReason != "" {
 			rctx.Logger().Info("Email notification cancelled by plugin.",
 				mlog.String("rejection_reason", rejectionReason),
-				mlog.String("plugin_id", manifest.Id))
+				mlog.String("plugin_id", manifest.Id),
+				mlog.String("user_id", user.Id),
+				mlog.String("channel_id", channel.Id))
 			return false
 		}
 		if replacementContent != nil {
