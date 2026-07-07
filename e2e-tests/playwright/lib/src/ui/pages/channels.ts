@@ -217,6 +217,17 @@ export default class ChannelsPage {
         await expect(this.archivedChannelMessage).toBeVisible();
     }
 
+    /**
+     * Opens the search UI, runs a search for the given term, and waits for the
+     * results panel to appear.
+     */
+    async searchFor(term: string) {
+        await this.globalHeader.openSearch();
+        await this.searchBox.toBeVisible();
+        await this.searchBox.search(term);
+        await this.searchResultsPanel.toBeVisible();
+    }
+
     async openChannelSettings(): Promise<ChannelSettingsModal> {
         await this.centerView.header.openChannelMenu();
 
