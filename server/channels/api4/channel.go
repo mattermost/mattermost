@@ -29,8 +29,9 @@ func rejectBoardChannelByID(c *Context, channelId string) bool {
 }
 
 // rejectSpaceChannelByID returns true and sets c.Err when the channel ID resolves to a space
-// backing channel. Use it on write endpoints that mutate a channel by ID without fetching and
-// type-checking it, which would otherwise let a space member mutate the hidden backing channel.
+// backing channel. Use it on any endpoint that operates on a channel ID without first fetching
+// and type-checking the channel row, which would otherwise expose space backing-channel data or
+// allow mutations on the hidden backing channel.
 func rejectSpaceChannelByID(c *Context, channelId string) bool {
 	if _, err := c.App.GetSpaceBackingChannel(c.AppContext, channelId); err == nil {
 		c.Err = model.NewAppError("", "api.channel.space_channel.app_error", nil, "space channels cannot be accessed via /channels endpoints", http.StatusBadRequest)
@@ -1006,6 +1007,10 @@ func getChannelStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
+		return
+	}
+
 	memberCount, err := c.App.GetChannelMemberCount(c.AppContext, c.Params.ChannelId)
 	if err != nil {
 		c.Err = err
@@ -1862,6 +1867,10 @@ func getChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
+		return
+	}
+
 	members, err := c.App.GetChannelMembersPage(c.AppContext, c.Params.ChannelId, c.Params.Page, c.Params.PerPage)
 	if err != nil {
 		c.Err = err
@@ -1887,6 +1896,10 @@ func getChannelMembersTimezones(c *Context, w http.ResponseWriter, r *http.Reque
 
 	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
 		c.SetPermissionError(model.PermissionReadChannel)
+		return
+	}
+
+	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
 		return
 	}
 
@@ -1921,6 +1934,10 @@ func getChannelMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
+		return
+	}
+
 	members, appErr := c.App.GetChannelMembersByIds(c.AppContext, c.Params.ChannelId, userIds)
 	if appErr != nil {
 		c.Err = appErr
@@ -1946,6 +1963,10 @@ func getChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
 		c.SetPermissionError(model.PermissionReadChannel)
+		return
+	}
+
+	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
 		return
 	}
 
@@ -2941,6 +2962,10 @@ func channelMemberCountsByGroup(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
+		return
+	}
+
 	includeTimezones := r.URL.Query().Get("include_timezones") == "true"
 
 	channelMemberCounts, appErr := c.App.GetMemberCountsByGroup(c.AppContext.With(app.RequestContextWithMaster), c.Params.ChannelId, includeTimezones)
@@ -3258,6 +3283,10 @@ func getChannelAccessControlAttributes(c *Context, w http.ResponseWriter, r *htt
 
 	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
 		c.SetPermissionError(model.PermissionReadChannel)
+		return
+	}
+
+	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
 		return
 	}
 

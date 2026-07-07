@@ -8065,6 +8065,54 @@ func TestChannelEndpointsExcludeSpaces(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	})
 
+	// --- Generic read endpoints that only check SessionHasPermissionToChannel also reject spaces ---
+
+	t.Run("getChannelStats rejects a space", func(t *testing.T) {
+		_, resp, err := client.GetChannelStats(ctx, space.Id, "", false)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("getChannelMembers rejects a space", func(t *testing.T) {
+		_, resp, err := client.GetChannelMembers(ctx, space.Id, 0, 100, "")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("getChannelMembersTimezones rejects a space", func(t *testing.T) {
+		_, resp, err := client.GetChannelMembersTimezones(ctx, space.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("getChannelMembersByIds rejects a space", func(t *testing.T) {
+		_, resp, err := client.GetChannelMembersByIds(ctx, space.Id, []string{th.BasicUser.Id})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("getChannelMember rejects a space", func(t *testing.T) {
+		_, resp, err := client.GetChannelMember(ctx, space.Id, th.BasicUser.Id, "")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("channelMemberCountsByGroup rejects a space", func(t *testing.T) {
+		originalLicense := th.App.Srv().License()
+		th.App.Srv().SetLicense(model.NewTestLicense())
+		defer th.App.Srv().SetLicense(originalLicense)
+
+		_, resp, err := client.GetChannelMemberCountsByGroup(ctx, space.Id, false, "")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("getChannelAccessControlAttributes rejects a space", func(t *testing.T) {
+		r, err := client.DoAPIGet(ctx, "/channels/"+space.Id+"/access_control/attributes", "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusBadRequest, r.StatusCode)
+	})
+
 	// --- rejectSpaceChannelByID's swallowed GetChannel error still lets the endpoint's own
 	// --- not-found/permission handling surface normally for a nonexistent channel id ---
 

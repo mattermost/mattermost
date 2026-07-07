@@ -334,16 +334,17 @@ func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember 
 		}
 	}
 
-	// Space backing channels are internal: don't notify plugins of a chat-channel creation.
-	if !sc.IsSpace() {
-		a.Srv().Go(func() {
-			pluginContext := pluginContext(rctx)
-			a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-				hooks.ChannelHasBeenCreated(pluginContext, sc)
-				return true
-			}, plugin.ChannelHasBeenCreatedID)
-		})
+	if sc.IsSpace() {
+		return sc, nil
 	}
+
+	a.Srv().Go(func() {
+		pluginContext := pluginContext(rctx)
+		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+			hooks.ChannelHasBeenCreated(pluginContext, sc)
+			return true
+		}, plugin.ChannelHasBeenCreatedID)
+	})
 
 	return sc, nil
 }
@@ -1803,18 +1804,19 @@ func (a *App) DeleteChannel(rctx request.CTX, channel *model.Channel, userID str
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
 
-	// Space backing channels are internal: no channel_deleted chat event.
-	if !channel.IsSpace() {
-		var message *model.WebSocketEvent
-		if channel.Type == model.ChannelTypeOpen {
-			message = model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, channel.TeamId, "", "", nil, "")
-		} else {
-			message = model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, "", channel.Id, "", nil, "")
-		}
-		message.Add("channel_id", channel.Id)
-		message.Add("delete_at", deleteAt)
-		a.Publish(message)
+	if channel.IsSpace() {
+		return nil
 	}
+
+	var message *model.WebSocketEvent
+	if channel.Type == model.ChannelTypeOpen {
+		message = model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, channel.TeamId, "", "", nil, "")
+	} else {
+		message = model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, "", channel.Id, "", nil, "")
+	}
+	message.Add("channel_id", channel.Id)
+	message.Add("delete_at", deleteAt)
+	a.Publish(message)
 
 	return nil
 }
@@ -1944,22 +1946,23 @@ func (a *App) AddUserToChannel(rctx request.CTX, user *model.User, channel *mode
 		return nil, err
 	}
 
-	// Space backing channels are internal and skip the user-facing add side effects.
-	if !channel.IsSpace() {
-		a.addChannelToDefaultCategory(rctx, user.Id, channel)
-
-		// We are sending separate websocket events to the user added and to the channel
-		// This is to get around potential cluster syncing issues where other nodes may not receive the most up to date channel members
-		message := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, "", map[string]bool{user.Id: true}, "")
-		message.Add("user_id", user.Id)
-		message.Add("team_id", channel.TeamId)
-		a.Publish(message)
-
-		userMessage := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, user.Id, nil, "")
-		userMessage.Add("user_id", user.Id)
-		userMessage.Add("team_id", channel.TeamId)
-		a.Publish(userMessage)
+	if channel.IsSpace() {
+		return newMember, nil
 	}
+
+	a.addChannelToDefaultCategory(rctx, user.Id, channel)
+
+	// We are sending separate websocket events to the user added and to the channel
+	// This is to get around potential cluster syncing issues where other nodes may not receive the most up to date channel members
+	message := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, "", map[string]bool{user.Id: true}, "")
+	message.Add("user_id", user.Id)
+	message.Add("team_id", channel.TeamId)
+	a.Publish(message)
+
+	userMessage := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, user.Id, nil, "")
+	userMessage.Add("user_id", user.Id)
+	userMessage.Add("team_id", channel.TeamId)
+	a.Publish(userMessage)
 
 	return newMember, nil
 }
@@ -2008,27 +2011,28 @@ func (a *App) AddChannelMember(rctx request.CTX, userID string, channel *model.C
 		return nil, err
 	}
 
-	// Space backing channels are internal and skip the post-add join lifecycle.
-	if !channel.IsSpace() {
-		a.Srv().Go(func() {
-			pluginContext := pluginContext(rctx)
-			a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-				hooks.UserHasJoinedChannel(pluginContext, cm, userRequestor)
-				return true
-			}, plugin.UserHasJoinedChannelID)
-		})
+	if channel.IsSpace() {
+		return cm, nil
+	}
 
-		if opts.UserRequestorID == "" || userID == opts.UserRequestorID {
-			if err := a.postJoinChannelMessage(rctx, user, channel); err != nil {
-				return nil, err
-			}
-		} else {
-			a.Srv().Go(func() {
-				if err := a.PostAddToChannelMessage(rctx, userRequestor, user, channel, opts.PostRootID); err != nil {
-					rctx.Logger().Error("Failed to post AddToChannel message", mlog.Err(err))
-				}
-			})
+	a.Srv().Go(func() {
+		pluginContext := pluginContext(rctx)
+		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+			hooks.UserHasJoinedChannel(pluginContext, cm, userRequestor)
+			return true
+		}, plugin.UserHasJoinedChannelID)
+	})
+
+	if opts.UserRequestorID == "" || userID == opts.UserRequestorID {
+		if err := a.postJoinChannelMessage(rctx, user, channel); err != nil {
+			return nil, err
 		}
+	} else {
+		a.Srv().Go(func() {
+			if err := a.PostAddToChannelMessage(rctx, userRequestor, user, channel, opts.PostRootID); err != nil {
+				rctx.Logger().Error("Failed to post AddToChannel message", mlog.Err(err))
+			}
+		})
 	}
 
 	return cm, nil
@@ -3747,18 +3751,19 @@ func (a *App) PermanentDeleteChannel(rctx request.CTX, channel *model.Channel) *
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
 
-	// Space backing channels are internal: no channel_deleted chat event.
-	if !channel.IsSpace() {
-		var message *model.WebSocketEvent
-		if channel.Type == model.ChannelTypeOpen {
-			message = model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, channel.TeamId, "", "", nil, "")
-		} else {
-			message = model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, "", channel.Id, "", nil, "")
-		}
-		message.Add("channel_id", channel.Id)
-		message.Add("delete_at", deleteAt)
-		a.Publish(message)
+	if channel.IsSpace() {
+		return nil
 	}
+
+	var message *model.WebSocketEvent
+	if channel.Type == model.ChannelTypeOpen {
+		message = model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, channel.TeamId, "", "", nil, "")
+	} else {
+		message = model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, "", channel.Id, "", nil, "")
+	}
+	message.Add("channel_id", channel.Id)
+	message.Add("delete_at", deleteAt)
+	a.Publish(message)
 
 	return nil
 }
