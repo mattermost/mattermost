@@ -2430,7 +2430,7 @@
   "apps.error.responses.form.no_form": "Atsakymo tipas yra `form`, tačiau atsakyme nebuvo jokios formos.",
   "apps.error.responses.navigate.no_url": "Atsakymo tipas yra `navigate`, tačiau į atsakymą nebuvo įtrauktas joks url adresas.",
   "apps.error.responses.unexpected_error": "Gauta netikėta klaida.",
-  "apps.error.responses.unexpected_type": "Programos atsakymo tipo buvo netikėtas. Atsakymo tipas: {type}",
+  "apps.error.responses.unexpected_type": "Programos atsakymo tipo buvo netikėtas. Atsakymo tipas: {type}.",
   "apps.error.responses.unknown_field_error": "Gauta klaida dėl nežinomo lauko. Lauko pavadinimas: „{laukas}“. Klaida: {error}",
   "apps.error.responses.unknown_type": "Programos atsakymo tipas nepalaikomas. Atsakymo tipas: {type}.",
   "apps.error.unknown": "Įvyko nežinoma klaida.",
