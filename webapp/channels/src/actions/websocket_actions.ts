@@ -1358,7 +1358,7 @@ function handlePropertyFieldCreatedOrUpdated(
 
         // Session attribute schema changed; tell the Desktop App to re-fetch its manifest.
         if (msg.data.object_type === SESSION_ATTRIBUTES_OBJECT_TYPE) {
-            DesktopApp.invalidateSessionAttributeManifest();
+            DesktopApp.updateSessionAttribute(field);
         }
     };
 }
