@@ -24,8 +24,6 @@ type Props = {
     disabled?: boolean;
 };
 
-const CHECK_COLOR = 'var(--button-bg, #1c58d9)';
-
 export default function SessionAttributesDotMenu({field, onStageChange, disabled = false}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -58,7 +56,7 @@ export default function SessionAttributesDotMenu({field, onStageChange, disabled
             trailingElements={current === seconds ? (
                 <CheckIcon
                     size={16}
-                    color={CHECK_COLOR}
+                    className='SessionAttributes__menu-check'
                 />
             ) : undefined}
         />
