@@ -801,7 +801,6 @@ const defaultServerConfig: AdminConfig = {
         MoveThreadsEnabled: false,
         StreamlinedMarketplace: true,
         CloudDedicatedExportUI: false,
-        WebSocketEventScope: true,
         NotificationMonitoring: true,
         ExperimentalAuditSettingsSystemConsoleUI: true,
         CustomProfileAttributes: true,
