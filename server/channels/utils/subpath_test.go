@@ -195,13 +195,13 @@ func TestGetSubpathFromConfig(t *testing.T) {
 	}{
 		{
 			"empty SiteURL",
-			model.NewPointer(""),
+			new(""),
 			false,
 			"/",
 		},
 		{
 			"invalid SiteURL",
-			model.NewPointer("cache_object:foo/bar"),
+			new("cache_object:foo/bar"),
 			true,
 			"",
 		},
@@ -213,25 +213,25 @@ func TestGetSubpathFromConfig(t *testing.T) {
 		},
 		{
 			"no trailing slash",
-			model.NewPointer("http://localhost:8065"),
+			new("http://localhost:8065"),
 			false,
 			"/",
 		},
 		{
 			"trailing slash",
-			model.NewPointer("http://localhost:8065/"),
+			new("http://localhost:8065/"),
 			false,
 			"/",
 		},
 		{
 			"subpath, no trailing slash",
-			model.NewPointer("http://localhost:8065/subpath"),
+			new("http://localhost:8065/subpath"),
 			false,
 			"/subpath",
 		},
 		{
 			"trailing slash",
-			model.NewPointer("http://localhost:8065/subpath/"),
+			new("http://localhost:8065/subpath/"),
 			false,
 			"/subpath",
 		},

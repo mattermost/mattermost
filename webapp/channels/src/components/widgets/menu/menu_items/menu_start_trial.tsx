@@ -32,7 +32,7 @@ const FreeVersionBadge = styled.div`
 
 type Props = {
     id: string;
-}
+};
 
 const MenuStartTrial = (props: Props): JSX.Element | null => {
     const {formatMessage} = useIntl();

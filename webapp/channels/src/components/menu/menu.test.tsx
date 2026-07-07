@@ -263,3 +263,222 @@ function OtherMenuItem(props: any) {
         />
     );
 }
+
+/**
+ * isMenuOpen control transition matrix.
+ *
+ * Reference: react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+ *
+ * The Menu mirrors the controlled `isMenuOpen` prop into internal state on
+ * transition. After the transition, internal state is the source of truth;
+ * releasing control (true → undefined) leaves the menu open until the user
+ * dismisses, and a controlled-false closes regardless of internal state.
+ */
+describe('Menu — isMenuOpen control transition matrix', () => {
+    function ControllableMenu({forceOpen, onToggle}: {forceOpen?: boolean; onToggle?: (open: boolean) => void}) {
+        return (
+            <Menu
+                menu={{
+                    id: 'Menu',
+                    isMenuOpen: forceOpen,
+                    onToggle,
+                }}
+                menuButton={{
+                    id: 'Menu-Button',
+                    'aria-label': 'controlled menu button',
+                    children: <DotsVerticalIcon size={16}/>,
+                }}
+            >
+                <MenuItem
+                    labels={<span>{'Item 1'}</span>}
+                    onClick={() => { /* noop */ }}
+                />
+            </Menu>
+        );
+    }
+
+    function getMenu() {
+        return screen.queryByText('Item 1');
+    }
+
+    describe('uncontrolled (no isMenuOpen prop)', () => {
+        test('starts closed; user click opens', async () => {
+            renderWithContext(<ControllableMenu/>);
+
+            expect(getMenu()).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByLabelText('controlled menu button'));
+
+            expect(getMenu()).toBeInTheDocument();
+        });
+
+        test('Escape closes the open menu', async () => {
+            renderWithContext(<ControllableMenu/>);
+
+            await userEvent.click(screen.getByLabelText('controlled menu button'));
+            expect(getMenu()).toBeInTheDocument();
+
+            await userEvent.keyboard('{Escape}');
+
+            await waitForElementToBeRemoved(getMenu);
+        });
+    });
+
+    describe('controlled mount', () => {
+        test('mounting with isMenuOpen={true} opens immediately', () => {
+            renderWithContext(<ControllableMenu forceOpen={true}/>);
+
+            expect(getMenu()).toBeInTheDocument();
+        });
+
+        test('mounting with isMenuOpen={false} stays closed', () => {
+            renderWithContext(<ControllableMenu forceOpen={false}/>);
+
+            expect(getMenu()).not.toBeInTheDocument();
+        });
+    });
+
+    describe('controlled prop transitions', () => {
+        test('undefined → true: opens', () => {
+            const {rerender} = renderWithContext(<ControllableMenu/>);
+            expect(getMenu()).not.toBeInTheDocument();
+
+            rerender(<ControllableMenu forceOpen={true}/>);
+
+            expect(getMenu()).toBeInTheDocument();
+        });
+
+        test('true → false: closes', async () => {
+            const {rerender} = renderWithContext(<ControllableMenu forceOpen={true}/>);
+            expect(getMenu()).toBeInTheDocument();
+
+            rerender(<ControllableMenu forceOpen={false}/>);
+
+            await waitForElementToBeRemoved(getMenu);
+        });
+
+        test('false → true: opens', () => {
+            const {rerender} = renderWithContext(<ControllableMenu forceOpen={false}/>);
+            expect(getMenu()).not.toBeInTheDocument();
+
+            rerender(<ControllableMenu forceOpen={true}/>);
+
+            expect(getMenu()).toBeInTheDocument();
+        });
+
+        test('true → undefined: stays open (releases control)', () => {
+            const {rerender} = renderWithContext(<ControllableMenu forceOpen={true}/>);
+            expect(getMenu()).toBeInTheDocument();
+
+            rerender(<ControllableMenu/>);
+
+            expect(getMenu()).toBeInTheDocument();
+        });
+
+        test('false → undefined: stays closed', () => {
+            const {rerender} = renderWithContext(<ControllableMenu forceOpen={false}/>);
+            expect(getMenu()).not.toBeInTheDocument();
+
+            rerender(<ControllableMenu/>);
+
+            expect(getMenu()).not.toBeInTheDocument();
+        });
+    });
+
+    describe('hybrid (controlled prop + user actions)', () => {
+        test('uncontrolled-open → controlled-true → controlled-false closes', async () => {
+            // The bookmark keyboard-reorder integration relies on this exact
+            // sequence: user opens menu (uncontrolled), reorder fallback
+            // promotes to controlled-true, then onOverflowOpenChange(false)
+            // sets controlled-false, menu must close.
+            const {rerender} = renderWithContext(<ControllableMenu/>);
+            await userEvent.click(screen.getByLabelText('controlled menu button'));
+            expect(getMenu()).toBeInTheDocument();
+
+            // Reorder starts → fallback promotes to controlled-true
+            rerender(<ControllableMenu forceOpen={true}/>);
+            expect(getMenu()).toBeInTheDocument();
+
+            // Cross overflow→bar → controlled-false issued
+            rerender(<ControllableMenu forceOpen={false}/>);
+
+            await waitForElementToBeRemoved(getMenu);
+        });
+
+        test('after release, user can dismiss the open menu', async () => {
+            const {rerender} = renderWithContext(<ControllableMenu forceOpen={true}/>);
+            expect(getMenu()).toBeInTheDocument();
+
+            // Caller releases control; menu stays open in uncontrolled mode
+            rerender(<ControllableMenu/>);
+            expect(getMenu()).toBeInTheDocument();
+
+            // User dismisses
+            await userEvent.keyboard('{Escape}');
+
+            await waitForElementToBeRemoved(getMenu);
+        });
+
+        test('after release, user can re-open via the button', async () => {
+            const {rerender} = renderWithContext(<ControllableMenu forceOpen={false}/>);
+            expect(getMenu()).not.toBeInTheDocument();
+
+            // Caller releases the close command
+            rerender(<ControllableMenu/>);
+            expect(getMenu()).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByLabelText('controlled menu button'));
+
+            expect(getMenu()).toBeInTheDocument();
+        });
+    });
+
+    describe('onToggle callback', () => {
+        test('fires (true) when the menu opens via prop', () => {
+            const onToggle = jest.fn();
+            renderWithContext(
+                <ControllableMenu
+                    forceOpen={true}
+                    onToggle={onToggle}
+                />,
+            );
+
+            expect(onToggle).toHaveBeenCalledWith(true);
+        });
+
+        test('fires (false) when controlled prop closes the menu', async () => {
+            const onToggle = jest.fn();
+            const {rerender} = renderWithContext(
+                <ControllableMenu
+                    forceOpen={true}
+                    onToggle={onToggle}
+                />,
+            );
+            onToggle.mockClear();
+
+            rerender(
+                <ControllableMenu
+                    forceOpen={false}
+                    onToggle={onToggle}
+                />,
+            );
+
+            await waitFor(() => expect(onToggle).toHaveBeenCalledWith(false));
+        });
+
+        test('fires (false) when user dismisses the menu', async () => {
+            const onToggle = jest.fn();
+            renderWithContext(
+                <ControllableMenu
+                    forceOpen={true}
+                    onToggle={onToggle}
+                />,
+            );
+            onToggle.mockClear();
+
+            await userEvent.keyboard('{Escape}');
+
+            await waitFor(() => expect(onToggle).toHaveBeenCalledWith(false));
+        });
+    });
+});

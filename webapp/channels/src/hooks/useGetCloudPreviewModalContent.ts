@@ -40,7 +40,7 @@ export const useGetCloudPreviewModalContent = (): UseGetCloudPreviewModalContent
                 } else {
                     setError(true);
                 }
-            } catch (err) {
+            } catch {
                 setError(true);
             } finally {
                 setLoading(false);

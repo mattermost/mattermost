@@ -32,7 +32,7 @@ func (p *MyPlugin) OnConfigurationChange() error {
 func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model.Post, string) {
 	rctx := request.TestContext(p.t)
 	settings := p.API.GetUnsanitizedConfig().SqlSettings
-	settings.Trace = model.NewPointer(false)
+	settings.Trace = new(false)
 	store, err := sqlstore.New(settings, rctx.Logger(), nil, sqlstore.DisableMorphLogging())
 	if err != nil {
 		panic(err)

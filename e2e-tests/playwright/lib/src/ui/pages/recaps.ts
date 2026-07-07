@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, Page, expect} from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 import {duration} from '@/util';
 
@@ -59,19 +60,21 @@ class CreateRecapModal {
     }
 
     getChannelOption(channelName: string) {
-        return this.container.locator('.channel-selector-item').filter({hasText: channelName});
+        return this.container.getByTestId('channel-selector-item').filter({hasText: channelName});
     }
 
     async selectChannel(channelName: string) {
         const channelOption = this.getChannelOption(channelName);
         await expect(channelOption).toBeVisible();
         await channelOption.click();
-        await expect(channelOption.locator('input[type="checkbox"]')).toBeChecked();
+        await expect(channelOption.getByRole('checkbox')).toBeChecked();
     }
 
     async expectSummaryChannels(channelNames: string[]) {
         for (const channelName of channelNames) {
-            await expect(this.container.locator('.summary-channel-item').filter({hasText: channelName})).toBeVisible();
+            await expect(
+                this.container.getByTestId('summary-channel-item').filter({hasText: channelName}),
+            ).toBeVisible();
         }
     }
 
@@ -92,11 +95,11 @@ class RecapChannelCard {
         private readonly page: Page,
         readonly container: Locator,
     ) {
-        this.channelButton = container.locator('.recap-channel-name-tag');
-        this.collapseButton = container.locator('.recap-channel-collapse-button');
-        // Scope to header actions so we do not match the parent .recap-channel-header (role="button").
+        this.channelButton = container.getByTestId('recap-channel-name-tag');
+        this.collapseButton = container.getByTestId('recap-channel-collapse-button');
+        // Scope to header actions so we do not match the parent recap-channel-header (role="button").
         this.menuButton = container
-            .locator('.recap-channel-header-actions')
+            .getByTestId('recap-channel-header-actions')
             .getByRole('button', {name: /Options for /});
     }
 
@@ -132,9 +135,9 @@ class RecapItem {
         private readonly page: Page,
         readonly container: Locator,
     ) {
-        this.header = container.locator('.recap-item-header');
+        this.header = container.getByTestId('recap-item-header');
         this.markReadButton = container.getByRole('button', {name: 'Mark read'});
-        this.deleteButton = container.locator('.recap-delete-button');
+        this.deleteButton = container.getByTestId('recap-delete-button');
         this.menuButton = this.header.getByRole('button', {name: /Options for /});
     }
 
@@ -184,7 +187,7 @@ class RecapItem {
     getChannelCard(channelName: string) {
         return new RecapChannelCard(
             this.page,
-            this.container.locator('.recap-channel-card').filter({hasText: channelName}).first(),
+            this.container.getByTestId('recap-channel-card').filter({hasText: channelName}).first(),
         );
     }
 }
@@ -268,7 +271,8 @@ export default class RecapsPage {
         return new RecapItem(
             this.page,
             this.page
-                .locator('.recap-item, .recap-processing')
+                .getByTestId('recap-item')
+                .or(this.page.getByTestId('recap-processing'))
                 .filter({
                     has: this.page.getByRole('heading', {name: title, exact: true}),
                 })

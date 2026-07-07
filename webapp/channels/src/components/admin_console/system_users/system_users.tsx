@@ -49,7 +49,7 @@ export type TableOptions = {
     filterRole?: AdminConsoleUserManagementTableProperties['filterRole'];
     filterStatus?: AdminConsoleUserManagementTableProperties['filterStatus'];
     dateRange?: ReportDuration;
-}
+};
 
 type UserReportWithError = UserReport & {error?: ServerError};
 
@@ -59,7 +59,7 @@ const messages = defineMessages({
     title: {id: 'admin.system_users.title', defaultMessage: '{siteName} Users'},
 });
 
-export const searchableStrings: Array<string|MessageDescriptor|[MessageDescriptor, {[key: string]: any}]> = [[messages.title, {siteName: ''}]];
+export const searchableStrings: Array<string | MessageDescriptor | [MessageDescriptor, {[key: string]: any}]> = [[messages.title, {siteName: ''}]];
 
 function SystemUsers(props: Props) {
     const {formatMessage} = useIntl();
@@ -254,12 +254,14 @@ function SystemUsers(props: Props) {
                             <div className='profilePictureContainer'>
                                 <img
                                     className='profilePicture'
+                                    data-testid='profilePicture'
                                     src={imageURLForUser(info.row.original.id)}
                                     aria-hidden='true'
                                 />
                             </div>
                             <div
                                 className='displayName'
+                                data-testid='displayName'
                                 title={getDisplayName(info.row.original)}
                             >
                                 {getDisplayName(info.row.original) || ''}
@@ -275,6 +277,7 @@ function SystemUsers(props: Props) {
                             </div>
                             <div
                                 className='userName'
+                                data-testid='userName'
                                 title={info.row.original.username}
                             >
                                 {info.row.original.username}

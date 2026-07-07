@@ -14,7 +14,6 @@ import {loginAndVisitChannel} from './helper';
 
 import * as TIMEOUTS from '@/fixtures/timeouts';
 
-
 describe('Integrations', () => {
     let testUser;
     let testTeam;

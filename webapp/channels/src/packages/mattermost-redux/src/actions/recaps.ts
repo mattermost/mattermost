@@ -46,6 +46,19 @@ export function markRecapAsRead(recapId: string): ActionFuncAsync<Recap> {
     });
 }
 
+export function markRecapsAsViewed(): ActionFuncAsync<{recap_ids: string[]}> {
+    return async (dispatch, getState) => {
+        try {
+            const data = await Client4.markRecapsAsViewed();
+            return {data};
+        } catch (error) {
+            dispatch(logError(error));
+            forceLogoutIfNecessary(error, dispatch, getState);
+            return {error};
+        }
+    };
+}
+
 export function regenerateRecap(recapId: string): ActionFuncAsync<Recap> {
     return bindClientFunc({
         clientFunc: () => Client4.regenerateRecap(recapId),

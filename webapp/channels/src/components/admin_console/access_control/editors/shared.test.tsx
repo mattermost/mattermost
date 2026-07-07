@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
@@ -29,6 +29,24 @@ describe('TestButton', () => {
         // Check for icon
         const icon = button.querySelector('i.icon.icon-lock-outline');
         expect(icon).toBeInTheDocument();
+    });
+
+    test('should render the supplied label override instead of the default copy', () => {
+        renderWithContext(
+            <TestButton
+                {...baseProps}
+                label='Simulate rules'
+            />,
+            {},
+        );
+
+        // The default "Test access rule" copy must not appear when a
+        // label override is provided — used by the permission-rule
+        // editors to surface "Simulate rules" instead.
+        expect(screen.queryByRole('button', {name: /test access rule/i})).not.toBeInTheDocument();
+        const button = screen.getByRole('button', {name: /simulate rules/i});
+        expect(button).toBeInTheDocument();
+        expect(button.querySelector('i.icon.icon-lock-outline')).toBeInTheDocument();
     });
 
     test('should be enabled and clickable when disabled is false', () => {

@@ -28,6 +28,7 @@ type IncomingWebhook struct {
 	Username      string `json:"username"`
 	IconURL       string `json:"icon_url"`
 	ChannelLocked bool   `json:"channel_locked"`
+	LastUsed      int64  `json:"last_used"`
 }
 
 func (o *IncomingWebhook) Auditable() map[string]any {
@@ -44,6 +45,7 @@ func (o *IncomingWebhook) Auditable() map[string]any {
 		"username":       o.Username,
 		"icon_url:":      o.IconURL,
 		"channel_locked": o.ChannelLocked,
+		"last_used":      o.LastUsed,
 	}
 }
 
@@ -52,11 +54,30 @@ type IncomingWebhookRequest struct {
 	Username    string               `json:"username"`
 	IconURL     string               `json:"icon_url"`
 	ChannelName string               `json:"channel"`
+	RootId      string               `json:"root_id"`
 	Props       StringInterface      `json:"props"`
 	Attachments []*MessageAttachment `json:"attachments"`
 	Type        string               `json:"type"`
 	IconEmoji   string               `json:"icon_emoji"`
 	Priority    *PostPriority        `json:"priority"`
+}
+
+// HasInteractiveMessageProps reports whether props contain post content beyond the
+// message field. Legacy props.attachments always count. mm_blocks, blocks, and cards
+// count only when mmBlocksEnabled is true (Interactive Messages feature flag).
+func (r *IncomingWebhookRequest) HasInteractiveMessageProps(mmBlocksEnabled bool) bool {
+	if r == nil || len(r.Props) == 0 {
+		return false
+	}
+	if interactivePropJSONArrayNonEmpty(r.Props[PostPropsAttachments]) {
+		return true
+	}
+	if !mmBlocksEnabled {
+		return false
+	}
+	return interactivePropJSONArrayNonEmpty(r.Props[PostPropsMmBlocks]) ||
+		interactivePropJSONArrayNonEmpty(r.Props[PostPropsBlockKitBlocks]) ||
+		interactivePropJSONArrayNonEmpty(r.Props[PostPropsAdaptiveCards])
 }
 
 type IncomingWebhooksWithCount struct {

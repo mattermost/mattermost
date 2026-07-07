@@ -6,6 +6,7 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {Channel} from '@mattermost/types/channels';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -17,7 +18,7 @@ import Constants from 'utils/constants';
 
 type Actions = {
     patchChannel: (channelId: string, patch: Partial<Channel>) => Promise<ActionResult>;
-}
+};
 
 type Props = {
     channel: Channel;
@@ -25,7 +26,7 @@ type Props = {
     onExited: () => void;
     actions: Actions;
     intl: IntlShape;
-}
+};
 
 type State = {
     show: boolean;
@@ -33,7 +34,7 @@ type State = {
     channelUrl: string;
     isSaving: boolean;
     urlError: string;
-}
+};
 
 export class RenameChannelModal extends React.PureComponent<Props, State> {
     constructor(props: Props) {
@@ -123,19 +124,19 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
                     />
                 </Modal.Body>
                 <Modal.Footer>
-                    <button
+                    <Button
                         type='button'
-                        className='btn btn-tertiary cancel-button'
+                        emphasis='tertiary'
                         onClick={this.onHide}
                     >
                         <FormattedMessage
                             id='generic_btn.cancel'
                             defaultMessage='Cancel'
                         />
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         type='button'
-                        className='btn btn-primary'
+                        emphasis='primary'
                         disabled={this.state.isSaving}
                         onClick={this.handleSave}
                     >
@@ -143,7 +144,7 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
                             id='generic_btn.save'
                             defaultMessage='Save'
                         />
-                    </button>
+                    </Button>
                 </Modal.Footer>
             </Modal>
         );

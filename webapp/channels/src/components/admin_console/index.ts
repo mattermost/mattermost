@@ -16,7 +16,7 @@ import {getRoles} from 'mattermost-redux/selectors/entities/roles';
 import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {isCurrentUserSystemAdmin, currentUserHasAnAdminRole, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {setNavigationBlocked, deferNavigation, cancelNavigation, confirmNavigation} from 'actions/admin_actions.jsx';
+import {setNavigationBlocked, deferNavigation, cancelNavigation, confirmNavigation} from 'actions/admin_actions';
 import {setAdminConsoleUsersManagementTableProperties} from 'actions/views/admin';
 import {selectLhsItem} from 'actions/views/lhs';
 import {getAdminDefinition, getConsoleAccess} from 'selectors/admin_console';

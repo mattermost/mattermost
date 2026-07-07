@@ -15,7 +15,7 @@ type Props = {
     disableNextButton?: boolean;
     btnsStyle?: BtnStyle; // chevron or bottom buttons
     actionButton?: JSX.Element;
-}
+};
 const Carousel = ({
     dataSlides,
     id,

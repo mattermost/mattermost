@@ -4,6 +4,8 @@
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
+
 import BlockableButton from 'components/admin_console/blockable_button';
 import BlockableLink from 'components/admin_console/blockable_link';
 import SaveButton from 'components/save_button';
@@ -16,9 +18,9 @@ type Props = {
     isDisabled?: boolean;
     savingMessage?: string;
 } & (
-    | {cancelLink: string; onCancel?: never}
-    | {cancelLink?: never; onCancel: () => void}
-    | {cancelLink?: never; onCancel?: never}
+    {cancelLink: string; onCancel?: never} |
+    {cancelLink?: never; onCancel: () => void} |
+    {cancelLink?: never; onCancel?: never}
 ); // allow a cancelLink or an onCancel handler, or neither
 
 const SaveChangesPanel = ({saveNeeded, onClick, saving, serverError, cancelLink, onCancel, isDisabled, savingMessage}: Props) => {
@@ -34,7 +36,7 @@ const SaveChangesPanel = ({saveNeeded, onClick, saving, serverError, cancelLink,
             {cancelLink ? (
                 <BlockableLink
                     id='cancelButtonSettings'
-                    className='btn btn-quaternary'
+                    className={buttonClassNames({emphasis: 'quaternary'})}
                     to={cancelLink}
                 >
                     <FormattedMessage
@@ -45,7 +47,7 @@ const SaveChangesPanel = ({saveNeeded, onClick, saving, serverError, cancelLink,
             ) : onCancel && (
                 <BlockableButton
                     id='cancelButtonSettings'
-                    className='btn btn-quaternary'
+                    className={buttonClassNames({emphasis: 'quaternary'})}
                     onCancelConfirmed={onCancel}
                 >
                     <FormattedMessage
@@ -54,7 +56,10 @@ const SaveChangesPanel = ({saveNeeded, onClick, saving, serverError, cancelLink,
                     />
                 </BlockableButton>
             )}
-            <div className='error-message'>
+            <div
+                className='error-message'
+                data-testid='saveChangesPanel-errorMessage'
+            >
                 {serverError}
             </div>
         </div>

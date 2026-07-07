@@ -4,6 +4,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {RemoteCluster} from '@mattermost/types/remote_clusters';
 import type {RemoteClusterInfo} from '@mattermost/types/shared_channels';
 
@@ -11,7 +12,6 @@ import {Client4} from 'mattermost-redux/client';
 
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import Toggle from 'components/toggle';
-import WithTooltip from 'components/with_tooltip';
 
 import AddWorkspaceDropdown, {type RemoteToAdd} from './add_workspace_dropdown';
 import type {WorkspaceWithStatus} from './types';

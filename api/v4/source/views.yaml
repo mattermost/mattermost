@@ -4,6 +4,8 @@
         - views
       summary: List channel views
       description: |
+        *__Experimental__: This endpoint is experimental and may change or be removed in a future release.*
+
         Get a list of views for a channel.
 
         __Minimum server version__: 11.6
@@ -73,6 +75,8 @@
         - views
       summary: Create channel view
       description: |
+        *__Experimental__: This endpoint is experimental and may change or be removed in a future release.*
+
         Create a new view for a channel.
 
         __Minimum server version__: 11.6
@@ -143,6 +147,8 @@
         - views
       summary: Get a channel view
       description: |
+        *__Experimental__: This endpoint is experimental and may change or be removed in a future release.*
+
         Get a single view by its ID.
 
         __Minimum server version__: 11.6
@@ -186,6 +192,8 @@
         - views
       summary: Update a channel view
       description: |
+        *__Experimental__: This endpoint is experimental and may change or be removed in a future release.*
+
         Partially update a channel view by providing only the fields
         you want to update. Omitted fields will not be updated.
 
@@ -237,6 +245,8 @@
         - views
       summary: Delete a channel view
       description: |
+        *__Experimental__: This endpoint is experimental and may change or be removed in a future release.*
+
         Soft-deletes a channel view. Sets `delete_at` to current timestamp.
 
         __Minimum server version__: 11.6
@@ -281,6 +291,8 @@
         - views
       summary: Get posts for a view
       description: |
+        *__Experimental__: This endpoint is experimental and may change or be removed in a future release.*
+
         Get a paginated list of posts that belong to a specific view.
 
         __Minimum server version__: 11.6
@@ -341,6 +353,8 @@
         - views
       summary: Update a channel view's sort order
       description: |
+        *__Experimental__: This endpoint is experimental and may change or be removed in a future release.*
+
         Updates the sort order of a channel view, setting its new index
         from the request body and updating the rest of the views in the
         channel to accommodate the change.

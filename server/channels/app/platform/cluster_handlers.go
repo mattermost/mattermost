@@ -18,6 +18,7 @@ func (ps *PlatformService) RegisterClusterHandlers() {
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventInvalidateAllCaches, ps.ClusterInvalidateAllCachesHandler)
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventInvalidateWebConnCacheForUser, ps.clusterInvalidateWebConnSessionCacheForUserHandler)
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventBusyStateChanged, ps.clusterBusyStateChgHandler)
+	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventUpdateSessionAttributes, ps.ClusterUpdateSessionAttributesHandler)
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventClearSessionCacheForUser, ps.clusterClearSessionCacheForUserHandler)
 	ps.clusterIFace.RegisterClusterMessageHandler(model.ClusterEventClearSessionCacheForAllUsers, ps.clusterClearSessionCacheForAllUsersHandler)
 	for e, h := range ps.additionalClusterHandlers {
@@ -50,6 +51,18 @@ func (ps *PlatformService) ClusterUpdateStatusHandler(msg *model.ClusterMessage)
 	}
 }
 
+func (ps *PlatformService) ClusterUpdateSessionAttributesHandler(msg *model.ClusterMessage) {
+	var payload model.SessionAttributesClusterPayload
+	if err := json.Unmarshal(msg.Data, &payload); err != nil {
+		ps.logger.Warn("Failed to decode session attributes from JSON", mlog.Err(err))
+		return
+	}
+
+	if err := ps.Store.SessionAttribute().Refresh(payload.SessionID, payload.Attrs, payload.Timestamp); err != nil {
+		ps.logger.Warn("Failed to merge session attributes from cluster", mlog.String("session_id", payload.SessionID), mlog.Err(err))
+	}
+}
+
 func (ps *PlatformService) ClusterInvalidateAllCachesHandler(msg *model.ClusterMessage) {
 	if err := ps.InvalidateAllCachesSkipSend(); err != nil {
 		ps.logger.Error("Error validating caches from cluster message", mlog.Err(err))
@@ -65,11 +78,18 @@ func (ps *PlatformService) ClearSessionCacheForUserSkipClusterSend(userID string
 	ps.invalidateWebConnSessionCacheForUserSkipClusterSend(userID)
 }
 
-func (ps *PlatformService) ClearSessionCacheForAllUsersSkipClusterSend() {
+// ClearSessionCacheForAllUsersSkipClusterSend purges the in-memory
+// session cache and invalidates every WebConn on this node. The hub
+// fan-out runs even if the cache purge fails; the purge error is
+// returned so wrappers can propagate it.
+func (ps *PlatformService) ClearSessionCacheForAllUsersSkipClusterSend() error {
 	ps.logger.Info("Purging sessions cache")
-	if err := ps.ClearAllUsersSessionCacheLocal(); err != nil {
+	err := ps.ClearAllUsersSessionCacheLocal()
+	if err != nil {
 		ps.logger.Error("Failed to purge session cache", mlog.Err(err))
 	}
+	ps.invalidateWebConnSessionCacheForAllUsersSkipClusterSend()
+	return err
 }
 
 func (ps *PlatformService) clusterClearSessionCacheForUserHandler(msg *model.ClusterMessage) {
@@ -77,7 +97,9 @@ func (ps *PlatformService) clusterClearSessionCacheForUserHandler(msg *model.Clu
 }
 
 func (ps *PlatformService) clusterClearSessionCacheForAllUsersHandler(msg *model.ClusterMessage) {
-	ps.ClearSessionCacheForAllUsersSkipClusterSend()
+	if err := ps.ClearSessionCacheForAllUsersSkipClusterSend(); err != nil {
+		ps.logger.Error("Failed to clear session cache for all users from cluster handler", mlog.Err(err))
+	}
 }
 
 func (ps *PlatformService) clusterBusyStateChgHandler(msg *model.ClusterMessage) {
@@ -98,6 +120,17 @@ func (ps *PlatformService) invalidateWebConnSessionCacheForUserSkipClusterSend(u
 	hub := ps.GetHubForUserId(userID)
 	if hub != nil {
 		hub.InvalidateUser(userID)
+	}
+}
+
+// invalidateWebConnSessionCacheForAllUsersSkipClusterSend signals
+// every hub on this node to invalidate the cached session state of
+// all of its WebConns. Companion to ClearAllUsersSessionCacheLocal.
+func (ps *PlatformService) invalidateWebConnSessionCacheForAllUsersSkipClusterSend() {
+	for _, hub := range ps.hubs {
+		if hub != nil {
+			hub.InvalidateAll()
+		}
 	}
 }
 

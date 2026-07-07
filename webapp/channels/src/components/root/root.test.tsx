@@ -25,6 +25,7 @@ jest.mock('./performance_reporter_controller', () => () => <div/>);
 
 jest.mock('utils/utils', () => ({
     applyTheme: jest.fn(),
+    makeIsEligibleForClick: jest.fn(),
 }));
 
 jest.mock('utils/browser_utils', () => ({
@@ -71,6 +72,7 @@ describe('components/Root', () => {
                 });
             }),
             loadRecentlyUsedCustomEmojis: jest.fn(),
+            logIfConcurrentReactEnabled: jest.fn(),
             migrateRecentEmojis: jest.fn(),
             initializeProducts: jest.fn(),
             ...bindActionCreators({

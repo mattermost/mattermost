@@ -145,12 +145,12 @@ func TestRateLimitingVaryByUser(t *testing.T) {
 
 	// Install a rate limiter after setup: VaryByUser=true, PerSec=1, MaxBurst=1 → limit of 2
 	rl, err := app.NewRateLimiter(&model.RateLimitSettings{
-		Enable:           model.NewPointer(true),
-		PerSec:           model.NewPointer(1),
-		MaxBurst:         model.NewPointer(1),
-		MemoryStoreSize:  model.NewPointer(10000),
-		VaryByRemoteAddr: model.NewPointer(false),
-		VaryByUser:       model.NewPointer(true),
+		Enable:           new(true),
+		PerSec:           new(1),
+		MaxBurst:         new(1),
+		MemoryStoreSize:  new(10000),
+		VaryByRemoteAddr: new(false),
+		VaryByUser:       new(true),
 		VaryByHeader:     "",
 	}, nil)
 	require.NoError(t, err)

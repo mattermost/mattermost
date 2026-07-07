@@ -8,7 +8,7 @@
 // ***************************************************************
 
 // Stage: @prod
-// Group: @channels @messaging
+// Group: @channels @messaging @collapsed_reply_threads
 
 import timeouts from '@/fixtures/timeouts';
 
@@ -177,6 +177,57 @@ describe('Messaging', () => {
         });
     });
 
+    it('MM-T4261_3 One-Click Reactions in Global Threads view show 3 emojis', () => {
+        // # Re-enable emoji picker (MM-T4261_2 disables it) and configure CRT server-side
+        cy.apiAdminLogin();
+        cy.apiUpdateConfig({
+            ServiceSettings: {
+                EnableEmojiPicker: true,
+                ThreadAutoFollow: true,
+                CollapsedThreads: 'default_off',
+            },
+        });
+
+        // # Create a fresh user with CRT turned on so threads appear in the Threads view
+        cy.apiCreateUser({prefix: 'crtUser'}).then(({user: crtUser}) => {
+            cy.apiAddUserToTeam(testTeam.id, crtUser.id);
+            cy.apiSaveCRTPreference(crtUser.id, 'on');
+            cy.apiLogin(crtUser);
+        });
+
+        cy.visit(offTopicPath);
+
+        // # Enable one-click reactions for this user
+        cy.uiOpenSettingsModal('Display').within(() => {
+            cy.findByText('Display', {timeout: timeouts.ONE_MIN}).click();
+            cy.findByText('Quick reactions on messages').click();
+            cy.findByLabelText('On').click();
+            cy.uiSaveAndClose();
+        });
+
+        // # Post a root message and a reply so a followed thread exists
+        cy.apiGetChannelByName(testTeam.name, 'off-topic').then(({channel}) => {
+            cy.apiCreatePost(channel.id, 'Root post for Global Threads emoji test', '', {}).then((rootResp) => {
+                const rootPostId = rootResp.body.id;
+
+                cy.apiCreatePost(channel.id, 'Reply to follow the thread', rootPostId, {});
+
+                // # Navigate to Global Threads
+                cy.uiClickSidebarItem('threads');
+
+                // # Click the thread to open the full-width thread panel
+                cy.get('div.ThreadItem').should('have.lengthOf.at.least', 1).first().click();
+
+                // * Root post is visible in the thread pane
+                cy.get(`#rhsPost_${rootPostId}`).should('be.visible');
+
+                // * Hovering over the post in Global Threads shows 3 quick reaction emojis —
+                //   the same count as the center channel, not the 1 shown in a narrow RHS sidebar.
+                validateQuickReactions(rootPostId, 'GLOBAL_THREADS', defaultEmojis);
+            });
+        });
+    });
+
     function validateQuickReactions(postId, location, emojis) {
         let idPrefix;
         let numReactions = 3;
@@ -186,7 +237,7 @@ describe('Messaging', () => {
         } else if (location === 'RHS_ROOT' || location === 'RHS_COMMENT') {
             idPrefix = 'rhsPost';
             numReactions = 1;
-        } else if (location === 'RHS_EXPANDED') {
+        } else if (location === 'GLOBAL_THREADS') {
             idPrefix = 'rhsPost';
         }
 

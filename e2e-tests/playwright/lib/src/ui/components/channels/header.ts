@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 export default class ChannelsHeader {
     readonly container: Locator;
@@ -14,7 +15,7 @@ export default class ChannelsHeader {
         this.container = container;
 
         this.title = container.locator('#channelHeaderTitle');
-        this.channelMenuDropdown = container.locator('[aria-controls="channelHeaderDropdownMenu"]');
+        this.channelMenuDropdown = container.locator('#channelHeaderDropdownButton');
         this.callButton = container.getByRole('button', {name: /call/i}).first();
     }
 

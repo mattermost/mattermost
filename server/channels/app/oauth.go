@@ -285,6 +285,10 @@ func (a *App) GetOAuthAccessTokenForImplicitFlow(rctx request.CTX, userID string
 		return nil, err
 	}
 
+	if user.DeleteAt != 0 {
+		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.expired_code.app_error", nil, "", http.StatusForbidden)
+	}
+
 	session, err := a.newSession(rctx, oauthApp, user)
 	if err != nil {
 		return nil, err
@@ -406,6 +410,10 @@ func (a *App) handleRefreshTokenGrant(rctx request.CTX, oauthApp *model.OAuthApp
 	user, nErr := a.Srv().Store().User().Get(context.Background(), accessData.UserId)
 	if nErr != nil {
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_user.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
+	}
+
+	if user.DeleteAt != 0 {
+		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.expired_code.app_error", nil, "", http.StatusForbidden)
 	}
 
 	audience := accessData.Audience // Default to existing audience
@@ -778,7 +786,7 @@ func (a *App) LoginByOAuth(rctx request.CTX, service string, userData io.Reader,
 			map[string]any{"Service": service}, "", http.StatusBadRequest)
 	}
 
-	user, appErr := a.GetUserByAuth(model.NewPointer(*authUser.AuthData), service)
+	user, appErr := a.GetUserByAuth(new(*authUser.AuthData), service)
 	if appErr != nil {
 		if appErr.Id == MissingAuthAccountError {
 			user, appErr = a.CreateOAuthUser(rctx, service, bytes.NewReader(buf.Bytes()), inviteToken, inviteId, tokenUser)

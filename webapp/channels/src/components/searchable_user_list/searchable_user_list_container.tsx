@@ -37,7 +37,7 @@ type Props = {
         };
     };
     focusOnMount?: boolean;
-}
+};
 
 export default function SearchableUserListContainer(props: Props) {
     const [term, setTerm] = useState('');

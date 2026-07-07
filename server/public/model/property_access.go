@@ -41,6 +41,19 @@ func IsPropertyFieldProtected(field *PropertyField) bool {
 	return ok && protected
 }
 
+// GetAccessMode returns the field's access mode. Returns the public mode (empty
+// string) when no access_mode is configured or the field has no attrs at all.
+func (f *PropertyField) GetAccessMode() string {
+	if f.Attrs == nil {
+		return PropertyAccessModePublic
+	}
+	accessMode, ok := f.Attrs[PropertyAttrsAccessMode].(string)
+	if !ok {
+		return PropertyAccessModePublic
+	}
+	return accessMode
+}
+
 // ValidatePropertyFieldAccessMode validates that the access_mode attribute is valid
 // and compatible with the field type
 func ValidatePropertyFieldAccessMode(field *PropertyField) error {
@@ -59,18 +72,19 @@ func ValidatePropertyFieldAccessMode(field *PropertyField) error {
 		return fmt.Errorf("invalid access mode '%s'", accessMode)
 	}
 
-	// Validate shared_only is only used with select/multiselect fields
-	if accessMode == PropertyAccessModeSharedOnly {
-		if field.Type != PropertyFieldTypeSelect && field.Type != PropertyFieldTypeMultiselect {
-			return fmt.Errorf("access mode 'shared_only' can only be used with select or multiselect field types, got '%s'", field.Type)
-		}
-	}
-
 	// Validate that non-public access modes require protected flag
 	if accessMode == PropertyAccessModeSourceOnly || accessMode == PropertyAccessModeSharedOnly {
 		if !IsPropertyFieldProtected(field) {
 			return fmt.Errorf("access mode '%s' requires the field to be protected", accessMode)
 		}
+	}
+
+	// shared_only + member-writable is contradictory: shared_only filters what
+	// callers see to values they hold, but member-writable lets users self-assign
+	// any value. Reject the combination at validation time instead of working
+	// around it at the API/service layer.
+	if accessMode == PropertyAccessModeSharedOnly && field.PermissionValues != nil && *field.PermissionValues == PermissionLevelMember {
+		return fmt.Errorf("access mode 'shared_only' is incompatible with member-writable permission_values")
 	}
 
 	return nil

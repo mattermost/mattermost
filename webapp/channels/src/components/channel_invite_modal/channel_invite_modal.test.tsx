@@ -983,4 +983,41 @@ describe('components/channel_invite_modal', () => {
             '',
         );
     });
+
+    // Bug-fix regression: a channel carrying ONLY a permission policy (e.g.
+    // upload_file_attachment) reports policy_enforced=true but has no
+    // membership action. The invite modal must treat it as an unrestricted
+    // channel — no AlertBanner, no ABAC-mode pivot, no recommended-users
+    // call. Before Phase 2 of channel-policy-actions-lazy-fetch this
+    // misfired and emptied the picker.
+    test('permission-only policy does NOT pivot the invite modal to ABAC mode', async () => {
+        const {Client4} = require('mattermost-redux/client');
+        Client4.getProfilesNotInChannel.mockClear();
+        Client4.getProfilesMatchingChannelPolicy.mockClear();
+
+        const channelWithPermissionOnlyPolicy = {
+            ...channel,
+            type: 'P' as ChannelType,
+            policy_enforced: true,
+            policy_actions: {upload_file_attachment: true},
+        };
+
+        const props = {
+            ...baseProps,
+            channel: channelWithPermissionOnlyPolicy,
+        };
+
+        renderWithContext(<ChannelInviteModal {...props}/>);
+
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        // No "policy applied" banner — the bug fix's user-visible signal.
+        expect(document.querySelector('.AlertBanner')).toBeNull();
+
+        // No fresh ABAC fetch — Redux-backed profiles must remain visible.
+        expect(Client4.getProfilesNotInChannel).not.toHaveBeenCalled();
+        expect(Client4.getProfilesMatchingChannelPolicy).not.toHaveBeenCalled();
+    });
 });

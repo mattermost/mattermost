@@ -158,7 +158,7 @@ describe('useAccessControlAttributes', () => {
             result.current.loading = true;
             try {
                 await result.current.fetchAttributes();
-            } catch (error) {
+            } catch {
                 // Ignore the error
             }
         });

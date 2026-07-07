@@ -16,7 +16,7 @@ type Props = {
     unmountOnExit?: boolean;
     onSelect?: SelectCallback;
     className?: string;
-}
+};
 
 export default function Tabs({
     children,

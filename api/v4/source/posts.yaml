@@ -127,6 +127,50 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+  /api/v4/posts/search:
+    post:
+      tags:
+        - posts
+      summary: Search posts across all teams
+      description: |
+        Search posts visible to the current user across all teams.
+        ##### Permissions
+        Must be authenticated.
+      operationId: SearchPostsInAllTeams
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - terms
+              properties:
+                terms:
+                  type: string
+                is_or_search:
+                  type: boolean
+                time_zone_offset:
+                  type: integer
+                include_deleted_channels:
+                  type: boolean
+                page:
+                  type: integer
+                per_page:
+                  type: integer
+        required: true
+      responses:
+        "200":
+          description: Post search successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostListWithSearchMatches"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
   "/api/v4/posts/{post_id}":
     get:
       tags:
@@ -550,6 +594,72 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+  "/api/v4/posts/{post_id}/info":
+    get:
+      tags:
+        - posts
+      summary: Get post info
+      description: |
+        Get additional metadata and access information for a post.
+        ##### Permissions
+        Must be able to access the post's team and channel context.
+      operationId: GetPostInfo
+      parameters:
+        - name: post_id
+          in: path
+          description: Post ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Post info retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostInfo"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  "/api/v4/posts/{post_id}/edit_history":
+    get:
+      tags:
+        - posts
+      summary: Get post edit history
+      description: |
+        Get edit history entries for a post.
+        ##### Permissions
+        Must have `edit_post` permission in the channel. For most posts, only the original author can access history.
+      operationId: GetEditHistoryForPost
+      parameters:
+        - name: post_id
+          in: path
+          description: Post ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Edit history retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Post"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   "/api/v4/channels/{channel_id}/posts":
     get:
       tags:

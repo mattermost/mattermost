@@ -48,10 +48,6 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 	})
 	require.NoError(tb, err)
 
-	// Create and wire the PropertyAccessService
-	pas := NewPropertyAccessService(service, nil)
-	service.SetPropertyAccessService(pas)
-
 	tb.Cleanup(func() {
 		s.Close()
 	})
@@ -69,11 +65,28 @@ func RequestContextWithCallerID(rctx request.CTX, callerID string) request.CTX {
 	return rctx.WithContext(ctx)
 }
 
+// setPluginCheckerForTests sets the plugin checker on the AccessControlHook for testing.
+func (ps *PropertyService) setPluginCheckerForTests(pluginChecker PluginChecker) {
+	for _, hook := range ps.hooks {
+		if ach, ok := hook.(*AccessControlHook); ok {
+			ach.setPluginCheckerForTests(pluginChecker)
+		}
+	}
+}
+
+func (h *AccessControlHook) setPluginCheckerForTests(pluginChecker PluginChecker) {
+	h.pluginChecker = pluginChecker
+}
+
 func (th *TestHelper) RegisterCPAPropertyGroup(tb testing.TB) *TestHelper {
 	// Register the CPA group so requiresAccessControl can always look it up
-	group, groupErr := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: model.CustomProfileAttributesPropertyGroupName, Version: model.PropertyGroupVersionV1})
+	group, groupErr := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: model.AccessControlPropertyGroupName, Version: model.PropertyGroupVersionV2})
 	require.NoError(tb, groupErr)
 	th.CPAGroupID = group.ID
+
+	// Create and register the access control hook now that the group ID is known
+	hook := NewAccessControlHook(th.service, nil, group.ID)
+	th.service.AddHook(hook)
 
 	return th
 }

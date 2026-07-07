@@ -23,7 +23,7 @@ type Props = PropsFromRedux;
 type State = {
     presentNoticeIndex: number;
     noticesData: ProductNotices;
-}
+};
 
 export default class ProductNoticesModal extends React.PureComponent<Props, State> {
     clearDataTimer?: number;
@@ -192,7 +192,6 @@ export default class ProductNoticesModal extends React.PureComponent<Props, Stat
             return (
                 <ExternalLink
                     id='actionButton'
-                    className='GenericModal__button actionButton'
                     location='product_notices_modal'
                     href={presentNoticeInfo.actionParam || ''}
                 >

@@ -42,7 +42,7 @@ type State = {
     showConfirmModal: boolean;
     item: Group;
     listModal?: ListModal;
-}
+};
 
 class TeamGroupsManageModal extends React.PureComponent<Props, State> {
     state = {

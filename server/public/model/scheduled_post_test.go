@@ -622,8 +622,8 @@ func TestScheduledPostGetPriority(t *testing.T) {
 
 	t.Run("metadata with priority returns priority", func(t *testing.T) {
 		priority := &PostPriority{
-			Priority:     NewPointer("urgent"),
-			RequestedAck: NewPointer(true),
+			Priority:     new("urgent"),
+			RequestedAck: new(true),
 		}
 		s := ScheduledPost{
 			Draft: Draft{

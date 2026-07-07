@@ -8,15 +8,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"net/http"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
-
-	"maps"
-	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
@@ -255,6 +254,16 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		post.AddProp(model.PostPropsFromOAuthApp, "true")
 	}
 
+	// Strip mm_blocks_actions from posts that are neither bot-authored nor
+	// created via an integration session. CreateWebhookPost passes
+	// AllowMmBlocksActions instead of relying on from_webhook, which clients
+	// can forge on the public create-post API when hardened mode is off.
+	if post.GetProp(model.PostPropsMmBlocksActions) != nil {
+		if !user.IsBot && !rctx.Session().IsIntegration() && !flags.AllowMmBlocksActions {
+			post.DelProp(model.PostPropsMmBlocksActions)
+		}
+	}
+
 	var ephemeralPost *model.Post
 	if post.Type == "" {
 		if hasPermission, _ := a.HasPermissionToChannel(rctx, user.Id, channel.Id, model.PermissionUseChannelMentions); !hasPermission {
@@ -313,39 +322,14 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		}
 	}
 
-	var metadata *model.PostMetadata
-	if post.Metadata != nil {
-		metadata = post.Metadata.Copy()
-	}
-	var rejectionError *model.AppError
 	pluginContext := pluginContext(rctx)
 
 	if post.Type != model.PostTypeBurnOnRead {
-		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-			replacementPost, rejectionReason := hooks.MessageWillBePosted(pluginContext, post.ForPlugin())
-			if rejectionReason != "" {
-				id := "Post rejected by plugin. " + rejectionReason
-				if rejectionReason == plugin.DismissPostError {
-					id = plugin.DismissPostError
-				}
-				rejectionError = model.NewAppError("createPost", id, nil, "", http.StatusBadRequest)
-				return false
-			}
-			if replacementPost != nil {
-				post = replacementPost
-				if post.Metadata != nil && metadata != nil {
-					post.Metadata.Priority = metadata.Priority
-				} else {
-					post.Metadata = metadata
-				}
-			}
-
-			return true
-		}, plugin.MessageWillBePostedID)
-
-		if rejectionError != nil {
-			return nil, false, rejectionError
+		newPost, guardErr := a.runGuardedMessageWillBePosted(rctx, post)
+		if guardErr != nil {
+			return nil, false, guardErr
 		}
+		post = newPost
 	}
 
 	// Pre-fill the CreateAt field for link previews to get the correct timestamp.
@@ -444,7 +428,7 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		}
 	}
 
-	a.applyPostWillBeConsumedHook(&rpost)
+	a.applyPostWillBeConsumedHook(rctx, &rpost)
 
 	if rpost.RootId != "" {
 		if appErr := a.ResolvePersistentNotification(rctx, parentPostList.Posts[post.RootId], rpost.UserId); appErr != nil {
@@ -503,6 +487,12 @@ func (a *App) attachFilesToPost(rctx request.CTX, post *model.Post, fileIDs mode
 	attachedIds := a.attachFileIDsToPost(rctx, post.Id, post.ChannelId, post.UserId, fileIDs)
 
 	if len(fileIDs) != len(attachedIds) {
+		// Remote-origin posts have a concurrent file-receive path that
+		// performs its own binding; stripping here can clobber a binding
+		// that path just made.
+		if post.GetRemoteID() != "" {
+			return fileIDs, nil
+		}
 		post.FileIds = attachedIds
 		if _, err := a.Srv().Store().Post().Overwrite(rctx, post); err != nil {
 			return nil, model.NewAppError("attachFilesToPost", "app.post.overwrite.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -531,8 +521,8 @@ func (a *App) attachFileIDsToPost(rctx request.CTX, postID, channelID, userID st
 //
 // If channel is nil, FillInPostProps will look up the channel corresponding to the post.
 func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model.Channel) *model.AppError {
-	// Use ChannelMentionsAll to scan both message and attachments
-	channelMentions := post.ChannelMentionsAll()
+	// Use ChannelMentionsAll (post.AllStrings) for ~mentions in message, attachments, and interactive payloads.
+	channelMentions := post.ChannelMentionsAllWithOptions(model.AllStringsOptions{OmitInteractiveBlocks: !a.Config().FeatureFlags.MmBlocksEnabled})
 	channelMentionsProp := make(map[string]any)
 
 	if len(channelMentions) > 0 {
@@ -569,9 +559,8 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 		// This includes public channels and private channels where creator is a member
 		// Prevents information disclosure while supporting private channel mentions for members
 		for _, mentioned := range mentionedChannels {
-			// Check if post creator has permission to read this channel
-			// HasPermissionToReadChannel returns (hasPermission, isMember) for audit logging
-			if hasPermission, _ := a.HasPermissionToReadChannel(rctx, post.UserId, mentioned); hasPermission {
+			// Resolve the channel mention if the post creator may see the channel's name/link.
+			if a.HasPermissionToResolveChannelMention(rctx, post.UserId, mentioned) {
 				team, err := a.Srv().Store().Team().Get(mentioned.TeamId)
 				if err != nil {
 					rctx.Logger().Warn("Failed to get team of the channel mention", mlog.String("team_id", channel.TeamId), mlog.String("channel_id", channel.Id), mlog.Err(err))
@@ -856,6 +845,21 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		newPost.HasReactions = receivedUpdatedPost.HasReactions
 		newPost.SetProps(receivedUpdatedPost.GetProps())
 
+		// mm_blocks_actions can only be modified by trusted paths that have
+		// pre-validated the new value (AllowMmBlocksActionsUpdate). Session
+		// type is intentionally not a sufficient signal: a PAT/OAuth session
+		// from a regular user would otherwise bypass the freeze and inject
+		// mm_blocks_actions on edit, since from_bot on the original post is
+		// user-forgeable. All other callers keep whatever mm_blocks_actions
+		// the original post had (or none).
+		if !updatePostOptions.AllowMmBlocksActionsUpdate {
+			if oldVal, ok := oldPost.GetProps()[model.PostPropsMmBlocksActions]; ok {
+				newPost.AddProp(model.PostPropsMmBlocksActions, oldVal)
+			} else {
+				newPost.DelProp(model.PostPropsMmBlocksActions)
+			}
+		}
+
 		var fileIds []string
 		fileIds, appErr = a.processPostFileChanges(rctx, receivedUpdatedPost, oldPost, updatePostOptions)
 		if appErr != nil {
@@ -874,18 +878,14 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 	}
 
 	if receivedUpdatedPost.IsRemote() {
-		oldPost.RemoteId = model.NewPointer(*receivedUpdatedPost.RemoteId)
+		oldPost.RemoteId = new(*receivedUpdatedPost.RemoteId)
 	}
 
-	var rejectionReason string
-	pluginContext := pluginContext(rctx)
 	if newPost.Type != model.PostTypeBurnOnRead {
-		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-			newPost, rejectionReason = hooks.MessageWillBeUpdated(pluginContext, newPost.ForPlugin(), oldPost.ForPlugin())
-			return newPost != nil
-		}, plugin.MessageWillBeUpdatedID)
-		if newPost == nil {
-			return nil, false, model.NewAppError("UpdatePost", "Post rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
+		var appErr2 *model.AppError
+		newPost, appErr2 = a.runGuardedMessageWillBeUpdated(rctx, newPost, oldPost)
+		if appErr2 != nil {
+			return nil, false, appErr2
 		}
 	}
 
@@ -910,12 +910,13 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		}
 	}
 
+	pCtx := pluginContext(rctx)
 	pluginOldPost := oldPost.ForPlugin()
 	pluginNewPost := newPost.ForPlugin()
 	if newPost.Type != model.PostTypeBurnOnRead {
 		a.Srv().Go(func() {
 			a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-				hooks.MessageHasBeenUpdated(pluginContext, pluginNewPost, pluginOldPost)
+				hooks.MessageHasBeenUpdated(pCtx, pluginNewPost, pluginOldPost)
 				return true
 			}, plugin.MessageHasBeenUpdatedID)
 		})
@@ -957,6 +958,8 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 			rctx.Logger().Warn("Failed to check if channel is enabled for auto-translation", mlog.String("channel_id", rpost.ChannelId), mlog.Err(atErr))
 		}
 	}
+
+	a.applyPostWillBeConsumedHook(rctx, &rpost)
 
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", rpost.ChannelId, "", nil, "")
 
@@ -1245,7 +1248,7 @@ func (a *App) GetPostsPage(rctx request.CTX, options model.GetPostsOptions) (*mo
 		return nil, appErr
 	}
 
-	a.applyPostsWillBeConsumedHook(postList.Posts)
+	a.applyPostsWillBeConsumedHook(rctx, postList.Posts)
 
 	return postList, nil
 }
@@ -1274,7 +1277,7 @@ func (a *App) GetPostsForView(rctx request.CTX, options model.GetPostsOptions) (
 		return nil, appErr
 	}
 
-	a.applyPostsWillBeConsumedHook(postList.Posts)
+	a.applyPostsWillBeConsumedHook(rctx, postList.Posts)
 
 	return postList, nil
 }
@@ -1301,7 +1304,7 @@ func (a *App) GetPosts(rctx request.CTX, channelID string, offset int, limit int
 		return nil, appErr
 	}
 
-	a.applyPostsWillBeConsumedHook(postList.Posts)
+	a.applyPostsWillBeConsumedHook(rctx, postList.Posts)
 
 	return postList, nil
 }
@@ -1338,7 +1341,7 @@ func (a *App) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions
 		return nil, appErr
 	}
 
-	a.applyPostsWillBeConsumedHook(postList.Posts)
+	a.applyPostsWillBeConsumedHook(rctx, postList.Posts)
 
 	return postList, nil
 }
@@ -1435,7 +1438,7 @@ func (a *App) GetSinglePost(rctx request.CTX, postID string, includeDeleted bool
 		return nil, model.NewAppError("GetSinglePost", "app.post.cloud.get.app_error", nil, "", http.StatusForbidden)
 	}
 
-	a.applyPostWillBeConsumedHook(&post)
+	a.applyPostWillBeConsumedHook(rctx, &post)
 
 	return post, nil
 }
@@ -1473,7 +1476,7 @@ func (a *App) GetPostThread(rctx request.CTX, postID string, opts model.GetPosts
 		return nil, appErr
 	}
 
-	a.applyPostsWillBeConsumedHook(posts.Posts)
+	a.applyPostsWillBeConsumedHook(rctx, posts.Posts)
 
 	return posts, nil
 }
@@ -1495,7 +1498,7 @@ func (a *App) GetFlaggedPosts(rctx request.CTX, userID string, offset int, limit
 		return nil, appErr
 	}
 
-	a.applyPostsWillBeConsumedHook(postList.Posts)
+	a.applyPostsWillBeConsumedHook(rctx, postList.Posts)
 
 	return postList, nil
 }
@@ -1517,7 +1520,7 @@ func (a *App) GetFlaggedPostsForTeam(rctx request.CTX, userID, teamID string, of
 		return nil, appErr
 	}
 
-	a.applyPostsWillBeConsumedHook(postList.Posts)
+	a.applyPostsWillBeConsumedHook(rctx, postList.Posts)
 
 	return postList, nil
 }
@@ -1539,7 +1542,7 @@ func (a *App) GetFlaggedPostsForChannel(rctx request.CTX, userID, channelID stri
 		return nil, appErr
 	}
 
-	a.applyPostsWillBeConsumedHook(postList.Posts)
+	a.applyPostsWillBeConsumedHook(rctx, postList.Posts)
 
 	return postList, nil
 }
@@ -1583,7 +1586,7 @@ func (a *App) GetPermalinkPost(rctx request.CTX, postID string, userID string) (
 		return nil, appErr
 	}
 
-	a.applyPostsWillBeConsumedHook(list.Posts)
+	a.applyPostsWillBeConsumedHook(rctx, list.Posts)
 
 	return list, nil
 }
@@ -1619,7 +1622,7 @@ func (a *App) GetPostsBeforePost(rctx request.CTX, options model.GetPostsOptions
 		return nil, appErr
 	}
 
-	a.applyPostsWillBeConsumedHook(postList.Posts)
+	a.applyPostsWillBeConsumedHook(rctx, postList.Posts)
 
 	return postList, nil
 }
@@ -1655,7 +1658,7 @@ func (a *App) GetPostsAfterPost(rctx request.CTX, options model.GetPostsOptions)
 		return nil, appErr
 	}
 
-	a.applyPostsWillBeConsumedHook(postList.Posts)
+	a.applyPostsWillBeConsumedHook(rctx, postList.Posts)
 
 	return postList, nil
 }
@@ -1699,18 +1702,18 @@ func (a *App) GetPostsAroundPost(rctx request.CTX, before bool, options model.Ge
 		return nil, appErr
 	}
 
-	a.applyPostsWillBeConsumedHook(postList.Posts)
+	a.applyPostsWillBeConsumedHook(rctx, postList.Posts)
 
 	return postList, nil
 }
 
-func (a *App) GetPostAfterTime(channelID string, time int64, collapsedThreads bool) (*model.Post, *model.AppError) {
+func (a *App) GetPostAfterTime(rctx request.CTX, channelID string, time int64, collapsedThreads bool) (*model.Post, *model.AppError) {
 	post, err := a.Srv().Store().Post().GetPostAfterTime(channelID, time, collapsedThreads)
 	if err != nil {
 		return nil, model.NewAppError("GetPostAfterTime", "app.post.get_post_after_time.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	a.applyPostWillBeConsumedHook(&post)
+	a.applyPostWillBeConsumedHook(rctx, &post)
 
 	return post, nil
 }
@@ -1899,6 +1902,13 @@ func (a *App) DeletePost(rctx request.CTX, postID, deleteByID string) (*model.Po
 		})
 		a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, true)
 		a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, false)
+	}
+
+	if post.RootId == "" {
+		appErr = a.DeletePersistentNotification(rctx, post)
+		if appErr != nil {
+			return nil, appErr
+		}
 	}
 
 	appErr = a.CleanUpAfterPostDeletion(rctx, post, deleteByID)
@@ -2246,49 +2256,52 @@ func (a *App) FilterPostsByChannelPermissions(rctx request.CTX, postList *model.
 }
 
 func (a *App) GetFileInfosForPostWithMigration(rctx request.CTX, postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
-	pchan := make(chan store.StoreResult[*model.Post], 1)
-	go func() {
-		post, err := a.Srv().Store().Post().GetSingle(rctx, postID, includeDeleted)
-		pchan <- store.StoreResult[*model.Post]{Data: post, NErr: err}
-		close(pchan)
-	}()
-
-	infos, firstInaccessibleFileTime, err := a.GetFileInfosForPost(rctx, postID, false, includeDeleted)
+	post, err := a.Srv().Store().Post().GetSingle(rctx, postID, includeDeleted)
 	if err != nil {
-		return nil, err
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetFileInfosForPostWithMigration", "app.post.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		default:
+			return nil, model.NewAppError("GetFileInfosForPostWithMigration", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 	}
 
-	if len(infos) == 0 && firstInaccessibleFileTime == 0 {
-		// No FileInfos were returned so check if they need to be created for this post
-		result := <-pchan
-		if result.NErr != nil {
-			var nfErr *store.ErrNotFound
-			switch {
-			case errors.As(result.NErr, &nfErr):
-				return nil, model.NewAppError("GetFileInfosForPostWithMigration", "app.post.get.app_error", nil, "", http.StatusNotFound).Wrap(result.NErr)
-			default:
-				return nil, model.NewAppError("GetFileInfosForPostWithMigration", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
-			}
-		}
-		post := result.Data
+	infos, firstInaccessibleFileTime, appErr := a.GetFileInfosForPost(rctx, post, false, includeDeleted)
+	if appErr != nil {
+		return nil, appErr
+	}
 
-		if len(post.Filenames) > 0 {
-			a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, false)
-			a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, true)
-			// The post has Filenames that need to be replaced with FileInfos
-			infos = a.MigrateFilenamesToFileInfos(rctx, post)
-		}
+	if len(infos) == 0 && firstInaccessibleFileTime == 0 && len(post.Filenames) > 0 {
+		a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, false)
+		a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, true)
+		// The post has Filenames that need to be replaced with FileInfos
+		infos = a.MigrateFilenamesToFileInfos(rctx, post)
 	}
 
 	return infos, nil
 }
 
 // GetFileInfosForPost also returns firstInaccessibleFileTime based on cloud plan's limit.
-func (a *App) GetFileInfosForPost(rctx request.CTX, postID string, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, int64, *model.AppError) {
-	fileInfos, err := a.Srv().Store().FileInfo().GetForPost(postID, fromMaster, includeDeleted, true)
+func (a *App) GetFileInfosForPost(rctx request.CTX, post *model.Post, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, int64, *model.AppError) {
+	fileIDs := post.FileIds
+	if fromMaster {
+		masterPost, err := a.Srv().Store().Post().GetSingle(sqlstore.RequestContextWithMaster(rctx), post.Id, includeDeleted)
+		if err != nil {
+			return nil, 0, model.NewAppError("GetFileInfosForPost", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		fileIDs = masterPost.FileIds
+	}
+
+	fileInfos, err := a.Srv().Store().FileInfo().GetByIds(fileIDs, includeDeleted, true, fromMaster)
 	if err != nil {
 		return nil, 0, model.NewAppError("GetFileInfosForPost", "app.file_info.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	// GetByIds does not preserve the order of post.FileIds (the SQL store sorts
+	// by CreateAt DESC and the local cache layer interleaves cache hits), so
+	// reorder to match the post's stored attachment order.
+	fileInfos = orderFileInfosByID(post.FileIds, fileInfos)
 
 	firstInaccessibleFileTime, appErr := a.removeInaccessibleContentFromFilesSlice(fileInfos)
 	if appErr != nil {
@@ -2298,6 +2311,34 @@ func (a *App) GetFileInfosForPost(rctx request.CTX, postID string, fromMaster bo
 	a.generateMiniPreviewForInfos(rctx, fileInfos)
 
 	return fileInfos, firstInaccessibleFileTime, nil
+}
+
+func orderFileInfosByID(ids []string, infos []*model.FileInfo) []*model.FileInfo {
+	if len(ids) == 0 || len(infos) < 2 {
+		// No sorting needed for just one file info
+		return infos
+	}
+
+	byID := make(map[string]*model.FileInfo, len(infos))
+	for _, info := range infos {
+		byID[info.Id] = info
+	}
+
+	ordered := make([]*model.FileInfo, 0, len(infos))
+	for _, id := range ids {
+		if info, ok := byID[id]; ok {
+			ordered = append(ordered, info)
+			delete(byID, id)
+		}
+	}
+
+	for _, info := range infos {
+		if _, ok := byID[info.Id]; ok {
+			ordered = append(ordered, info)
+		}
+	}
+
+	return ordered
 }
 
 func (a *App) PostWithProxyAddedToImageURLs(post *model.Post) *model.Post {
@@ -2396,7 +2437,7 @@ func (a *App) countThreadMentions(rctx request.CTX, user *model.User, post *mode
 
 	for _, p := range posts {
 		if p.CreateAt >= timestamp {
-			mentions := getExplicitMentions(p, keywords)
+			mentions := getExplicitMentions(p, keywords, a.Config().FeatureFlags.MmBlocksEnabled)
 			if _, ok := mentions.Mentions[user.Id]; ok {
 				count += 1
 			}
@@ -2458,7 +2499,7 @@ func (a *App) countMentionsFromPost(rctx request.CTX, user *model.User, post *mo
 	count := 0
 	countRoot := 0
 	urgentCount := 0
-	if isPostMention(user, post, keywords, thread.Posts, mentionedByThread, checkForCommentMentions) {
+	if isPostMention(user, post, keywords, thread.Posts, mentionedByThread, checkForCommentMentions, a.Config().FeatureFlags.MmBlocksEnabled) {
 		count += 1
 		if post.RootId == "" {
 			countRoot += 1
@@ -2490,7 +2531,7 @@ func (a *App) countMentionsFromPost(rctx request.CTX, user *model.User, post *mo
 
 		mentionPostIds := make([]string, 0)
 		for _, postID := range postList.Order {
-			if isPostMention(user, postList.Posts[postID], keywords, postList.Posts, mentionedByThread, checkForCommentMentions) {
+			if isPostMention(user, postList.Posts[postID], keywords, postList.Posts, mentionedByThread, checkForCommentMentions, a.Config().FeatureFlags.MmBlocksEnabled) {
 				count += 1
 				if postList.Posts[postID].RootId == "" {
 					mentionPostIds = append(mentionPostIds, postID)
@@ -2564,14 +2605,14 @@ func isCommentMention(user *model.User, post *model.Post, otherPosts map[string]
 	return mentioned
 }
 
-func isPostMention(user *model.User, post *model.Post, keywords MentionKeywords, otherPosts map[string]*model.Post, mentionedByThread map[string]bool, checkForCommentMentions bool) bool {
+func isPostMention(user *model.User, post *model.Post, keywords MentionKeywords, otherPosts map[string]*model.Post, mentionedByThread map[string]bool, checkForCommentMentions bool, mmBlocksEnabled bool) bool {
 	// Prevent the user from mentioning themselves
 	if post.UserId == user.Id && post.GetProp(model.PostPropsFromWebhook) != "true" {
 		return false
 	}
 
 	// Check for keyword mentions
-	mentions := getExplicitMentions(post, keywords)
+	mentions := getExplicitMentions(post, keywords, mmBlocksEnabled)
 	if _, ok := mentions.Mentions[user.Id]; ok {
 		return true
 	}
@@ -2662,10 +2703,12 @@ func (a *App) GetEditHistoryForPost(postID string) ([]*model.Post, *model.AppErr
 
 func (a *App) populateEditHistoryFileMetadata(editHistoryPosts []*model.Post) *model.AppError {
 	for _, post := range editHistoryPosts {
-		fileInfos, err := a.Srv().Store().FileInfo().GetByIds(post.FileIds, true, true)
+		fileInfos, err := a.Srv().Store().FileInfo().GetByIds(post.FileIds, true, true, false)
 		if err != nil {
 			return model.NewAppError("app.populateEditHistoryFileMetadata", "app.file_info.get_by_ids.app_error", map[string]any{"post_id": post.Id}, "", http.StatusInternalServerError).Wrap(err)
 		}
+
+		fileInfos = orderFileInfosByID(post.FileIds, fileInfos)
 
 		if post.Metadata == nil {
 			post.Metadata = &model.PostMetadata{}
@@ -2838,8 +2881,9 @@ func (a *App) GetPostInfo(rctx request.CTX, postID string, channel *model.Channe
 	return &info, nil
 }
 
-func (a *App) applyPostsWillBeConsumedHook(posts map[string]*model.Post) {
-	if !a.Config().FeatureFlags.ConsumePostHook {
+func (a *App) applyPostsWillBeConsumedHook(rctx request.CTX, posts map[string]*model.Post) {
+	env := a.GetPluginsEnvironment()
+	if env == nil || (!env.HasPluginImplementing(plugin.MessagesWillBeConsumedID) && !env.HasPluginImplementing(plugin.MessagesWillBeConsumedWithContextID)) {
 		return
 	}
 
@@ -2855,10 +2899,24 @@ func (a *App) applyPostsWillBeConsumedHook(posts map[string]*model.Post) {
 		}
 		return true
 	}, plugin.MessagesWillBeConsumedID)
+
+	pluginContext := pluginContext(rctx)
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+		postReplacements := hooks.MessagesWillBeConsumedWithContext(pluginContext, postsSlice)
+		for _, postReplacement := range postReplacements {
+			posts[postReplacement.Id] = postReplacement
+		}
+		return true
+	}, plugin.MessagesWillBeConsumedWithContextID)
 }
 
-func (a *App) applyPostWillBeConsumedHook(post **model.Post) {
-	if !a.Config().FeatureFlags.ConsumePostHook || (*post).Type == model.PostTypeBurnOnRead {
+func (a *App) applyPostWillBeConsumedHook(rctx request.CTX, post **model.Post) {
+	if (*post).Type == model.PostTypeBurnOnRead {
+		return
+	}
+
+	env := a.GetPluginsEnvironment()
+	if env == nil || (!env.HasPluginImplementing(plugin.MessagesWillBeConsumedID) && !env.HasPluginImplementing(plugin.MessagesWillBeConsumedWithContextID)) {
 		return
 	}
 
@@ -2870,6 +2928,15 @@ func (a *App) applyPostWillBeConsumedHook(post **model.Post) {
 		}
 		return true
 	}, plugin.MessagesWillBeConsumedID)
+
+	pluginContext := pluginContext(rctx)
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+		rp := hooks.MessagesWillBeConsumedWithContext(pluginContext, ps)
+		if len(rp) > 0 {
+			(*post) = rp[0]
+		}
+		return true
+	}, plugin.MessagesWillBeConsumedWithContextID)
 }
 
 func makePostLink(siteURL, teamName, postID string) string {
@@ -3146,7 +3213,7 @@ func (a *App) PermanentDeletePost(rctx request.CTX, postID, deleteByID string) *
 	}
 
 	if postHasFiles {
-		appErr := a.PermanentDeleteFilesByPost(rctx, post.Id)
+		appErr := a.PermanentDeleteFilesByPost(rctx, post.Id, nil)
 		if appErr != nil {
 			return appErr
 		}
@@ -3155,6 +3222,12 @@ func (a *App) PermanentDeletePost(rctx request.CTX, postID, deleteByID string) *
 	err = a.Srv().Store().Post().PermanentDelete(rctx, post.Id)
 	if err != nil {
 		return model.NewAppError("PermanentDeletePost", "app.post.permanent_delete_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if post.RootId == "" {
+		if appErr := a.DeletePersistentNotification(rctx, post); appErr != nil {
+			return appErr
+		}
 	}
 
 	appErr := a.CleanUpAfterPostDeletion(rctx, post, deleteByID)
@@ -3169,12 +3242,6 @@ func (a *App) CleanUpAfterPostDeletion(rctx request.CTX, post *model.Post, delet
 	channel, appErr := a.GetChannel(rctx, post.ChannelId)
 	if appErr != nil {
 		return appErr
-	}
-
-	if post.RootId == "" {
-		if appErr := a.DeletePersistentNotification(rctx, post); appErr != nil {
-			return appErr
-		}
 	}
 
 	postJSON, err := json.Marshal(post)
@@ -3921,7 +3988,8 @@ func (a *App) BurnPost(rctx request.CTX, post *model.Post, userID string, connec
 
 	// If user is the author, permanently delete the post
 	if post.UserId == userID {
-		return a.PermanentDeletePostDataRetainStub(rctx, post, userID)
+		_, appErr := a.PermanentDeletePostDataRetainStub(rctx, post, userID)
+		return appErr
 	}
 
 	// If not the author, check read receipt

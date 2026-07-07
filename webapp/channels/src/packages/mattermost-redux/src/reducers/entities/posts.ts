@@ -23,7 +23,7 @@ import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {ChannelTypes, PostTypes, UserTypes, ThreadTypes, CloudTypes, LimitsTypes, TeamTypes} from 'mattermost-redux/action_types';
 import {Posts} from 'mattermost-redux/constants';
 import {PostTypes as PostTypeConstants} from 'mattermost-redux/constants/posts';
-import {comparePosts, isPermalink, shouldUpdatePost} from 'mattermost-redux/utils/post_utils';
+import {comparePosts, isPermalink, isPostEphemeral, shouldUpdatePost} from 'mattermost-redux/utils/post_utils';
 
 export function removeUnneededMetadata(post: Post) {
     if (!post.metadata) {
@@ -473,12 +473,35 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
     }
 }
 
-function handlePostReceived(nextState: any, post: Post, nestedPermalinkLevel?: number) {
+// Integration action `update` payloads deserialize as a partial Post (often create_at=0).
+// Thread RHS order uses create_at via comparePosts; zero makes the ephemeral sort as oldest (above the root).
+// Ephemeral updates may omit user_id; keep the displayed author from the post already in state.
+function maintainEphemeralPostFields(incoming: Post, stored: Post): Post {
+    const out: Post = {...incoming};
+    if (!out.create_at && stored.create_at) {
+        out.create_at = stored.create_at;
+    }
+    if (!out.root_id && stored.root_id) {
+        out.root_id = stored.root_id;
+    }
+    if (!out.user_id && stored.user_id) {
+        out.user_id = stored.user_id;
+    }
+    return out;
+}
+
+function handlePostReceived(nextState: any, receivedPost: Post, nestedPermalinkLevel?: number) {
     let currentState = nextState;
 
     // Check if post already exists in state or if nested permalink
-    if (!shouldUpdatePost(post, currentState[post.id]) || (nestedPermalinkLevel && nestedPermalinkLevel > 1)) {
+    if (!shouldUpdatePost(receivedPost, currentState[receivedPost.id]) || (nestedPermalinkLevel && nestedPermalinkLevel > 1)) {
         return currentState;
+    }
+
+    const storedPost = currentState[receivedPost.id];
+    let post = receivedPost;
+    if (storedPost && isPostEphemeral(storedPost)) {
+        post = maintainEphemeralPostFields(receivedPost, storedPost);
     }
 
     // If post is a permalink and not nested (it links directly to the original message),

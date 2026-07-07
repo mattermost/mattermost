@@ -16,6 +16,7 @@ import {
     AutoFixIcon,
     SpellcheckIcon,
 } from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/shared/components/button';
 import type {Agent} from '@mattermost/types/agents';
 
 import AgentDropdown from 'components/common/agents/agent_dropdown';
@@ -156,8 +157,9 @@ export default function RewriteMenu({
                                 id='texteditor.rewrite.rewriting'
                                 defaultMessage='Rewriting'
                             />
-                            <button
-                                className='btn btn-xs'
+                            <Button
+                                emphasis='tertiary'
+                                size='xs'
                                 type='button'
                                 onClick={onCancelProcessing}
                             >
@@ -166,7 +168,7 @@ export default function RewriteMenu({
                                     id='texteditor.rewrite.stopGenerating'
                                     defaultMessage='Stop generating'
                                 />
-                            </button>
+                            </Button>
                         </div>
                     }
                     {!isProcessing &&
@@ -221,8 +223,9 @@ export default function RewriteMenu({
             }}
             menuFooter={!isProcessing && originalMessage && lastAction &&
                 <div className='rewrite-menu-footer'>
-                    <button
-                        className='btn btn-tertiary btn-xs'
+                    <Button
+                        emphasis='tertiary'
+                        size='xs'
                         type='button'
                         onClick={onUndoMessage}
                     >
@@ -231,9 +234,10 @@ export default function RewriteMenu({
                             id='texteditor.rewrite.discard'
                             defaultMessage='Discard'
                         />
-                    </button>
-                    <button
-                        className='btn btn-quaternary btn-xs'
+                    </Button>
+                    <Button
+                        emphasis='quaternary'
+                        size='xs'
                         type='button'
                         onClick={onRegenerateMessage}
                     >
@@ -242,7 +246,7 @@ export default function RewriteMenu({
                             id='texteditor.rewrite.regenerate'
                             defaultMessage='Regenerate'
                         />
-                    </button>
+                    </Button>
                 </div>
             }
             anchorOrigin={{
@@ -371,8 +375,9 @@ export function RewriteSubMenuHeader({
                         id='texteditor.rewrite.rewriting'
                         defaultMessage='Rewriting'
                     />
-                    <button
-                        className='btn btn-xs'
+                    <Button
+                        emphasis='tertiary'
+                        size='xs'
                         type='button'
                         onClick={onCancelProcessing}
                     >
@@ -381,7 +386,7 @@ export function RewriteSubMenuHeader({
                             id='texteditor.rewrite.stopGenerating'
                             defaultMessage='Stop generating'
                         />
-                    </button>
+                    </Button>
                 </div>
             }
             {!isProcessing &&
@@ -421,8 +426,9 @@ export function RewriteSubMenuFooter({
 
     return (
         <div className='rewrite-menu-footer'>
-            <button
-                className='btn btn-tertiary btn-xs'
+            <Button
+                emphasis='tertiary'
+                size='xs'
                 type='button'
                 onClick={onUndoMessage}
             >
@@ -431,9 +437,10 @@ export function RewriteSubMenuFooter({
                     id='texteditor.rewrite.discard'
                     defaultMessage='Discard'
                 />
-            </button>
-            <button
-                className='btn btn-quaternary btn-xs'
+            </Button>
+            <Button
+                emphasis='quaternary'
+                size='xs'
                 type='button'
                 onClick={onRegenerateMessage}
             >
@@ -442,7 +449,7 @@ export function RewriteSubMenuFooter({
                     id='texteditor.rewrite.regenerate'
                     defaultMessage='Regenerate'
                 />
-            </button>
+            </Button>
         </div>
     );
 }

@@ -113,6 +113,27 @@ func (a *App) MarkRecapAsRead(rctx request.CTX, recap *model.Recap) (*model.Reca
 	return recap, nil
 }
 
+// MarkRecapsAsViewed marks all of the user's not-yet-viewed completed/failed
+// recaps as viewed at the current timestamp and broadcasts a recap_updated
+// WebSocket event for each affected recap so other clients can refresh.
+func (a *App) MarkRecapsAsViewed(rctx request.CTX) ([]string, *model.AppError) {
+	userID := rctx.Session().UserId
+	statuses := []string{model.RecapStatusCompleted, model.RecapStatusFailed}
+
+	ids, err := a.Srv().Store().Recap().MarkRecapsAsViewed(userID, statuses)
+	if err != nil {
+		return nil, model.NewAppError("MarkRecapsAsViewed", "app.recap.mark_viewed.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	for _, id := range ids {
+		message := model.NewWebSocketEvent(model.WebsocketEventRecapUpdated, "", "", userID, nil, "")
+		message.Add("recap_id", id)
+		a.Publish(message)
+	}
+
+	return ids, nil
+}
+
 // RegenerateRecap regenerates an existing recap
 func (a *App) RegenerateRecap(rctx request.CTX, userID string, recap *model.Recap) (*model.Recap, *model.AppError) {
 	recapID := recap.Id
@@ -134,9 +155,11 @@ func (a *App) RegenerateRecap(rctx request.CTX, userID string, recap *model.Reca
 		return nil, model.NewAppError("RegenerateRecap", "app.recap.delete_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(deleteErr)
 	}
 
-	// Update recap status to pending and reset read status
+	// Update recap status to pending and reset read/viewed status so the recap
+	// reappears in the badge once it completes again.
 	recap.Status = model.RecapStatusPending
 	recap.ReadAt = 0
+	recap.ViewedAt = 0
 	recap.UpdateAt = model.GetMillis()
 	recap.TotalMessageCount = 0
 

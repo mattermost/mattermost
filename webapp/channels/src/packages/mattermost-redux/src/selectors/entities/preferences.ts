@@ -12,7 +12,7 @@ import {createIdsSelector, createShallowSelector} from 'mattermost-redux/utils/h
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 import {setThemeDefaults} from 'mattermost-redux/utils/theme_utils';
 
-export function getMyPreferences(state: GlobalState): { [x: string]: PreferenceType } {
+export function getMyPreferences(state: GlobalState): {[x: string]: PreferenceType} {
     return state.entities.preferences.myPreferences;
 }
 
@@ -332,6 +332,14 @@ export function moveThreadsEnabled(state: GlobalState): boolean {
 
 export function streamlinedMarketplaceEnabled(state: GlobalState): boolean {
     return getFeatureFlagValue(state, 'StreamlinedMarketplace') === 'true';
+}
+
+export function getWysiwygEditorPreference(state: GlobalState): boolean {
+    const featureEnabled = getFeatureFlagValue(state, 'WysiwygEditor') === 'true';
+    if (!featureEnabled) {
+        return false;
+    }
+    return getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.WYSIWYG_EDITOR, Preferences.WYSIWYG_EDITOR_DEFAULT === 'true');
 }
 
 export const getOverageBannerPreferences = makeGetCategory('getOverageBannerPreferences', Preferences.CATEGORY_OVERAGE_USERS_BANNER);

@@ -9,10 +9,10 @@
 
 // Group: @channels @enterprise @ldap
 
-import {Channel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-import {AdminConfig} from '@mattermost/types/config';
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {AdminConfig} from '@mattermost/types/config';
 
 import * as TIMEOUTS from '@/fixtures/timeouts';
 

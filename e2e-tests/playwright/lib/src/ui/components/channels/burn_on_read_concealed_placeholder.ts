@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, Locator} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 export default class BurnOnReadConcealedPlaceholder {
     readonly container: Locator;
@@ -12,8 +13,8 @@ export default class BurnOnReadConcealedPlaceholder {
         this.container = container;
 
         // The container itself is the button - no need for nested locator
-        this.icon = container.locator('.BurnOnReadConcealedPlaceholder__icon');
-        this.text = container.locator('.BurnOnReadConcealedPlaceholder__text');
+        this.icon = container.locator('svg');
+        this.text = container.getByText('View message');
     }
 
     async toBeVisible() {

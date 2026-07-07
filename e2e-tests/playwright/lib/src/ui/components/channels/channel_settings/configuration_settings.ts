@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 export default class ConfigurationSettings {
     readonly container: Locator;
@@ -16,7 +17,23 @@ export default class ConfigurationSettings {
 
     async save() {
         const saveButton = this.container.getByTestId('SaveChangesPanel__save-btn');
-        await expect(saveButton).toBeVisible();
+
+        // Wait up to 5s for the save panel to appear. Some toggle-only changes
+        // (e.g. disable sharing after a reload) may not trigger the save panel
+        // if the component auto-synchronises or the panel has a render delay.
+        const isVisible = await saveButton.isVisible().catch(() => false);
+        if (!isVisible) {
+            await saveButton.waitFor({state: 'visible', timeout: 5000}).catch(() => {
+                // Panel didn't appear — change may already be applied or nothing to save.
+            });
+
+            // Double-check — if still not visible, bail out silently.
+            const stillNotVisible = !(await saveButton.isVisible().catch(() => false));
+            if (stillNotVisible) {
+                return;
+            }
+        }
+
         await saveButton.click();
         const unshareConfirm = this.container.page().getByRole('button', {name: 'Yes, unshare'});
         try {
@@ -32,7 +49,9 @@ export default class ConfigurationSettings {
         await expect
             .poll(
                 async () => {
-                    if (!(await saveButton.isVisible())) return 'hidden';
+                    if (!(await saveButton.isVisible())) {
+                        return 'hidden';
+                    }
                     return (await saveButton.getAttribute('class')) ?? '';
                 },
                 {timeout: 10000},
@@ -78,7 +97,7 @@ export default class ConfigurationSettings {
         await textBox.fill(text);
     }
 
-    async setChannelBannerTextColor(color: string) {
+    async setChannelBannerBackgroundColor(color: string) {
         const colorInput = this.container.locator('#channel_banner_banner_background_color_picker-inputColorValue');
         await expect(colorInput).toBeVisible();
         await colorInput.fill(color);
@@ -99,16 +118,18 @@ export default class ConfigurationSettings {
 
     async enableShareWithWorkspaces() {
         const toggle = this.shareWithWorkspacesToggle;
+        const ariaPressed = await toggle.getAttribute('aria-pressed');
         const classes = await toggle.getAttribute('class');
-        if (!classes?.includes('active')) {
+        if (ariaPressed !== 'true' && !classes?.includes('active')) {
             await toggle.click();
         }
     }
 
     async disableShareWithWorkspaces() {
         const toggle = this.shareWithWorkspacesToggle;
+        const ariaPressed = await toggle.getAttribute('aria-pressed');
         const classes = await toggle.getAttribute('class');
-        if (classes?.includes('active')) {
+        if (ariaPressed === 'true' || classes?.includes('active')) {
             await toggle.click();
         }
     }

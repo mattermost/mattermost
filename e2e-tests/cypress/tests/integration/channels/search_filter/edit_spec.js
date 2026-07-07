@@ -18,7 +18,6 @@ import {
 
 import {getAdminAccount} from '@/support/env';
 
-
 describe('Search Date Filter', () => {
     const testData = getTestMessages();
     const admin = getAdminAccount();

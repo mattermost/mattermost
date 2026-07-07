@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 import InfoSettings from './info_settings';
 import AccessSettings from './access_settings';
@@ -24,14 +25,14 @@ export default class TeamSettingsModal {
     constructor(container: Locator) {
         this.container = container;
 
-        this.closeButton = container.locator('.modal-header button.close').first();
+        this.closeButton = container.getByRole('button', {name: 'Close'});
 
-        this.infoTab = container.locator('[data-testid="info-tab-button"]');
-        this.accessTab = container.locator('[data-testid="access-tab-button"]');
-        this.accessPoliciesTab = container.locator('[data-testid="access_policies-tab-button"]');
+        this.infoTab = container.getByTestId('info-tab-button');
+        this.accessTab = container.getByTestId('access-tab-button');
+        this.accessPoliciesTab = container.getByTestId('access_policies-tab-button');
 
-        this.saveButton = container.locator('button[data-testid="SaveChangesPanel__save-btn"]');
-        this.undoButton = container.locator('button[data-testid="SaveChangesPanel__cancel-btn"]');
+        this.saveButton = container.getByTestId('SaveChangesPanel__save-btn');
+        this.undoButton = container.getByTestId('SaveChangesPanel__cancel-btn');
 
         this.infoSettings = new InfoSettings(container);
         this.accessSettings = new AccessSettings(container);
@@ -80,7 +81,7 @@ export default class TeamSettingsModal {
     }
 
     async verifyUnsavedChanges() {
-        const warningText = this.container.locator('.SaveChangesPanel:has-text("You have unsaved changes")');
+        const warningText = this.container.getByText('You have unsaved changes');
         await expect(warningText).toBeVisible({timeout: 3000});
     }
 }

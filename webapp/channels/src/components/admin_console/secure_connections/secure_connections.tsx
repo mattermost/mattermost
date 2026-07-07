@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import type {ReactNode} from 'react';
 import React from 'react';
 import {useIntl, FormattedMessage, defineMessages} from 'react-intl';
 import {useHistory} from 'react-router-dom';
+
+import type {ButtonEmphasis} from '@mattermost/shared/components/button';
+import {buttonClassNames} from '@mattermost/shared/components/button';
 
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
@@ -103,7 +105,7 @@ const Placeholder = ({disabled, serviceNotRunning}: {disabled: boolean; serviceN
                     />
                 </hgroup>
                 <AddMenu
-                    buttonClassNames='btn-tertiary'
+                    buttonEmphasis='tertiary'
                     disabled={disabled}
                 />
             </PlaceholderContainer>
@@ -113,7 +115,7 @@ const Placeholder = ({disabled, serviceNotRunning}: {disabled: boolean; serviceN
 
 const menuId = 'secure_connections_add_menu';
 
-const AddMenu = ({buttonClassNames, disabled}: {buttonClassNames?: string; disabled: boolean}) => {
+const AddMenu = ({buttonEmphasis = 'primary', disabled}: {buttonEmphasis?: ButtonEmphasis; disabled: boolean}) => {
     const {formatMessage} = useIntl();
     const history = useHistory();
     const {promptAcceptInvite} = useRemoteClusterAcceptInvite();
@@ -133,7 +135,7 @@ const AddMenu = ({buttonClassNames, disabled}: {buttonClassNames?: string; disab
         <Menu.Container
             menuButton={{
                 id: `${menuId}-button`,
-                class: classNames('btn', buttonClassNames ?? 'btn-primary', {disabled}),
+                class: buttonClassNames({emphasis: buttonEmphasis}, {disabled}),
                 disabled,
                 children: (
                     <>

@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 export default class BrowseChannelsModal {
     readonly container: Locator;
@@ -28,11 +29,11 @@ export default class BrowseChannelsModal {
     }
 
     async toBeDoneLoading() {
-        await expect(this.container.locator('.loading-screen')).toHaveCount(0);
+        await expect(this.container.getByTestId('loading-screen')).toHaveCount(0);
     }
 
     async toHaveNResults(count: number) {
-        await expect(this.results.locator('.more-modal__row')).toHaveCount(count);
+        await expect(this.results.locator('[data-testid^="ChannelRow-"]')).toHaveCount(count);
     }
 
     async fillSearchInput(text: string) {
@@ -40,7 +41,7 @@ export default class BrowseChannelsModal {
     }
 
     async toHaveChannelAsNthResult(channelName: string, index: number) {
-        const row = this.results.locator('.more-modal__row').nth(index);
+        const row = this.results.locator('[data-testid^="ChannelRow-"]').nth(index);
 
         expect(await row.getAttribute('data-testid')).toEqual(`ChannelRow-${channelName}`);
     }

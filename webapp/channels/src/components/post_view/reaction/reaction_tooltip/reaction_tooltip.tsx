@@ -4,9 +4,8 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Reaction as ReactionType} from '@mattermost/types/reactions';
-
-import WithTooltip from 'components/with_tooltip';
 
 type Props = {
     canAddReactions: boolean;

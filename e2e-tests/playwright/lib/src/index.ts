@@ -11,6 +11,14 @@ export {duration, getRandomId, wait, newTestPassword} from './util';
 export {LicenseSkus, appsPluginId, callsPluginId, playbooksPluginId} from './constant';
 
 export {
+    getAdminClient,
+    mergeWithOnPremServerConfig,
+    getOnPremServerConfig,
+    isWebhookTestServerReachable,
+    setupWebhookTestServer,
+} from './server';
+
+export {
     ChannelsPage,
     LandingLoginPage,
     LoginPage,
@@ -63,9 +71,9 @@ export {
     ProfileModal,
 } from './ui/components';
 
-export {TestArgs, ScreenshotOptions} from './types';
+export {TextInputSetting} from './ui/components/system_console/base_components';
 
-export {getAdminClient} from './server';
+export {TestArgs, ScreenshotOptions} from './types';
 
 export {
     enableAutotranslationConfig,
@@ -74,6 +82,7 @@ export {
     disableChannelAutotranslation,
     setUserChannelAutotranslation,
     setMockSourceLanguage,
+    ensureAutotranslationPermissions,
 } from './autotranslation_helpers';
 export type {EnableAutotranslationOptions} from './autotranslation_helpers';
 export {
@@ -82,6 +91,7 @@ export {
     hasCustomPermissionsSchemesLicense,
     licenseTier,
 } from './license_helpers';
+
 // ABAC (Attribute-Based Access Control) helpers
 export {
     createUserWithAttributes,

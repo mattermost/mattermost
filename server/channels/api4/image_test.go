@@ -30,7 +30,7 @@ func TestGetImage(t *testing.T) {
 		imageURL := "http://foo.bar/baz.gif"
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ImageProxySettings.Enable = model.NewPointer(false)
+			cfg.ImageProxySettings.Enable = new(false)
 		})
 
 		r, err := http.NewRequest("GET", th.Client.APIURL+"/image?url="+url.QueryEscape(imageURL), nil)
@@ -48,10 +48,10 @@ func TestGetImage(t *testing.T) {
 		proxiedURL := "https://proxy.foo.bar/83d4d9ac78b76ce425ea67038826df867c62cc5c/687474703a2f2f666f6f2e6261722f62617a2e676966"
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ImageProxySettings.Enable = model.NewPointer(true)
-			cfg.ImageProxySettings.ImageProxyType = model.NewPointer("atmos/camo")
-			cfg.ImageProxySettings.RemoteImageProxyOptions = model.NewPointer("7e5f3fab20b94782b43cdb022a66985ef28ba355df2c5d5da3c9a05e4b697bac")
-			cfg.ImageProxySettings.RemoteImageProxyURL = model.NewPointer("https://proxy.foo.bar")
+			cfg.ImageProxySettings.Enable = new(true)
+			cfg.ImageProxySettings.ImageProxyType = new("atmos/camo")
+			cfg.ImageProxySettings.RemoteImageProxyOptions = new("7e5f3fab20b94782b43cdb022a66985ef28ba355df2c5d5da3c9a05e4b697bac")
+			cfg.ImageProxySettings.RemoteImageProxyURL = new("https://proxy.foo.bar")
 		})
 
 		r, err := http.NewRequest("GET", th.Client.APIURL+"/image?url="+url.QueryEscape(imageURL), nil)
@@ -66,11 +66,11 @@ func TestGetImage(t *testing.T) {
 
 	t.Run("local", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ImageProxySettings.Enable = model.NewPointer(true)
-			cfg.ImageProxySettings.ImageProxyType = model.NewPointer("local")
+			cfg.ImageProxySettings.Enable = new(true)
+			cfg.ImageProxySettings.ImageProxyType = new("local")
 
 			// Allow requests to the "remote" image
-			cfg.ServiceSettings.AllowedUntrustedInternalConnections = model.NewPointer("127.0.0.1")
+			cfg.ServiceSettings.AllowedUntrustedInternalConnections = new("127.0.0.1")
 		})
 
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -105,7 +105,7 @@ func TestGetImage(t *testing.T) {
 
 		// protocol relative URLs should be handled by proxy
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.SiteURL = model.NewPointer("http://foo.com")
+			cfg.ServiceSettings.SiteURL = new("http://foo.com")
 		})
 		r, err = http.NewRequest("GET", th.Client.APIURL+"/image?url="+strings.TrimPrefix(imageServer.URL, "http:")+"/image.png", nil)
 		require.NoError(t, err)

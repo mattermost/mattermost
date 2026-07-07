@@ -11,7 +11,7 @@ type Props = {
     displayName: string;
     onConfirm: () => void;
     onExited: () => void;
-}
+};
 
 function DeleteDraftModal({
     displayName,
@@ -44,12 +44,12 @@ function DeleteDraftModal({
     return (
         <GenericModal
             confirmButtonText={confirmButtonText}
+            confirmButtonVariant='destructive'
             handleCancel={noop}
             handleConfirm={onConfirm}
             modalHeaderText={title}
             onExited={onExited}
             compassDesign={true}
-            isDeleteModal={true}
             autoFocusConfirmButton={true}
         >
             {message}

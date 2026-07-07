@@ -253,7 +253,7 @@ func testBulkInsertChunking(t *testing.T, rctx request.CTX, ss store.Store) {
 		u, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: storetest.MakeEmail()})
 		require.NoError(t, err)
 
-		remoteId := model.NewPointer(model.NewId())
+		remoteId := new(model.NewId())
 		duplicateId := model.NewId()
 
 		posts := []*model.Post{
@@ -286,7 +286,7 @@ func testBulkInsertChunking(t *testing.T, rctx request.CTX, ss store.Store) {
 		group := &model.GroupWithUserIds{
 			Group: model.Group{
 				DisplayName: "AtomicGroup",
-				Name:        model.NewPointer("atomic-group-" + model.NewId()),
+				Name:        new("atomic-group-" + model.NewId()),
 				Source:      model.GroupSourceCustom,
 			},
 			UserIds: []string{users[0].Id, users[1].Id, users[1].Id}, // duplicate
@@ -341,7 +341,7 @@ func testBulkInsertChunking(t *testing.T, rctx request.CTX, ss store.Store) {
 		group := &model.GroupWithUserIds{
 			Group: model.Group{
 				DisplayName: "ChunkGroup",
-				Name:        model.NewPointer("chunk-group-" + model.NewId()),
+				Name:        new("chunk-group-" + model.NewId()),
 				Source:      model.GroupSourceCustom,
 			},
 			UserIds: userIDs,
@@ -365,7 +365,7 @@ func testBulkInsertChunking(t *testing.T, rctx request.CTX, ss store.Store) {
 		group := &model.GroupWithUserIds{
 			Group: model.Group{
 				DisplayName: "UpsertGroup",
-				Name:        model.NewPointer("upsert-group-" + model.NewId()),
+				Name:        new("upsert-group-" + model.NewId()),
 				Source:      model.GroupSourceCustom,
 			},
 		}

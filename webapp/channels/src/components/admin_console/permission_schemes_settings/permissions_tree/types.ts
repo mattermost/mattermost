@@ -9,11 +9,11 @@ export type Permission = {
     id: string;
     combined?: boolean;
     permissions: string[];
-}
+};
 export type Group = {
     id: string;
     permissions: Array<Permission | string>;
     isVisible?: (license?: ClientLicense) => boolean;
-}
+};
 
 export type AdditionalValues = Record<string, Record<string, any>>;

@@ -26,7 +26,7 @@ export type Props = {
         addUsersToGroup: (groupId: string, userIds: string[]) => Promise<ActionResult>;
         openModal: <P>(modalData: ModalData<P>) => void;
     };
-}
+};
 
 const AddUsersToGroupModal = (props: Props) => {
     const [show, setShow] = useState(true);
@@ -157,7 +157,6 @@ const AddUsersToGroupModal = (props: Props) => {
                                     buttonSubmitText={defineMessage({id: 'multiselect.addPeopleToGroup', defaultMessage: 'Add People'})}
                                     buttonSubmitLoadingText={defineMessage({id: 'multiselect.adding', defaultMessage: 'Adding...'})}
                                     backButtonClick={goBack}
-                                    backButtonClass={'multiselect-back'}
                                     saving={saving}
                                 />
                             </div>

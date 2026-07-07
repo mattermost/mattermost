@@ -175,12 +175,12 @@ type Props = {
     isChannelAutotranslated: boolean;
     isBurnOnReadPost: boolean;
     isUnrevealedBurnOnReadPost: boolean;
-}
+};
 
 type State = {
     canEdit: boolean;
     canDelete: boolean;
-}
+};
 
 export class DotMenuClass extends React.PureComponent<Props, State> {
     public static defaultProps: Partial<Props> = {

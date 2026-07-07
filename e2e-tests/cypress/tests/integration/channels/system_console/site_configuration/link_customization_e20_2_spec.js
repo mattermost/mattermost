@@ -17,7 +17,6 @@ import {
 } from '@/utils';
 import * as TIMEOUTS from '@/fixtures/timeouts';
 
-
 describe('SupportSettings', () => {
     const tosLink = 'https://github.com/mattermost/platform/blob/master/README.md';
     const privacyLink = 'https://github.com/mattermost/platform/blob/master/README.md';

@@ -21,7 +21,7 @@ export type OwnProps = {
     adminMode?: boolean;
     userId: string;
     userPreferences?: PreferencesType;
-}
+};
 
 export function mapStateToProps(state: GlobalState, props: OwnProps) {
     const config = getConfig(state);

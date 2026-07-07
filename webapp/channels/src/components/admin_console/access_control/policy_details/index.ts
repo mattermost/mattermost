@@ -9,7 +9,7 @@ import {getAccessControlPolicy as fetchPolicy, createAccessControlPolicy as crea
 import {createJob} from 'mattermost-redux/actions/jobs';
 import {getAccessControlSettings, getAccessControlPolicy as getPolicy} from 'mattermost-redux/selectors/entities/access_control';
 
-import {setNavigationBlocked} from 'actions/admin_actions.jsx';
+import {setNavigationBlocked} from 'actions/admin_actions';
 
 import type {GlobalState} from 'types/store';
 
@@ -21,7 +21,7 @@ type OwnProps = {
             policy_id: string;
         };
     };
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const policyId = ownProps.match.params.policy_id;

@@ -1,0 +1,84 @@
+---
+title: "Cloud IP Filtering"
+---
+IP filtering is a powerful security feature that allows system admins to control access to their workspace by defining approved IP ranges. Only users within these specified IP ranges can access the workspace, ensuring enhanced security for your workspace.
+
+**IP filtering requires a subscription to Mattermost Cloud Enterprise.**
+
+## Configure IP filtering
+
+1.  **Log in as system admin**: As a system admin, access the System Console of your workspace by selecting the **Product** <img src="/img/ui/products_E82F.svg" alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> menu and selecting **System Console**.
+
+2.  **Go to Site Configuration**: Go to the **Site Configuration** section.
+
+3.  **Access IP Filtering Settings**: Under **Site Configuration**, select **IP Filtering** to access the IP Filtering settings.
+
+    ![An example of the System Console interface where admins can configure IP filtering.](/images/system-console-ip-filtering.png)
+
+## About CIDR notation
+
+CIDR (Classless Inter-Domain Routing) notation is used to specify a range of IP addresses. It consists of an IP address followed by a forward slash and a number indicating the network's prefix length. For example:
+
+- `192.168.0.0/24` represents the IP range from `192.168.0.0` to `192.168.0.255`.
+- The `/24` signifies that the first 24 bits are the network address, leaving 8 bits for host addresses.
+
+<Tip>
+
+For a more in-depth explanation of CIDR notation, refer to [this article](https://aws.amazon.com/what-is/cidr/).
+
+</Tip>
+
+## Configure IP filters
+
+### Enable/disable IP filtering
+
+System admins have the option to enable or disable IP filtering:
+
+- **Enable:** To activate IP filtering, ensure at least one IP range is added to the whitelist.
+- **Disable:** Temporarily disable IP filtering by removing all IP ranges from the whitelist, or by flipping the global IP Filtering toggle in the System Console.
+
+![An example of enabling and disabling Mattermost IP filtering in the System Console.](/images/enable-disable-ip-filtering.gif)
+
+### Add an IP range
+
+To add an IP range to the whitelist, follow these steps:
+
+1.  Select the **Add Filter** button within the IP Filtering settings page in the System Console.
+2.  Enter the IP range using CIDR notation. For example, `192.168.1.0/24`.
+3.  Provide a descriptive name or label for the IP range to ease identification in the future.
+4.  Save the changes.
+
+![An example of adding an IP filter range for a Mattermost Cloud deployment.](/images/add-ip-filter-range.png)
+
+<Note>
+
+The System Console will restrict you from saving changes if the IP address you are accessing your workspace on is not within the ranges you have specified at the time you save your changes.
+
+![An example of the Mattermost System Console blocking changes to IP filtering.](/images/ip-address-not-in-filters.png)
+
+</Note>
+
+### Edit or remove an existing IP range
+
+To edit or remove an existing IP range from the whitelist:
+
+1.  Locate the IP range you want to modify within the **IP Filtering** settings.
+2.  Hover over the rule you'd like to edit or delete, and select the respective edit or delete option beside the IP range.
+3.  Make necessary changes or confirm the removal of the IP range.
+4.  Save your changes by selecting **Save**.
+
+### Unable to access your workspace?
+
+If you are unable to access your workspace due to previously set IP filters, and you need to regain access to your workspace, [contact our support team](https://mattermost.com/support/).
+
+<Note>
+
+Going through this process will disable **all** existing rules applied to your workspace. This means that any IP address will now be able to access it.
+
+</Note>
+
+## Conclusion
+
+By configuring IP filters using CIDR notation, system admins can effectively manage access to the workspace, enhancing security by allowing access only from specified IP ranges.
+
+For any further assistance or queries, [contact our support team](https://mattermost.com/support/).

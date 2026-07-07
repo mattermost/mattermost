@@ -12,7 +12,8 @@ import type {
 
 import {getEmbedFromMetadata} from 'mattermost-redux/utils/post_utils';
 
-import {render, screen, userEvent} from 'tests/react_testing_utils';
+import {testPluginComponentErrorHandling} from 'tests/helpers/plugin_error_handling';
+import {render, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import PostBodyAdditionalContent from './post_body_additional_content';
 import type {Props} from './post_body_additional_content';
@@ -88,6 +89,7 @@ describe('PostBodyAdditionalContent', () => {
             toggleEmbedVisibility: jest.fn(),
         },
         appsEnabled: false,
+        mmBlocksEnabled: false,
     };
 
     describe('with an image preview', () => {
@@ -485,5 +487,31 @@ describe('PostBodyAdditionalContent', () => {
             const {container} = render(<PostBodyAdditionalContent {...props}/>);
             expect(container).toMatchSnapshot();
         });
+    });
+
+    testPluginComponentErrorHandling((pluginComponent) => {
+        const linkUrl = 'https://example.com/song.mp3';
+
+        renderWithContext(
+            <PostBodyAdditionalContent
+                {...baseProps}
+                post={{
+                    ...baseProps.post,
+                    message: linkUrl,
+                    metadata: {
+                        embeds: [{
+                            type: 'link',
+                            url: linkUrl,
+                        }],
+                    } as PostMetadata,
+                }}
+                isEmbedVisible={true}
+                pluginPostWillRenderEmbedComponents={[{
+                    ...pluginComponent,
+                    match: ({url}: PostEmbed) => url === linkUrl,
+                    toggleable: false,
+                }]}
+            />,
+        );
     });
 });

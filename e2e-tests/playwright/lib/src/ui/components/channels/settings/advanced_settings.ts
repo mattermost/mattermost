@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 export default class AdvancedSettings {
     readonly container: Locator;
@@ -12,6 +13,7 @@ export default class AdvancedSettings {
     public expandedSectionId = '.section-max';
 
     readonly ctrlEnterEditButton;
+    readonly wysiwygEditorEditButton;
     readonly postFormattingEditButton;
     readonly joinLeaveEditButton;
     readonly scrollPositionEditButton;
@@ -25,6 +27,7 @@ export default class AdvancedSettings {
 
         // Edit buttons for each setting section
         this.ctrlEnterEditButton = container.locator('#advancedCtrlSendEdit');
+        this.wysiwygEditorEditButton = container.locator('#wysiwygEditorEdit');
         this.postFormattingEditButton = container.locator('#formattingEdit');
         this.joinLeaveEditButton = container.locator('#joinLeaveEdit');
         this.scrollPositionEditButton = container.locator('#unread_scroll_positionEdit');

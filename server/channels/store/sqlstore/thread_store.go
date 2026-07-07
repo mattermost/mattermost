@@ -69,6 +69,17 @@ type SqlThreadStore struct {
 func (s *SqlThreadStore) ClearCaches() {
 }
 
+// channelMembershipPredicate filters out ThreadMemberships whose user is no
+// longer a member of the thread's channel. DM/GM threads have an empty
+// ThreadTeamId and are exempt because their access is intrinsic to the
+// channel members.
+func channelMembershipPredicate() sq.Sqlizer {
+	return sq.Or{
+		sq.Eq{"Threads.ThreadTeamId": ""},
+		sq.Expr("EXISTS (SELECT 1 FROM ChannelMembers WHERE ChannelMembers.ChannelId = Threads.ChannelId AND ChannelMembers.UserId = ThreadMemberships.UserId)"),
+	}
+}
+
 func newSqlThreadStore(sqlStore *SqlStore) store.ThreadStore {
 	s := SqlThreadStore{
 		SqlStore: sqlStore,
@@ -130,7 +141,8 @@ func (s *SqlThreadStore) getTotalThreadsQuery(userId, teamId string, opts model.
 		Where(sq.Eq{
 			"ThreadMemberships.UserId":    userId,
 			"ThreadMemberships.Following": true,
-		})
+		}).
+		Where(channelMembershipPredicate())
 
 	if teamId != "" {
 		if opts.ExcludeDirect {
@@ -197,7 +209,8 @@ func (s *SqlThreadStore) GetTotalUnreadMentions(userId, teamId string, opts mode
 		Where(sq.Eq{
 			"ThreadMemberships.UserId":    userId,
 			"ThreadMemberships.Following": true,
-		})
+		}).
+		Where(channelMembershipPredicate())
 
 	if teamId != "" {
 		if opts.ExcludeDirect {
@@ -233,15 +246,13 @@ func (s *SqlThreadStore) GetTotalUnreadUrgentMentions(userId, teamId string, opt
 		Select("COALESCE(SUM(ThreadMemberships.UnreadMentions),0)").
 		From("ThreadMemberships").
 		Join("PostsPriority ON PostsPriority.PostId = ThreadMemberships.PostId").
+		Join("Threads ON Threads.PostId = ThreadMemberships.PostId").
 		Where(sq.Eq{
 			"ThreadMemberships.UserId":    userId,
 			"ThreadMemberships.Following": true,
 			"PostsPriority.Priority":      model.PostPriorityUrgent,
-		})
-
-	if teamId != "" || !opts.Deleted {
-		query = query.Join("Threads ON Threads.PostId = ThreadMemberships.PostId")
-	}
+		}).
+		Where(channelMembershipPredicate())
 
 	if teamId != "" {
 		if opts.ExcludeDirect {
@@ -297,7 +308,8 @@ func (s *SqlThreadStore) GetThreadsForUser(rctx request.CTX, userId, teamId stri
 
 	query = query.
 		Where(sq.Eq{"ThreadMemberships.UserId": userId}).
-		Where(sq.Eq{"ThreadMemberships.Following": true})
+		Where(sq.Eq{"ThreadMemberships.Following": true}).
+		Where(channelMembershipPredicate())
 
 	if opts.IncludeIsUrgent {
 		urgencyCase := sq.
@@ -404,6 +416,7 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, 
 		sq.Eq{"ThreadMemberships.Following": true},
 		sq.Eq{"Threads.ThreadTeamId": teamIDs},
 		sq.Eq{"COALESCE(Threads.ThreadDeleteAt, 0)": 0},
+		channelMembershipPredicate(),
 	}
 
 	var eg errgroup.Group
@@ -836,7 +849,7 @@ func (s *SqlThreadStore) DeleteMembershipForUser(userId string, postId string) e
 // - channel marked unread
 // - user explicitly following a thread
 func (s *SqlThreadStore) MaintainMembership(userID, postID string, opts store.ThreadMembershipOpts) (_ *model.ThreadMembership, err error) {
-	trx, err := s.GetMaster().Beginx()
+	trx, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -855,7 +868,7 @@ func (s *SqlThreadStore) MaintainMembership(userID, postID string, opts store.Th
 }
 
 func (s *SqlThreadStore) MaintainMultipleFromImport(memberships []*model.ThreadMembership) (_ []*model.ThreadMembership, err error) {
-	trx, err := s.GetMaster().Beginx()
+	trx, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -1081,7 +1094,7 @@ func (s *SqlThreadStore) SaveMultipleMemberships(memberships []*model.ThreadMemb
 		member.LastUpdated = model.GetMillis()
 	}
 
-	tx, err := s.GetMaster().Beginx()
+	tx, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}

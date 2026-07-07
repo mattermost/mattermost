@@ -34,7 +34,17 @@
         font-size: 13px;
     }
 
-    .suggestion-list__content {
+    // Global `.suggestion-list--bottom { top: 0 }` targets multiline textboxes with caret alignment.
+    // Single-line selects should open below the input.
+    .suggestion-list--bottom {
+        top: 100%;
+    }
+
+    .suggestion-list__content--top {
         border-radius: 3px 3px 3px 0;
+    }
+
+    .suggestion-list__content--bottom {
+        border-radius: 3px 0 3px 3px;
     }
 }

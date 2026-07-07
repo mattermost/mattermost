@@ -42,6 +42,10 @@ func TestIncomingWebhook(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
+		refreshed, appErr := th.App.GetIncomingWebhook(hook.Id)
+		require.Nil(t, appErr)
+		require.NotZero(t, refreshed.LastUsed)
+
 		payload = "payload={\"text\": \"\"}"
 		resp, err = http.Post(url, "application/x-www-form-urlencoded", strings.NewReader(payload))
 		require.NoError(t, err)

@@ -6,6 +6,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 import {setupDemoPlugin} from '../../helpers';
 
 test('should parse user and channel mentions from /show_mentions command text', async ({pw}) => {
+    test.setTimeout(120000);
     // 1. Setup
     const {adminClient, user, team} = await pw.initSetup();
     await setupDemoPlugin(adminClient, pw);
@@ -19,17 +20,29 @@ test('should parse user and channel mentions from /show_mentions command text', 
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // 4. Send /show_mentions with a user mention and a channel mention
-    // sysadmin is a stable known user in every PW environment
-    await channelsPage.centerView.postCreate.input.fill('/show_mentions @sysadmin ~town-square');
-    await channelsPage.centerView.postCreate.sendMessage();
+    // Re-apply setupDemoPlugin: concurrent initSetup() resets PluginSettings.Plugins = {}
+    await setupDemoPlugin(adminClient, pw);
 
-    // 5. Wait for bot response
+    // 4. Send /show_mentions (retry once if plugin not yet ready)
     const responsePost = channelsPage.centerView.container
         .getByRole('listitem')
         .filter({hasText: 'contains the following different mentions'})
         .last();
-    await expect(responsePost).toBeVisible();
+    for (let attempt = 0; attempt < 2; attempt++) {
+        await channelsPage.centerView.postCreate.input.fill('/show_mentions @sysadmin ~town-square');
+        await channelsPage.centerView.postCreate.sendMessage();
+        try {
+            await expect(responsePost).toBeVisible({timeout: 15000});
+            break;
+        } catch (err) {
+            if (attempt === 1) {
+                throw err;
+            }
+            await setupDemoPlugin(adminClient, pw);
+        }
+    }
+
+    // 5. Bot response is now visible
 
     // 6. Assert user mentions section
     await expect(responsePost.getByRole('heading', {name: 'Mentions to users in the team'})).toBeVisible();

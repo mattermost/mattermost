@@ -14,7 +14,6 @@ import {interceptFileUpload, waitUntilUploadComplete} from './helpers';
 
 import * as TIMEOUTS from '@/fixtures/timeouts';
 
-
 describe('Channel files', () => {
     const wordFile = 'word-file.doc';
     const wordxFile = 'wordx-file.docx';

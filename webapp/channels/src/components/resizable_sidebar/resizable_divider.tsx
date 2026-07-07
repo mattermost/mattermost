@@ -29,7 +29,7 @@ type Props = {
     onResize?: (width: number, cssVarProperty: string, cssVarValue: string) => void;
     onResizeEnd?: (finalWidth: number, cssVarProperty: string, cssVarValue: string) => void;
     onDividerDoubleClick?: (prevWidth: number, cssVarProperty: string) => void;
-}
+};
 
 const Divider = styled.div<{isActive: boolean}>`
     position: absolute;

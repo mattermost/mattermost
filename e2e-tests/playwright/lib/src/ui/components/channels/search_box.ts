@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 export default class SearchBox {
     readonly container: Locator;
@@ -21,9 +22,9 @@ export default class SearchBox {
         this.filesButton = container.getByRole('button', {name: 'Files'});
         this.searchInput = container.getByLabel('Search messages');
         this.searchBoxClose = container.getByTestId('searchBoxClose');
-        this.selectedSuggestion = container.locator('.suggestion--selected').locator('.suggestion-list__main');
+        this.selectedSuggestion = container.getByTestId('suggestion-selected').getByTestId('suggestion-list__main');
         this.searchHints = container.locator('#searchHints');
-        this.clearButton = container.locator('.input-clear-x');
+        this.clearButton = container.getByTestId('input-clear');
     }
 
     // clearIfPossible clears the search input if the clear button is visible. Returns true if the clear button was clicked.
@@ -41,6 +42,6 @@ export default class SearchBox {
     }
 
     getSelectedSuggestion() {
-        return this.searchHints.locator('.suggestion--selected');
+        return this.searchHints.getByTestId('suggestion-selected');
     }
 }

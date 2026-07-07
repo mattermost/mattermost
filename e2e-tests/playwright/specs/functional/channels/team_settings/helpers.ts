@@ -232,6 +232,10 @@ export async function createTeamAdmin(adminClient: Client4, teamId: string) {
     await adminClient.savePreferences(user.id, [
         {user_id: user.id, category: 'tutorial_step', name: user.id, value: '999'},
         {user_id: user.id, category: 'onboarding', name: 'complete', value: 'true'},
+        // Suppress the onboarding task-list overlay — without these two prefs the
+        // overlay appears on first login and blocks hover/click interactions.
+        {user_id: user.id, category: 'onboarding_task_list', name: 'onboarding_task_list_show', value: 'false'},
+        {user_id: user.id, category: 'onboarding_task_list', name: 'onboarding_task_list_open', value: 'false'},
     ]);
     await adminClient.addToTeam(teamId, user.id);
     await (adminClient as any).doFetch(`${adminClient.getBaseRoute()}/teams/${teamId}/members/${user.id}/roles`, {

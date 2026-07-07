@@ -13,6 +13,7 @@ import {
     ChevronRightIcon,
     CheckIcon,
 } from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import type {Channel} from '@mattermost/types/channels';
 
@@ -27,7 +28,6 @@ import {getNonManagedCategoriesForCurrentTeam} from 'selectors/views/channel_sid
 
 import EditCategoryModal from 'components/edit_category_modal';
 import * as Menu from 'components/menu';
-import WithTooltip from 'components/with_tooltip';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 

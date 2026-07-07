@@ -17,6 +17,10 @@ export const ShortcutKeys = {
         id: 'shortcuts.generic.enter',
         defaultMessage: 'Enter',
     }),
+    escape: defineMessage({
+        id: 'general_button.esc',
+        defaultMessage: 'Esc',
+    }),
     option: '⌥',
     shift: defineMessage({
         id: 'shortcuts.generic.shift',

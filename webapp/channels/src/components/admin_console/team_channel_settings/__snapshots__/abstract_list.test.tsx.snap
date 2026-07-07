@@ -120,7 +120,7 @@ exports[`admin_console/team_channel_settings/AbstractList should match snapshot,
         1 - 1 of 1
       </div>
       <button
-        class="btn btn-tertiary prev disabled"
+        class="btn btn-tertiary disabled"
         disabled=""
         type="button"
       >
@@ -130,7 +130,7 @@ exports[`admin_console/team_channel_settings/AbstractList should match snapshot,
         />
       </button>
       <button
-        class="btn btn-tertiary next disabled"
+        class="btn btn-tertiary disabled"
         data-testid="page-link-next"
         disabled=""
         type="button"

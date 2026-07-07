@@ -608,7 +608,7 @@ func TestIsBinaryParamEnabled(t *testing.T) {
 			store: SqlStore{
 				settings: &model.SqlSettings{
 					DriverName: model.NewPointer(model.DatabaseDriverPostgres),
-					DataSource: model.NewPointer("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable\u0026binary_parameters=yes"),
+					DataSource: new("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable\u0026binary_parameters=yes"),
 				},
 			},
 			expected: true,
@@ -617,7 +617,7 @@ func TestIsBinaryParamEnabled(t *testing.T) {
 			store: SqlStore{
 				settings: &model.SqlSettings{
 					DriverName: model.NewPointer(model.DatabaseDriverPostgres),
-					DataSource: model.NewPointer("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable&binary_parameters=yes"),
+					DataSource: new("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable&binary_parameters=yes"),
 				},
 			},
 			expected: true,
@@ -626,7 +626,7 @@ func TestIsBinaryParamEnabled(t *testing.T) {
 			store: SqlStore{
 				settings: &model.SqlSettings{
 					DriverName: model.NewPointer(model.DatabaseDriverPostgres),
-					DataSource: model.NewPointer("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable"),
+					DataSource: new("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable"),
 				},
 			},
 			expected: false,
@@ -812,9 +812,9 @@ func TestReplicaLagQuery(t *testing.T) {
 			}
 
 			settings.ReplicaLagSettings = []*model.ReplicaLagSettings{{
-				DataSource:       model.NewPointer(*settings.DataSource),
-				QueryAbsoluteLag: model.NewPointer(query),
-				QueryTimeLag:     model.NewPointer(query),
+				DataSource:       new(*settings.DataSource),
+				QueryAbsoluteLag: new(query),
+				QueryTimeLag:     new(query),
 			}}
 
 			// Disable connection pool cleanup goroutines to prevent DATA RACE
@@ -823,8 +823,8 @@ func TestReplicaLagQuery(t *testing.T) {
 			// fields while testify's mock.Called() → Arguments.Diff() reads
 			// them via fmt.Sprintf("%v", *sql.DB). Setting lifetime/idle to 0
 			// prevents the cleaner goroutine from starting at all.
-			settings.ConnMaxLifetimeMilliseconds = model.NewPointer(0)
-			settings.ConnMaxIdleTimeMilliseconds = model.NewPointer(0)
+			settings.ConnMaxLifetimeMilliseconds = new(0)
+			settings.ConnMaxIdleTimeMilliseconds = new(0)
 
 			mockMetrics := &mocks.MetricsInterface{}
 			mockMetrics.On("SetReplicaLagAbsolute", tableName, float64(1))
@@ -877,14 +877,14 @@ func TestInvalidReplicaLagDataSource(t *testing.T) {
 
 			// Set an invalid DataSource that will fail to connect
 			settings.ReplicaLagSettings = []*model.ReplicaLagSettings{{
-				DataSource:       model.NewPointer("invalid://connection/string"),
-				QueryAbsoluteLag: model.NewPointer("SELECT 1"),
-				QueryTimeLag:     model.NewPointer("SELECT 1"),
+				DataSource:       new("invalid://connection/string"),
+				QueryAbsoluteLag: new("SELECT 1"),
+				QueryTimeLag:     new("SELECT 1"),
 			}}
 
 			// Disable connection pool cleanup goroutines (see TestReplicaLagQuery).
-			settings.ConnMaxLifetimeMilliseconds = model.NewPointer(0)
-			settings.ConnMaxIdleTimeMilliseconds = model.NewPointer(0)
+			settings.ConnMaxLifetimeMilliseconds = new(0)
+			settings.ConnMaxIdleTimeMilliseconds = new(0)
 
 			mockMetrics := &mocks.MetricsInterface{}
 			mockMetrics.On("RegisterDBCollector", mock.AnythingOfType("*sql.DB"), "master")
@@ -1104,4 +1104,211 @@ func TestSkipMigrationsOption(t *testing.T) {
 			assert.Contains(t, err.Error(), "pq: relation \"db_migrations\" does not exist")
 		})
 	}
+}
+
+func TestIsDBMigrationApplied(t *testing.T) {
+	if enableFullyParallelTests {
+		t.Parallel()
+	}
+
+	logger := mlog.CreateConsoleTestLogger(t)
+	settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
+	if err != nil {
+		t.Skip(err)
+	}
+	ss, err := New(*settings, logger, nil)
+	require.NoError(t, err)
+
+	maxVersion, err := ss.GetDBSchemaVersion()
+	require.NoError(t, err)
+	require.Greater(t, maxVersion, 0)
+
+	t.Run("returns true for version 1", func(t *testing.T) {
+		applied, err := ss.isDBMigrationApplied(1)
+		require.NoError(t, err)
+		assert.True(t, applied)
+	})
+
+	t.Run("returns true for the current max version", func(t *testing.T) {
+		applied, err := ss.isDBMigrationApplied(maxVersion)
+		require.NoError(t, err)
+		assert.True(t, applied)
+	})
+
+	t.Run("returns false for a version beyond max", func(t *testing.T) {
+		applied, err := ss.isDBMigrationApplied(maxVersion + 1000)
+		require.NoError(t, err)
+		assert.False(t, applied)
+	})
+}
+
+func TestPreMigrationCompletionMarker(t *testing.T) {
+	if enableFullyParallelTests {
+		t.Parallel()
+	}
+
+	logger := mlog.CreateConsoleTestLogger(t)
+	settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
+	if err != nil {
+		t.Skip(err)
+	}
+	ss, err := New(*settings, logger, nil)
+	require.NoError(t, err)
+
+	const name = "test_pre_migration_marker"
+
+	done, err := ss.isPreMigrationComplete(name)
+	require.NoError(t, err)
+	assert.False(t, done, "marker should be absent before being set")
+
+	require.NoError(t, ss.markPreMigrationComplete(name))
+
+	done, err = ss.isPreMigrationComplete(name)
+	require.NoError(t, err)
+	assert.True(t, done, "marker should be present after being set")
+
+	// Idempotent: re-marking is a no-op due to ON CONFLICT.
+	require.NoError(t, ss.markPreMigrationComplete(name))
+	done, err = ss.isPreMigrationComplete(name)
+	require.NoError(t, err)
+	assert.True(t, done)
+}
+
+func TestDoRenumberRolesSchemeIdMigrations(t *testing.T) {
+	if enableFullyParallelTests {
+		t.Parallel()
+	}
+
+	logger := mlog.CreateConsoleTestLogger(t)
+	settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
+	if err != nil {
+		t.Skip(err)
+	}
+	ss, err := New(*settings, logger, nil)
+	require.NoError(t, err)
+
+	// Simulate an old install: replace the rows that Morph wrote at 156/157/158
+	// with rows at the historical numbering 142/143/144.
+	_, err = ss.GetMaster().Exec("DELETE FROM db_migrations WHERE Version IN (156, 157, 158, 142, 143, 144)")
+	require.NoError(t, err)
+	_, err = ss.GetMaster().Exec(`
+		INSERT INTO db_migrations (Version, Name) VALUES
+			(142, 'add_schemeid_to_roles'),
+			(143, 'backfill_roles_schemeid'),
+			(144, 'add_roles_schemeid_index')
+	`)
+	require.NoError(t, err)
+
+	require.NoError(t, ss.doRenumberRolesSchemeIdMigrations())
+
+	type row struct {
+		Version int
+		Name    string
+	}
+	rows := []row{}
+	require.NoError(t, ss.GetMaster().Select(&rows,
+		"SELECT Version, Name FROM db_migrations WHERE Version IN (142, 143, 144, 156, 157, 158) ORDER BY Version"))
+
+	assert.Equal(t, []row{
+		{156, "add_schemeid_to_roles"},
+		{157, "backfill_roles_schemeid"},
+		{158, "add_roles_schemeid_index"},
+	}, rows)
+
+	// Running again is a safe no-op: WHERE clauses match nothing now.
+	require.NoError(t, ss.doRenumberRolesSchemeIdMigrations())
+
+	rows = []row{}
+	require.NoError(t, ss.GetMaster().Select(&rows,
+		"SELECT Version, Name FROM db_migrations WHERE Version IN (142, 143, 144, 156, 157, 158) ORDER BY Version"))
+	assert.Equal(t, []row{
+		{156, "add_schemeid_to_roles"},
+		{157, "backfill_roles_schemeid"},
+		{158, "add_roles_schemeid_index"},
+	}, rows)
+}
+
+func TestTableExists(t *testing.T) {
+	if enableFullyParallelTests {
+		t.Parallel()
+	}
+
+	logger := mlog.CreateConsoleTestLogger(t)
+	settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
+	if err != nil {
+		t.Skip(err)
+	}
+	ss, err := New(*settings, logger, nil)
+	require.NoError(t, err)
+
+	t.Run("returns true for an existing table", func(t *testing.T) {
+		exists, err := ss.tableExists("systems")
+		require.NoError(t, err)
+		assert.True(t, exists)
+	})
+
+	t.Run("returns true for another existing table", func(t *testing.T) {
+		exists, err := ss.tableExists("db_migrations")
+		require.NoError(t, err)
+		assert.True(t, exists)
+	})
+
+	t.Run("returns false for a non-existent table", func(t *testing.T) {
+		exists, err := ss.tableExists("this_table_does_not_exist")
+		require.NoError(t, err)
+		assert.False(t, exists)
+	})
+
+	t.Run("returns false for empty table name", func(t *testing.T) {
+		exists, err := ss.tableExists("")
+		require.NoError(t, err)
+		assert.False(t, exists)
+	})
+
+	t.Run("match is case-insensitive on stored table name", func(t *testing.T) {
+		exists, err := ss.tableExists("systems")
+		require.NoError(t, err)
+		assert.True(t, exists)
+
+		exists, err = ss.tableExists("SYSTEMS")
+		require.NoError(t, err)
+		assert.True(t, exists)
+	})
+}
+
+func TestPreMigration(t *testing.T) {
+	if enableFullyParallelTests {
+		t.Parallel()
+	}
+
+	logger := mlog.CreateConsoleTestLogger(t)
+
+	t.Run("no-op when Systems table does not exist", func(t *testing.T) {
+		settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
+		if err != nil {
+			t.Skip(err)
+		}
+		ss, err := New(*settings, logger, nil, SkipMigrations())
+		require.NoError(t, err)
+
+		require.NoError(t, ss.preMigration())
+	})
+
+	t.Run("idempotent across repeated runs", func(t *testing.T) {
+		settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
+		if err != nil {
+			t.Skip(err)
+		}
+		ss, err := New(*settings, logger, nil)
+		require.NoError(t, err)
+
+		// First run on a clean DB: gate passes, handler is a no-op, marker is set.
+		require.NoError(t, ss.preMigration())
+		done, err := ss.isPreMigrationComplete("renumber_roles_schemeid_migrations")
+		require.NoError(t, err)
+		assert.True(t, done)
+
+		// second run should produce no errors
+		require.NoError(t, ss.preMigration())
+	})
 }

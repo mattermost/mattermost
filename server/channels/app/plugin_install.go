@@ -150,9 +150,7 @@ func (ch *Channels) installPluginFromClusterMessage(pluginID string) {
 		logger.Error("Failed notify plugin enabled", mlog.Err(err))
 	}
 
-	if err := ch.notifyPluginStatusesChanged(); err != nil {
-		logger.Error("Failed to notify plugin status changed", mlog.Err(err))
-	}
+	ch.notifyPluginStatusesChanged()
 }
 
 // removePluginFromClusterMessage is called when a peer removes a plugin, signalling all other
@@ -166,9 +164,7 @@ func (ch *Channels) removePluginFromClusterMessage(pluginID string) {
 		logger.Error("Failed to remove plugin locally", mlog.Err(err))
 	}
 
-	if err := ch.notifyPluginStatusesChanged(); err != nil {
-		logger.Error("failed to notify plugin status changed", mlog.Err(err))
-	}
+	ch.notifyPluginStatusesChanged()
 }
 
 // InstallPlugin unpacks and installs a plugin but does not enable or activate it unless the
@@ -208,9 +204,7 @@ func (ch *Channels) installPlugin(bundle, signature io.ReadSeeker, installationS
 		logger.Warn("Failed to notify plugin enabled", mlog.Err(err))
 	}
 
-	if err := ch.notifyPluginStatusesChanged(); err != nil {
-		logger.Warn("Failed to notify plugin status changed", mlog.Err(err))
-	}
+	ch.notifyPluginStatusesChanged()
 
 	return manifest, nil
 }
@@ -555,9 +549,7 @@ func (ch *Channels) RemovePlugin(id string) *model.AppError {
 		},
 	)
 
-	if err := ch.notifyPluginStatusesChanged(); err != nil {
-		logger.Warn("Failed to notify plugin status changed", mlog.Err(err))
-	}
+	ch.notifyPluginStatusesChanged()
 
 	return nil
 }

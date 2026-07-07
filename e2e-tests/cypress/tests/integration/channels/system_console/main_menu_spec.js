@@ -38,9 +38,7 @@ describe('Main menu', () => {
 
     it('MM-T910 Can open Administrators Guide', () => {
         cy.apiGetClientLicense().then(({isCloudLicensed}) => {
-            const guideLink = isCloudLicensed ?
-                'https://docs.mattermost.com/guides/administration.html#cloud-workspace-management' :
-                'https://docs.mattermost.com/guides/administration.html';
+            const guideLink = isCloudLicensed ? 'https://docs.mattermost.com/guides/administration.html#cloud-workspace-management' : 'https://docs.mattermost.com/guides/administration.html';
 
             // * Verify administrator's guide link
             verifyLink("Administrator's Guide", guideLink);

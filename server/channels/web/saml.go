@@ -268,7 +268,10 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Legacy: create a session and attach tokens (web/mobile without SAML code exchange)
-	session, err := c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, false, true)
+	session, err := c.App.DoLogin(c.AppContext, w, r, user, model.LoginOptions{
+		IsMobile: isMobile,
+		IsSaml:   true,
+	})
 	if err != nil {
 		handleError(err)
 		return

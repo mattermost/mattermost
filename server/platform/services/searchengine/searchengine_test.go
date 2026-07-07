@@ -15,7 +15,7 @@ func TestActiveEngine(t *testing.T) {
 	newBroker := func(disableDatabaseSearch bool) *Broker {
 		cfg := &model.Config{}
 		cfg.SetDefaults()
-		cfg.SqlSettings.DisableDatabaseSearch = model.NewPointer(disableDatabaseSearch)
+		cfg.SqlSettings.DisableDatabaseSearch = new(disableDatabaseSearch)
 
 		return NewBroker(cfg)
 	}

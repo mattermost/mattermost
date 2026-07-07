@@ -3,12 +3,17 @@
 
 import React from 'react';
 
+jest.mock('components/channel_type_icon/compass_icon_resolver', () => ({
+    compassIconForName: jest.fn(),
+}));
+
 import type {Channel} from '@mattermost/types/channels';
 
+import {compassIconForName} from 'components/channel_type_icon';
 import {SearchableChannelList} from 'components/searchable_channel_list';
 
 import {type MockIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import {Filter} from './browse_channels/browse_channels';
 
@@ -27,6 +32,8 @@ jest.mock('@mattermost/compass-icons/components', () => ({
             {...props}
         />
     ),
+    GlobeIcon: () => <span data-testid='default-globe-icon'/>,
+    LockOutlineIcon: () => <span data-testid='default-lock-icon'/>,
 }));
 
 describe('components/SearchableChannelList', () => {
@@ -145,5 +152,110 @@ describe('components/SearchableChannelList', () => {
         expect(channelRow).toBeInTheDocument();
         expect(container.querySelector('[data-testid="archiveLockOutlineIcon"]')).toBeInTheDocument();
         expect(container.querySelector('[data-testid="archiveOutlineIcon"]')).not.toBeInTheDocument();
+    });
+
+    describe('plugin channel icon override', () => {
+        const mockedCompassIconForName = jest.mocked(compassIconForName);
+
+        afterEach(() => {
+            mockedCompassIconForName.mockReset();
+        });
+
+        test('renders override SVG icon with size prop when plugin matcher matches', () => {
+            const StubIcon = ({size}: {size?: number}) => (
+                <span
+                    data-testid='stub-override-icon'
+                    data-size={size}
+                />
+            );
+            mockedCompassIconForName.mockReturnValue(StubIcon as any);
+
+            const channels = [
+                {
+                    id: 'channel1',
+                    name: 'open-channel',
+                    display_name: 'Open Channel',
+                    type: 'O',
+                    delete_at: 0,
+                    team_id: 'team1',
+                    purpose: '',
+                } as Channel,
+            ];
+
+            const stateWithOverride = {
+                ...initialState,
+                plugins: {
+                    components: {
+                        ChannelIconOverride: [{
+                            id: '1',
+                            pluginId: 'test-plugin',
+                            matcher: () => true,
+                            iconName: 'shield-outline',
+                        }],
+                    },
+                },
+            } as any;
+
+            renderWithContext(
+                <SearchableChannelList
+                    {...baseProps}
+                    channels={channels}
+                    loading={false}
+                />,
+                stateWithOverride,
+            );
+
+            const icon = screen.getByTestId('stub-override-icon');
+            expect(icon).toBeInTheDocument();
+            expect(icon).toHaveAttribute('data-size', '18');
+
+            // Default icons absent when override wins
+            expect(screen.queryByTestId('default-globe-icon')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('default-lock-icon')).not.toBeInTheDocument();
+        });
+
+        test('renders default SVG icon when no plugin matcher matches', () => {
+            mockedCompassIconForName.mockReturnValue(null);
+
+            const channels = [
+                {
+                    id: 'channel1',
+                    name: 'open-channel',
+                    display_name: 'Open Channel',
+                    type: 'O',
+                    delete_at: 0,
+                    team_id: 'team1',
+                    purpose: '',
+                } as Channel,
+            ];
+
+            const stateWithNoMatch = {
+                ...initialState,
+                plugins: {
+                    components: {
+                        ChannelIconOverride: [{
+                            id: '1',
+                            pluginId: 'test-plugin',
+                            matcher: () => false,
+                            iconName: 'shield-outline',
+                        }],
+                    },
+                },
+            } as any;
+
+            renderWithContext(
+                <SearchableChannelList
+                    {...baseProps}
+                    channels={channels}
+                    loading={false}
+                />,
+                stateWithNoMatch,
+            );
+
+            expect(screen.queryByTestId('stub-override-icon')).not.toBeInTheDocument();
+
+            // Default globe icon rendered for the open channel fallback
+            expect(screen.getByTestId('default-globe-icon')).toBeInTheDocument();
+        });
     });
 });

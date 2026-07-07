@@ -35,7 +35,7 @@ export type OwnProps = {
     isContentProductSettings: boolean;
     userPreferences?: PreferencesType;
     activeTab?: string;
-}
+};
 
 export type Props = OwnProps & {
     intl: IntlShape;
@@ -48,7 +48,7 @@ export type Props = OwnProps & {
         getUserPreferences: (userID: string) => Promise<unknown>;
         getUser: (userID: string) => Promise<unknown>;
     };
-}
+};
 
 type State = {
     active_tab?: string;

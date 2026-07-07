@@ -61,6 +61,9 @@ const (
 	PostTypeReminder              = "reminder"
 	PostTypeBurnOnRead            = "burn_on_read"
 	PostTypeCard                  = "card"
+	// PostTypeSharedChannelState is a system post for share/unshare events; the client translates using props.
+	// Name must fit Posts.Type varchar(26) (see store migrations).
+	PostTypeSharedChannelState = "system_shared_chan_state"
 
 	PostFileidsMaxRunes   = 300
 	PostFilenamesMaxRunes = 4000
@@ -89,7 +92,6 @@ const (
 	PostPropsFromBot                  = "from_bot"
 	PostPropsFromOAuthApp             = "from_oauth_app"
 	PostPropsWebhookDisplayName       = "webhook_display_name"
-	PostPropsAttachments              = "attachments"
 	PostPropsFromPlugin               = "from_plugin"
 	PostPropsMentionHighlightDisabled = "mentionHighlightDisabled"
 	PostPropsGroupHighlightDisabled   = "disable_group_highlight"
@@ -102,6 +104,16 @@ const (
 	PostPropsAIGeneratedByUsername    = "ai_generated_by_username"
 	PostPropsExpireAt                 = "expire_at"
 	PostPropsReadDurationSeconds      = "read_duration"
+	// Shared-channel state posts (PostTypeSharedChannelState): props for client-side i18n.
+	PostPropsSharedChannelState         = "shared_channel_state"
+	PostPropsSharedChannelWorkspaceName = "workspace_name"
+
+	// Interactive Messages
+	PostPropsAttachments     = "attachments"
+	PostPropsMmBlocks        = "mm_blocks"
+	PostPropsBlockKitBlocks  = "blocks"
+	PostPropsAdaptiveCards   = "cards"
+	PostPropsMmBlocksActions = "mm_blocks_actions"
 
 	PostPriorityUrgent = "urgent"
 
@@ -109,6 +121,12 @@ const (
 	DefaultReadDurationSeconds = 10 * 60          // 10 minutes
 
 	PostContextKeyIsScheduledPost PostContextKey = "isScheduledPost"
+)
+
+// Values for PostPropsSharedChannelState on posts with Type PostTypeSharedChannelState.
+const (
+	SharedChannelStatePostValueShared   = "shared"
+	SharedChannelStatePostValueUnshared = "unshared"
 )
 
 type Post struct {
@@ -363,7 +381,7 @@ func (o *Post) ShallowCopy(dst *Post) error {
 	dst.LastReplyAt = o.LastReplyAt
 	dst.Metadata = o.Metadata
 	if o.IsFollowing != nil {
-		dst.IsFollowing = NewPointer(*o.IsFollowing)
+		dst.IsFollowing = new(*o.IsFollowing)
 	}
 	dst.RemoteId = o.RemoteId
 	return nil
@@ -392,6 +410,9 @@ type CreatePostFlags struct {
 	TriggerWebhooks   bool
 	SetOnline         bool
 	ForceNotification bool
+	// AllowMmBlocksActions permits props.mm_blocks_actions on create. Set only
+	// by CreateWebhookPost — from_webhook is user-forgeable on the REST API.
+	AllowMmBlocksActions bool
 }
 
 type GetPostsSinceOptions struct {
@@ -534,7 +555,8 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeGMConvertedToChannel,
 		PostTypeAutotranslationChange,
 		PostTypeBurnOnRead,
-		PostTypeCard:
+		PostTypeCard,
+		PostTypeSharedChannelState:
 	default:
 		if !strings.HasPrefix(o.Type, PostCustomTypePrefix) {
 			return NewAppError("Post.IsValid", "model.post.is_valid.type.app_error", nil, "id="+o.Type, http.StatusBadRequest)
@@ -578,7 +600,7 @@ func (o *Post) SanitizeProps() {
 // Remove any input data from the post object that is not user controlled
 func (o *Post) SanitizeInput() {
 	o.DeleteAt = 0
-	o.RemoteId = NewPointer("")
+	o.RemoteId = new("")
 
 	if o.Metadata != nil {
 		o.Metadata.Embeds = nil
@@ -606,6 +628,7 @@ func ContainsIntegrationsReservedProps(props StringInterface) []string {
 			PostPropsWebhookDisplayName,
 			PostPropsOverrideIconURL,
 			PostPropsOverrideIconEmoji,
+			PostPropsMmBlocksActions,
 		}
 
 		for _, key := range reservedProps {
@@ -692,6 +715,117 @@ func (o *Post) GetProp(key string) any {
 	o.propsMu.RLock()
 	defer o.propsMu.RUnlock()
 	return o.Props[key]
+}
+
+// HasUnsafeLinks reports whether props.unsafe_links is the string "true", meaning integrations
+// have marked the post as carrying untrusted URLs (see PostPropsUnsafeLinks and post metadata handling).
+func (o *Post) HasUnsafeLinks() bool {
+	v := o.GetProp(PostPropsUnsafeLinks)
+	if v == nil {
+		return false
+	}
+	s, ok := v.(string)
+	return ok && s == "true"
+}
+
+type AllStringsOptions struct {
+	OmitInteractiveBlocks bool
+}
+
+// AllStrings returns human-readable text from the post: the post Message as stored when it is not
+// whitespace-only (same bytes as Message so markdown structure is preserved), then message attachment
+// author name, title, text, pretext, footer, each attachment field title, each attachment field
+// value (strings trimmed; non-strings rendered like fmt.Sprint for indexing), plus
+// strings from interactive blocks (mm_blocks, Block Kit blocks, Adaptive cards).
+// It is intended for mention checks, search indexing, and similar uses alongside integration metadata.
+func (o *Post) AllStrings(opts AllStringsOptions) []string {
+	out := appendNonWhitespaceOnlyMessage(nil, o.Message)
+	for _, attachment := range o.Attachments() {
+		if attachment == nil {
+			continue
+		}
+		out = appendNonWhitespaceOnlyMessage(out, attachment.AuthorName)
+		out = appendNonWhitespaceOnlyMessage(out, attachment.Title)
+		out = appendNonWhitespaceOnlyMessage(out, attachment.Text)
+		out = appendNonWhitespaceOnlyMessage(out, attachment.Pretext)
+		out = appendNonWhitespaceOnlyMessage(out, attachment.Footer)
+		for _, field := range attachment.Fields {
+			if field == nil {
+				continue
+			}
+			out = appendNonWhitespaceOnlyMessage(out, field.Title)
+			if field.Value == nil {
+				continue
+			}
+			switch v := field.Value.(type) {
+			case string:
+				out = appendNonWhitespaceOnlyMessage(out, v)
+			default:
+				if s := strings.TrimSpace(fmt.Sprint(v)); s != "" {
+					out = append(out, s)
+				}
+			}
+		}
+	}
+	if !opts.OmitInteractiveBlocks {
+		out = appendHumanReadableInteractiveStrings(o, out)
+	}
+	return out
+}
+
+// InteractiveBlocksImageURLs collects non-markdown image URLs from props.mm_blocks, props.blocks
+// (Block Kit), props.cards (Adaptive Cards), and message attachments (image_url, thumb_url, author_icon, footer_icon).
+// Direct mm_blocks image URLs, Block Kit image blocks, and Adaptive Card Image elements are included.
+// Markdown ![alt](url) in interactive text is not included; merge with URLs from Post.AllStrings separately.
+// Link preview restrictions (e.g. RestrictLinkPreviews) are not applied here; callers enforce policy when fetching metadata.
+func (o *Post) InteractiveBlocksImageURLs(mmBlocksEnabled bool) []string {
+	props := o.GetProps()
+	if props == nil {
+		return nil
+	}
+	var out []string
+	if mmBlocksEnabled {
+		if raw, ok := props[PostPropsMmBlocks]; ok {
+			out = appendMmBlockImageURLs(out, raw)
+		}
+		if raw, ok := props[PostPropsBlockKitBlocks]; ok {
+			out = appendBlockKitImageURLs(out, raw)
+		}
+		if raw, ok := props[PostPropsAdaptiveCards]; ok {
+			out = appendAdaptiveCardImageURLs(out, raw)
+		}
+	}
+	return appendAttachmentsImageURLs(out, o.Attachments())
+}
+
+func appendNonWhitespaceOnlyMessage(out []string, s string) []string {
+	if strings.TrimSpace(s) == "" {
+		return out
+	}
+	return append(out, s)
+}
+
+// nonEmptyInteractivePayloadPropKeys lists non-empty interactive payload props (mm_blocks,
+// Block Kit blocks, Adaptive cards, message attachments). The client uses a single priority; more than one is invalid.
+func (o *Post) nonEmptyInteractivePayloadPropKeys() []string {
+	props := o.GetProps()
+	if props == nil {
+		return nil
+	}
+	var keys []string
+	if interactivePropJSONArrayNonEmpty(props[PostPropsMmBlocks]) {
+		keys = append(keys, PostPropsMmBlocks)
+	}
+	if interactivePropJSONArrayNonEmpty(props[PostPropsBlockKitBlocks]) {
+		keys = append(keys, PostPropsBlockKitBlocks)
+	}
+	if interactivePropJSONArrayNonEmpty(props[PostPropsAdaptiveCards]) {
+		keys = append(keys, PostPropsAdaptiveCards)
+	}
+	if len(o.Attachments()) > 0 {
+		keys = append(keys, PostPropsAttachments)
+	}
+	return keys
 }
 
 // ValidateProps checks all known props for validity.
@@ -830,10 +964,20 @@ func (o *Post) propsIsValid() error {
 		}
 	}
 
+	if err := ValidateMmBlocksActions(o); err != nil {
+		multiErr = multierror.Append(multiErr, fmt.Errorf("invalid mm_blocks_actions: %w", err))
+	}
+
 	for i, a := range o.Attachments() {
 		if err := a.IsValid(); err != nil {
 			multiErr = multierror.Append(multiErr, multierror.Prefix(err, fmt.Sprintf("message attachtment at index %d is invalid:", i)))
 		}
+	}
+
+	if keys := o.nonEmptyInteractivePayloadPropKeys(); len(keys) > 1 {
+		multiErr = multierror.Append(multiErr, fmt.Errorf(
+			"at most one interactive payload may be set among mm_blocks, blocks, cards, and attachments; found: %s",
+			strings.Join(keys, ", ")))
 	}
 
 	return multiErr.ErrorOrNil()
@@ -896,34 +1040,18 @@ func (o *Post) ChannelMentions() []string {
 	return ChannelMentions(o.Message)
 }
 
-// ChannelMentionsAll returns all channel mentions from both the message and attachments.
-// This is used by FillInPostProps to populate channel_mentions for rendering.
+// Deprecated: Use ChannelMentionsAllWithOptions instead.
+// ChannelMentionsAll returns all ~channel mentions from the same human-readable strings as
+// model.Post.AllStrings (message, attachments, interactive blocks are omitted).
 func (o *Post) ChannelMentionsAll() []string {
-	// Get mentions from message
-	messageMentions := ChannelMentions(o.Message)
+	return ChannelMentionsFromStrings(o.AllStrings(AllStringsOptions{OmitInteractiveBlocks: false}))
+}
 
-	// Get mentions from attachments
-	attachmentMentions := ChannelMentionsFromAttachments(o.Attachments())
-
-	// Combine and deduplicate
-	alreadyMentioned := make(map[string]bool)
-	var allMentions []string
-
-	for _, mention := range messageMentions {
-		if !alreadyMentioned[mention] {
-			allMentions = append(allMentions, mention)
-			alreadyMentioned[mention] = true
-		}
-	}
-
-	for _, mention := range attachmentMentions {
-		if !alreadyMentioned[mention] {
-			allMentions = append(allMentions, mention)
-			alreadyMentioned[mention] = true
-		}
-	}
-
-	return allMentions
+// ChannelMentionsAllWithOptions returns all ~channel mentions from the same human-readable strings as
+// model.Post.AllStrings (message, attachments, mm_blocks, blocks, cards). This is used by
+// FillInPostProps to populate channel_mentions for rendering.
+func (o *Post) ChannelMentionsAllWithOptions(opts AllStringsOptions) []string {
+	return ChannelMentionsFromStrings(o.AllStrings(opts))
 }
 
 // DisableMentionHighlights disables a posts mention highlighting and returns the first channel mention that was present in the message.
@@ -1020,7 +1148,8 @@ var markdownDestinationEscaper = strings.NewReplacer(
 )
 
 // WithRewrittenImageURLs returns a new shallow copy of the post where the message has been
-// rewritten via RewriteImageURLs.
+// rewritten via RewriteImageURLs. Interactive payloads (mm_blocks, Block Kit, Adaptive Cards) are
+// not rewritten here; the client applies the image proxy via ExternalImage and related components.
 func (o *Post) WithRewrittenImageURLs(f func(string) string) *Post {
 	pCopy := o.Clone()
 	pCopy.Message = RewriteImageURLs(o.Message, f)
@@ -1184,6 +1313,14 @@ func (o *Post) CleanPost() *Post {
 type UpdatePostOptions struct {
 	SafeUpdate    bool
 	IsRestorePost bool
+
+	// AllowMmBlocksActionsUpdate grants the caller permission to add,
+	// remove, or modify the mm_blocks_actions prop. Without it,
+	// non-integration sessions cannot change mm_blocks_actions and the
+	// prop is reset to its prior value. Set only from trusted paths (e.g.
+	// the post-action integration response handler which has already
+	// validated the incoming value).
+	AllowMmBlocksActionsUpdate bool
 }
 
 func DefaultUpdatePostOptions() *UpdatePostOptions {

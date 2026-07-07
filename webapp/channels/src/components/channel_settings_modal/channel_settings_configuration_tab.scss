@@ -8,6 +8,10 @@
     flex-direction: column;
     gap: 32px;
 
+    &--with-save-panel {
+        padding-bottom: 80px;
+    }
+
     &__configurationDivider {
         border: none;
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
@@ -62,7 +66,8 @@
             right: 5px;
         }
 
-        #channel_banner_banner_text_textbox {
+        #channel_banner_banner_text_textbox,
+        #channel_classification_banner_text_textbox {
             min-height: 40px;
             max-height: 200px;
         }
@@ -104,6 +109,40 @@
 
         .AdvancedTextbox {
             margin-top: 0 !important;
+        }
+
+        .DropdownInput.Input_container {
+            margin-top: 0;
+
+            .Input_fieldset {
+                padding: 0;
+                border: none;
+                box-shadow: none;
+
+                &:hover,
+                &:focus-within {
+                    border: none;
+                    box-shadow: none;
+                }
+            }
+
+            .Input_wrapper {
+                padding: 0;
+                margin: 0;
+            }
+
+            .DropDown__control {
+                height: 40px;
+                min-height: 40px;
+            }
+
+            .DropDown__value-container {
+                height: 38px;
+            }
+
+            .DropDown__indicators {
+                height: 38px;
+            }
         }
     }
 }

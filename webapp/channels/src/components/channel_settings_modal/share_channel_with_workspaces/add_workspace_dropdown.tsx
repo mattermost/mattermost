@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {RemoteCluster} from '@mattermost/types/remote_clusters';
 
 import * as Menu from 'components/menu';
@@ -41,7 +41,7 @@ export default function AddWorkspaceDropdown({
 
     const menuButton = useMemo(() => ({
         id: `${MENU_ID}-button`,
-        class: classNames('btn', 'btn-sm', 'btn-tertiary', 'ShareChannelWithWorkspaces__addBtn'),
+        class: buttonClassNames({emphasis: 'tertiary', size: 'sm'}, 'ShareChannelWithWorkspaces__addBtn'),
         children: (
             <>
                 <i

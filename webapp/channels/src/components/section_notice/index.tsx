@@ -62,19 +62,19 @@ const SectionNotice = ({
                             {primaryButton &&
                                 <SectionNoticeButton
                                     button={primaryButton}
-                                    buttonClass='btn-primary'
+                                    emphasis='primary'
                                 />
                             }
                             {secondaryButton &&
                                 <SectionNoticeButton
                                     button={secondaryButton}
-                                    buttonClass='btn-secondary'
+                                    emphasis='secondary'
                                 />
                             }
                             {tertiaryButton && (
                                 <SectionNoticeButton
                                     button={tertiaryButton}
-                                    buttonClass='btn-tertiary'
+                                    emphasis='tertiary'
                                 />
                             )}
                             {linkButton &&

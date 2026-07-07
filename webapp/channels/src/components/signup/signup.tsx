@@ -60,7 +60,7 @@ const MOBILE_SCREEN_WIDTH = 1200;
 
 type SignupProps = {
     onCustomizeHeader?: CustomizeHeaderType;
-}
+};
 
 const Signup = ({onCustomizeHeader}: SignupProps) => {
     const intl = useIntl();
@@ -686,6 +686,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                     {!isMobileView && getAlternateLink()}
                     <div className={classNames('signup-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})}>
                         <div
+                            data-testid='signup-body-card'
                             className='signup-body-card-content'
                         >
                             <h2 className='signup-body-card-title'>

@@ -276,6 +276,56 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
         expect((ref.current as any).state.groupMentionName).toBe('any_name_at_all');
     });
 
+    test('onChangeRoles should update state without mutating frozen Redux items', async () => {
+        const frozenGroupTeams = [
+            Object.freeze({team_id: 'team1', team_display_name: 'Team 1', team_type: 'O', scheme_admin: false}) as GroupTeam,
+            Object.freeze({team_id: 'team2', team_display_name: 'Team 2', team_type: 'O', scheme_admin: false}) as GroupTeam,
+        ];
+        const frozenGroupChannels = [
+            Object.freeze({channel_id: 'channel1', channel_display_name: 'Channel 1', channel_type: 'O', team_id: 'team1', team_display_name: 'Team 1', scheme_admin: false}) as GroupChannel,
+        ];
+
+        const ref = React.createRef<InstanceType<typeof GroupDetails>>();
+        renderWithContext(
+            <GroupDetails
+                {...defaultProps}
+                groupTeams={frozenGroupTeams}
+                groupChannels={frozenGroupChannels}
+                ref={ref}
+            />,
+        );
+
+        // componentDidUpdate copies props into state when groupTeams/groupChannels props change;
+        // seed state directly so onChangeRoles operates on the frozen items.
+        act(() => {
+            ref.current!.setState({groupTeams: frozenGroupTeams, groupChannels: frozenGroupChannels});
+        });
+
+        act(() => {
+            expect(() => (ref.current as any).onChangeRoles('team1', 'public-team', true)).not.toThrow();
+        });
+
+        const updatedTeams = (ref.current as any).state.groupTeams as GroupTeam[];
+        const updatedTeam = updatedTeams.find((t) => t.team_id === 'team1');
+        expect(updatedTeam?.scheme_admin).toBe(true);
+
+        // Other team is untouched and the original frozen item is not mutated.
+        expect(updatedTeams.find((t) => t.team_id === 'team2')?.scheme_admin).toBe(false);
+        expect(frozenGroupTeams[0].scheme_admin).toBe(false);
+
+        expect((ref.current as any).state.rolesToChange['team1/public-team']).toBe(true);
+        expect((ref.current as any).state.saveNeeded).toBe(true);
+
+        // Channel role change also works on frozen items.
+        act(() => {
+            expect(() => (ref.current as any).onChangeRoles('channel1', 'public-channel', true)).not.toThrow();
+        });
+        const updatedChannels = (ref.current as any).state.groupChannels as GroupChannel[];
+        expect(updatedChannels.find((c) => c.channel_id === 'channel1')?.scheme_admin).toBe(true);
+        expect(frozenGroupChannels[0].scheme_admin).toBe(false);
+        expect((ref.current as any).state.rolesToChange['channel1/public-channel']).toBe(true);
+    });
+
     test('handleRolesToUpdate should only update scheme_admin and not auto_add', async () => {
         const patchGroupSyncable = jest.fn().mockReturnValue(Promise.resolve({data: true}));
         const actions = {

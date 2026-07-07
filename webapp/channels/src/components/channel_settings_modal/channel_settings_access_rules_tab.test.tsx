@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
 
@@ -41,6 +41,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         createAccessControlSyncJob: jest.fn(),
         updateAccessControlPoliciesActive: jest.fn(),
         validateExpressionAgainstRequester: jest.fn(),
+        simulatePolicyForUsers: jest.fn(),
     };
 
     const mockUserAttributes: UserPropertyField[] = [
@@ -170,6 +171,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         mockActions.getChannelPolicy.mockClear();
         mockActions.saveChannelPolicy.mockClear();
         mockActions.searchUsers.mockClear();
+        mockActions.simulatePolicyForUsers.mockClear();
         mockUseChannelAccessControlActions.mockReturnValue(mockActions);
         mockUseChannelSystemPolicies.mockReturnValue({
             policies: [],
@@ -297,7 +299,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         // Public channels use membership-oriented copy because ABAC on public
         // channels is advisory, not a hard gate.
         expect(screen.getByRole('heading', {name: 'Membership Rules'})).toBeInTheDocument();
-        expect(screen.getByText('Select user attributes and values to describe who should be in this channel. Rules are advisory: anyone can still join.')).toBeInTheDocument();
+        expect(screen.getByText('Define who this channel is recommended for. The channel stays open to everyone.')).toBeInTheDocument();
     });
 
     test('should call useChannelAccessControlActions hook', async () => {

@@ -26,11 +26,22 @@ func TestViewStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 }
 
 func makeView(channelID, creatorID string) *model.View {
+	kanban := &model.KanbanProps{
+		GroupBy: model.KanbanGroupBy{
+			FieldID: model.NewId(),
+			Columns: []model.KanbanColumn{
+				{ID: model.NewId(), Name: "Todo", OptionIDs: []string{model.NewId()}},
+				{ID: model.NewId(), Name: "Done", OptionIDs: []string{model.NewId()}},
+			},
+		},
+	}
+	props, _ := kanban.ToProps()
 	return &model.View{
 		ChannelId: channelID,
 		CreatorId: creatorID,
 		Type:      model.ViewTypeKanban,
 		Title:     "Test Kanban",
+		Props:     props,
 	}
 }
 
@@ -56,27 +67,25 @@ func testSaveView(t *testing.T, ss store.Store) {
 	t.Run("persists and round-trips props correctly", func(t *testing.T) {
 		v := makeView(channelID, creatorID)
 		v.Title = "Props Kanban"
-		v.Props = model.StringInterface{"color": "blue", "count": float64(3)}
 		saved, err := ss.View().Save(v)
 		require.NoError(t, err)
 
 		fetched, err := ss.View().Get(saved.Id)
 		require.NoError(t, err)
 		require.NotNil(t, fetched.Props)
-		assert.Equal(t, "blue", fetched.Props["color"])
-		assert.Equal(t, float64(3), fetched.Props["count"])
+
+		kanban, kErr := model.KanbanPropsFromProps(fetched.Props)
+		require.NoError(t, kErr)
+		assert.NotEmpty(t, kanban.GroupBy.FieldID)
+		require.Len(t, kanban.GroupBy.Columns, 2)
 	})
 
-	t.Run("nil props round-trips as nil", func(t *testing.T) {
+	t.Run("rejects view with nil props", func(t *testing.T) {
 		v := makeView(channelID, creatorID)
 		v.Title = "Nil Props Kanban"
 		v.Props = nil
-		saved, err := ss.View().Save(v)
-		require.NoError(t, err)
-
-		fetched, err := ss.View().Get(saved.Id)
-		require.NoError(t, err)
-		assert.Nil(t, fetched.Props)
+		_, err := ss.View().Save(v)
+		require.Error(t, err, "kanban views require valid props")
 	})
 }
 
@@ -309,14 +318,24 @@ func testUpdateView(t *testing.T, ss store.Store) {
 		fetched, err := ss.View().Get(saved.Id)
 		require.NoError(t, err)
 
-		fetched.Props = model.StringInterface{"foo": "bar", "count": float64(42)}
+		newKanban := &model.KanbanProps{
+			GroupBy: model.KanbanGroupBy{
+				FieldID: model.NewId(),
+				Columns: []model.KanbanColumn{
+					{ID: model.NewId(), Name: "Updated Col", OptionIDs: []string{model.NewId()}},
+				},
+			},
+		}
+		fetched.Props, _ = newKanban.ToProps()
 		_, err = ss.View().Update(fetched)
 		require.NoError(t, err)
 
 		refetched, err := ss.View().Get(saved.Id)
 		require.NoError(t, err)
-		assert.Equal(t, "bar", refetched.Props["foo"])
-		assert.Equal(t, float64(42), refetched.Props["count"])
+		kanban, kErr := model.KanbanPropsFromProps(refetched.Props)
+		require.NoError(t, kErr)
+		require.Len(t, kanban.GroupBy.Columns, 1)
+		assert.Equal(t, "Updated Col", kanban.GroupBy.Columns[0].Name)
 	})
 
 	t.Run("returns not found for unknown ID", func(t *testing.T) {

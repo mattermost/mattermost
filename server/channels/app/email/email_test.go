@@ -390,7 +390,7 @@ func TestMailServiceConfig(t *testing.T) {
 		config: func() *model.Config {
 			return &model.Config{
 				ServiceSettings: model.ServiceSettings{
-					SiteURL: model.NewPointer(""),
+					SiteURL: new(""),
 				},
 				EmailSettings: model.EmailSettings{
 					EnableSignUpWithEmail:             new(bool),
@@ -401,7 +401,7 @@ func TestMailServiceConfig(t *testing.T) {
 					RequireEmailVerification:          new(bool),
 					FeedbackName:                      new(string),
 					FeedbackEmail:                     new(string),
-					ReplyToAddress:                    model.NewPointer(configuredReplyTo),
+					ReplyToAddress:                    new(configuredReplyTo),
 					FeedbackOrganization:              new(string),
 					EnableSMTPAuth:                    new(bool),
 					SMTPUsername:                      new(string),

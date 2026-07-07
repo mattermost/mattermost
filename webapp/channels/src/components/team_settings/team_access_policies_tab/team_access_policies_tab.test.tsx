@@ -21,6 +21,8 @@ describe('TeamAccessPoliciesTab', () => {
         accessControlSettings: {
             EnableAttributeBasedAccessControl: true,
             EnableUserManagedAttributes: false,
+            TrustProxyDeviceIdentityHeader: false,
+            EnforceDeviceIDConsistency: false,
         },
         areThereUnsavedChanges: false,
         setAreThereUnsavedChanges: jest.fn(),
@@ -73,8 +75,8 @@ describe('TeamAccessPoliciesTab', () => {
 
     test('should render policy list with names and channel counts', async () => {
         const policies = [
-            {id: 'p1', name: 'Engineering Policy', type: 'parent', rules: [{expression: 'true', actions: ['*']}], props: {child_ids: ['ch1', 'ch2', 'ch3']}},
-            {id: 'p2', name: 'Sales Policy', type: 'parent', rules: [{expression: 'true', actions: ['*']}], props: {child_ids: ['ch4']}},
+            {id: 'p1', name: 'Engineering Policy', type: 'parent', rules: [{expression: 'true', actions: ['*']}], props: {child_ids: ['ch1', 'ch2', 'ch3'], channel_count: 3}},
+            {id: 'p2', name: 'Sales Policy', type: 'parent', rules: [{expression: 'true', actions: ['*']}], props: {child_ids: ['ch4'], channel_count: 1}},
         ];
 
         const props = {

@@ -62,7 +62,7 @@ func WithCreator(creatorID string) InviteOption {
 
 // SendChannelInvite asynchronously sends a channel invite to a remote cluster. The remote cluster is
 // expected to create a new channel with the same channel id, and respond with status OK.
-// If an error occurs on the remote cluster then an ephemeral message is posted to in the channel for userId.
+// If an error occurs on the remote cluster then an ephemeral message is posted in the channel for userId.
 func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc *model.RemoteCluster, options ...InviteOption) error {
 	rcs := scs.server.GetRemoteClusterService()
 	if rcs == nil {
@@ -210,7 +210,7 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 		messageWs.Add("channel_id", sc.ChannelId)
 		scs.app.Publish(messageWs)
 
-		scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("`%s` has been added to channel.", rc.DisplayName))
+		scs.postChannelSharedWithWorkspace(channel, rc)
 
 		// Trigger membership sync via the normal sync pipeline (reads from ChannelMemberHistory)
 		scs.NotifyMembershipChanged(sc.ChannelId, "")
@@ -386,6 +386,8 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 		// Trigger membership sync via the normal sync pipeline (reads from ChannelMemberHistory)
 		scs.NotifyMembershipChanged(channel.Id, "")
 	}
+
+	scs.postChannelSharedWithWorkspace(channel, rc)
 	return nil
 }
 
@@ -422,7 +424,7 @@ func (scs *Service) handleChannelCreation(invite channelInviteMsg, rc *model.Rem
 		Header:      invite.Header,
 		Purpose:     invite.Purpose,
 		CreatorId:   rc.CreatorId,
-		Shared:      model.NewPointer(true),
+		Shared:      new(true),
 	}
 
 	// check user perms?
@@ -451,7 +453,7 @@ func (scs *Service) getOrCreateUser(userID string, participantsMap map[string]*m
 	}
 
 	var rctx request.CTX = request.EmptyContext(scs.server.Log())
-	inviteUser.RemoteId = model.NewPointer(rc.RemoteId)
+	inviteUser.RemoteId = new(rc.RemoteId)
 	user, iErr := scs.insertSyncUser(rctx, inviteUser, nil, rc)
 	if iErr != nil {
 		return nil, fmt.Errorf("cannot create user `%q` for remote `%q`: %w", inviteUser.Id, rc.RemoteId, iErr)

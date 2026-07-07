@@ -83,7 +83,7 @@ func merge(base, patch reflect.Value, mergeConfig *MergeConfig) (reflect.Value, 
 		}
 		return merged, true
 
-	case reflect.Ptr:
+	case reflect.Pointer:
 		mergedPtr := reflect.New(commonType.Elem())
 		if base.IsNil() && patch.IsNil() {
 			return mergedPtr, false

@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
+import {Button, type ButtonEmphasis, type ButtonSize} from '@mattermost/shared/components/button';
 import type {Channel, ChannelMembership, ChannelSearchOpts, ChannelsWithTotalCount} from '@mattermost/types/channels';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
@@ -68,7 +68,7 @@ type Actions = {
     setGlobalItem: (name: string, value: string) => void;
     closeRightHandSide: () => void;
     getChannelsMemberCount: (channelIds: string[]) => Promise<ActionResult>;
-}
+};
 
 export type Props = {
     channels: Channel[];
@@ -86,7 +86,7 @@ export type Props = {
     accessControlEnabled: boolean;
     initialFilter?: FilterType;
     actions: Actions;
-}
+};
 
 type State = {
     loading: boolean;
@@ -97,7 +97,7 @@ type State = {
     searching: boolean;
     searchTerm: string;
     recommendedChannels: Channel[];
-}
+};
 
 export default class BrowseChannels extends React.PureComponent<Props, State> {
     public searchTimeoutId: number;
@@ -257,7 +257,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                     } else {
                         this.setState({searchedChannels: [], searching: false});
                     }
-                } catch (ignoredErr) {
+                } catch {
                     this.setState({searchedChannels: [], searching: false});
                 }
             },
@@ -370,17 +370,16 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                 <div className='form-group has-error'><label className='control-label'>{serverErrorState}</label></div>;
         }
 
-        const createNewChannelButton = (className: string, icon?: JSX.Element) => {
-            const buttonClassName = classNames('btn', className);
+        const createNewChannelButton = (emphasis: ButtonEmphasis, size: ButtonSize, icon?: JSX.Element) => {
             return (
                 <TeamPermissionGate
                     teamId={teamId}
                     permissions={[Permissions.CREATE_PUBLIC_CHANNEL]}
                 >
-                    <button
+                    <Button
                         type='button'
                         id='createNewChannelButton'
-                        className={buttonClassName}
+                        emphasis={emphasis}
                         onClick={this.handleNewChannel}
                         aria-label={localizeMessage({id: 'more_channels.create', defaultMessage: 'Create New Channel'})}
                     >
@@ -389,7 +388,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                             id='more_channels.create'
                             defaultMessage='Create New Channel'
                         />
-                    </button>
+                    </Button>
                 </TeamPermissionGate>
             );
         };
@@ -402,7 +401,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                         defaultMessage='Try searching different keywords, checking for typos or adjusting the filters.'
                     />
                 </p>
-                {createNewChannelButton('btn-primary', <i className='icon-plus'/>)}
+                {createNewChannelButton('primary', 'md', <i className='icon-plus'/>)}
             </>
         );
 
@@ -443,7 +442,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                 onExited={this.handleExit}
                 compassDesign={true}
                 modalHeaderText={title}
-                headerButton={createNewChannelButton('btn-secondary btn-sm')}
+                headerButton={createNewChannelButton('secondary', 'sm')}
                 autoCloseOnConfirmButton={false}
                 aria-modal={true}
                 enforceFocus={false}

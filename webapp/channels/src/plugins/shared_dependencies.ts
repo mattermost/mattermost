@@ -5,6 +5,7 @@ type Loader = () => unknown;
 
 // Every module exported from the @mattermost/shared package must be added to this map
 const sharedDependencies = new Map<string, Loader>([
+    ['@mattermost/shared/components/button', () => import('@mattermost/shared/components/button')],
     ['@mattermost/shared/components/emoji', () => import('@mattermost/shared/components/emoji')],
     ['@mattermost/shared/components/shortcut_key', () => import('@mattermost/shared/components/shortcut_key')],
     ['@mattermost/shared/components/tooltip', () => import('@mattermost/shared/components/tooltip')],

@@ -18,7 +18,7 @@ export type TeamMemberWithError = {
     member: TeamMembership;
     user_id: string;
     error: ServerError;
-}
+};
 
 export type TeamType = 'O' | 'I';
 
@@ -38,8 +38,25 @@ export type Team = {
     allow_open_invite: boolean;
     scheme_id: string;
     group_constrained: boolean;
+
+    /** Data Retention Policy id. Unrelated to access-control policies below. */
     policy_id?: string | null;
     last_team_icon_update?: number;
+
+    /**
+     * True when an active team-type access control policy governs membership
+     * of this team. Derived by the server on each read; never persisted.
+     */
+    policy_enforced?: boolean;
+
+    /**
+     * Per-action map of the access control policy attached to this team.
+     * Populated lazily by the server only on hydrated read paths. Keys are
+     * action identifiers (e.g. "membership"); values are true when present.
+     * Prefer checking `policy_actions?.membership` over {@link policy_enforced}.
+     */
+    policy_actions?: Record<string, boolean>;
+    policy_is_active?: boolean;
 };
 
 export type TeamsState = {

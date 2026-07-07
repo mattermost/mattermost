@@ -11,4 +11,5 @@ export default keyMirror({
     RECEIVED_FLAGGED_POST: null,
     RECEIVED_CONTENT_FLAGGING_CHANNEL: null,
     RECEIVED_CONTENT_FLAGGING_TEAM: null,
+    FLAGGED_POST_REMOVED: null,
 });

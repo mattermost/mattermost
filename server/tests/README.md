@@ -40,3 +40,16 @@ gpg -u F3FACE45E0DE642C8BD6A8E64C7C6562C192CC1F --verbose --personal-digest-pref
 ```
 
 Finally, include the updates bundles and signatures in your commit.
+
+## Image fixtures
+
+The `api4` package tests compare server-generated image thumbnails and previews against fixture files (e.g. `orientation_test_1_expected_thumb.jpeg`). Comparisons are pixel-based with a small tolerance, so minor encoder drift across patch releases is handled automatically.
+
+However, Go's `image/jpeg` encoder has changed incompatibly across major versions (e.g. Go 1.25 → 1.26). When upgrading Go, regenerate the JPEG fixtures by running:
+
+```sh
+go test -run "TestUploadFiles/.*thumbnail" ./channels/api4/ -args -update-fixtures
+go test -run "TestGenerateMiniPreviewImage" ./channels/app/imaging/ -args -update-fixtures
+```
+
+Run both from `server/`. Commit the updated fixture files alongside the Go version bump.

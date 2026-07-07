@@ -4,8 +4,9 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
 import ReplyIcon from 'components/widgets/icons/reply_icon';
-import WithTooltip from 'components/with_tooltip';
 
 import type {Locations} from 'utils/constants';
 
@@ -16,7 +17,7 @@ type Props = {
     commentCount?: number;
     postId?: string;
     extraClass: string;
-}
+};
 
 const CommentIcon = ({
     location = 'CENTER',

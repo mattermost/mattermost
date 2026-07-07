@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect, Page} from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 import ChannelsHeader from './header';
 import ChannelsPostCreate from './post_create';
@@ -31,16 +32,16 @@ export default class ChannelsCenterView {
         this.container = container;
         this.page = page;
 
-        this.header = new ChannelsHeader(this.container.locator('.channel-header'));
+        this.header = new ChannelsHeader(this.container.locator('#channel-header'));
         this.postCreate = new ChannelsPostCreate(container.getByTestId('post-create'));
         this.scheduledDraftOptions = new ChannelsPostCreate(container.locator('#dropdown_send_post_options'));
-        this.postEdit = new ChannelsPostEdit(container.locator('.post-edit__container'));
+        this.postEdit = new ChannelsPostEdit(container.getByTestId('post-edit-container'));
         this.scheduledPostIndicator = new ScheduledPostIndicator(container.getByTestId('scheduledPostIndicator'));
         this.editedPostIcon = (postID: string) => container.locator(`#postEdited_${postID}`);
         this.channelBanner = container.getByTestId('channel_banner_container');
         this.autotranslationBadge = container.getByTestId('autotranslation-badge');
         this.flagPostConfirmationDialog = new FlagPostConfirmationDialog(
-            page.locator('#FlagPostModal div.modal-content'),
+            page.getByRole('dialog', {name: 'Quarantine for Review'}),
             page,
         );
     }
@@ -184,7 +185,7 @@ export default class ChannelsCenterView {
     }
 
     async assertChannelBannerHasEmoticon() {
-        const emoji = this.channelBanner.locator('.emoticon:not(.emoticon--unicode)').first();
+        const emoji = this.channelBanner.getByTestId(/^postEmoji\./).first();
         await expect(emoji).toBeVisible();
 
         const backgroundImage = await emoji.evaluate((el) => {
@@ -195,7 +196,7 @@ export default class ChannelsCenterView {
     }
 
     async assertChannelBannerImageEmojiSize(expectedSizePx: number) {
-        const emoji = this.channelBanner.locator('.emoticon:not(.emoticon--unicode)').first();
+        const emoji = this.channelBanner.getByTestId(/^postEmoji\./).first();
         await expect(emoji).toBeVisible();
 
         const {width, height} = await emoji.evaluate((el) => {
@@ -213,7 +214,7 @@ export default class ChannelsCenterView {
     }
 
     async assertChannelBannerUnicodeEmojiSize(expectedSizePx: number) {
-        const emoji = this.channelBanner.locator('.emoticon--unicode').first();
+        const emoji = this.channelBanner.getByTestId('channel-banner-unicode-emoji').first();
         await expect(emoji).toBeVisible();
 
         const fontSize = await emoji.evaluate((el) => {

@@ -4,8 +4,8 @@
 import {defineMessage, defineMessages, type MessageDescriptor} from 'react-intl';
 
 export type KeyboardShortcutDescriptor =
-	| MessageDescriptor
-	| {default: MessageDescriptor; mac?: MessageDescriptor};
+	MessageDescriptor |
+	{default: MessageDescriptor; mac?: MessageDescriptor};
 
 const callsKBShortcuts = {
     global: {
@@ -252,6 +252,10 @@ export const KEYBOARD_SHORTCUTS = {
             id: 'shortcuts.nav.toggle_unreads.mac',
             defaultMessage: 'Toggle unread/all channels:\t⌘|Shift|U',
         },
+    }),
+    markAllRead: defineMessage({
+        id: 'shortcuts.msgs.mark_all_read',
+        defaultMessage: 'Mark all messages as read:\tShift|Esc',
     }),
     msgEdit: defineMessage({
         id: 'shortcuts.msgs.edit',

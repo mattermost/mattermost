@@ -4,7 +4,7 @@
 import {formatWithRenderer} from './markdown';
 import PlainRenderer from './markdown/plain_renderer';
 
-export const emoticonPatterns: { [key: string]: RegExp } = {
+export const emoticonPatterns: {[key: string]: RegExp} = {
     slightly_smiling_face: /(^|\B)(\\?:-?\))($|\B)/g, // :)
     wink: /(^|\B)(\\?;-?\))($|\B)/g, // ;)
     open_mouth: /(^|\B)(\\?:o)($|\b)/gi, // :o
@@ -25,7 +25,7 @@ export const emoticonPatterns: { [key: string]: RegExp } = {
     broken_heart: /(^|\B)(\\?<\/3|\\?&lt;\/3)($|\b)/g, // </3
 };
 
-export const EMOJI_PATTERN = /(:([a-zA-Z0-9_+-]+):)/g;
+export const EMOJI_PATTERN = /(?<!\w)(:([\w+-]+):)(?!\w)/g;
 
 export function matchEmoticons(text: string): string[] | null {
     const markdownCleanedText = formatWithRenderer(text, new PlainRenderer());

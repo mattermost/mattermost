@@ -53,7 +53,7 @@ func (o *Reaction) PreSave() {
 	o.DeleteAt = 0
 
 	if o.RemoteId == nil {
-		o.RemoteId = NewPointer("")
+		o.RemoteId = new("")
 	}
 }
 
@@ -61,7 +61,7 @@ func (o *Reaction) PreUpdate() {
 	o.UpdateAt = GetMillis()
 
 	if o.RemoteId == nil {
-		o.RemoteId = NewPointer("")
+		o.RemoteId = new("")
 	}
 }
 

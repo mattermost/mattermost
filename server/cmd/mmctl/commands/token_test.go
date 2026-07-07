@@ -7,14 +7,47 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"testing"
+	"time"
 
+	gomock "github.com/golang/mock/gomock"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/spf13/cobra"
 )
+
+func TestParseExpiresIn(t *testing.T) {
+	for name, tc := range map[string]struct {
+		input   string
+		want    time.Duration
+		wantErr bool
+	}{
+		"days":                 {input: "30d", want: 30 * 24 * time.Hour},
+		"single day":           {input: "1d", want: 24 * time.Hour},
+		"hours":                {input: "12h", want: 12 * time.Hour},
+		"compound stdlib":      {input: "1h30m", want: 90 * time.Minute},
+		"minutes":              {input: "45m", want: 45 * time.Minute},
+		"non-numeric days":     {input: "xd", wantErr: true},
+		"non-numeric stdlib":   {input: "abc", wantErr: true},
+		"empty":                {input: "", wantErr: true},
+		"days beyond cap":      {input: "36501d", wantErr: true},
+		"days at cap accepted": {input: "36500d", want: 36500 * 24 * time.Hour},
+	} {
+		t.Run(name, func(t *testing.T) {
+			got, err := parseExpiresIn(tc.input)
+			if tc.wantErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, tc.want, got)
+		})
+	}
+}
 
 func (s *MmctlUnitTestSuite) TestGenerateTokenForAUserCmd() {
 	s.Run("Should generate a token for a user", func() {
@@ -38,7 +71,7 @@ func (s *MmctlUnitTestSuite) TestGenerateTokenForAUserCmd() {
 
 		s.client.
 			EXPECT().
-			CreateUserAccessToken(context.TODO(), mockUser.Id, mockToken.Description).
+			CreateUserAccessToken(context.TODO(), mockUser.Id, mockToken.Description, int64(0)).
 			Return(&mockToken, &model.Response{}, nil).
 			Times(1)
 
@@ -83,13 +116,75 @@ func (s *MmctlUnitTestSuite) TestGenerateTokenForAUserCmd() {
 
 		s.client.
 			EXPECT().
-			CreateUserAccessToken(context.TODO(), mockUser.Id, "description").
+			CreateUserAccessToken(context.TODO(), mockUser.Id, "description", int64(0)).
 			Return(nil, &model.Response{}, errors.New("error-message")).
 			Times(1)
 
 		err := generateTokenForAUserCmdF(s.client, &cobra.Command{}, []string{"user1", "description"})
 		s.Require().NotNil(err)
 		s.Require().Contains(err.Error(), fmt.Sprintf("could not create token for %q:", "user1"))
+	})
+
+	s.Run("Should pass a positive expires_at when --expires-in is set", func() {
+		printer.Clean()
+
+		userArg := "userId1"
+		mockUser := model.User{Id: "userId1", Email: "user1@example.com", Username: "user1"}
+		mockToken := model.UserAccessToken{Token: "token-id", Description: "ci-token"}
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), userArg, "").
+			Return(nil, &model.Response{}, errors.New("no user found with the given username")).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetUser(context.TODO(), userArg, "").
+			Return(&mockUser, &model.Response{}, nil).
+			Times(1)
+
+		now := time.Now()
+		s.client.
+			EXPECT().
+			CreateUserAccessToken(context.TODO(), mockUser.Id, mockToken.Description, gomock.AssignableToTypeOf(int64(0))).
+			DoAndReturn(func(_ context.Context, _, _ string, expiresAt int64) (*model.UserAccessToken, *model.Response, error) {
+				// 90 days = 7_776_000_000 ms; allow generous slack for clock between Now() calls.
+				expected := now.Add(90 * 24 * time.Hour).UnixMilli()
+				s.Require().InDelta(expected, expiresAt, float64(time.Minute.Milliseconds()))
+				return &mockToken, &model.Response{}, nil
+			}).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("expires-in", "", "")
+		s.Require().NoError(cmd.Flags().Set("expires-in", "90d"))
+
+		err := generateTokenForAUserCmdF(s.client, cmd, []string{mockUser.Id, mockToken.Description})
+		s.Require().NoError(err)
+	})
+
+	s.Run("Should reject invalid --expires-in", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("expires-in", "", "")
+		s.Require().NoError(cmd.Flags().Set("expires-in", "not-a-duration"))
+
+		err := generateTokenForAUserCmdF(s.client, cmd, []string{"userId1", "desc"})
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "invalid --expires-in")
+	})
+
+	s.Run("Should reject non-positive --expires-in", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("expires-in", "", "")
+		s.Require().NoError(cmd.Flags().Set("expires-in", "-5h"))
+
+		err := generateTokenForAUserCmdF(s.client, cmd, []string{"userId1", "desc"})
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "must be positive")
 	})
 }
 

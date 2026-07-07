@@ -66,9 +66,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
     };
 
     const verifyFormGroup = (groupName, options = {}) => {
-        const selector = options.scrollIntoView ?
-            cy.contains('.form-group', groupName).scrollIntoView().should('be.visible') :
-            cy.contains('.form-group', groupName).should('be.visible');
+        const selector = options.scrollIntoView ? cy.contains('.form-group', groupName).scrollIntoView().should('be.visible') : cy.contains('.form-group', groupName).should('be.visible');
 
         return selector.within(() => {
             if (options.label) {
@@ -210,9 +208,9 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
             cy.get('.rdp .rdp-nav_button_previous').click();
         }
         const pastDay = pastDate.getDate().toString();
-        cy.get('.rdp').find('.rdp-day:not(.rdp-day_outside)')
-            .filter((i, el) => el.textContent.trim() === pastDay)
-            .should('have.class', 'rdp-day_disabled').and('be.disabled');
+        cy.get('.rdp').find('.rdp-day:not(.rdp-day_outside)').
+            filter((i, el) => el.textContent.trim() === pastDay).
+            should('have.class', 'rdp-day_disabled').and('be.disabled');
 
         // * Verify a future date is enabled and select it (use +2 days for midnight safety)
         const {day: futureDay, needsNextMonth} = getSelectableDay(2);
@@ -223,10 +221,10 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
         if (needsNextMonth) {
             cy.get('.rdp .rdp-nav_button_next').click();
         }
-        cy.get('.rdp').find('.rdp-day:not(.rdp-day_outside)')
-            .filter((i, el) => el.textContent.trim() === futureDay)
-            .should('not.have.class', 'rdp-day_disabled').and('not.be.disabled')
-            .first().click();
+        cy.get('.rdp').find('.rdp-day:not(.rdp-day_outside)').
+            filter((i, el) => el.textContent.trim() === futureDay).
+            should('not.have.class', 'rdp-day_disabled').and('not.be.disabled').
+            first().click();
 
         // * Verify date selection
         cy.get('#appsModal').within(() => {
@@ -484,7 +482,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
 
     it('MM-T2530R - Timezone support (dropdown)', function() {
         // Skip if running in London timezone (can't test timezone conversion)
-        const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const userTimezone = new Intl.DateTimeFormat().resolvedOptions().timeZone;
         if (userTimezone === 'Europe/London' || userTimezone === 'GMT' || userTimezone.includes('London')) {
             this.skip();
         }
@@ -530,7 +528,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
 
     it('MM-T2530S - Timezone support (manual entry)', function() {
         // Skip if running in London timezone
-        const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const userTimezone = new Intl.DateTimeFormat().resolvedOptions().timeZone;
         if (userTimezone === 'Europe/London' || userTimezone === 'GMT' || userTimezone.includes('London')) {
             this.skip();
         }

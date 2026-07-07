@@ -4,7 +4,10 @@
 import React from 'react';
 import type {ComponentProps} from 'react';
 
+import type {ChannelWithTeamData} from '@mattermost/types/channels';
+
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import Constants from 'utils/constants';
 
 import TeamPolicyEditor from './team_policy_editor';
 
@@ -26,11 +29,16 @@ jest.mock('hooks/useChannelAccessControlActions', () => ({
 }));
 
 describe('TeamPolicyEditor', () => {
+    const publicChannel = {id: 'public-channel', team_id: 'team1', name: 'public-channel', display_name: 'Public Channel', type: Constants.OPEN_CHANNEL} as ChannelWithTeamData;
+    const privateChannel = {id: 'private-channel', team_id: 'team1', name: 'private-channel', display_name: 'Private Channel', type: Constants.PRIVATE_CHANNEL} as ChannelWithTeamData;
+
     const defaultProps: ComponentProps<typeof TeamPolicyEditor> = {
         teamId: 'team1',
         accessControlSettings: {
             EnableAttributeBasedAccessControl: true,
             EnableUserManagedAttributes: false,
+            TrustProxyDeviceIdentityHeader: false,
+            EnforceDeviceIDConsistency: false,
         },
         onNavigateBack: jest.fn(),
         actions: {
@@ -125,6 +133,91 @@ describe('TeamPolicyEditor', () => {
         );
         await waitFor(() => {
             expect(screen.getByText('Delete policy')).toBeInTheDocument();
+        });
+    });
+
+    test('should show mixed channel notice when existing policy has public and private channels', async () => {
+        const fetchPolicy = jest.fn().mockResolvedValue({
+            data: {id: 'p1', name: 'Existing', rules: [{expression: 'true', actions: ['*']}]},
+        });
+        const searchChannels = jest.fn().mockResolvedValue({data: {total_count: 2, channels: [publicChannel, privateChannel]}});
+
+        renderWithContext(
+            <TeamPolicyEditor
+                {...defaultProps}
+                policyId='p1'
+                actions={{...defaultProps.actions, fetchPolicy, searchChannels}}
+            />,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('Membership policies affect public and private channels differently')).toBeInTheDocument();
+        });
+        expect(screen.getByText(/On private channels, only matching users can join/)).toBeInTheDocument();
+    });
+
+    test('should not show mixed channel notice when policy has only public channels', async () => {
+        const fetchPolicy = jest.fn().mockResolvedValue({
+            data: {id: 'p1', name: 'Existing', rules: [{expression: 'true', actions: ['*']}]},
+        });
+        const searchChannels = jest.fn().mockResolvedValue({data: {total_count: 1, channels: [publicChannel]}});
+
+        renderWithContext(
+            <TeamPolicyEditor
+                {...defaultProps}
+                policyId='p1'
+                actions={{...defaultProps.actions, fetchPolicy, searchChannels}}
+            />,
+        );
+
+        await waitFor(() => {
+            expect(searchChannels).toHaveBeenCalledWith('p1', '', {per_page: 1000});
+        });
+        expect(screen.queryByText('Membership policies affect public and private channels differently')).not.toBeInTheDocument();
+    });
+
+    test('should hide mixed channel notice when pending removals leave only public channels', async () => {
+        const fetchPolicy = jest.fn().mockResolvedValue({
+            data: {id: 'p1', name: 'Existing', rules: [{expression: 'true', actions: ['*']}]},
+        });
+        const searchChannels = jest.fn().mockResolvedValue({data: {total_count: 2, channels: [publicChannel, privateChannel]}});
+
+        renderWithContext(
+            <TeamPolicyEditor
+                {...defaultProps}
+                policyId='p1'
+                actions={{...defaultProps.actions, fetchPolicy, searchChannels}}
+            />,
+            {
+                entities: {
+                    admin: {
+                        channelsForAccessControlPolicy: {
+                            p1: [publicChannel.id, privateChannel.id],
+                        },
+                    },
+                    channels: {
+                        channels: {
+                            [publicChannel.id]: publicChannel,
+                            [privateChannel.id]: privateChannel,
+                        },
+                    },
+                    teams: {
+                        teams: {
+                            team1: {id: 'team1', display_name: 'Test Team', name: 'test-team'},
+                        },
+                    },
+                },
+            },
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('Membership policies affect public and private channels differently')).toBeInTheDocument();
+        });
+
+        await userEvent.click(document.getElementById('remove-channel-private-channel')!);
+
+        await waitFor(() => {
+            expect(screen.queryByText('Membership policies affect public and private channels differently')).not.toBeInTheDocument();
         });
     });
 });

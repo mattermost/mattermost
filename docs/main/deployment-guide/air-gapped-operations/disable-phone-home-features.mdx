@@ -1,0 +1,90 @@
+---
+title: Disable Phone-Home Features
+sidebar_position: 4
+description: Complete inventory of outbound network calls Mattermost makes, and the settings to disable each one for air-gapped operation.
+---
+
+<EditionAvailability tiers="free,professional,enterprise,enterprise-advanced" />
+<DeploymentAvailability modes="self-hosted,air-gapped" />
+
+# Disable Phone-Home Features
+
+Mattermost makes a small set of outbound network calls during normal operation. In an air-gapped enclave these calls fail silently — they do not affect functionality, but they pollute egress logs and may trigger boundary alerts. Disable each one explicitly so the cluster makes **zero** unexpected outbound connections.
+
+This page is the **single canonical inventory** of phone-home behavior. Every outbound call Mattermost initiates from the server process is listed below with its purpose, target, and the setting that disables it.
+
+:::important Use this list as a checklist
+Run through every row of the table below as a Day-1 task. After the cluster is up, packet-capture at the enclave boundary should show no outbound connections to any of the targets listed.
+:::
+
+## Outbound call inventory
+
+| Feature | Outbound target | Disable in `config.json` |
+|---|---|---|
+| Anonymous diagnostics telemetry | `telemetry.mattermost.com` | `LogSettings.EnableDiagnostics = false` |
+| Security update notifications | `security.mattermost.com` | `ServiceSettings.EnableSecurityFixAlert = false` |
+| Plugin Marketplace catalog | `api.integrations.mattermost.com` | `PluginSettings.EnableMarketplace = false` |
+| Automated license utilization reporting | `customers.mattermost.com` | `ServiceSettings.EnableLicenseReporting = false` *(see [Offline License Activation](./offline-license-activation))* |
+| In-product version check | `releases.mattermost.com` | `ServiceSettings.EnableLatestVersionCheck = false` |
+| In-product notices feed | `notices.mattermost.com` | `AnnouncementSettings.AdminNoticesEnabled = false` and `AnnouncementSettings.UserNoticesEnabled = false` |
+| Image proxy for inline images | varies (per-image origin) | `ImageProxySettings.Enable = false` *(in air-gapped mode, inline images from external URLs are blocked at the network layer anyway)* |
+| Outbound webhooks / slash commands | per-integration URL | Disable individual integrations in **System Console → Integrations** |
+| Apple Push Notification Service (APNs) | `api.push.apple.com` | Use mediated push proxy — *Push Notifications without Direct APNs / FCM Egress* (Phase 2) |
+| Google Firebase Cloud Messaging (FCM) | `fcm.googleapis.com` | Use mediated push proxy — Phase 2 |
+| Bleve search index download (first start) | `releases.mattermost.com` | Pre-stage Bleve index on internal mirror; see [Mirror Package Repositories](./mirror-package-repositories) |
+| Plugin install from URL | per-plugin URL | Plugins must be installed via `mmctl plugin add` from local file system; do not use URL install |
+
+## Recommended `config.json` snippet
+
+```json
+{
+  "ServiceSettings": {
+    "EnableSecurityFixAlert": false,
+    "EnableLicenseReporting": false,
+    "EnableLatestVersionCheck": false
+  },
+  "LogSettings": {
+    "EnableDiagnostics": false
+  },
+  "PluginSettings": {
+    "EnableMarketplace": false
+  },
+  "AnnouncementSettings": {
+    "AdminNoticesEnabled": false,
+    "UserNoticesEnabled": false
+  },
+  "ImageProxySettings": {
+    "Enable": false
+  }
+}
+```
+
+Apply this snippet via configuration management (Ansible, Salt, etc.) rather than editing `config.json` by hand. The Mattermost Operator (Kubernetes) accepts these settings via the `MattermostInstallation` CR's `mattermostConfig` field.
+
+## Cross-cutting concerns
+
+### What this does *not* disable
+
+These settings disable **Mattermost-initiated** outbound calls. They do **not** disable:
+
+- **OS-level callbacks** (NTP, DNS, distribution-package updaters). Manage these via your OS hardening profile, not Mattermost configuration.
+- **User-initiated outbound calls** (link unfurling when a user pastes a public URL into a channel). Mattermost respects the enclave's network policy here — link unfurling will simply fail.
+- **Plugin-initiated outbound calls**. Each plugin has its own outbound behavior. Audit each plugin you install. The Mattermost Calls plugin in particular requires careful egress configuration; see [Calls Deployment](../) (top-level Deployment Guide → Calls Deployment section, expanded in Phase 2).
+
+### Verification
+
+After applying the snippet and restarting Mattermost:
+
+1. Tail the server log for one hour during steady-state traffic.
+2. Grep the log for any of the disabled targets:
+   ```
+   grep -E '(telemetry|security|releases|notices|customers|api.integrations)\.mattermost\.com' mattermost.log
+   ```
+   Expected output: **none**.
+3. Run a packet capture at the enclave boundary for one hour. Confirm zero connections to any row of the table above.
+
+If any outbound call is observed despite the settings being applied, file a security issue at `security@mattermost.com`. In an air-gapped enclave, you may need to send this out-of-band via your security liaison.
+
+## Reference
+
+This page consolidates phone-home behavior previously scattered across multiple admin configuration pages. The canonical home for this inventory is here under Air-Gapped Operations because the Air-Gapped Operator persona (`docs/_redesign/personas.md` §4 in the repo) is the primary consumer.

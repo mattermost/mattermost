@@ -1,0 +1,348 @@
+/* Intelligent Mission Environment diagram — v2.
+ *
+ * Tighter visual match to the brand infographic:
+ * - Application zone visibly contained in a denim wash + border
+ * - Intro panels are NOT clickable cards; they're text columns with a
+ *   marigold left-edge accent (brand-aligned, signals "category label")
+ * - Use Case cells use a soft denim-tinted background, not white-on-white
+ * - All clickable cells share the same white-with-marigold-on-hover treatment
+ * - Section titles get a thin marigold underline for visual rhythm
+ */
+
+.diagram {
+  margin: 2rem 0 2.5rem;
+  border: 1px solid var(--mm-border-subtle, rgba(30, 50, 92, 0.18));
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--mm-color-white);
+  box-shadow: 0 4px 18px -14px rgba(30, 50, 92, 0.4);
+}
+
+[data-theme='dark'] .diagram {
+  background: var(--mm-denim-700, #121E37);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* === Layer scaffold (vertical denim label on left + content area on right) === */
+
+.layer {
+  display: grid;
+  grid-template-columns: 2rem 1fr;
+  border-top: 1px solid var(--mm-border-subtle, rgba(30, 50, 92, 0.15));
+}
+.layer:first-child {
+  border-top: none;
+}
+
+.layerLabel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--mm-color-denim, #1E325C);
+  color: var(--mm-color-white, #fff);
+  font-family: var(--mm-font-sans);
+  font-weight: 800;
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  padding: 0.85rem 0;
+}
+
+.layerBody {
+  padding: 0.9rem 1rem;
+  background: var(--mm-bg-page, #fff);
+}
+
+[data-theme='dark'] .layerBody {
+  background: var(--mm-denim-800, #0C1424);
+}
+
+/* Application zone gets a stronger denim wash to visibly contain it,
+   matching the original infographic where the whole Application block
+   reads as one tinted panel. */
+.layerApplication .layerBody {
+  background: var(--mm-denim-50, rgba(30, 50, 92, 0.05));
+}
+[data-theme='dark'] .layerApplication .layerBody {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* === Use Cases row — 3 horizontal cells, soft grey-tinted === */
+
+.useCaseRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+}
+
+.useCaseRow .cell {
+  background: var(--mm-denim-50, rgba(30, 50, 92, 0.045));
+  border-color: transparent;
+}
+.useCaseRow .cell:hover {
+  background: var(--mm-color-white, #fff);
+  border-color: var(--mm-color-marigold, #FFBC1F);
+}
+[data-theme='dark'] .useCaseRow .cell {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: transparent;
+}
+
+/* === Intro panels (Application / Integration / Deployment left column) ===
+   Not clickable. Marigold left-edge accent for visual rhythm. */
+
+.appIntro,
+.intIntro,
+.depIntro {
+  padding: 0.25rem 0.6rem 0.25rem 0.7rem;
+  border-left: 3px solid var(--mm-color-marigold, #FFBC1F);
+}
+
+.appIntro h3,
+.intIntro h3,
+.depIntro h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--mm-font-sans);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--mm-color-denim, #1E325C);
+  margin: 0 0 0.4rem;
+  letter-spacing: -0.005em;
+  line-height: 1.25;
+}
+
+.introIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 1.2rem;
+  height: 1.2rem;
+  color: var(--mm-color-marigold, #FFBC1F);
+}
+
+.introIcon svg {
+  width: 100%;
+  height: 100%;
+}
+
+[data-theme='dark'] .appIntro h3,
+[data-theme='dark'] .intIntro h3,
+[data-theme='dark'] .depIntro h3 {
+  color: var(--mm-color-white);
+}
+
+.appIntro p,
+.intIntro p,
+.depIntro p {
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--mm-text-secondary, var(--mm-text-primary));
+  margin: 0;
+}
+
+/* === Application grid: intro + 5 product cards === */
+
+.appGrid {
+  display: grid;
+  grid-template-columns: minmax(190px, 1.1fr) 3.4fr;
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.productGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
+}
+
+.appFooter {
+  display: grid;
+  /* Footer strips read as standalone bands — balanced columns so neither
+   * label wraps mid-phrase. (The grid above intentionally mirrors the
+   * intro/products asymmetry; the footer doesn't need to.) */
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 0.65rem;
+}
+
+.footerCell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-align: center;
+  border: 1px solid var(--mm-border-subtle, rgba(30, 50, 92, 0.15));
+  border-radius: 4px;
+  background: var(--mm-bg-page, #fff);
+  color: var(--mm-text-primary);
+  text-decoration: none;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.footerIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--mm-color-marigold, #FFBC1F);
+}
+
+.footerIcon svg {
+  width: 100%;
+  height: 100%;
+}
+.footerCell:hover {
+  border-color: var(--mm-color-marigold, #FFBC1F);
+  background: var(--mm-marigold-100, rgba(255, 188, 31, 0.08));
+  color: var(--mm-text-primary);
+  text-decoration: none;
+}
+
+[data-theme='dark'] .footerCell {
+  background: var(--mm-denim-700, #121E37);
+  color: var(--mm-color-white);
+}
+
+/* === Integration & Deployment grids === */
+
+.intGrid,
+.depGrid {
+  display: grid;
+  grid-template-columns: minmax(190px, 1.1fr) 1.7fr 1.7fr;
+  gap: 1rem;
+  align-items: stretch;
+}
+
+/* === Cell — the reusable clickable unit === */
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--mm-border-subtle, rgba(30, 50, 92, 0.18));
+  border-radius: 4px;
+  background: var(--mm-bg-page, #fff);
+  color: var(--mm-text-primary);
+  text-decoration: none;
+  transition: border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+}
+.cell:hover {
+  border-color: var(--mm-color-marigold, #FFBC1F);
+  box-shadow: 0 4px 14px -10px rgba(30, 50, 92, 0.35);
+  text-decoration: none;
+  color: var(--mm-text-primary);
+  transform: translateY(-1px);
+}
+
+[data-theme='dark'] .cell {
+  background: var(--mm-denim-700, #121E37);
+  color: var(--mm-color-white);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+[data-theme='dark'] .cell:hover {
+  color: var(--mm-color-white);
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.45rem;
+  height: 1.45rem;
+  color: var(--mm-color-marigold, #FFBC1F);
+  margin-bottom: 0.15rem;
+}
+
+.icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.cellBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.cellTitle {
+  font-family: var(--mm-font-sans);
+  font-weight: 700;
+  font-size: 0.82rem;
+  line-height: 1.25;
+  color: var(--mm-color-denim, #1E325C);
+}
+
+[data-theme='dark'] .cellTitle {
+  color: var(--mm-color-white);
+}
+
+.cellText {
+  font-size: 0.74rem;
+  line-height: 1.4;
+  color: var(--mm-text-secondary, var(--mm-text-primary));
+}
+
+.cellText ul {
+  margin: 0.2rem 0 0;
+  padding-left: 0.95rem;
+  list-style: disc;
+}
+
+.cellText li {
+  margin: 0.08rem 0;
+}
+
+/* === Use Case cells get larger title + tighter sub-text — readable at row scale === */
+
+.useCaseRow .cellTitle {
+  font-size: 0.95rem;
+}
+.useCaseRow .cellText {
+  font-size: 0.78rem;
+}
+
+/* === Responsive collapse === */
+
+@media (max-width: 980px) {
+  .appGrid,
+  .intGrid,
+  .depGrid {
+    grid-template-columns: 1fr;
+  }
+  .productGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .appFooter {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .useCaseRow {
+    grid-template-columns: 1fr;
+  }
+  .productGrid {
+    grid-template-columns: 1fr;
+  }
+  .layer {
+    grid-template-columns: 1fr;
+  }
+  .layerLabel {
+    writing-mode: horizontal-tb;
+    transform: none;
+    padding: 0.4rem 0.85rem;
+    justify-content: flex-start;
+    font-size: 0.65rem;
+  }
+}

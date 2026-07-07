@@ -39,6 +39,13 @@ func (a *App) SaveScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		return nil, model.NewAppError("App.scheduledPostPreSaveChecks", "app.save_scheduled_post.channel_deleted.app_error", map[string]any{"user_id": scheduledPost.UserId, "channel_id": scheduledPost.ChannelId}, "", http.StatusBadRequest)
 	}
 
+	scheduledPost, appErr = a.runGuardedScheduledPostWillBeCreated(rctx, scheduledPost, "SaveScheduledPost", func(reason string) *model.AppError {
+		return model.NewAppError("SaveScheduledPost", "app.scheduled_post.save.rejected_by_plugin", map[string]any{"Reason": reason}, "", http.StatusBadRequest)
+	})
+	if appErr != nil {
+		return nil, appErr
+	}
+
 	savedScheduledPost, err := a.Srv().Store().ScheduledPost().CreateScheduledPost(scheduledPost)
 	if err != nil {
 		return nil, model.NewAppError("App.ScheduledPost", "app.save_scheduled_post.save.app_error", map[string]any{"user_id": scheduledPost.UserId, "channel_id": scheduledPost.ChannelId}, "", http.StatusBadRequest).Wrap(err)
@@ -85,6 +92,14 @@ func (a *App) UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost
 	// This step is not required for update but is useful as we want to return the
 	// updated scheduled post. It's better to do this before calling update than after.
 	scheduledPost.RestoreNonUpdatableFields(existingScheduledPost)
+
+	var appErr *model.AppError
+	scheduledPost, appErr = a.runGuardedScheduledPostWillBeCreated(rctx, scheduledPost, "UpdateScheduledPost", func(reason string) *model.AppError {
+		return model.NewAppError("UpdateScheduledPost", "app.scheduled_post.update.rejected_by_plugin", map[string]any{"Reason": reason}, "", http.StatusBadRequest)
+	})
+	if appErr != nil {
+		return nil, appErr
+	}
 
 	if err := a.Srv().Store().ScheduledPost().UpdatedScheduledPost(scheduledPost); err != nil {
 		return nil, model.NewAppError("app.UpdateScheduledPost", "app.update_scheduled_post.update.error", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPost.Id}, "", http.StatusInternalServerError).Wrap(err)

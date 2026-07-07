@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 export default class EmojiGifPicker {
     readonly container: Locator;
@@ -15,7 +16,7 @@ export default class EmojiGifPicker {
 
         this.gifTab = container.getByText('GIFs');
         this.gifSearchInput = container.getByPlaceholder('Search GIPHY');
-        this.gifPickerItems = container.locator('.gif-picker__items');
+        this.gifPickerItems = container.getByTestId('gif-picker-items');
     }
 
     async toBeVisible() {
@@ -47,8 +48,8 @@ export default class EmojiGifPicker {
     async getNthGif(n: number) {
         await expect(this.gifPickerItems).toBeVisible();
 
-        await this.gifPickerItems.locator('img').nth(n).waitFor();
-        const nthGif = this.gifPickerItems.locator('img').nth(n);
+        await this.gifPickerItems.getByRole('img').nth(n).waitFor();
+        const nthGif = this.gifPickerItems.getByRole('img').nth(n);
         await expect(nthGif).toBeVisible();
 
         const nthGifSrc = await nthGif.getAttribute('src');

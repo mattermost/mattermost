@@ -12,7 +12,7 @@ type Props = {
     option: FilterOption;
     optionKey: string;
     updateValues: (values: FilterValues, optionKey: string) => void;
-}
+};
 
 const FilterList = ({
     option,

@@ -44,7 +44,7 @@ func TestSaveEnterpriseAdvancedLicense(t *testing.T) {
 	license := &model.License{
 		Id: model.NewId(),
 		Features: &model.Features{
-			Users: model.NewPointer(100),
+			Users: new(100),
 		},
 		Customer: &model.Customer{
 			Name:  "TestName",

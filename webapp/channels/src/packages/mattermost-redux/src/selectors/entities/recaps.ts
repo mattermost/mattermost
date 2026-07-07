@@ -65,3 +65,27 @@ export const getReadRecaps = createSelector(
     },
 );
 
+const getRecapsSlice = (state: GlobalState) => state.entities.recaps;
+
+export const getUnreadFinishedRecapsBadge = createSelector(
+    'getUnreadFinishedRecapsBadge',
+    getRecapsSlice,
+    ({byId, allIds}) => {
+        let count = 0;
+        let hasFailed = false;
+        for (const id of allIds) {
+            const recap = byId[id];
+            if (!recap || recap.viewed_at !== 0) {
+                continue;
+            }
+            if (recap.status === RecapStatus.COMPLETED) {
+                count++;
+            } else if (recap.status === RecapStatus.FAILED) {
+                count++;
+                hasFailed = true;
+            }
+        }
+        return {count, hasFailed};
+    },
+);
+

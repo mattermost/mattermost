@@ -304,6 +304,19 @@ func (a *App) UpdateTeamPrivacy(teamID string, teamType string, allowOpenInvite 
 }
 
 func (a *App) PatchTeam(teamID string, patch *model.TeamPatch) (*model.Team, *model.AppError) {
+	if patch.GroupConstrained != nil && *patch.GroupConstrained {
+		// Group sync and ABAC are mutually exclusive on a team; block enabling
+		// group sync while a team membership policy is attached. The assign
+		// side enforces the converse in ValidateTeamEligibilityForAccessControl.
+		existing, appErr := a.GetTeam(teamID)
+		if appErr != nil {
+			return nil, appErr
+		}
+		if existing.PolicyEnforced {
+			return nil, model.NewAppError("PatchTeam", "api.team.update.group_constrained.policy_exists", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	team, err := a.ch.srv.teamService.PatchTeam(teamID, patch)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -772,6 +785,49 @@ func (a *App) AddUserToTeamByInviteId(rctx request.CTX, inviteId string, userID 
 
 func (a *App) JoinUserToTeam(rctx request.CTX, team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError) {
 	preSaveHook := func(tm *model.TeamMember) (*model.TeamMember, error) {
+		// ABAC membership enforcement is mode-dependent: on a public team the policy
+		// is advisory and join always proceeds without consulting the PDP. Only
+		// non-public teams gate strictly. The public test mirrors isPublicTeam in
+		// the API layer, so any half-configured team falls through to strict.
+		if !(team.AllowOpenInvite && team.Type == model.TeamOpen) {
+			// Strict mode. ABAC enforcement runs before the plugin hook so a denied
+			// join never reaches plugin code, and fails closed on every error path.
+			if ok, appErr := a.TeamAccessControlled(rctx, team.Id); appErr != nil {
+				return nil, appErr
+			} else if ok {
+				acs := a.Srv().Channels().AccessControl
+				if acs == nil {
+					// The team is policy-governed but the PDP is unavailable. Fail
+					// closed with the generic denial rather than admit an unevaluated
+					// join — never a silent allow.
+					return nil, model.NewAppError("JoinUserToTeam", "api.team.add_user.to.team.rejected", nil, "", http.StatusForbidden)
+				}
+
+				// BuildAccessControlSubject is channel-coupled: its last arg resolves a
+				// channel-scoped role. Team membership evaluates identity attributes only,
+				// so pass an empty channelID and attach no scoped role.
+				s, buildErr := a.BuildAccessControlSubject(rctx, user.Id, user.Roles, "")
+				if buildErr != nil {
+					return nil, model.NewAppError("JoinUserToTeam", "api.team.add_user.to.team.abac_subject_build_failed.app_error", nil,
+						fmt.Sprintf("failed to build subject: %v, user_id: %s, team_id: %s", buildErr, user.Id, team.Id), http.StatusInternalServerError)
+				}
+
+				decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
+					Subject: *s,
+					Resource: model.Resource{
+						Type: model.AccessControlPolicyTypeTeam,
+						ID:   team.Id,
+					},
+					Action: model.AccessControlPolicyActionMembership,
+				})
+				if evalErr != nil {
+					return nil, evalErr
+				} else if !decision.Decision {
+					return nil, model.NewAppError("JoinUserToTeam", "api.team.add_user.to.team.rejected", nil, "", http.StatusForbidden)
+				}
+			}
+		}
+
 		var rejectionReason string
 		pluginContext := pluginContext(rctx)
 		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
@@ -898,6 +954,50 @@ func (a *App) GetTeams(teamIDs []string) ([]*model.Team, *model.AppError) {
 	}
 
 	return teams, nil
+}
+
+// TeamMembershipAccessControlEnabled reports whether attribute-based team
+// membership is fully switched on: the TeamMembershipAccessControl feature flag,
+// an Enterprise Advanced license, and the ABAC config setting. It gates every
+// team membership ABAC surface — the join gate, directory hiding, and the
+// governed-team listing — so they activate together and stay dark otherwise.
+func (a *App) TeamMembershipAccessControlEnabled() bool {
+	if !a.Config().FeatureFlags.TeamMembershipAccessControl {
+		return false
+	}
+	if l := a.License(); !model.MinimumEnterpriseAdvancedLicense(l) || !*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
+		return false
+	}
+	return true
+}
+
+// TeamAccessControlled reports whether the team enforces an ABAC membership
+// policy. Mirrors ChannelAccessControlled, with one addition: it also gates on
+// the TeamMembershipAccessControl feature flag so team enforcement can ship
+// dark and roll out independently of channel ABAC (which is GA on the umbrella
+// flag). When the flag, license, or config is off it returns (false, nil) and
+// no team join is ever ABAC-evaluated. A hydration error returns (false, err)
+// — fail-closed, never a silent (false, nil).
+func (a *App) TeamAccessControlled(rctx request.CTX, teamID string) (bool, *model.AppError) {
+	if !a.TeamMembershipAccessControlEnabled() {
+		return false, nil
+	}
+
+	team, err := a.Srv().Store().Team().Get(teamID)
+	var nfErr *store.ErrNotFound
+	if err != nil && !errors.As(err, &nfErr) {
+		return false, model.NewAppError("TeamAccessControlled", "app.team.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	} else if errors.As(err, &nfErr) {
+		return false, nil
+	}
+
+	if appErr := a.HydrateTeamPolicyActions(rctx, team); appErr != nil {
+		// Fail-closed: a hydration error must not silently downgrade an
+		// ABAC-controlled team to "unrestricted" for the join gate.
+		return false, appErr
+	}
+
+	return team.HasMembershipPolicyAction(), nil
 }
 
 func (a *App) GetTeamByName(name string) (*model.Team, *model.AppError) {
@@ -1283,8 +1383,8 @@ func (a *App) LeaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 	for _, channel := range channelList {
 		if !channel.IsGroupOrDirect() {
 			a.invalidateCacheForChannelMembers(channel.Id)
-			if nErr = a.Srv().Store().Channel().RemoveMember(rctx, channel.Id, user.Id); nErr != nil {
-				return model.NewAppError("LeaveTeam", "app.channel.remove_member.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			if appErr := a.removeChannelMembership(rctx, user.Id, channel.Id, "LeaveTeam"); appErr != nil {
+				return appErr
 			}
 		}
 	}
@@ -1492,7 +1592,7 @@ func (a *App) InviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *mod
 	return inviteListWithErrors, nil
 }
 
-func (a *App) prepareInviteGuestsToChannels(teamID string, guestsInvite *model.GuestsInvite, senderId string) (*model.User, *model.Team, []*model.Channel, *model.AppError) {
+func (a *App) prepareInviteGuestsToChannels(rctx request.CTX, teamID string, guestsInvite *model.GuestsInvite, senderId string) (*model.User, *model.Team, []*model.Channel, *model.AppError) {
 	if err := guestsInvite.IsValid(); err != nil {
 		return nil, nil, nil, err
 	}
@@ -1546,13 +1646,24 @@ func (a *App) prepareInviteGuestsToChannels(teamID string, guestsInvite *model.G
 	}
 	team := teamChanResult.Data
 
+	// Channels come straight from Store().Channel().GetChannelsByIds and
+	// thus haven't traversed the App.GetChannel hydration seam. Hydrate
+	// the action map explicitly so the policy check below can distinguish
+	// a membership policy from a permission-only one.
+	if appErr := a.HydrateChannelsPolicyActions(rctx, channels); appErr != nil {
+		return nil, nil, nil, appErr
+	}
+
 	for _, channel := range channels {
 		if channel.TeamId != teamID {
 			return nil, nil, nil, model.NewAppError("prepareInviteGuestsToChannels", "api.team.invite_guests.channel_in_invalid_team.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		// Check if the channel has access control policy enforcement
-		if channel.PolicyEnforced {
+		// Reject guest invites only when the channel's policy controls
+		// membership. Permission-only policies (e.g. file upload
+		// restrictions) do not gate joins and so must not block guest
+		// invites.
+		if channel.HasMembershipPolicyAction() {
 			return nil, nil, nil, model.NewAppError("prepareInviteGuestsToChannels", "api.team.invite_guests.policy_enforced_channel.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
@@ -1565,7 +1676,7 @@ func (a *App) InviteGuestsToChannelsGracefully(rctx request.CTX, teamID string, 
 		return nil, model.NewAppError("InviteGuestsToChannelsGracefully", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	user, team, channels, err := a.prepareInviteGuestsToChannels(teamID, guestsInvite, senderId)
+	user, team, channels, err := a.prepareInviteGuestsToChannels(rctx, teamID, guestsInvite, senderId)
 	if err != nil {
 		return nil, err
 	}
@@ -1668,7 +1779,7 @@ func (a *App) InviteGuestsToChannels(rctx request.CTX, teamID string, guestsInvi
 		return model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	user, team, channels, err := a.prepareInviteGuestsToChannels(teamID, guestsInvite, senderId)
+	user, team, channels, err := a.prepareInviteGuestsToChannels(rctx, teamID, guestsInvite, senderId)
 	if err != nil {
 		return err
 	}
@@ -1825,6 +1936,8 @@ func (a *App) PermanentDeleteTeam(rctx request.CTX, team *model.Team) *model.App
 		return model.NewAppError("PermanentDeleteTeam", "app.team.permanent_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	a.cleanupTeamAccessControlPolicy(rctx, team, "delete")
+
 	if appErr := a.sendTeamEvent(team, model.WebsocketEventDeleteTeam); appErr != nil {
 		return appErr
 	}
@@ -1857,11 +1970,72 @@ func (a *App) SoftDeleteTeam(teamID string) *model.AppError {
 		}
 	}
 
+	a.cleanupTeamAccessControlPolicy(request.EmptyContext(a.Log()), team, "archive")
+
 	if appErr := a.sendTeamEvent(team, model.WebsocketEventDeleteTeam); appErr != nil {
 		return appErr
 	}
 
 	return nil
+}
+
+// cleanupTeamAccessControlPolicy removes the team-scope ABAC policy row, if
+// any, for a team being archived or permanently deleted. Mirrors
+// cleanupChannelAccessControlPolicy: an orphaned policy row would still be
+// picked up by the sync worker and surface in policy-enforced searches.
+// Failures are logged but never returned — deleting/archiving a team must not
+// be blocked by an ABAC cleanup error.
+//
+// We deliberately do not gate on team.PolicyEnforced: that flag is derived
+// from the AccessControlPolicies table and can be stale, which would cause us
+// to skip cleanup and leave an orphan. DeletePolicy is a no-op when no row
+// exists, so calling it unconditionally is safe. When the enterprise service
+// is unavailable or reports the op unsupported, we fall back to deleting the
+// row directly through the store.
+func (a *App) cleanupTeamAccessControlPolicy(rctx request.CTX, team *model.Team, trigger string) {
+	if team == nil || team.Id == "" {
+		return
+	}
+
+	// Emit an audit record only when the team has an active policy. Callers
+	// fetch the team just before this call so PolicyEnforced is current.
+	// The unconditional delete below still runs regardless (see function doc).
+	var auditRec *model.AuditRecord
+	if team.PolicyEnforced {
+		auditRec = a.MakeAuditRecord(rctx, model.AuditEventDeleteTeamAccessPolicy, model.AuditStatusFail)
+		defer a.LogAuditRec(rctx, auditRec, nil)
+		model.AddEventParameterToAuditRec(auditRec, "team_id", team.Id)
+		model.AddEventParameterToAuditRec(auditRec, "trigger", trigger)
+	}
+
+	useStoreFallback := false
+	acs := a.Srv().Channels().AccessControl
+	if acs == nil {
+		useStoreFallback = true
+	} else if appErr := acs.DeletePolicy(rctx, team.Id); appErr != nil {
+		switch appErr.StatusCode {
+		case http.StatusNotImplemented, http.StatusNotAcceptable:
+			useStoreFallback = true
+		default:
+			rctx.Logger().Warn("Failed to delete team ABAC policy during team delete/archive",
+				mlog.String("team_id", team.Id),
+				mlog.Err(appErr),
+			)
+		}
+	} else if auditRec != nil {
+		auditRec.Success()
+	}
+
+	if useStoreFallback {
+		if err := a.Srv().Store().AccessControlPolicy().Delete(rctx, team.Id); err != nil {
+			rctx.Logger().Warn("Failed to delete team ABAC policy during team delete/archive",
+				mlog.String("team_id", team.Id),
+				mlog.Err(err),
+			)
+		} else if auditRec != nil {
+			auditRec.Success()
+		}
+	}
 }
 
 func (a *App) RestoreTeam(teamID string) *model.AppError {

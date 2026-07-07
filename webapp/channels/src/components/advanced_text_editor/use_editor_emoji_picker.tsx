@@ -8,6 +8,7 @@ import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {EmoticonHappyOutlineIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Emoji, SystemEmoji} from '@mattermost/types/emojis';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
@@ -15,7 +16,6 @@ import {getEmojiName, isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
 
 import useEmojiPicker, {useEmojiPickerOffset} from 'components/emoji_picker/use_emoji_picker';
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import WithTooltip from 'components/with_tooltip';
 
 import {unifiedToUnicode} from 'utils/emoji_utils';
 import {focusAndInsertText} from 'utils/exec_commands';
@@ -29,6 +29,7 @@ const useEditorEmojiPicker = (
     textboxId: string,
     isDisabled: boolean,
     shouldShowPreview: boolean,
+    insertWysiwygText?: (text: string) => void,
 ) => {
     const intl = useIntl();
 
@@ -43,18 +44,21 @@ const useEditorEmojiPicker = (
     }, []);
 
     const insertTextAtCaret = useCallback((text: string) => {
+        if (insertWysiwygText) {
+            insertWysiwygText(text);
+            return;
+        }
+
         const textbox = document.getElementById(textboxId) as HTMLTextAreaElement | undefined;
         if (!textbox) {
             return;
         }
 
-        // Only add a space before the inserted text if we're not at the start of the textarea and there's not already
-        // a space there, but always add a space after the inserted text
         const needsSpaceBefore = textbox.selectionStart !== 0 && !(/\s/).test(textbox.value[textbox.selectionStart - 1]);
         const textToBeAdded = needsSpaceBefore ? ` ${text} ` : `${text} `;
 
         focusAndInsertText(textbox, textToBeAdded);
-    }, [textboxId]);
+    }, [textboxId, insertWysiwygText]);
 
     const handleEmojiClick = useCallback((emoji: Emoji) => {
         if (isSystemEmoji(emoji)) {

@@ -18,7 +18,7 @@ import type {PropsFromRedux} from './index';
 
 const TEAMS_PER_PAGE = 50;
 
-type TeamSelectOption = {label: string; value: string}
+type TeamSelectOption = {label: string; value: string};
 
 export interface Props extends PropsFromRedux {
     option: FilterOption;

@@ -158,6 +158,36 @@ func (_m *RecapStore) MarkRecapAsRead(id string) error {
 	return r0
 }
 
+// MarkRecapsAsViewed provides a mock function with given fields: userId, statuses
+func (_m *RecapStore) MarkRecapsAsViewed(userId string, statuses []string) ([]string, error) {
+	ret := _m.Called(userId, statuses)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MarkRecapsAsViewed")
+	}
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, []string) ([]string, error)); ok {
+		return rf(userId, statuses)
+	}
+	if rf, ok := ret.Get(0).(func(string, []string) []string); ok {
+		r0 = rf(userId, statuses)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, []string) error); ok {
+		r1 = rf(userId, statuses)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // SaveRecap provides a mock function with given fields: recap
 func (_m *RecapStore) SaveRecap(recap *model.Recap) (*model.Recap, error) {
 	ret := _m.Called(recap)

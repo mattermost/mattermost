@@ -4,6 +4,8 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import IPFilteringEarthSvg from 'components/common/svg_images_components/ip_filtering_earth_svg';
 
 type NoFiltersPanelProps = {
@@ -30,12 +32,12 @@ const NoFiltersPanel = ({setShowAddModal}: NoFiltersPanelProps) => (
                 defaultMessage='Any IP can access your workspace. To limit access to selected IP Addresses, <add>Add a filter</add>.'
                 values={{
                     add: (msg) => (
-                        <div
+                        <Button
                             onClick={() => setShowAddModal(true)}
-                            className='btn btn-primary'
+                            emphasis='primary'
                         >
                             {msg}
-                        </div>
+                        </Button>
                     ),
                 }}
             />

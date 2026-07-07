@@ -1,0 +1,87 @@
+---
+title: "Manage your notifications"
+draft: true
+---
+<PlanAvailability slug="all-commercial" />
+
+Mattermost notifies you of new activity you're directly involved in. How you're notified depends on what Mattermost client you're using, the type of Mattermost activity you're being notified about, and how you prefer to be notified.
+
+<Tip>
+
+**Missing notifications?**
+
+- Your mobile device may have Mattermost notifications disabled. See the [manage your mobile notifications](/end-user-guide/preferences/manage-your-mobile-notifications#enable-notifications) for details.
+- You may need to grant permissions in the Mattermost [desktop app](/end-user-guide/preferences/manage-your-desktop-notifications#enable-notifications) or [web browser](/end-user-guide/preferences/manage-your-web-notifications#enable-notifications) to show notifications.
+- Visit our [troubleshoot notifications](/end-user-guide/preferences/troubleshoot-notifications) documentation for guidance on ensuring you receive Mattermost notifications.
+
+</Tip>
+
+## You're in control
+
+You are in control of how, when, and where you're notified of activity that matters to you based on how you prefer to work and collaborate. To access notification preferences:
+
+- In a web browser or the desktop app, select the **Settings** <img src="/img/ui/settings-outline_F08BB.svg" alt="Use the Settings icon to customize your Mattermost user experience." className="theme-icon" /> icon located in the top right corner of the screen to manage your notification preferences.
+- On mobile, tap your profile picture, then tap **Settings \> Notifications**.
+
+See the [Default notifications](#default-notifications) table below for details on customizing your notification experience based on your preferred Mattermost client.
+
+<Tip>
+
+From Mattermost v9.8, your desktop and mobile notification preferences have been combined together under **Notifications**. If you're using an older Mattermost release and older Mattermost clients, you'll find separate preferences for desktop and mobile.
+
+</Tip>
+
+## Default notifications
+
+Mattermost notifies you of new activity, including unread activity, [direct](/end-user-guide/collaborate/channel-types#direct-message-channels) and [group](/end-user-guide/collaborate/channel-types#group-message-channels) messages, and [@mentions](/end-user-guide/preferences/manage-your-mentions-keywords-notifications), [keywords](/end-user-guide/preferences/manage-your-mentions-keywords-notifications) you're actively watching, [thread replies](/end-user-guide/preferences/manage-your-thread-reply-notifications), and unread activity in [specific channels](/end-user-guide/preferences/manage-your-channel-specific-notifications).
+
+The table below lists the types of notifications you can expect to see and hear in Mattermost. Select your preferred Mattermost clients to learn more about notifications for that client.
+
+<table style={{width: '99%'}}>
+<colgroup>
+<col style={{width: '14%'}} />
+<col style={{width: '30%'}} />
+<col style={{width: '54%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td rowspan="2"><blockquote><p><strong>Notification Type</strong></p></blockquote><dl><dt>=======================</dt><dd><p>Icon badge (dot)</p><p><img src="../../images/dot-badge.png" width="50" alt="A dot on the badge means you have unread activity in at least one channel you&#39;re a member of." /></p></dd></dl></td>
+<td rowspan="2"><blockquote><p><strong>What it Means</strong></p></blockquote><dl><dt>===================================================</dt><dd><p>You have unread activity in at least 1 channel you're a member of</p></dd></dl></td>
+<td rowspan="2"><blockquote><p><strong>Which Mattermost Clients?</strong> |</p></blockquote><dl><dt>==================================================================================+</dt><dd><p><a href="mm-doc:%2Fend-user-guide%2Fpreferences%2Fmanage-your-web-notifications">Web</a>, <a href="mm-doc:%2Fend-user-guide%2Fpreferences%2Fmanage-your-desktop-notifications">Desktop</a> |</p></dd></dl></td>
+</tr>
+<tr>
+</tr>
+<tr>
+<td><p>Icon badge (number)</p><p><img src="../../images/numbered-badge.png" width="50" alt="A numbered badge means you have at least 1 unread message, @mention, or one of your keywords has triggered a notification." /></p></td>
+<td rowspan="3">You have at least 1 unread message with an @mention, or a match to a keyword you're watching</td>
+<td><a href="mm-doc:%2Fend-user-guide%2Fpreferences%2Fmanage-your-web-notifications">Web</a> &amp; <a href="mm-doc:%2Fend-user-guide%2Fpreferences%2Fmanage-your-desktop-notifications">Desktop</a> &amp; <a href="mm-doc:%2Fend-user-guide%2Fpreferences%2Fmanage-your-mobile-notifications">Mobile</a></td>
+</tr>
+<tr>
+<td>Banner alert popups</td>
+<td><a href="mm-doc:%2Fend-user-guide%2Fpreferences%2Fmanage-your-web-notifications">Web</a> &amp; <a href="mm-doc:%2Fend-user-guide%2Fpreferences%2Fmanage-your-desktop-notifications">Desktop</a></td>
+</tr>
+<tr>
+<td>Push notifications</td>
+<td><dl><dt><a href="mm-doc:%2Fend-user-guide%2Fpreferences%2Fmanage-your-mobile-notifications">Mobile</a></dt><dd><div class="line-block"></div></dd></dl></td>
+</tr>
+<tr>
+<td>Alert sounds</td>
+<td>You have at least 1 unread message with an @mention, a match to a keyword you're watching, or replies to a thread you're following</td>
+<td><a href="mm-doc:%2Fend-user-guide%2Fpreferences%2Fmanage-your-web-notifications">Web</a>, <a href="mm-doc:%2Fend-user-guide%2Fpreferences%2Fmanage-your-desktop-notifications">Desktop</a>, &amp; <a href="mm-doc:%2Fend-user-guide%2Fpreferences%2Fmanage-your-mobile-notifications">Mobile</a></td>
+</tr>
+</tbody>
+</table>
+
+### Email notifications
+
+When your admin [enables email notifications](/administration-guide/configure/site-configuration-settings#enable-email-notifications), Mattermost notifications are sent to you via email for [@mentions](/end-user-guide/collaborate/mention-people) and [direct messages](/end-user-guide/collaborate/channel-types#direct-message-channels) as soon as you're away from Mattermost for 5 minutes.
+
+You can also opt in to be notified by email about thread replies you're following.
+
+Additionally, if your admin [enables email batching](/administration-guide/configure/site-configuration-settings#enable-email-batching), email-based notifications are batched, and you can customize how frequenly you receive batched notifications by going to **Settings \> Notifications \> Email notifications**. The default frequency is 15 minutes. Choosing every 15 minutes or every hour will reduce the number of emails you receive.
+
+Disable email notifications by going to **Settings \> Notifications \> Email notifications** and changing **On** to **Off**.
+
+## Missing notifications?
+
+Visit the Mattermost [notifications Knowledge Base article](https://support.mattermost.com/hc/en-us/articles/19161390661780-Troubleshooting-Mattermost-Notifications) for additional troubleshooting tips and tricks.

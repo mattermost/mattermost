@@ -4,9 +4,9 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {useSelector} from 'react-redux';
 
-import {usePluginVisibilityInSharedChannel} from 'components/common/hooks/usePluginVisibilityInSharedChannel';
 import CopyButton from 'components/copy_button';
 
+import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
 import * as SyntaxHighlighting from 'utils/syntax_highlighting';
 import * as TextFormatting from 'utils/text_formatting';
 
@@ -16,10 +16,9 @@ type Props = {
     code: string;
     language: string;
     searchedContent?: string;
-    channelId?: string;
-}
+};
 
-const CodeBlock: React.FC<Props> = ({code, language, searchedContent, channelId}: Props) => {
+const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) => {
     const getUsedLanguage = useCallback(() => {
         let usedLanguage = language || '';
         usedLanguage = usedLanguage.toLowerCase();
@@ -84,9 +83,7 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent, channelId}
     }
 
     const codeBlockActions = useSelector((state: GlobalState) => state.plugins.components.CodeBlockAction);
-    const pluginItemsVisible = usePluginVisibilityInSharedChannel(channelId);
-
-    const pluginItems = pluginItemsVisible ? codeBlockActions?.
+    const pluginItems = codeBlockActions?.
         map((item) => {
             if (!item.component) {
                 return null;
@@ -94,12 +91,16 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent, channelId}
 
             const Component = item.component as any;
             return (
-                <Component
+                <PluggableErrorBoundary
                     key={item.id}
-                    code={code}
-                />
+                    pluginId={item.pluginId}
+                >
+                    <Component
+                        code={code}
+                    />
+                </PluggableErrorBoundary>
             );
-        }) : [];
+        });
 
     return (
         <div className={className}>

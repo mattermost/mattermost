@@ -219,9 +219,9 @@ func TestPatchBot(t *testing.T) {
 		}()
 
 		botPatch := &model.BotPatch{
-			Username:    model.NewPointer("invalid username"),
-			DisplayName: model.NewPointer("an updated bot"),
-			Description: model.NewPointer("updated bot"),
+			Username:    new("invalid username"),
+			DisplayName: new("an updated bot"),
+			Description: new("updated bot"),
 		}
 
 		_, err = th.App.PatchBot(th.Context, bot.UserId, botPatch)
@@ -244,9 +244,9 @@ func TestPatchBot(t *testing.T) {
 		}()
 
 		botPatch := &model.BotPatch{
-			Username:    model.NewPointer("username"),
-			DisplayName: model.NewPointer("display name"),
-			Description: model.NewPointer(strings.Repeat("x", 1025)),
+			Username:    new("username"),
+			DisplayName: new("display name"),
+			Description: new(strings.Repeat("x", 1025)),
 		}
 
 		_, err = th.App.PatchBot(th.Context, bot.UserId, botPatch)
@@ -272,9 +272,9 @@ func TestPatchBot(t *testing.T) {
 		}()
 
 		botPatch := &model.BotPatch{
-			Username:    model.NewPointer("username2"),
-			DisplayName: model.NewPointer("updated bot"),
-			Description: model.NewPointer("an updated bot"),
+			Username:    new("username2"),
+			DisplayName: new("updated bot"),
+			Description: new("an updated bot"),
 		}
 
 		patchedBot, err := th.App.PatchBot(th.Context, createdBot.UserId, botPatch)
@@ -306,7 +306,7 @@ func TestPatchBot(t *testing.T) {
 		}()
 
 		botPatch := &model.BotPatch{
-			Username: model.NewPointer(th.BasicUser2.Username),
+			Username: new(th.BasicUser2.Username),
 		}
 
 		_, err = th.App.PatchBot(th.Context, bot.UserId, botPatch)

@@ -3,10 +3,26 @@
 
 import React from 'react';
 
+jest.mock('components/channel_type_icon/compass_icon_resolver', () => ({
+    compassIconForName: jest.fn(),
+}));
+
+jest.mock('utils/channel_utils', () => ({
+    ...jest.requireActual('utils/channel_utils'),
+    getArchiveIconComponent: jest.fn(() => (props: Record<string, unknown>) => (
+        <span
+            data-is-default-archive='true'
+            {...props}
+        />
+    )),
+}));
+
 import {PostPriority} from '@mattermost/types/posts';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Posts} from 'mattermost-redux/constants';
+
+import {compassIconForName} from 'components/channel_type_icon';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
@@ -399,9 +415,9 @@ describe('PostComponent', () => {
 
     describe('file list', () => {
         test('should show file list in post', () => {
-            const fileInfo1 = TestHelper.getFileInfoMock({id: 'fileId1', name: 'file1.jpg'});
-            const fileInfo2 = TestHelper.getFileInfoMock({id: 'fileId2', name: 'file2.jpg'});
-            const fileInfo3 = TestHelper.getFileInfoMock({id: 'fileId3', name: 'file3.jpg'});
+            const fileInfo1 = TestHelper.getFileInfoMock({id: 'fileId1', name: 'file1.jpg', delete_at: 0});
+            const fileInfo2 = TestHelper.getFileInfoMock({id: 'fileId2', name: 'file2.jpg', delete_at: 0});
+            const fileInfo3 = TestHelper.getFileInfoMock({id: 'fileId3', name: 'file3.jpg', delete_at: 0});
 
             const post = TestHelper.getPostMock({file_ids: [fileInfo1.id, fileInfo2.id, fileInfo3.id]});
 
@@ -432,10 +448,11 @@ describe('PostComponent', () => {
 
             const {container} = renderWithContext(<PostComponent {...props}/>, state);
             expect(screen.getByTestId('fileAttachmentList')).toBeInTheDocument();
-            expect(container.querySelectorAll('.post-image__column')).toHaveLength(3);
-            expect(container.querySelectorAll('.post-image__column')[0]).toHaveTextContent(fileInfo1.name);
-            expect(container.querySelectorAll('.post-image__column')[1]).toHaveTextContent(fileInfo2.name);
-            expect(container.querySelectorAll('.post-image__column')[2]).toHaveTextContent(fileInfo3.name);
+            const tiles = container.querySelectorAll('[data-testid="media-gallery-tile"]');
+            expect(tiles).toHaveLength(3);
+            expect(tiles[0]?.getAttribute('data-file-name')).toBe(fileInfo1.name);
+            expect(tiles[1]?.getAttribute('data-file-name')).toBe(fileInfo2.name);
+            expect(tiles[2]?.getAttribute('data-file-name')).toBe(fileInfo3.name);
         });
 
         test('should show file list in edit container when editing', async () => {
@@ -654,7 +671,7 @@ describe('PostComponent', () => {
             expect(screen.queryByLabelText(/AI-generated|Message posted by/)).not.toBeInTheDocument();
         });
 
-        test('should not show AI-generated indicator for consecutive posts', () => {
+        test('should show AI-generated indicator for consecutive AI posts', () => {
             const props = {
                 ...baseProps,
                 post: aiGeneratedPost,
@@ -663,7 +680,7 @@ describe('PostComponent', () => {
             };
             renderWithContext(<PostComponent {...props}/>);
 
-            expect(screen.queryByLabelText(/AI-generated|Message posted by/)).not.toBeInTheDocument();
+            expect(screen.getByLabelText('Message posted by @aibot')).toBeInTheDocument();
         });
 
         test('should show AI-generated indicator in PostUserProfile for compact mode in CENTER', () => {
@@ -681,7 +698,7 @@ describe('PostComponent', () => {
             expect(indicators.length).toBe(1);
         });
 
-        test('should hide AI-generated indicator for consecutive posts in threads', () => {
+        test('should show AI-generated indicator for consecutive AI posts in threads', () => {
             const threadPost = TestHelper.getPostMock({
                 channel_id: channel.id,
                 root_id: 'root_post_id',
@@ -699,7 +716,7 @@ describe('PostComponent', () => {
             };
             renderWithContext(<PostComponent {...props}/>);
 
-            expect(screen.queryByLabelText(/AI-generated|Message posted by/)).not.toBeInTheDocument();
+            expect(screen.getByLabelText('Message posted by @aibot')).toBeInTheDocument();
         });
 
         test('should show AI-generated indicator for non-consecutive posts in threads', () => {
@@ -722,5 +739,196 @@ describe('PostComponent', () => {
 
             expect(screen.getByLabelText('Message posted by @aibot')).toBeInTheDocument();
         });
+    });
+
+    describe('plugin channel icon override', () => {
+        const mockedCompassIconForName = jest.mocked(compassIconForName);
+
+        afterEach(() => {
+            mockedCompassIconForName.mockReset();
+        });
+
+        test('renders override SVG icon for archived channel in search view when plugin matches', () => {
+            const StubIcon = ({size, color, className}: {size?: number; color?: string; className?: string}) => (
+                <span
+                    data-testid='stub-override-icon'
+                    data-size={size}
+                    data-color={color}
+                    className={className}
+                />
+            );
+            mockedCompassIconForName.mockReturnValue(StubIcon as any);
+
+            const props = {
+                ...baseProps,
+                channelIsArchived: true,
+                channelType: 'O' as any,
+                channel,
+                location: Locations.SEARCH,
+                isMentionSearch: true,
+            };
+
+            const state = {
+                plugins: {
+                    components: {
+                        ChannelIconOverride: [{
+                            id: '1',
+                            pluginId: 'test-plugin',
+                            matcher: () => true,
+                            iconName: 'shield-outline',
+                        }],
+                    },
+                },
+            } as any;
+
+            renderWithContext(<PostComponent {...props}/>, state);
+            const overrideIcon = screen.getByTestId('stub-override-icon');
+            expect(overrideIcon).toBeInTheDocument();
+
+            // Override icon gets svg-text-color (greyed to signal archived) but not the built-in archive icon classes
+            expect(overrideIcon).toHaveClass('svg-text-color');
+            expect(overrideIcon).not.toHaveClass('channel-header-archived-icon');
+
+            // No "Archived" tooltip when override wins (parent is aria-hidden; tooltip adds no a11y value)
+            expect(screen.queryByText('Archived')).not.toBeInTheDocument();
+
+            // Default archive icon is absent when override wins
+            expect(document.querySelector('[data-is-default-archive]')).not.toBeInTheDocument();
+        });
+
+        test('renders default SVG archive icon when no plugin matcher matches', () => {
+            mockedCompassIconForName.mockReturnValue(null);
+
+            const props = {
+                ...baseProps,
+                channelIsArchived: true,
+                channelType: 'O' as any,
+                channel,
+                location: Locations.SEARCH,
+                isMentionSearch: true,
+            };
+
+            const state = {
+                plugins: {
+                    components: {
+                        ChannelIconOverride: [{
+                            id: '1',
+                            pluginId: 'test-plugin',
+                            matcher: () => false,
+                            iconName: 'shield-outline',
+                        }],
+                    },
+                },
+            } as any;
+
+            const {container} = renderWithContext(<PostComponent {...props}/>, state);
+            expect(screen.queryByTestId('stub-override-icon')).not.toBeInTheDocument();
+            expect(container.querySelector('.search-channel__archived')).toBeInTheDocument();
+
+            // Default archive icon is present in the fallback path
+            expect(document.querySelector('[data-is-default-archive]')).toBeInTheDocument();
+        });
+    });
+});
+
+describe('PostComponent — PostHeader plugin component render site', () => {
+    const currentTeam = TestHelper.getTeamMock();
+    const channel = TestHelper.getChannelMock({team_id: currentTeam.id});
+
+    const baseProps: Props = {
+        center: false,
+        currentTeam,
+        currentUserId: 'currentUserId',
+        displayName: '',
+        hasReplies: false,
+        isBot: false,
+        isCollapsedThreadsEnabled: true,
+        isFlagged: false,
+        isMobileView: false,
+        isPostAcknowledgementsEnabled: false,
+        isPostPriorityEnabled: false,
+        permissionPoliciesEnabled: false,
+        location: Locations.CENTER,
+        post: TestHelper.getPostMock({channel_id: channel.id}),
+        recentEmojis: [],
+        replyCount: 0,
+        team: currentTeam,
+        pluginActions: [],
+        burnOnReadDurationMinutes: 10,
+        actions: {
+            markPostAsUnread: jest.fn(),
+            emitShortcutReactToLastPostFrom: jest.fn(),
+            selectPost: jest.fn(),
+            selectPostFromRightHandSideSearch: jest.fn(),
+            removePost: jest.fn(),
+            closeRightHandSide: jest.fn(),
+            selectPostCard: jest.fn(),
+            setRhsExpanded: jest.fn(),
+            revealBurnOnReadPost: jest.fn(),
+            savePreferences: jest.fn(),
+            openModal: jest.fn(),
+            closeModal: jest.fn(),
+            highlightPostInChannelPopout: jest.fn(),
+        },
+        isChannelAutotranslated: false,
+    };
+
+    // A real plugin-registered component rendered through Pluggable — not mocked away, so the
+    // test exercises the same Pluggable path the host uses in production.
+    const PluginBadge = () => <div data-testid='post-header-plugin'/>;
+
+    function stateWithPluginBadge() {
+        return {
+            plugins: {
+                components: {
+                    PostHeader: [{
+                        id: 'badge-1',
+                        pluginId: 'test-plugin',
+                        component: PluginBadge,
+                    }],
+                },
+            },
+        } as any;
+    }
+
+    it('renders a registered PostHeader component in the badges area', () => {
+        renderWithContext(<PostComponent {...baseProps}/>, stateWithPluginBadge());
+        expect(screen.getByTestId('post-header-plugin')).toBeInTheDocument();
+    });
+
+    it('does not render the component on a consecutive CENTER post (timestamp is hidden)', () => {
+        renderWithContext(
+            <PostComponent
+                {...baseProps}
+                isConsecutivePost={true}
+            />,
+            stateWithPluginBadge(),
+        );
+        expect(screen.queryByTestId('post-header-plugin')).not.toBeInTheDocument();
+    });
+
+    it('does not render the component on a consecutive RHS_COMMENT post (timestamp is reflowed to narrow style)', () => {
+        renderWithContext(
+            <PostComponent
+                {...baseProps}
+                isConsecutivePost={true}
+                location={Locations.RHS_COMMENT}
+            />,
+            stateWithPluginBadge(),
+        );
+        expect(screen.queryByTestId('post-header-plugin')).not.toBeInTheDocument();
+    });
+
+    it('renders the component on a consecutive RHS_COMMENT post in compactDisplay mode (timestamp stays in badges area)', () => {
+        renderWithContext(
+            <PostComponent
+                {...baseProps}
+                isConsecutivePost={true}
+                location={Locations.RHS_COMMENT}
+                compactDisplay={true}
+            />,
+            stateWithPluginBadge(),
+        );
+        expect(screen.getByTestId('post-header-plugin')).toBeInTheDocument();
     });
 });

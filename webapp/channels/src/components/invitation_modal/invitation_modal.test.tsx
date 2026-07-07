@@ -236,4 +236,56 @@ describe('InvitationModal', () => {
         expect(guestChannelsWithSearch.length).toBe(1);
         expect(guestChannelsWithSearch[0].id).toBe('regular-channel');
     });
+
+    it('keeps permission-only-policy channels selectable for guest invites', async () => {
+        // Bug-fix regression: a channel with ONLY a permission policy (e.g.
+        // upload_file_attachment) has policy_enforced=true but no membership
+        // action. The server-side guest-invite gate in
+        // prepareInviteGuestsToChannels reads policy_actions.membership, and
+        // the client must do the same — otherwise guest invites silently
+        // drop channels the backend would happily accept.
+        const regularChannel = TestHelper.getChannelMock({
+            id: 'regular-channel',
+            display_name: 'Regular Channel',
+            name: 'regular-channel',
+            policy_enforced: false,
+        });
+        const permissionOnlyChannel = TestHelper.getChannelMock({
+            id: 'permission-only-channel',
+            display_name: 'Permission Only Channel',
+            name: 'permission-only-channel',
+            policy_enforced: true,
+            policy_actions: {upload_file_attachment: true},
+        });
+
+        const localProps = {
+            ...props,
+            invitableChannels: [regularChannel, permissionOnlyChannel],
+        };
+
+        const ref = React.createRef<InvitationModal>();
+        renderWithContext(
+            <InvitationModal
+                {...localProps}
+                ref={ref}
+            />,
+            state,
+        );
+        const instance = ref.current!;
+
+        act(() => {
+            instance.setState({
+                invite: {
+                    ...instance.state.invite,
+                    inviteType: 'GUEST',
+                },
+            });
+        });
+
+        const guestChannels = await instance.channelsLoader('');
+        expect(guestChannels.map((c) => c.id)).toEqual(
+            expect.arrayContaining(['regular-channel', 'permission-only-channel']),
+        );
+        expect(guestChannels.length).toBe(2);
+    });
 });

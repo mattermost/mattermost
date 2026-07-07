@@ -24,6 +24,7 @@ import {closeModal} from 'actions/views/modals';
 import {getListing, getInstalledListing} from 'selectors/views/marketplace';
 import {isModalOpen} from 'selectors/views/modals';
 
+import usePluginStatusesSync from 'components/common/hooks/usePluginStatusesSync';
 import LoadingScreen from 'components/loading_screen';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
 
@@ -58,7 +59,9 @@ const MarketplaceModal = () => {
     const show = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.PLUGIN_MARKETPLACE));
     const listing = useSelector(getListing);
     const installedListing = useSelector(getInstalledListing);
-    const pluginStatuses = useSelector((state: GlobalState) => state.entities.admin.pluginStatuses);
+
+    // Refetch plugin statuses while the modal is open whenever the server signals a change.
+    const pluginStatuses = usePluginStatusesSync();
     const hasFirstAdminVisitedMarketplace = useSelector(getFirstAdminVisitMarketplaceStatus);
     const isStreamlinedMarketplaceEnabled = useSelector(streamlinedMarketplaceEnabled);
     const license = useSelector(getLicense);

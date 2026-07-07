@@ -528,7 +528,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "force_download", forceDownload)
 
-	fileInfos, storeErr := c.App.Srv().Store().FileInfo().GetByIds([]string{c.Params.FileId}, true, true)
+	fileInfos, storeErr := c.App.Srv().Store().FileInfo().GetByIds([]string{c.Params.FileId}, true, true, false)
 	if storeErr != nil {
 		c.Err = model.NewAppError("getFile", "api.file.get_file_info.app_error", nil, "", http.StatusInternalServerError)
 		setInaccessibleFileHeader(w, c.Err)

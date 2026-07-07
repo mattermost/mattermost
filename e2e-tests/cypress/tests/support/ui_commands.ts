@@ -4,7 +4,7 @@
 import localforage from 'localforage';
 
 import * as TIMEOUTS from '../fixtures/timeouts';
-import {ChainableT} from '../types';
+import type {ChainableT} from '../types';
 import {isMac} from '../utils';
 
 // ***********************************************************
@@ -474,6 +474,7 @@ function updateChannelHeader(text: string) {
 
     // # Edit channel header in the modal
     cy.get('#channel_settings_header_textbox').
+        scrollIntoView().
         should('be.visible').
         clear().
         type(text);
@@ -542,8 +543,8 @@ function checkRunLDAPSync() {
                 return cy.get('@firstRow').then((el) => {
                     return el.find('.status-icon-success').length > 0;
                 });
-            }
-            , {
+            },
+            {
                 timeout: TIMEOUTS.FIVE_MIN,
                 interval: TIMEOUTS.TWO_SEC,
                 errorMsg: 'AD/LDAP Sync Job did not finish',

@@ -383,6 +383,16 @@ func extractByFuncName(name string, args []ast.Expr) *string {
 			return nil
 		}
 		return &key.Value
+	} else if name == "TranslationId" {
+		if len(args) == 0 {
+			return nil
+		}
+
+		key, ok := args[0].(*ast.BasicLit)
+		if !ok {
+			return nil
+		}
+		return &key.Value
 	} else if name == "NewAppError" {
 		if len(args) < 2 {
 			return nil

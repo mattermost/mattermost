@@ -15,7 +15,7 @@ export type DraggingState = {
     state?: string;
     type?: string;
     id?: string;
-}
+};
 
 export type GlobalState = BaseGlobalState & {
     plugins: PluginsState;
@@ -59,5 +59,5 @@ export type ActionFuncAsync<
  */
 export type ThunkActionFunc<
     ReturnType,
-    State extends GlobalState = GlobalState
+    State extends GlobalState = GlobalState,
 > = MMReduxTypes.ThunkActionFunc<ReturnType, State, MMAction>;

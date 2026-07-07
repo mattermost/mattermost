@@ -158,9 +158,7 @@ func (ch *Channels) syncPluginsActiveState() {
 		pluginsEnvironment.Shutdown()
 	}
 
-	if err := ch.notifyPluginStatusesChanged(); err != nil {
-		ch.srv.Log().Warn("failed to notify plugin status changed", mlog.Err(err))
-	}
+	ch.notifyPluginStatusesChanged()
 }
 
 func (a *App) NewPluginAPI(rctx request.CTX, manifest *model.Manifest) plugin.API {

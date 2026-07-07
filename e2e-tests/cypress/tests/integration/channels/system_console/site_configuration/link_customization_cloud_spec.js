@@ -28,7 +28,7 @@ describe('SupportSettings', () => {
             [
                 {text: 'Ask the community', link: SupportSettings.ASK_COMMUNITY_LINK},
                 {text: 'Mattermost user guide', link: SupportSettings.MATTERMOST_USER_GUIDE},
-                {text: 'Report a problem', link: SupportSettings.REPORT_A_PROBLEM_LINK},
+                {text: 'Report a problem', link: 'mailto:reportaproblem@mattermost.com'},
                 {text: 'Keyboard shortcuts'},
             ].forEach(({text, link}) => {
                 if (link) {

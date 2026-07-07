@@ -27,7 +27,7 @@ export type Props = {
     type?: InputTypes;
     autoFocus?: boolean;
     multiple?: boolean;
-}
+};
 
 function TextSetting(props: Props) {
     const {labelClassName = '', inputClassName = '', maxLength = -1, resizable = true, type = 'text'} = props;

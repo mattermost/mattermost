@@ -48,14 +48,17 @@
                     background-color: rgba(0, 0, 0, 0.05);
                 }
 
-                .policy-name {
+                .policy-name,
+                .policy-resources {
+                    overflow: hidden;
                     width: 100%;
-                    padding: 10px 0;
+                    box-sizing: border-box;
+                    padding: 10px 16px 10px 0;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
                 }
 
                 .policy-resources {
-                    width: 100%;
-                    padding: 10px 0;
                     text-align: left;
                 }
 

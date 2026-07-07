@@ -4,6 +4,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {AccessControlPolicy, AccessControlPolicyActiveUpdate} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts} from '@mattermost/types/channels';
 import type {AccessControlSettings} from '@mattermost/types/config';
@@ -150,8 +151,9 @@ const TeamAccessPoliciesTab = ({team, accessControlSettings, setAreThereUnsavedC
                         defaultMessage='Channel membership policies'
                     />
                 </h4>
-                <button
-                    className='btn btn-primary TeamAccessPoliciesTab__add-btn'
+                <Button
+                    emphasis='primary'
+                    className='TeamAccessPoliciesTab__add-btn'
                     onClick={handleAddPolicy}
                 >
                     <i className='icon icon-plus'/>
@@ -159,7 +161,7 @@ const TeamAccessPoliciesTab = ({team, accessControlSettings, setAreThereUnsavedC
                         id='team_settings.access_policies.add_policy'
                         defaultMessage='Add policy'
                     />
-                </button>
+                </Button>
             </div>
             <PolicyList
                 key={refreshKey}

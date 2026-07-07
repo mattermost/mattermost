@@ -18,6 +18,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 	searchenginemocks "github.com/mattermost/mattermost/server/v8/platform/services/searchengine/mocks"
@@ -63,6 +64,14 @@ func setupWatcherTest(t *testing.T) (*searchEngineWatcher, *searchenginemocks.Se
 	engineMock.On("GetName").Return("test-engine").Maybe()
 	engineMock.On("IsHealthy").Return(true).Maybe()
 	engineMock.On("SetHealthy", mock.Anything).Maybe()
+
+	// Make backfillPostsChannelType return immediately by indicating the backfill
+	// is already done. This prevents the goroutine from calling unmocked store
+	// methods in tests that only exercise watcher retry/health logic.
+	systemMock := &storemocks.SystemStore{}
+	systemMock.On("GetByName", model.SystemPostChannelTypeBackfillComplete).
+		Return(&model.System{Name: model.SystemPostChannelTypeBackfillComplete, Value: "true"}, nil).Maybe()
+	ps.Store.(*storemocks.Store).On("System").Return(systemMock).Maybe()
 
 	ps.SearchEngine = searchengine.NewBroker(ps.Config())
 	ps.SearchEngine.ElasticsearchEngine = engineMock
@@ -697,7 +706,7 @@ func TestWatcherHealthFlag(t *testing.T) {
 
 		require.Eventually(t, func() bool {
 			require.NoError(t, w.ps.Logger().Flush())
-			return testlib.CheckLog(t, strings.NewReader(logBuffer.String()), "",
+			return testlib.CheckLog(t, strings.NewReader(logBuffer.String()), mlog.LvlWarn.Name,
 				"Search engine health check failed: it is now marked as unhealthy")
 		}, 2*time.Second, 5*time.Millisecond,
 			"expected log for healthy->unhealthy transition")
@@ -711,7 +720,7 @@ func TestWatcherHealthFlag(t *testing.T) {
 
 		require.Eventually(t, func() bool {
 			require.NoError(t, w.ps.Logger().Flush())
-			return testlib.CheckLog(t, strings.NewReader(logBuffer.String()), "",
+			return testlib.CheckLog(t, strings.NewReader(logBuffer.String()), mlog.LvlInfo.Name,
 				"Search engine health check succeeded: it is now marked as healthy")
 		}, 2*time.Second, 5*time.Millisecond,
 			"expected log for unhealthy->healthy transition")

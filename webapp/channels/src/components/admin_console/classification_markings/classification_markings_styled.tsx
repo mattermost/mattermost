@@ -3,7 +3,28 @@
 
 import styled from 'styled-components';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import {SectionContent} from '../system_properties/controls';
+
+export const GlobalBannerSectionContent = styled(SectionContent).attrs({
+    $compact: true,
+})`
+    &&& {
+        padding: 24px;
+    }
+`;
+
+export const GlobalBannerSectionSetting = styled.div`
+    min-height: 36px;
+    margin-top: 24px;
+`;
+
+export const LevelOptionLabel = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+`;
 
 export const InformationNoticeWrapper = styled.div`
     margin-bottom: 16px;
@@ -71,9 +92,9 @@ export const AddLevelButtonRow = styled.div`
     margin-left: 16px;
 `;
 
-export const AddLevelButton = styled.button.attrs({
+export const AddLevelButton = styled(Button).attrs({
     type: 'button',
-    className: 'btn btn-tertiary',
+    emphasis: 'tertiary',
 })`
     && {
         padding-inline: 16px;

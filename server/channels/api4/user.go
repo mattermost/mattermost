@@ -66,9 +66,9 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/mfa", api.APISessionRequiredMfa(updateUserMfa)).Methods(http.MethodPut)
 	api.BaseRoutes.User.Handle("/mfa/generate", api.APISessionRequiredMfa(generateMfaSecret)).Methods(http.MethodPost)
 
-	api.BaseRoutes.Users.Handle("/login", api.RateLimitedHandler(api.APIHandler(login), model.RateLimitSettings{PerSec: model.NewPointer(5), MaxBurst: model.NewPointer(10)})).Methods(http.MethodPost)
+	api.BaseRoutes.Users.Handle("/login", api.RateLimitedHandler(api.APIHandler(login), model.RateLimitSettings{PerSec: new(5), MaxBurst: new(10)})).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/sso/code-exchange", api.APIHandler(loginSSOCodeExchange)).Methods(http.MethodPost)
-	api.BaseRoutes.Users.Handle("/login/desktop_token", api.RateLimitedHandler(api.APIHandler(loginWithDesktopToken), model.RateLimitSettings{PerSec: model.NewPointer(2), MaxBurst: model.NewPointer(1)})).Methods(http.MethodPost)
+	api.BaseRoutes.Users.Handle("/login/desktop_token", api.RateLimitedHandler(api.APIHandler(loginWithDesktopToken), model.RateLimitSettings{PerSec: new(2), MaxBurst: new(1)})).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/switch", api.APIHandler(switchAccountType)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/cws", api.APIHandlerTrustRequester(loginCWS)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/type", api.APIHandler(getLoginType)).Methods(http.MethodPost)
@@ -76,18 +76,22 @@ func (api *API) InitUser() {
 
 	api.BaseRoutes.UserByUsername.Handle("", api.APISessionRequired(getUserByUsername)).Methods(http.MethodGet)
 	api.BaseRoutes.UserByEmail.Handle("", api.APISessionRequired(getUserByEmail)).Methods(http.MethodGet)
+	api.BaseRoutes.Users.Handle("/auth_data", api.APISessionRequired(getUserByAuthData)).Methods(http.MethodGet)
 
 	api.BaseRoutes.User.Handle("/sessions", api.APISessionRequired(getSessions)).Methods(http.MethodGet)
 	api.BaseRoutes.User.Handle("/sessions/revoke", api.APISessionRequired(revokeSession)).Methods(http.MethodPost)
 	api.BaseRoutes.User.Handle("/sessions/revoke/all", api.APISessionRequired(revokeAllSessionsForUser)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/sessions/revoke/all", api.APISessionRequired(revokeAllSessionsAllUsers)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/sessions/device", api.APISessionRequired(handleDeviceProps)).Methods(http.MethodPut)
+	api.BaseRoutes.Users.Handle("/sessions/attributes/manifest", api.APIHandler(getSessionAttributesManifest)).Methods(http.MethodGet)
 	api.BaseRoutes.User.Handle("/audits", api.APISessionRequired(getUserAudits)).Methods(http.MethodGet)
 
 	api.BaseRoutes.User.Handle("/tokens", api.APISessionRequired(createUserAccessToken)).Methods(http.MethodPost)
 	api.BaseRoutes.User.Handle("/tokens", api.APISessionRequired(getUserAccessTokensForUser)).Methods(http.MethodGet)
 	api.BaseRoutes.Users.Handle("/tokens", api.APISessionRequired(getUserAccessTokens)).Methods(http.MethodGet)
 	api.BaseRoutes.Users.Handle("/tokens/search", api.APISessionRequired(searchUserAccessTokens)).Methods(http.MethodPost)
+	api.BaseRoutes.Users.Handle("/tokens/non_compliant/count", api.APISessionRequired(countNonCompliantUserAccessTokens)).Methods(http.MethodGet)
+	api.BaseRoutes.Users.Handle("/tokens/non_compliant/revoke", api.APISessionRequired(revokeNonCompliantUserAccessTokens)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/tokens/{token_id:[A-Za-z0-9]+}", api.APISessionRequired(getUserAccessToken)).Methods(http.MethodGet)
 	api.BaseRoutes.Users.Handle("/tokens/revoke", api.APISessionRequired(revokeUserAccessToken)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/tokens/disable", api.APISessionRequired(disableUserAccessToken)).Methods(http.MethodPost)
@@ -210,7 +214,10 @@ func loginSSOCodeExchange(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	isMobile := utils.IsMobileRequest(r)
-	session, err2 := c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, false, true)
+	session, err2 := c.App.DoLogin(c.AppContext, w, r, user, model.LoginOptions{
+		IsMobile: isMobile,
+		IsSaml:   true,
+	})
 	if err2 != nil {
 		c.Err = err2
 		return
@@ -458,6 +465,61 @@ func getUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set(model.HeaderEtagServer, etag)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func getUserByAuthData(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.IsSystemAdmin() {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+	authData := r.URL.Query().Get("value")
+	if authData == "" {
+		c.SetInvalidParam("value")
+		return
+	}
+	if len(authData) > model.UserAuthDataMaxLength {
+		c.SetInvalidParam("value")
+		return
+	}
+	user, err := c.App.GetUserByAuthData(&authData)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	canSee, err2 := c.App.UserCanSeeOtherUser(c.AppContext, c.AppContext.Session().UserId, user.Id)
+	if err2 != nil {
+		c.Err = err2
+		return
+	}
+
+	if !canSee {
+		c.SetPermissionError(model.PermissionViewMembers)
+		return
+	}
+
+	userTermsOfService, err := c.App.GetUserTermsOfService(user.Id)
+	if err != nil && err.StatusCode != http.StatusNotFound {
+		c.Err = err
+		return
+	}
+
+	if userTermsOfService != nil {
+		user.TermsOfServiceId = userTermsOfService.TermsOfServiceId
+		user.TermsOfServiceCreateAt = userTermsOfService.CreateAt
+	}
+
+	etag := user.Etag(*c.App.Config().PrivacySettings.ShowFullName, *c.App.Config().PrivacySettings.ShowEmailAddress)
+
+	if c.HandleEtag(etag, "Get User", w, r) {
+		return
+	}
+
+	c.App.SanitizeProfile(user, c.IsSystemAdmin())
+	w.Header().Set(model.HeaderEtagServer, etag)
+	if jerr := json.NewEncoder(w).Encode(user); jerr != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(jerr))
 	}
 }
 
@@ -981,12 +1043,33 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		etag = c.App.GetUsersNotInTeamEtag(inTeamId, restrictions.Hash())
-		if c.HandleEtag(etag, "Get Users Not in Team", w, r) {
-			return
+		// On a policy-governed team, abac_match_only=true narrows the candidates to
+		// users who satisfy the membership policy so callers like the invite modal
+		// never surface a non-qualifying user. Without the flag the listing is
+		// unchanged. Surface TeamAccessControlled errors rather than silently
+		// falling through to the unfiltered path.
+		abacMatchOnly, _ := strconv.ParseBool(r.URL.Query().Get("abac_match_only"))
+		useAbacFilter := false
+		if abacMatchOnly {
+			enforced, enforcedErr := c.App.TeamAccessControlled(c.AppContext, notInTeamId)
+			if enforcedErr != nil {
+				c.Err = enforcedErr
+				return
+			}
+			useAbacFilter = enforced
 		}
 
-		profiles, appErr = c.App.GetUsersNotInTeamPage(notInTeamId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
+		if useAbacFilter {
+			cursorId := r.URL.Query().Get("cursor_id")
+			profiles, appErr = c.App.GetUsersNotInAbacTeam(c.AppContext, notInTeamId, cursorId, c.Params.PerPage, c.IsSystemAdmin())
+		} else {
+			etag = c.App.GetUsersNotInTeamEtag(inTeamId, restrictions.Hash())
+			if c.HandleEtag(etag, "Get Users Not in Team", w, r) {
+				return
+			}
+
+			profiles, appErr = c.App.GetUsersNotInTeamPage(notInTeamId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
+		}
 	} else if inTeamId != "" {
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), inTeamId, model.PermissionViewTeam) {
 			c.SetPermissionError(model.PermissionViewTeam)
@@ -1704,6 +1787,13 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if user.IsBot {
+		if permErr := c.App.SessionHasPermissionToManageBot(c.AppContext, *c.AppContext.Session(), c.Params.UserId); permErr != nil {
+			c.Err = permErr
+			return
+		}
+	}
+
 	if active && user.IsGuest() && !*c.App.Config().GuestAccountsSettings.Enable {
 		c.Err = model.NewAppError("updateUserActive", "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error", nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
 		return
@@ -1758,9 +1848,13 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	model.AddEventParameterAuditableToAuditRec(auditRec, "user_auth", &userAuth)
 
-	if userAuth.AuthData == nil || *userAuth.AuthData == "" || userAuth.AuthService == "" {
+	if !userAuth.IsValid() {
 		c.Err = model.NewAppError("updateUserAuth", "api.user.update_user_auth.invalid_request", nil, "", http.StatusBadRequest)
 		return
+	}
+
+	if userAuth.AuthService == model.UserAuthServiceEmail {
+		userAuth.AuthService = ""
 	}
 
 	if user, err := c.App.GetUser(c.Params.UserId); err == nil {
@@ -1892,6 +1986,8 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		if user.IsSystemAdmin() {
 			canUpdatePassword = c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+		} else if user.IsBot {
+			canUpdatePassword = c.App.SessionHasPermissionToManageBot(c.AppContext, *c.AppContext.Session(), c.Params.UserId) == nil
 		} else {
 			canUpdatePassword = c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementUsers)
 		}
@@ -2063,12 +2159,14 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	password := props["password"]
 	mfaToken := props["token"]
 	deviceId := props["device_id"]
+	voIPDeviceId := props["voip_device_id"]
 	ldapOnly := props["ldap_only"] == "true"
 	magicLinkToken := props["magic_link_token"]
 
 	auditRec := c.MakeAuditRecord(model.AuditEventLogin, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "device_id", deviceId)
+	model.AddEventParameterToAuditRec(auditRec, "device_id", model.RedactDeviceId(deviceId))
+	model.AddEventParameterToAuditRec(auditRec, "voip_device_id", model.RedactDeviceId(voIPDeviceId))
 
 	var user *model.User
 	var err *model.AppError
@@ -2086,6 +2184,12 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			c.LogAudit("failure - guest_magic_link")
 			c.Err = err
+			return
+		}
+
+		if authErr := c.App.CheckUserAllAuthenticationCriteria(c.AppContext, user, ""); authErr != nil {
+			c.LogAuditWithUserId(user.Id, "failure - guest_magic_link")
+			c.Err = authErr
 			return
 		}
 	} else {
@@ -2127,7 +2231,11 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAuditWithUserId(user.Id, "authenticated")
 
 	isMobileDevice := utils.IsMobileRequest(r)
-	session, err := c.App.DoLogin(c.AppContext, w, r, user, deviceId, isMobileDevice, false, false)
+	session, err := c.App.DoLogin(c.AppContext, w, r, user, model.LoginOptions{
+		DeviceId:     deviceId,
+		VoIPDeviceId: voIPDeviceId,
+		IsMobile:     isMobileDevice,
+	})
 	if err != nil {
 		c.Err = err
 		return
@@ -2167,7 +2275,7 @@ func loginWithDesktopToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord(model.AuditEventLoginWithDesktopToken, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("login_method", "desktop_token")
-	model.AddEventParameterToAuditRec(auditRec, "device_id", deviceId)
+	model.AddEventParameterToAuditRec(auditRec, "device_id", model.RedactDeviceId(deviceId))
 
 	user, err := c.App.ValidateDesktopToken(token, time.Now().Add(-model.DesktopTokenTTL).Unix())
 	if err != nil {
@@ -2183,7 +2291,11 @@ func loginWithDesktopToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := c.App.DoLogin(c.AppContext, w, r, user, deviceId, false, isOAuthUser, isSamlUser)
+	session, err := c.App.DoLogin(c.AppContext, w, r, user, model.LoginOptions{
+		DeviceId:    deviceId,
+		IsOAuthUser: isOAuthUser,
+		IsSaml:      isSamlUser,
+	})
 	if err != nil {
 		c.Err = err
 		return
@@ -2252,7 +2364,9 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterAuditableToAuditRec(auditRec, "user", user)
 	c.LogAuditWithUserId(user.Id, "authenticated")
 	isMobileDevice := utils.IsMobileRequest(r)
-	session, err := c.App.DoLogin(c.AppContext, w, r, user, "", isMobileDevice, false, false)
+	session, err := c.App.DoLogin(c.AppContext, w, r, user, model.LoginOptions{
+		IsMobile: isMobileDevice,
+	})
 	if err != nil {
 		c.LogErrorByCode(err)
 		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, http.StatusFound)
@@ -2303,7 +2417,7 @@ func getLoginType(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord(model.AuditEventLogin, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "login_id", loginId)
-	model.AddEventParameterToAuditRec(auditRec, "device_id", deviceId)
+	model.AddEventParameterToAuditRec(auditRec, "device_id", model.RedactDeviceId(deviceId))
 
 	c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
 
@@ -2464,7 +2578,7 @@ func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord(model.AuditEventRevokeSession, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUserOrBot(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -2512,7 +2626,7 @@ func revokeAllSessionsForUser(c *Context, w http.ResponseWriter, r *http.Request
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "user_id", c.Params.UserId)
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUserOrBot(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -2537,7 +2651,7 @@ func revokeAllSessionsAllUsers(c *Context, w http.ResponseWriter, r *http.Reques
 	auditRec := c.MakeAuditRecord(model.AuditEventRevokeAllSessionsAllUsers, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
-	if err := c.App.RevokeSessionsFromAllUsers(); err != nil {
+	if err := c.App.RevokeSessionsFromAllUsers(c.AppContext); err != nil {
 		c.Err = err
 		return
 	}
@@ -2548,9 +2662,22 @@ func revokeAllSessionsAllUsers(c *Context, w http.ResponseWriter, r *http.Reques
 	ReturnStatusOK(w)
 }
 
+func getSessionAttributesManifest(c *Context, w http.ResponseWriter, r *http.Request) {
+	manifest, appErr := c.App.GetSessionAttributesManifest(c.AppContext, r)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(manifest); err != nil {
+		c.Logger.Warn("Error while writing session attributes manifest response", mlog.Err(err))
+	}
+}
+
 func handleDeviceProps(c *Context, w http.ResponseWriter, r *http.Request) {
 	receivedProps := model.MapFromJSON(r.Body)
 	deviceId := receivedProps["device_id"]
+	voIPDeviceId := receivedProps["voip_device_id"]
 
 	newProps := map[string]string{}
 
@@ -2573,8 +2700,8 @@ func handleDeviceProps(c *Context, w http.ResponseWriter, r *http.Request) {
 		newProps[model.SessionPropMobileVersion] = mobileVersion
 	}
 
-	if deviceId != "" {
-		attachDeviceId(c, w, r, deviceId)
+	if deviceId != "" || voIPDeviceId != "" {
+		attachDeviceIds(c, w, r, deviceId, voIPDeviceId)
 	}
 
 	if c.Err != nil {
@@ -2590,15 +2717,33 @@ func handleDeviceProps(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
-func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request, deviceId string) {
+func attachDeviceIds(c *Context, w http.ResponseWriter, r *http.Request, deviceId, voIPDeviceId string) {
 	auditRec := c.MakeAuditRecord(model.AuditEventAttachDeviceId, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "device_id", deviceId)
+	model.AddEventParameterToAuditRec(auditRec, "device_id", model.RedactDeviceId(deviceId))
+	model.AddEventParameterToAuditRec(auditRec, "voip_device_id", model.RedactDeviceId(voIPDeviceId))
 
-	// A special case where we logout of all other sessions with the same device id
-	if err := c.App.RevokeSessionsForDeviceId(c.AppContext, c.AppContext.Session().UserId, deviceId, c.AppContext.Session().Id); err != nil {
-		c.Err = err
+	if deviceId != "" && !model.IsValidStandardDeviceId(deviceId) {
+		c.SetInvalidParam("device_id")
 		return
+	}
+	if voIPDeviceId != "" && !model.IsValidVoIPDeviceId(voIPDeviceId) {
+		c.SetInvalidParam("voip_device_id")
+		return
+	}
+
+	// Logout other sessions for the same device(s).
+	if deviceId != "" {
+		if err := c.App.RevokeOtherSessionsForDeviceId(c.AppContext, c.AppContext.Session().UserId, deviceId, c.AppContext.Session().Id); err != nil {
+			c.Err = err
+			return
+		}
+	}
+	if voIPDeviceId != "" {
+		if err := c.App.RevokeOtherSessionsForVoIPDeviceId(c.AppContext, c.AppContext.Session().UserId, voIPDeviceId, c.AppContext.Session().Id); err != nil {
+			c.Err = err
+			return
+		}
 	}
 
 	c.App.ClearSessionCacheForUser(c.AppContext.Session().UserId)
@@ -2631,7 +2776,16 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request, deviceId
 
 	http.SetCookie(w, sessionCookie)
 
-	if err := c.App.AttachDeviceId(c.AppContext.Session().Id, deviceId, c.AppContext.Session().ExpiresAt); err != nil {
+	// Fall back to the existing column when the caller didn't send a new one,
+	// so an update of just one of the two doesn't wipe the other.
+	if deviceId == "" {
+		deviceId = c.AppContext.Session().DeviceId
+	}
+	if voIPDeviceId == "" {
+		voIPDeviceId = c.AppContext.Session().VoIPDeviceId
+	}
+
+	if err := c.App.AttachDeviceId(c.AppContext.Session().Id, deviceId, voIPDeviceId, c.AppContext.Session().ExpiresAt); err != nil {
 		c.Err = err
 		return
 	}
@@ -2910,6 +3064,58 @@ func getUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func countNonCompliantUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	count, appErr := c.App.CountNonCompliantUserAccessTokens()
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	js, err := json.Marshal(model.NonCompliantUserAccessTokenResult{Count: count})
+	if err != nil {
+		c.Err = model.NewAppError("countNonCompliantUserAccessTokens", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func revokeNonCompliantUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord(model.AuditEventRevokeNonCompliantUserAccessTokens, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	count, appErr := c.App.RevokeNonCompliantUserAccessTokens(c.AppContext)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	model.AddEventParameterToAuditRec(auditRec, "revoked_count", count)
+	auditRec.Success()
+
+	js, err := json.Marshal(model.NonCompliantUserAccessTokenResult{Count: count})
+	if err != nil {
+		c.Err = model.NewAppError("revokeNonCompliantUserAccessTokens", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
 func getUserAccessTokensForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireUserId()
 	if c.Err != nil {
@@ -2983,6 +3189,12 @@ func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "token_id", tokenId)
 	c.LogAudit("")
 
+	if c.AppContext.Session().IsOAuth {
+		c.SetPermissionError(model.PermissionRevokeUserAccessToken)
+		c.Err.DetailedError += ", attempted access by oauth app"
+		return
+	}
+
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionRevokeUserAccessToken) {
 		c.SetPermissionError(model.PermissionRevokeUserAccessToken)
 		return
@@ -3026,6 +3238,12 @@ func disableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) 
 	model.AddEventParameterToAuditRec(auditRec, "token_id", tokenId)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("")
+
+	if c.AppContext.Session().IsOAuth {
+		c.SetPermissionError(model.PermissionRevokeUserAccessToken)
+		c.Err.DetailedError += ", attempted access by oauth app"
+		return
+	}
 
 	// No separate permission for this action for now
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionRevokeUserAccessToken) {
@@ -3071,6 +3289,12 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "token_id", tokenId)
 	c.LogAudit("")
+
+	if c.AppContext.Session().IsOAuth {
+		c.SetPermissionError(model.PermissionCreateUserAccessToken)
+		c.Err.DetailedError += ", attempted access by oauth app"
+		return
+	}
 
 	// No separate permission for this action for now
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateUserAccessToken) {

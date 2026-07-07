@@ -30,12 +30,12 @@ describe('Messaging', () => {
 
         // * Verify the total 4 attached items are present
         cy.getLastPostId().then((postID) => {
-            cy.get(`#${postID}_message`).findByTestId('fileAttachmentList').children().should('have.length', '4');
+            const tiles = `#${postID}_message [data-testid="media-gallery-tile"]`;
+            cy.get(tiles).should('have.length', 4);
 
-            // * Verify the preview attachment are present
+            // * Verify each tile points at the right file
             [...Array(4)].forEach((value, index) => {
-                cy.get(`#${postID}_message`).findByTestId('fileAttachmentList').children().eq(index).
-                    find('.post-image__name').contains('small-image.png').should('exist');
+                cy.get(tiles).eq(index).should('have.attr', 'data-file-name', 'small-image.png');
             });
         });
 

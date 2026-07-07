@@ -11,7 +11,7 @@ import {
 import {getEnvironmentConfig} from 'mattermost-redux/selectors/entities/admin';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
-import {setNavigationBlocked} from 'actions/admin_actions.jsx';
+import {setNavigationBlocked} from 'actions/admin_actions';
 
 import type {GlobalState} from 'types/store';
 
