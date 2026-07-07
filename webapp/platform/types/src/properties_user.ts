@@ -54,6 +54,12 @@ export type UserPropertyField = PropertyField & {
         access_mode?: '' | 'source_only' | 'shared_only';
         display_name?: string;
         owners?: PropertyFieldOwner[];
+
+        // Native user attributes (e.g. user.email) are referenced as `user.<name>`
+        // rather than `user.attributes.<name>`. `native` marks such synthetic fields;
+        // `operators` lists the visual operator tokens the editor may offer for them.
+        native?: boolean;
+        operators?: string[];
     };
 };
 

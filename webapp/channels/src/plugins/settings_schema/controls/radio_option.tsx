@@ -5,27 +5,28 @@ import React, {useCallback} from 'react';
 
 import Markdown from 'components/markdown';
 
-import type {PluginConfigurationRadioSettingOption} from 'types/plugins/user_settings';
+import type {RadioSettingOption} from '../types';
 
 type Props = {
-    selectedValue: string;
     name: string;
-    option: PluginConfigurationRadioSettingOption;
-    onSelected: (v: string) => void;
+    option: RadioSettingOption;
+    selectedValue: string;
+    onSelected: (value: string) => void;
 };
 
 const markdownOptions = {mentionHighlight: false};
 
 const RadioOption = ({
-    selectedValue,
     name,
     option,
+    selectedValue,
     onSelected,
 }: Props) => {
-    const onChange = useCallback(() => onSelected(option.value), [option.value]);
+    const onChange = useCallback(() => onSelected(option.value), [onSelected, option.value]);
+
     return (
-        <div className={'radio'}>
-            <label >
+        <div className='radio'>
+            <label>
                 <input
                     type='radio'
                     name={name}
