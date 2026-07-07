@@ -82,6 +82,25 @@ type PropertyHook interface {
 	PreDeletePropertyValuesForTarget(rctx request.CTX, groupID string, targetType string, targetID string) error
 	PreDeletePropertyValuesForField(rctx request.CTX, groupID string, fieldID string) error
 
+	// Value post-hooks (write operations)
+	//
+	// These run after the store write is attempted — on both success and
+	// failure (including pre-hook rejection) — so observers can audit the
+	// outcome. opErr is nil on success and carries the rejection/store error on
+	// failure. They are best-effort: the dispatcher logs and continues on a
+	// hook error, and the write is never rolled back; hooks must not mutate the
+	// values. Delete hooks receive the value's pre-delete snapshot (single,
+	// nil if it did not exist) or the delete selector (target/field variants).
+	PostCreatePropertyValue(rctx request.CTX, value *model.PropertyValue, opErr error) error
+	PostCreatePropertyValues(rctx request.CTX, values []*model.PropertyValue, opErr error) error
+	PostUpdatePropertyValue(rctx request.CTX, value *model.PropertyValue, opErr error) error
+	PostUpdatePropertyValues(rctx request.CTX, values []*model.PropertyValue, opErr error) error
+	PostUpsertPropertyValue(rctx request.CTX, value *model.PropertyValue, opErr error) error
+	PostUpsertPropertyValues(rctx request.CTX, values []*model.PropertyValue, opErr error) error
+	PostDeletePropertyValue(rctx request.CTX, deleted *model.PropertyValue, opErr error) error
+	PostDeletePropertyValuesForTarget(rctx request.CTX, groupID string, targetType string, targetID string, opErr error) error
+	PostDeletePropertyValuesForField(rctx request.CTX, groupID string, fieldID string, opErr error) error
+
 	// Value post-hooks (read operations)
 	//
 	// PostGetPropertyValue is called after retrieving a single value.
@@ -146,6 +165,33 @@ func (BasePropertyHook) PreDeletePropertyValuesForTarget(_ request.CTX, _ string
 	return nil
 }
 func (BasePropertyHook) PreDeletePropertyValuesForField(_ request.CTX, _ string, _ string) error {
+	return nil
+}
+func (BasePropertyHook) PostCreatePropertyValue(_ request.CTX, _ *model.PropertyValue, _ error) error {
+	return nil
+}
+func (BasePropertyHook) PostCreatePropertyValues(_ request.CTX, _ []*model.PropertyValue, _ error) error {
+	return nil
+}
+func (BasePropertyHook) PostUpdatePropertyValue(_ request.CTX, _ *model.PropertyValue, _ error) error {
+	return nil
+}
+func (BasePropertyHook) PostUpdatePropertyValues(_ request.CTX, _ []*model.PropertyValue, _ error) error {
+	return nil
+}
+func (BasePropertyHook) PostUpsertPropertyValue(_ request.CTX, _ *model.PropertyValue, _ error) error {
+	return nil
+}
+func (BasePropertyHook) PostUpsertPropertyValues(_ request.CTX, _ []*model.PropertyValue, _ error) error {
+	return nil
+}
+func (BasePropertyHook) PostDeletePropertyValue(_ request.CTX, _ *model.PropertyValue, _ error) error {
+	return nil
+}
+func (BasePropertyHook) PostDeletePropertyValuesForTarget(_ request.CTX, _ string, _ string, _ string, _ error) error {
+	return nil
+}
+func (BasePropertyHook) PostDeletePropertyValuesForField(_ request.CTX, _ string, _ string, _ error) error {
 	return nil
 }
 func (BasePropertyHook) PostGetPropertyValue(_ request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
@@ -422,6 +468,97 @@ func (ps *PropertyService) runPreDeletePropertyValuesForField(rctx request.CTX, 
 		}
 	}
 	return nil
+}
+
+// runPostCreatePropertyValue runs all registered post-hooks for CreatePropertyValue.
+// opErr carries the outcome (nil on success). Best-effort.
+func (ps *PropertyService) runPostCreatePropertyValue(rctx request.CTX, value *model.PropertyValue, opErr error) {
+	for _, hook := range ps.hooks {
+		if err := hook.PostCreatePropertyValue(rctx, value, opErr); err != nil {
+			rctx.Logger().Error("PostCreatePropertyValue hook failed", mlog.Err(err))
+		}
+	}
+}
+
+// runPostCreatePropertyValues runs all registered post-hooks for CreatePropertyValues.
+// opErr carries the outcome (nil on success). Best-effort.
+func (ps *PropertyService) runPostCreatePropertyValues(rctx request.CTX, values []*model.PropertyValue, opErr error) {
+	for _, hook := range ps.hooks {
+		if err := hook.PostCreatePropertyValues(rctx, values, opErr); err != nil {
+			rctx.Logger().Error("PostCreatePropertyValues hook failed", mlog.Err(err))
+		}
+	}
+}
+
+// runPostUpdatePropertyValue runs all registered post-hooks for UpdatePropertyValue.
+// opErr carries the outcome. Best-effort.
+func (ps *PropertyService) runPostUpdatePropertyValue(rctx request.CTX, value *model.PropertyValue, opErr error) {
+	for _, hook := range ps.hooks {
+		if err := hook.PostUpdatePropertyValue(rctx, value, opErr); err != nil {
+			rctx.Logger().Error("PostUpdatePropertyValue hook failed", mlog.Err(err))
+		}
+	}
+}
+
+// runPostUpdatePropertyValues runs all registered post-hooks for UpdatePropertyValues.
+// opErr carries the outcome. Best-effort.
+func (ps *PropertyService) runPostUpdatePropertyValues(rctx request.CTX, values []*model.PropertyValue, opErr error) {
+	for _, hook := range ps.hooks {
+		if err := hook.PostUpdatePropertyValues(rctx, values, opErr); err != nil {
+			rctx.Logger().Error("PostUpdatePropertyValues hook failed", mlog.Err(err))
+		}
+	}
+}
+
+// runPostUpsertPropertyValue runs all registered post-hooks for UpsertPropertyValue.
+// opErr carries the outcome (nil on success). Best-effort: hook errors are
+// logged and skipped; the write is not rolled back.
+func (ps *PropertyService) runPostUpsertPropertyValue(rctx request.CTX, value *model.PropertyValue, opErr error) {
+	for _, hook := range ps.hooks {
+		if err := hook.PostUpsertPropertyValue(rctx, value, opErr); err != nil {
+			rctx.Logger().Error("PostUpsertPropertyValue hook failed", mlog.Err(err))
+		}
+	}
+}
+
+// runPostUpsertPropertyValues runs all registered post-hooks for UpsertPropertyValues.
+// opErr carries the outcome (nil on success). Best-effort.
+func (ps *PropertyService) runPostUpsertPropertyValues(rctx request.CTX, values []*model.PropertyValue, opErr error) {
+	for _, hook := range ps.hooks {
+		if err := hook.PostUpsertPropertyValues(rctx, values, opErr); err != nil {
+			rctx.Logger().Error("PostUpsertPropertyValues hook failed", mlog.Err(err))
+		}
+	}
+}
+
+// runPostDeletePropertyValue runs all registered post-hooks for DeletePropertyValue.
+// deleted is the pre-delete snapshot; opErr carries the outcome. Best-effort.
+func (ps *PropertyService) runPostDeletePropertyValue(rctx request.CTX, deleted *model.PropertyValue, opErr error) {
+	for _, hook := range ps.hooks {
+		if err := hook.PostDeletePropertyValue(rctx, deleted, opErr); err != nil {
+			rctx.Logger().Error("PostDeletePropertyValue hook failed", mlog.Err(err))
+		}
+	}
+}
+
+// runPostDeletePropertyValuesForTarget runs all registered post-hooks for DeletePropertyValuesForTarget.
+// opErr carries the outcome. Best-effort.
+func (ps *PropertyService) runPostDeletePropertyValuesForTarget(rctx request.CTX, groupID, targetType, targetID string, opErr error) {
+	for _, hook := range ps.hooks {
+		if err := hook.PostDeletePropertyValuesForTarget(rctx, groupID, targetType, targetID, opErr); err != nil {
+			rctx.Logger().Error("PostDeletePropertyValuesForTarget hook failed", mlog.Err(err))
+		}
+	}
+}
+
+// runPostDeletePropertyValuesForField runs all registered post-hooks for DeletePropertyValuesForField.
+// opErr carries the outcome. Best-effort.
+func (ps *PropertyService) runPostDeletePropertyValuesForField(rctx request.CTX, groupID, fieldID string, opErr error) {
+	for _, hook := range ps.hooks {
+		if err := hook.PostDeletePropertyValuesForField(rctx, groupID, fieldID, opErr); err != nil {
+			rctx.Logger().Error("PostDeletePropertyValuesForField hook failed", mlog.Err(err))
+		}
+	}
 }
 
 // runPostGetPropertyValue runs all registered post-hooks for single value retrieval.

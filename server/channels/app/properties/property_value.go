@@ -132,20 +132,32 @@ func (ps *PropertyService) deletePropertyValuesForField(groupID, fieldID string)
 
 // Public methods
 
-func (ps *PropertyService) CreatePropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
+func (ps *PropertyService) CreatePropertyValue(rctx request.CTX, value *model.PropertyValue) (_ *model.PropertyValue, err error) {
 	if value == nil {
 		return nil, fmt.Errorf("CreatePropertyValue: value cannot be nil")
 	}
 
-	value, err := ps.runPreCreatePropertyValue(rctx, value)
+	// attempted tracks the most-processed value seen so far; the deferred
+	// post-hook observes it together with the final outcome (err), so every
+	// exit path is covered without repeating the call.
+	attempted := value
+	defer func() { ps.runPostCreatePropertyValue(rctx, attempted, err) }()
+
+	processed, err := ps.runPreCreatePropertyValue(rctx, value)
 	if err != nil {
 		return nil, fmt.Errorf("CreatePropertyValue: %w", err)
 	}
+	attempted = processed
 
-	return ps.createPropertyValue(value)
+	created, err := ps.createPropertyValue(processed)
+	if err != nil {
+		return nil, err
+	}
+	attempted = created
+	return created, nil
 }
 
-func (ps *PropertyService) CreatePropertyValues(rctx request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+func (ps *PropertyService) CreatePropertyValues(rctx request.CTX, values []*model.PropertyValue) (_ []*model.PropertyValue, err error) {
 	if len(values) == 0 {
 		return values, nil
 	}
@@ -159,12 +171,21 @@ func (ps *PropertyService) CreatePropertyValues(rctx request.CTX, values []*mode
 		}
 	}
 
-	values, err := ps.runPreCreatePropertyValues(rctx, values)
+	attempted := values
+	defer func() { ps.runPostCreatePropertyValues(rctx, attempted, err) }()
+
+	processed, err := ps.runPreCreatePropertyValues(rctx, values)
 	if err != nil {
 		return nil, fmt.Errorf("CreatePropertyValues: %w", err)
 	}
+	attempted = processed
 
-	return ps.createPropertyValues(values)
+	created, err := ps.createPropertyValues(processed)
+	if err != nil {
+		return nil, err
+	}
+	attempted = created
+	return created, nil
 }
 
 func (ps *PropertyService) GetPropertyValue(rctx request.CTX, groupID, id string) (*model.PropertyValue, error) {
@@ -194,16 +215,25 @@ func (ps *PropertyService) SearchPropertyValues(rctx request.CTX, groupID string
 	return ps.runPostGetPropertyValues(rctx, values)
 }
 
-func (ps *PropertyService) UpdatePropertyValue(rctx request.CTX, groupID string, value *model.PropertyValue) (*model.PropertyValue, error) {
-	value, err := ps.runPreUpdatePropertyValue(rctx, groupID, value)
+func (ps *PropertyService) UpdatePropertyValue(rctx request.CTX, groupID string, value *model.PropertyValue) (_ *model.PropertyValue, err error) {
+	attempted := value
+	defer func() { ps.runPostUpdatePropertyValue(rctx, attempted, err) }()
+
+	processed, err := ps.runPreUpdatePropertyValue(rctx, groupID, value)
 	if err != nil {
 		return nil, fmt.Errorf("UpdatePropertyValue: %w", err)
 	}
+	attempted = processed
 
-	return ps.updatePropertyValue(groupID, value)
+	updated, err := ps.updatePropertyValue(groupID, processed)
+	if err != nil {
+		return nil, err
+	}
+	attempted = updated
+	return updated, nil
 }
 
-func (ps *PropertyService) UpdatePropertyValues(rctx request.CTX, groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+func (ps *PropertyService) UpdatePropertyValues(rctx request.CTX, groupID string, values []*model.PropertyValue) (_ []*model.PropertyValue, err error) {
 	if len(values) == 0 {
 		return values, nil
 	}
@@ -221,28 +251,48 @@ func (ps *PropertyService) UpdatePropertyValues(rctx request.CTX, groupID string
 		}
 	}
 
-	values, err := ps.runPreUpdatePropertyValues(rctx, groupID, values)
+	attempted := values
+	defer func() {
+		ps.runPostUpdatePropertyValues(rctx, attempted, err)
+	}()
+
+	processed, err := ps.runPreUpdatePropertyValues(rctx, groupID, values)
 	if err != nil {
 		return nil, fmt.Errorf("UpdatePropertyValues: %w", err)
 	}
+	attempted = processed
 
-	return ps.updatePropertyValues(groupID, values)
+	updated, err := ps.updatePropertyValues(groupID, processed)
+	if err != nil {
+		return nil, err
+	}
+	attempted = updated
+	return updated, nil
 }
 
-func (ps *PropertyService) UpsertPropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
+func (ps *PropertyService) UpsertPropertyValue(rctx request.CTX, value *model.PropertyValue) (_ *model.PropertyValue, err error) {
 	if value == nil {
 		return nil, fmt.Errorf("UpsertPropertyValue: value cannot be nil")
 	}
 
-	value, err := ps.runPreUpsertPropertyValue(rctx, value)
+	attempted := value
+	defer func() { ps.runPostUpsertPropertyValue(rctx, attempted, err) }()
+
+	processed, err := ps.runPreUpsertPropertyValue(rctx, value)
 	if err != nil {
 		return nil, fmt.Errorf("UpsertPropertyValue: %w", err)
 	}
+	attempted = processed
 
-	return ps.upsertPropertyValue(value)
+	upserted, err := ps.upsertPropertyValue(processed)
+	if err != nil {
+		return nil, err
+	}
+	attempted = upserted
+	return upserted, nil
 }
 
-func (ps *PropertyService) UpsertPropertyValues(rctx request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+func (ps *PropertyService) UpsertPropertyValues(rctx request.CTX, values []*model.PropertyValue) (_ []*model.PropertyValue, err error) {
 	if len(values) == 0 {
 		return values, nil
 	}
@@ -256,34 +306,64 @@ func (ps *PropertyService) UpsertPropertyValues(rctx request.CTX, values []*mode
 		}
 	}
 
-	values, err := ps.runPreUpsertPropertyValues(rctx, values)
+	attempted := values
+	defer func() {
+		ps.runPostUpsertPropertyValues(rctx, attempted, err)
+	}()
+
+	processed, err := ps.runPreUpsertPropertyValues(rctx, values)
 	if err != nil {
 		return nil, fmt.Errorf("UpsertPropertyValues: %w", err)
 	}
+	attempted = processed
 
-	return ps.upsertPropertyValues(values)
+	upserted, err := ps.upsertPropertyValues(processed)
+	if err != nil {
+		return nil, err
+	}
+	attempted = upserted
+	return upserted, nil
 }
 
-func (ps *PropertyService) DeletePropertyValue(rctx request.CTX, groupID, id string) error {
-	if err := ps.runPreDeletePropertyValue(rctx, groupID, id); err != nil {
+func (ps *PropertyService) DeletePropertyValue(rctx request.CTX, groupID, id string) (err error) {
+	// Snapshot before the gates so post-hooks have the target/field metadata
+	// the row ID alone does not carry, and so a denied delete is observable.
+	// Best-effort: a missing snapshot (already gone) yields nil to the hooks.
+	deleted, _ := ps.getPropertyValue(groupID, id)
+	defer func() { ps.runPostDeletePropertyValue(rctx, deleted, err) }()
+
+	if err = ps.runPreDeletePropertyValue(rctx, groupID, id); err != nil {
 		return fmt.Errorf("DeletePropertyValue: %w", err)
 	}
 
-	return ps.deletePropertyValue(groupID, id)
+	if err = ps.deletePropertyValue(groupID, id); err != nil {
+		return err
+	}
+	return nil
 }
 
-func (ps *PropertyService) DeletePropertyValuesForTarget(rctx request.CTX, groupID string, targetType string, targetID string) error {
-	if err := ps.runPreDeletePropertyValuesForTarget(rctx, groupID, targetType, targetID); err != nil {
+func (ps *PropertyService) DeletePropertyValuesForTarget(rctx request.CTX, groupID string, targetType string, targetID string) (err error) {
+	defer func() { ps.runPostDeletePropertyValuesForTarget(rctx, groupID, targetType, targetID, err) }()
+
+	if err = ps.runPreDeletePropertyValuesForTarget(rctx, groupID, targetType, targetID); err != nil {
 		return fmt.Errorf("DeletePropertyValuesForTarget: %w", err)
 	}
 
-	return ps.deletePropertyValuesForTarget(groupID, targetType, targetID)
+	if err = ps.deletePropertyValuesForTarget(groupID, targetType, targetID); err != nil {
+		return err
+	}
+	return nil
 }
 
-func (ps *PropertyService) DeletePropertyValuesForField(rctx request.CTX, groupID, fieldID string) error {
-	if err := ps.runPreDeletePropertyValuesForField(rctx, groupID, fieldID); err != nil {
+func (ps *PropertyService) DeletePropertyValuesForField(rctx request.CTX, groupID, fieldID string) (err error) {
+	defer func() { ps.runPostDeletePropertyValuesForField(rctx, groupID, fieldID, err) }()
+
+	if err = ps.runPreDeletePropertyValuesForField(rctx, groupID, fieldID); err != nil {
 		return fmt.Errorf("DeletePropertyValuesForField: %w", err)
 	}
 
-	return ps.deletePropertyValuesForField(groupID, fieldID)
+	if err = ps.deletePropertyValuesForField(groupID, fieldID); err != nil {
+		return err
+	}
+	return nil
 }

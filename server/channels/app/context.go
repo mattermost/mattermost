@@ -38,6 +38,16 @@ func RequestContextWithCallerIDAndOptions(rctx request.CTX, callerID string, opt
 	return rctx.WithContext(ctx)
 }
 
+// ActingAsScopeFromRequestContext extracts the caller's acting-as scope from a
+// request.CTX. Returns the scope and true if found, or empty string and false
+// if not.
+func ActingAsScopeFromRequestContext(rctx request.CTX) (string, bool) {
+	if rctx == nil {
+		return "", false
+	}
+	return model.ActingAsScopeFromContext(rctx.Context())
+}
+
 func pluginContext(rctx request.CTX) *plugin.Context {
 	context := &plugin.Context{
 		RequestId:      rctx.RequestId(),
