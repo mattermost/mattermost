@@ -3771,7 +3771,6 @@
   "admin.userManagement.userDetail.saml": "SAML: {propertyName}",
   "admin.userManagement.userDetail.selectOption": "Select an option",
   "admin.userManagement.userDetail.separator": ", ",
-  "admin.userManagement.userDetail.syncedWith": "Synced with: {source}",
   "admin.userManagement.userDetail.teamsSubtitle": "Teams to which this user belongs",
   "admin.userManagement.userDetail.teamsTitle": "Team Membership",
   "admin.userManagement.userDetail.userId": "User ID: {userId}",
