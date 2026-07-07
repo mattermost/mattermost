@@ -41,6 +41,25 @@ export default class ChannelsSidebarLeft {
     }
 
     /**
+     * Opens the channel options (dots) menu for a sidebar item, revealed on hover.
+     * @param channelSlug The channel name used in the sidebar item id (URL slug).
+     */
+    async openChannelMenu(channelSlug: string) {
+        const item = this.container.locator(`#sidebarItem_${channelSlug}`);
+        await item.waitFor();
+        await item.hover();
+        await this.container.getByRole('button', {name: `Channel options for ${channelSlug}`}).click();
+    }
+
+    /**
+     * Closes a direct/group message conversation via its sidebar channel menu.
+     */
+    async closeConversation(channelSlug: string) {
+        await this.openChannelMenu(channelSlug);
+        await this.container.page().getByRole('menuitem', {name: 'Close Conversation'}).click();
+    }
+
+    /**
      * Verifies 'Drafts' as a sidebar link exists in LHS.
      */
     async draftsVisible() {
