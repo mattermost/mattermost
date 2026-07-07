@@ -45,6 +45,7 @@ export default class ChannelsPage {
     readonly scheduleMessageModal;
     readonly burnOnReadConfirmationModal;
     readonly keyboardShortcutsModal;
+    readonly searchResultsPanel;
     readonly archivedChannelMessage;
 
     readonly postContainer;
@@ -86,6 +87,7 @@ export default class ChannelsPage {
             page.getByRole('dialog').filter({hasText: /burn|delete/i}),
         );
         this.keyboardShortcutsModal = new components.KeyboardShortcutsModal(page);
+        this.searchResultsPanel = new components.SearchResultsPanel(page.locator('#searchContainer'));
 
         // Menus
         this.postDotMenu = new components.PostDotMenu(page.getByRole('menu', {name: 'Post extra options'}));
@@ -200,6 +202,17 @@ export default class ChannelsPage {
         await this.teamSettingsModal.toBeVisible();
 
         return this.teamSettingsModal;
+    }
+
+    /**
+     * Archives the current channel via the channel header menu and confirms the
+     * archive dialog. Waits for the archived-channel footer to appear.
+     */
+    async archiveChannel() {
+        await this.centerView.header.openChannelMenu();
+        await this.page.getByRole('menuitem', {name: 'Archive Channel'}).click();
+        await this.page.getByRole('button', {name: 'Archive', exact: true}).click();
+        await expect(this.archivedChannelMessage).toBeVisible();
     }
 
     async openChannelSettings(): Promise<ChannelSettingsModal> {
