@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Client4} from '@mattermost/client';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {expect, test, enableABAC, navigateToABACPage} from '@mattermost/playwright-lib';
 

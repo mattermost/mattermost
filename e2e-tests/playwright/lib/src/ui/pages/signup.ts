@@ -32,30 +32,30 @@ export default class SignupPage {
     constructor(page: Page) {
         this.page = page;
 
-        this.title = page.locator('h1:has-text("Let’s get started")');
-        this.subtitle = page.locator('text=Create your Mattermost account to start collaborating with your team');
-        this.bodyCard = page.locator('.signup-body-card-content');
-        this.loginLink = page.locator('text=Log in');
+        this.title = page.getByRole('heading', {name: 'Let’s get started'});
+        this.subtitle = page.getByText('Create your Mattermost account to start collaborating with your team');
+        this.bodyCard = page.getByTestId('signup-body-card');
+        this.loginLink = page.getByText('Log in');
         this.emailInput = page.locator('#input_email');
         this.usernameInput = page.locator('#input_name');
         this.passwordInput = page.locator('#input_password-input');
         this.passwordToggleButton = page.locator('#password_toggle');
-        this.createAccountButton = page.locator('button:has-text("Create account")');
-        this.emailError = page.locator('text=Please enter a valid email address');
-        this.usernameError = page.locator(
-            'text=Usernames have to begin with a lowercase letter and be 3-22 characters long. You can use lowercase letters, numbers, periods, dashes, and underscores.',
+        this.createAccountButton = page.getByRole('button', {name: 'Create account'});
+        this.emailError = page.getByText('Please enter a valid email address');
+        this.usernameError = page.getByText(
+            'Usernames have to begin with a lowercase letter and be 3-22 characters long. You can use lowercase letters, numbers, periods, dashes, and underscores.',
         );
-        this.passwordError = page.locator('text=/Must be \\d+-72 characters long\\./');
+        this.passwordError = page.getByText(/Must be \d+-72 characters long\./);
 
-        const termsAndPrivacyBlock = page.locator('.check-input');
-        this.termsAndPrivacyCheckBox = termsAndPrivacyBlock.getByRole('checkbox', {
+        const signupBodyCard = page.getByTestId('signup-body-card');
+        this.termsAndPrivacyCheckBox = signupBodyCard.getByRole('checkbox', {
             name: 'Terms and privacy policy checkbox',
         });
-        this.termsAndPrivacyAcceptableUsePolicyLink = termsAndPrivacyBlock.locator('text=Acceptable Use Policy');
-        this.termsAndPrivacyPrivacyPolicyLink = termsAndPrivacyBlock.locator('text=Privacy Policy');
+        this.termsAndPrivacyAcceptableUsePolicyLink = signupBodyCard.getByText('Acceptable Use Policy');
+        this.termsAndPrivacyPrivacyPolicyLink = signupBodyCard.getByText('Privacy Policy');
 
-        this.header = new components.MainHeader(page.locator('.hfroute-header'));
-        this.footer = new components.Footer(page.locator('.hfroute-footer'));
+        this.header = new components.MainHeader(page.getByTestId('hfroute-header'));
+        this.footer = new components.Footer(page.getByTestId('hfroute-footer'));
     }
 
     async toBeVisible() {

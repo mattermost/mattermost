@@ -64,6 +64,7 @@ exports[`components/terms_of_service/TermsOfService should match snapshot on loa
 <div>
   <div
     class="loading-screen"
+    data-testid="loading-screen"
     style="position: relative;"
   >
     <div

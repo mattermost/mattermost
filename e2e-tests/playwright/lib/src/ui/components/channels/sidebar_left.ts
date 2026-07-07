@@ -20,8 +20,8 @@ export default class ChannelsSidebarLeft {
         this.teamMenuButton = container.locator('#sidebarTeamMenuButton');
         this.browseOrCreateChannelButton = container.locator('#browseOrAddChannelMenuButton');
         this.findChannelButton = container.getByRole('button', {name: 'Find Channels'});
-        this.scheduledPostBadge = container.locator('span.scheduledPostBadge');
-        this.unreadChannelFilter = container.locator('.SidebarFilters_filterButton');
+        this.scheduledPostBadge = container.getByTestId('scheduled-post-badge');
+        this.unreadChannelFilter = container.getByTestId('sidebar-unread-filter-button');
         this.openDirectMessageButton = container.getByRole('button', {name: 'Write a direct message'});
     }
 
@@ -75,6 +75,6 @@ export default class ChannelsSidebarLeft {
      * Gets all unread channel items in the sidebar.
      */
     getUnreadChannels(): Locator {
-        return this.container.locator('.SidebarLink.unread-title');
+        return this.container.getByTestId('sidebar-unread-channel');
     }
 }

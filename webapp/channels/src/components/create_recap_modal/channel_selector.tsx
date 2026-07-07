@@ -57,6 +57,7 @@ const ChannelSelector = ({selectedChannelIds, setSelectedChannelIds, myChannels,
             <div
                 key={channel.id}
                 className='channel-selector-item'
+                data-testid='channel-selector-item'
                 onClick={() => toggleChannel(channel.id)}
             >
                 <div className='channel-selector-checkbox'>

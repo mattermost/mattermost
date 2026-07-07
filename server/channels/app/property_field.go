@@ -76,7 +76,7 @@ func (a *App) publishPropertyFieldEvent(rctx request.CTX, eventType model.Websoc
 // (template/system/channel in the access_control group) legitimately use the
 // rank type and ship behind the separate, GA-by-default ClassificationMarkings
 // flag. Gating those here would break the classification admin panel (create
-// and edit alike) whenever PropertyFieldRank is off, which is the default.
+// and edit alike) whenever PropertyFieldRank is off.
 func (a *App) rankPropertyFieldGate(where string, field *model.PropertyField) *model.AppError {
 	if field == nil || field.Type != model.PropertyFieldTypeRank {
 		return nil

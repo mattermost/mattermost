@@ -601,7 +601,10 @@ function ChannelSettingsConfigurationTab({
         showTabSwitchError;
 
     return (
-        <div className={`ChannelSettingsModal__configurationTab${showSaveChangesPanel ? ' ChannelSettingsModal__configurationTab--with-save-panel' : ''}`}>
+        <div
+            className={`ChannelSettingsModal__configurationTab${showSaveChangesPanel ? ' ChannelSettingsModal__configurationTab--with-save-panel' : ''}`}
+            data-testid='channel-settings-configuration-tab'
+        >
             {canManageSharedChannels && (
                 <>
                     <ConfirmModal

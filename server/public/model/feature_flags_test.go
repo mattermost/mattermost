@@ -60,8 +60,16 @@ func TestFeatureFlagsSetDefaults_AttributeValueMasking(t *testing.T) {
 	var flags FeatureFlags
 	flags.SetDefaults()
 
-	require.False(t, flags.AttributeValueMasking, "AttributeValueMasking should default to false")
-	require.Equal(t, "false", flags.ToMap()["AttributeValueMasking"])
+	require.True(t, flags.AttributeValueMasking, "AttributeValueMasking should default to true")
+	require.Equal(t, "true", flags.ToMap()["AttributeValueMasking"])
+}
+
+func TestFeatureFlagsSetDefaults_PropertyFieldRank(t *testing.T) {
+	var flags FeatureFlags
+	flags.SetDefaults()
+
+	require.True(t, flags.PropertyFieldRank, "PropertyFieldRank should default to true")
+	require.Equal(t, "true", flags.ToMap()["PropertyFieldRank"])
 }
 
 // TestFeatureFlagsPermissionPoliciesDependencies pins down the
@@ -71,12 +79,12 @@ func TestFeatureFlagsSetDefaults_AttributeValueMasking(t *testing.T) {
 // dependency (additional gates, new sub-flags) only have to update
 // one place and existing call sites stay correct.
 func TestFeatureFlagsPermissionPoliciesDependencies(t *testing.T) {
-	t.Run("both helpers are off when defaults are applied", func(t *testing.T) {
+	t.Run("both helpers are on when defaults are applied", func(t *testing.T) {
 		var f FeatureFlags
 		f.SetDefaults()
 
-		require.False(t, f.IsChannelPermissionPoliciesEnabled())
-		require.False(t, f.IsPolicySimulationEnabled())
+		require.True(t, f.IsChannelPermissionPoliciesEnabled())
+		require.True(t, f.IsPolicySimulationEnabled())
 	})
 
 	t.Run("sub-flag alone is not enough — the umbrella must be on too", func(t *testing.T) {

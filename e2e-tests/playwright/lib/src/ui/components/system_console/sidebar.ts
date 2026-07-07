@@ -25,7 +25,7 @@ export default class SystemConsoleSidebar {
 
     constructor(container: Locator) {
         this.container = container;
-        this.header = new SystemConsoleSidebarHeader(container.locator('.AdminSidebarHeader'));
+        this.header = new SystemConsoleSidebarHeader(container.locator('#admin-sidebar-header'));
         this.searchInput = container.getByPlaceholder('Find settings');
 
         this.about = new AboutCategory(container.getByTestId('about'));
@@ -120,8 +120,8 @@ class SidebarCategory {
 
     constructor(container: Locator) {
         this.container = container;
-        this.title = container.locator('.category-title');
-        this.sections = container.locator('ul.sections');
+        this.title = container.getByTestId('sidebar-category-title');
+        this.sections = container.getByTestId('sidebar-category-sections');
     }
 
     protected section(name: string): SidebarSection {
@@ -179,6 +179,7 @@ class UserManagementCategory extends SidebarCategory {
 
 class SystemAttributesCategory extends SidebarCategory {
     readonly userAttributes: SidebarSection;
+    readonly boardAttributes: SidebarSection;
     readonly attributeBasedAccess: SidebarSection;
     readonly membershipPolicies: SidebarSection;
     readonly permissionPolicies: SidebarSection;
@@ -186,6 +187,7 @@ class SystemAttributesCategory extends SidebarCategory {
     constructor(container: Locator) {
         super(container);
         this.userAttributes = this.section('User Attributes');
+        this.boardAttributes = this.section('Board Attributes');
         this.attributeBasedAccess = this.section('Attribute-Based Access');
         this.membershipPolicies = this.section('Membership Policies');
         this.permissionPolicies = this.section('Permission Policies');

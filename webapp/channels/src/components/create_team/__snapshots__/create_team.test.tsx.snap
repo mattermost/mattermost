@@ -5,6 +5,7 @@ exports[`component/create_team should match snapshot default 1`] = `
   <div>
     <div
       class="signup-header"
+      data-testid="signup-header"
     >
       <a
         data-testid="back_button"
@@ -23,6 +24,7 @@ exports[`component/create_team should match snapshot default 1`] = `
     >
       <div
         class="signup-team__container"
+        data-testid="create-team-form"
       >
         <h1
           id="site_name"

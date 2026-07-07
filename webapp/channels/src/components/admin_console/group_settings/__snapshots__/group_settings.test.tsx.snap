@@ -7,6 +7,7 @@ exports[`components/admin_console/group_settings/GroupSettings should match snap
   >
     <div
       class="admin-console__header"
+      data-testid="admin-console-header"
     >
       Groups
     </div>

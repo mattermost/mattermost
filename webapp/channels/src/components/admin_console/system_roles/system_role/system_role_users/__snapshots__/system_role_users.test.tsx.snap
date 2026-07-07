@@ -32,6 +32,7 @@ exports[`admin_console/system_role_users should match snapshot 1`] = `
     </div>
     <div
       class="DataGrid"
+      data-testid="dataGrid"
     >
       <div
         class="DataGrid_search"
@@ -62,6 +63,7 @@ exports[`admin_console/system_role_users should match snapshot 1`] = `
       </div>
       <div
         class="DataGrid_header"
+        data-testid="dataGrid-header"
       >
         <div
           class="DataGrid_cell"
@@ -79,6 +81,7 @@ exports[`admin_console/system_role_users should match snapshot 1`] = `
       </div>
       <div
         class="DataGrid_rows"
+        data-testid="dataGrid-rows"
       >
         <div
           class="DataGrid_loading"
@@ -98,11 +101,16 @@ exports[`admin_console/system_role_users should match snapshot 1`] = `
       </div>
       <div
         class="DataGrid_footer"
+        data-testid="dataGrid-footer"
       >
         <div
           class="DataGrid_cell"
         >
-          1 - 2 of 2
+          <span
+            data-testid="dataGrid-footer-paginationInfo"
+          >
+            1 - 2 of 2
+          </span>
           <button
             aria-label="Previous page"
             class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
@@ -165,6 +173,7 @@ exports[`admin_console/system_role_users should match snapshot with readOnly tru
     </div>
     <div
       class="DataGrid"
+      data-testid="dataGrid"
     >
       <div
         class="DataGrid_search"
@@ -195,6 +204,7 @@ exports[`admin_console/system_role_users should match snapshot with readOnly tru
       </div>
       <div
         class="DataGrid_header"
+        data-testid="dataGrid-header"
       >
         <div
           class="DataGrid_cell"
@@ -212,12 +222,15 @@ exports[`admin_console/system_role_users should match snapshot with readOnly tru
       </div>
       <div
         class="DataGrid_rows"
+        data-testid="dataGrid-rows"
       >
         <div
           class="DataGrid_row"
+          data-testid="dataGrid-row"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 3;"
           >
             <div
@@ -228,6 +241,7 @@ exports[`admin_console/system_role_users should match snapshot with readOnly tru
               >
                 <span
                   class="profile-icon "
+                  data-testid="profile-icon"
                 >
                   <img
                     alt="user profile image"
@@ -239,22 +253,28 @@ exports[`admin_console/system_role_users should match snapshot with readOnly tru
               </span>
               <div
                 class="UserGrid_name"
+                data-testid="userGrid-name"
               >
-                <span>
+                <span
+                  data-testid="userGrid-displayName"
+                >
                   some-user -  
                 </span>
                 <span
                   class="ug-email"
+                  data-testid="userGrid-email"
                 />
               </div>
             </div>
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 1;"
           />
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="text-align: right;"
           >
             <div
@@ -272,9 +292,11 @@ exports[`admin_console/system_role_users should match snapshot with readOnly tru
         </div>
         <div
           class="DataGrid_row"
+          data-testid="dataGrid-row"
         >
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 3;"
           >
             <div
@@ -285,6 +307,7 @@ exports[`admin_console/system_role_users should match snapshot with readOnly tru
               >
                 <span
                   class="profile-icon "
+                  data-testid="profile-icon"
                 >
                   <img
                     alt="user profile image"
@@ -296,22 +319,28 @@ exports[`admin_console/system_role_users should match snapshot with readOnly tru
               </span>
               <div
                 class="UserGrid_name"
+                data-testid="userGrid-name"
               >
-                <span>
+                <span
+                  data-testid="userGrid-displayName"
+                >
                   some-user -  
                 </span>
                 <span
                   class="ug-email"
+                  data-testid="userGrid-email"
                 />
               </div>
             </div>
           </div>
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="flex-grow: 1;"
           />
           <div
             class="DataGrid_cell"
+            data-testid="dataGrid-cell"
             style="text-align: right;"
           >
             <div
@@ -330,11 +359,16 @@ exports[`admin_console/system_role_users should match snapshot with readOnly tru
       </div>
       <div
         class="DataGrid_footer"
+        data-testid="dataGrid-footer"
       >
         <div
           class="DataGrid_cell"
         >
-          1 - 2 of 2
+          <span
+            data-testid="dataGrid-footer-paginationInfo"
+          >
+            1 - 2 of 2
+          </span>
           <button
             aria-label="Previous page"
             class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"

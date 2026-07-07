@@ -1,0 +1,802 @@
+---
+title: "Manually migrate from MySQL to PostgreSQL"
+---
+<PlanAvailability slug="all-commercial" />
+
+Migrating a MySQL database to PostgreSQL manually involves the following steps:
+
+- [install recommended tools](#tool-recommendations)
+- [familiarize yourself with system requirements and configurations](#system-requirements-and-configurations-for-manual-migrations)
+- [ensure migration prerequisites are met](#before-a-manual-migration)
+- [review schema differences](#schema-diffs)
+- [prepare a target database](#prepare-target-database)
+- [migrate the data](#migrate-the-data)
+- [complete post-migration wrap-up activities](#after-the-migration)
+
+<Tip>
+
+See the [plugin migrations](#plugin-migrations) section for details on migrating collaborative playbooks and Boards.
+
+</Tip>
+
+Not sure upgrading manually is the right path forward? Mattermost customers looking for tailored guidance based on their Mattermost deployment can contact a [Mattermost Expert](https://mattermost.com/contact-sales/).
+
+## Tool recommendations
+
+If you prefer to migrate to Postgres manually, we recommend the following tools for the migration process:
+
+- [pgloader](#pgloader)
+- [morph](#morph)
+- [dbcmp (optional)](#dbcmp-optional)
+
+This page includes instructions on how to install each of these tools, and then proceed with the database migration.
+
+Once you've installed the necessary tools, review the [system requirements and configurations](#system-requirements-and-configurations) documentation, and know what's required [before starting your migration](#before-the-migration) to prepare for your migration.
+
+Start your migration by [preparing your target database](#prepare-target-database), then [migrate the data](#migrate-the-data), and complete all [post-migration steps](#after-the-migration).
+
+See the [plugin migrations](#plugin-migrations) documentation for details on migrating collaborative playbooks and boards.
+
+### pgloader
+
+Use the `pgloader` tool to migrate your data from MySQL to PostgreSQL.
+
+#### Install pgloader
+
+To install `pgloader`, see the official [installation guide](https://pgloader.readthedocs.io/en/latest/install.html).
+
+<Note>
+
+If you are using MySQL v8: Due to a [known bug](https://github.com/dimitri/pgloader/issues/1183) in pgloader-compiled binaries, you need to compile pgloader from the source. Please follow the steps [here](https://pgloader.readthedocs.io/en/latest/install.html#build-from-sources) to build from the source.
+
+</Note>
+
+Alternatively, you may want to use our `mattermost-pgloader` Docker image to avoid installing or building `pgloader`. See the documentation below for details.
+
+#### Use pgloader
+
+##### Pull the Docker image and verify pgloader
+
+For a manual migration, run the following command to pull the `mattermost-pgloader` image and verify that pgloader is working correctly:
+
+``` sh
+docker run -it --rm -v $(pwd):/home/migration mattermost/mattermost-pgloader:latest pgloader --version
+```
+
+This command pulls the `mattermost/mattermost-pgloader:latest` image and runs `pgloader` to check its version and ensure it works as expected.
+
+##### Map local directory
+
+Use the `-v $(pwd):/home/migration` flag to map your current working directory to the Docker container. This allows you to use your local directory for storing logs and other files.
+
+##### Set network configuration
+
+Depending on your network requirements, set the `--network` flag accordingly. For example, to access localhost, you need to set the network to `host`.
+
+### morph
+
+The `morph` tool creates the PostgreSQL schema.
+
+<Note>
+
+Both `morph` and `dbcmp` requires Go toolchain. To install Go compiler, follow the [Go documentation](https://go.dev/doc/install).
+
+</Note>
+
+#### Install morph
+
+You can install morph CLI by running the following command:
+
+``` sh
+go install github.com/mattermost/morph/cmd/morph@v1
+```
+
+### dbcmp (Optional)
+
+The `dbcmp` tool enables you to compare the data following the migration by comparing every table and reporting whether there is a diversion between two schemas.
+
+#### Install dbcmp
+
+You can install [dbcmp](https://github.com/mattermost/dbcmp) by running the following command:
+
+``` sh
+go install github.com/mattermost/dbcmp/cmd/dbcmp@latest
+```
+
+## System requirements and configurations for manual migrations
+
+Before starting a manual migration process, it's essential to ensure that your system meets the necessary requirements for a smooth and efficient migration. We strongly recommend the following system specifications and adjustments:
+
+- Ensure you have enough system memory resources. 16GB of RAM is recommended as a default. In scenarios where system memory is insufficient, users can fine-tune pgloader settings, such as the `number of workers`, `prefetch rows`, and especially `rows per range` if `concurrency` is set above `1`. These adjustments can help optimize resource utilization based on available system resources. For further detail see [pgloader documentation](https://pgloader.readthedocs.io/en/latest/batches.html).
+- A multi-core processor with sufficient processing power is recommended for the migration process, especially when dealing with large datasets.
+- Ensure that there is enough disk space available for storing both the MySQL and PostgreSQL databases, as well as any temporary files generated during the migration process. The amount of required disk space depends on the size of the databases being migrated.
+- To reduce migration time further, users may choose to manually drop indexes on the target PostgreSQL database before initiating the migration process. This approach can potentially accelerate the migration by reducing overhead with index builds during data insertion.
+
+### Before a manual migration
+
+<Important>
+
+This guide requires a schema of v7.1 ESR or later. So, if you have an earlier version and planning to migrate, please update your Mattermost Server to v7.1 at a minimum. See the [extended support releases](/product-overview/release-policy#extended-support-releases) documentation for details.
+
+- Back up your MySQL data.
+- Confirm your Mattermost version. See the **About** modal for details.
+- Schedule the migration window. This process requires you to stop the Mattermost Server during the migration.
+- See the [schema-diffs](#schema-diffs) section to ensure data compatibility between schemas.
+- Prepare your PostgreSQL environment by creating a database and user. See the [database](/deployment-guide/server/preparations) documentation for details.
+- On [newer versions](https://www.postgresql.org/docs/release/15.0/) of PostgreSQL, newly created users do not have access to `public` schema. The access should be explicitly granted by running `GRANT ALL ON SCHEMA public to mmuser`.
+
+</Important>
+
+### Schema diffs
+
+Before the manual migration, due to differences between the two schemas, some manual steps may be required for an error-free migration.
+
+#### Text to character varying
+
+We encourage you to check if the sizes are consistent within the PostgreSQL schema limits since the Mattermost MySQL schema uses the `text` column type in the various tables instead of `varchar` representation in the PostgreSQL schema.
+
+You can check if there are any required deletions or updates. For example, to do so in the `Audits` table/`Action` column; run:
+
+``` sql
+SELECT FROM mattermost.Audits where LENGTH(Action) > 512;
+```
+
+The following table shows the deletions or updates you can proceed with that don't incur further consequences.
+
+<table>
+<thead>
+<tr>
+<th>Table</th>
+<th>Column</th>
+<th>Data type casting</th>
+<th>Consequence on deletion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Audits</td>
+<td>Action</td>
+<td>text -&gt; varchar(512)</td>
+<td>No side effect on how the application works (The affected row needs to be deleted).</td>
+</tr>
+<tr>
+<td>Audits</td>
+<td>ExtraInfo</td>
+<td>text -&gt; varchar(1024)</td>
+<td>No side effect on how the application works (The affected row needs to be deleted).</td>
+</tr>
+<tr>
+<td>ClusterDiscovery</td>
+<td>HostName</td>
+<td>text -&gt; varchar(512)</td>
+<td>No side effect on how the application works (The affected row needs to be deleted).</td>
+</tr>
+<tr>
+<td>Commands</td>
+<td>IconURL</td>
+<td>text -&gt; varchar(1024)</td>
+<td>The field can be deleted or updated with a new URL.</td>
+</tr>
+<tr>
+<td>Commands</td>
+<td>AutoCompleteDesc</td>
+<td>text -&gt; varchar(1024)</td>
+<td>The field can be deleted or rewritten.</td>
+</tr>
+<tr>
+<td>Commands</td>
+<td>AutoCompleteHint</td>
+<td>text -&gt; varchar(1024)</td>
+<td>The field can be deleted or rewritten.</td>
+</tr>
+<tr>
+<td>RemoteClusters</td>
+<td>Topics</td>
+<td>text -&gt; varchar(512)</td>
+<td>The field can be removed.</td>
+</tr>
+<tr>
+<td>Systems</td>
+<td>Value</td>
+<td>text -&gt; varchar(1024)</td>
+<td>Edge case, ideally should never happen.</td>
+</tr>
+</tbody>
+</table>
+
+The following table shows several occurrences where the schema can differ and data size constraints within the PostgreSQL schema can result in errors. Each table/row requires individual inspection hence we added the possible consequence of deletion.
+
+<Tip>
+
+Several reports have been received from our community that the `LinkMetadata` and `FileInfo` tables had some overflows, so we recommend checking these tables in particular. Please check if your data in the MySQL schema exceeds these limitations.
+
+</Tip>
+
+<table>
+<thead>
+<tr>
+<th>Table</th>
+<th>Column</th>
+<th>Data type casting</th>
+<th>Consequence on deletion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Compliances</td>
+<td>Keywords</td>
+<td>text -&gt; varchar(512)</td>
+<td>The filter for compliance needs to be updated.</td>
+</tr>
+<tr>
+<td>Compliances</td>
+<td>Emails</td>
+<td>text -&gt; varchar(1024)</td>
+<td>The filter for compliance needs to be updated.</td>
+</tr>
+<tr>
+<td>FileInfo</td>
+<td>Path</td>
+<td>text -&gt; varchar(512)</td>
+<td>Previous links to this file won't work (The affected row needs to be deleted).</td>
+</tr>
+<tr>
+<td>FileInfo</td>
+<td>ThumbnailPath</td>
+<td>text -&gt; varchar(512)</td>
+<td>Previous links to this file won't work (The affected row needs to be deleted).</td>
+</tr>
+<tr>
+<td>FileInfo</td>
+<td>PreviewPath</td>
+<td>text -&gt; varchar(512)</td>
+<td>Previous links to this file won't work (The affected row needs to be deleted).</td>
+</tr>
+<tr>
+<td>FileInfo</td>
+<td>Name</td>
+<td>text -&gt; varchar(256)</td>
+<td>Previous links to this file won't work (The affected row needs to be deleted).</td>
+</tr>
+<tr>
+<td>FileInfo</td>
+<td>MimeType</td>
+<td>text -&gt; varchar(256)</td>
+<td>Previous links to this file won't work (The affected row needs to be deleted).</td>
+</tr>
+<tr>
+<td>LinkMetadata</td>
+<td>URL</td>
+<td>text -&gt; varchar(2048)</td>
+<td>Previous links to this file won't work (The affected row needs to be deleted).</td>
+</tr>
+<tr>
+<td>RemoteClusters</td>
+<td>SiteURL</td>
+<td>text -&gt; varchar(512)</td>
+<td>Previous remote cluster will be removed (The affected row needs to be deleted).</td>
+</tr>
+<tr>
+<td>Sessions</td>
+<td>DeviceId</td>
+<td>text -&gt; varchar(512)</td>
+<td>Users will be logged out on these devices (The affected row needs to be deleted).</td>
+</tr>
+<tr>
+<td>UploadSessions</td>
+<td>FileName</td>
+<td>text -&gt; varchar(256)</td>
+<td>The upload session will be lost (The affected row needs to be deleted).</td>
+</tr>
+<tr>
+<td>UploadSessions</td>
+<td>Path</td>
+<td>text -&gt; varchar(512)</td>
+<td>The upload session will be lost (The affected row needs to be deleted).</td>
+</tr>
+</tbody>
+</table>
+
+#### Full-text indexes
+
+It's possible that some words in the `Posts` and `FileInfo` tables can exceed the [limits of the maximum token length](https://www.postgresql.org/docs/11/textsearch-limitations.html) for full-text search indexing. In these cases, we are dropping the `idx_posts_message_txt` and `idx_fileinfo_content_txt` indexes from the PostgreSQL schema, and creating these indexes after the migration by running the following queries:
+
+To prevent errors during the migration, we have included following queries:
+
+``` text
+DROP INDEX IF EXISTS {{ .source_db }}.idx_posts_message_txt;
+DROP INDEX IF EXISTS {{ .source_db }}.idx_fileinfo_content_txt;
+```
+
+#### Unsupported unicode sequences
+
+There is a specific unicode sequence that is [disallowed](https://www.postgresql.org/docs/16/datatype-json.html#DATATYPE-JSON) in PostgreSQL which is `\u0000`. There is a chance that this sequence may appear in several rows across a bunch of tables in your MySQL database. If it is the case, during the migration you will likely receive an error as following: `unsupported Unicode escape sequence: \u0000 cannot be converted to text.`. To prevent this from happening, we advise to sanitize your data before starting to the migration. You can use the following query to replace `\u0000` sequence with empty string.
+
+<Note>
+
+You can use this query as-is in a script, or you may need to set the delimiter to something else (e.g., `DELIMITER //`) when defining it in the MySQL console. Once you are done defining the procedure, please set the delimiter back to the original (i.e., `DELIMITER ;`).
+
+</Note>
+
+``` text
+CREATE PROCEDURE SanitizeUnsupportedUnicode()
+BEGIN
+ DECLARE done INT DEFAULT FALSE;
+ DECLARE curTableName text;
+ DECLARE curColumnName text;
+ DECLARE cursors CURSOR FOR
+    SELECT table_name, column_name
+    FROM information_schema.COLUMNS
+    WHERE data_type = 'json'
+    AND table_schema = DATABASE();
+DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+OPEN cursors;
+
+WHILE NOT DONE DO
+ FETCH cursors INTO curTableName, curColumnName;
+ SET @query_string = CONCAT('UPDATE ', curTableName, ' SET ', curColumnName, ' = REPLACE(', curColumnName, ', \'\\\\u0000\', \'\') WHERE ', curColumnName, ' LIKE \'%\\u0000%\';');
+
+ PREPARE dynamic_query FROM @query_string;
+ EXECUTE dynamic_query;
+ DEALLOCATE PREPARE dynamic_query;
+END WHILE;
+
+CLOSE cursors;
+END;
+
+CALL SanitizeUnsupportedUnicode();
+
+DROP PROCEDURE IF EXISTS SanitizeUnsupportedUnicode;
+```
+
+<Note>
+
+There is also a specific byte sequence value that is not allowed and will cause an `invalid byte sequence for encoding 'UTF8': 0x00"` error during the migration. To prevent this error, you can add the `remove-null-characters` clause to the text casting rules. However, since pgloader will modify the data on the fly, there may be differences between the tables (if any are affected) during the comparison phase.
+
+</Note>
+
+#### Artifacts may remain from previous configurations/versions
+
+Prior to `v6.4`, Mattermost was using [golang-migrate](https://github.com/golang-migrate/migrate) to handle the schema migrations. Since we don't use it anymore, we exclude the table `schema_migrations`. If you were using Mattermost before `v6.4` consider dropping this table and excluding it from comparison as well.
+
+``` sql
+DROP TABLE mattermost.schema_migrations;
+```
+
+Some community members have reported that they had `description` and `nextsyncat` columns in their `SharedChannelRemotes` table. These columns should be removed from the table. Consider running the following DDL to drop the columns. (This migration will be added to future versions of Mattermost).
+
+``` sql
+ALTER TABLE SharedChannelRemotes DROP COLUMN description, DROP COLUMN nextsyncat;
+```
+
+An error has been identified in the 96th migration that was previously released. Before proceeding with the migration, it is necessary to remove a specific column. To ensure the Threads table reaches the expected state, execute the following prepared statement:
+
+``` sql
+SET @preparedStatement = (SELECT IF(
+ (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE table_name = 'Threads'
+    AND table_schema = DATABASE()
+    AND column_name = 'TeamId'
+ ) > 0,
+ 'ALTER TABLE Threads DROP COLUMN TeamId;',
+ 'SELECT 1'
+));
+
+PREPARE alterIfExists FROM @preparedStatement;
+EXECUTE alterIfExists;
+DEALLOCATE PREPARE alterIfExists;
+```
+
+#### Configuration in database
+
+If you were previously utilizing a database for handling the [Mattermost configuration](/administration-guide/configure/configuration-in-your-database), those tables will not be migrated from your MySQL database with the migration [script](#migrate-the-data).
+
+Two migrations are necessary:
+
+- migrate database configuration to the file system
+- migrate file system configuration back to the database
+
+##### Migrate database configuration to the file system
+
+Use the `mmctl config migrate` command to [migrate your config](/administration-guide/manage/mmctl-command-line-tool#mmctl-config-migrate) to the file system, as follows:
+
+``` sh
+mmctl config migrate "<DB_USER>:<DB_PASS>@tcp(<DB_HOST>:3306)/<DB_NAME>?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s&multiStatements=true" /opt/mattermost/config/config.json --local
+```
+
+Where `<DB_USER>`, `<DB_PASS>`, `<DB_HOST>`, and `<DB_NAME>` are replaced with your environment values. Ensure you use `--local` when running this command. The first parameters (`<DB_USER>`, `<DB_PASS>`) is the database the configuration is stored in, the second parameter (`<DB_HOST>`, `<DB_NAME>`) is the file we are saving the configuration to.
+
+In the configuration file, update the `SqlSettings.DataSource` and `SqlSettings.DriverName` fields to reflect new changes. To do so, open the `json` file and change the respective fields.
+
+##### Migrate file system configuration back to the database
+
+To save configuration back to the database, Use the `mmctl config migrate` command again and reverse the parameters. Ensure you use the new database credentials moving it back to the target database.
+
+``` sql
+SELECT * FROM Configurations WHERE Active = 't';
+```
+
+You should update the `SqlSettings.DataSource` and `SqlSettings.DriverName` fields accordingly. Also, note that the `MM_CONFIG` environment variable should point to the new DSN after the migration is completed.
+
+## Prepare target database
+
+It is essential to create tables and indexes to ensure that the PostgreSQL database schema is properly structured according to the required specifications. Since Mattermost repository contains all of the required SQL queries to achieve that, we can leverage this by running the following steps:
+
+- Clone the `mattermost` repository for your specific version:
+
+``` sh
+git clone -b <your current version (eg. release-7.8)> git@github.com:mattermost/mattermost.git --depth=1
+```
+
+- Run all schema migrations\* on your PostgreSQL database using morph CLI with the following command:
+
+``` sh
+morph apply up --driver postgres --dsn "postgres://user:pass@localhost:5432/<target_db_mame>?sslmode=disable" --path ./mattermost/db/migrations/postgres --number -1
+```
+
+\* After `v8`, due to project re-organization, the migrations directory has been changed to `./mattermost/server/channels/db/migrations/postgres/` relative to where you cloned Mattermost repository. Please set `--path` flag accordingly.
+
+## Migrate the data
+
+Once we set the schema to a desired state, we can start migrating the **data** by running `pgloader`
+
+<Note>
+
+In the example below, the hosts for both databases are assumed to be in the same instance. Please update addresses accordingly if they are on different machines. Also you can test the `.load` file by simply running `pgloader` with `--dry-run` flag. For instance `pgloader --dry-run migration.load` command.
+
+</Note>
+
+Use the following configuration for the baseline of the data migration:
+
+``` text
+LOAD DATABASE
+ FROM      mysql://{{ .mysql_user }}:{{ .mysql_password }}@{{ .mysql_address }}/{{ .source_db }}
+ INTO      pgsql://{{ .pg_user }}:{{ .pg_password }}@{{ .postgres_address }}/{{ .target_db }}
+
+WITH data only,
+ workers = 8, concurrency = 1,
+ multiple readers per thread, rows per range = 10000,
+ prefetch rows = 10000, batch rows = 2500,
+ create no tables, create no indexes,
+ preserve index names
+
+SET PostgreSQL PARAMETERS
+ maintenance_work_mem to '128MB',
+ work_mem to '12MB'
+
+SET MySQL PARAMETERS
+ net_read_timeout  = '120',
+ net_write_timeout = '120'
+
+CAST column Channels.Type to "channel_type" drop typemod,
+ column Teams.Type to "team_type" drop typemod,
+ column UploadSessions.Type to "upload_session_type" drop typemod,
+ column ChannelBookmarks.Type to "channel_bookmark_type" drop typemod,
+ column Drafts.Priority to text,
+ type int when (= precision 11) to integer drop typemod,
+ type bigint when (= precision 20) to bigint drop typemod,
+ type text to varchar drop typemod using remove-null-characters,
+ type tinyint when (<= precision 4) to boolean using tinyint-to-boolean,
+ type json to jsonb drop typemod using remove-null-characters
+
+EXCLUDING TABLE NAMES MATCHING ~<IR_>, ~<focalboard>, 'schema_migrations', 'db_migrations', 'db_lock',
+ 'Configurations', 'ConfigurationFiles', 'db_config_migrations', 'calls'
+
+BEFORE LOAD DO
+ $$ ALTER SCHEMA public RENAME TO {{ .source_db }}; $$,
+ $$ TRUNCATE TABLE {{ .source_db }}.systems; $$,
+ $$ DROP INDEX IF EXISTS {{ .source_db }}.idx_posts_message_txt; $$,
+ $$ DROP INDEX IF EXISTS {{ .source_db }}.idx_fileinfo_content_txt; $$
+
+AFTER LOAD DO
+ $$ UPDATE {{ .source_db }}.db_migrations set name='add_createat_to_teamembers' where version=92; $$,
+ $$ ALTER SCHEMA {{ .source_db }} RENAME TO public; $$,
+ $$ SELECT pg_catalog.set_config('search_path', '"$user", public', false); $$,
+ $$ ALTER USER {{ .pg_user }} SET SEARCH_PATH TO 'public'; $$;
+```
+
+Once you save this configuration file, e.g. `migration.load`, you can run the `pgloader` with the following command:
+
+``` sh
+pgloader migration.load > migration.log
+```
+
+Feel free to contribute to and/or report your findings through your migration to us.
+
+## After the migration
+
+### Restore full-text indexes
+
+To avoid performance regression on `Posts` and `FileInfo` table access, following queries should be executed once the migration finishes:
+
+``` sql
+CREATE INDEX IF NOT EXISTS idx_posts_message_txt ON public.posts USING gin(to_tsvector('english', message));
+CREATE INDEX IF NOT EXISTS idx_fileinfo_content_txt ON public.fileinfo USING gin(to_tsvector('english', content));
+```
+
+<Note>
+
+If any of the entries in your `Posts` and `FileInfo` tables exceed the limit mentioned above, index creation query will warn with the `ERROR: string is too long for tsvector` log while trying to create these indexes. This means the content that didn't fit into a `tsvector` was ignored. If you still want to index the truncated content, you can use `substring()` function on the content while creating the indexes.
+
+Start with a substring length of 1000000 and gradually decrease if the error persists:
+
+</Note>
+
+``` sql
+-- Start with 1000000
+CREATE INDEX IF NOT EXISTS idx_fileinfo_content_txt ON public.fileinfo USING gin(to_tsvector('english', substring(content,0,1000000)));
+
+-- If that fails, try 800000
+CREATE INDEX IF NOT EXISTS idx_fileinfo_content_txt ON public.fileinfo USING gin(to_tsvector('english', substring(content,0,800000)));
+
+-- Continue decreasing as needed (e.g., 600000, 500000) until the index creates successfully
+```
+
+### Compare the data
+
+We developed an internal tool called `dbcmp` to simplify database comparison. It checks every table in two databases and reports any differences in their schemas. However, `dbcmp` does not compare individual rows. Instead, it calculates checksum values based on a specified page-size and compares them. This means it cannot generate row-level diffs.
+
+We recommend using `dbcmp` as an additional check to verify data integrity, especially if custom casting rules (beyond the defaults or those provided by us) were used during migration. Otherwise, running this tool is not necessary.
+
+The tool includes a few flags to run a comparison:
+
+``` sh
+Usage:
+  dbcmp [flags]
+
+Flags:
+      --exclude strings   exclude tables from comparison, takes comma-separated values.
+      --include strings   include only matching tables for comparison, takes comma-separated values.
+  -h, --help              help for dbcmp
+      --source string     source database dsn
+      --target string     target database dsn
+  -v, --version           version for dbcmp
+```
+
+<Note>
+
+`--exclude` and `--include` flags are mutually exclusive and they can't be used together.
+
+</Note>
+
+For our case, we can simply run the following command:
+
+``` sh
+dbcmp --source "${MYSQL_DSN}" --target "${POSTGRES_DSN} " --include="posts,users"
+```
+
+An example command would look like: `dbcmp --source "user:password@tcp(address:3306)/db_name --target "postgres://user:password@address:5432/db_name`
+
+<Note>
+
+`POSTGRES_DSN` should start with a `postgres://` prefix. This way `dbcmp` decides which driver to use while connecting to a database.
+
+</Note>
+
+Another exclusion we are making is in the `db_migrations` table which has a small difference (a typo in a single migration name) and creates a diff. Since we created the PostgreSQL schema with morph, and the official `mattermost` source, we can skip it safely without concerns. On the other hand, `systems` table may contain additional diffs if there were extra keys added during some of the migrations. Consider excluding the `systems` table if you run into issues, and perform a manual comparison as the data in the `systems` table is relatively smaller in size.
+
+<Note>
+
+If the `remove-null-characters` transform function is utilized during the migration and there were `0x00` byte sequences in the MySQL database, those tables will have differences during the comparison phase.
+
+</Note>
+
+### Restore the search path
+
+If you closely examine the `pgloader` configuration file (e.g., `migration.load`), you will notice that the `search_path` of the database user is set to `public`. This is the only requirement for the Mattermost application. However, if you need to include other schemas in the search path, you should modify the `search_path` accordingly to meet your specific requirements.
+
+## Plugin migrations
+
+On the plugin side, we are going to take a different approach from what we have done above. We are not going to use `morph` tool to create tables and indexes this time. We are going to utilize `pgloader` to create the tables on behalf of us. The reason for doing so is that collaborative playbooks and boards leverage application logic to facilitate SQL queries. But we don't want to use any level of application at this point.
+
+### Collaborative playbooks
+
+The `pgloader` configuration provided for playbooks is based on `v1.38.1` and the plugin should be at least `v1.36.0` to perform the migration.
+
+Once we are ready to migrate, we can start migrating the **schema** and the **data** by running `pgloader`
+
+Use the following configuration for the baseline of the data migration:
+
+``` text
+LOAD DATABASE
+ FROM      mysql://{{ .mysql_user }}:{{ .mysql_password }}@{{ .mysql_address }}/{{ .source_db }}
+ INTO      pgsql://{{ .pg_user }}:{{ .pg_password }}@{{ .postgres_address }}/{{ .target_db }}
+
+WITH include drop, create tables, create indexes, no foreign keys,
+ workers = 8, concurrency = 1,
+ multiple readers per thread, rows per range = 50000,
+ preserve index names
+
+SET PostgreSQL PARAMETERS
+ maintenance_work_mem to '128MB',
+ work_mem to '12MB'
+
+SET MySQL PARAMETERS
+ net_read_timeout  = '120',
+ net_write_timeout = '120'
+
+CAST column IR_ChannelAction.ActionType to text drop typemod,
+ column IR_ChannelAction.TriggerType to text drop typemod,
+ column IR_Incident.ChecklistsJSON to "json" drop typemod
+
+INCLUDING ONLY TABLE NAMES MATCHING
+ ~/IR_/
+
+BEFORE LOAD DO
+ $$ ALTER SCHEMA public RENAME TO {{ .source_db }}; $$
+
+AFTER LOAD DO
+ $$ ALTER TABLE {{ .source_db }}.IR_ChannelAction ALTER COLUMN ActionType TYPE varchar(65536); $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_ChannelAction ALTER COLUMN TriggerType TYPE varchar(65536); $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Incident ALTER COLUMN ReminderMessageTemplate TYPE varchar(65536); $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Incident ALTER COLUMN ReminderMessageTemplate SET DEFAULT ''::text;  $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Incident ALTER COLUMN ConcatenatedInvitedUserIDs TYPE varchar(65536); $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Incident ALTER COLUMN ConcatenatedInvitedUserIDs SET DEFAULT ''::text; $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Incident ALTER COLUMN ConcatenatedWebhookOnCreationURLs TYPE varchar(65536); $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Incident ALTER COLUMN ConcatenatedWebhookOnCreationURLs SET DEFAULT ''::text; $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Incident ALTER COLUMN ConcatenatedInvitedGroupIDs TYPE varchar(65536); $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Incident ALTER COLUMN ConcatenatedInvitedGroupIDs SET DEFAULT ''::text; $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Incident ALTER COLUMN Retrospective TYPE varchar(65536); $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Incident ALTER COLUMN Retrospective SET DEFAULT ''::text; $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Incident ALTER COLUMN MessageOnJoin TYPE varchar(65536); $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Incident ALTER COLUMN MessageOnJoin SET DEFAULT ''::text; $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Incident ALTER COLUMN ConcatenatedWebhookOnStatusUpdateURLs TYPE varchar(65536); $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Incident ALTER COLUMN ConcatenatedWebhookOnStatusUpdateURLs SET DEFAULT ''::text; $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Incident ALTER COLUMN CategoryName TYPE varchar(65536); $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Incident ALTER COLUMN CategoryName SET DEFAULT ''::text; $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Incident ALTER COLUMN ConcatenatedBroadcastChannelIds TYPE varchar(65536); $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Incident ALTER COLUMN ConcatenatedBroadcastChannelIds SET DEFAULT ''::text; $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Incident ALTER COLUMN ChannelIDToRootID TYPE varchar(65536); $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Incident ALTER COLUMN ChannelIDToRootID SET DEFAULT ''::text; $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Playbook ALTER COLUMN ReminderMessageTemplate TYPE varchar(65536); $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Playbook ALTER COLUMN ReminderMessageTemplate SET DEFAULT ''::text; $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Playbook ALTER COLUMN ConcatenatedInvitedUserIDs TYPE varchar(65536); $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Playbook ALTER COLUMN ConcatenatedInvitedUserIDs SET DEFAULT ''::text; $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Playbook ALTER COLUMN ConcatenatedWebhookOnCreationURLs TYPE varchar(65536); $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Playbook ALTER COLUMN ConcatenatedWebhookOnCreationURLs SET DEFAULT ''::text; $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Playbook ALTER COLUMN ConcatenatedInvitedGroupIDs TYPE varchar(65536); $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Playbook ALTER COLUMN ConcatenatedInvitedGroupIDs SET DEFAULT ''::text; $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Playbook ALTER COLUMN MessageOnJoin TYPE varchar(65536); $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Playbook ALTER COLUMN MessageOnJoin SET DEFAULT ''::text; $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Playbook ALTER COLUMN RetrospectiveTemplate TYPE varchar(65536); $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Playbook ALTER COLUMN RetrospectiveTemplate SET DEFAULT ''::text; $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Playbook ALTER COLUMN ConcatenatedWebhookOnStatusUpdateURLs TYPE varchar(65536); $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Playbook ALTER COLUMN ConcatenatedWebhookOnStatusUpdateURLs SET DEFAULT ''::text; $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Playbook ALTER COLUMN ConcatenatedSignalAnyKeywords TYPE varchar(65536); $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Playbook ALTER COLUMN ConcatenatedSignalAnyKeywords SET DEFAULT ''::text; $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Playbook ALTER COLUMN CategoryName TYPE varchar(65536); $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Playbook ALTER COLUMN CategoryName SET DEFAULT ''::text; $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Playbook ALTER COLUMN ChecklistsJSON TYPE JSON USING ChecklistsJSON::JSON; $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Playbook ALTER COLUMN ConcatenatedBroadcastChannelIds TYPE varchar(65536); $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Playbook ALTER COLUMN ConcatenatedBroadcastChannelIds SET DEFAULT ''::text; $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Playbook ALTER COLUMN RunSummaryTemplate TYPE varchar(65536); $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Playbook ALTER COLUMN RunSummaryTemplate SET DEFAULT ''::text; $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Playbook ALTER COLUMN ChannelNameTemplate TYPE varchar(65536); $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Playbook ALTER COLUMN ChannelNameTemplate SET DEFAULT ''::text; $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_PlaybookMember ALTER COLUMN Roles TYPE varchar(65536); $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Category_Item ADD CONSTRAINT ir_category_item_categoryid FOREIGN KEY (CategoryId) REFERENCES {{ .source_db }}.IR_Category(Id); $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Metric ADD CONSTRAINT ir_metric_metricconfigid FOREIGN KEY (MetricConfigId) REFERENCES {{ .source_db }}.IR_MetricConfig(Id); $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Metric ADD CONSTRAINT ir_metric_incidentid FOREIGN KEY (IncidentId) REFERENCES {{ .source_db }}.IR_Incident(Id); $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_MetricConfig ADD CONSTRAINT ir_metricconfig_playbookid FOREIGN KEY (PlaybookId) REFERENCES {{ .source_db }}.IR_Playbook(Id); $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_PlaybookAutoFollow ADD CONSTRAINT ir_playbookautofollow_playbookid FOREIGN KEY (PlaybookId) REFERENCES {{ .source_db }}.IR_Playbook(Id); $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_PlaybookMember ADD CONSTRAINT ir_playbookmember_playbookid FOREIGN KEY (PlaybookId) REFERENCES {{ .source_db }}.IR_Playbook(Id); $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_Run_Participants ADD CONSTRAINT ir_run_participants_incidentid FOREIGN KEY (IncidentId) REFERENCES {{ .source_db }}.IR_Incident(Id); $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_StatusPosts ADD CONSTRAINT ir_statusposts_incidentid FOREIGN KEY (IncidentId) REFERENCES {{ .source_db }}.IR_Incident(Id); $$,
+ $$ ALTER TABLE {{ .source_db }}.IR_TimelineEvent ADD CONSTRAINT ir_timelineevent_incidentid FOREIGN KEY (IncidentId) REFERENCES {{ .source_db }}.IR_Incident(Id); $$,
+ $$ CREATE UNIQUE INDEX IF NOT EXISTS ir_playbookmember_playbookid_memberid_key on {{ .source_db }}.IR_PlaybookMember(PlaybookId,MemberId); $$,
+ $$ CREATE INDEX IF NOT EXISTS ir_statusposts_incidentid_postid_key on {{ .source_db }}.IR_StatusPosts(IncidentId,PostId); $$,
+ $$ CREATE INDEX IF NOT EXISTS ir_playbookmember_playbookid on {{ .source_db }}.IR_PlaybookMember(PlaybookId); $$,
+ $$ ALTER SCHEMA {{ .source_db }} RENAME TO public; $$,
+ $$ SELECT pg_catalog.set_config('search_path', '"$user", public', false); $$,
+ $$ ALTER USER {{ .pg_user }} SET SEARCH_PATH TO 'public'; $$;
+```
+
+``` sh
+pgloader playbooks.load > playbooks_migration.log
+```
+
+### Focalboard
+
+As of `v9.0` Boards will transition to being fully community supported as the Focalboard plugin. Hence this guide covers only version `v7.10.x` of the schema. [Official announcement](/product-overview/deprecated-features#mattermost-server-v9-0-0).
+
+Once we are ready to migrate, we can start migrating the **schema** and the **data** by running `pgloader`
+
+Use the following configuration for the baseline of the data migration:
+
+``` text
+LOAD DATABASE
+ FROM      mysql://{{ .mysql_user }}:{{ .mysql_password }}@{{ .mysql_address }}/{{ .source_db }}
+ INTO      pgsql://{{ .pg_user }}:{{ .pg_password }}@{{ .postgres_address }}/{{ .target_db }}
+
+WITH include drop, create tables, create indexes, reset sequences,
+ workers = 8, concurrency = 1,
+ multiple readers per thread, rows per range = 50000,
+ preserve index names
+
+SET PostgreSQL PARAMETERS
+ maintenance_work_mem to '128MB',
+ work_mem to '12MB'
+
+SET MySQL PARAMETERS
+ net_read_timeout  = '120',
+ net_write_timeout = '120'
+
+CAST column focalboard_blocks.fields to "json" drop typemod,
+ column focalboard_blocks_history.fields to "json" drop typemod,
+ column focalboard_schema_migrations.name to "varchar" drop typemod,
+ column focalboard_sessions.props to "json" drop typemod,
+ column focalboard_teams.settings to "json" drop typemod,
+ column focalboard_users.props to "json" drop typemod,
+ type int when (= precision 11) to int4 drop typemod,
+ type json to jsonb drop typemod
+
+INCLUDING ONLY TABLE NAMES MATCHING
+ ~/focalboard/
+
+BEFORE LOAD DO
+ $$ ALTER SCHEMA public RENAME TO {{ .source_db }}; $$
+
+AFTER LOAD DO
+ $$ UPDATE {{ .source_db }}.focalboard_blocks SET "fields" = '{}'::json WHERE "fields"::text = ''; $$,
+ $$ UPDATE {{ .source_db }}.focalboard_blocks_history SET "fields" = '{}'::json WHERE "fields"::text = ''; $$,
+ $$ UPDATE {{ .source_db }}.focalboard_sessions SET "props" = '{}'::json WHERE "props"::text = ''; $$, 
+ $$ UPDATE {{ .source_db }}.focalboard_teams SET "settings" = '{}'::json WHERE "settings"::text = ''; $$,
+ $$ UPDATE {{ .source_db }}.focalboard_users SET "props" = '{}'::json WHERE "props"::text = ''; $$, 
+ $$ ALTER SCHEMA {{ .source_db }} RENAME TO public; $$,
+ $$ SELECT pg_catalog.set_config('search_path', '"$user", public', false); $$,
+ $$ ALTER USER {{ .pg_user }} SET SEARCH_PATH TO 'public'; $$;
+```
+
+``` sh
+pgloader focalboard.load > focalboard_migration.log
+```
+
+### Calls
+
+If you are running a version of Mattermost that is greater than `v9.9` or the Calls plugin above `v0.27`, you can opt to migrate the data for the plugin. We are going to take a similar approach with Boards and Playbooks migration and let pgloader create the tables.
+
+Once we are ready to migrate, we can start migrating the **schema** and the **data** by running `pgloader`
+
+Use the following configuration for the baseline of the data migration:
+
+``` text
+LOAD DATABASE
+ FROM      mysql://{{ .mysql_user }}:{{ .mysql_password }}@{{ .mysql_address }}/{{ .source_db }}
+ INTO      pgsql://{{ .pg_user }}:{{ .pg_password }}@{{ .postgres_address }}/{{ .target_db }}
+
+WITH include drop, create tables, create indexes, reset sequences,
+ workers = 8, concurrency = 1,
+ multiple readers per thread, rows per range = 50000,
+ preserve index names
+
+SET PostgreSQL PARAMETERS
+ maintenance_work_mem to '128MB',
+ work_mem to '12MB'
+
+SET MySQL PARAMETERS
+ net_read_timeout  = '120',
+ net_write_timeout = '120'
+
+CAST type json to jsonb drop typemod
+
+INCLUDING ONLY TABLE NAMES MATCHING
+ ~/calls/
+
+BEFORE LOAD DO
+ $$ ALTER SCHEMA public RENAME TO {{ .source_db }}; $$
+
+AFTER LOAD DO
+ $$ ALTER SCHEMA {{ .source_db }} RENAME TO public; $$,
+ $$ SELECT pg_catalog.set_config('search_path', '"$user", public', false); $$,
+ $$ ALTER USER {{ .pg_user }} SET SEARCH_PATH TO 'public'; $$;
+```
+
+``` sh
+pgloader calls.load > calls_migration.log
+```
+
+## Troubleshooting
+
+See [troubleshooting errors during migration from MySQL to PostgreSQL](/deployment-guide/postgres-migration#troubleshooting)
