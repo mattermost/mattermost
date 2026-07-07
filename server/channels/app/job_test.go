@@ -595,6 +595,102 @@ func TestCreateAccessControlSyncJob(t *testing.T) {
 	})
 }
 
+func TestCreateAccessControlTeamSyncJob(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// The enterprise team-sync worker is not registered in the OSS test binary,
+	// so the trailing CreateJob inside CreateAccessControlTeamSyncJob may return
+	// an "invalid job type" error. That is irrelevant to what we assert here: the
+	// deduplication (cancellation of existing jobs) runs *before* that create, so
+	// its side effects are fully observable regardless of whether the create
+	// itself succeeds. Assertions target specific pre-existing job IDs, so they
+	// hold whether or not a new job row is created.
+
+	t.Run("cancels pending team sync for same policy and leaves channel sync untouched", func(t *testing.T) {
+		policyID := model.NewId()
+
+		// A team-type policy's ID equals its team ID; a channel sync for the same
+		// policy_id must NOT be canceled by a team sync (no cross-type dedup).
+		teamJob := &model.Job{
+			Id:     model.NewId(),
+			Type:   model.JobTypeAccessControlTeamSync,
+			Status: model.JobStatusPending,
+			Data:   map[string]string{"policy_id": policyID},
+		}
+		channelJob := &model.Job{
+			Id:     model.NewId(),
+			Type:   model.JobTypeAccessControlSync,
+			Status: model.JobStatusPending,
+			Data:   map[string]string{"policy_id": policyID},
+		}
+		for _, job := range []*model.Job{teamJob, channelJob} {
+			_, err := th.App.Srv().Store().Job().Save(job)
+			require.NoError(t, err)
+			jobID := job.Id
+			t.Cleanup(func() {
+				_, stErr := th.App.Srv().Store().Job().Delete(jobID)
+				require.NoError(t, stErr)
+			})
+		}
+
+		_, _ = th.App.CreateAccessControlTeamSyncJob(th.Context, map[string]string{"policy_id": policyID})
+
+		canceledTeamJob, getErr := th.App.Srv().Store().Job().Get(th.Context, teamJob.Id)
+		require.NoError(t, getErr)
+		assert.Equal(t, model.JobStatusCanceled, canceledTeamJob.Status, "team sync for the same policy should be canceled")
+
+		untouchedChannelJob, getErr := th.App.Srv().Store().Job().Get(th.Context, channelJob.Id)
+		require.NoError(t, getErr)
+		assert.Equal(t, model.JobStatusPending, untouchedChannelJob.Status, "channel sync must not be canceled by a team sync")
+	})
+
+	t.Run("leaves team sync for a different policy untouched", func(t *testing.T) {
+		otherPolicyID := model.NewId()
+		otherJob := &model.Job{
+			Id:     model.NewId(),
+			Type:   model.JobTypeAccessControlTeamSync,
+			Status: model.JobStatusPending,
+			Data:   map[string]string{"policy_id": otherPolicyID},
+		}
+		_, err := th.App.Srv().Store().Job().Save(otherJob)
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			_, stErr := th.App.Srv().Store().Job().Delete(otherJob.Id)
+			require.NoError(t, stErr)
+		})
+
+		_, _ = th.App.CreateAccessControlTeamSyncJob(th.Context, map[string]string{"policy_id": model.NewId()})
+
+		untouched, getErr := th.App.Srv().Store().Job().Get(th.Context, otherJob.Id)
+		require.NoError(t, getErr)
+		assert.Equal(t, model.JobStatusPending, untouched.Status, "team sync for a different policy must be left alone")
+	})
+
+	t.Run("without policy_id does not cancel any team sync", func(t *testing.T) {
+		policyID := model.NewId()
+		teamJob := &model.Job{
+			Id:     model.NewId(),
+			Type:   model.JobTypeAccessControlTeamSync,
+			Status: model.JobStatusPending,
+			Data:   map[string]string{"policy_id": policyID},
+		}
+		_, err := th.App.Srv().Store().Job().Save(teamJob)
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			_, stErr := th.App.Srv().Store().Job().Delete(teamJob.Id)
+			require.NoError(t, stErr)
+		})
+
+		// No policy_id -> the dedup branch is skipped entirely.
+		_, _ = th.App.CreateAccessControlTeamSyncJob(th.Context, map[string]string{})
+
+		untouched, getErr := th.App.Srv().Store().Job().Get(th.Context, teamJob.Id)
+		require.NoError(t, getErr)
+		assert.Equal(t, model.JobStatusPending, untouched.Status, "a create without policy_id must not cancel existing team syncs")
+	})
+}
+
 func TestSessionHasPermissionToReadJob(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)

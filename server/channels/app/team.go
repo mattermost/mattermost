@@ -785,11 +785,10 @@ func (a *App) AddUserToTeamByInviteId(rctx request.CTX, inviteId string, userID 
 
 func (a *App) JoinUserToTeam(rctx request.CTX, team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError) {
 	preSaveHook := func(tm *model.TeamMember) (*model.TeamMember, error) {
-		// ABAC membership enforcement is mode-dependent: on a public team the policy
-		// is advisory and join always proceeds without consulting the PDP. Only
-		// non-public teams gate strictly. Privacy follows master's model, where the
-		// open directory keys on AllowOpenInvite alone (team.Type is not synced on
-		// the privacy path), so a private team is any team with AllowOpenInvite=false.
+		// On public teams the ABAC policy is advisory: join proceeds without the PDP.
+		// Only private teams gate strictly. Key on AllowOpenInvite alone (not
+		// team.Type): the privacy update path flips AllowOpenInvite without syncing
+		// team.Type, so Type can't be trusted as a privacy signal here.
 		if !team.AllowOpenInvite {
 			// Strict mode. ABAC enforcement runs before the plugin hook so a denied
 			// join never reaches plugin code, and fails closed on every error path.
