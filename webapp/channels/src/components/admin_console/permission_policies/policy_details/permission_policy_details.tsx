@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useMemo, useCallback} from 'react';
+import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -11,7 +11,6 @@ import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
-import {isSessionAttributeField} from '@mattermost/types/properties_user';
 
 import {isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -31,7 +30,7 @@ import {useEnabledSessionAttributeFields} from 'hooks/useEnabledSessionAttribute
 import {getHistory} from 'utils/browser_history';
 
 import CELEditor from '../../access_control/editors/cel_editor/editor';
-import {hasUsableAttributes, isSimpleExpression, mergeSessionAttributes} from '../../access_control/editors/shared';
+import {hasUsableAttributes, isSimpleExpression, mergeSessionAttributes, toCELEditorAttributes} from '../../access_control/editors/shared';
 import TableEditor from '../../access_control/editors/table_editor/table_editor';
 
 import './permission_policy_details.scss';
@@ -157,6 +156,10 @@ function PermissionPolicyDetails({
     useEffect(() => {
         loadPage().finally(() => setPageLoaded(true));
     }, [policyId]);
+
+    // isSimpleExpression imported from ../../access_control/editors/shared so
+    // native user attributes (user.email, user.createat.youngerThanDays(...), etc.)
+    // are recognized as simple and open in table mode.
 
     const loadPage = async (): Promise<void> => {
         const fieldsPromise = abacActions.getAccessControlFields('', 100).then((result) => {
@@ -298,21 +301,6 @@ function PermissionPolicyDetails({
     const availableToAdd = AVAILABLE_PERMISSIONS.filter(
         (p) => !selectedPermissions.includes(p.value),
     );
-
-    const filteredAttributes = useMemo(() => {
-        return mergedAttributes.filter((attr) => {
-            if (isSessionAttributeField(attr)) {
-                return true;
-            }
-            if (accessControlSettings.EnableUserManagedAttributes) {
-                return true;
-            }
-            const isSynced = attr.attrs?.ldap || attr.attrs?.saml;
-            const isAdminManaged = attr.attrs?.managed === 'admin';
-            const isProtected = attr.attrs?.protected;
-            return isSynced || isAdminManaged || isProtected;
-        });
-    }, [mergedAttributes, accessControlSettings.EnableUserManagedAttributes]);
 
     return (
         <div className='wrapper--fixed PermissionPolicySettings'>
@@ -550,11 +538,7 @@ function PermissionPolicyDetails({
                                             }}
                                             onValidate={() => {}}
                                             disabled={noUsableAttributes}
-                                            userAttributes={filteredAttributes.map((attr) => ({
-                                                attribute: attr.name,
-                                                values: [],
-                                                objectType: attr.object_type,
-                                            }))}
+                                            userAttributes={toCELEditorAttributes(mergedAttributes, accessControlSettings.EnableUserManagedAttributes)}
 
                                             // Both editor modes route the test
                                             // button through SimulateAccessModal:

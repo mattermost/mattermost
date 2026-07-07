@@ -56,7 +56,10 @@ const SaveChangesPanel = ({saveNeeded, onClick, saving, serverError, cancelLink,
                     />
                 </Button>
             )}
-            <div className='error-message'>
+            <div
+                className='error-message'
+                data-testid='saveChangesPanel-errorMessage'
+            >
                 {serverError}
             </div>
         </div>

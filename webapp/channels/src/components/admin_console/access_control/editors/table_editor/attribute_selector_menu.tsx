@@ -120,17 +120,22 @@ const AttributeSelectorMenu = ({currentAttribute, currentAttributeObjectType, av
         });
     }, [availableAttributes, filter]);
 
-    const {userOptions, sessionOptions} = useMemo(() => {
-        const user: UserPropertyField[] = [];
+    // Native (built-in) attributes and custom profile attributes are shown in
+    // separate sections; session attributes get their own section below both.
+    const {nativeOptions, customOptions, sessionOptions} = useMemo(() => {
+        const native: UserPropertyField[] = [];
+        const custom: UserPropertyField[] = [];
         const session: UserPropertyField[] = [];
         for (const attr of options) {
             if (isSessionAttributeField(attr)) {
                 session.push(attr);
+            } else if (attr.attrs?.native) {
+                native.push(attr);
             } else {
-                user.push(attr);
+                custom.push(attr);
             }
         }
-        return {userOptions: user, sessionOptions: session};
+        return {nativeOptions: native, customOptions: custom, sessionOptions: session};
     }, [options]);
 
     const handleAttributeChange = React.useCallback((attributeId: string) => {
@@ -168,11 +173,12 @@ const AttributeSelectorMenu = ({currentAttribute, currentAttributeObjectType, av
         // New fields cannot have spaces in name but leaving this check for backwards compatibility with grandfathered legacy fields.
         const hasSpaces = name.includes(' ');
         const isSessionAttribute = isSessionAttributeField(option);
+        const isNative = option.attrs?.native;
         const isSelected = matchesSelection(option, currentAttribute, currentAttributeObjectType);
         const isSynced = option.attrs?.ldap || option.attrs?.saml;
         const isAdminManaged = option.attrs?.managed === 'admin';
         const isProtected = option.attrs?.protected;
-        const allowed = isSessionAttribute || isSynced || isAdminManaged || isProtected || enableUserManagedAttributes;
+        const allowed = isSessionAttribute || isNative || isSynced || isAdminManaged || isProtected || enableUserManagedAttributes;
 
         const platforms = isSessionAttribute ? (option.attrs?.platforms ?? []) : [];
 
@@ -303,8 +309,20 @@ const AttributeSelectorMenu = ({currentAttribute, currentAttributeObjectType, av
                 value={filter}
                 onChange={onFilterChange}
             />
-            {userOptions.map(renderOption)}
-            {userOptions.length > 0 && sessionOptions.length > 0 && (
+            {nativeOptions.length > 0 && (
+                <Menu.Title role='presentation'>
+                    {formatMessage({id: 'admin.access_control.table_editor.selector.native_attributes', defaultMessage: 'Built-in attributes'})}
+                </Menu.Title>
+            )}
+            {nativeOptions.map(renderOption)}
+            {nativeOptions.length > 0 && customOptions.length > 0 && <Menu.Separator/>}
+            {nativeOptions.length > 0 && customOptions.length > 0 && (
+                <Menu.Title role='presentation'>
+                    {formatMessage({id: 'admin.access_control.table_editor.selector.custom_attributes', defaultMessage: 'Custom attributes'})}
+                </Menu.Title>
+            )}
+            {customOptions.map(renderOption)}
+            {(nativeOptions.length + customOptions.length) > 0 && sessionOptions.length > 0 && (
                 <Menu.Separator/>
             )}
             {sessionOptions.length > 0 && (

@@ -25,7 +25,7 @@ export default class SystemConsoleSidebar {
 
     constructor(container: Locator) {
         this.container = container;
-        this.header = new SystemConsoleSidebarHeader(container.locator('.AdminSidebarHeader'));
+        this.header = new SystemConsoleSidebarHeader(container.locator('#admin-sidebar-header'));
         this.searchInput = container.getByPlaceholder('Find settings');
 
         this.about = new AboutCategory(container.getByTestId('about'));
@@ -120,8 +120,8 @@ class SidebarCategory {
 
     constructor(container: Locator) {
         this.container = container;
-        this.title = container.locator('.category-title');
-        this.sections = container.locator('ul.sections');
+        this.title = container.getByTestId('sidebar-category-title');
+        this.sections = container.getByTestId('sidebar-category-sections');
     }
 
     protected section(name: string): SidebarSection {

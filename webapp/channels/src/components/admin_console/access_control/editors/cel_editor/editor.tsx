@@ -75,23 +75,36 @@ type CELUserAttribute = {
 
     // 'session' marks a user.session.* attribute; anything else is user.attributes.*
     objectType?: string;
+
+    // Native user attributes (e.g. user.email) complete directly off `user.`
+    // rather than under `user.attributes.`.
+    isNative?: boolean;
 };
 
 // Builds the Monaco autocomplete schema. CPA/user attributes are offered under
 // user.attributes.*; enabled session attributes (objectType 'session') are
 // offered under user.session.* — the session bucket only appears when present.
+// Native attributes (isNative) complete directly off user.* (e.g. user.email).
 export function buildCELSchemas(userAttributes: CELUserAttribute[]): Record<string, string[]> {
     const cleanNames = (attrs: CELUserAttribute[]) => attrs.
         map((attr) => attr.attribute).
         filter((name) => !name.includes(' ') && name.trim() !== '');
     const sessionAttrNames = cleanNames(userAttributes.filter((attr) => attr.objectType === SESSION_ATTRIBUTES_OBJECT_TYPE));
-    const userAttrNames = cleanNames(userAttributes.filter((attr) => attr.objectType !== SESSION_ATTRIBUTES_OBJECT_TYPE));
+    const nativeNames = cleanNames(userAttributes.filter((attr) => attr.objectType !== SESSION_ATTRIBUTES_OBJECT_TYPE && attr.isNative));
+    const cpaNames = cleanNames(userAttributes.filter((attr) => attr.objectType !== SESSION_ATTRIBUTES_OBJECT_TYPE && !attr.isNative));
 
-    return {
-        user: sessionAttrNames.length ? ['attributes', 'session'] : ['attributes'],
-        'user.attributes': userAttrNames,
+    const schemas: Record<string, string[]> = {
+        user: ['attributes', ...(sessionAttrNames.length ? ['session'] : []), ...nativeNames],
+        'user.attributes': cpaNames,
         ...(sessionAttrNames.length ? {'user.session': sessionAttrNames} : {}),
     };
+
+    // createat exposes the youngerThanDays member helper.
+    if (nativeNames.includes('createat')) {
+        schemas['user.createat'] = ['youngerThanDays'];
+    }
+
+    return schemas;
 }
 
 interface CELEditorProps {

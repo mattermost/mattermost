@@ -13,6 +13,7 @@ exports[`admin_console/system_role_permission_dropdown should match snapshot 1`]
     >
       <div
         class="PermissionSectionDropdownButton_text"
+        data-testid="permissionDropdownButton-text"
       >
         Read only
       </div>
@@ -43,6 +44,7 @@ exports[`admin_console/system_role_permission_dropdown should match snapshot wit
     >
       <div
         class="PermissionSectionDropdownButton_text"
+        data-testid="permissionDropdownButton-text"
       >
         Read only
       </div>

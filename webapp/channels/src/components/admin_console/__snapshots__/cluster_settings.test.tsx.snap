@@ -11,6 +11,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         High Availability
       </div>
@@ -22,6 +23,7 @@ exports[`components/ClusterSettings should match snapshot, compression disabled 
         >
           <div
             class="loading-screen"
+            data-testid="loading-screen"
             style="position: relative;"
           >
             <div
@@ -368,6 +370,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         High Availability
       </div>
@@ -379,6 +382,7 @@ exports[`components/ClusterSettings should match snapshot, compression enabled 1
         >
           <div
             class="loading-screen"
+            data-testid="loading-screen"
             style="position: relative;"
           >
             <div
@@ -725,6 +729,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         High Availability
       </div>
@@ -736,6 +741,7 @@ exports[`components/ClusterSettings should match snapshot, encryption disabled 1
         >
           <div
             class="loading-screen"
+            data-testid="loading-screen"
             style="position: relative;"
           >
             <div
@@ -1082,6 +1088,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         High Availability
       </div>
@@ -1093,6 +1100,7 @@ exports[`components/ClusterSettings should match snapshot, encryption enabled 1`
         >
           <div
             class="loading-screen"
+            data-testid="loading-screen"
             style="position: relative;"
           >
             <div

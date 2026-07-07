@@ -1036,7 +1036,7 @@ export function handleUnicodeEmoji(text: string, emojiMap: EmojiMap, searchPatte
         }
 
         // wrap unsupported unicode emoji in span to style as needed
-        return `<span class="emoticon emoticon--unicode">${emojiMatch}</span>`;
+        return `<span class="emoticon emoticon--unicode" data-testid="channel-banner-unicode-emoji">${emojiMatch}</span>`;
     });
 
     return output;

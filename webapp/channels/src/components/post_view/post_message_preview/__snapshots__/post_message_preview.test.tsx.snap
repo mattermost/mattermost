@@ -68,6 +68,7 @@ exports[`PostMessagePreview nested previews should render file preview 1`] = `
               >
                 <div
                   class="post-message__text"
+                  data-testid="post-message-text"
                   dir="auto"
                   id="postMessageText_post_id"
                 >
@@ -160,6 +161,7 @@ exports[`PostMessagePreview nested previews should render opengraph preview 1`] 
               >
                 <div
                   class="post-message__text"
+                  data-testid="post-message-text"
                   dir="auto"
                   id="postMessageText_post_id"
                 >
@@ -252,6 +254,7 @@ exports[`PostMessagePreview should not render bot icon 1`] = `
               >
                 <div
                   class="post-message__text"
+                  data-testid="post-message-text"
                   dir="auto"
                   id="postMessageText_post_id"
                 >
@@ -344,6 +347,7 @@ exports[`PostMessagePreview should render bot icon 1`] = `
               >
                 <div
                   class="post-message__text"
+                  data-testid="post-message-text"
                   dir="auto"
                   id="postMessageText_post_id"
                 >
@@ -436,6 +440,7 @@ exports[`PostMessagePreview should render correctly 1`] = `
               >
                 <div
                   class="post-message__text"
+                  data-testid="post-message-text"
                   dir="auto"
                   id="postMessageText_post_id"
                 >
@@ -530,6 +535,7 @@ exports[`PostMessagePreview show render without preview when preview posts becom
               >
                 <div
                   class="post-message__text"
+                  data-testid="post-message-text"
                   dir="auto"
                   id="postMessageText_post_id"
                 >

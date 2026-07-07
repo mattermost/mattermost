@@ -4,8 +4,10 @@
 import React from 'react';
 
 import {getAgents} from 'mattermost-redux/actions/agents';
+import {savePreferences} from 'mattermost-redux/actions/preferences';
 
 import {renderWithContext, screen, userEvent, waitFor, waitForElementToBeRemoved} from 'tests/react_testing_utils';
+import {Preferences} from 'utils/constants';
 
 import CreateRecapModal from './create_recap_modal';
 
@@ -15,6 +17,11 @@ jest.mock('mattermost-redux/actions/recaps', () => ({
 
 jest.mock('mattermost-redux/actions/agents', () => ({
     getAgents: jest.fn(() => ({type: 'GET_AGENTS'})),
+}));
+
+// Persist the selection straight into the store so the resolved agent updates without a network call.
+jest.mock('mattermost-redux/actions/preferences', () => ({
+    savePreferences: jest.fn((userId, preferences) => ({type: 'RECEIVED_PREFERENCES', data: preferences})),
 }));
 
 jest.mock('react-router-dom', () => ({
@@ -39,6 +46,7 @@ describe('CreateRecapModal', () => {
             username: 'copilot',
             service_id: 'copilot-service',
             service_type: 'copilot',
+            is_default: true,
         },
         {
             id: 'openai-bot',
@@ -315,6 +323,30 @@ describe('CreateRecapModal', () => {
         await userEvent.click(channelCheckbox);
 
         await waitFor(() => expect(nextButton).not.toBeDisabled());
+    });
+
+    test('should persist the selected agent as a preference when the user picks a bot', async () => {
+        renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
+
+        await waitFor(() => {
+            const dropdownButton = screen.getByLabelText('Agent selector');
+            expect(dropdownButton).toHaveTextContent('Copilot');
+        });
+
+        const dropdownButton = screen.getByLabelText('Agent selector');
+        await userEvent.click(dropdownButton);
+
+        const openAIOption = screen.getByText('OpenAI');
+        await userEvent.click(openAIOption);
+
+        await waitForElementToBeRemoved(() => screen.queryByText('CHOOSE A BOT'));
+
+        expect(savePreferences).toHaveBeenCalledWith('user1', [{
+            category: Preferences.CATEGORY_AGENTS,
+            name: Preferences.SELECTED_AGENT,
+            user_id: 'user1',
+            value: 'openai-bot',
+        }]);
     });
 
     test('should maintain selected bot across step navigation', async () => {

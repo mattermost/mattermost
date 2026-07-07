@@ -63,6 +63,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
             >
               <div
                 class="DataGrid"
+                data-testid="dataGrid"
               >
                 <div
                   class="DataGrid_search"
@@ -93,9 +94,11 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
                 </div>
                 <div
                   class="DataGrid_header"
+                  data-testid="dataGrid-header"
                 />
                 <div
                   class="DataGrid_rows"
+                  data-testid="dataGrid-rows"
                 >
                   <div
                     class="DataGrid_loading"

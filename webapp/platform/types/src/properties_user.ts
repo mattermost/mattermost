@@ -53,6 +53,12 @@ export type UserPropertyField = PropertyField & {
         // Session-attribute-only: platforms the field applies to (e.g. desktop,
         // mobile, browser). Present on `session`-object-type fields.
         platforms?: string[];
+
+        // Native user attributes (e.g. user.email) are referenced as `user.<name>`
+        // rather than `user.attributes.<name>`. `native` marks such synthetic fields;
+        // `operators` lists the visual operator tokens the editor may offer for them.
+        native?: boolean;
+        operators?: string[];
     };
 };
 

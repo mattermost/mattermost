@@ -15,7 +15,7 @@ export default class ChannelsHeader {
         this.container = container;
 
         this.title = container.locator('#channelHeaderTitle');
-        this.channelMenuDropdown = container.locator('[aria-controls="channelHeaderDropdownMenu"]');
+        this.channelMenuDropdown = container.locator('#channelHeaderDropdownButton');
         this.callButton = container.getByRole('button', {name: /call/i}).first();
     }
 
