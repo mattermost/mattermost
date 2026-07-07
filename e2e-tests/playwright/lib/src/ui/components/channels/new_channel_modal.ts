@@ -4,6 +4,8 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import ManagedCategorySelector from './managed_category_selector';
+
 export default class NewChannelModal {
     readonly container: Locator;
 
@@ -14,6 +16,7 @@ export default class NewChannelModal {
     readonly privateTypeButton: Locator;
     readonly createButton: Locator;
     readonly cancelButton: Locator;
+    readonly managedCategorySelector: ManagedCategorySelector;
 
     constructor(container: Locator) {
         this.container = container;
@@ -25,6 +28,7 @@ export default class NewChannelModal {
         this.privateTypeButton = container.locator('#public-private-selector-button-P');
         this.createButton = container.getByRole('button', {name: 'Create channel'});
         this.cancelButton = container.getByRole('button', {name: 'Cancel'});
+        this.managedCategorySelector = new ManagedCategorySelector(container);
     }
 
     async toBeVisible() {

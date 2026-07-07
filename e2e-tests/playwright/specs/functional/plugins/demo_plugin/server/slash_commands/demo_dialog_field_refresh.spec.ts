@@ -28,13 +28,13 @@ test('should update form fields dynamically when project type changes via /dialo
     // clears the demo plugin config; re-running setupDemoPlugin is fast when the plugin
     // is already active (alreadyActive guard skips reinstall).
     await setupDemoPlugin(adminClient, pw);
-    const dialog = channelsPage.page.getByRole('dialog');
+    const interactiveDialog = channelsPage.interactiveDialog;
     for (let attempt = 0; attempt < 2; attempt++) {
         await channelsPage.centerView.postCreate.input.fill('/dialog field-refresh');
         await channelsPage.centerView.postCreate.sendMessage();
         try {
             // 5. Confirm dialog opens with title "Project Configuration"
-            await expect(dialog).toBeVisible({timeout: 15000});
+            await expect(interactiveDialog.container).toBeVisible({timeout: 15000});
             break; // dialog appeared — proceed
         } catch (err) {
             if (attempt === 1) {
@@ -43,64 +43,62 @@ test('should update form fields dynamically when project type changes via /dialo
             // attempt 0 timed out — retry the slash command once
         }
     }
-    await expect(dialog.getByRole('heading', {level: 1})).toContainText('Project Configuration');
+    await expect(interactiveDialog.container.getByRole('heading', {level: 1})).toContainText('Project Configuration');
 
     // 6. Verify initial state — only Project Type dropdown visible
-    await expect(dialog.getByText('Project Type *')).toBeVisible();
-    await expect(dialog.getByRole('button', {name: 'Cancel'})).toBeVisible();
-    await expect(dialog.getByRole('button', {name: 'Create Project'})).toBeVisible();
-    await expect(dialog.getByText('Frontend Framework')).not.toBeVisible();
-    await expect(dialog.getByText('Platform')).not.toBeVisible();
-    await expect(dialog.getByText('API Type')).not.toBeVisible();
+    await expect(interactiveDialog.container.getByText('Project Type *')).toBeVisible();
+    await expect(interactiveDialog.container.getByRole('button', {name: 'Cancel'})).toBeVisible();
+    await expect(interactiveDialog.container.getByRole('button', {name: 'Create Project'})).toBeVisible();
+    await expect(interactiveDialog.container.getByText('Frontend Framework')).not.toBeVisible();
+    await expect(interactiveDialog.container.getByText('Platform')).not.toBeVisible();
+    await expect(interactiveDialog.container.getByText('API Type')).not.toBeVisible();
 
     // 7. Select "Web Application" — new fields should appear
     // Click the react-select control (not the hidden input) to open the dropdown
-    await dialog.locator('[class*="Select__control"], [class*="react-select__control"]').first().click();
-    await channelsPage.page.getByRole('option', {name: 'Web Application'}).click();
+    await interactiveDialog.getSelectControl('first').click();
+    await interactiveDialog.selectOption('Web Application');
 
-    await expect(dialog.getByText('Frontend Framework *')).toBeVisible();
-    await expect(dialog.getByText('Enable PWA')).toBeVisible();
-    await expect(dialog.getByText('Project Name *')).toBeVisible();
-    await expect(dialog.getByText('Platform')).not.toBeVisible();
-    await expect(dialog.getByText('API Type')).not.toBeVisible();
+    await expect(interactiveDialog.container.getByText('Frontend Framework *')).toBeVisible();
+    await expect(interactiveDialog.container.getByText('Enable PWA')).toBeVisible();
+    await expect(interactiveDialog.container.getByText('Project Name *')).toBeVisible();
+    await expect(interactiveDialog.container.getByText('Platform')).not.toBeVisible();
+    await expect(interactiveDialog.container.getByText('API Type')).not.toBeVisible();
 
     // 8. Change to "Mobile Application" — fields update
-    await dialog.locator('[class*="Select__control"], [class*="react-select__control"]').first().click();
-    await channelsPage.page.getByRole('option', {name: 'Mobile Application'}).click();
+    await interactiveDialog.getSelectControl('first').click();
+    await interactiveDialog.selectOption('Mobile Application');
 
-    await expect(dialog.getByText('Platform *')).toBeVisible();
-    await expect(dialog.getByText('Minimum OS Version *')).toBeVisible();
-    await expect(dialog.getByText('Project Name *')).toBeVisible();
-    await expect(dialog.getByText('Frontend Framework')).not.toBeVisible();
-    await expect(dialog.getByText('Enable PWA')).not.toBeVisible();
-    await expect(dialog.getByText('API Type')).not.toBeVisible();
+    await expect(interactiveDialog.container.getByText('Platform *')).toBeVisible();
+    await expect(interactiveDialog.container.getByText('Minimum OS Version *')).toBeVisible();
+    await expect(interactiveDialog.container.getByText('Project Name *')).toBeVisible();
+    await expect(interactiveDialog.container.getByText('Frontend Framework')).not.toBeVisible();
+    await expect(interactiveDialog.container.getByText('Enable PWA')).not.toBeVisible();
+    await expect(interactiveDialog.container.getByText('API Type')).not.toBeVisible();
 
     // 9. Change to "API Service" — fields update again
-    await dialog.locator('[class*="Select__control"], [class*="react-select__control"]').first().click();
-    await channelsPage.page.getByRole('option', {name: 'API Service'}).click();
+    await interactiveDialog.getSelectControl('first').click();
+    await interactiveDialog.selectOption('API Service');
 
-    await expect(dialog.getByText('API Type *')).toBeVisible();
-    await expect(dialog.getByRole('radio', {name: 'REST API'})).toBeVisible();
-    await expect(dialog.getByRole('radio', {name: 'GraphQL API'})).toBeVisible();
-    await expect(dialog.getByRole('radio', {name: 'gRPC Service'})).toBeVisible();
-    await expect(dialog.getByText('Database *')).toBeVisible();
-    await expect(dialog.getByText('Project Name *')).toBeVisible();
-    await expect(dialog.getByText('Platform')).not.toBeVisible();
-    await expect(dialog.getByText('Minimum OS Version')).not.toBeVisible();
+    await expect(interactiveDialog.container.getByText('API Type *')).toBeVisible();
+    await expect(interactiveDialog.container.getByRole('radio', {name: 'REST API'})).toBeVisible();
+    await expect(interactiveDialog.container.getByRole('radio', {name: 'GraphQL API'})).toBeVisible();
+    await expect(interactiveDialog.container.getByRole('radio', {name: 'gRPC Service'})).toBeVisible();
+    await expect(interactiveDialog.container.getByText('Database *')).toBeVisible();
+    await expect(interactiveDialog.container.getByText('Project Name *')).toBeVisible();
+    await expect(interactiveDialog.container.getByText('Platform')).not.toBeVisible();
+    await expect(interactiveDialog.container.getByText('Minimum OS Version')).not.toBeVisible();
 
     // 10. Fill required fields and submit
-    await dialog.getByPlaceholder('Enter project name...').fill('Test Project');
-    await dialog.getByRole('radio', {name: 'REST API'}).click();
+    await interactiveDialog.container.getByPlaceholder('Enter project name...').fill('Test Project');
+    await interactiveDialog.container.getByRole('radio', {name: 'REST API'}).click();
 
     // Select PostgreSQL from Database dropdown
-    await dialog.locator('[class*="Select__control"], [class*="react-select__control"]').last().click();
-    await channelsPage.page.getByRole('option', {name: 'PostgreSQL'}).click();
+    await interactiveDialog.getSelectControl('last').click();
+    await interactiveDialog.selectOption('PostgreSQL');
 
-    await dialog.getByRole('button', {name: 'Create Project'}).click();
-    await expect(dialog).not.toBeVisible();
+    await interactiveDialog.container.getByRole('button', {name: 'Create Project'}).click();
+    await expect(interactiveDialog.container).not.toBeVisible();
 
     // 11. Verify response post in the channel
-    await expect(
-        channelsPage.centerView.container.locator('p').filter({hasText: 'api project: Test Project'}),
-    ).toBeVisible();
+    await expect(channelsPage.centerView.getSystemMessage('api project: Test Project')).toBeVisible();
 });

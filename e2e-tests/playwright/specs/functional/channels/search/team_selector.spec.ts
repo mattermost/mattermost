@@ -34,21 +34,21 @@ test('team selector should not be visible if user belongs to only one team', asy
     await channelsPage.globalHeader.openSearch();
 
     // * Verify that the team selector is not visible in the search box
-    const page = channelsPage.page;
+    const {searchBox, searchResults, searchTeamSelector} = channelsPage;
 
     // Make sure the search box is open but doesn't have a team selector
-    await expect(page.locator('#searchBox')).toBeVisible();
-    await expect(page.getByTestId('searchTeamSelector')).not.toBeVisible();
+    await expect(searchBox.container).toBeVisible();
+    await expect(searchTeamSelector.container).not.toBeVisible();
 
     // # Now search for the message to see search results
-    await page.locator('#searchBox input').fill(message);
-    await page.keyboard.press('Enter');
+    await searchBox.searchInput.fill(message);
+    await channelsPage.page.keyboard.press('Enter');
 
     // # Wait for search results to load
-    await expect(page.locator('#searchContainer')).toBeVisible();
+    await expect(searchResults.container).toBeVisible();
 
     // * Verify the team selector is not visible in search results panel
-    await expect(page.locator('.team-selector-container')).not.toBeVisible();
+    await expect(searchTeamSelector.resultsContainer).not.toBeVisible();
 });
 
 test('team selector should be visible if user belongs to multiple teams', async ({pw}) => {
@@ -86,38 +86,38 @@ test('team selector should be visible if user belongs to multiple teams', async 
     await channelsPage.globalHeader.openSearch();
 
     // * Verify that the team selector is visible in the search box
-    const page = channelsPage.page;
+    const {searchBox, searchResults, searchTeamSelector} = channelsPage;
 
     // Make sure the search box is open and has a team selector
-    await expect(page.locator('#searchBox')).toBeVisible();
-    await expect(page.getByTestId('searchTeamSelector')).toBeVisible();
+    await expect(searchBox.container).toBeVisible();
+    await expect(searchTeamSelector.container).toBeVisible();
 
     // # Click on the team selector button
-    await page.getByTestId('searchTeamsSelectorMenuButton').click();
+    await searchTeamSelector.menuButton.click();
 
     // * Verify that both teams are visible in the menu
-    const teamSelector = page.getByRole('menu', {name: 'Select team'});
+    const teamSelector = searchTeamSelector.getTeamMenu();
     await expect(teamSelector).toBeVisible();
     await expect(teamSelector.getByText(team.display_name)).toBeVisible();
     await expect(teamSelector.getByText(secondTeam.display_name)).toBeVisible();
     await expect(teamSelector.getByText('All teams')).toBeVisible();
 
     // # Now search for the message to see search results
-    await page.click('body', {position: {x: 0, y: 0}}); // Click away to close team selector
-    await page.locator('#searchBox input').fill(message);
-    await page.keyboard.press('Enter');
+    await channelsPage.page.click('body', {position: {x: 0, y: 0}}); // Click away to close team selector
+    await searchBox.searchInput.fill(message);
+    await channelsPage.page.keyboard.press('Enter');
 
     // # Wait for search results to load
-    await expect(page.locator('#searchContainer')).toBeVisible();
+    await expect(searchResults.container).toBeVisible();
 
     // * Verify the team selector is visible in search results panel
-    await expect(page.locator('.team-selector-container')).toBeVisible();
+    await expect(searchTeamSelector.resultsContainer).toBeVisible();
 
     // # Click on the team selector in results panel
-    await page.locator('.team-selector-container .search-teams-selector-menu-button').click();
+    await searchTeamSelector.resultsMenuButton.click();
 
     // * Verify that both teams are visible in the results panel team selector
-    const resultsTeamSelector = page.getByRole('menu', {name: 'Select team'});
+    const resultsTeamSelector = searchTeamSelector.getTeamMenu();
     await expect(resultsTeamSelector).toBeVisible();
     await expect(resultsTeamSelector.getByText(team.display_name)).toBeVisible();
     await expect(resultsTeamSelector.getByText(secondTeam.display_name)).toBeVisible();
@@ -147,12 +147,12 @@ test('team selector should show filter input with more than 4 teams', async ({pw
     await channelsPage.globalHeader.openSearch();
 
     // # Verify team selector is visible and click on it
-    const page = channelsPage.page;
-    await expect(page.getByTestId('searchTeamSelector')).toBeVisible();
-    await page.getByTestId('searchTeamsSelectorMenuButton').click();
+    const {searchTeamSelector} = channelsPage;
+    await expect(searchTeamSelector.container).toBeVisible();
+    await searchTeamSelector.menuButton.click();
 
     // # Verify the team filter input is visible with 5 teams
-    const teamSelector = page.getByRole('menu', {name: 'Select team'});
+    const teamSelector = searchTeamSelector.getTeamMenu();
     await expect(teamSelector).toBeVisible();
     await expect(teamSelector.getByLabel('Search teams')).toBeVisible();
 

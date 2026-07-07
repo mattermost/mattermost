@@ -7,10 +7,12 @@ import {expect} from '@playwright/test';
 export default class InfoSettings {
     readonly container: Locator;
     readonly nameInput: Locator;
+    readonly headerTextbox: Locator;
 
     constructor(container: Locator) {
         this.container = container;
         this.nameInput = container.locator('#input_channel-settings-name');
+        this.headerTextbox = container.getByTestId('channel_settings_header_textbox');
     }
 
     async toBeVisible() {

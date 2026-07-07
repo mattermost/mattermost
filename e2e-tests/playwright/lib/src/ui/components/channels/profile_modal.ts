@@ -4,6 +4,8 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import PersonalAccessTokensSection from './personal_access_tokens_section';
+
 export default class ProfileModal {
     readonly container: Locator;
 
@@ -73,12 +75,18 @@ class ProfileSettingsTab {
 
 class SecurityTab {
     readonly container: Locator;
+    readonly personalAccessTokens: PersonalAccessTokensSection;
 
     constructor(container: Locator) {
         this.container = container;
+        this.personalAccessTokens = new PersonalAccessTokensSection(container);
     }
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
+    }
+
+    async openPersonalAccessTokens() {
+        await this.personalAccessTokens.tokensEditButton.click();
     }
 }

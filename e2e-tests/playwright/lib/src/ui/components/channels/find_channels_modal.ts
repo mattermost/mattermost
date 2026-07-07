@@ -27,4 +27,8 @@ export default class FindChannelsModal {
     async selectChannel(channelName: string) {
         await this.getResult(channelName).click();
     }
+
+    getOptionByDisplayName(displayName: string) {
+        return this.container.page().getByRole('option', {name: displayName, exact: true});
+    }
 }

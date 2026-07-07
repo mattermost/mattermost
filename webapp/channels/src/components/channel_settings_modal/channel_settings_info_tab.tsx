@@ -512,6 +512,7 @@ function ChannelSettingsInfoTab({
                     placeholder={formatMessage({id: 'managed_category.placeholder', defaultMessage: 'Choose a managed category (optional)'})}
                     menuPortalTargetId='channelSettingsModal'
                     disabled={!canManageChannelRoles}
+                    testId='managedCategorySelector'
                 />
             )}
 

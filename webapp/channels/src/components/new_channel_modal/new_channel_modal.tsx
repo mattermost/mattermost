@@ -496,6 +496,7 @@ const NewChannelModal = () => {
                             label={formatMessage({id: 'managed_category.label', defaultMessage: 'Managed category (optional)'})}
                             placeholder={formatMessage({id: 'managed_category.placeholder', defaultMessage: 'Choose a managed category (optional)'})}
                             menuPortalTargetId='new-channel-modal'
+                            testId='managedCategorySelector'
                         />
                     </div>
                 )}

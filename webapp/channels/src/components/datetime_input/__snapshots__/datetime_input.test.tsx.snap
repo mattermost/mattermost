@@ -7,6 +7,7 @@ exports[`components/datetime_input/DateTimeInput should match snapshot 1`] = `
   >
     <div
       class="dateTime__date"
+      data-testid="dateTimeDate"
     >
       <div
         class="date-picker__wrapper"

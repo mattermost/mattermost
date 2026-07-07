@@ -30,6 +30,7 @@ export type CategorySelectorProps = {
     helpText?: string;
     menuPortalTargetId?: string;
     disabled?: boolean;
+    testId?: string;
 };
 
 const IndicatorsContainer = (props: any) => (
@@ -38,11 +39,16 @@ const IndicatorsContainer = (props: any) => (
     </div>
 );
 
-const ClearIndicator = (props: ClearIndicatorProps<Option>) => (
-    <components.ClearIndicator {...props}>
-        <i className='icon icon-close-circle'/>
-    </components.ClearIndicator>
-);
+const makeClearIndicator = (clearIndicatorTestId?: string) => {
+    return (props: ClearIndicatorProps<Option>) => (
+        <components.ClearIndicator {...props}>
+            <i
+                className='icon icon-close-circle'
+                data-testid={clearIndicatorTestId}
+            />
+        </components.ClearIndicator>
+    );
+};
 
 const DropdownIndicator = () => (
     <i className='icon icon-chevron-down'/>
@@ -86,7 +92,7 @@ const OptionComponent = (props: OptionProps<Option, false, GroupBase<Option>>) =
     );
 };
 
-export default function CategorySelector({value, onChange, getOptions, label, placeholder, helpText, menuPortalTargetId, disabled}: CategorySelectorProps) {
+export default function CategorySelector({value, onChange, getOptions, label, placeholder, helpText, menuPortalTargetId, disabled, testId}: CategorySelectorProps) {
     const {formatMessage} = useIntl();
     const [focused, setFocused] = useState(false);
 
@@ -143,7 +149,10 @@ export default function CategorySelector({value, onChange, getOptions, label, pl
     const showLegend = Boolean(focused || value);
 
     return (
-        <div className='CategorySelector Input_container'>
+        <div
+            className='CategorySelector Input_container'
+            data-testid={testId}
+        >
             <fieldset
                 className={classNames('Input_fieldset', {
                     Input_fieldset___legend: showLegend,
@@ -162,7 +171,14 @@ export default function CategorySelector({value, onChange, getOptions, label, pl
                     <CreatableSelect<Option>
                         classNamePrefix='CategorySelector'
                         className={classNames('Input', {Input__focus: showLegend})}
-                        components={{IndicatorsContainer, ClearIndicator, DropdownIndicator, Option: OptionComponent, Control, ValueContainer}}
+                        components={{
+                            IndicatorsContainer,
+                            ClearIndicator: makeClearIndicator(testId ? `${testId}Clear` : undefined),
+                            DropdownIndicator,
+                            Option: OptionComponent,
+                            Control,
+                            ValueContainer,
+                        }}
                         isClearable={true}
                         options={options}
                         value={selectedOption}

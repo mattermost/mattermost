@@ -13,6 +13,11 @@ import type {
     MembersInvitedModal,
 } from '@/ui/components';
 import {BrowseChannelsModal, ChannelSettingsModal, CreateTeamForm, NewChannelModal, components} from '@/ui/components';
+import ChannelHeaderMenu, {ShowTranslationModal} from '@/ui/components/channels/channel_header_menu';
+import InteractiveDialog from '@/ui/components/channels/interactive_dialog';
+import SearchResults from '@/ui/components/channels/search_results';
+import SearchTeamSelector from '@/ui/components/channels/search_team_selector';
+import SidebarCategoryMenu from '@/ui/components/channels/sidebar_category_menu';
 import {duration} from '@/util';
 export default class ChannelsPage {
     readonly channels = 'Channels';
@@ -22,6 +27,8 @@ export default class ChannelsPage {
     readonly globalHeader;
     readonly userAccountMenuButton;
     readonly searchBox;
+    readonly searchResults;
+    readonly searchTeamSelector;
     readonly centerView;
     readonly sidebarLeft;
     readonly sidebarRight;
@@ -51,6 +58,9 @@ export default class ChannelsPage {
     readonly postReminderMenu;
     readonly userAccountMenu;
     readonly teamMenu;
+    readonly channelHeaderMenu;
+    readonly interactiveDialog;
+    readonly showTranslationModal;
 
     readonly emojiGifPickerPopup;
     readonly scheduleMessageMenu;
@@ -61,6 +71,8 @@ export default class ChannelsPage {
         // The main areas of the app
         this.globalHeader = new components.GlobalHeader(this, page.locator('#global-header'));
         this.searchBox = new components.SearchBox(page.locator('#searchBox'));
+        this.searchResults = new SearchResults(page.locator('#searchContainer'));
+        this.searchTeamSelector = new SearchTeamSelector(page);
         this.centerView = new components.ChannelsCenterView(page.getByTestId('channel_view'), page);
         this.sidebarLeft = new components.ChannelsSidebarLeft(page.locator('#SidebarContainer'));
         this.sidebarRight = new components.ChannelsSidebarRight(page.locator('#sidebar-right'));
@@ -91,6 +103,9 @@ export default class ChannelsPage {
         this.userAccountMenu = new components.UserAccountMenu(page.locator('#userAccountMenu'));
         this.scheduleMessageMenu = new components.ScheduleMessageMenu(page.locator('#dropdown_send_post_options'));
         this.teamMenu = new components.TeamMenu(page.locator('#sidebarTeamMenu'));
+        this.channelHeaderMenu = new ChannelHeaderMenu(page);
+        this.interactiveDialog = new InteractiveDialog(page);
+        this.showTranslationModal = new ShowTranslationModal(page);
 
         // Popovers
         this.emojiGifPickerPopup = new components.EmojiGifPicker(page.locator('#emojiGifPicker'));
@@ -109,6 +124,29 @@ export default class ChannelsPage {
 
     async toBeVisible() {
         await this.centerView.toBeVisible();
+    }
+
+    get threadPanel() {
+        return this.page.getByRole('region', {name: /Thread/});
+    }
+
+    get mobileNavbar() {
+        return this.page.locator('#navbar');
+    }
+
+    get sidebarCategoryMenu() {
+        return new SidebarCategoryMenu(this.page.getByRole('menu', {name: /Edit category menu/i}));
+    }
+
+    async selectOption(name: string) {
+        await this.page.getByRole('option', {name}).click();
+    }
+
+    async openPersonalAccessTokensSection() {
+        const profileModal = await this.openProfileModal();
+        const securityTab = await profileModal.openSecurityTab();
+        await securityTab.openPersonalAccessTokens();
+        return securityTab.personalAccessTokens;
     }
 
     /**

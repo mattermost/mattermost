@@ -346,6 +346,7 @@ exports[`components/post_edit_history should match snapshot 1`] = `
                         >
                           <div
                             class="user-popover"
+                            data-testid="userPopover"
                           >
                             Someone
                           </div>

@@ -48,6 +48,14 @@ import TeamMenu from './channels/team_menu';
 import TeamSettingsModal from './channels/team_settings/team_settings_modal';
 import ThreadFooter from './channels/thread_footer';
 import UserProfilePopover from './channels/user_profile_popover';
+import MmBlocksCollapsible from './channels/mm_blocks_collapsible';
+import SearchResults from './channels/search_results';
+import SearchTeamSelector from './channels/search_team_selector';
+import ManagedCategorySelector from './channels/managed_category_selector';
+import SidebarCategoryMenu from './channels/sidebar_category_menu';
+import ChannelHeaderMenu, {ShowTranslationModal} from './channels/channel_header_menu';
+import PersonalAccessTokensSection from './channels/personal_access_tokens_section';
+import InteractiveDialog from './channels/interactive_dialog';
 // Burn-on-Read Components
 import BurnOnReadBadge from './channels/burn_on_read_badge';
 import BurnOnReadTimerChip from './channels/burn_on_read_timer_chip';
@@ -124,6 +132,15 @@ const components = {
     TeamSettingsModal,
     ThreadFooter,
     UserProfilePopover,
+    MmBlocksCollapsible,
+    SearchResults,
+    SearchTeamSelector,
+    ManagedCategorySelector,
+    SidebarCategoryMenu,
+    ChannelHeaderMenu,
+    ShowTranslationModal,
+    PersonalAccessTokensSection,
+    InteractiveDialog,
 
     // Burn-on-Read
     BurnOnReadBadge,
@@ -203,6 +220,15 @@ export {
     TeamSettingsModal,
     ThreadFooter,
     UserProfilePopover,
+    MmBlocksCollapsible,
+    SearchResults,
+    SearchTeamSelector,
+    ManagedCategorySelector,
+    SidebarCategoryMenu,
+    ChannelHeaderMenu,
+    ShowTranslationModal,
+    PersonalAccessTokensSection,
+    InteractiveDialog,
 
     // Burn-on-Read
     BurnOnReadBadge,

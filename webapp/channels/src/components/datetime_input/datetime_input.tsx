@@ -453,7 +453,10 @@ const DateTimeInputContainer: React.FC<Props> = ({
 
     return (
         <div className='dateTime'>
-            <div className='dateTime__date'>
+            <div
+                className='dateTime__date'
+                data-testid='dateTimeDate'
+            >
                 <DatePicker
                     isPopperOpen={isPopperOpen}
                     handlePopperOpenState={handlePopperOpenState}

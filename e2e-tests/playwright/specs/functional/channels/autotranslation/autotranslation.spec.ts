@@ -353,7 +353,7 @@ test.fixme(
             .toBe(true);
 
         // * Verify old message is unchanged
-        await expect(channelsPage.centerView.container.locator('[id^="post_"]').getByText(oldMessage)).toBeVisible();
+        await expect(channelsPage.centerView.getPostContainingText(oldMessage)).toBeVisible();
     },
 );
 
@@ -387,7 +387,7 @@ test(
         await adminClient.addToChannel(user.id, created.id);
         await setUserChannelAutotranslation(userClient, created.id, true);
 
-        const {channelsPage, page} = await pw.testBrowser.login(user);
+        const {channelsPage} = await pw.testBrowser.login(user);
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
 
@@ -399,7 +399,7 @@ test(
 
         await expect(channelsPage.centerView.autotranslationBadge).toBeVisible({timeout: 15000});
         await channelsPage.centerView.autotranslationBadge.hover();
-        await expect(page.getByRole('tooltip')).toContainText('Auto-translation is enabled');
+        await expect(channelsPage.centerView.autotranslationTooltip).toContainText('Auto-translation is enabled');
     },
 );
 
@@ -476,9 +476,7 @@ test(
         await channelsPage.page.reload();
         await channelsPage.toBeVisible();
         await expect(channelsPage.centerView.autotranslationBadge).not.toBeVisible();
-        await expect(
-            channelsPage.centerView.container.getByText('After disable no translation', {exact: true}),
-        ).toBeVisible();
+        await expect(channelsPage.centerView.getPostWithBodyText('After disable no translation')).toBeVisible();
     },
 );
 
@@ -540,9 +538,7 @@ test.fixme(
 
         // * Verify post appeared with translation (mock server appends "[translated to en]" to original)
         await expect(
-            channelsPage.centerView.container
-                .locator('[id^="post_"]')
-                .getByText('Hola para nuevo miembro [translated to en]', {exact: false}),
+            channelsPage.centerView.getPostContainingText('Hola para nuevo miembro [translated to en]'),
         ).toBeVisible();
     },
 );
@@ -577,17 +573,15 @@ test(
         await adminClient.addToChannel(user.id, created.id);
         await setUserChannelAutotranslation(userClient, created.id, true);
 
-        const {channelsPage, page} = await pw.testBrowser.login(user);
+        const {channelsPage} = await pw.testBrowser.login(user);
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
 
         await channelsPage.centerView.header.openChannelMenu();
-        await page.getByRole('menuitem', {name: 'Disable autotranslation'}).click();
-        await page.getByRole('button', {name: 'Turn off auto-translation'}).click();
+        await channelsPage.channelHeaderMenu.disableAutotranslation.click();
+        await channelsPage.channelHeaderMenu.turnOffAutotranslationButton.click();
 
-        await expect(
-            channelsPage.centerView.container.locator('p').getByText(/You disabled Auto-translation for this channel/i),
-        ).toBeVisible();
+        await expect(channelsPage.centerView.autotranslationDisabledSystemMessage).toBeVisible();
     },
 );
 
@@ -642,27 +636,23 @@ test.fixme(
             user_id: createdPoster.id,
         });
 
-        const {channelsPage, page} = await pw.testBrowser.login(user);
+        const {channelsPage} = await pw.testBrowser.login(user);
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
 
         // * Verify post with translated text appears before disabling
         // Mock server appends "[translated to en]" to the original text
         const translatedText = 'Solo texto original [translated to en]';
-        const spanishPost = channelsPage.centerView.container
-            .locator('[id^="post_"]')
-            .filter({hasText: translatedText});
+        const spanishPost = channelsPage.centerView.getPostContainingText(translatedText);
         await expect(spanishPost).toBeVisible({timeout: 15000});
 
         await channelsPage.centerView.header.openChannelMenu();
-        await page.getByRole('menuitem', {name: 'Disable autotranslation'}).click();
-        await page.getByRole('button', {name: 'Turn off auto-translation'}).click();
+        await channelsPage.channelHeaderMenu.disableAutotranslation.click();
+        await channelsPage.channelHeaderMenu.turnOffAutotranslationButton.click();
 
         // * After disabling, wait for page to update and verify original text is shown
         // Find the post containing the original text (skip system messages)
-        const userPost = channelsPage.centerView.container
-            .locator('[id^="post_"]')
-            .filter({has: page.locator('.post__body').filter({hasText: originalText})});
+        const userPost = channelsPage.centerView.getPostWithBodyText(originalText);
         await expect(userPost).toBeVisible({timeout: 15000});
         await expect(userPost).toContainText(originalText);
 
@@ -755,25 +745,17 @@ test.fixme(
 
         // * Verify both posts appear
         // Mock server produces "<original> [translated to en]", not real translations
-        await expect(channelsPage.centerView.container.locator('[id^="post_"]').getByText('English only')).toBeVisible({
+        await expect(channelsPage.centerView.getPostContainingText('English only')).toBeVisible({
             timeout: 15000,
         });
-        await expect(
-            channelsPage.centerView.container
-                .locator('[id^="post_"]')
-                .getByText('Solo español [translated to en]', {exact: false}),
-        ).toBeVisible();
+        await expect(channelsPage.centerView.getPostContainingText('Solo español [translated to en]')).toBeVisible();
 
         // * Verify both messages are present
-        const spanishPost = channelsPage.centerView.container
-            .locator('[id^="post_"]')
-            .filter({hasText: 'Solo español [translated to en]'});
+        const spanishPost = channelsPage.centerView.getPostContainingText('Solo español [translated to en]');
         await expect(spanishPost).toBeVisible({timeout: 15000});
 
         // * Verify English message is present and unchanged
-        const englishPost = channelsPage.centerView.container
-            .locator('[id^="post_"]')
-            .filter({hasText: 'English only'});
+        const englishPost = channelsPage.centerView.getPostContainingText('English only');
         await expect(englishPost).toBeVisible();
     },
 );
@@ -861,24 +843,16 @@ test.fixme(
 
         // * Verify posts appeared
         // Mock server produces "<original> [translated to en]", not real translations
-        await expect(channelsPage.centerView.container.locator('[id^="post_"]').getByText('English only')).toBeVisible({
+        await expect(channelsPage.centerView.getPostContainingText('English only')).toBeVisible({
             timeout: 15000,
         });
-        await expect(
-            channelsPage.centerView.container
-                .locator('[id^="post_"]')
-                .getByText('Solo español [translated to en]', {exact: false}),
-        ).toBeVisible();
+        await expect(channelsPage.centerView.getPostContainingText('Solo español [translated to en]')).toBeVisible();
 
         // * Verify both messages are present
-        const translatedPost = channelsPage.centerView.container
-            .locator('[id^="post_"]')
-            .filter({hasText: 'Solo español [translated to en]'});
+        const translatedPost = channelsPage.centerView.getPostContainingText('Solo español [translated to en]');
         await expect(translatedPost).toBeVisible({timeout: 15000});
 
-        const notTranslatedPost = channelsPage.centerView.container
-            .locator('[id^="post_"]')
-            .filter({hasText: 'English only', exact: true});
+        const notTranslatedPost = channelsPage.centerView.getPostContainingText('English only');
         await expect(notTranslatedPost).toBeVisible();
     },
 );
@@ -951,14 +925,14 @@ test.fixme(
             user_id: createdPoster2.id,
         });
 
-        const {channelsPage, page} = await pw.testBrowser.login(user);
+        const {channelsPage} = await pw.testBrowser.login(user);
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
 
         // * Wait for post by searching for the Spanish original (mock appends "[translated to en]", no real translation)
-        const modalPost = channelsPage.centerView.container
-            .locator('[id^="post_"]')
-            .filter({hasText: 'Este es un texto para la modal de traducción automática'});
+        const modalPost = channelsPage.centerView.getPostContainingText(
+            'Este es un texto para la modal de traducción automática',
+        );
         await expect(modalPost).toBeVisible({timeout: 15000});
 
         // * Check for translation button - if it exists, click it and verify modal
@@ -974,10 +948,9 @@ test.fixme(
 
         // Translation happened - verify the modal opens
         await translationButton.click();
-        const showTranslationDialog = page.getByRole('dialog').filter({hasText: 'Show Translation'});
-        await expect(showTranslationDialog).toBeVisible();
-        await expect(showTranslationDialog.getByText('ORIGINAL')).toBeVisible();
-        await expect(showTranslationDialog.getByText('AUTO-TRANSLATED')).toBeVisible();
+        await expect(channelsPage.showTranslationModal.container).toBeVisible();
+        await expect(channelsPage.showTranslationModal.container.getByText('ORIGINAL')).toBeVisible();
+        await expect(channelsPage.showTranslationModal.container.getByText('AUTO-TRANSLATED')).toBeVisible();
     },
 );
 
@@ -1056,9 +1029,9 @@ test.fixme(
         await channelsPage.toBeVisible();
 
         // * Find the target post and wait for its translation before opening the menu
-        const messagePost = channelsPage.centerView.container
-            .getByTestId('postView')
-            .filter({hasText: 'Este mensaje es para probar el menú de acciones'});
+        const messagePost = channelsPage.centerView.getPostContainingText(
+            'Este mensaje es para probar el menú de acciones',
+        );
         await messagePost.waitFor({state: 'visible', timeout: 15000});
         await expect(messagePost.getByText(/\[translated to en\]/i)).toBeVisible({timeout: 15000});
 
@@ -1108,20 +1081,20 @@ test(
         await adminClient.addToChannel(user.id, created.id);
         await setUserChannelAutotranslation(userClient, created.id, true);
 
-        const {channelsPage, page} = await pw.testBrowser.login(user);
+        const {channelsPage} = await pw.testBrowser.login(user);
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
 
         await expect(channelsPage.centerView.autotranslationBadge).toBeVisible();
 
         await channelsPage.centerView.header.openChannelMenu();
-        await page.getByRole('menuitem', {name: 'Disable autotranslation'}).click();
-        await page.getByRole('button', {name: 'Turn off auto-translation'}).click();
+        await channelsPage.channelHeaderMenu.disableAutotranslation.click();
+        await channelsPage.channelHeaderMenu.turnOffAutotranslationButton.click();
 
         await expect(channelsPage.centerView.autotranslationBadge).not.toBeVisible();
 
         await channelsPage.centerView.header.openChannelMenu();
-        await page.getByRole('menuitem', {name: 'Enable autotranslation'}).click();
+        await channelsPage.channelHeaderMenu.enableAutotranslation.click();
 
         await expect(channelsPage.centerView.autotranslationBadge).toBeVisible();
     },
@@ -1209,19 +1182,16 @@ test(
 
         await userClient.patchMe({locale: 'fr'});
 
-        const {channelsPage, page} = await pw.testBrowser.login(user);
+        const {channelsPage} = await pw.testBrowser.login(user);
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
 
-        await expect(channelsPage.centerView.autotranslationBadge).not.toBeVisible();
+        await expect(channelsPage.centerView.autotranslationBadge).not.toBeVisible({timeout: 30000});
 
         await channelsPage.centerView.header.openChannelMenu();
-        const channelMenu = page
-            .getByRole('menu')
-            .filter({has: page.getByRole('menuitem', {name: /Auto-translation|Channel Settings/})});
+        const channelMenu = channelsPage.channelHeaderMenu.container;
         await expect(channelMenu.getByText('Auto-translation', {exact: true})).toBeVisible();
         await expect(channelMenu.getByText('Your language is not supported')).toBeVisible();
-        const autotranslationItem = page.getByRole('menuitem', {name: /Auto-translation/});
-        await expect(autotranslationItem).toBeDisabled();
+        await expect(channelsPage.channelHeaderMenu.autotranslationSubmenu).toBeDisabled();
     },
 );

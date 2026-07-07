@@ -50,6 +50,7 @@ export const BlockRenderer = ({blocks, postId, onAction, imagesMetadata, inlineM
                     <div
                         className='mm-blocks'
                         role='group'
+                        data-testid='mmBlocks'
                     >
                         <ContainerBlock
                             block={{

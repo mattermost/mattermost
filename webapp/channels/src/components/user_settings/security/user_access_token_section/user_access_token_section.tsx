@@ -691,6 +691,7 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
                 <div
                     key={token.id}
                     className='setting-box__item'
+                    data-testid='personalAccessTokenRow'
                 >
                     <div className='whitespace--nowrap overflow--ellipsis'>
                         <FormattedMessage

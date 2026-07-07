@@ -84,6 +84,16 @@ export default class ChannelsSidebarRight {
         return new ChannelsPost(post);
     }
 
+    async getPostByText(text: string) {
+        const post = this.container.getByTestId('rhsPostView').filter({hasText: text});
+        await post.waitFor();
+        return new ChannelsPost(post);
+    }
+
+    get threadSearchInput() {
+        return this.container.page().locator('#sbrSearchBox');
+    }
+
     /**
      * Closes the RHS
      */

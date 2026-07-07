@@ -109,6 +109,7 @@ exports[`components/post_edit_history/edited_post_item should match snapshot whe
           >
             <div
               class="user-popover"
+              data-testid="userPopover"
             >
               Someone
             </div>
