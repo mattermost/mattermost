@@ -125,19 +125,29 @@ func TestRunCatchupExtraction(t *testing.T) {
 		first := makeFileInfoBatch(catchupBatchSize, 1000)
 		second := []*model.FileInfo{makeFileInfo("tail1", 2000, "pdf"), makeFileInfo("tail2", 2001, "pdf")}
 
+		var firstPageOpts *model.GetFileInfosOptions
 		mockStore.FileInfoStore.On("GetWithOptions", 0, catchupBatchSize, mock.MatchedBy(func(opt *model.GetFileInfosOptions) bool {
-			return opt.Since == model.GetMillis()-catchupLookback.Milliseconds()
-		})).Return(first, nil).Once()
+			return opt.OnlyEmptyContent
+		})).Run(func(args mock.Arguments) {
+			opt := args.Get(2).(*model.GetFileInfosOptions)
+			copied := *opt
+			firstPageOpts = &copied
+		}).Return(first, nil).Once()
 		mockStore.FileInfoStore.On("GetWithOptions", 0, catchupBatchSize, mock.MatchedBy(func(opt *model.GetFileInfosOptions) bool {
 			return opt.Since == 1999+1
 		})).Return(second, nil).Once()
 
+		sinceLower := model.GetMillis() - catchupLookback.Milliseconds()
 		app := &trackingApp{}
 		job := &model.Job{Data: map[string]string{}}
 
 		err := runCatchupExtraction(logger, job, jobServer, app, mockStore)
+		sinceUpper := model.GetMillis() - catchupLookback.Milliseconds()
 		require.NoError(t, err)
 
+		require.NotNil(t, firstPageOpts)
+		require.GreaterOrEqual(t, firstPageOpts.Since, sinceLower)
+		require.LessOrEqual(t, firstPageOpts.Since, sinceUpper)
 		require.Len(t, app.calls, catchupBatchSize+2)
 		require.Equal(t, "1002", job.Data["processed"])
 	})
