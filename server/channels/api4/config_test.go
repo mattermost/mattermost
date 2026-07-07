@@ -1020,7 +1020,7 @@ func TestPatchConfig(t *testing.T) {
 	t.Run("should preserve plugin configs absent from patch due to partial sync", func(t *testing.T) {
 		// Start with multiple plugins configured.
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.PluginSettings.Enable = new(true)
+			cfg.PluginSettings.Enable = model.NewPointer(true)
 			cfg.PluginSettings.Plugins = map[string]map[string]any{
 				"com.example.plugin-a": {"token": "token-a"},
 				"com.example.plugin-b": {"token": "token-b"},
@@ -1029,7 +1029,7 @@ func TestPatchConfig(t *testing.T) {
 
 		// simulate a client receives a partial sanitized config with only plugin-a, and PATCHes it back. Plugin-b should survive.
 		patch := &model.Config{}
-		patch.PluginSettings.Enable = new(true)
+		patch.PluginSettings.Enable = model.NewPointer(true)
 		patch.PluginSettings.Plugins = map[string]map[string]any{
 			"com.example.plugin-a": {"token": "token-a-updated"},
 		}
@@ -1047,7 +1047,7 @@ func TestPatchConfig(t *testing.T) {
 	t.Run("should preserve plugin configs absent from patch due to partial sync while using local client", func(t *testing.T) {
 		// Start with multiple plugins configured.
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.PluginSettings.Enable = new(true)
+			cfg.PluginSettings.Enable = model.NewPointer(true)
 			cfg.PluginSettings.Plugins = map[string]map[string]any{
 				"com.example.plugin-a": {"token": "token-a"},
 				"com.example.plugin-b": {"token": "token-b"},
@@ -1056,7 +1056,7 @@ func TestPatchConfig(t *testing.T) {
 
 		// Simulate a client receives a partial sanitized config with only plugin-a, and PATCHes it back. Plugin-b should survive.
 		patch := &model.Config{}
-		patch.PluginSettings.Enable = new(true)
+		patch.PluginSettings.Enable = model.NewPointer(true)
 		patch.PluginSettings.Plugins = map[string]map[string]any{
 			"com.example.plugin-a": {"token": "token-a-updated"},
 		}
