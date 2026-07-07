@@ -799,7 +799,6 @@ const defaultServerConfig: AdminConfig = {
         OnboardingTourTips: true,
         EnableExportDirectDownload: false,
         MoveThreadsEnabled: false,
-        StreamlinedMarketplace: true,
         CloudDedicatedExportUI: false,
         WebSocketEventScope: true,
         NotificationMonitoring: true,
