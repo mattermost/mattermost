@@ -6,7 +6,7 @@ import nock from 'nock';
 import type {PropertyField} from '@mattermost/types/properties';
 import type {GlobalState} from '@mattermost/types/store';
 
-import {patchSessionAttributeField} from 'mattermost-redux/actions/properties';
+import {fetchPropertyFields, patchSessionAttributeField} from 'mattermost-redux/actions/properties';
 import {Client4} from 'mattermost-redux/client';
 
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
@@ -66,5 +66,50 @@ describe('Actions.patchSessionAttributeField', () => {
 
         const state = store.getState() as GlobalState;
         expect(state.entities.properties.fields.byId['field-missing']).toBeUndefined();
+    });
+});
+
+describe('Actions.fetchPropertyFields', () => {
+    const TARGET_TYPE = 'system';
+
+    // The server keys fields under a real group UUID that differs from the group
+    // NAME the caller passes; the action exposes the name -> group mapping so
+    // consumers can resolve that id.
+    const GROUP_UUID = 'realgroupuuid000000000001x';
+
+    const getPropertyFields = jest.spyOn(Client4, 'getPropertyFields');
+
+    beforeEach(() => {
+        getPropertyFields.mockReset();
+    });
+
+    afterAll(() => {
+        getPropertyFields.mockRestore();
+    });
+
+    it('dispatches the group name -> uuid mapping keyed off the fetched fields', async () => {
+        const store = configureStore();
+        const field = makeField('field-1', {enabled: true});
+        field.group_id = GROUP_UUID;
+
+        getPropertyFields.mockResolvedValueOnce([field]).mockResolvedValue([]);
+
+        const result = await store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, TARGET_TYPE));
+
+        expect(result.data).toEqual([field]);
+
+        const state = store.getState() as GlobalState;
+        expect(state.entities.properties.groups.byName[GROUP]).toEqual({id: GROUP_UUID, name: GROUP});
+        expect(state.entities.properties.groups.byId[GROUP_UUID]).toEqual({id: GROUP_UUID, name: GROUP});
+    });
+
+    it('does not dispatch a group mapping when no fields are returned', async () => {
+        const store = configureStore();
+        getPropertyFields.mockResolvedValue([]);
+
+        await store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, TARGET_TYPE));
+
+        const state = store.getState() as GlobalState;
+        expect(state.entities.properties.groups.byName[GROUP]).toBeUndefined();
     });
 });
