@@ -117,6 +117,14 @@ export function isRankOperator(op: string): boolean {
         op === OperatorLabel.IS_LESS_THAN;
 }
 
+// native_method operators (e.g. "younger than") are exclusive to the specific
+// native attribute that advertises them via attrs.operators (currently only
+// createat). They must never be offered for—or left applied to—any other
+// attribute type.
+export function isNativeMethodOperator(op: string): boolean {
+    return OPERATOR_CONFIG[op]?.type === 'native_method';
+}
+
 // Native user attributes are referenced as `user.<name>` rather than the custom
 // profile attribute form `user.attributes.<name>`.
 export function isNativeField(field?: Pick<UserPropertyField, 'attrs'>): boolean {

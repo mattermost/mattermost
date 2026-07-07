@@ -7,7 +7,7 @@ import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
-import {TestButton, hasUsableAttributes, toCELEditorAttributes, allowedOperatorLabelsForField, defaultOperatorForField, isNativeBooleanField, isValidYoungerThanDaysValue} from './shared';
+import {TestButton, hasUsableAttributes, toCELEditorAttributes, allowedOperatorLabelsForField, defaultOperatorForField, isNativeBooleanField, isNativeMethodOperator, isValidYoungerThanDaysValue, OperatorLabel} from './shared';
 
 const makeField = (name: string, attrs: Partial<UserPropertyField['attrs']>, type: UserPropertyField['type'] = 'text'): UserPropertyField => ({
     id: `id-${name}`,
@@ -530,5 +530,19 @@ describe('isValidYoungerThanDaysValue', () => {
 
     test.each(['', 'ten', '-5', '3.5', '1e3', '30abc', 'NaN'])('rejects non-integer value %p', (value) => {
         expect(isValidYoungerThanDaysValue(value)).toBe(false);
+    });
+});
+
+describe('isNativeMethodOperator', () => {
+    test('true for the native "younger than" operator', () => {
+        expect(isNativeMethodOperator(OperatorLabel.YOUNGER_THAN)).toBe(true);
+    });
+
+    test.each([OperatorLabel.IS, OperatorLabel.IS_NOT, OperatorLabel.IN, OperatorLabel.STARTS_WITH, OperatorLabel.HAS_ANY_OF, OperatorLabel.IS_AT_LEAST])('false for non-native operator %p', (op) => {
+        expect(isNativeMethodOperator(op)).toBe(false);
+    });
+
+    test('false for an unknown operator token', () => {
+        expect(isNativeMethodOperator('not an operator')).toBe(false);
     });
 });
