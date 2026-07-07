@@ -50,18 +50,18 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store) *job
 }
 
 func runCatchupExtraction(logger mlog.LoggerIFace, job *model.Job, jobServer *jobs.JobServer, app AppIface, store store.Store) error {
-	since := model.GetMillis() - catchupLookback.Milliseconds()
+	cursor := model.GetMillis() - catchupLookback.Milliseconds()
 
 	var nFiles int
 	var nErrs int
-	for page := 0; ; page++ {
+	for {
 		opts := model.GetFileInfosOptions{
-			Since:            since,
+			Since:            cursor,
 			SortBy:           model.FileinfoSortByCreated,
 			IncludeDeleted:   false,
 			OnlyEmptyContent: true,
 		}
-		fileInfos, err := store.FileInfo().GetWithOptions(page, catchupBatchSize, &opts)
+		fileInfos, err := store.FileInfo().GetWithOptions(0, catchupBatchSize, &opts)
 		if err != nil {
 			return err
 		}
@@ -83,6 +83,9 @@ func runCatchupExtraction(logger mlog.LoggerIFace, job *model.Job, jobServer *jo
 			}
 			nFiles++
 		}
+
+		lastFileInfo := fileInfos[len(fileInfos)-1]
+		cursor = lastFileInfo.CreateAt + 1
 
 		if len(fileInfos) < catchupBatchSize {
 			break

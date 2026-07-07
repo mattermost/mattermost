@@ -218,6 +218,7 @@ func TestExtractWithExtraExtractors(t *testing.T) {
 
 type slowExtractor struct {
 	delay time.Duration
+	done  chan struct{}
 }
 
 func (se *slowExtractor) Name() string { return "slowExtractor" }
@@ -225,6 +226,11 @@ func (se *slowExtractor) Name() string { return "slowExtractor" }
 func (se *slowExtractor) Match(filename string) bool { return true }
 
 func (se *slowExtractor) Extract(filename string, r io.ReadSeeker, _ int64) (string, error) {
+	defer func() {
+		if se.done != nil {
+			close(se.done)
+		}
+	}()
 	time.Sleep(se.delay)
 	return "done", nil
 }
@@ -234,14 +240,21 @@ func TestExtractTimeout(t *testing.T) {
 	data := []byte("hello world")
 
 	t.Run("aborts a slow extraction once the timeout elapses", func(t *testing.T) {
+		extractDone := make(chan struct{})
 		start := time.Now()
-		text, err := ExtractWithExtraExtractors(logger, "file.txt", bytes.NewReader(data), ExtractSettings{Timeout: 50 * time.Millisecond}, []Extractor{&slowExtractor{delay: 500 * time.Millisecond}})
+		text, err := ExtractWithExtraExtractors(logger, "file.txt", bytes.NewReader(data), ExtractSettings{Timeout: 50 * time.Millisecond}, []Extractor{&slowExtractor{delay: 500 * time.Millisecond, done: extractDone}})
 		elapsed := time.Since(start)
 
 		require.Error(t, err)
 		require.Empty(t, text)
 		assert.Contains(t, err.Error(), "timed out")
 		assert.Less(t, elapsed, 200*time.Millisecond, "should return shortly after the timeout, not wait for the extraction")
+
+		select {
+		case <-extractDone:
+		case <-time.After(2 * time.Second):
+			require.FailNow(t, "detached extraction did not finish within the deadline")
+		}
 	})
 
 	t.Run("returns the result when extraction finishes within the timeout", func(t *testing.T) {
@@ -288,6 +301,7 @@ func (c *recordingCloser) Close() error {
 type blockingExtractor struct {
 	started chan struct{}
 	release chan struct{}
+	done    chan struct{}
 }
 
 func (be *blockingExtractor) Name() string { return "blockingExtractor" }
@@ -297,6 +311,9 @@ func (be *blockingExtractor) Match(filename string) bool { return true }
 func (be *blockingExtractor) Extract(filename string, r io.ReadSeeker, _ int64) (string, error) {
 	close(be.started)
 	<-be.release
+	if be.done != nil {
+		close(be.done)
+	}
 	return "done", nil
 }
 
@@ -431,13 +448,11 @@ func TestExtractConcurrency(t *testing.T) {
 	data := []byte("hello world")
 
 	t.Run("rejects new extractions while the concurrency limit is reached", func(t *testing.T) {
-		be := &blockingExtractor{started: make(chan struct{}), release: make(chan struct{})}
+		be := &blockingExtractor{started: make(chan struct{}), release: make(chan struct{}), done: make(chan struct{})}
 		settings := ExtractSettings{Timeout: 50 * time.Millisecond, ReaderCloser: &recordingCloser{}}
 
-		done := make(chan struct{})
 		go func() {
 			_, _ = ExtractWithExtraExtractors(logger, "file.txt", bytes.NewReader(data), settings, []Extractor{be})
-			close(done)
 		}()
 
 		select {
@@ -453,16 +468,16 @@ func TestExtractConcurrency(t *testing.T) {
 
 		close(be.release)
 		select {
-		case <-done:
+		case <-be.done:
 		case <-time.After(2 * time.Second):
-			require.FailNow(t, "first extraction did not finish within the deadline")
+			require.FailNow(t, "detached extraction did not finish within the deadline")
 		}
 	})
 
 	t.Run("a timed-out extraction keeps its slot until the detached goroutine finishes", func(t *testing.T) {
 		resetExtractionConcurrencyForTest(1)
 
-		be := &blockingExtractor{started: make(chan struct{}), release: make(chan struct{})}
+		be := &blockingExtractor{started: make(chan struct{}), release: make(chan struct{}), done: make(chan struct{})}
 		settings := ExtractSettings{Timeout: 50 * time.Millisecond, ReaderCloser: &recordingCloser{}}
 
 		_, err := ExtractWithExtraExtractors(logger, "file.txt", bytes.NewReader(data), settings, []Extractor{be})
@@ -480,5 +495,10 @@ func TestExtractConcurrency(t *testing.T) {
 		require.Contains(t, err.Error(), "capacity exhausted")
 
 		close(be.release)
+		select {
+		case <-be.done:
+		case <-time.After(2 * time.Second):
+			require.FailNow(t, "detached extraction did not finish within the deadline")
+		}
 	})
 }
