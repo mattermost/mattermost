@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
@@ -38,24 +38,30 @@ const PluginMetadataId = ({id}: {id: string}) => {
 
     const tooltipMessage = copiedRecently ? copyMessages.copied : copyMessages.copy;
 
-    const handleCopy = (e: React.MouseEvent | React.KeyboardEvent) => {
+    const handleCopy = useCallback((e: React.MouseEvent | React.KeyboardEvent) => {
         e.preventDefault();
         copyId();
-    };
+    }, [copyId]);
+
+    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            handleCopy(e);
+        }
+    }, [handleCopy]);
+
+    const tooltipTitle = useMemo(() => (
+        <FormattedMessage {...tooltipMessage}/>
+    ), [tooltipMessage]);
 
     return (
         <WithTooltip
-            title={<FormattedMessage {...tooltipMessage}/>}
+            title={tooltipTitle}
         >
             <span
                 className='PluginMetadataPanel__id'
                 data-testid='plugin-metadata-id'
                 onClick={handleCopy}
-                onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        handleCopy(e);
-                    }
-                }}
+                onKeyDown={handleKeyDown}
                 role='button'
                 tabIndex={0}
                 aria-label={intl.formatMessage(tooltipMessage)}

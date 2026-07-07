@@ -103,6 +103,42 @@ describe('custom plugin sections and settings', () => {
         expect(screen.getByText('This is the footer')).toBeInTheDocument();
     });
 
+    it('renders plugin metadata with distinct display name and id', () => {
+        const pluginId = 'com.mattermost.fl3xx';
+        const pluginName = 'FL3XX';
+        const namedPlugin = {
+            ...plugin,
+            id: pluginId,
+            name: pluginName,
+        };
+
+        renderWithContext(
+            <CustomPluginSettings
+                {...baseProps}
+                match={{params: {plugin_id: pluginId}} as match<{plugin_id: string}>}
+                config={{
+                    PluginSettings: {
+                        Plugins: {
+                            [pluginId]: {},
+                        },
+                    } as unknown as PluginSettings,
+                }}
+                patchConfig={jest.fn()}
+            />,
+            {
+                entities: {
+                    admin: {
+                        plugins: {
+                            [pluginId]: namedPlugin,
+                        },
+                    },
+                },
+            },
+        );
+
+        expectPluginPageTitle(pluginName, pluginId);
+    });
+
     it('all custom sections with plugin disabled should show single warning', () => {
         const state = {
             ...baseState,
