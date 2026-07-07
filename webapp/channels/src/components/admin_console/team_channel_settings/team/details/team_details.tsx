@@ -9,7 +9,7 @@ import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/typ
 import {getMembershipRule, buildRulesWithMembership} from '@mattermost/types/access_control';
 import {SyncableType} from '@mattermost/types/groups';
 import type {Group, SyncablePatch} from '@mattermost/types/groups';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 

@@ -7,7 +7,7 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import {getMembershipRule, buildRulesWithMembership} from '@mattermost/types/access_control';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {Team} from '@mattermost/types/teams';
 
 import {

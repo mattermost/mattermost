@@ -5,7 +5,7 @@ import React, {useState, useEffect, useCallback, useMemo, useRef} from 'react';
 import {FormattedMessage, defineMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {Team} from '@mattermost/types/teams';
 
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';

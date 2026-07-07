@@ -3,7 +3,8 @@
 
 import React from 'react';
 
-import type {UserPropertyField, FieldVisibility, FieldValueType} from '@mattermost/types/properties';
+import type {FieldVisibility, FieldValueType} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {Team} from '@mattermost/types/teams';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
