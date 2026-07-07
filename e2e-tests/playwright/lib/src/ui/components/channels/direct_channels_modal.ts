@@ -11,6 +11,7 @@ export default class DirectChannelsModal {
     readonly goButton;
     readonly results;
     readonly searchInput;
+    readonly memberLimitHelpText;
 
     constructor(container: Locator) {
         this.container = container;
@@ -18,6 +19,7 @@ export default class DirectChannelsModal {
         this.goButton = container.getByRole('button', {name: 'Go'});
         this.results = container.getByTestId('more-modal-list');
         this.searchInput = container.getByRole('combobox', {name: 'Search for people'});
+        this.memberLimitHelpText = container.locator('#multiSelectHelpMemberInfo');
     }
 
     async toBeVisible() {
@@ -32,7 +34,19 @@ export default class DirectChannelsModal {
 
         await row.click();
 
-        await expect(this.container.getByRole('button', {name: `Remove ${user.username}`})).toBeVisible();
+        await expect(this.getRemoveButton(user.username)).toBeVisible();
+    }
+
+    /**
+     * Locates the "Remove {username}" button for a selected user.
+     * @param username
+     */
+    getRemoveButton(username: string): Locator {
+        return this.container.getByRole('button', {name: `Remove ${username}`});
+    }
+
+    async removeUser(username: string) {
+        await this.getRemoveButton(username).click();
     }
 
     async toHaveNUsersSelected(count: number) {

@@ -40,6 +40,8 @@ cd e2e-tests && TEST=playwright make
 
 This approach uses the server's Docker image to create a consistent testing environment. It automatically configures the server with the necessary settings for Playwright tests and handles dependencies.
 
+`ENABLED_DOCKER_SERVICES` defaults to the base `postgres inbucket` set (plus the auto-added `playwright` and `webhook-interactions` services). Expand it only when a test needs an extra dependency (for example `minio` for file storage or `openldap` for LDAP).
+
 #### 2. Install dependencies and run the test.
 
 ```bash
