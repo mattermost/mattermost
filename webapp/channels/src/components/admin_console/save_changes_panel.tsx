@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import {buttonClassNames} from '@mattermost/shared/components/button';
+import {Button, buttonClassNames} from '@mattermost/shared/components/button';
 
 import BlockableLink from 'components/admin_console/blockable_link';
 import SaveButton from 'components/save_button';
@@ -44,17 +44,17 @@ const SaveChangesPanel = ({saveNeeded, onClick, saving, serverError, cancelLink,
                     />
                 </BlockableLink>
             ) : onCancel && (
-                <button
+                <Button
                     id='cancelButtonSettings'
                     type='button'
-                    className={buttonClassNames({emphasis: 'quaternary'})}
+                    emphasis='quaternary'
                     onClick={onCancel}
                 >
                     <FormattedMessage
                         id='admin.team_channel_settings.cancel'
                         defaultMessage='Cancel'
                     />
-                </button>
+                </Button>
             )}
             <div className='error-message'>
                 {serverError}
