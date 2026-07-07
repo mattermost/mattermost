@@ -199,3 +199,80 @@ func TestShutdownAfterDeactivateNoOnDeactivateRPC(t *testing.T) {
 	assert.NotContains(t, buf.String(), "OnDeactivate",
 		"Shutdown dispatched OnDeactivate to an already-deactivated plugin")
 }
+
+// TestDeactivateReconcilesPluginState verifies that deactivation always reconciles the plugin to
+// PluginStateNotRunning, clearing any prior error state, and that the health check job's ordering
+// (deactivate, then set state) still records PluginStateFailedToStayRunning.
+func TestDeactivateReconcilesPluginState(t *testing.T) {
+	pluginDir, err := os.MkdirTemp("", "mm-deactivate-state-plugin")
+	require.NoError(t, err)
+	t.Cleanup(func() { os.RemoveAll(pluginDir) })
+	webappPluginDir, err := os.MkdirTemp("", "mm-deactivate-state-webapp")
+	require.NoError(t, err)
+	t.Cleanup(func() { os.RemoveAll(webappPluginDir) })
+
+	pluginID := "test-deactivate-state-plugin"
+	require.NoError(t, os.MkdirAll(filepath.Join(pluginDir, pluginID), 0700))
+	backend := filepath.Join(pluginDir, pluginID, "backend.exe")
+
+	utils.CompileGo(t, `
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) OnDeactivate() error {
+			return nil
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`, backend)
+
+	require.NoError(t, os.WriteFile(
+		filepath.Join(pluginDir, pluginID, "plugin.json"),
+		[]byte(`{"id":"`+pluginID+`","server":{"executable":"backend.exe"}}`),
+		0600,
+	))
+
+	logger := mlog.CreateConsoleTestLogger(t)
+	apiImpl := func(*model.Manifest) API { return nil }
+	env, err := NewEnvironment(apiImpl, nil, pluginDir, webappPluginDir, logger, nil)
+	require.NoError(t, err)
+	t.Cleanup(env.Shutdown)
+
+	t.Run("deactivating an inactive, failed plugin clears the error state", func(t *testing.T) {
+		_, _, err = env.Activate(pluginID)
+		require.NoError(t, err)
+		require.True(t, env.IsActive(pluginID))
+
+		// Tear the plugin down, then simulate the health check marking it as failed while it
+		// remains registered but inactive.
+		require.True(t, env.Deactivate(pluginID))
+		require.False(t, env.IsActive(pluginID))
+		env.setPluginState(pluginID, model.PluginStateFailedToStayRunning)
+
+		// Deactivating an already-inactive plugin (e.g. on Shutdown or an explicit disable) must
+		// reconcile the error state back to not running rather than leaving it as failed.
+		require.False(t, env.Deactivate(pluginID))
+		assert.Equal(t, model.PluginStateNotRunning, env.GetPluginState(pluginID))
+	})
+
+	t.Run("health check ordering records FailedToStayRunning", func(t *testing.T) {
+		_, _, err = env.Activate(pluginID)
+		require.NoError(t, err)
+		require.True(t, env.IsActive(pluginID))
+
+		// Mirror PluginHealthCheckJob.CheckPlugin: deactivate first, then record the failed state.
+		require.True(t, env.Deactivate(pluginID))
+		env.setPluginState(pluginID, model.PluginStateFailedToStayRunning)
+
+		assert.Equal(t, model.PluginStateFailedToStayRunning, env.GetPluginState(pluginID))
+	})
+}

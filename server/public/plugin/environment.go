@@ -453,6 +453,12 @@ func (env *Environment) RemovePlugin(id string) {
 // If the plugin is not currently active, there's nothing to tear down: its state is reconciled
 // to not running and no OnDeactivate is dispatched, avoiding a spurious RPC call to an
 // already-closed connection.
+//
+// Deactivation always reconciles the plugin to PluginStateNotRunning, intentionally clearing any
+// error state (e.g. PluginStateFailedToStayRunning): once deactivated, the plugin is no longer
+// meant to be running, so the error no longer applies. Callers that want to record a more specific
+// state deactivate first and set it afterward, as the health check job does when a plugin exceeds
+// its restart limit.
 func (env *Environment) deactivateAndTeardown(rp registeredPlugin) bool {
 	id := rp.BundleInfo.Manifest.Id
 
