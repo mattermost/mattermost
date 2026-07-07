@@ -100,3 +100,45 @@ func TestMobileMetrics(t *testing.T) {
 		}
 	}
 }
+
+func TestCountNotificationMetrics(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupEnterprise(t, StartMetrics)
+
+	configureMetrics(th)
+	mi := th.App.Metrics()
+
+	miImpl, ok := mi.(*metrics.MetricsInterfaceImpl)
+	require.True(t, ok, fmt.Sprintf("App.Metrics is not *MetricsInterfaceImpl, but %T", mi))
+
+	counterValue := func() float64 {
+		counter, err := miImpl.NotificationTotalCounters.GetMetricWith(prometheus.Labels{
+			"type":     string(model.NotificationTypePush),
+			"platform": "ios",
+		})
+		require.NoError(t, err)
+		m := &prometheusModels.Metric{}
+		require.NoError(t, counter.Write(m))
+		return m.Counter.GetValue()
+	}
+
+	t.Run("counts when notification metrics are enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.MetricsSettings.EnableNotificationMetrics = true
+		})
+
+		before := counterValue()
+		th.App.CountNotification(model.NotificationTypePush, "ios")
+		require.Equal(t, before+1, counterValue())
+	})
+
+	t.Run("does not count when notification metrics are disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.MetricsSettings.EnableNotificationMetrics = false
+		})
+
+		before := counterValue()
+		th.App.CountNotification(model.NotificationTypePush, "ios")
+		require.Equal(t, before, counterValue())
+	})
+}
