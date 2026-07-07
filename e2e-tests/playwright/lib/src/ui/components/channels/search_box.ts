@@ -41,6 +41,15 @@ export default class SearchBox {
         await expect(this.container).toBeVisible();
     }
 
+    /**
+     * Fills the search input with the given term and submits the search.
+     */
+    async search(term: string) {
+        await expect(this.searchInput).toBeVisible();
+        await this.searchInput.fill(term);
+        await this.searchInput.press('Enter');
+    }
+
     getSelectedSuggestion() {
         return this.searchHints.getByTestId('suggestion-selected');
     }

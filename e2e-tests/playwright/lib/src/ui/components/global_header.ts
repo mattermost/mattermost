@@ -54,6 +54,11 @@ export default class GlobalHeader {
         await this.recentMentionsButton.click();
     }
 
+    async openSavedMessages() {
+        await expect(this.savedMessagesButton).toBeVisible();
+        await this.savedMessagesButton.click();
+    }
+
     async openSearch() {
         await expect(this.searchBox).toBeVisible();
         await this.searchBox.click();

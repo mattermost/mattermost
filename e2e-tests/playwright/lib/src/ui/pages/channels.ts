@@ -44,6 +44,7 @@ export default class ChannelsPage {
     readonly scheduledDraftModal;
     readonly scheduleMessageModal;
     readonly burnOnReadConfirmationModal;
+    readonly searchResultsPanel;
     readonly archivedChannelMessage;
 
     readonly postContainer;
@@ -102,6 +103,7 @@ export default class ChannelsPage {
 
         // Posts
         this.postContainer = page.getByTestId('post-message-text');
+        this.searchResultsPanel = new components.SearchResultsPanel(page.locator('#searchContainer'));
         this.archivedChannelMessage = page.locator('#channelArchivedMessage');
 
         page.locator('#channelHeaderDropdownMenu');
@@ -198,6 +200,17 @@ export default class ChannelsPage {
         await this.teamSettingsModal.toBeVisible();
 
         return this.teamSettingsModal;
+    }
+
+    /**
+     * Opens the search UI, runs a search for the given term, and waits for the
+     * results panel to appear.
+     */
+    async searchFor(term: string) {
+        await this.globalHeader.openSearch();
+        await this.searchBox.toBeVisible();
+        await this.searchBox.search(term);
+        await this.searchResultsPanel.toBeVisible();
     }
 
     async openChannelSettings(): Promise<ChannelSettingsModal> {
