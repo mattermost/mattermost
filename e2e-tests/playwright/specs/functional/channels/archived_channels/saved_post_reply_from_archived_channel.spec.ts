@@ -16,7 +16,7 @@ test('MM-T1722 opens a saved post from an archived channel without a reply box',
     await adminClient.addToChannel(user.id, channel.id);
 
     // # Post a message in the channel, then archive the channel
-    const post = await adminClient.createPost({channel_id: channel.id, message} as never);
+    const post = await adminClient.createPost({channel_id: channel.id, message});
     await adminClient.deleteChannel(channel.id);
 
     // # Save the post for the test user

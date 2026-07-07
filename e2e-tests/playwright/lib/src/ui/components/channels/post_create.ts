@@ -20,6 +20,8 @@ export default class ChannelsPostCreate {
     readonly scheduleMessageButton;
     readonly priorityButton;
     readonly suggestionList;
+    readonly suggestionOptions;
+    readonly selectedSuggestion;
     readonly filePreview;
 
     // Burn-on-Read elements
@@ -41,6 +43,8 @@ export default class ChannelsPostCreate {
         this.scheduleMessageButton = container.getByLabel('Schedule message');
         this.priorityButton = container.getByLabel('Message priority');
         this.suggestionList = container.getByRole('listbox', {name: 'Suggestions'});
+        this.suggestionOptions = this.suggestionList.getByRole('option');
+        this.selectedSuggestion = this.suggestionList.getByTestId('suggestion-selected');
         this.filePreview = container.getByTestId('file-preview-container');
 
         // Burn-on-Read elements
