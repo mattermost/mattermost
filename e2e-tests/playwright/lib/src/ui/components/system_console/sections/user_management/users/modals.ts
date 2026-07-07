@@ -33,7 +33,7 @@ export class ResetPasswordModal extends BaseModal {
     constructor(container: Locator) {
         super(container);
         this.resetButton = container.getByRole('button', {name: 'Reset'});
-        this.passwordInput = container.locator('input[type="password"]');
+        this.passwordInput = container.getByLabel('New password');
     }
 
     async reset() {
@@ -56,7 +56,7 @@ export class UpdateEmailModal extends BaseModal {
     constructor(container: Locator) {
         super(container);
         this.updateButton = container.getByRole('button', {name: 'Update'});
-        this.emailInput = container.locator('input[type="email"]');
+        this.emailInput = container.getByLabel('New email');
     }
 
     async update() {

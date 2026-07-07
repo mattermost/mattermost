@@ -19,7 +19,7 @@ import {
     getCurrentChannelStats,
     isMyChannelAutotranslated,
 } from 'mattermost-redux/selectors/entities/channels';
-import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getRemoteNamesForChannel} from 'mattermost-redux/selectors/entities/shared_channels';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {
@@ -56,8 +56,6 @@ function makeMapStateToProps() {
         const channel = getCurrentChannel(state);
         const user = getCurrentUser(state);
         const config = getConfig(state);
-        const sharedChannelsPluginsEnabled = getFeatureFlagValue(state, 'EnableSharedChannelsPlugins') === 'true';
-
         let dmUser;
         let gmMembers;
         let customStatus;
@@ -106,7 +104,6 @@ function makeMapStateToProps() {
             isLastActiveEnabled,
             timestampUnits,
             hideGuestTags: config.HideGuestTags === 'true',
-            sharedChannelsPluginsEnabled,
             isChannelAutotranslated: channel ? isMyChannelAutotranslated(state, channel.id) : false,
         };
     };

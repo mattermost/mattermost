@@ -2,10 +2,12 @@
 // See LICENSE.txt for license information.
 
 import type {AccessControlVisualAST} from '@mattermost/types/access_control';
-import type {FieldType, UserPropertyField} from '@mattermost/types/properties';
+import type {FieldType} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {isSimpleExpression, isSimpleCondition, isMultiselectOrGroup} from 'components/admin_console/access_control/editors/shared';
-import {parseExpression, findFirstAvailableAttributeFromList, rowToCEL, celStringLiteral} from 'components/admin_console/access_control/editors/table_editor/table_editor';
+import {parseExpression, findFirstAvailableAttributeFromList, rowToCEL, celStringLiteral, isRowValueValid} from 'components/admin_console/access_control/editors/table_editor/table_editor';
+import type {TableRow} from 'components/admin_console/access_control/editors/table_editor/value_selector_menu';
 
 describe('parseExpression', () => {
     test('handles "==" operator mapping to "is"', () => {
@@ -572,6 +574,209 @@ describe('rowToCEL', () => {
     });
 });
 
+describe('parseExpression with native user attributes', () => {
+    test('parses native string attribute (user.email)', () => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.email',
+                    operator: '==',
+                    value: 'a@b.com',
+                    value_type: 0,
+                    attribute_type: 'text',
+                },
+            ],
+        };
+
+        expect(parseExpression(ast)).toEqual([
+            {
+                attribute: 'email',
+                operator: 'is',
+                values: ['a@b.com'],
+                attribute_type: 'text',
+                hasMaskedValues: false,
+                isNative: true,
+            },
+        ]);
+    });
+
+    test('parses native boolean attribute (user.verified == true) stringifying the literal', () => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.verified',
+                    operator: '==',
+                    value: true,
+                    value_type: 0,
+                    attribute_type: 'select',
+                },
+            ],
+        };
+
+        expect(parseExpression(ast)).toEqual([
+            {
+                attribute: 'verified',
+                operator: 'is',
+                values: ['true'],
+                attribute_type: 'select',
+                hasMaskedValues: false,
+                isNative: true,
+                isBoolean: true,
+            },
+        ]);
+    });
+
+    test('parses native youngerThanDays helper (numeric arg stringified)', () => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.createat',
+                    operator: 'youngerThanDays',
+                    value: 30,
+                    value_type: 0,
+                    attribute_type: 'text',
+                },
+            ],
+        };
+
+        expect(parseExpression(ast)).toEqual([
+            {
+                attribute: 'createat',
+                operator: 'younger than',
+                values: ['30'],
+                attribute_type: 'text',
+                hasMaskedValues: false,
+                isNative: true,
+            },
+        ]);
+    });
+});
+
+describe('rowToCEL with native user attributes', () => {
+    test('native string equality uses the user.<name> prefix and quotes the value', () => {
+        const cel = rowToCEL({
+            attribute: 'email',
+            operator: 'is',
+            values: ['a@b.com'],
+            attribute_type: 'text',
+            hasMaskedValues: false,
+            isNative: true,
+        });
+        expect(cel).toBe('user.email == "a@b.com"');
+    });
+
+    test('native boolean equality emits an unquoted literal', () => {
+        const cel = rowToCEL({
+            attribute: 'verified',
+            operator: 'is',
+            values: ['true'],
+            attribute_type: 'select',
+            hasMaskedValues: false,
+            isNative: true,
+            isBoolean: true,
+        });
+        expect(cel).toBe('user.verified == true');
+    });
+
+    test('native boolean inequality emits an unquoted literal', () => {
+        const cel = rowToCEL({
+            attribute: 'isbot',
+            operator: 'is not',
+            values: ['true'],
+            attribute_type: 'select',
+            hasMaskedValues: false,
+            isNative: true,
+            isBoolean: true,
+        });
+        expect(cel).toBe('user.isbot != true');
+    });
+
+    test('native string method call uses the user.<name> prefix', () => {
+        const cel = rowToCEL({
+            attribute: 'email',
+            operator: 'contains',
+            values: ['@example.com'],
+            attribute_type: 'text',
+            hasMaskedValues: false,
+            isNative: true,
+        });
+        expect(cel).toBe('user.email.contains("@example.com")');
+    });
+
+    test.each([
+        ['30', 'user.createat.youngerThanDays(30)'],
+        ['007', 'user.createat.youngerThanDays(7)'],
+    ])('youngerThanDays normalizes valid integer %p', (input, expected) => {
+        const cel = rowToCEL({
+            attribute: 'createat',
+            operator: 'younger than',
+            values: [input],
+            attribute_type: 'text',
+            hasMaskedValues: false,
+            isNative: true,
+        });
+        expect(cel).toBe(expected);
+    });
+
+    test.each([
+        ['ten', 'user.createat.youngerThanDays(ten)'],
+        ['30abc', 'user.createat.youngerThanDays(30abc)'],
+        ['-5', 'user.createat.youngerThanDays(-5)'],
+        ['3.5', 'user.createat.youngerThanDays(3.5)'],
+    ])('youngerThanDays emits invalid value %p verbatim so it errors on save', (input, expected) => {
+        const cel = rowToCEL({
+            attribute: 'createat',
+            operator: 'younger than',
+            values: [input],
+            attribute_type: 'text',
+            hasMaskedValues: false,
+            isNative: true,
+        });
+        expect(cel).toBe(expected);
+    });
+
+    test('youngerThanDays emits an unquoted integer argument', () => {
+        const cel = rowToCEL({
+            attribute: 'createat',
+            operator: 'younger than',
+            values: ['30'],
+            attribute_type: 'text',
+            hasMaskedValues: false,
+            isNative: true,
+        });
+        expect(cel).toBe('user.createat.youngerThanDays(30)');
+    });
+});
+
+describe('isRowValueValid', () => {
+    const makeRow = (value: string): TableRow => ({
+        attribute: 'createat',
+        operator: 'younger than',
+        values: value === '' ? [] : [value],
+        attribute_type: 'text',
+        hasMaskedValues: false,
+        isNative: true,
+    });
+
+    test.each(['30', '0', '007'])('accepts non-negative integer %p', (value) => {
+        expect(isRowValueValid(makeRow(value))).toBe(true);
+    });
+
+    test.each(['', 'ten', '30abc', '-5', '3.5'])('rejects invalid youngerThanDays value %p', (value) => {
+        expect(isRowValueValid(makeRow(value))).toBe(false);
+    });
+
+    test('non-native rows are always considered valid', () => {
+        expect(isRowValueValid({
+            attribute: 'team',
+            operator: 'is',
+            values: ['anything'],
+            attribute_type: 'text',
+            hasMaskedValues: false,
+        })).toBe(true);
+    });
+});
+
 describe('isSimpleExpression', () => {
     test('empty expression is simple', () => {
         expect(isSimpleExpression('')).toBe(true);
@@ -603,6 +808,18 @@ describe('isSimpleExpression', () => {
 
     test('nested function calls are NOT simple', () => {
         expect(isSimpleExpression('size(user.attributes.roles) > 0')).toBe(false);
+    });
+
+    test('native attribute conditions are simple', () => {
+        expect(isSimpleExpression('user.email == "a@b.com"')).toBe(true);
+        expect(isSimpleExpression('user.verified == true')).toBe(true);
+        expect(isSimpleExpression('user.isbot != false')).toBe(true);
+        expect(isSimpleExpression('user.email.contains("@x")')).toBe(true);
+        expect(isSimpleExpression('user.createat.youngerThanDays(30)')).toBe(true);
+    });
+
+    test('native and CPA conditions combined with AND are simple', () => {
+        expect(isSimpleExpression('user.verified == true && user.attributes.dept == "Eng"')).toBe(true);
     });
 });
 
@@ -669,5 +886,35 @@ describe('isSimpleCondition', () => {
         // Guards the ranked-operator regex change: `size(...) > 0` style
         // numeric comparisons must still fall through to advanced mode.
         expect(isSimpleCondition('user.attributes.count > 0')).toBe(false);
+    });
+
+    test('native boolean equality', () => {
+        expect(isSimpleCondition('user.verified == true')).toBe(true);
+        expect(isSimpleCondition('user.isbot != false')).toBe(true);
+    });
+
+    test('native string equality and methods', () => {
+        expect(isSimpleCondition('user.email == "a@b.com"')).toBe(true);
+        expect(isSimpleCondition('user.email.endsWith("@x.com")')).toBe(true);
+    });
+
+    test('native youngerThanDays helper', () => {
+        expect(isSimpleCondition('user.createat.youngerThanDays(7)')).toBe(true);
+    });
+
+    test('unsupported native field/operator pairings are not simple', () => {
+        // Boolean fields only support true/false equality, not quoted strings or methods.
+        expect(isSimpleCondition('user.verified == "true"')).toBe(false);
+        expect(isSimpleCondition('user.isbot.contains("x")')).toBe(false);
+
+        // String/method operators belong to email only, not createat or the booleans.
+        expect(isSimpleCondition('user.createat == "x"')).toBe(false);
+        expect(isSimpleCondition('user.email == true')).toBe(false);
+
+        // youngerThanDays is exclusive to createat.
+        expect(isSimpleCondition('user.email.youngerThanDays(7)')).toBe(false);
+
+        // Unknown native names do not round-trip through the table editor.
+        expect(isSimpleCondition('user.id == "abc"')).toBe(false);
     });
 });

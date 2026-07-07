@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 
 import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 
@@ -12,12 +12,14 @@ import SingleImageView from 'components/single_image_view';
 import {FileTypes, ModalIdentifiers} from 'utils/constants';
 import {getFileType} from 'utils/utils';
 
+import MediaGallery from './media_gallery';
+
 import type {OwnProps, PropsFromRedux} from './index';
 
 type Props = OwnProps & PropsFromRedux;
 
 export default function FileAttachmentList(props: Props) {
-    const handleImageClick = (indexClicked: number) => {
+    const handleImageClick = useCallback((indexClicked: number) => {
         props.actions.openModal({
             modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
             dialogType: FilePreviewModal,
@@ -27,7 +29,11 @@ export default function FileAttachmentList(props: Props) {
                 startIndex: indexClicked,
             },
         });
-    };
+    }, [props.actions, props.post.id, props.fileInfos]);
+
+    const handleToggleCollapse = useCallback((postId: string) => {
+        props.actions.toggleEmbedVisibility(postId);
+    }, [props.actions]);
 
     const {
         compactDisplay,
@@ -42,6 +48,34 @@ export default function FileAttachmentList(props: Props) {
 
     if (fileInfos.length === 0) {
         return null;
+    }
+
+    const hasDeletedFile = sortedFileInfos.some((f) => f.delete_at > 0);
+    const isEditHistory = Boolean(props.isEditHistory);
+
+    if (!isInPermalink && !props.firstFileRejected && !hasDeletedFile && !isEditHistory) {
+        const isMulti = fileInfos.length > 1;
+        const isSingleVideo = fileInfos.length === 1 &&
+            !fileInfos[0].archived &&
+            getFileType(fileInfos[0].extension) === FileTypes.VIDEO;
+
+        const allMedia = sortedFileInfos.length > 0 && sortedFileInfos.every((f) => {
+            const t = getFileType(f.extension);
+            return t === FileTypes.IMAGE || t === FileTypes.VIDEO;
+        });
+
+        if ((isMulti || isSingleVideo) && allMedia) {
+            return (
+                <MediaGallery
+                    fileInfos={sortedFileInfos}
+                    postId={props.post.id}
+                    compactDisplay={compactDisplay}
+                    isEmbedVisible={props.isEmbedVisible}
+                    onItemClick={handleImageClick}
+                    onToggleCollapse={handleToggleCollapse}
+                />
+            );
+        }
     }
 
     // For single image files, use SingleImageView UNLESS the file is rejected

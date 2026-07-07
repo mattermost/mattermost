@@ -7,7 +7,7 @@ import {useDispatch} from 'react-redux';
 import type {AccessControlVisualAST, AccessControlTestResult, AccessControlPolicy, AccessControlPolicyActiveUpdate, PolicySimulationResponse, PolicySimulationByUsersParams} from '@mattermost/types/access_control';
 import type {ChannelMembership} from '@mattermost/types/channels';
 import type {JobTypeBase} from '@mattermost/types/jobs';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {
     getAccessControlFields,

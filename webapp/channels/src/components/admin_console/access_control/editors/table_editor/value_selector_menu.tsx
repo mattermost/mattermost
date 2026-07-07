@@ -16,6 +16,12 @@ export interface TableRow {
     values: string[];
     attribute_type: string;
     hasMaskedValues: boolean;
+
+    // Native user attributes are referenced as `user.<name>` (vs `user.attributes.<name>`).
+    isNative?: boolean;
+
+    // Native boolean attributes (e.g. user.verified) emit unquoted true/false literals.
+    isBoolean?: boolean;
 }
 
 export interface ValueSelectorMenuProps {

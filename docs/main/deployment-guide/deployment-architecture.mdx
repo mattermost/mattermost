@@ -1,0 +1,32 @@
+---
+title: "Deployment Architecture"
+sidebar_label: "Deployment Architecture"
+description: Interactive deployment architecture builder. Pick a scale tier, deployment type, and hosting provider — get an architecture diagram and a bill of materials.
+---
+
+Pick your scale tier, deployment type, and hosting provider. The builder below renders a target architecture and a bill of materials sized to those choices. Sizing follows the [Mattermost scaling guide](/deployment-guide/reference-architecture/application-architecture); provider SKUs are illustrative — verify against current pricing and regional / compliance constraints before committing to a procurement decision.
+
+<DeploymentArchitectureBuilder />
+
+## How to use this page
+
+1. **Pick the scale tier** that fits your expected concurrent user count. Tiers correspond to the named bands in the scaling guide (Trial / Small / Medium / Large / Extra Large / Mega / Hyperscale).
+2. **Pick a deployment type**:
+    - **Virtual machines** — Mattermost installed via the [Linux install paths](/deployment-guide/server/deploy-linux), with a separate VM per role (app, database, cache, search). Most common for self-hosted and private-cloud deployments.
+    - **Kubernetes** — Mattermost deployed via the [Mattermost Operator](/deployment-guide/server/deploy-kubernetes). The diagram and bill of materials swap the load balancer for an ingress controller and the app row for the Operator pattern.
+3. **Pick a hosting provider** to see provider-specific SKU recommendations. **On-prem / Other** swaps managed services for self-managed equivalents (PostgreSQL on a VM, Redis on a VM, OpenSearch / Elasticsearch on a VM cluster, MinIO or NFS for object storage).
+
+## What's next
+
+Once you've sized the architecture:
+
+- For **air-gapped, sovereign-cloud, or DDIL** environments, also work through [Air-Gapped Operations](/deployment-guide/air-gapped-operations/quick-start-runbook). The architecture is the same; the install procedure and dependency-staging are different.
+- For **regulated workloads** (FedRAMP, DoD IL, DISA STIG), see [Security & Compliance → Compliance Frameworks](/security-guide/compliance-frameworks) for the configuration overlay that goes on top of the architecture choices above.
+- For **HA tuning** (clustering, Redis configuration, multi-AZ database topology), see [High Availability cluster-based deployment](/administration-guide/scale/high-availability-cluster-based-deployment).
+- For **specific install paths**, jump to [Install on Linux](/deployment-guide/server/deploy-linux), [Install on Kubernetes](/deployment-guide/server/deploy-kubernetes), or [Install with Containers](/deployment-guide/server/deploy-containers).
+
+:::note[Want the planning context first?]
+
+If you haven't already, walk through [Deployment Scenarios](/deployment-guide/reference-architecture/deployment-scenarios/deployment-scenarios-index) before sizing. Scenarios describe **what shape** of deployment fits your operational pattern (air-gapped, mission partner, DDIL, sovereign-Microsoft, out-of-band); this page sizes **the components** of whichever shape you pick.
+
+:::

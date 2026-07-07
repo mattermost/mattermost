@@ -1,0 +1,112 @@
+---
+title: "Organize conversations using threaded discussions"
+---
+<PlanAvailability slug="all-commercial" />
+
+Threads are a key part of the messaging experience in Mattermost. They're used to organize conversations and enable users to discuss topics without adding noise to channels or direct messages.
+
+Threaded discussions offers an enhanced experience for users communicating in threads and replying to messages that includes a unified threads inbox to read all conversations in one view. Threads improve the ability to process channel content, find, follow, and resume conversations more easily, and keep threaded conversations focused.
+
+![Organize conversations using threaded discussions.](/images/collapsed-reply-threads.gif)
+
+<Note>
+
+- From Mattermost v7.0, threaded discussions are enabled by default for all new Mattermost deployments. All Mattermost users can create new threads, unless the system admin has [disabled the ability to do so](/administration-guide/configure/site-configuration-settings#threaded-discussions).
+- System admins can [configure default availability and user opt-in](/administration-guide/configure/site-configuration-settings#threaded-discussions) of threaded discussions.
+
+</Note>
+
+## Start or reply to threads
+
+[Replies to messages](/end-user-guide/collaborate/reply-to-messages) are collapsed under the first message of a thread. Open a thread by selecting the message or reply count.
+
+From Mattermost v11.2, when using Mattermost in a web browser, you can open threads in separate browser windows by selecting the **New Window** <img src="/img/ui/dock-window_F10AC.svg" alt="Open thread in a new browser window icon." /> icon in the thread header. This allows you to view and participate in multiple threads simultaneously without losing context.
+
+## Follow threads and messages
+
+You'll automatically follow every thread you participate or are mentioned in. You can manually follow particular messages and threads so that any reply activity triggers [notifications](/end-user-guide/preferences/manage-your-notifications). Follow or unfollow any thread, at any time. In channels, a dot next to thread participants means there are unread replies for the threads you're following.
+
+![Follow threads to stay updated on replies to messages.](/images/crt-following-thread.png)
+
+<div class="tab">
+
+Web/Desktop
+
+Toggle the thread’s **Follow** option, or select **Follow thread** from the **More Actions** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> icon.
+
+![Unfollow threads from the More Actions icon.](/images/crt-following-thread.jpg)
+
+<Tip>
+
+\- Follow messages with no replies from the **More Actions** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> icon to be notified if someone replies to the message later based on your notification preferences. - You can also use keyboard arrow keys to navigate threads in the **Threads** view.
+
+</Tip>
+
+</div>
+
+<div class="tab">
+
+Mobile
+
+Long-press on a message to access message options, then tap **Follow Thread**.
+
+![Tap and hold on a message thread to select Follow Thread.](/images/mobile-follow-a-message-thread-with-follow-option.gif)
+
+Alternatively, you can also tap on the **Follow** indicator below a message thread to follow it.
+
+![Toggle the Follow indicator to start folowing a thread.](/images/mobile-follow-a-message-thread-by-tapping-follow.gif)
+
+<Tip>
+
+Follow messages with no replies from the **More Actions** <img src="/img/ui/dots-vertical_F01D9.svg" alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> icon to be notified if someone replies to the message later based on your notification preferences.
+
+![Tap and hold on a message with no replies to select Follow Message.](/images/mobile-follow-a-message-with-no-replies.gif)
+
+</Tip>
+
+</div>
+
+## Unfollow threads
+
+If you’re no longer interested in a or message thread, unfollow it to stop receiving notifications. Viewing a thread without responding to it doesn’t automatically follow that thread.
+
+<div class="tab">
+
+Web/Desktop
+
+Toggle the thread’s **Following** indicator, or select **Unfollow thread** from the **More Actions** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> icon to unfollow it.
+
+![Unfollow threads from the More Actions icon.](/images/desktop-unfollow-message-thread.jpg)
+
+</div>
+
+<div class="tab">
+
+Mobile
+
+Long-press on a message to access message options, then tap **Unfollow Thread**.
+
+![Tap and hold on a message thread you're following to select Unfollow Thread.](/images/mobile-unfollow-a-message-thread-with-unfollow-option.gif)
+
+Alternatively, you can tap on the **Following** indicator below the message thread to unfollow it.
+
+![Toggle the Following indicator to stop following a thread.](/images/mobile-unfollow-a-message-thread-by-tapping-following.gif)
+
+</div>
+
+## View all threads
+
+Select **Threads** at the top of the channel sidebar to see all your followed threads on the currently selected team. Threads with the most recent replies display at the top of the list.
+
+Select **Unreads** to filter your followed threads by only those with unread replies.
+
+![Select Threads in the channel sidebar to see all thread updates in your Threads View.](/images/crt-thread-view.jpg)
+
+## Tutorial video
+
+<script src="https://fast.wistia.com/embed/medias/5gjgi10rr0.jsonp" async></script><script src="https://fast.wistia.com/assets/external/E-v1.js" async></script><div class="wistia_responsive_padding" style={{padding: '56.25% 0 0 0', position: 'relative'}}><div class="wistia_responsive_wrapper" style={{height: '100%', left: '0', position: 'absolute', top: '0', width: '100%'}}><div class="wistia_embed wistia_async_5gjgi10rr0 videoFoam=true" style={{height: '100%', position: 'relative', width: '100%'}}><div class="wistia_swatch" style={{height: '100%', left: '0', opacity: '0', overflow: 'hidden', position: 'absolute', top: '0', transition: 'opacity 200ms', width: '100%'}}><img src="https://fast.wistia.com/embed/medias/5gjgi10rr0/swatch" style={{filter: 'blur(5px)', height: '100%', objectFit: 'contain', width: '100%'}} alt="" aria-hidden="true" onload="this.parentNode.style.opacity=1;" /></div></div></div></div>
+<br />
+
+## Known issues
+
+Threaded discussions were released as generally available in Mattermost v7.0, including significant server performance improvements and more flexible configuration options for system admins to enable the feature by default. We highly recommended [upgrading Mattermost](/administration-guide/upgrade/upgrading-mattermost-server) to take advantage of configuration and performance enhancements.

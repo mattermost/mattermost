@@ -231,6 +231,22 @@ func (mr *MockClientMockRecorder) CreateCommand(arg0, arg1 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCommand", reflect.TypeOf((*MockClient)(nil).CreateCommand), arg0, arg1)
 }
 
+// CreateDirectChannel mocks base method.
+func (m *MockClient) CreateDirectChannel(arg0 context.Context, arg1, arg2 string) (*model.Channel, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateDirectChannel", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*model.Channel)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// CreateDirectChannel indicates an expected call of CreateDirectChannel.
+func (mr *MockClientMockRecorder) CreateDirectChannel(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateDirectChannel", reflect.TypeOf((*MockClient)(nil).CreateDirectChannel), arg0, arg1, arg2)
+}
+
 // CreateIncomingWebhook mocks base method.
 func (m *MockClient) CreateIncomingWebhook(arg0 context.Context, arg1 *model.IncomingWebhook) (*model.IncomingWebhook, *model.Response, error) {
 	m.ctrl.T.Helper()
@@ -1068,6 +1084,22 @@ func (mr *MockClientMockRecorder) GetMarketplacePlugins(arg0, arg1 interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMarketplacePlugins", reflect.TypeOf((*MockClient)(nil).GetMarketplacePlugins), arg0, arg1)
 }
 
+// GetMe mocks base method.
+func (m *MockClient) GetMe(arg0 context.Context, arg1 string) (*model.User, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMe", arg0, arg1)
+	ret0, _ := ret[0].(*model.User)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetMe indicates an expected call of GetMe.
+func (mr *MockClientMockRecorder) GetMe(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMe", reflect.TypeOf((*MockClient)(nil).GetMe), arg0, arg1)
+}
+
 // GetOAuthApps mocks base method.
 func (m *MockClient) GetOAuthApps(arg0 context.Context, arg1, arg2 int) ([]*model.OAuthApp, *model.Response, error) {
 	m.ctrl.T.Helper()
@@ -1530,6 +1562,22 @@ func (m *MockClient) GetUserByUsername(arg0 context.Context, arg1, arg2 string) 
 func (mr *MockClientMockRecorder) GetUserByUsername(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByUsername", reflect.TypeOf((*MockClient)(nil).GetUserByUsername), arg0, arg1, arg2)
+}
+
+// GetUserStatus mocks base method.
+func (m *MockClient) GetUserStatus(arg0 context.Context, arg1, arg2 string) (*model.Status, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserStatus", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*model.Status)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetUserStatus indicates an expected call of GetUserStatus.
+func (mr *MockClientMockRecorder) GetUserStatus(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserStatus", reflect.TypeOf((*MockClient)(nil).GetUserStatus), arg0, arg1, arg2)
 }
 
 // GetUsers mocks base method.
@@ -2541,6 +2589,22 @@ func (m *MockClient) UpdateUserRoles(arg0 context.Context, arg1, arg2 string) (*
 func (mr *MockClientMockRecorder) UpdateUserRoles(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserRoles", reflect.TypeOf((*MockClient)(nil).UpdateUserRoles), arg0, arg1, arg2)
+}
+
+// UpdateUserStatus mocks base method.
+func (m *MockClient) UpdateUserStatus(arg0 context.Context, arg1 string, arg2 *model.Status) (*model.Status, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserStatus", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*model.Status)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// UpdateUserStatus indicates an expected call of UpdateUserStatus.
+func (mr *MockClientMockRecorder) UpdateUserStatus(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserStatus", reflect.TypeOf((*MockClient)(nil).UpdateUserStatus), arg0, arg1, arg2)
 }
 
 // UploadData mocks base method.

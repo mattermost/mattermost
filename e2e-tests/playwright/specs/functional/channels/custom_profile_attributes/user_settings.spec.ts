@@ -5,7 +5,7 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {Channel} from '@mattermost/types/channels';
 import type {Client4} from '@mattermost/client';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {expect, test} from '@mattermost/playwright-lib';
 

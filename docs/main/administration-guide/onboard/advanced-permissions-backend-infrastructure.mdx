@@ -1,0 +1,1072 @@
+---
+title: "Advanced permissions: backend infrastructure"
+draft: true
+---
+<PlanAvailability slug="all-commercial" />
+
+This document outlines the backend server infrastructure for permissions in Mattermost and is recommended only for technical Admins or developers looking to make modifications to their installation.
+
+## Entity definitions
+
+### Permissions
+
+A **permission** describes a permitted action which may be carried out on an object. It describes the action that users may perform in the context in which they have been assigned the role granting the permission.
+
+### Roles
+
+A **role** is something to which permissions are granted, that is then assigned to users in contexts in order to grant them the assigned permissions in that context. One user may end up with different sets of permissions granted by different roles in different contexts.
+
+### Scope
+
+Permissions live within a given scope. There are three scopes in the Mattermost system: System, Team and Channel. Permissions cascade down the scopes from the context in which they are applied. For example, if a “Channel” scoped permission is applied to a “Team” context, the permission applies to any channels within that team. A permission is considered,
+
+- **System scope** if it makes sense only on the system level. For example, `manage_oauth`.
+- **Team scope** if it makes sense at the team level and system level. For example, `create_public_channel`.
+- **Channel scope** if it makes sense at channel, team and system level. For example, `manage_public_channel_properties`.
+
+### Context
+
+A **context** is an instance of a scope. For example, a channel called "Developers Hangout" is an instance of channel scope. Contexts have hierarchical relationships between them that reflect the hierarchical ordering of scopes. Each context has one parent, and may have multiple children, with the ultimate parent context being the system context:
+
+- A channel context has a parent team context, whose parent is the system context. For example, the "Developers Hangout" channel is the channel context, with parent team context "Contributors Team", with parent system context.
+- A team context has a parent system context and child channel contexts. For example, the "Contributors Team" is the team context, with parent system context, and with children channel contexts such as "Developers Hangout", "Reception" and "Marketing".
+
+When determining whether a user is allowed to carry out a given action in a given context, the union of the permissions of all roles that user has been assigned in the current context and its parent contexts is calculated. This enables permissions to cascade down the scope hierarchy. For example, if a users is granted the `manage_public_channel_properties` permission in a role in the system context, then the user has permissions to manage public channel properties in all channels, in all teams, of which they are a member.
+
+### Schemes
+
+Schemes describe the default roles applied to users in a context, and all child contexts. Schemes are either defined specifically for a context, or if they are not specified, the relevant parts of the parent context’s scheme are applied, ultimately climbing the hierarchy to the System Scheme, which serves the purpose of providing the system-wide defaults. For example, if Team A does not have a team-scoped scheme defined, the System Scheme will provide the defaults for all contexts in Team A.
+
+Additionally, the lowest-scoped scheme always takes precedence in the context. For example, if Team B has a team-scoped scheme, that scheme takes precedence over the System Scheme defaults for all contexts in Team B.
+
+## Data structure
+
+### Permissions
+
+Permissions in Mattermost are a property of the server code base and are not created or modified dynamically. The current set of permissions are as described in the table below.
+
+**Mattermost permissions**
+
+<table style={{width: '99%'}}>
+<colgroup>
+<col style={{width: '18%'}} />
+<col style={{width: '3%'}} />
+<col style={{width: '76%'}} />
+<col style={{width: '0%'}} />
+</colgroup>
+<thead>
+<tr>
+<th>Name (i18n)</th>
+<th>Scope</th>
+<th>Description</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>invite_user</td>
+<td>team</td>
+<td>Invite users to the team using Send Email Invite or Get Team Invite Link.</td>
+<td></td>
+</tr>
+<tr>
+<td>add_user_to_team</td>
+<td>team</td>
+<td>Add existing server users to the current team.</td>
+<td></td>
+</tr>
+<tr>
+<td>manage_slash_commands</td>
+<td>system</td>
+<td>Create, edit, and delete your own slash commands.</td>
+<td></td>
+</tr>
+<tr>
+<td>manage_others_slash_commands</td>
+<td>system</td>
+<td>Edit or delete other users' slash commands.</td>
+<td></td>
+</tr>
+<tr>
+<td>create_public_channel</td>
+<td>team</td>
+<td>Create public channels.</td>
+<td></td>
+</tr>
+<tr>
+<td>create_private_channel</td>
+<td>team</td>
+<td>Create private channels.</td>
+<td></td>
+</tr>
+<tr>
+<td>manage_public_channel_members</td>
+<td>channel</td>
+<td>Manage public channel members.</td>
+<td></td>
+</tr>
+<tr>
+<td>manage_private_channel_members</td>
+<td>channel</td>
+<td>Manage private channel members.</td>
+<td></td>
+</tr>
+<tr>
+<td>assign_system_admin_role</td>
+<td>system</td>
+<td>Grant other users the system admin role.</td>
+<td></td>
+</tr>
+<tr>
+<td>manage_roles</td>
+<td>system</td>
+<td>Manage other users' system-wide roles.</td>
+<td></td>
+</tr>
+<tr>
+<td>manage_team_roles</td>
+<td>team</td>
+<td>Add and remove team members.</td>
+<td></td>
+</tr>
+<tr>
+<td>manage_channel_roles</td>
+<td>channel</td>
+<td>Add and remove channel members.</td>
+<td></td>
+</tr>
+<tr>
+<td>manage_system</td>
+<td>system</td>
+<td>Access to System Console.</td>
+<td></td>
+</tr>
+<tr>
+<td>sysconsole_read_usermanagement_system_roles</td>
+<td>system</td>
+<td>View system roles.</td>
+<td></td>
+</tr>
+<tr>
+<td>sysconsole_write_usermanagement_system_roles</td>
+<td>system</td>
+<td>Add, remove, and assign system roles.</td>
+<td></td>
+</tr>
+<tr>
+<td>create_direct_channel</td>
+<td>system</td>
+<td>Open Direct Message channels.</td>
+<td></td>
+</tr>
+<tr>
+<td>create_group_channel</td>
+<td>system</td>
+<td>Open Group Message channels.</td>
+<td></td>
+</tr>
+<tr>
+<td>manage_public_channel_properties</td>
+<td>channel</td>
+<td>Edit public channel name, header, and purpose, as well as create public channel checklists.</td>
+<td></td>
+</tr>
+<tr>
+<td>manage_private_channel_properties</td>
+<td>channel</td>
+<td>Edit private channel name, header, and purpose, as well as create private channel checklists.</td>
+<td></td>
+</tr>
+<tr>
+<td>list_public_teams</td>
+<td>system</td>
+<td>View public teams listed in the "Join Another Team" menu accessed from the main menu.</td>
+<td></td>
+</tr>
+<tr>
+<td>join_public_teams</td>
+<td>system</td>
+<td>Join public teams listed in the "Join Another Team" menu accessed from the main menu.</td>
+<td></td>
+</tr>
+<tr>
+<td>list_private_teams</td>
+<td>system</td>
+<td>View private teams listed in the "Join Another Team" menu accessed from the main menu.</td>
+<td></td>
+</tr>
+<tr>
+<td>join_private_teams</td>
+<td>system</td>
+<td>Join private teams listed in the "Join Another Team" menu accessed from the main menu.</td>
+<td></td>
+</tr>
+<tr>
+<td>list_team_channels</td>
+<td>team</td>
+<td>List public channels in a team.</td>
+<td></td>
+</tr>
+<tr>
+<td>join_public_channels</td>
+<td>team</td>
+<td>Join public channels.</td>
+<td></td>
+</tr>
+<tr>
+<td>delete_public_channel</td>
+<td>channel</td>
+<td>Archive public channels.</td>
+<td></td>
+</tr>
+<tr>
+<td>delete_private_channel</td>
+<td>channel</td>
+<td>Archive private channels.</td>
+<td></td>
+</tr>
+<tr>
+<td>edit_other_users</td>
+<td>system</td>
+<td>Edit values on the <code>user</code> object of other users.</td>
+<td></td>
+</tr>
+<tr>
+<td>read_channel</td>
+<td>channel</td>
+<td>View posts in a channel.</td>
+<td></td>
+</tr>
+<tr>
+<td>read_channel_contents</td>
+<td>channel</td>
+<td>Read the contents of a channel.</td>
+<td></td>
+</tr>
+<tr>
+<td>read_public_channel</td>
+<td>team</td>
+<td>View and access public channels on a team.</td>
+<td></td>
+</tr>
+<tr>
+<td>add_reaction</td>
+<td>channel</td>
+<td>Add emoji reactions to posts.</td>
+<td></td>
+</tr>
+<tr>
+<td>remove_reaction</td>
+<td>channel</td>
+<td>Remove emoji reactions from posts.</td>
+<td></td>
+</tr>
+<tr>
+<td>remove_others_reactions</td>
+<td>channel</td>
+<td>Remove other users emoji reactions from posts.</td>
+<td></td>
+</tr>
+<tr>
+<td>permanent_delete_user (deprecated)</td>
+<td>system</td>
+<td>Permanently delete other users.</td>
+<td></td>
+</tr>
+<tr>
+<td>upload_file</td>
+<td>channel</td>
+<td>Upload file attachments to posts.</td>
+<td></td>
+</tr>
+<tr>
+<td>get_public_link</td>
+<td>system</td>
+<td>Get permalink for posts.</td>
+<td></td>
+</tr>
+<tr>
+<td>manage_incoming_webhooks</td>
+<td>team</td>
+<td>Create, edit, and delete your own incoming webhooks.</td>
+<td></td>
+</tr>
+<tr>
+<td>manage_outgoing_webhooks</td>
+<td>team</td>
+<td>Create, edit, and delete your own outgoing webhooks.</td>
+<td></td>
+</tr>
+<tr>
+<td>manage_others_webhooks(deprecated)</td>
+<td>team</td>
+<td>Edit and delete other users' incoming or outgoing webhooks.</td>
+<td></td>
+</tr>
+<tr>
+<td>manage_others_incoming_webhooks</td>
+<td>team</td>
+<td>Edit and delete other users' incoming webhooks.</td>
+<td></td>
+</tr>
+<tr>
+<td>manage_others_outgoing_webhooks</td>
+<td>team</td>
+<td>Edit and delete other users' outgoing webhooks.</td>
+<td></td>
+</tr>
+<tr>
+<td>manage_oauth</td>
+<td>system</td>
+<td>Create, edit, and delete your own OAuth 2.0 apps.</td>
+<td></td>
+</tr>
+<tr>
+<td>manage_system_wide_oauth</td>
+<td>system</td>
+<td>Edit or delete other users' OAuth 2.0 apps.</td>
+<td></td>
+</tr>
+<tr>
+<td>create_post</td>
+<td>channel</td>
+<td>Post in channels.</td>
+<td></td>
+</tr>
+<tr>
+<td>create_post_public</td>
+<td>channel</td>
+<td>Create a system message within a channel.</td>
+<td></td>
+</tr>
+<tr>
+<td>create_post_ephermal</td>
+<td>channel</td>
+<td>Create an ephemeral message within a channel.</td>
+<td></td>
+</tr>
+<tr>
+<td>edit_post</td>
+<td>channel</td>
+<td>Authors edit their own posts.</td>
+<td></td>
+</tr>
+<tr>
+<td>edit_others_posts</td>
+<td>channel</td>
+<td>Edit other users' posts.</td>
+<td></td>
+</tr>
+<tr>
+<td>delete_post</td>
+<td>channel</td>
+<td>Authors delete their own posts.</td>
+<td></td>
+</tr>
+<tr>
+<td>delete_others_posts</td>
+<td>channel</td>
+<td>Delete other users' posts.</td>
+<td></td>
+</tr>
+<tr>
+<td>remove_user_from_team</td>
+<td>team</td>
+<td>Remove users from team.</td>
+<td></td>
+</tr>
+<tr>
+<td>create_team</td>
+<td>system</td>
+<td>Create teams.</td>
+<td></td>
+</tr>
+<tr>
+<td>manage_team</td>
+<td>team</td>
+<td>Access Team Settings.</td>
+<td></td>
+</tr>
+<tr>
+<td>import_team</td>
+<td>system</td>
+<td>Import teams in Team Settings.</td>
+<td></td>
+</tr>
+<tr>
+<td>view_team</td>
+<td>team</td>
+<td>Read the Team object.</td>
+<td></td>
+</tr>
+<tr>
+<td>create_bot</td>
+<td>team</td>
+<td>Create bot accounts.</td>
+<td></td>
+</tr>
+<tr>
+<td>assign_bot</td>
+<td>team</td>
+<td>Assign bots to users other than who created the bot.</td>
+<td></td>
+</tr>
+<tr>
+<td>read_bot</td>
+<td>team</td>
+<td>View own bots created.</td>
+<td></td>
+</tr>
+<tr>
+<td>read_others_bots</td>
+<td>team</td>
+<td>View bots created by others.</td>
+<td></td>
+</tr>
+<tr>
+<td>manage_bots</td>
+<td>team</td>
+<td>Edit and delete own bots.</td>
+<td></td>
+</tr>
+<tr>
+<td>manage_others_bots</td>
+<td>team</td>
+<td>Edit and delete bots created by others.</td>
+<td></td>
+</tr>
+<tr>
+<td>view_members</td>
+<td>team</td>
+<td>List all members on the team.</td>
+<td></td>
+</tr>
+<tr>
+<td>list_users_without_team</td>
+<td>system</td>
+<td>List users without a team.</td>
+<td></td>
+</tr>
+<tr>
+<td>create_user_access_token</td>
+<td>system</td>
+<td>Create user access tokens.</td>
+<td></td>
+</tr>
+<tr>
+<td>read_user_access_token</td>
+<td>system</td>
+<td>Read user access tokens by ID.</td>
+<td></td>
+</tr>
+<tr>
+<td>revoke_user_access_token</td>
+<td>system</td>
+<td>Revoke user access tokens.</td>
+<td></td>
+</tr>
+<tr>
+<td>manage_jobs</td>
+<td>system</td>
+<td>Create and cancel jobs.</td>
+<td></td>
+</tr>
+<tr>
+<td>create_emojis</td>
+<td>team</td>
+<td>Create custom emoji.</td>
+<td></td>
+</tr>
+<tr>
+<td>delete_emojis</td>
+<td>team</td>
+<td>Delete own custom emoji.</td>
+<td></td>
+</tr>
+<tr>
+<td>delete_others_emojis</td>
+<td>team</td>
+<td>Delete custom emoji created by others.</td>
+<td></td>
+</tr>
+<tr>
+<td>invite_guest</td>
+<td>system</td>
+<td>Invite guest users via email invite or add existing guests to teams.</td>
+<td></td>
+</tr>
+<tr>
+<td>promote_guest</td>
+<td>system</td>
+<td>Promote guests to member users.</td>
+<td></td>
+</tr>
+<tr>
+<td>demote_to_guest</td>
+<td>system</td>
+<td>Demote member users to guests.</td>
+<td></td>
+</tr>
+<tr>
+<td colspan="4">manage_remote_clusters (deprecated in v5.36) | system | Add, remove, and view remote clusters for shared channels. Deprecated in v5.36; renamed to <code>manage_secure_connections</code>.</td>
+</tr>
+<tr>
+<td>manage_shared_channels</td>
+<td>system</td>
+<td>Share and unshare channels with existing connections to remote servers.</td>
+<td></td>
+</tr>
+<tr>
+<td>manage_secure_connections</td>
+<td>system</td>
+<td>Create, manage, and remove secure connections to remote servers.</td>
+<td></td>
+</tr>
+<tr>
+<td>manage_post_bleve_indexes_job</td>
+<td>system</td>
+<td>Manage the status of a Bleve post indexing job.</td>
+<td></td>
+</tr>
+<tr>
+<td>manage_data_retention_job</td>
+<td>system</td>
+<td>Manage the status of a data retention job.</td>
+<td></td>
+</tr>
+<tr>
+<td>manage_compliance_export_job</td>
+<td>system</td>
+<td>Manage the status of a compliance export job.</td>
+<td></td>
+</tr>
+<tr>
+<td>manage_elasticsearch_post_indexing_job</td>
+<td>system</td>
+<td>Manage the status of an Elasticsearch post indexing job.</td>
+<td></td>
+</tr>
+<tr>
+<td>manage_elasticsearch_post_aggregation_job</td>
+<td>system</td>
+<td>Manage the status of an Elasticsearch post aggregation job.</td>
+<td></td>
+</tr>
+<tr>
+<td>manage_ldap_sync_job</td>
+<td>system</td>
+<td>Manage the status of an LDAP synchronization job.</td>
+<td></td>
+</tr>
+<tr>
+<td>add_bookmark_public_channel</td>
+<td>channel</td>
+<td>Add bookmarks to a public channel.</td>
+<td></td>
+</tr>
+<tr>
+<td>add_bookmark_private_channel</td>
+<td>channel</td>
+<td>Add bookmarks to a private channel.</td>
+<td></td>
+</tr>
+<tr>
+<td>edit_bookmark_public_channel</td>
+<td>channel</td>
+<td>Make changes to bookmarks in a public channel.</td>
+<td></td>
+</tr>
+<tr>
+<td>edit_bookmark_private_channel</td>
+<td>channel</td>
+<td>Make changes to bookmarks in a private channel.</td>
+<td></td>
+</tr>
+<tr>
+<td>delete_bookmark_public_channel</td>
+<td>channel</td>
+<td>Delete bookmarks in a public channel.</td>
+<td></td>
+</tr>
+<tr>
+<td>delete_bookmark_private_channel</td>
+<td>channel</td>
+<td>Delete bookmarks in a private channel.</td>
+<td></td>
+</tr>
+<tr>
+<td>order_bookmark_public_channel</td>
+<td>channel</td>
+<td>Reorder bookmarks in a public channel.</td>
+<td></td>
+</tr>
+<tr>
+<td>order_bookmark_private_channel</td>
+<td>channel</td>
+<td>Reorder bookmarks in a private channel.</td>
+<td></td>
+</tr>
+<tr>
+<td>manage_channel_banner</td>
+<td>channel</td>
+<td>Manage channel banners.</td>
+<td></td>
+</tr>
+<tr>
+<td>manage_channel_access_rules</td>
+<td>channel</td>
+<td>Manage attribute-based access control rules for channels.</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+
+### `Roles` field
+
+Roles are applied to objects that represents that user’s membership in a context. These are referenced in the `Roles` field of the `User`, `TeamMember`, `ChannelMember` and `Schemes` Tables.
+
+In the `TeamMember` and `ChannelMember` tables, it's the `Roles` field that contains custom roles and the `SchemeAdmin` and `SchemeUser` booleans that indicate the member object should inherit the respective roles from the relevant scheme, either the default or custom scheme assigned to the relevant team.
+
+### `Roles` table
+
+Roles are dynamic and user configurable, necessitating a database table with the following fields:
+
+- `Id` (Autoincrement, Primary Key)
+- `Name` (Unique String with Character Constraints, e.g. “team_user”).
+- `Display Name` (String)
+- `Description` (String)
+- `Permissions` (String): Space-separated permissions names
+- `Scheme Managed` (bool): Indicates whether this role is managed as part of a scheme.
+- `BuiltIn` (bool): Indicates if this role is built-in to the Mattermost system and not removable by the user.
+
+### Built-in roles
+
+The System Scheme is built-in to the product, and its roles are defined as `BuiltIn: true` in the `Roles` table. You can use the Mattermost API to [retrieve a list of permissions by role name](https://api.mattermost.com/#tag/roles/paths/~1roles~1names/post).
+
+The following built-in roles with default permissions are available:
+
+*channel_admin*
+
+- manage_private_channel_members
+- read_public_channel_groups
+- use_channel_mentions
+- create_post
+- use_group_mentions
+- add_reaction
+- read_private_channel_groups
+- remove_reaction
+- manage_public_channel_members
+- manage_channel_roles
+- add_bookmark_public_channel
+- edit_bookmark_public_channel
+- delete_bookmark_public_channel
+- order_bookmark_public_channel
+- add_bookmark_private_channel
+- edit_bookmark_private_channel
+- delete_bookmark_private_channel
+- order_bookmark_private_channel
+- manage_channel_banner
+- manage_channel_access_rules
+
+*channel_guest*
+
+- read_channel
+- read_channel_contents
+- add_reaction
+- remove_reaction
+- upload_file
+- edit_post
+- create_post
+- use_channel_mentions
+
+*channel_user*
+
+- manage_public_channel_properties
+- use_group_mentions
+- add_reaction
+- delete_private_channel
+- manage_private_channel_members
+- read_private_channel_groups
+- delete_public_channel
+- read_public_channel_groups
+- use_channel_mentions
+- read_channel
+- read_channel_contents
+- delete_post
+- get_public_link
+- remove_reaction
+- manage_public_channel_members
+- upload_file
+- manage_private_channel_properties
+- create_post
+- edit_post
+- add_bookmark_public_channel
+- edit_bookmark_public_channel
+- delete_bookmark_public_channel
+- order_bookmark_public_channel
+- add_bookmark_private_channel
+- edit_bookmark_private_channel
+- delete_bookmark_private_channel
+- order_bookmark_private_channel
+
+*system_admin*
+
+- manage_others_slash_commands
+- sysconsole_write_user_management_permissions
+- edit_brand
+- remove_reaction
+- manage_incoming_webhooks
+- sysconsole_write_user_management_groups
+- create_public_channel
+- manage_private_channel_members
+- sysconsole_write_authentication
+- join_private_teams
+- create_post_ephemeral
+- list_users_without_team
+- sysconsole_write_reporting
+- join_public_channels
+- invite_guest
+- list_private_teams
+- sysconsole_write_user_management_channels
+- manage_others_bots
+- read_user_access_token
+- add_user_to_team
+- view_members
+- edit_post
+- demote_to_guest
+- delete_others_posts
+- sysconsole_write_plugins
+- delete_private_channel
+- sysconsole_read_user_management_system_roles
+- sysconsole_read_user_management_users
+- revoke_user_access_token
+- read_others_bots
+- read_public_channel_groups
+- sysconsole_write_user_management_teams
+- sysconsole_write_billing
+- convert_public_channel_to_private
+- remove_user_from_team
+- manage_team
+- add_reaction
+- manage_oauth
+- list_team_channels
+- create_team
+- read_jobs
+- invite_user
+- manage_shared_channels
+- remove_others_reactions
+- manage_secure_connections
+- sysconsole_write_user_management_users
+- sysconsole_read_experimental
+- sysconsole_write_compliance
+- edit_others_posts
+- assign_bot
+- manage_bots
+- manage_others_outgoing_webhooks
+- manage_system_wide_oauth
+- delete_others_emojis
+- manage_others_incoming_webhooks
+- promote_guest
+- sysconsole_write_experimental
+- sysconsole_read_plugins
+- create_group_channel
+- sysconsole_read_environment
+- manage_roles
+- use_channel_mentions
+- manage_public_channel_properties
+- manage_channel_roles
+- get_public_link
+- sysconsole_read_billing
+- sysconsole_write_integrations
+- download_compliance_export_result
+- manage_slash_commands
+- assign_system_admin_role
+- create_post
+- delete_post
+- create_direct_channel
+- list_public_teams
+- create_post_public
+- read_private_channel_groups
+- sysconsole_read_integrations
+- read_other_users_teams
+- manage_jobs
+- sysconsole_read_site
+- manage_outgoing_webhooks
+- sysconsole_write_environment
+- manage_system
+- sysconsole_read_user_management_permissions
+- manage_public_channel_members
+- sysconsole_write_about
+- import_team
+- sysconsole_write_user_management_system_roles
+- sysconsole_read_reporting
+- upload_file
+- read_channel
+- read_channel_contents
+- sysconsole_read_user_management_teams
+- delete_emojis
+- manage_private_channel_properties
+- view_team
+- sysconsole_read_user_management_groups
+- create_private_channel
+- create_bot
+- join_public_teams
+- delete_public_channel
+- read_public_channel
+- sysconsole_read_about
+- read_bots
+- sysconsole_read_authentication
+- edit_other_users
+- sysconsole_read_user_management_channels
+- convert_private_channel_to_public
+- use_group_mentions
+- create_user_access_token
+- sysconsole_write_site
+- manage_team_roles
+- sysconsole_read_compliance
+- create_emojis
+- manage_post_bleve_indexes_job
+- manage_data_retention_job
+- manage_compliance_export_job
+- manage_elasticsearch_post_indexing_job
+- manage_elasticsearch_post_aggregation_job
+- manage_ldap_sync_job
+- add_bookmark_public_channel
+- edit_bookmark_public_channel
+- delete_bookmark_public_channel
+- order_bookmark_public_channel
+- add_bookmark_private_channel
+- edit_bookmark_private_channel
+- delete_bookmark_private_channel
+- order_bookmark_private_channel
+- manage_channel_banner
+- manage_channel_access_rules
+
+*system_custom_group_admin*
+
+- create
+- edit
+- delete
+- manage members
+- restore
+
+*system_shared_channel_manager*
+
+- manage_shared_channels
+
+*system_guest*
+
+- create_group_channel
+- create_direct_channel
+
+*system_manager*
+
+- sysconsole_write_user_management_permissions
+- sysconsole_read_about
+- sysconsole_read_user_management_channels
+- join_private_teams
+- delete_private_channel
+- view_team
+- read_jobs
+- sysconsole_read_user_management_teams
+- sysconsole_read_plugins
+- manage_channel_roles
+- manage_public_channel_members
+- remove_user_from_team
+- sysconsole_read_environment
+- list_private_teams
+- manage_private_channel_members
+- manage_private_channel_properties
+- edit_brand
+- add_user_to_team
+- convert_public_channel_to_private
+- read_private_channel_groups
+- sysconsole_write_environment
+- manage_jobs
+- sysconsole_read_reporting
+- read_public_channel
+- manage_team
+- read_channel
+- sysconsole_read_integration
+- read_public_channel_groups
+- list_public_teams
+- manage_team_roles
+- sysconsole_read_user_management_groups
+- manage_public_channel_properties
+- sysconsole_write_user_management_groups
+- sysconsole_read_user_management_permissions
+- sysconsole_write_site
+- sysconsole_read_site
+- sysconsole_write_user_management_channels
+- sysconsole_write_integrations
+- delete_public_channel
+- sysconsole_write_user_management_teams
+- join_public_teams
+
+*system_post_all*
+
+- create_post
+- use_channel_mentions
+- use_group_mentions
+
+*system_post_all_public*
+
+- create_post_public
+- use_group_mentions
+- use_channel_mentions
+
+*system_read_only_admin*
+
+- sysconsole_read_compliance
+- read_other_users_teams
+- sysconsole_read_reporting
+- list_private_teams
+- sysconsole_read_experimental
+- read_jobs
+- read_public_channel
+- view_team
+- sysconsole_read_user_management_users
+- sysconsole_read_plugins
+- sysconsole_read_user_management_teams
+- read_public_channel_groups
+- sysconsole_read_user_management_channels
+- sysconsole_read_user_management_permissions
+- sysconsole_read_about
+- download_compliance_export_result
+- read_channel
+- sysconsole_read_authentication
+- sysconsole_read_site
+- list_public_teams
+- sysconsole_read_integrations
+- read_private_channel_groups
+- sysconsole_read_environment
+- sysconsole_read_user_management_groups
+
+*system_user*
+
+- list_public_teams
+- join_public_teams
+- create_direct_channel
+- create_group_channel
+- view_members
+- create_team
+- create_emojis
+- delete_emojis
+
+*system_user_access_token*
+
+- create_user_access_token
+- read_user_access_token
+- revoke_user_access_token
+
+*system_user_manager*
+
+- manage_public_channel_members
+- sysconsole_write_user_management_groups
+- manage_private_channel_properties
+- read_channel
+- sysconsole_read_authentication
+- manage_private_channel_members
+- read_jobs
+- view_team
+- sysconsole_read_user_management_groups
+- list_private_teams
+- join_public_teams
+- manage_team
+- list_public_teams
+- add_user_to_team
+- sysconsole_read_user_management_channels
+- sysconsole_write_user_management_teams
+- read_public_channel
+- sysconsole_read_user_management_permissions
+- manage_public_channel_properties
+- join_private_teams
+- convert_public_channel_to_private
+- manage_channel_roles
+- sysconsole_read_user_management_teams
+- read_public_channel_groups
+- delete_public_channel
+- remove_user_from_team
+- manage_team_roles
+- delete_private_channel
+- sysconsole_write_user_management_channels
+- read_private_channel_groups
+
+*team_admin*
+
+- remove_user_from_team
+- manage_others_slash_commands
+- manage_team_roles
+- manage_public_channel_members
+- use_group_mentions
+- manage_others_outgoing_webhooks
+- manage_slash_commands
+- manage_team
+- manage_others_incoming_webhooks
+- manage_channel_roles
+- read_public_channel_groups
+- remove_reaction
+- delete_post
+- manage_outgoing_webhooks
+- use_channel_mentions
+- manage_incoming_webhooks
+- delete_others_posts
+- read_private_channel_groups
+- create_post
+- manage_private_channel_members
+- convert_public_channel_to_private
+- add_reaction
+- import_team
+- add_bookmark_public_channel
+- edit_bookmark_public_channel
+- delete_bookmark_public_channel
+- order_bookmark_public_channel
+- add_bookmark_private_channel
+- edit_bookmark_private_channel
+- delete_bookmark_private_channel
+- order_bookmark_private_channel
+- manage_channel_banner
+- manage_channel_access_rules
+
+*team_guest*
+
+- view_team
+
+*team_post_all*
+
+- create_post
+- use_group_mentions
+- use_channel_mentions
+
+*team_post_all_public*
+
+- use_group_mentions
+- create_post_public
+- use_channel_mentions
+
+*team_user*
+
+- invite_user
+- add_user_to_team
+- list_team_channels
+- join_public_channels
+- read_public_channel
+- view_team
+- create_public_channel
+- create_private_channel
+
+### `Schemes` table
+
+Schemes are dynamic and user configurable, necessitating a database table with the following fields:
+
+- `Id` (Autoincrement, Primary Key)
+- `Name` (Unique String with Character Constraints, e.g. “corporate_scheme”)
+- `Display` Name
+- `Description` (String)
+- `Scope` (String): Team or Channel
+- `Team Admin Role` (String): Empty if Channel Scope
+- `Team User Role` (String): Empty if Channel Scope
+- `Team Guest Role` (String): Empty if Channel Scope
+- `Channel Admin Role` (String): Always provided
+- `Channel User Role` (String): Always provided
+- `Channel Guest Role` (String): Always provided
