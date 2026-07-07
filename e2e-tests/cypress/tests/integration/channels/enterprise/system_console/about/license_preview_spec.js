@@ -22,7 +22,7 @@ import * as TIMEOUTS from '@/fixtures/timeouts';
 
 const OLD_LICENSE_ID = 'old-license-id-0000000000000';
 
-// Current (already applied) license, as returned by GET /license/client?format=old.
+// Current (already applied) license, as returned by GET /license/client.
 const currentClientLicense = buildClientLicense({
     id: OLD_LICENSE_ID,
     skuName: 'Professional',
@@ -57,7 +57,7 @@ describe('System console - License preview/diff view', () => {
         //   mutable holder so we can simulate the server only reporting the new
         //   license once propagation completes (by the time the modal closes).
         const clientLicenseHolder = {body: currentClientLicense};
-        cy.intercept('GET', '**/api/v4/license/client?format=old', (req) => {
+        cy.intercept('GET', '**/api/v4/license/client*', (req) => {
             req.reply({statusCode: 200, body: clientLicenseHolder.body});
         }).as('getClientLicense');
 
@@ -121,7 +121,7 @@ describe('System console - License preview/diff view', () => {
 
     it('MM-67113 - Warns when re-uploading the currently applied license and leaves it unchanged', () => {
         // # The displayed license stays Professional throughout this flow
-        cy.intercept('GET', '**/api/v4/license/client?format=old', {
+        cy.intercept('GET', '**/api/v4/license/client*', {
             statusCode: 200,
             body: currentClientLicense,
         }).as('getClientLicense');
@@ -222,7 +222,7 @@ function buildLicense({id, skuName, skuShortName, users}) {
     };
 }
 
-// Build a ClientLicense object (old format) matching GET /license/client?format=old.
+// Build a ClientLicense object (old format) matching GET /license/client.
 // All values are strings, as produced by the server.
 function buildClientLicense({id, skuName, skuShortName, users}) {
     const now = Date.now();
