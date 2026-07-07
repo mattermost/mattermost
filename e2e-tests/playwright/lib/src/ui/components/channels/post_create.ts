@@ -162,6 +162,27 @@ export default class ChannelsPostCreate {
         await suggestion.click();
     }
 
+    /**
+     * Types the given keystrokes to trigger the autocomplete suggestion list,
+     * optionally moves the highlight down with ArrowDown, then completes the
+     * highlighted suggestion by pressing Tab.
+     * @param keystrokes - Partial text that triggers autocomplete (e.g. "@jo", ":tomato")
+     * @param options.arrowDown - Number of ArrowDown presses before selecting
+     */
+    async selectFromAutocompleteWithTab(keystrokes: string, {arrowDown = 0}: {arrowDown?: number} = {}) {
+        await this.input.waitFor();
+        await expect(this.input).toBeVisible();
+
+        await this.input.fill(keystrokes);
+        await expect(this.suggestionList).toBeVisible();
+
+        for (let i = 0; i < arrowDown; i++) {
+            await this.input.press('ArrowDown');
+        }
+
+        await this.input.press('Tab');
+    }
+
     async openEmojiPicker() {
         await expect(this.emojiButton).toBeVisible();
         await this.emojiButton.click();

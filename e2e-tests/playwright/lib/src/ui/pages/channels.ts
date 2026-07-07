@@ -44,6 +44,7 @@ export default class ChannelsPage {
     readonly scheduledDraftModal;
     readonly scheduleMessageModal;
     readonly burnOnReadConfirmationModal;
+    readonly keyboardShortcutsModal;
     readonly archivedChannelMessage;
 
     readonly postContainer;
@@ -84,6 +85,7 @@ export default class ChannelsPage {
         this.burnOnReadConfirmationModal = new components.BurnOnReadConfirmationModal(
             page.getByRole('dialog').filter({hasText: /burn|delete/i}),
         );
+        this.keyboardShortcutsModal = new components.KeyboardShortcutsModal(page);
 
         // Menus
         this.postDotMenu = new components.PostDotMenu(page.getByRole('menu', {name: 'Post extra options'}));

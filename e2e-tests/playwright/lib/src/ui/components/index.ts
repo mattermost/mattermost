@@ -29,6 +29,7 @@ import NewChannelModal from './channels/new_channel_modal';
 import FlagPostConfirmationDialog from './channels/flag_post_confirmation_dialog';
 import GenericConfirmModal from './channels/generic_confirm_modal';
 import InvitePeopleModal from './channels/invite_people_modal';
+import KeyboardShortcutsModal from './channels/keyboard_shortcuts_modal';
 import MembersInvitedModal from './channels/members_invited_modal';
 import MessagePriority from './channels/message_priority';
 import PostDotMenu from './channels/post_dot_menu';
@@ -105,6 +106,7 @@ const components = {
     BrowseChannelsModal,
     GenericConfirmModal,
     InvitePeopleModal,
+    KeyboardShortcutsModal,
     MembersInvitedModal,
     MessagePriority,
     PostDotMenu,
@@ -184,6 +186,7 @@ export {
     DirectChannelsModal,
     GenericConfirmModal,
     InvitePeopleModal,
+    KeyboardShortcutsModal,
     MembersInvitedModal,
     MessagePriority,
     PostDotMenu,
