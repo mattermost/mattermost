@@ -174,7 +174,7 @@ const AttributeSelectorMenu = ({currentAttribute, currentAttributeObjectType, av
         const isProtected = option.attrs?.protected;
         const allowed = isSessionAttribute || isSynced || isAdminManaged || isProtected || enableUserManagedAttributes;
 
-        const platforms = isSessionAttribute ? ((option.attrs as {platforms?: string[]} | undefined)?.platforms ?? []) : [];
+        const platforms = isSessionAttribute ? (option.attrs?.platforms ?? []) : [];
 
         const menuItem = (
             <Menu.Item

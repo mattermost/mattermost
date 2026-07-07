@@ -49,6 +49,10 @@ export type UserPropertyField = PropertyField & {
         source_plugin_id?: string;
         access_mode?: '' | 'source_only' | 'shared_only';
         display_name?: string;
+
+        // Session-attribute-only: platforms the field applies to (e.g. desktop,
+        // mobile, browser). Present on `session`-object-type fields.
+        platforms?: string[];
     };
 };
 

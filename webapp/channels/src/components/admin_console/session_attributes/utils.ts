@@ -90,7 +90,9 @@ export function formatDuration(seconds: number): string {
 // These keys are server-provided and absent from the typed attrs shape, so read them defensively.
 export function getSessionAttrs(field: SessionAttributeField): SessionAttributeTunables {
     const attrs = (field.attrs ?? {}) as Record<string, unknown>;
-    const platforms = Array.isArray(attrs.platforms) ? (attrs.platforms as SessionPlatform[]).filter((platform) => SESSION_PLATFORMS.includes(platform)) : [];
+    const platforms = Array.isArray(attrs.platforms) ? (attrs.platforms as unknown[]).filter(
+        (platform): platform is SessionPlatform => SESSION_PLATFORMS.includes(platform as SessionPlatform),
+    ) : [];
 
     return {
         enabled: attrs.enabled === true,
