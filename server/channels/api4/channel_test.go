@@ -8113,6 +8113,12 @@ func TestChannelEndpointsExcludeSpaces(t *testing.T) {
 		require.Equal(t, http.StatusBadRequest, r.StatusCode)
 	})
 
+	t.Run("convertGroupMessageToChannel rejects a space", func(t *testing.T) {
+		resp, err := client.DoAPIPost(ctx, "/channels/"+space.Id+"/convert_to_channel", "{}")
+		require.Error(t, err)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
 	// --- rejectSpaceChannelByID's swallowed GetChannel error still lets the endpoint's own
 	// --- not-found/permission handling surface normally for a nonexistent channel id ---
 

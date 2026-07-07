@@ -5591,7 +5591,7 @@
     "translation": "Board channels cannot be created via CreateChannel. Use the /boards API instead."
   },
   {
-    "id": "app.channel.create_channel.docs_not_enabled.app_error",
+    "id": "app.channel.create_channel.spaces_not_enabled.app_error",
     "translation": "The Docs feature is not enabled."
   },
   {

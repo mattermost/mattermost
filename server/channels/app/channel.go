@@ -242,7 +242,7 @@ func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember 
 	}
 
 	if channel.IsSpace() && !a.Config().FeatureFlags.EnableDocs {
-		return nil, model.NewAppError("CreateChannel", "app.channel.create_channel.docs_not_enabled.app_error", nil, "", http.StatusForbidden)
+		return nil, model.NewAppError("CreateChannel", "app.channel.create_channel.spaces_not_enabled.app_error", nil, "", http.StatusForbidden)
 	}
 
 	channel.DisplayName = strings.TrimSpace(channel.DisplayName)
@@ -1822,8 +1822,7 @@ func (a *App) DeleteChannel(rctx request.CTX, channel *model.Channel, userID str
 }
 
 func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
-	// Space backing channels carry real members (the docs plugin adds them through the plugin API);
-	// the user-facing /channels member endpoints reject spaces at the api4 layer.
+	// Space backing channels carry real members; allow them through the channel-type guard.
 	if channel.Type != model.ChannelTypeOpen && channel.Type != model.ChannelTypePrivate && !channel.IsSpace() {
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -1894,9 +1893,11 @@ func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *mode
 	}
 
 	var channelMemberErr *model.AppError
-	newMember, channelMemberErr = a.runGuardedChannelMemberWillBeAdded(rctx, channel.Id, newMember)
-	if channelMemberErr != nil {
-		return nil, channelMemberErr
+	if !channel.IsSpace() {
+		newMember, channelMemberErr = a.runGuardedChannelMemberWillBeAdded(rctx, channel.Id, newMember)
+		if channelMemberErr != nil {
+			return nil, channelMemberErr
+		}
 	}
 
 	newMember, nErr = a.Srv().Store().Channel().SaveMember(rctx, newMember)

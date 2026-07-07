@@ -475,17 +475,27 @@ func (api *PluginAPI) CreateChannel(channel *model.Channel) (*model.Channel, *mo
 }
 
 func (api *PluginAPI) DeleteChannel(channelID string) *model.AppError {
-	channel, err := api.resolveManagedChannel(channelID)
+	channel, err := api.app.GetChannel(api.ctx, channelID)
 	if err != nil {
-		return err
+		if err.StatusCode != http.StatusNotFound {
+			return err
+		}
+		if channel, err = api.resolveSpaceChannel(channelID, err); err != nil {
+			return err
+		}
 	}
 	return api.app.DeleteChannel(api.ctx, channel, "")
 }
 
 func (api *PluginAPI) RestoreChannel(channelID string) *model.AppError {
-	channel, err := api.resolveManagedChannel(channelID)
+	channel, err := api.app.GetChannel(api.ctx, channelID)
 	if err != nil {
-		return err
+		if err.StatusCode != http.StatusNotFound {
+			return err
+		}
+		if channel, err = api.resolveSpaceChannel(channelID, err); err != nil {
+			return err
+		}
 	}
 	_, err = api.app.RestoreChannel(api.ctx, channel, "")
 	return err
@@ -509,16 +519,18 @@ func (api *PluginAPI) GetSpaceBackingChannel(channelID string) (*model.Channel, 
 	return api.app.GetSpaceBackingChannel(api.ctx, channelID)
 }
 
-// resolveManagedChannel resolves a channel by ID for the docs-plugin space-lifecycle operations
-// below (delete/restore/member-add), falling back to GetSpaceBackingChannel since GetChannel 404s spaces.
-func (api *PluginAPI) resolveManagedChannel(channelID string) (*model.Channel, *model.AppError) {
-	channel, err := api.app.GetChannel(api.ctx, channelID)
-	if err != nil && err.StatusCode == http.StatusNotFound {
-		if space, spaceErr := api.app.GetSpaceBackingChannel(api.ctx, channelID); spaceErr == nil {
-			return space, nil
+// resolveSpaceChannel is called when GetChannel returns 404. It tries GetSpaceBackingChannel
+// and returns the space channel on success, spaceErr on a non-404 failure, or the original
+// notFoundErr when both lookups return 404 (the ID simply does not exist).
+func (api *PluginAPI) resolveSpaceChannel(channelID string, notFoundErr *model.AppError) (*model.Channel, *model.AppError) {
+	spaceChannel, spaceErr := api.app.GetSpaceBackingChannel(api.ctx, channelID)
+	if spaceErr != nil {
+		if spaceErr.StatusCode != http.StatusNotFound {
+			return nil, spaceErr
 		}
+		return nil, notFoundErr
 	}
-	return channel, err
+	return spaceChannel, nil
 }
 
 func (api *PluginAPI) GetChannelByName(teamID, name string, includeDeleted bool) (*model.Channel, *model.AppError) {
@@ -648,9 +660,14 @@ func (api *PluginAPI) SearchPostsInTeamForUser(teamID string, userID string, sea
 }
 
 func (api *PluginAPI) AddChannelMember(channelID, userID string) (*model.ChannelMember, *model.AppError) {
-	channel, err := api.resolveManagedChannel(channelID)
+	channel, err := api.app.GetChannel(api.ctx, channelID)
 	if err != nil {
-		return nil, err
+		if err.StatusCode != http.StatusNotFound {
+			return nil, err
+		}
+		if channel, err = api.resolveSpaceChannel(channelID, err); err != nil {
+			return nil, err
+		}
 	}
 
 	return api.app.AddChannelMember(api.ctx, userID, channel, ChannelMemberOpts{
@@ -661,9 +678,14 @@ func (api *PluginAPI) AddChannelMember(channelID, userID string) (*model.Channel
 }
 
 func (api *PluginAPI) AddUserToChannel(channelID, userID, asUserID string) (*model.ChannelMember, *model.AppError) {
-	channel, err := api.resolveManagedChannel(channelID)
+	channel, err := api.app.GetChannel(api.ctx, channelID)
 	if err != nil {
-		return nil, err
+		if err.StatusCode != http.StatusNotFound {
+			return nil, err
+		}
+		if channel, err = api.resolveSpaceChannel(channelID, err); err != nil {
+			return nil, err
+		}
 	}
 
 	return api.app.AddChannelMember(api.ctx, userID, channel, ChannelMemberOpts{

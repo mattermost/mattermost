@@ -524,7 +524,7 @@ func TestCreateChannelSpaceRequiresEnableDocs(t *testing.T) {
 
 		_, appErr := th.App.CreateChannel(th.Context, newSpace(th.BasicTeam.Id), false)
 		require.NotNil(t, appErr)
-		assert.Equal(t, "app.channel.create_channel.docs_not_enabled.app_error", appErr.Id)
+		assert.Equal(t, "app.channel.create_channel.spaces_not_enabled.app_error", appErr.Id)
 		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
 	})
 

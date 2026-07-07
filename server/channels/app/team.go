@@ -1927,7 +1927,7 @@ func (a *App) PermanentDeleteTeam(rctx request.CTX, team *model.Team) *model.App
 	// Space backing channels are excluded from GetTeamChannels, so tear them down explicitly to
 	// avoid leaving hidden channels, members, and posts behind with a dead TeamId.
 	if spaceChannels, err := a.Srv().Store().Channel().GetTeamSpaceChannels(team.Id); err != nil {
-		rctx.Logger().Warn("Error listing space channels during team deletion", mlog.String("team_id", team.Id), mlog.Err(err))
+		return model.NewAppError("PermanentDeleteTeam", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	} else {
 		for _, ch := range spaceChannels {
 			if err := a.PermanentDeleteChannel(rctx, ch); err != nil {

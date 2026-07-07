@@ -3873,6 +3873,50 @@ func TestPluginAPIDeleteAndRestoreChannelAllowSpace(t *testing.T) {
 	require.Nil(t, appErr)
 }
 
+func TestPluginAPIGetSpaceBackingChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+
+	space := &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		DisplayName: "Space",
+		Name:        "space-" + model.NewId(),
+		Type:        model.ChannelTypeSpace,
+	}
+	space, nErr := th.App.Srv().Store().Channel().Save(th.Context, space, -1)
+	require.NoError(t, nErr)
+
+	got, appErr := api.GetSpaceBackingChannel(space.Id)
+	require.Nil(t, appErr)
+	require.Equal(t, space.Id, got.Id)
+	require.Equal(t, model.ChannelTypeSpace, got.Type)
+
+	// A regular channel ID is not a space, so this returns not-found.
+	_, appErr = api.GetSpaceBackingChannel(th.BasicChannel.Id)
+	require.NotNil(t, appErr)
+	require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+}
+
+func TestPluginAPIResolveSpaceChannelNotFound(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+
+	nonExistentID := model.NewId()
+
+	// A genuinely non-existent ID (neither regular channel nor space) should return a not-found error.
+	appErr := api.DeleteChannel(nonExistentID)
+	require.NotNil(t, appErr)
+	require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+
+	appErr = api.RestoreChannel(nonExistentID)
+	require.NotNil(t, appErr)
+	require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+}
+
 func TestPluginAPICreateChannelAnonymousURLs(t *testing.T) {
 	mainHelper.Parallel(t)
 

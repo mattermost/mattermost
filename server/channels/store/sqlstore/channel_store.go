@@ -50,6 +50,18 @@ var nonMessageBackingChannelTypes = []model.ChannelType{
 	model.ChannelTypeSpace,
 }
 
+// nonMessageBackingChannelTypesNotIn returns a "NOT IN (...)" SQL clause and its args for use
+// in raw SQL queries, keeping those callers in sync with the deny-list.
+func nonMessageBackingChannelTypesNotIn() (string, []any) {
+	placeholders := make([]string, len(nonMessageBackingChannelTypes))
+	args := make([]any, len(nonMessageBackingChannelTypes))
+	for i, t := range nonMessageBackingChannelTypes {
+		placeholders[i] = "?"
+		args[i] = string(t)
+	}
+	return "NOT IN (" + strings.Join(placeholders, ",") + ")", args
+}
+
 // teamMessageChannelTypes is messageChannelTypes minus direct channels, used
 // for team-scoped queries where direct channels don't belong.
 var teamMessageChannelTypes = []model.ChannelType{
@@ -2503,10 +2515,9 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(rctx request.CTX, userId st
 		LeftJoin("Schemes ChannelScheme ON Channels.SchemeId = ChannelScheme.Id").
 		LeftJoin("Teams ON Channels.TeamId = Teams.Id").
 		LeftJoin("Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id").
-		// No channel-type filter: this is the per-user membership map that backs
-		// channel authorization (SessionHasPermissionToChannel/HasPermissionToChannel)
-		// and WebSocket broadcast scoping, so S backing channels must resolve here for
-		// their members to be authorized — matching how board channels are handled.
+		// No channel-type filter: this membership map backs per-channel authorization and
+		// WebSocket broadcast scoping, so space backing channels must resolve here —
+		// matching how board channels are handled.
 		Where(sq.Eq{"ChannelMembers.UserId": userId})
 	if !includeDeleted {
 		query = query.Where(sq.Eq{"Channels.DeleteAt": 0})
@@ -3251,7 +3262,10 @@ func (s SqlChannelStore) GetMembersForUser(teamID string, userID string) (model.
 func (s SqlChannelStore) GetMembersForUserWithPagination(userId string, page, perPage int) (model.ChannelMembersWithTeamData, error) {
 	dbMembers := channelMemberWithTeamWithSchemeRolesList{}
 	offset := page * perPage
-	err := s.GetReplica().Select(&dbMembers, channelMembersWithSchemeSelectQuery+"WHERE ChannelMembers.UserId = ? AND Channels.Type != ? ORDER BY ChannelId ASC Limit ? Offset ?", userId, string(model.ChannelTypeSpace), perPage, offset)
+	notInClause, notInArgs := nonMessageBackingChannelTypesNotIn()
+	queryArgs := append([]any{userId}, notInArgs...)
+	queryArgs = append(queryArgs, perPage, offset)
+	err := s.GetReplica().Select(&dbMembers, channelMembersWithSchemeSelectQuery+"WHERE ChannelMembers.UserId = ? AND Channels.Type "+notInClause+" ORDER BY ChannelId ASC Limit ? Offset ?", queryArgs...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find ChannelMembers data with and userId=%s", userId)
 	}
@@ -3261,7 +3275,10 @@ func (s SqlChannelStore) GetMembersForUserWithPagination(userId string, page, pe
 
 func (s SqlChannelStore) GetMembersForUserWithCursorPagination(userId string, perPage int, fromChannelID string) (model.ChannelMembersWithTeamData, error) {
 	dbMembers := channelMemberWithTeamWithSchemeRolesList{}
-	err := s.GetReplica().Select(&dbMembers, channelMembersWithSchemeSelectQuery+"WHERE ChannelMembers.UserId = ? AND ChannelId > ? AND Channels.Type != ? ORDER BY ChannelId ASC Limit ?", userId, fromChannelID, string(model.ChannelTypeSpace), perPage)
+	notInClause, notInArgs := nonMessageBackingChannelTypesNotIn()
+	queryArgs := append([]any{userId, fromChannelID}, notInArgs...)
+	queryArgs = append(queryArgs, perPage)
+	err := s.GetReplica().Select(&dbMembers, channelMembersWithSchemeSelectQuery+"WHERE ChannelMembers.UserId = ? AND ChannelId > ? AND Channels.Type "+notInClause+" ORDER BY ChannelId ASC Limit ?", queryArgs...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find ChannelMembers data with and userId=%s", userId)
 	}
@@ -4306,8 +4323,10 @@ func (s SqlChannelStore) GetChannelMembersForExport(userId string, teamId string
 	if !includeArchivedChannel {
 		q += " AND Channels.DeleteAt = 0"
 	}
-	q += " AND Channels.Type != ?"
-	err := s.GetReplica().Select(&members, q, userId, teamId, string(model.ChannelTypeSpace))
+	notInClause, notInArgs := nonMessageBackingChannelTypesNotIn()
+	q += " AND Channels.Type " + notInClause
+	queryArgs := append([]any{userId, teamId}, notInArgs...)
+	err := s.GetReplica().Select(&members, q, queryArgs...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Channels for export")
 	}
