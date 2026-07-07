@@ -62,7 +62,8 @@ test('MM-T360 searches a hashtag from a recent mention', {tag: '@search'}, async
     // # Click the hashtag in the mention
     await channelsPage.searchResultsPanel.container.getByRole('link', {name: hashtag}).first().click();
 
-    // * Verify the hashtag search results include the message
+    // * Verify the view navigated to hashtag search results that include the message
+    await expect(channelsPage.globalHeader.searchBox).toContainText(hashtag);
     await channelsPage.searchResultsPanel.toContainText(hashtag);
 });
 
@@ -93,6 +94,7 @@ test('MM-T361 searches a hashtag from a saved message', {tag: '@search'}, async 
     // # Click the hashtag in the saved message
     await channelsPage.searchResultsPanel.container.getByRole('link', {name: hashtag}).first().click();
 
-    // * Verify the hashtag search results include the message
+    // * Verify the view navigated to hashtag search results that include the message
+    await expect(channelsPage.globalHeader.searchBox).toContainText(hashtag);
     await channelsPage.searchResultsPanel.toContainText(hashtag);
 });

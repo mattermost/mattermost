@@ -45,7 +45,7 @@ export default class EmojiGifPicker {
     }
 
     async clickEmoji(emojiName: string) {
-        await this.container.getByRole('button', {name: `${emojiName} emoji`}).click();
+        await this.getEmoji(emojiName).click();
     }
 
     async openGifTab() {

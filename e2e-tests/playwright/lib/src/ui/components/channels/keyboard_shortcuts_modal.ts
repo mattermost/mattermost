@@ -6,6 +6,7 @@ import {expect} from '@playwright/test';
 
 export default class KeyboardShortcutsModal {
     readonly page: Page;
+    readonly container;
 
     readonly heading;
     readonly closeButton;
@@ -13,18 +14,20 @@ export default class KeyboardShortcutsModal {
     constructor(page: Page) {
         this.page = page;
 
-        // The modal title renders as a level-1 heading whose accessible name
-        // begins with "Keyboard shortcuts" followed by the Ctrl/Cmd + / sequence.
-        this.heading = page.getByRole('heading', {name: /Keyboard shortcuts/i});
-        this.closeButton = page.getByRole('button', {name: 'Close'});
+        // The modal is exposed as a dialog whose accessible name begins with
+        // "Keyboard shortcuts" followed by the Ctrl/Cmd + / sequence.
+        this.container = page.getByRole('dialog', {name: /Keyboard shortcuts/i});
+        this.heading = this.container.getByRole('heading', {name: /Keyboard shortcuts/i});
+        this.closeButton = this.container.getByRole('button', {name: 'Close'});
     }
 
     async toBeVisible() {
+        await expect(this.container).toBeVisible();
         await expect(this.heading).toBeVisible();
     }
 
     async notToBeVisible() {
-        await expect(this.heading).not.toBeVisible();
+        await expect(this.container).not.toBeVisible();
     }
 
     async closeWithButton() {
