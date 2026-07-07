@@ -3,6 +3,8 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
+import {getChannelSlugFromUrl} from './helpers';
+
 /**
  * @objective Verify that a group message lists its members and that adding another member creates a new group message.
  */
@@ -28,7 +30,7 @@ test(
         await dmModal.selectUser(member1);
         await dmModal.selectUser(member2);
         await dmModal.goToChannel();
-        const firstSlug = new URL(page.url()).pathname.split('/').pop() as string;
+        const firstSlug = getChannelSlugFromUrl(page);
 
         // * Verify the group message lists both members in the header
         await channelsPage.centerView.header.toHaveTitle(member1.username);
@@ -42,7 +44,7 @@ test(
         await dmModal2.goToChannel();
 
         // * Verify a new, different group message channel is created that includes the added member
-        const secondSlug = new URL(page.url()).pathname.split('/').pop() as string;
+        const secondSlug = getChannelSlugFromUrl(page);
         expect(secondSlug).not.toBe(firstSlug);
         await channelsPage.centerView.header.toHaveTitle(member3.username);
     },

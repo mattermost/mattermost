@@ -3,6 +3,8 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
+import {getChannelSlugFromUrl} from './helpers';
+
 /**
  * @objective Verify that a closed group message can be reopened via a saved message and via the Direct Messages modal.
  */
@@ -26,7 +28,7 @@ test(
         await dmModal.selectUser(member1);
         await dmModal.selectUser(member2);
         await dmModal.goToChannel();
-        const slug = new URL(page.url()).pathname.split('/').pop() as string;
+        const slug = getChannelSlugFromUrl(page);
 
         const token = `message to save ${pw.random.id()}`;
         await channelsPage.postMessage(token);
@@ -37,8 +39,7 @@ test(
         ]);
 
         // # Close the group message conversation
-        await channelsPage.sidebarLeft.closeConversation(slug);
-        await expect(page.locator(`#sidebarItem_${slug}`)).not.toBeVisible();
+        await channelsPage.sidebarLeft.closeConversationAndWait(slug);
 
         // # Reopen the group message by jumping to the saved message
         await channelsPage.globalHeader.openSavedMessages();
@@ -50,8 +51,7 @@ test(
         await expect.poll(() => page.url(), {timeout: pw.duration.ten_sec}).toContain(`/messages/${slug}`);
 
         // # Close it again and reopen it via the Direct Messages modal
-        await channelsPage.sidebarLeft.closeConversation(slug);
-        await expect(page.locator(`#sidebarItem_${slug}`)).not.toBeVisible();
+        await channelsPage.sidebarLeft.closeConversationAndWait(slug);
         const dmModal2 = await channelsPage.openDirectChannelsModal();
         await dmModal2.selectUser(member1);
         await dmModal2.selectUser(member2);

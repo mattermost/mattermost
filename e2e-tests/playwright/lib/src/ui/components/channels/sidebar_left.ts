@@ -60,6 +60,14 @@ export default class ChannelsSidebarLeft {
     }
 
     /**
+     * Closes a conversation and waits for its sidebar item to disappear.
+     */
+    async closeConversationAndWait(channelSlug: string) {
+        await this.closeConversation(channelSlug);
+        await expect(this.container.locator(`#sidebarItem_${channelSlug}`)).not.toBeVisible();
+    }
+
+    /**
      * Verifies 'Drafts' as a sidebar link exists in LHS.
      */
     async draftsVisible() {

@@ -3,6 +3,8 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
+import {getChannelSlugFromUrl} from './helpers';
+
 /**
  * @objective Verify that a group message can be created with a mention, closed, and then recreated with the same members.
  */
@@ -34,11 +36,8 @@ test(
         await lastPost.toContainText(token);
 
         // # Close the group message conversation
-        const slug = new URL(page.url()).pathname.split('/').pop() as string;
-        await channelsPage.sidebarLeft.closeConversation(slug);
-
-        // * Verify the group message is removed from the sidebar
-        await expect(page.locator(`#sidebarItem_${slug}`)).not.toBeVisible();
+        const slug = getChannelSlugFromUrl(page);
+        await channelsPage.sidebarLeft.closeConversationAndWait(slug);
 
         // # Recreate the group message with the same members
         const dmModal2 = await channelsPage.openDirectChannelsModal();
