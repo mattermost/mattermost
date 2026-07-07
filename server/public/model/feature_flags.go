@@ -44,8 +44,6 @@ type FeatureFlags struct {
 
 	NotificationMonitoring bool
 
-	ExperimentalAuditSettingsSystemConsoleUI bool
-
 	CustomProfileAttributes bool
 
 	AttributeBasedAccessControl bool
@@ -160,7 +158,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CloudDedicatedExportUI = false
 	f.WebSocketEventScope = true
 	f.NotificationMonitoring = true
-	f.ExperimentalAuditSettingsSystemConsoleUI = true
 	f.CustomProfileAttributes = true
 	f.AttributeBasedAccessControl = true
 	f.AttributeValueMasking = true

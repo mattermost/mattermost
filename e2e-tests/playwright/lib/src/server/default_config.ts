@@ -803,7 +803,6 @@ const defaultServerConfig: AdminConfig = {
         CloudDedicatedExportUI: false,
         WebSocketEventScope: true,
         NotificationMonitoring: true,
-        ExperimentalAuditSettingsSystemConsoleUI: true,
         CustomProfileAttributes: true,
         AttributeBasedAccessControl: true,
         AttributeValueMasking: false,
