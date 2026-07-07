@@ -5591,10 +5591,6 @@
     "translation": "Board channels cannot be created via CreateChannel. Use the /boards API instead."
   },
   {
-    "id": "app.channel.create_channel.spaces_not_enabled.app_error",
-    "translation": "The Docs feature is not enabled."
-  },
-  {
     "id": "app.channel.create_channel.internal_error",
     "translation": "Unable to save channel."
   },
@@ -5605,6 +5601,10 @@
   {
     "id": "app.channel.create_channel.space_type.app_error",
     "translation": "Space channels cannot be created via this endpoint."
+  },
+  {
+    "id": "app.channel.create_channel.spaces_not_enabled.app_error",
+    "translation": "The Docs feature is not enabled."
   },
   {
     "id": "app.channel.create_direct_channel.internal_error",
