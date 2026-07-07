@@ -163,13 +163,13 @@ jobs:
           persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
+      - name: ci/restore-npm-cache
+        uses: ./.github/actions/restore-e2e-npm-cache
       - name: ci/setup-node
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         id: setup_node
         with:
           node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: "e2e-tests/cypress/package-lock.json" # NB: the generate-cycle script is cypress-specific operation for now
       - name: ci/e2e-test-gencycle
         id: e2e-test-gencycle
         env:
@@ -265,13 +265,13 @@ jobs:
           mkdir -p ~/.docker/cli-plugins
           ln -sfn /usr/local/opt/docker-compose/bin/docker-compose ~/.docker/cli-plugins/docker-compose
           sudo ln -sf $HOME/.colima/default/docker.sock /var/run/docker.sock
+      - name: ci/restore-npm-cache
+        uses: ./.github/actions/restore-e2e-npm-cache
       - name: ci/setup-node
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         id: setup_node
         with:
           node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: ${{ needs.generate-build-variables.outputs.node-cache-dependency-path }}
       - name: ci/e2e-test
         run: |
           make cloud-init
@@ -379,14 +379,15 @@ jobs:
           path: |
             e2e-tests/${{ inputs.TEST }}/logs/
             e2e-tests/${{ inputs.TEST }}/results/
+      - name: ci/restore-npm-cache
+        if: "${{ inputs.enable_reporting }}"
+        uses: ./.github/actions/restore-e2e-npm-cache
       - name: ci/setup-node
         if: "${{ inputs.enable_reporting }}"
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         id: setup_node
         with:
           node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: ${{ needs.generate-build-variables.outputs.node-cache-dependency-path }}
       - name: ci/publish-report
         if: "${{ inputs.enable_reporting }}"
         env:
