@@ -14,34 +14,37 @@ test('MM-T381 deletes a parent post from the search results', {tag: '@search'}, 
     );
     await adminClient.addToChannel(user.id, channel.id);
 
-    const token = `Test message ${pw.random.id()}`;
-    const reply = `Replying to ${pw.random.id()}`;
+    const parentToken = `parentpost${pw.random.id()}`;
+    const replyToken = `replypost${pw.random.id()}`;
 
     const {channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Post a message and reply to it, then close the thread
-    await channelsPage.postMessage(token);
+    await channelsPage.postMessage(parentToken);
     const post = await channelsPage.getLastPost();
     await post.reply();
     await channelsPage.sidebarRight.toBeVisible();
-    await channelsPage.sidebarRight.postMessage(reply);
+    await channelsPage.sidebarRight.postMessage(replyToken);
     await channelsPage.sidebarRight.close();
 
-    // # Search for the parent post
-    await channelsPage.searchFor(token);
-    await channelsPage.searchResultsPanel.toContainText(token);
-
-    // * Verify the parent post is present in the results before deletion
-    await expect(channelsPage.searchResultsPanel.getResultByText(token)).toHaveCount(1);
+    // * Verify both the parent post and its reply are searchable before deletion
+    await channelsPage.searchFor(replyToken);
+    await expect(channelsPage.searchResultsPanel.getResultByText(replyToken)).toHaveCount(1);
+    await channelsPage.searchFor(parentToken);
+    await expect(channelsPage.searchResultsPanel.getResultByText(parentToken)).toHaveCount(1);
 
     // # Delete the parent post from the search result
-    await channelsPage.searchResultsPanel.openResultDotMenu(token);
+    await channelsPage.searchResultsPanel.openResultDotMenu(parentToken);
     await channelsPage.postDotMenu.deleteMenuItem.click();
     await channelsPage.deletePostModal.toBeVisible();
     await channelsPage.deletePostModal.confirm();
 
     // * Verify the deleted parent post is removed from the open search results in real time
-    await expect(channelsPage.searchResultsPanel.getResultByText(token)).toHaveCount(0);
+    await expect(channelsPage.searchResultsPanel.getResultByText(parentToken)).toHaveCount(0);
+
+    // * Verify the reply was also removed (searching for it returns no results)
+    await channelsPage.searchFor(replyToken);
+    await expect(channelsPage.searchResultsPanel.getResultByText(replyToken)).toHaveCount(0);
 });
