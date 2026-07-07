@@ -998,12 +998,12 @@ func getChannelStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
-		c.SetPermissionError(model.PermissionReadChannel)
+	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
 		return
 	}
 
-	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -1858,12 +1858,12 @@ func getChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
-		c.SetPermissionError(model.PermissionReadChannel)
+	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
 		return
 	}
 
-	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -1890,12 +1890,12 @@ func getChannelMembersTimezones(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
-		c.SetPermissionError(model.PermissionReadChannel)
+	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
 		return
 	}
 
-	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -1925,12 +1925,12 @@ func getChannelMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
-		c.SetPermissionError(model.PermissionReadChannel)
+	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
 		return
 	}
 
-	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -1957,12 +1957,12 @@ func getChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
-		c.SetPermissionError(model.PermissionReadChannel)
+	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
 		return
 	}
 
-	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -2953,12 +2953,12 @@ func channelMemberCountsByGroup(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
-		c.SetPermissionError(model.PermissionReadChannel)
+	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
 		return
 	}
 
-	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -3280,12 +3280,12 @@ func getChannelAccessControlAttributes(c *Context, w http.ResponseWriter, r *htt
 		return
 	}
 
-	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
-		c.SetPermissionError(model.PermissionReadChannel)
+	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
 		return
 	}
 
-	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
