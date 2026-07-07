@@ -177,9 +177,9 @@ func (h *PropertyValueAuditHook) PostDeletePropertyValuesForTarget(rctx request.
 
 func (h *PropertyValueAuditHook) PostDeletePropertyValuesForField(rctx request.CTX, groupID, fieldID string, opErr error) error {
 	h.emit(rctx, groupID, ValueAuditEvent{
-		Action:     ValueAuditActionDeleteForField,
-		FieldID:    fieldID,
-		Err:        opErr,
+		Action:  ValueAuditActionDeleteForField,
+		FieldID: fieldID,
+		Err:     opErr,
 	})
 	return nil
 }
