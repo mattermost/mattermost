@@ -330,10 +330,6 @@ export function moveThreadsEnabled(state: GlobalState): boolean {
     return getFeatureFlagValue(state, 'MoveThreadsEnabled') === 'true' && getLicense(state).IsLicensed === 'true';
 }
 
-export function streamlinedMarketplaceEnabled(state: GlobalState): boolean {
-    return getFeatureFlagValue(state, 'StreamlinedMarketplace') === 'true';
-}
-
 export function getWysiwygEditorPreference(state: GlobalState): boolean {
     const featureEnabled = getFeatureFlagValue(state, 'WysiwygEditor') === 'true';
     if (!featureEnabled) {

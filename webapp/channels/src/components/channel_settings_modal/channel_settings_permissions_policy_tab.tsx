@@ -23,7 +23,7 @@ import {
     hasOverlappingPermissionRules,
 } from '@mattermost/types/access_control';
 import type {Channel} from '@mattermost/types/channels';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
 import {isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';

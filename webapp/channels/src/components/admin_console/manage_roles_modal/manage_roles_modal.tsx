@@ -346,6 +346,7 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
                 dialogClassName='a11y__modal manage-teams'
                 role='none'
                 aria-labelledby='manageRolesModalLabel'
+                id='manageRolesModal'
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title

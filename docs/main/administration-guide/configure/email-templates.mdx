@@ -1,0 +1,953 @@
+---
+title: "Email templates"
+draft: true
+---
+<PlanAvailability slug="all-commercial" />
+
+Mattermost has a few email templates that are sent out when a specific event occurs. Most of the time these templates do not need to be modified. In case additional modifications are necessary, all available props in each email are listed below. The 'Content'-Field is just to give a quick description of the prop. Please check the i18n strings for the exact wording.
+
+The email templates are located in the Mattermost server directory in the `templates` folder. The corresponding strings for each prop can be found in the `i18n` folder.
+
+<Note>
+
+\- The props between different email templates are not interchangeable without additional server code changes. - Always back up changes to the `templates` and `i18n` folders before upgrading the server to avoid losing customizations. - From Mattermost v11.3, changes to HTML templates require a server restart to take effect.
+
+</Note>
+
+## Available templates
+
+### Email footer
+
+**Purpose**: This is appended to all outgoing emails sent by Mattermost.
+
+**Props**:
+
+<table style={{width: '68%'}}>
+<colgroup>
+<col style={{width: '12%'}} />
+<col style={{width: '25%'}} />
+<col style={{width: '30%'}} />
+</colgroup>
+<thead>
+<tr>
+<th>Prop</th>
+<th>Content</th>
+<th>i18n String</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Footer</td>
+<td>Message intro</td>
+<td>api.templates.email_footer</td>
+</tr>
+<tr>
+<td>Organization</td>
+<td>Name of Organization</td>
+<td>api.templates.email_organization</td>
+</tr>
+<tr>
+<td>EmailInfo1</td>
+<td>First line of footer</td>
+<td>api.templates.email_info1</td>
+</tr>
+<tr>
+<td>EmailInfo2</td>
+<td>Second line of footer</td>
+<td>api.templates.email_info2</td>
+</tr>
+<tr>
+<td>EmailInfo3</td>
+<td>Third line of footer</td>
+<td>api.templates.email_info3</td>
+</tr>
+<tr>
+<td>SupportEmail</td>
+<td>Email for Mattermost support</td>
+<td>--</td>
+</tr>
+</tbody>
+</table>
+
+### SendChangeUsernameEmail
+
+**Purpose**: Sent to the user when username has been changed.
+
+**Body Props**:
+
+<table style={{width: '72%'}}>
+<colgroup>
+<col style={{width: '8%'}} />
+<col style={{width: '25%'}} />
+<col style={{width: '37%'}} />
+</colgroup>
+<thead>
+<tr>
+<th>Prop</th>
+<th>Content</th>
+<th>i18n String</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SiteURL</td>
+<td>URL of the Mattermost server</td>
+<td>--</td>
+</tr>
+<tr>
+<td>Title</td>
+<td>Message heading</td>
+<td>api.templates.username_change_body.title</td>
+</tr>
+<tr>
+<td>Info</td>
+<td>Message body</td>
+<td>api.templates.username_change_body.info</td>
+</tr>
+<tr>
+<td>Warning</td>
+<td>Warning text</td>
+<td>api.templates.email_warning</td>
+</tr>
+</tbody>
+</table>
+
+### SendEmailChangeVerifyEmail
+
+**Purpose**: Sent to the user when an email change has been requested. Contains verification link and button.
+
+**Body Props**:
+
+<table style={{width: '82%'}}>
+<colgroup>
+<col style={{width: '12%'}} />
+<col style={{width: '26%'}} />
+<col style={{width: '42%'}} />
+</colgroup>
+<thead>
+<tr>
+<th>Prop</th>
+<th>Content</th>
+<th>i18n String</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SiteURL</td>
+<td>URL of the Mattermost server</td>
+<td>--</td>
+</tr>
+<tr>
+<td>Title</td>
+<td>Message heading</td>
+<td>api.templates.email_change_verify_body.title</td>
+</tr>
+<tr>
+<td>Info</td>
+<td>Message body</td>
+<td>api.templates.email_change_verify_body.info</td>
+</tr>
+<tr>
+<td>VerifyUrl</td>
+<td>URL for email verification</td>
+<td>--</td>
+</tr>
+<tr>
+<td>VerifyButton</td>
+<td>Button for email verification</td>
+<td>api.templates.email_change_verify_body.button</td>
+</tr>
+</tbody>
+</table>
+
+### SendEmailChangeEmail
+
+**Purpose**: Sent to the user when the email has been changed successfully.
+
+**Body Props**:
+
+<table style={{width: '69%'}}>
+<colgroup>
+<col style={{width: '8%'}} />
+<col style={{width: '25%'}} />
+<col style={{width: '35%'}} />
+</colgroup>
+<thead>
+<tr>
+<th>Prop</th>
+<th>Content</th>
+<th>i18n String</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SiteURL</td>
+<td>URL of the Mattermost server</td>
+<td>--</td>
+</tr>
+<tr>
+<td>Title</td>
+<td>Message heading</td>
+<td>api.templates.email_change_body.title</td>
+</tr>
+<tr>
+<td>Info</td>
+<td>Message body</td>
+<td>api.templates.email_change_body.info</td>
+</tr>
+<tr>
+<td>Warning</td>
+<td>Warning text</td>
+<td>api.templates.email_warning</td>
+</tr>
+</tbody>
+</table>
+
+### SendVerifyEmail
+
+**Purpose**: Sent to the user upon account creation to verify email address.
+
+**Body Props**:
+
+<table style={{width: '66%'}}>
+<colgroup>
+<col style={{width: '10%'}} />
+<col style={{width: '25%'}} />
+<col style={{width: '30%'}} />
+</colgroup>
+<thead>
+<tr>
+<th>Prop</th>
+<th>Content</th>
+<th>i18n String</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SiteURL</td>
+<td>URL of the Mattermost server</td>
+<td>--</td>
+</tr>
+<tr>
+<td>Title</td>
+<td>Message heading</td>
+<td>api.templates.verify_body.title</td>
+</tr>
+<tr>
+<td>Info</td>
+<td>Message body</td>
+<td>api.templates.verify_body.info</td>
+</tr>
+<tr>
+<td>VerifyUrl</td>
+<td>URL for email verification</td>
+<td>--</td>
+</tr>
+<tr>
+<td>Button</td>
+<td colspan="2">Button for email verification | api.templates.verify_body.button</td>
+</tr>
+</tbody>
+</table>
+
+### SendSignInChangeEmail
+
+**Purpose**: Sent to the user when the login method has been changed (i.e. from email to LDAP, etc.)
+
+**Body Props**:
+
+<table style={{width: '75%'}}>
+<colgroup>
+<col style={{width: '8%'}} />
+<col style={{width: '25%'}} />
+<col style={{width: '40%'}} />
+</colgroup>
+<thead>
+<tr>
+<th>Prop</th>
+<th>Content</th>
+<th>i18n String</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SiteURL</td>
+<td>URL of the Mattermost server</td>
+<td>--</td>
+</tr>
+<tr>
+<td>Title</td>
+<td>Message heading</td>
+<td>api.templates.signin_change_email.body.title</td>
+</tr>
+<tr>
+<td>Info</td>
+<td>Message body</td>
+<td>api.templates.signin_change_email.body.info</td>
+</tr>
+<tr>
+<td>Warning</td>
+<td>Warning text</td>
+<td>api.templates.email_warning</td>
+</tr>
+</tbody>
+</table>
+
+### SendWelcomeEmail
+
+**Purpose**: Sent to the user when the account has been created. May also contain download links to Apps as well as email verification links.
+
+**Body Props**:
+
+<table style={{width: '82%'}}>
+<colgroup>
+<col style={{width: '15%'}} />
+<col style={{width: '25%'}} />
+<col style={{width: '41%'}} />
+</colgroup>
+<thead>
+<tr>
+<th>Prop</th>
+<th>Content</th>
+<th>i18n String</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SiteURL</td>
+<td>URL of the Mattermost server</td>
+<td>--</td>
+</tr>
+<tr>
+<td>Title</td>
+<td>Message heading</td>
+<td>api.templates.welcome_body.title</td>
+</tr>
+<tr>
+<td>Info</td>
+<td>Message body</td>
+<td>api.templates.welcome_body.info</td>
+</tr>
+<tr>
+<td>Button</td>
+<td>Button for confirmation</td>
+<td>api.templates.welcome_body.button</td>
+</tr>
+<tr>
+<td>Info2</td>
+<td>Continuation of message body</td>
+<td>api.templates.welcome_body.info2</td>
+</tr>
+<tr>
+<td>Info3</td>
+<td>Continuation of message body</td>
+<td>api.templates.welcome_body.info3</td>
+</tr>
+</tbody>
+</table>
+
+**Optional Props**:
+
+<table style={{width: '82%'}}>
+<colgroup>
+<col style={{width: '15%'}} />
+<col style={{width: '25%'}} />
+<col style={{width: '41%'}} />
+</colgroup>
+<thead>
+<tr>
+<th>Prop</th>
+<th>Content</th>
+<th>i18n String</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AppDownloadInfo</td>
+<td>Info for App Downloads</td>
+<td>api.templates.welcome_body.app_download_info</td>
+</tr>
+<tr>
+<td>AppDownloadLink</td>
+<td>Download link for Apps</td>
+<td>--</td>
+</tr>
+<tr>
+<td>VerifyUrl</td>
+<td>Link for verification</td>
+<td>--</td>
+</tr>
+</tbody>
+</table>
+
+### SendPasswordChangeEmail
+
+**Purpose**: Sent to the user when password has been changed.
+
+**Body Props**:
+
+<table style={{width: '72%'}}>
+<colgroup>
+<col style={{width: '8%'}} />
+<col style={{width: '25%'}} />
+<col style={{width: '37%'}} />
+</colgroup>
+<thead>
+<tr>
+<th>Prop</th>
+<th>Content</th>
+<th>i18n String</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SiteURL</td>
+<td>URL of the Mattermost server</td>
+<td>--</td>
+</tr>
+<tr>
+<td>Title</td>
+<td>Message heading</td>
+<td>api.templates.password_change_body.title</td>
+</tr>
+<tr>
+<td>Info</td>
+<td>Message body</td>
+<td>api.templates.password_change_body.info</td>
+</tr>
+<tr>
+<td>Warning</td>
+<td>Warning text</td>
+<td>api.templates.email_warning</td>
+</tr>
+</tbody>
+</table>
+
+### SendAccessTokenEmail
+
+**Purpose**: Sent to the user when an access token has been added to the account.
+
+**Body Props**:
+
+<table style={{width: '74%'}}>
+<colgroup>
+<col style={{width: '8%'}} />
+<col style={{width: '25%'}} />
+<col style={{width: '40%'}} />
+</colgroup>
+<thead>
+<tr>
+<th>Prop</th>
+<th>Content</th>
+<th>i18n String</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SiteURL</td>
+<td>URL of the Mattermost server</td>
+<td>--</td>
+</tr>
+<tr>
+<td>Title</td>
+<td>Message heading</td>
+<td>api.templates.user_access_token_body.title</td>
+</tr>
+<tr>
+<td>Info</td>
+<td>Message body</td>
+<td>api.templates.user_access_token_body.info</td>
+</tr>
+<tr>
+<td>Warning</td>
+<td>Warning text</td>
+<td>api.templates.email_warning</td>
+</tr>
+</tbody>
+</table>
+
+### SendPasswordResetEmail
+
+**Purpose**: Sent to the user when password request has been initiated.
+
+**Body Props**:
+
+<table style={{width: '64%'}}>
+<colgroup>
+<col style={{width: '9%'}} />
+<col style={{width: '25%'}} />
+<col style={{width: '29%'}} />
+</colgroup>
+<thead>
+<tr>
+<th>Prop</th>
+<th>Content</th>
+<th>i18n String</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SiteURL</td>
+<td>URL of the Mattermost server</td>
+<td>--</td>
+</tr>
+<tr>
+<td>Title</td>
+<td>Message heading</td>
+<td>api.templates.reset_body.title</td>
+</tr>
+<tr>
+<td>Info1</td>
+<td>Message body</td>
+<td>api.templates.reset_body.info1</td>
+</tr>
+<tr>
+<td>Info2</td>
+<td>Continuation of message body</td>
+<td>api.templates.reset_body.info2</td>
+</tr>
+<tr>
+<td>ResetUrl</td>
+<td>URL to reset password</td>
+<td>--</td>
+</tr>
+<tr>
+<td>Button</td>
+<td>Button for confirmation</td>
+<td>api.templates.reset_body.button</td>
+</tr>
+</tbody>
+</table>
+
+### SendMfaChangeEmail
+
+**Purpose**: Sent to the user when multi-factor authentication method has been changed.
+
+**Body Props when MFA is activated**:
+
+<table style={{width: '70%'}}>
+<colgroup>
+<col style={{width: '8%'}} />
+<col style={{width: '25%'}} />
+<col style={{width: '35%'}} />
+</colgroup>
+<thead>
+<tr>
+<th>Prop</th>
+<th>Content</th>
+<th>i18n String</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SiteURL</td>
+<td>URL of the Mattermost server</td>
+<td>--</td>
+</tr>
+<tr>
+<td>Title</td>
+<td>Message heading</td>
+<td>api.templates.mfa_activated_body.title</td>
+</tr>
+<tr>
+<td>Info</td>
+<td>Message body</td>
+<td>api.templates.mfa_activated_body.info</td>
+</tr>
+<tr>
+<td>Warning</td>
+<td>Warning text</td>
+<td>api.templates.email_warning</td>
+</tr>
+</tbody>
+</table>
+
+**Body Props when MFA is deactivated**:
+
+<table style={{width: '72%'}}>
+<colgroup>
+<col style={{width: '8%'}} />
+<col style={{width: '25%'}} />
+<col style={{width: '37%'}} />
+</colgroup>
+<thead>
+<tr>
+<th>Prop</th>
+<th>Content</th>
+<th>i18n String</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SiteURL</td>
+<td>URL of the Mattermost server</td>
+<td>--</td>
+</tr>
+<tr>
+<td>Title</td>
+<td>Message heading</td>
+<td>api.templates.mfa_deactivated_body.title</td>
+</tr>
+<tr>
+<td>Info</td>
+<td>Message body</td>
+<td>api.templates.mfa_deactivated_body.info</td>
+</tr>
+<tr>
+<td>Warning</td>
+<td>Warning text</td>
+<td>api.templates.email_warning</td>
+</tr>
+</tbody>
+</table>
+
+### SendDeactivateAccountEmail
+
+**Purpose**: Sent to the user when account has been deactivated.
+
+**Body Props**:
+
+<table style={{width: '68%'}}>
+<colgroup>
+<col style={{width: '8%'}} />
+<col style={{width: '25%'}} />
+<col style={{width: '34%'}} />
+</colgroup>
+<thead>
+<tr>
+<th>Prop</th>
+<th>Content</th>
+<th>i18n String</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SiteURL</td>
+<td>URL of the Mattermost server</td>
+<td>--</td>
+</tr>
+<tr>
+<td>Title</td>
+<td>Message heading</td>
+<td>api.templates.deactivate_body.title</td>
+</tr>
+<tr>
+<td>Info</td>
+<td>Message body</td>
+<td>api.templates.deactivate_body.info</td>
+</tr>
+<tr>
+<td>Warning</td>
+<td>Warning text</td>
+<td>api.templates.deactivate_body.warning</td>
+</tr>
+</tbody>
+</table>
+
+### SendInviteEmails
+
+**Purpose**: Sent to the user when team invite via email has been used.
+
+**Body Props**:
+
+<table style={{width: '99%'}}>
+<colgroup>
+<col style={{width: '9%'}} />
+<col style={{width: '56%'}} />
+<col style={{width: '33%'}} />
+</colgroup>
+<thead>
+<tr>
+<th>Prop</th>
+<th>Content</th>
+<th>i18n String</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SiteURL</td>
+<td>URL of the Mattermost server</td>
+<td>--</td>
+</tr>
+<tr>
+<td>Title</td>
+<td>Message heading</td>
+<td>api.templates.invite_body.title</td>
+</tr>
+<tr>
+<td>Info1</td>
+<td>Message body</td>
+<td>api.templates.invite_body.info</td>
+</tr>
+<tr>
+<td>Button</td>
+<td>Button for confirmation</td>
+<td>api.templates.invite_body.button</td>
+</tr>
+<tr>
+<td>ExtraInfo</td>
+<td>Additional info about Mattermost</td>
+<td>api.templates.invite_body.extra_info</td>
+</tr>
+<tr>
+<td>TeamURL</td>
+<td>URL to the team the user has been invited to</td>
+<td>--</td>
+</tr>
+<tr>
+<td>Link</td>
+<td>URL for team invite confirmation (not to be confused with TeamURL)</td>
+<td>--</td>
+</tr>
+</tbody>
+</table>
+
+### NotificationEmailBody
+
+**Purpose**: Sent to the user as a notification for new messages or mentions.
+
+**Body Props**:
+
+<table style={{width: '63%'}}>
+<colgroup>
+<col style={{width: '9%'}} />
+<col style={{width: '25%'}} />
+<col style={{width: '28%'}} />
+</colgroup>
+<thead>
+<tr>
+<th>Prop</th>
+<th>Content</th>
+<th>i18n String</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SiteURL</td>
+<td>URL of the Mattermost server</td>
+<td>--</td>
+</tr>
+<tr>
+<td>Button</td>
+<td>Button to post</td>
+<td>api.templates.post_body.button</td>
+</tr>
+<tr>
+<td>TeamLink</td>
+<td>URL to Team</td>
+<td>--</td>
+</tr>
+</tbody>
+</table>
+
+This email can change depending on the settings and type of channel the notification is sent for.
+
+**For group channels**:
+
+**With full notification contents enabled**:
+
+<table style={{width: '68%'}}>
+<colgroup>
+<col style={{width: '10%'}} />
+<col style={{width: '15%'}} />
+<col style={{width: '41%'}} />
+</colgroup>
+<thead>
+<tr>
+<th>Prop</th>
+<th>Content</th>
+<th>i18n String</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BodyText</td>
+<td>Message intro</td>
+<td>app.notification.body.intro.group_message.full</td>
+</tr>
+<tr>
+<td>Info1</td>
+<td>Channel name</td>
+<td>app.notification.body.text.group_message.full</td>
+</tr>
+<tr>
+<td>Info2</td>
+<td>Message contents</td>
+<td>app.notification.body.text.group_message.full2</td>
+</tr>
+<tr>
+<td>SenderName</td>
+<td>Name of sender</td>
+<td>--</td>
+</tr>
+</tbody>
+</table>
+
+**Without**:
+
+<table style={{width: '67%'}}>
+<colgroup>
+<col style={{width: '9%'}} />
+<col style={{width: '13%'}} />
+<col style={{width: '44%'}} />
+</colgroup>
+<thead>
+<tr>
+<th>Prop</th>
+<th>Content</th>
+<th>i18n String</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BodyText</td>
+<td>Message intro</td>
+<td>app.notification.body.intro.group_message.generic</td>
+</tr>
+<tr>
+<td>Info</td>
+<td>Timestamp</td>
+<td>app.notification.body.text.group_message.generic</td>
+</tr>
+</tbody>
+</table>
+
+**For direct messages**:
+
+**With full notification contents enabled**:
+
+<table style={{width: '69%'}}>
+<colgroup>
+<col style={{width: '10%'}} />
+<col style={{width: '23%'}} />
+<col style={{width: '35%'}} />
+</colgroup>
+<thead>
+<tr>
+<th>Prop</th>
+<th>Content</th>
+<th>i18n String</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BodyText</td>
+<td>Message intro</td>
+<td>app.notification.body.intro.direct.full</td>
+</tr>
+<tr>
+<td>Info1</td>
+<td>Empty for direct messages</td>
+<td>--</td>
+</tr>
+<tr>
+<td>Info2</td>
+<td>Message contents</td>
+<td>app.notification.body.text.direct.full</td>
+</tr>
+<tr>
+<td>SenderName</td>
+<td>Name of sender</td>
+<td>--</td>
+</tr>
+</tbody>
+</table>
+
+**Without**:
+
+<table style={{width: '60%'}}>
+<colgroup>
+<col style={{width: '9%'}} />
+<col style={{width: '13%'}} />
+<col style={{width: '37%'}} />
+</colgroup>
+<thead>
+<tr>
+<th>Prop</th>
+<th>Content</th>
+<th>i18n String</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BodyText</td>
+<td>Message intro</td>
+<td>app.notification.body.intro.direct.generic</td>
+</tr>
+<tr>
+<td>Info</td>
+<td>Timestamp</td>
+<td>app.notification.body.text.direct.generic</td>
+</tr>
+</tbody>
+</table>
+
+**Notifications**:
+
+**With full notification contents enabled**:
+
+<table style={{width: '67%'}}>
+<colgroup>
+<col style={{width: '10%'}} />
+<col style={{width: '15%'}} />
+<col style={{width: '40%'}} />
+</colgroup>
+<thead>
+<tr>
+<th>Prop</th>
+<th>Content</th>
+<th>i18n String</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BodyText</td>
+<td>Message intro</td>
+<td>app.notification.body.intro.notification.full</td>
+</tr>
+<tr>
+<td>Info1</td>
+<td>Channel name</td>
+<td>app.notification.body.text.notification.full</td>
+</tr>
+<tr>
+<td>Info2</td>
+<td>Message contents</td>
+<td>app.notification.body.text.notification.full2</td>
+</tr>
+<tr>
+<td>SenderName</td>
+<td>Name of sender</td>
+<td>--</td>
+</tr>
+</tbody>
+</table>
+
+**Without**:
+
+<table style={{width: '78%'}}>
+<colgroup>
+<col style={{width: '9%'}} />
+<col style={{width: '25%'}} />
+<col style={{width: '42%'}} />
+</colgroup>
+<thead>
+<tr>
+<th>Prop</th>
+<th>Content</th>
+<th>i18n String</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BodyText</td>
+<td>URL of the Mattermost server</td>
+<td>app.notification.body.intro.notification.generic</td>
+</tr>
+<tr>
+<td>Info</td>
+<td>Message heading</td>
+<td>app.notification.body.text.notification.generic</td>
+</tr>
+</tbody>
+</table>

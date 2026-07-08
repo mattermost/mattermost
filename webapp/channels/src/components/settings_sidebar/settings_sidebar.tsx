@@ -7,6 +7,7 @@ import {FormattedMessage} from 'react-intl';
 
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
+import {isValidUrl} from 'utils/url';
 
 export type Tab = {
     icon: string | {url: string};
@@ -24,6 +25,23 @@ export type Props = {
     updateTab: (name: string) => void;
     isMobileView: boolean;
 };
+
+export function normalizePluginIcon(icon?: string, basePath = ''): Tab['icon'] {
+    if (!icon) {
+        return 'icon icon-power-plug-outline';
+    }
+
+    if (isValidUrl(icon)) {
+        return {url: icon};
+    }
+
+    if (icon.startsWith('/')) {
+        const normalizedBasePath = basePath === '/' ? '' : basePath;
+        return {url: `${normalizedBasePath}${icon}`};
+    }
+
+    return `icon ${icon}`;
+}
 
 export default class SettingsSidebar extends React.PureComponent<Props> {
     buttonRefs: Map<string, HTMLButtonElement>;
@@ -164,14 +182,14 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
                         <hr/>
                         <div
                             role='group'
-                            aria-labelledby='userSettingsModal.pluginPreferences.header'
+                            aria-labelledby='settingsSidebar_pluginSection_header'
                         >
                             <div
                                 key={'plugin preferences heading'}
                                 role='heading'
                                 className={'header'}
                                 aria-level={3}
-                                id='userSettingsModal_pluginPreferences_header'
+                                id='settingsSidebar_pluginSection_header'
                             >
                                 <FormattedMessage
                                     id={'userSettingsModal.pluginPreferences.header'}

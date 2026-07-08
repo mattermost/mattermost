@@ -18,7 +18,7 @@ import type {Group, GroupMember} from '@mattermost/types/groups';
 import type {OpenDialogRequest} from '@mattermost/types/integrations';
 import type {Post, PostAcknowledgement} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
-import {SESSION_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties';
+import {SESSION_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties_user';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Role} from '@mattermost/types/roles';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
@@ -1356,9 +1356,9 @@ function handlePropertyFieldCreatedOrUpdated(
             data: {fields: [field]},
         });
 
-        // Session attribute schema changed; tell the Desktop App to re-fetch its manifest.
+        // Session attribute field changed; forward the updated field to the Desktop App.
         if (msg.data.object_type === SESSION_ATTRIBUTES_OBJECT_TYPE) {
-            DesktopApp.invalidateSessionAttributeManifest();
+            DesktopApp.updateSessionAttribute(field);
         }
     };
 }

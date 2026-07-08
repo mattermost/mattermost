@@ -1,0 +1,116 @@
+---
+title: "Enable rate limiting"
+draft: true
+---
+With self-hosted deployments, rate limiting prevents your Mattermost server from being overloaded with too many requests, and decreases the risk and impact of third-party applications or malicious attacks on your server.
+
+Configure rate limiting settings by going to **System Console \> Environment \> Rate Limiting**, or by editing the `config.json` file as described in the following tables. Changes to configuration settings in this section require a server restart before taking effect.
+
+<Important>
+
+Mattermost rate limiting configuration settings are intended for small deployments of Mattermost up to a few hundred users, and is not intended for larger, Enterprise-scale deployments.
+
+</Important>
+
+<table>
+<colgroup>
+<col style={{width: '45%'}} />
+<col style={{width: '54%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Enable or disable rate limiting to throttle APIs to a specified number of requests per second.</p><ul><li><strong>true</strong>: APIs are throttled at the rate specified by the <a href="#maximum-queries-per-second">Maximum queries per second</a> configuration setting.</li><li><strong>false</strong>: <strong>(Default)</strong> API access isn’t throttled.</li></ul></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Rate Limiting</strong></li><li><code>config.json</code> setting: <code>RateLimitSettings</code> &gt; <code>Enable</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_RATELIMITSETTINGS_ENABLE</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+# Maximum queries per second
+
+<table>
+<colgroup>
+<col style={{width: '46%'}} />
+<col style={{width: '53%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Throttle the API at this number of requests per second when <a href="#enable-rate-limiting">rate limiting</a> is enabled.</p><p>Numerical input. Default is <strong>10</strong>.</p><p>Increase this value to accept more requests each second, and decrease this value to allow fewer requests.</p></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Rate Limiting</strong></li><li><code>config.json</code> setting: <code>RateLimitSettings</code> &gt; <code>PerSec</code> &gt; <code>10</code></li><li>Environment variable: <code>MM_RATELIMITSETTINGS_PERSEC</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+# Maximum burst size
+
+<table>
+<colgroup>
+<col style={{width: '45%'}} />
+<col style={{width: '54%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The maximum number of requests allowed beyond the per second query limit when <a href="#enable-rate-limiting">rate limiting</a> is enabled.</p><p>Numerical input. Default is <strong>100</strong>.</p><p>Increase this value to allow for more concurrent requests to be handled, and decrease this value to limit this capacity.</p></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Rate Limiting</strong></li><li><code>config.json</code> setting: <code>RateLimitSettings</code> &gt; <code>MaxBurst</code> &gt; <code>100</code></li><li>Environment variable: <code>MM_RATELIMITSETTINGS_MAXBURST</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+# Memory store size
+
+<table>
+<colgroup>
+<col style={{width: '43%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The maximum number of user sessions connected to the system as determined by vary rate limit settings when <a href="#enable-rate-limiting">rate limiting</a> is enabled.</p><p>Numerical input. Default is <strong>10000</strong>. Typically set to the number of users in the system.</p><p>We recommend setting this value to the expected number of users. A higher value may result in underutilized resources, and a lower value may result in user sessions/tokens expiring too frequently.</p></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Rate Limiting</strong></li><li><code>config.json</code> setting: <code>RateLimitSettings</code> &gt; <code>MemoryStoreSize</code> &gt; <code>10000</code></li><li>Environment variable: <code>MM_RATELIMITSETTINGS_MEMORYSTORESIZE</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+# Vary rate limit by remote address
+
+<table>
+<colgroup>
+<col style={{width: '43%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Configure Mattermost to rate limit API access by IP address when <a href="#enable-rate-limiting">rate limiting</a> is enabled.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> Rate limit API access by IP address. Recommended when using a proxy.</li><li><strong>false</strong>: Rate limiting does not vary by IP address.</li></ul></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Rate Limiting</strong></li><li><code>config.json</code> setting: <code>RateLimitSettings</code> &gt; <code>VaryByRemoteAddr</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_RATELIMITSETTINGS_VARYBYREMOTEADDR</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+# Vary rate limit by user
+
+<table>
+<colgroup>
+<col style={{width: '45%'}} />
+<col style={{width: '54%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Configure Mattermost to rate limit API access by authentication token or not when <a href="#enable-rate-limiting">rate limiting</a> is enabled.</p><ul><li><strong>true</strong>: Rate limit API access by user authentication token. Recommended when using a proxy.</li><li><strong>false</strong>: <strong>(Default)</strong> Rate limiting does not vary by user authentication token.</li></ul></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Rate Limiting</strong></li><li><code>config.json</code> setting: <code>RateLimitSettings</code> &gt; <code>VaryByUser</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_RATELIMITSETTINGS_VARYBYUSER</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+# Vary rate limit by HTTP header
+
+<table>
+<colgroup>
+<col style={{width: '45%'}} />
+<col style={{width: '54%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Configure Mattermost to vary rate limiting API access by the HTTP header field specified. Recommended when you’re using a proxy.</p><ul><li>When configuring NGINX, set this to <strong>X-Real-IP</strong>.</li><li>When configuring AmazonELB, set this to <strong>X-Forwarded-For</strong>.</li></ul></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Rate Limiting</strong></li><li><code>config.json</code> setting: <code>RateLimitSettings</code> &gt; <code>VaryByHeader</code> &gt; <code>""</code></li><li>Environment variable: <code>MM_RATELIMITSETTINGS_VARYBYHEADER</code></li></ul></td>
+</tr>
+</tbody>
+</table>

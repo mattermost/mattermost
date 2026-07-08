@@ -4054,6 +4054,323 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	}, posts)
 }
 
+// TestGetPostsForChannelAroundLastUnreadBurnOnRead verifies that burn-on-read
+// posts which have expired for the requesting user are excluded from the
+// response and, crucially, that the NextPostId/PrevPostId pagination cursors
+// step over them instead of pointing at a post the client can no longer see.
+// A cursor that referenced an expired post made the webapp believe more posts
+// were available, leaving the channel stuck loading (MM-67500).
+func TestGetPostsForChannelAroundLastUnreadBurnOnRead(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := SetupEnterprise(t).InitBasic(t)
+	enableBurnOnReadFeature(th)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.BurnOnRead = true
+	})
+
+	// user1 is the viewer, user2 creates burn-on-read posts
+	user1 := th.BasicUser
+	client1 := th.Client
+
+	user2 := th.CreateUser(t)
+	th.LinkUserToTeam(t, user2, th.BasicTeam)
+	client2 := th.CreateClient()
+	_, _, err := client2.Login(context.Background(), user2.Email, user2.Password)
+	require.NoError(t, err)
+
+	createChannel := func(t *testing.T) *model.Channel {
+		t.Helper()
+		ch := th.CreatePublicChannel(t)
+		// since the channel is created with th.Client,
+		// user1 will be in the channel.
+		th.AddUserToChannel(t, user2, ch)
+		t.Cleanup(func() {
+			_, err := th.Client.DeleteChannel(context.Background(), ch.Id)
+			require.NoError(t, err)
+		})
+		return ch
+	}
+
+	createRegularPost := func(t *testing.T, client *model.Client4, channel *model.Channel, message string) *model.Post {
+		t.Helper()
+		post := &model.Post{
+			ChannelId: channel.Id,
+			Message:   message,
+		}
+		created, resp, err := client.CreatePost(context.Background(), post)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		return created
+	}
+
+	createBurnOnReadPost := func(t *testing.T, client *model.Client4, channel *model.Channel, message string) *model.Post {
+		t.Helper()
+		post := &model.Post{
+			ChannelId: channel.Id,
+			Message:   message,
+			Type:      model.PostTypeBurnOnRead,
+		}
+		created, resp, err := client.CreatePost(context.Background(), post)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		return created
+	}
+
+	setLastViewedAt := func(t *testing.T, channelID, userID string, at int64) {
+		t.Helper()
+		member, err := th.App.Srv().Store().Channel().GetMember(th.Context, channelID, userID)
+		require.NoError(t, err)
+		member.LastViewedAt = at
+		_, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, member)
+		require.NoError(t, err)
+		th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelID)
+	}
+
+	burnPost := func(t *testing.T, client *model.Client4, postID string) {
+		t.Helper()
+		resp, err := client.BurnPost(context.Background(), postID)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	}
+
+	t.Run("expired BoR post is excluded from results and NextPostId/PrevPostId skip it", func(t *testing.T) {
+		ch := createChannel(t)
+
+		// Create posts: regular1, bor (by user2), regular2, regular3
+		regular1 := createRegularPost(t, client1, ch, "regular 1")
+		borPost := createBurnOnReadPost(t, client2, ch, "secret message")
+		regular2 := createRegularPost(t, client1, ch, "regular 2")
+		regular3 := createRegularPost(t, client1, ch, "regular 3")
+
+		// Set last viewed before the BoR post so it becomes the first unread
+		setLastViewedAt(t, ch.Id, user1.Id, borPost.CreateAt-1)
+
+		// User1 reveals then burns the BoR post (expires the read receipt)
+		_, resp, err := client1.RevealPost(context.Background(), borPost.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		burnPost(t, client1, borPost.Id)
+
+		// Call GetPostsAroundLastUnread
+		posts, _, err := client1.GetPostsAroundLastUnread(context.Background(), user1.Id, ch.Id, 5, 5, false)
+		require.NoError(t, err)
+
+		// BoR post should NOT be in the Order or Posts
+		assert.NotContains(t, posts.Order, borPost.Id, "expired BoR post should not be in Order")
+		assert.NotContains(t, posts.Posts, borPost.Id, "expired BoR post should not be in Posts")
+
+		// regular2 and regular3 should be present
+		assert.Contains(t, posts.Posts, regular2.Id, "regular2 should be in Posts")
+		assert.Contains(t, posts.Posts, regular3.Id, "regular3 should be in Posts")
+
+		// PrevPostId should skip the expired BoR post and point to regular1
+		assert.Equal(t, regular1.Id, posts.PrevPostId, "PrevPostId should skip expired BoR post and point to regular1")
+	})
+
+	t.Run("non-expired BoR post is visible and NextPostId/PrevPostId reference correctly", func(t *testing.T) {
+		ch := createChannel(t)
+
+		// Create posts: regular1, regular2, borPost (by user2), regular3
+		// borPost is positioned after regular2 so it falls just outside
+		// the page window when small limits are used.
+		regular1 := createRegularPost(t, client1, ch, "regular 1")
+		regular2 := createRegularPost(t, client1, ch, "regular 2")
+		borPost := createBurnOnReadPost(t, client2, ch, "secret message")
+		_ = createRegularPost(t, client1, ch, "regular 3")
+
+		// Set last viewed before regular1 so it becomes the first unread
+		setLastViewedAt(t, ch.Id, user1.Id, regular1.CreateAt-1)
+
+		// Reveal the BoR post (receipt is still valid, NOT expired)
+		_, _, err := client1.RevealPost(context.Background(), borPost.Id)
+		require.NoError(t, err)
+
+		// Use limit_after=2 so the window contains regular1 + regular2.
+		// borPost sits just outside the window and should appear as NextPostId.
+		posts, _, err := client1.GetPostsAroundLastUnread(context.Background(), user1.Id, ch.Id, 1, 2, false)
+		require.NoError(t, err)
+
+		// regular2 must be in the window; borPost must be outside it
+		assert.Contains(t, posts.Order, regular2.Id, "regular2 should be in the page window")
+		assert.NotContains(t, posts.Order, borPost.Id, "borPost should be outside the page window")
+
+		// Non-expired revealed BoR post should appear as NextPostId
+		assert.Equal(t, borPost.Id, posts.NextPostId, "non-expired revealed BoR post should appear as NextPostId")
+
+		// Also verify with full limits that the BoR post is included in results
+		postsFull, _, err := client1.GetPostsAroundLastUnread(context.Background(), user1.Id, ch.Id, 5, 5, false)
+		require.NoError(t, err)
+		assert.Contains(t, postsFull.Order, borPost.Id, "non-expired BoR post should be in Order with full page")
+		assert.Contains(t, postsFull.Posts, borPost.Id, "non-expired BoR post should be in Posts with full page")
+	})
+
+	t.Run("unrevealed BoR post appears with empty message", func(t *testing.T) {
+		ch := createChannel(t)
+
+		_ = createRegularPost(t, client1, ch, "regular 1")
+		borPost := createBurnOnReadPost(t, client2, ch, "secret message")
+		_ = createRegularPost(t, client1, ch, "regular 2")
+
+		// Set last viewed before borPost
+		setLastViewedAt(t, ch.Id, user1.Id, borPost.CreateAt-1)
+
+		// Do NOT reveal the BoR post
+		posts, _, err := client1.GetPostsAroundLastUnread(context.Background(), user1.Id, ch.Id, 5, 5, false)
+		require.NoError(t, err)
+
+		// BoR post should be in the list but with empty message (unrevealed)
+		assert.Contains(t, posts.Order, borPost.Id, "unrevealed BoR post should still be in Order")
+		assert.Contains(t, posts.Posts, borPost.Id, "unrevealed BoR post should still be in Posts")
+		assert.Empty(t, posts.Posts[borPost.Id].Message, "unrevealed BoR post should have empty message")
+	})
+
+	t.Run("multiple expired BoR posts are all excluded from results", func(t *testing.T) {
+		ch := createChannel(t)
+
+		regular1 := createRegularPost(t, client1, ch, "regular 1")
+		bor1 := createBurnOnReadPost(t, client2, ch, "secret 1")
+		bor2 := createBurnOnReadPost(t, client2, ch, "secret 2")
+		regular2 := createRegularPost(t, client1, ch, "regular 2")
+
+		// Set last viewed before bor1
+		setLastViewedAt(t, ch.Id, user1.Id, bor1.CreateAt-1)
+
+		// Reveal then burn both BoR posts (expires the read receipts)
+		_, _, err := client1.RevealPost(context.Background(), bor1.Id)
+		require.NoError(t, err)
+		_, _, err = client1.RevealPost(context.Background(), bor2.Id)
+		require.NoError(t, err)
+
+		burnPost(t, client1, bor1.Id)
+		burnPost(t, client1, bor2.Id)
+
+		posts, _, err := client1.GetPostsAroundLastUnread(context.Background(), user1.Id, ch.Id, 5, 5, false)
+		require.NoError(t, err)
+
+		// Both BoR posts should be excluded from Order and Posts
+		assert.NotContains(t, posts.Order, bor1.Id, "expired bor1 should not be in Order")
+		assert.NotContains(t, posts.Order, bor2.Id, "expired bor2 should not be in Order")
+		assert.NotContains(t, posts.Posts, bor1.Id, "expired bor1 should not be in Posts")
+		assert.NotContains(t, posts.Posts, bor2.Id, "expired bor2 should not be in Posts")
+
+		// Regular posts should be present
+		assert.Contains(t, posts.Posts, regular2.Id, "regular2 should be in Posts")
+
+		assert.Equal(t, regular1.Id, posts.PrevPostId, "PrevPostId should skip both expired BoR posts and point to regular1")
+	})
+
+	t.Run("BoR feature disabled - expired receipt posts still appear normally", func(t *testing.T) {
+		ch := createChannel(t)
+
+		_ = createRegularPost(t, client1, ch, "regular 1")
+		borPost := createBurnOnReadPost(t, client2, ch, "secret message")
+		_ = createRegularPost(t, client1, ch, "regular 2")
+
+		setLastViewedAt(t, ch.Id, user1.Id, borPost.CreateAt-1)
+
+		// Reveal then burn (expires the read receipt)
+		_, _, err := client1.RevealPost(context.Background(), borPost.Id)
+		require.NoError(t, err)
+		burnPost(t, client1, borPost.Id)
+
+		// Disable the feature
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.EnableBurnOnRead = model.NewPointer(false)
+		})
+		t.Cleanup(func() {
+			enableBurnOnReadFeature(th)
+		})
+
+		posts, _, err := client1.GetPostsAroundLastUnread(context.Background(), user1.Id, ch.Id, 5, 5, false)
+		require.NoError(t, err)
+
+		// With feature disabled, the BoR post should still be in the list
+		// when the feature is disabled, only the creation of the post is limited.
+		assert.Contains(t, posts.Order, borPost.Id, "BoR post should appear when feature is disabled")
+		assert.Contains(t, posts.Posts, borPost.Id, "BoR post should appear when feature is disabled")
+	})
+
+	t.Run("author sees own BoR post without needing to reveal", func(t *testing.T) {
+		ch := createChannel(t)
+
+		_ = createRegularPost(t, client2, ch, "regular 1")
+		borPost := createBurnOnReadPost(t, client2, ch, "my secret message")
+		_ = createRegularPost(t, client2, ch, "regular 2")
+
+		setLastViewedAt(t, ch.Id, user2.Id, borPost.CreateAt-1)
+
+		// Author (user2) calls the endpoint - should see their own BoR post
+		posts, _, err := client2.GetPostsAroundLastUnread(context.Background(), user2.Id, ch.Id, 5, 5, false)
+		require.NoError(t, err)
+
+		assert.Contains(t, posts.Order, borPost.Id, "author should see own BoR post in Order")
+		assert.Contains(t, posts.Posts, borPost.Id, "author should see own BoR post in Posts")
+		assert.Equal(t, "my secret message", posts.Posts[borPost.Id].Message, "author should see full BoR post message")
+	})
+
+	// createExpiredBoRRun creates n burn-on-read posts (authored by user2) and has
+	// user1 reveal then burn each one, leaving an expired read receipt for user1.
+	createExpiredBoRRun := func(t *testing.T, ch *model.Channel, n int) []string {
+		t.Helper()
+		ids := make([]string, 0, n)
+		for i := range n {
+			bor := createBurnOnReadPost(t, client2, ch, fmt.Sprintf("secret %d", i))
+			_, _, err := client1.RevealPost(context.Background(), bor.Id)
+			require.NoError(t, err)
+			burnPost(t, client1, bor.Id)
+			ids = append(ids, bor.Id)
+		}
+		return ids
+	}
+
+	// These two cases cover the reviewer's MM-67500 concern: when MORE than one
+	// page (30) worth of expired burn-on-read posts sits between the first-unread
+	// post and the post at the far end, the server must page past all of them so
+	// the far post stays reachable and no cursor points at a hidden expired post.
+	t.Run("newest post stays reachable past a full page of expired BoR posts", func(t *testing.T) {
+		ch := createChannel(t)
+
+		firstUnread := createRegularPost(t, client1, ch, "first unread")
+		expired := createExpiredBoRRun(t, ch, 35) // more than one 30-post page
+		newest := createRegularPost(t, client1, ch, "newest")
+
+		setLastViewedAt(t, ch.Id, user1.Id, firstUnread.CreateAt-1)
+
+		posts, _, err := client1.GetPostsAroundLastUnread(context.Background(), user1.Id, ch.Id, 30, 30, false)
+		require.NoError(t, err)
+
+		assert.Contains(t, posts.Order, firstUnread.Id, "first unread post should be returned")
+		assert.Contains(t, posts.Order, newest.Id, "newest post must be reachable past the expired BoR posts")
+		for _, id := range expired {
+			assert.NotContains(t, posts.Order, id, "expired BoR post must not be returned")
+			assert.NotEqual(t, id, posts.NextPostId, "NextPostId must never point at an expired BoR post")
+		}
+	})
+
+	t.Run("oldest post stays reachable past a full page of expired BoR posts", func(t *testing.T) {
+		ch := createChannel(t)
+
+		oldest := createRegularPost(t, client1, ch, "oldest")
+		expired := createExpiredBoRRun(t, ch, 35) // more than one 30-post page
+		firstUnread := createRegularPost(t, client1, ch, "first unread")
+		newest := createRegularPost(t, client1, ch, "newest")
+
+		setLastViewedAt(t, ch.Id, user1.Id, firstUnread.CreateAt-1)
+
+		posts, _, err := client1.GetPostsAroundLastUnread(context.Background(), user1.Id, ch.Id, 30, 30, false)
+		require.NoError(t, err)
+
+		assert.Contains(t, posts.Order, firstUnread.Id, "first unread post should be returned")
+		assert.Contains(t, posts.Order, newest.Id, "newest post should be returned")
+		assert.Contains(t, posts.Order, oldest.Id, "oldest post must be reachable past the expired BoR posts")
+		for _, id := range expired {
+			assert.NotContains(t, posts.Order, id, "expired BoR post must not be returned")
+			assert.NotEqual(t, id, posts.PrevPostId, "PrevPostId must never point at an expired BoR post")
+		}
+	})
+}
+
 func TestGetPost(t *testing.T) {
 	mainHelper.Parallel(t)
 

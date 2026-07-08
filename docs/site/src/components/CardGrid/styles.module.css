@@ -1,0 +1,96 @@
+.grid {
+  display: grid;
+  gap: 1rem;
+  margin: 1.5rem 0 2.5rem;
+}
+
+.cols2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.cols3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.cols4 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+
+.card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 1.1rem 1.25rem 1.1rem 1.1rem;
+  background: var(--mm-bg-surface);
+  border: 1px solid var(--mm-border-subtle);
+  border-left: 3px solid var(--mm-color-marigold);
+  border-radius: 4px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+}
+.card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px -16px rgba(30, 50, 92, 0.25);
+  border-color: var(--mm-color-marigold);
+  text-decoration: none;
+  color: inherit;
+}
+
+[data-theme='dark'] .card {
+  background: var(--mm-denim-800);
+  border-color: var(--mm-denim-700);
+  border-left-color: var(--mm-color-marigold);
+}
+
+.icon {
+  flex: 0 0 auto;
+  width: 1.6rem;
+  height: 1.6rem;
+  background: var(--mm-color-denim);
+  border-radius: 3px;
+  margin-top: 0.15rem;
+}
+
+.body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.title {
+  font-family: var(--mm-font-heading);
+  font-weight: 900;
+  font-size: 1rem;
+  letter-spacing: 0.01em;
+  margin-bottom: 0.3rem;
+  color: var(--mm-text-primary);
+}
+
+.description {
+  font-size: 0.88rem;
+  line-height: 1.45;
+  margin: 0 0 0.4rem;
+  color: var(--mm-text-secondary);
+}
+
+.meta {
+  display: inline-block;
+  font-family: var(--mm-font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  color: var(--mm-marigold-700);
+  background: var(--mm-marigold-100);
+  padding: 0.1rem 0.45rem;
+  border-radius: 2px;
+}
+
+[data-theme='dark'] .meta {
+  color: var(--mm-color-marigold);
+  background: rgba(255, 188, 31, 0.12);
+}
+
+.arrow {
+  position: absolute;
+  top: 1.1rem;
+  right: 1rem;
+  color: var(--mm-text-secondary);
+  font-size: 1.1rem;
+  transition: transform 0.12s ease, color 0.12s ease;
+}
+.card:hover .arrow {
+  color: var(--mm-color-marigold);
+  transform: translateX(2px);
+}

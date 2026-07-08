@@ -12,7 +12,7 @@ export default class ThreadFooter {
     constructor(container: Locator) {
         this.container = container;
 
-        this.replyButton = container.locator('.ReplyButton');
+        this.replyButton = container.getByTestId('thread-footer-reply-button');
     }
 
     async toBeVisible() {
