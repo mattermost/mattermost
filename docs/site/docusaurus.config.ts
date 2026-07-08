@@ -134,9 +134,7 @@ const config: Config = {
       },
     ],
     // Generates API reference pages from the OpenAPI bundle produced by
-    // build-openapi.mjs, which delegates to `make -C api build` and
-    // sanitizes the output for MDX compatibility (see docs/site/scripts/
-    // build-openapi.mjs for the sanitization rationale).
+    // build-openapi.mjs
     [
       'docusaurus-plugin-openapi-docs',
       {

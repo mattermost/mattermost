@@ -18,8 +18,7 @@ via the relative paths `../main`, `../develop`, `../api` (from `docs/site/`).
 ## Prerequisites
 
 - Node.js ≥ 20 — use `nvm use` inside `docs/site/` to pick up `.nvmrc`
-- Go (required only for the OpenAPI prebuild step — see below)
-- `make` (for convenience targets and the OpenAPI build)
+- Go and `make` (required only for the OpenAPI prebuild step — see below)
 - Vale ≥ 3 (for content linting)
 
 ## Local development
@@ -28,13 +27,6 @@ via the relative paths `../main`, `../develop`, `../api` (from `docs/site/`).
 cd docs/site
 npm ci
 npm start          # dev server at http://localhost:3000
-```
-
-Or via Make (from the repo root):
-
-```shell
-make -C docs docs-install
-make -C docs docs-dev
 ```
 
 ### Sidebar generation
@@ -51,6 +43,12 @@ work.
 (`sidebars/active-redirects.json`, by contrast, *is* committed — it's
 regenerated and checked in manually via `node scripts/gen-active-redirects.mjs`
 when the legacy redirect map changes, not on every build.)
+
+The API reference section (`docs/api/reference/`, also gitignored) has the
+same requirement: `docusaurus-plugin-openapi-docs` needs `docusaurus
+gen-api-docs mattermost` run before it has any pages to render. `prestart`
+handles this too — using the existing OpenAPI spec if present, only falling
+back to the slow `make -C api build` spec rebuild if it's missing.
 
 ### Full production build
 
@@ -96,22 +94,18 @@ shell before running `npm start`/`npm run build`.
 
 | Command | Description |
 |---|---|
-| `npm start` | Dev server with hot reload (runs `build:sidebars` first via `prestart`) |
+| `npm start` | Dev server with hot reload (runs `build:sidebars` + `build:openapi:docs` first via `prestart`) |
 | `npm run build` | Production build to `build/` (runs `build:sidebars` + `build:openapi` first via `prebuild`) |
 | `npm run build:sidebars` | Regenerate the documentation + developer sidebar JSON |
-| `npm run build:openapi` | Regenerate the OpenAPI bundle only |
+| `npm run build:openapi:spec` | Regenerate the OpenAPI spec only (slow — invokes `make -C api build`) |
+| `npm run build:openapi:docs` | Regenerate the API reference MDX pages from the existing spec (fast) |
+| `npm run build:openapi` | Full OpenAPI pipeline: spec then docs |
 | `npm run serve` | Serve the `build/` output locally |
 | `npm run typecheck` | TypeScript type check |
 | `node scripts/gen-active-redirects.mjs` | Regenerate legacy redirect map (committed to git; run manually when it changes) |
 
-## Make targets
+## Content linting
 
-Run from the repo root (`make -C docs <target>`) or from `docs/` (`make <target>`):
-
-| Target | Description |
-|---|---|
-| `docs-install` | `npm ci` in `docs/site` |
-| `docs-dev` | Start dev server |
-| `docs-build` | Production build |
-| `docs-serve` | Serve production build |
-| `docs-lint` | Vale lint on all content directories |
+```shell
+vale main develop api
+```
