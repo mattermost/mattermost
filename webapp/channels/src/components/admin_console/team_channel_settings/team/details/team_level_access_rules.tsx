@@ -26,6 +26,7 @@ interface TeamLevelAccessRulesProps {
     initialExpression?: string;
     initialAutoSync?: boolean;
     isDisabled?: boolean;
+    syncFooter?: React.ReactNode;
 }
 
 const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
@@ -35,6 +36,7 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
     initialExpression = '',
     initialAutoSync = false,
     isDisabled = false,
+    syncFooter,
 }) => {
     const accessControlSettings = useSelector((state: GlobalState) => getAccessControlSettings(state));
 
@@ -177,6 +179,7 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
                 </div>
 
                 {renderAutoSyncSection()}
+                {syncFooter}
             </AdminPanelWithButton>
         </>
     );

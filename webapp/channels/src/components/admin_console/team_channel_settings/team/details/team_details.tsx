@@ -26,8 +26,8 @@ import Constants from 'utils/constants';
 import {TeamAccessControl} from './team_access_control_policy';
 import {TeamGroups} from './team_groups';
 import TeamLevelAccessRules from './team_level_access_rules';
-import TeamMembershipSyncFooter from './team_membership_sync_footer';
 import TeamMembers from './team_members/index';
+import TeamMembershipSyncFooter from './team_membership_sync_footer';
 import {TeamModes} from './team_modes';
 import {TeamProfile} from './team_profile';
 
@@ -973,11 +973,12 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                             initialExpression={this.state.teamRulesExpression}
                             initialAutoSync={this.state.teamRulesAutoSync}
                             isDisabled={this.props.isDisabled}
-                        />
-
-                        <TeamMembershipSyncFooter
-                            teamId={this.props.teamID}
-                            hasAbacPolicy={true}
+                            syncFooter={
+                                <TeamMembershipSyncFooter
+                                    teamId={this.props.teamID}
+                                    hasAbacPolicy={true}
+                                />
+                            }
                         />
                     </>
                 )}

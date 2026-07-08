@@ -7,6 +7,7 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import {getMembershipRule, buildRulesWithMembership} from '@mattermost/types/access_control';
+import type {JobType} from '@mattermost/types/jobs';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {Team} from '@mattermost/types/teams';
 
@@ -14,6 +15,7 @@ import {
     createAccessControlTeamSyncJob,
     getTeamAccessControlPolicy,
 } from 'mattermost-redux/actions/access_control';
+import {getJobsByType} from 'mattermost-redux/actions/jobs';
 import {getTeamStats} from 'mattermost-redux/actions/teams';
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
@@ -21,15 +23,49 @@ import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/user
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
 import ConfirmModal from 'components/confirm_modal';
 import SystemPolicyIndicator from 'components/system_policy_indicator';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 
 import type {GlobalState} from 'types/store';
 
+import 'components/team_settings/team_access_policies_tab/sync_status_footer.scss';
 import './team_membership_tab.scss';
 
 const MAX_USERS_SEARCH_LIMIT = 1000;
+const MS_PER_MINUTE = 60000;
+const MINUTES_PER_HOUR = 60;
+const HOURS_PER_DAY = 24;
+
+function getSyncTimeText(timestamp: number, formatMessage: ReturnType<typeof useIntl>['formatMessage']): string {
+    if (!timestamp) {
+        return formatMessage({id: 'team_settings.sync_status.never', defaultMessage: 'Never synced.'});
+    }
+    const diffMs = Date.now() - timestamp;
+    const diffMinutes = Math.floor(diffMs / MS_PER_MINUTE);
+    if (diffMinutes < 1) {
+        return formatMessage({id: 'team_settings.sync_status.just_now', defaultMessage: 'Last synced just now.'});
+    }
+    if (diffMinutes < MINUTES_PER_HOUR) {
+        return formatMessage(
+            {id: 'team_settings.sync_status.minutes_ago', defaultMessage: 'Last synced {count} {count, plural, one {minute} other {minutes}} ago.'},
+            {count: diffMinutes},
+        );
+    }
+    const diffHours = Math.floor(diffMinutes / MINUTES_PER_HOUR);
+    if (diffHours < HOURS_PER_DAY) {
+        return formatMessage(
+            {id: 'team_settings.sync_status.hours_ago', defaultMessage: 'Last synced {count} {count, plural, one {hour} other {hours}} ago.'},
+            {count: diffHours},
+        );
+    }
+    const diffDays = Math.floor(diffHours / HOURS_PER_DAY);
+    return formatMessage(
+        {id: 'team_settings.sync_status.days_ago', defaultMessage: 'Last synced {count} {count, plural, one {day} other {days}} ago.'},
+        {count: diffDays},
+    );
+}
 
 type Props = {
     team: Team;
@@ -73,9 +109,69 @@ function TeamMembershipTab({
     const [restrictedCount, setRestrictedCount] = useState<number | null>(null);
     const [isProcessingSave, setIsProcessingSave] = useState(false);
 
+    const [lastSyncedAt, setLastSyncedAt] = useState<number>(0);
+    const [syncing, setSyncing] = useState(false);
+    const [syncLoaded, setSyncLoaded] = useState(false);
+
     const saveInProgressRef = useRef(false);
 
     const actions = useChannelAccessControlActions(undefined, team.id);
+
+    const hasPolicy = policiesLoaded && (originalExpression !== '' || existingImports.length > 0 || systemPolicies.length > 0);
+
+    const fetchSyncStatus = useCallback(async () => {
+        try {
+            const result = await dispatch(getJobsByType('access_control_team_sync' as JobType, 0, 10, undefined, team.id));
+            if (result.data) {
+                const completedJob = (result.data as Array<{status: string; last_activity_at: number}>).find((job) => job.status === 'success');
+                if (completedJob) {
+                    setLastSyncedAt(completedJob.last_activity_at);
+                }
+            }
+        } catch {
+            // Non-fatal
+        }
+        setSyncLoaded(true);
+    }, [dispatch, team.id]);
+
+    useEffect(() => {
+        if (hasPolicy) {
+            fetchSyncStatus();
+        }
+    }, [hasPolicy, fetchSyncStatus]);
+
+    const handleSyncNow = useCallback(async () => {
+        setSyncing(true);
+        try {
+            const result = await dispatch(createAccessControlTeamSyncJob({policy_id: team.id}));
+            if (result.error) {
+                setSyncing(false);
+            }
+        } catch {
+            setSyncing(false);
+        }
+    }, [dispatch, team.id]);
+
+    useEffect(() => {
+        if (!syncing) {
+            return undefined;
+        }
+        const interval = setInterval(async () => {
+            const result = await dispatch(getJobsByType('access_control_team_sync' as JobType, 0, 10, undefined, team.id));
+            if (result.error) {
+                setSyncing(false);
+                return;
+            }
+            if (result.data) {
+                const completedJob = (result.data as Array<{status: string; last_activity_at: number}>).find((job) => job.status === 'success');
+                if (completedJob && completedJob.last_activity_at > lastSyncedAt) {
+                    setLastSyncedAt(completedJob.last_activity_at);
+                    setSyncing(false);
+                }
+            }
+        }, 3000);
+        return () => clearInterval(interval);
+    }, [syncing, dispatch, team.id, lastSyncedAt]);
 
     useEffect(() => {
         const loadAttributes = async () => {
@@ -527,6 +623,30 @@ function TeamMembershipTab({
                     })}
                 </p>
             </div>
+
+            {hasPolicy && syncLoaded && (
+                <div className='SyncStatusFooter'>
+                    <i className='icon icon-information-outline SyncStatusFooter__icon'/>
+                    <span className='SyncStatusFooter__text'>
+                        {getSyncTimeText(lastSyncedAt, formatMessage)}
+                    </span>
+                    {syncing ? (
+                        <>
+                            <span className='SyncStatusFooter__syncing'>
+                                {formatMessage({id: 'team_settings.sync_status.syncing', defaultMessage: 'Syncing...'})}
+                            </span>
+                            <LoadingSpinner/>
+                        </>
+                    ) : (
+                        <button
+                            className='style--none SyncStatusFooter__link'
+                            onClick={handleSyncNow}
+                        >
+                            {formatMessage({id: 'team_settings.sync_status.sync_now', defaultMessage: 'Sync now'})}
+                        </button>
+                    )}
+                </div>
+            )}
 
             {shouldShowPanel && (
                 <SaveChangesPanel

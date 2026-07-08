@@ -295,8 +295,6 @@
   "admin.access_control.masked_chip.tooltip": "One or more restricted values",
   "admin.access_control.policies.add_policy": "Add policy",
   "admin.access_control.policies.applies_to": "Applies to",
-  "admin.access_control.policies.auto_add": "Auto-add",
-  "admin.access_control.policies.auto_add.aria_label": "Auto-add members for {policyName}",
   "admin.access_control.policies.description": "Create policies containing attribute-based membership rules and the channels they apply to.",
   "admin.access_control.policies.menu.aria_label": "Policy actions menu",
   "admin.access_control.policies.name": "Name",

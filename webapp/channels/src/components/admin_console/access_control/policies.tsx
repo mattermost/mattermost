@@ -27,20 +27,15 @@ function policyHasMaskedValues(policy: AccessControlPolicy): boolean {
 
 type Props = {
 
-    // autoAdd carries the per-row Auto-add checkbox state (defaulting to the
-    // policy's own active flag) when showAutoAdd is enabled. Callers that don't
-    // opt in receive the second argument as undefined and can ignore it.
+    // The second argument reports the policy's own active flag so the team
+    // assignment flow can seed the team child's auto-add from the parent policy.
+    // Callers that don't need it can ignore the argument.
     onPolicySelected?: (policy: AccessControlPolicy, autoAdd?: boolean) => void;
     onPoliciesLoaded?: (count: number) => void;
     simpleMode?: boolean;
     hideHeader?: boolean;
     hideDeleteAction?: boolean;
     showRefreshButton?: boolean;
-
-    // When true, render an Auto-add column with a per-row checkbox seeded from
-    // each policy's active flag. Used by the team assignment flow to decide the
-    // team child policy's auto-add independently of the parent policy.
-    showAutoAdd?: boolean;
     actions: {
         searchPolicies: (term: string, type: string, after: string, limit: number) => Promise<ActionResult>;
         deletePolicy: (id: string) => Promise<ActionResult>;
@@ -60,31 +55,7 @@ export default function PolicyList(props: Props): JSX.Element {
     const [total, setTotal] = useState(0);
     const [pendingDeletePolicy, setPendingDeletePolicy] = useState<AccessControlPolicy | null>(null);
     const [deleteError, setDeleteError] = useState<string | null>(null);
-
-    // Per-row Auto-add checkbox state, keyed by policy id. Seeded from each
-    // policy's active flag on load; the admin can override before selecting.
-    const [autoAddByPolicy, setAutoAddByPolicy] = useState<Record<string, boolean>>({});
     const intl = useIntl();
-
-    useEffect(() => {
-        if (!props.showAutoAdd) {
-            return;
-        }
-        setAutoAddByPolicy((prev) => {
-            const next = {...prev};
-            for (const policy of policies) {
-                if (!(policy.id in next)) {
-                    next[policy.id] = Boolean(policy.active);
-                }
-            }
-            return next;
-        });
-    }, [policies, props.showAutoAdd]);
-
-    const autoAddFor = useCallback(
-        (policy: AccessControlPolicy) => autoAddByPolicy[policy.id] ?? Boolean(policy.active),
-        [autoAddByPolicy],
-    );
 
     const history = useMemo(() => getHistory(), []);
 
@@ -280,24 +251,6 @@ export default function PolicyList(props: Props): JSX.Element {
                             {getResources(policy)}
                         </div>
                     ),
-                    autoAdd: props.showAutoAdd ? (
-                        <div className='policy-auto-add'>
-                            <input
-                                type='checkbox'
-                                aria-label={intl.formatMessage({
-                                    id: 'admin.access_control.policies.auto_add.aria_label',
-                                    defaultMessage: 'Auto-add members for {policyName}',
-                                }, {policyName: policy.name})}
-                                checked={autoAddFor(policy)}
-                                onClick={(e) => e.stopPropagation()}
-                                onChange={(e) => {
-                                    e.stopPropagation();
-                                    const {checked} = e.target;
-                                    setAutoAddByPolicy((prev) => ({...prev, [policy.id]: checked}));
-                                }}
-                            />
-                        </div>
-                    ) : null,
                     actions: (
                         <div className='policy-actions'>
                             {!props.simpleMode && (
@@ -321,7 +274,7 @@ export default function PolicyList(props: Props): JSX.Element {
                                         id={`policy-menu-edit-${policy.id}`}
                                         onClick={() => {
                                             if (props.onPolicySelected) {
-                                                props.onPolicySelected(policy, autoAddFor(policy));
+                                                props.onPolicySelected(policy, Boolean(policy.active));
                                             } else {
                                                 history.push(`/admin_console/system_attributes/membership_policies/edit_policy/${policy.id}`);
                                             }
@@ -361,7 +314,7 @@ export default function PolicyList(props: Props): JSX.Element {
                 },
                 onClick: () => {
                     if (props.onPolicySelected) {
-                        props.onPolicySelected(policy, autoAddFor(policy));
+                        props.onPolicySelected(policy, Boolean(policy.active));
                     } else {
                         history.push(`/admin_console/system_attributes/membership_policies/edit_policy/${policy.id}`);
                     }
@@ -394,20 +347,6 @@ export default function PolicyList(props: Props): JSX.Element {
                 width: 4,
             },
         ];
-
-        if (props.showAutoAdd) {
-            columns.push({
-                name: (
-                    <FormattedMessage
-                        id='admin.access_control.policies.auto_add'
-                        defaultMessage='Auto-add'
-                    />
-                ),
-                field: 'autoAdd',
-                textAlign: 'center',
-                width: 2,
-            });
-        }
 
         columns.push({
             name: (

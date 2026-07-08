@@ -837,4 +837,101 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
             )
             .toBe(true);
     });
+
+    /**
+     * @objective Sync status footer appears inside the Custom access rules panel
+     * when membership policy enforcement is enabled, showing "Never synced." and
+     * a "Sync now" link for a team that has not yet been synced.
+     */
+    test('MM-68846-T16 - sync footer appears inside Custom access rules panel when enforcement is enabled', async ({
+        pw,
+    }) => {
+        test.setTimeout(120000);
+        await pw.skipIfNoLicense();
+
+        const {adminUser, adminClient, team} = await pw.initSetup();
+        cleanupClient = adminClient;
+        await enableTeamMembershipPolicies(adminClient);
+
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        const {page} = systemConsolePage;
+        const policyFetchDoneT16 = page
+            .waitForResponse((resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`), {timeout: 20000})
+            .catch(() => {});
+        await openTeamConfig(page, team.display_name);
+        await policyFetchDoneT16;
+
+        // # Enable membership policy enforcement so the Custom access rules panel renders
+        await setToggle(page, true);
+
+        // * Custom access rules panel is shown
+        const rulesPanel = page.locator('#team_level_access_rules');
+        await expect(rulesPanel).toBeVisible({timeout: 10000});
+
+        // * Sync footer is rendered inside the panel once the job-status fetch resolves
+        const syncFooter = rulesPanel.locator('.SyncStatusFooter');
+        await expect(syncFooter).toBeVisible({timeout: 10000});
+
+        // * "Never synced." text is shown — no sync has run for this brand-new team
+        await expect(syncFooter.locator('.SyncStatusFooter__text')).toContainText(/Never synced/i);
+
+        // * "Sync now" link is present
+        await expect(syncFooter.locator('.SyncStatusFooter__link')).toBeVisible();
+    });
+
+    /**
+     * @objective Clicking "Sync now" in the Custom access rules panel of the
+     * Team Details admin page enqueues an access_control_team_sync job scoped
+     * to the team.
+     */
+    test('MM-68846-T17 - clicking "Sync now" in Team Details Custom access rules panel enqueues a team sync job', async ({
+        pw,
+    }) => {
+        test.setTimeout(120000);
+        await pw.skipIfNoLicense();
+
+        const {adminUser, adminClient, team} = await pw.initSetup();
+        cleanupClient = adminClient;
+        await enableTeamMembershipPolicies(adminClient);
+
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        const {page} = systemConsolePage;
+        const policyFetchDoneT17 = page
+            .waitForResponse((resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`), {timeout: 20000})
+            .catch(() => {});
+        await openTeamConfig(page, team.display_name);
+        await policyFetchDoneT17;
+
+        await setToggle(page, true);
+
+        const rulesPanel = page.locator('#team_level_access_rules');
+        await expect(rulesPanel).toBeVisible({timeout: 10000});
+
+        const syncFooter = rulesPanel.locator('.SyncStatusFooter');
+        await expect(syncFooter).toBeVisible({timeout: 10000});
+        await expect(syncFooter.locator('.SyncStatusFooter__link')).toBeVisible();
+
+        const testStartTime = Date.now();
+
+        // # Click "Sync now" inside the Custom access rules panel
+        await syncFooter.locator('.SyncStatusFooter__link').click();
+
+        // * A new team sync job scoped to this team is enqueued
+        await expect
+            .poll(
+                async () => {
+                    const jobs: any[] = await (adminClient as any).doFetch(
+                        `${adminClient.getBaseRoute()}/jobs/type/access_control_team_sync`,
+                        {method: 'GET'},
+                    );
+                    return jobs.some((j: any) => j.data?.policy_id === team.id && j.create_at >= testStartTime);
+                },
+                {
+                    timeout: 15000,
+                    intervals: [500, 1000, 2000, 3000],
+                    message: 'clicking Sync now in Team Details should enqueue a team sync job for this team',
+                },
+            )
+            .toBe(true);
+    });
 });

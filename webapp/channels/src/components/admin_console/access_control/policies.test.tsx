@@ -349,84 +349,25 @@ describe('components/admin_console/access_control/PolicyList', () => {
         expect(screen.getByText('None')).toBeInTheDocument();
     });
 
-    describe('showAutoAdd', () => {
+    test('selecting a policy reports its active flag so callers can seed auto-add', async () => {
+        const onPolicySelected = jest.fn();
         const policies = [
             {id: 'policy1', name: 'Policy 1', active: true} as AccessControlPolicy,
             {id: 'policy2', name: 'Policy 2', active: false} as AccessControlPolicy,
         ];
-
-        test('renders an Auto-add checkbox per row seeded from the policy active flag', async () => {
-            mockSearchPolicies.mockResolvedValue({data: {policies, total: 2}} as ActionResult);
-            renderWithContext(
-                <PolicyList
-                    {...defaultProps}
-                    simpleMode={true}
-                    showAutoAdd={true}
-                    onPolicySelected={jest.fn()}
-                />,
-            );
-            await waitFor(() => {
-                expect(screen.getByText('Policy 1')).toBeInTheDocument();
-            });
-
-            expect(screen.getByLabelText('Auto-add members for Policy 1')).toBeChecked();
-            expect(screen.getByLabelText('Auto-add members for Policy 2')).not.toBeChecked();
+        mockSearchPolicies.mockResolvedValue({data: {policies, total: 2}} as ActionResult);
+        renderWithContext(
+            <PolicyList
+                {...defaultProps}
+                simpleMode={true}
+                onPolicySelected={onPolicySelected}
+            />,
+        );
+        await waitFor(() => {
+            expect(screen.getByText('Policy 1')).toBeInTheDocument();
         });
 
-        test('does not render Auto-add column when showAutoAdd is not set', async () => {
-            mockSearchPolicies.mockResolvedValue({data: {policies, total: 2}} as ActionResult);
-            renderWithContext(
-                <PolicyList
-                    {...defaultProps}
-                    simpleMode={true}
-                    onPolicySelected={jest.fn()}
-                />,
-            );
-            await waitFor(() => {
-                expect(screen.getByText('Policy 1')).toBeInTheDocument();
-            });
-
-            expect(screen.queryByLabelText('Auto-add members for Policy 1')).not.toBeInTheDocument();
-        });
-
-        test('selecting a row reports the parent policy active as the default auto-add', async () => {
-            const onPolicySelected = jest.fn();
-            mockSearchPolicies.mockResolvedValue({data: {policies, total: 2}} as ActionResult);
-            renderWithContext(
-                <PolicyList
-                    {...defaultProps}
-                    simpleMode={true}
-                    showAutoAdd={true}
-                    onPolicySelected={onPolicySelected}
-                />,
-            );
-            await waitFor(() => {
-                expect(screen.getByText('Policy 2')).toBeInTheDocument();
-            });
-
-            await userEvent.click(screen.getByText('Policy 2'));
-            expect(onPolicySelected).toHaveBeenCalledWith(policies[1], false);
-        });
-
-        test('overriding the checkbox reports the chosen auto-add on select', async () => {
-            const onPolicySelected = jest.fn();
-            mockSearchPolicies.mockResolvedValue({data: {policies, total: 2}} as ActionResult);
-            renderWithContext(
-                <PolicyList
-                    {...defaultProps}
-                    simpleMode={true}
-                    showAutoAdd={true}
-                    onPolicySelected={onPolicySelected}
-                />,
-            );
-            await waitFor(() => {
-                expect(screen.getByText('Policy 2')).toBeInTheDocument();
-            });
-
-            // Parent is inactive; admin opts the team child into auto-add, then selects.
-            await userEvent.click(screen.getByLabelText('Auto-add members for Policy 2'));
-            await userEvent.click(screen.getByText('Policy 2'));
-            expect(onPolicySelected).toHaveBeenCalledWith(policies[1], true);
-        });
+        await userEvent.click(screen.getByText('Policy 1'));
+        expect(onPolicySelected).toHaveBeenCalledWith(policies[0], true);
     });
 });

@@ -134,31 +134,31 @@ export default function TeamMembershipSyncFooter({teamId, hasAbacPolicy}: Props)
     return (
         <div className='TeamMembershipSyncFooter'>
             <div className='SyncStatusFooter'>
-            <i className='icon icon-information-outline SyncStatusFooter__icon'/>
-            <span className='SyncStatusFooter__text'>
-                {timeText}
-            </span>
-            {syncing ? (
-                <>
-                    <span className='SyncStatusFooter__syncing'>
+                <i className='icon icon-information-outline SyncStatusFooter__icon'/>
+                <span className='SyncStatusFooter__text'>
+                    {timeText}
+                </span>
+                {syncing ? (
+                    <>
+                        <span className='SyncStatusFooter__syncing'>
+                            {formatMessage({
+                                id: 'team_settings.sync_status.syncing',
+                                defaultMessage: 'Syncing...',
+                            })}
+                        </span>
+                        <LoadingSpinner/>
+                    </>
+                ) : (
+                    <button
+                        className='style--none SyncStatusFooter__link'
+                        onClick={handleSyncNow}
+                    >
                         {formatMessage({
-                            id: 'team_settings.sync_status.syncing',
-                            defaultMessage: 'Syncing...',
+                            id: 'team_settings.sync_status.sync_now',
+                            defaultMessage: 'Sync now',
                         })}
-                    </span>
-                    <LoadingSpinner/>
-                </>
-            ) : (
-                <button
-                    className='style--none SyncStatusFooter__link'
-                    onClick={handleSyncNow}
-                >
-                    {formatMessage({
-                        id: 'team_settings.sync_status.sync_now',
-                        defaultMessage: 'Sync now',
-                    })}
-                </button>
-            )}
+                    </button>
+                )}
             </div>
         </div>
     );

@@ -564,4 +564,77 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
 
         await teamSettings.close();
     });
+
+    test('MM-69100_20 Sync footer shows "Never synced" in Team Membership tab when a policy exists', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        const {adminUser, adminClient, team} = await pw.initSetup();
+        await enableTeamMembershipABACConfig(adminClient);
+
+        // # Pre-create a team policy via API so hasPolicy=true when the tab loads
+        await createTeamMembershipPolicy(adminClient, team.id, 'true', false);
+
+        const {page} = await pw.testBrowser.login(adminUser);
+        const channelsPage = new ChannelsPage(page);
+        await channelsPage.goto(team.name, 'town-square');
+        await channelsPage.toBeVisible();
+
+        const {teamSettings, tab} = await openTeamMembershipTab(page, channelsPage);
+
+        // * Sync footer is visible once the job-status fetch resolves
+        const syncFooter = tab.locator('.SyncStatusFooter');
+        await expect(syncFooter).toBeVisible({timeout: 10000});
+
+        // * "Never synced." is shown — no sync job has run for this brand-new team
+        await expect(syncFooter.locator('.SyncStatusFooter__text')).toContainText(/Never synced/i);
+
+        // * "Sync now" link is present
+        await expect(syncFooter.locator('.SyncStatusFooter__link')).toBeVisible();
+
+        await teamSettings.close();
+    });
+
+    test('MM-69100_21 Clicking "Sync now" in Team Membership tab enqueues a team sync job', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        const {adminUser, adminClient, team} = await pw.initSetup();
+        await enableTeamMembershipABACConfig(adminClient);
+
+        // # Pre-create a team policy so the sync footer renders
+        await createTeamMembershipPolicy(adminClient, team.id, 'true', false);
+
+        const {page} = await pw.testBrowser.login(adminUser);
+        const channelsPage = new ChannelsPage(page);
+        await channelsPage.goto(team.name, 'town-square');
+        await channelsPage.toBeVisible();
+
+        const {teamSettings, tab} = await openTeamMembershipTab(page, channelsPage);
+
+        const syncFooter = tab.locator('.SyncStatusFooter');
+        await expect(syncFooter).toBeVisible({timeout: 10000});
+        await expect(syncFooter.locator('.SyncStatusFooter__link')).toBeVisible();
+
+        const testStartTime = Date.now();
+
+        // # Click "Sync now"
+        await syncFooter.locator('.SyncStatusFooter__link').click();
+
+        // * A new team sync job scoped to this team is enqueued
+        await expect
+            .poll(
+                async () => {
+                    const jobs: any[] = await (adminClient as any).doFetch(
+                        `${adminClient.getBaseRoute()}/jobs/type/access_control_team_sync`,
+                        {method: 'GET'},
+                    );
+                    return jobs.some((j: any) => j.data?.policy_id === team.id && j.create_at >= testStartTime);
+                },
+                {
+                    timeout: 15000,
+                    intervals: [500, 1000, 2000, 3000],
+                    message: 'clicking Sync now should enqueue a team sync job scoped to this team',
+                },
+            )
+            .toBe(true);
+
+        await teamSettings.close();
+    });
 });

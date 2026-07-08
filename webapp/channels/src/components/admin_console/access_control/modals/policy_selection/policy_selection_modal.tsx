@@ -15,17 +15,13 @@ type Props = {
     show: boolean;
     onHide: () => void;
     onPolicySelected: (policy: AccessControlPolicy, autoAdd?: boolean) => void;
-
-    // When true, the policy list shows an Auto-add checkbox per row (seeded from
-    // the policy's active flag) and reports its value via onPolicySelected.
-    showAutoAdd?: boolean;
     actions: {
         searchPolicies: (term: string, type: string, after: string, limit: number) => Promise<ActionResult>;
     };
 };
 
 export default function PolicySelectionModal(props: Props): JSX.Element {
-    const {show, onHide, onPolicySelected, showAutoAdd, actions} = props;
+    const {show, onHide, onPolicySelected, actions} = props;
 
     return (
         <GenericModal
@@ -49,7 +45,6 @@ export default function PolicySelectionModal(props: Props): JSX.Element {
         >
             <PolicyList
                 simpleMode={true}
-                showAutoAdd={showAutoAdd}
                 onPolicySelected={onPolicySelected}
                 actions={{
                     searchPolicies: actions.searchPolicies,
