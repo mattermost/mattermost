@@ -196,7 +196,7 @@ func (h *AccessControlHook) PreUpdatePropertyField(rctx request.CTX, groupID str
 		return nil, err
 	}
 
-	if err := h.checkFieldWriteAccess(existingField, callerID); err != nil {
+	if err := h.checkFieldWriteAccess(existingField, callerID, h.extractActingAsScope(rctx)); err != nil {
 		return nil, err
 	}
 
@@ -250,7 +250,7 @@ func (h *AccessControlHook) PreUpdatePropertyFields(rctx request.CTX, groupID st
 			return nil, fmt.Errorf("field %s: %w", field.ID, ErrFieldNotFound)
 		}
 
-		if err := h.checkFieldWriteAccess(existingField, callerID); err != nil {
+		if err := h.checkFieldWriteAccess(existingField, callerID, h.extractActingAsScope(rctx)); err != nil {
 			return nil, fmt.Errorf("field %s: %w", field.ID, err)
 		}
 
@@ -293,7 +293,7 @@ func (h *AccessControlHook) PreDeletePropertyField(rctx request.CTX, groupID str
 		return err
 	}
 
-	return h.checkFieldDeleteAccess(existingField, callerID)
+	return h.checkFieldDeleteAccess(existingField, callerID, h.extractActingAsScope(rctx))
 }
 
 // PostUpdatePropertyFields is a no-op for access control; cleanup of dependent
@@ -650,16 +650,16 @@ func (h *AccessControlHook) isMachineCaller(callerID string) bool {
 }
 
 // callerOwnerIdentity maps a machine caller (and its acting-as scope) to the
-// owner identity it would match in a field's owners list. For a built-in sync
-// service the owner type is "service" and the scope is implied by the
-// well-known caller ID; for a plugin the manifest ID is the owner ID and the
+// owner identity it would match in a field's owners list. A built-in sync
+// service is a singleton (one LDAP, one SAML), so its owner type is "service"
+// and it carries no scope; for a plugin the manifest ID is the owner ID and the
 // scope is whatever the plugin declared on the request context.
 func (h *AccessControlHook) callerOwnerIdentity(callerID, scope string) (ownerID, ownerType, effectiveScope string) {
 	switch callerID {
 	case model.CallerIDLDAPSync:
-		return model.PropertyFieldAttrLDAP, model.PropertyOwnerTypeService, model.PropertyFieldAttrLDAP
+		return model.PropertyFieldAttrLDAP, model.PropertyOwnerTypeService, ""
 	case model.CallerIDSAMLSync:
-		return model.PropertyFieldAttrSAML, model.PropertyOwnerTypeService, model.PropertyFieldAttrSAML
+		return model.PropertyFieldAttrSAML, model.PropertyOwnerTypeService, ""
 	default:
 		return callerID, model.PropertyOwnerTypePlugin, strings.ToLower(scope)
 	}
@@ -679,16 +679,14 @@ func (h *AccessControlHook) effectiveOwners(field *model.PropertyField) []model.
 
 	if ldap, _ := field.Attrs[model.PropertyFieldAttrLDAP].(string); ldap != "" {
 		owners = append(owners, model.PropertyOwner{
-			ID:     model.PropertyFieldAttrLDAP,
-			Type:   model.PropertyOwnerTypeService,
-			Scopes: []string{model.PropertyFieldAttrLDAP},
+			ID:   model.PropertyFieldAttrLDAP,
+			Type: model.PropertyOwnerTypeService,
 		})
 	}
 	if saml, _ := field.Attrs[model.PropertyFieldAttrSAML].(string); saml != "" {
 		owners = append(owners, model.PropertyOwner{
-			ID:     model.PropertyFieldAttrSAML,
-			Type:   model.PropertyOwnerTypeService,
-			Scopes: []string{model.PropertyFieldAttrSAML},
+			ID:   model.PropertyFieldAttrSAML,
+			Type: model.PropertyOwnerTypeService,
 		})
 	}
 	return owners
@@ -716,22 +714,26 @@ func (h *AccessControlHook) checkOwnerValueWriteAccess(field *model.PropertyFiel
 }
 
 // checkOwnerFieldWriteAccess enforces a field's owners list on a
-// field-definition write or delete. A machine caller must be a listed owner
-// (matching ID and type); scope is not required for definition edits. Human
-// callers pass through to be governed by the API-layer permission levels.
-func (h *AccessControlHook) checkOwnerFieldWriteAccess(field *model.PropertyField, callerID string) error {
+// field-definition write or delete. A machine caller is allowed only if it is a
+// listed owner (matching ID and type) whose scopes contain the caller's
+// acting-as scope, so a caller acting for one scope cannot alter the schema of a
+// field owned for a different scope. An owner with an empty scopes list is not
+// scope-restricted. Human callers pass through to be governed by the API-layer
+// permission levels.
+func (h *AccessControlHook) checkOwnerFieldWriteAccess(field *model.PropertyField, callerID, scope string) error {
 	if !h.isMachineCaller(callerID) {
 		return nil
 	}
 
-	ownerID, ownerType, _ := h.callerOwnerIdentity(callerID, "")
+	ownerID, ownerType, effectiveScope := h.callerOwnerIdentity(callerID, scope)
 	for _, owner := range model.GetPropertyFieldOwners(field) {
-		if owner.Type == ownerType && owner.ID == ownerID {
+		if owner.Type == ownerType && owner.ID == ownerID &&
+			(len(owner.Scopes) == 0 || slices.Contains(owner.Scopes, effectiveScope)) {
 			return nil
 		}
 	}
 
-	return fmt.Errorf("field %s is owner-managed and caller %q is not a listed owner: %w", field.ID, callerID, ErrAccessDenied)
+	return fmt.Errorf("field %s is owner-managed and caller %q acting as scope %q is not an owner with a matching scope: %w", field.ID, callerID, effectiveScope, ErrAccessDenied)
 }
 
 // enforceOwnerMutationRules validates a change to attrs.owners. Owners are a
@@ -896,10 +898,10 @@ func (h *AccessControlHook) validateProtectedFieldUpdate(updatedField *model.Pro
 
 // checkFieldWriteAccess checks if the given caller can modify a PropertyField.
 // IMPORTANT: Always pass the existing field fetched from the database, not a field provided by the caller.
-func (h *AccessControlHook) checkFieldWriteAccess(field *model.PropertyField, callerID string) error {
+func (h *AccessControlHook) checkFieldWriteAccess(field *model.PropertyField, callerID, scope string) error {
 	// An owners list supersedes the legacy protected / source_plugin_id rules.
 	if model.HasPropertyFieldOwners(field) {
-		return h.checkOwnerFieldWriteAccess(field, callerID)
+		return h.checkOwnerFieldWriteAccess(field, callerID, scope)
 	}
 
 	if !model.IsPropertyFieldProtected(field) {
@@ -920,10 +922,10 @@ func (h *AccessControlHook) checkFieldWriteAccess(field *model.PropertyField, ca
 
 // checkFieldDeleteAccess checks if the given caller can delete a PropertyField.
 // IMPORTANT: Always pass the existing field fetched from the database, not a field provided by the caller.
-func (h *AccessControlHook) checkFieldDeleteAccess(field *model.PropertyField, callerID string) error {
+func (h *AccessControlHook) checkFieldDeleteAccess(field *model.PropertyField, callerID, scope string) error {
 	// An owners list supersedes the legacy protected / source_plugin_id rules.
 	if model.HasPropertyFieldOwners(field) {
-		return h.checkOwnerFieldWriteAccess(field, callerID)
+		return h.checkOwnerFieldWriteAccess(field, callerID, scope)
 	}
 
 	if !model.IsPropertyFieldProtected(field) {
@@ -983,7 +985,7 @@ func (h *AccessControlHook) checkValueWriteAccess(field *model.PropertyField, ca
 		return h.checkOwnerValueWriteAccess(field, callerID, scope)
 	}
 
-	if err := h.checkFieldWriteAccess(field, callerID); err != nil {
+	if err := h.checkFieldWriteAccess(field, callerID, scope); err != nil {
 		return err
 	}
 	return h.checkSyncLock(field, callerID)
