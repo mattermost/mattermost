@@ -306,7 +306,9 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 
 	// verify that the To header of the email message is set to the MIME recipient, even though we got it out of the SMTP recipient's email inbox
 	require.NotEmpty(t, resultsEmail.Header["To"], "missing To header")
-	assert.Contains(t, resultsEmail.Header["To"][0], md.mimeTo)
+	resultEmail, err := mail.ParseAddress(resultsEmail.Header["To"][0])
+	require.NoError(t, err, "failed to parse To header")
+	assert.Equal(t, md.mimeTo, resultEmail.Address)
 
 	// verify that the MIME from address is correct - unfortunately, we can't verify the SMTP from address
 	assert.Equal(t, md.from.String(), resultsEmail.Header["From"][0])
