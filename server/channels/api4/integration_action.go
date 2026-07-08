@@ -242,7 +242,7 @@ func executeDialogAction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := &model.PostActionAPIResponse{Status: "OK", TriggerId: triggerId}
+	resp := &model.ExecuteDialogActionResponse{TriggerId: triggerId}
 	if encErr := json.NewEncoder(w).Encode(resp); encErr != nil {
 		c.Logger.Warn("Error writing response", mlog.Err(encErr))
 	}

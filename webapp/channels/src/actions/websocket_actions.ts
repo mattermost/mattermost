@@ -1768,11 +1768,19 @@ function handleOpenDialogEvent(msg: WebSocketMessages.OpenDialog) {
     if (getOpenDialogCount(getState()) >= MAX_OPEN_DIALOGS) {
         // eslint-disable-next-line no-console
         console.warn('Maximum number of open dialogs reached');
+        store.dispatch({type: IntegrationTypes.REMOVE_DIALOG, data: dialog.trigger_id});
         return;
     }
 
     const modalId = `${ModalIdentifiers.INTERACTIVE_DIALOG}_${dialog.trigger_id}`;
-    store.dispatch(openModal({modalId, dialogType: DialogRouter}));
+    store.dispatch(openModal({
+        modalId,
+        dialogType: DialogRouter,
+        dialogProps: {
+            triggerId: dialog.trigger_id,
+            onExited: () => store.dispatch({type: IntegrationTypes.REMOVE_DIALOG, data: dialog.trigger_id}),
+        },
+    }));
 }
 
 function handleGroupUpdatedEvent(msg: WebSocketMessages.ReceivedGroup) {

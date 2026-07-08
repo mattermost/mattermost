@@ -1334,10 +1334,9 @@ func TestExecuteDialogAction(t *testing.T) {
 		require.NotNil(t, resp)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-		var apiResp model.PostActionAPIResponse
+		var apiResp model.ExecuteDialogActionResponse
 		jsonErr := json.NewDecoder(resp.Body).Decode(&apiResp)
 		require.NoError(t, jsonErr)
-		assert.Equal(t, "OK", apiResp.Status)
 		assert.NotEmpty(t, apiResp.TriggerId)
 
 		assert.Equal(t, "dialog_action", received.Type)

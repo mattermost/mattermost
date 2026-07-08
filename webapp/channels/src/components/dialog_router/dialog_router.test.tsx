@@ -79,13 +79,13 @@ describe('components/dialog_router/DialogRouter', () => {
         });
     });
 
-    describe('Mount-time props snapshot isolation', () => {
-        // DialogRouter uses useState(() => props) to capture a snapshot of props at
-        // mount time. This means that when the connected parent receives new Redux state
-        // (e.g. a child dialog dispatched RECEIVED_DIALOG), this instance must continue
-        // rendering with the ORIGINAL mount-time data — not the new data.
+    describe('Props rendering', () => {
+        // DialogRouter is a pure passthrough — isolation between concurrent dialogs
+        // is handled by the Redux dialogs map (each instance receives only its own
+        // data via its triggerId ownProp). The component itself re-renders normally
+        // whenever its props change.
 
-        test('passes mount-time props to the adapter on initial render', () => {
+        test('passes props to the adapter on initial render', () => {
             const propsA = {
                 ...baseProps,
                 url: 'http://dialog-a.example.com',
@@ -100,8 +100,7 @@ describe('components/dialog_router/DialogRouter', () => {
             expect(getByTestId('adapter-callback-id')).toHaveTextContent('callback-a');
         });
 
-        test('keeps showing mount-time data after parent rerenders with new props (snapshot isolation)', () => {
-            // Simulate: first dialog opens → DialogRouter mounts with props A.
+        test('re-renders with updated props when parent provides new data', () => {
             const propsA = {
                 ...baseProps,
                 url: 'http://dialog-a.example.com',
@@ -111,12 +110,8 @@ describe('components/dialog_router/DialogRouter', () => {
 
             const {getByTestId, rerender} = render(<DialogRouter {...propsA}/>);
 
-            // Verify initial render shows Dialog A data.
             expect(getByTestId('adapter-url')).toHaveTextContent('http://dialog-a.example.com');
 
-            // Simulate: a child dialog dispatches RECEIVED_DIALOG, connected parent
-            // re-renders this instance with props B. The component must NOT update its
-            // output — the useState snapshot freezes the data at mount time.
             const propsB = {
                 ...baseProps,
                 url: 'http://dialog-b.example.com',
@@ -126,10 +121,9 @@ describe('components/dialog_router/DialogRouter', () => {
 
             rerender(<DialogRouter {...propsB}/>);
 
-            // The adapter MUST still receive Dialog A's data, not Dialog B's.
-            expect(getByTestId('adapter-url')).toHaveTextContent('http://dialog-a.example.com');
-            expect(getByTestId('adapter-title')).toHaveTextContent('Dialog A');
-            expect(getByTestId('adapter-callback-id')).toHaveTextContent('callback-a');
+            expect(getByTestId('adapter-url')).toHaveTextContent('http://dialog-b.example.com');
+            expect(getByTestId('adapter-title')).toHaveTextContent('Dialog B');
+            expect(getByTestId('adapter-callback-id')).toHaveTextContent('callback-b');
         });
 
         test('renders null and calls console.error when hasUrl is false', () => {

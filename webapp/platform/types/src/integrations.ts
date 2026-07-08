@@ -143,7 +143,7 @@ export type IntegrationsState = {
     commands: IDMappedObjects<Command>;
     dialogArguments?: DialogArgs;
     dialogTriggerId: string;
-    dialog?: OpenDialogRequest;
+    dialogs: Record<string, OpenDialogRequest>;
 };
 
 export type OpenDialogRequest = {

@@ -12,20 +12,24 @@ import {ModalIdentifiers} from 'utils/constants';
 import {MAX_OPEN_DIALOGS, getOpenDialogCount} from 'utils/interactive_dialog';
 
 export function openInteractiveDialog(dialog: any): void {
-    // Store the dialog before the cap check so the store.subscribe fallback below
-    // can still find it once dialogTriggerId updates. Only the modal open is gated
-    // by the concurrent-dialog cap.
-    store.dispatch({type: IntegrationTypes.RECEIVED_DIALOG, data: dialog});
-
     if (getOpenDialogCount(store.getState()) >= MAX_OPEN_DIALOGS) {
         // eslint-disable-next-line no-console
         console.warn('Maximum number of open dialogs reached');
         return;
     }
 
+    store.dispatch({type: IntegrationTypes.RECEIVED_DIALOG, data: dialog});
+
     const triggerId = dialog?.trigger_id;
     const modalId = triggerId ? `${ModalIdentifiers.INTERACTIVE_DIALOG}_${triggerId}` : ModalIdentifiers.INTERACTIVE_DIALOG;
-    store.dispatch(openModal({modalId, dialogType: DialogRouter}));
+    store.dispatch(openModal({
+        modalId,
+        dialogType: DialogRouter,
+        dialogProps: {
+            triggerId,
+            onExited: () => triggerId && store.dispatch({type: IntegrationTypes.REMOVE_DIALOG, data: triggerId}),
+        },
+    }));
 }
 
 // This code is problematic for a couple of different reasons:
@@ -46,17 +50,25 @@ store.subscribe(() => {
 
     previousTriggerId = currentTriggerId;
 
-    const dialog = state.entities.integrations.dialog;
-    if (!dialog || dialog.trigger_id !== currentTriggerId) {
+    const dialog = state.entities.integrations.dialogs?.[currentTriggerId];
+    if (!dialog) {
         return;
     }
 
     if (getOpenDialogCount(state) >= MAX_OPEN_DIALOGS) {
         // eslint-disable-next-line no-console
         console.warn('Maximum number of open dialogs reached');
+        store.dispatch({type: IntegrationTypes.REMOVE_DIALOG, data: currentTriggerId});
         return;
     }
 
     const modalId = `${ModalIdentifiers.INTERACTIVE_DIALOG}_${currentTriggerId}`;
-    store.dispatch(openModal({modalId, dialogType: DialogRouter}));
+    store.dispatch(openModal({
+        modalId,
+        dialogType: DialogRouter,
+        dialogProps: {
+            triggerId: currentTriggerId,
+            onExited: () => store.dispatch({type: IntegrationTypes.REMOVE_DIALOG, data: currentTriggerId}),
+        },
+    }));
 });

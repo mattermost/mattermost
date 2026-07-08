@@ -35,7 +35,7 @@ const mockOpenModal = openModal as jest.MockedFunction<typeof openModal>;
 
 // Build a minimal GlobalState whose views.modals.modalState contains the
 // supplied modal ids mapped to a truthy open entry.
-function makeState(modalIds: string[], dialogTriggerId = '', dialog: any = null) {
+function makeState(modalIds: string[], dialogTriggerId = '', dialogs: Record<string, any> = {}) {
     const modalState: Record<string, {open: boolean}> = {};
     for (const id of modalIds) {
         modalState[id] = {open: true};
@@ -44,7 +44,7 @@ function makeState(modalIds: string[], dialogTriggerId = '', dialog: any = null)
         entities: {
             integrations: {
                 dialogTriggerId,
-                dialog,
+                dialogs,
             },
         },
         views: {
@@ -116,6 +116,33 @@ describe('openInteractiveDialog', () => {
             );
         });
 
+        it('passes triggerId in dialogProps', () => {
+            openInteractiveDialog(sampleDialog);
+
+            expect(mockOpenModal).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    dialogProps: expect.objectContaining({
+                        triggerId: sampleDialog.trigger_id,
+                    }),
+                }),
+            );
+        });
+
+        it('passes onExited in dialogProps that dispatches REMOVE_DIALOG', () => {
+            openInteractiveDialog(sampleDialog);
+
+            const {dialogProps} = (mockOpenModal as jest.Mock).mock.calls[0][0];
+            expect(typeof dialogProps.onExited).toBe('function');
+
+            jest.clearAllMocks();
+            dialogProps.onExited();
+
+            expect(mockStore.dispatch).toHaveBeenCalledWith({
+                type: IntegrationTypes.REMOVE_DIALOG,
+                data: sampleDialog.trigger_id,
+            });
+        });
+
         it('falls back to base ModalIdentifiers.INTERACTIVE_DIALOG when no trigger_id', () => {
             openInteractiveDialog({dialog: {}});
 
@@ -124,6 +151,16 @@ describe('openInteractiveDialog', () => {
                     modalId: ModalIdentifiers.INTERACTIVE_DIALOG,
                 }),
             );
+        });
+
+        it('onExited is a no-op when there is no trigger_id', () => {
+            openInteractiveDialog({dialog: {}});
+
+            const {dialogProps} = (mockOpenModal as jest.Mock).mock.calls[0][0];
+            jest.clearAllMocks();
+            dialogProps.onExited();
+
+            expect(mockStore.dispatch).not.toHaveBeenCalled();
         });
     });
 
@@ -146,22 +183,10 @@ describe('openInteractiveDialog', () => {
             warnSpy.mockRestore();
         });
 
-        it('still dispatches RECEIVED_DIALOG (so the store.subscribe fallback can recover) but does not open a modal', () => {
+        it('does not dispatch anything or open a modal when at cap', () => {
             openInteractiveDialog(sampleDialog);
 
-            expect(mockStore.dispatch).toHaveBeenCalledTimes(1);
-            expect(mockStore.dispatch).toHaveBeenCalledWith({
-                type: IntegrationTypes.RECEIVED_DIALOG,
-                data: sampleDialog,
-            });
-
-            // The cap gates only the modal open, not the state write.
-            expect(mockOpenModal).not.toHaveBeenCalled();
-        });
-
-        it('does NOT call openModal', () => {
-            openInteractiveDialog(sampleDialog);
-
+            expect(mockStore.dispatch).not.toHaveBeenCalled();
             expect(mockOpenModal).not.toHaveBeenCalled();
         });
 
@@ -212,7 +237,7 @@ describe('store.subscribe callback', () => {
         // First call: advance previousTriggerId from '' to triggerId-A.
         const triggerIdA = nextId();
         mockStore.getState.mockReturnValue(
-            makeState([], triggerIdA, {trigger_id: triggerIdA, dialog: {}}),
+            makeState([], triggerIdA, {[triggerIdA]: {trigger_id: triggerIdA, dialog: {}}}),
         );
         subscribeCallback(); // previousTriggerId is now triggerIdA
 
@@ -220,7 +245,7 @@ describe('store.subscribe callback', () => {
 
         // Second call with the SAME triggerId — should return early.
         mockStore.getState.mockReturnValue(
-            makeState([], triggerIdA, {trigger_id: triggerIdA, dialog: {}}),
+            makeState([], triggerIdA, {[triggerIdA]: {trigger_id: triggerIdA, dialog: {}}}),
         );
         subscribeCallback();
 
@@ -228,34 +253,21 @@ describe('store.subscribe callback', () => {
         expect(mockOpenModal).not.toHaveBeenCalled();
     });
 
-    it('returns early without dispatching openModal when dialog is null', () => {
+    it('returns early without dispatching openModal when triggerId is not in the dialogs map', () => {
         const triggerId = nextId();
 
-        // dialog is null — even though triggerId changed, the callback should bail.
-        mockStore.getState.mockReturnValue(makeState([], triggerId, null));
+        // dialogs map is empty — the lookup dialogs[triggerId] returns undefined.
+        mockStore.getState.mockReturnValue(makeState([], triggerId, {}));
         subscribeCallback();
 
         expect(mockStore.dispatch).not.toHaveBeenCalled();
         expect(mockOpenModal).not.toHaveBeenCalled();
     });
 
-    it('returns early without dispatching openModal when dialog.trigger_id !== currentTriggerId', () => {
-        const triggerId = nextId();
-
-        // dialog exists but its trigger_id is a different value.
-        mockStore.getState.mockReturnValue(
-            makeState([], triggerId, {trigger_id: 'some-other-id', dialog: {}}),
-        );
-        subscribeCallback();
-
-        expect(mockStore.dispatch).not.toHaveBeenCalled();
-        expect(mockOpenModal).not.toHaveBeenCalled();
-    });
-
-    it('dispatches openModal with the composite modalId when triggerId changed and dialog matches and count is under cap', () => {
+    it('dispatches openModal with the composite modalId when triggerId changed and dialog is in map and count is under cap', () => {
         const triggerId = nextId();
         mockStore.getState.mockReturnValue(
-            makeState([], triggerId, {trigger_id: triggerId, dialog: {}}),
+            makeState([], triggerId, {[triggerId]: {trigger_id: triggerId, dialog: {}}}),
         );
         subscribeCallback();
 
@@ -270,6 +282,30 @@ describe('store.subscribe callback', () => {
         );
     });
 
+    it('passes triggerId and onExited in dialogProps', () => {
+        const triggerId = nextId();
+        mockStore.getState.mockReturnValue(
+            makeState([], triggerId, {[triggerId]: {trigger_id: triggerId, dialog: {}}}),
+        );
+        subscribeCallback();
+
+        expect(mockOpenModal).toHaveBeenCalledWith(
+            expect.objectContaining({
+                dialogProps: expect.objectContaining({triggerId}),
+            }),
+        );
+
+        const {dialogProps} = (mockOpenModal as jest.Mock).mock.calls[0][0];
+        expect(typeof dialogProps.onExited).toBe('function');
+
+        jest.clearAllMocks();
+        dialogProps.onExited();
+        expect(mockStore.dispatch).toHaveBeenCalledWith({
+            type: IntegrationTypes.REMOVE_DIALOG,
+            data: triggerId,
+        });
+    });
+
     it('emits console.warn and does NOT dispatch openModal when at the cap (3 open)', () => {
         const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
         try {
@@ -280,12 +316,15 @@ describe('store.subscribe callback', () => {
                 `${ModalIdentifiers.INTERACTIVE_DIALOG}_cap3`,
             ];
             mockStore.getState.mockReturnValue(
-                makeState(atCapIds, triggerId, {trigger_id: triggerId, dialog: {}}),
+                makeState(atCapIds, triggerId, {[triggerId]: {trigger_id: triggerId, dialog: {}}}),
             );
             subscribeCallback();
 
             expect(mockOpenModal).not.toHaveBeenCalled();
-            expect(mockStore.dispatch).not.toHaveBeenCalled();
+            expect(mockStore.dispatch).toHaveBeenCalledWith({
+                type: IntegrationTypes.REMOVE_DIALOG,
+                data: triggerId,
+            });
             expect(warnSpy).toHaveBeenCalledWith('Maximum number of open dialogs reached');
         } finally {
             warnSpy.mockRestore();

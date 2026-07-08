@@ -433,6 +433,10 @@ type PostActionAPIResponse struct {
 	GotoLocation string `json:"goto_location,omitempty"`
 }
 
+type ExecuteDialogActionResponse struct {
+	TriggerId string `json:"trigger_id"`
+}
+
 type Dialog struct {
 	CallbackId       string          `json:"callback_id"`
 	Title            string          `json:"title"`
