@@ -4420,15 +4420,15 @@
   },
   {
     "id": "api.templates.user_access_token_rotated_body.info",
-    "translation": "A personal access token on your account at {{ .SiteURL }} was rotated. The previous token secret is no longer valid."
+    "translation": "A personal access token on your account at {{ .SiteURL }} was regenerated. The previous token secret is no longer valid."
   },
   {
     "id": "api.templates.user_access_token_rotated_body.title",
-    "translation": "Personal access token rotated"
+    "translation": "Personal access token regenerated"
   },
   {
     "id": "api.templates.user_access_token_rotated_subject",
-    "translation": "[{{ .SiteName }}] Personal access token rotated"
+    "translation": "[{{ .SiteName }}] Personal access token regenerated"
   },
   {
     "id": "api.templates.user_access_token_subject",
@@ -5064,7 +5064,7 @@
   },
   {
     "id": "api.user.rotate_user_access_token.disabled_token.app_error",
-    "translation": "Cannot rotate a disabled access token."
+    "translation": "Cannot regenerate a disabled access token."
   },
   {
     "id": "api.user.saml.not_available.app_error",
@@ -9720,7 +9720,7 @@
   },
   {
     "id": "app.user_access_token.rotate.app_error",
-    "translation": "Unable to rotate the access token."
+    "translation": "Unable to regenerate the access token."
   },
   {
     "id": "app.user_access_token.save.app_error",
