@@ -80,19 +80,17 @@ cd docs/site
 npm run docusaurus build       # calls docusaurus directly, skips prebuild
 ```
 
-### Algolia search (local)
+### Algolia search
 
-Copy `.env.local.example` to `.env.local` and fill in credentials:
+There's a single Algolia DocSearch app for `docs.mattermost.com` — credentials
+aren't distributed to individual developers. They're set as repository
+variables (`vars.ALGOLIA_APP_ID`, `vars.ALGOLIA_SEARCH_API_KEY`) and injected
+only in CI/CD. Local builds simply run without them: the site builds cleanly
+and the search bar is omitted (see the conditional in
+`docusaurus.config.ts`).
 
-```shell
-cp .env.local.example .env.local
-# edit .env.local: set ALGOLIA_APP_ID and ALGOLIA_SEARCH_API_KEY
-```
-
-Without credentials the site builds cleanly — the search bar renders as an
-inert box. In GitHub Actions, credentials are set as repository variables
-(`vars.ALGOLIA_APP_ID`, `vars.ALGOLIA_SEARCH_API_KEY`) and injected at
-build time.
+If you need to test search locally, export the same two variables in your
+shell before running `npm start`/`npm run build`.
 
 ## Scripts
 

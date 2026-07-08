@@ -187,7 +187,6 @@ docs/site/node_modules/
 docs/api/reference/
 docs/pdf/build/
 docs/pdf/node_modules/
-docs/site/.env.local
 docs/site/openapi/
 
 # OpenAPI make build artifacts
