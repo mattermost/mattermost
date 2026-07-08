@@ -7,17 +7,16 @@ import {getChannelSlugFromUrl} from './helpers';
 
 /**
  * @objective Verify that a closed group message can be reopened via a saved message and via the Direct Messages modal.
+ *
+ * MM-T477 and MM-T479 are duplicates of MM-T476 (all map to Rainforest RF-MTD188) and are covered by this test.
  */
 test(
-    'MM-T476 closes and reopens a group message via saved messages and the DM modal',
+    'MM-T476 MM-T477 MM-T479 closes and reopens a group message via saved messages and the DM modal',
     {tag: '@direct_messages'},
     async ({pw}) => {
         // # Create the test user plus two more users on the team
         const {user, team, adminClient, userClient} = await pw.initSetup();
-        const member1 = await pw.createNewUserProfile(adminClient, {prefix: 'gmx'});
-        const member2 = await pw.createNewUserProfile(adminClient, {prefix: 'gmy'});
-        await adminClient.addToTeam(team.id, member1.id);
-        await adminClient.addToTeam(team.id, member2.id);
+        const [member1, member2] = await adminClient.createUsers(team.id, 2, 'gm');
 
         const {channelsPage, page} = await pw.testBrowser.login(user);
         await channelsPage.goto(team.name, 'town-square');
