@@ -6,6 +6,8 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/utils"
@@ -69,4 +71,47 @@ func CommandResponseFromJSON(data io.Reader) (*CommandResponse, error) {
 	}
 
 	return &o, nil
+}
+
+func (o *CommandResponse) IsValid() *AppError {
+	// check response type
+	if o.ResponseType != CommandResponseTypeInChannel && o.ResponseType != CommandResponseTypeEphemeral && o.ResponseType != "" {
+		return NewAppError("CommandResponse.IsValid", "model.command_response.is_valid.response_type.app_error", nil, "invalid response type", http.StatusBadRequest)
+	}
+
+	// icon URL must be a valid URL if set
+	if o.IconURL != "" {
+		u, err := url.ParseRequestURI(o.IconURL)
+		if err != nil || (u.Scheme != "http" && u.Scheme != "https") {
+			return NewAppError("CommandResponse.IsValid", "model.command_response.is_valid.icon_url.app_error", nil, "invalid icon url", http.StatusBadRequest)
+		}
+	}
+
+	// goto location must be a valid URL if set
+	if o.GotoLocation != "" {
+		if _, err := url.ParseRequestURI(o.GotoLocation); err != nil {
+			return NewAppError("CommandResponse.IsValid", "model.command_response.is_valid.goto_location.app_error", nil, "invalid goto location", http.StatusBadRequest)
+		}
+	}
+
+	for _, attachment := range o.Attachments {
+		if attachment == nil {
+			continue
+		}
+		if err := attachment.IsValid(); err != nil {
+			return NewAppError("CommandResponse.IsValid", "model.command_response.is_valid.attachment.app_error", nil, "invalid attachment", http.StatusBadRequest)
+		}
+	}
+
+	// recursively validate nested responses
+	for _, resp := range o.ExtraResponses {
+		if resp == nil {
+			continue
+		}
+
+		if err := resp.IsValid(); err != nil {
+			return err
+		}
+	}
+	return nil
 }

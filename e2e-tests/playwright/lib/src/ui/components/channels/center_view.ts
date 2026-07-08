@@ -27,6 +27,9 @@ export default class ChannelsCenterView {
     readonly channelBanner;
     readonly autotranslationBadge;
     readonly flagPostConfirmationDialog;
+    readonly notificationSeparator;
+    readonly postViews;
+    readonly channelIntro;
 
     constructor(container: Locator, page: Page) {
         this.container = container;
@@ -44,6 +47,9 @@ export default class ChannelsCenterView {
             page.getByRole('dialog', {name: 'Quarantine for Review'}),
             page,
         );
+        this.notificationSeparator = container.locator('.NotificationSeparator');
+        this.postViews = container.getByTestId('postView');
+        this.channelIntro = container.locator('#channelIntro');
     }
 
     async toBeVisible() {

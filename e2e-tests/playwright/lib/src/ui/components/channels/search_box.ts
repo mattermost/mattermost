@@ -44,4 +44,14 @@ export default class SearchBox {
     getSelectedSuggestion() {
         return this.searchHints.getByTestId('suggestion-selected');
     }
+
+    /**
+     * Locates a day cell in the "on:" date-filter day picker by day-of-month.
+     * Matches on the leading day number in the accessible name (e.g. "15th January (Tuesday)"),
+     * so callers don't need to compute the ordinal suffix or day-of-week.
+     * @param dayOfMonth
+     */
+    getDayPickerDay(dayOfMonth: number): Locator {
+        return this.container.getByRole('button', {name: new RegExp(`^${dayOfMonth}\\D`)});
+    }
 }

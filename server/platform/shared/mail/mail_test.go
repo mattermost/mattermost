@@ -6,6 +6,7 @@ package mail
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"net"
 	"net/mail"
@@ -18,6 +19,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+const embeddedFileMinSize = 1500
 
 func getConfig() *SMTPConfig {
 	server := os.Getenv("MM_EMAILSETTINGS_SMTPSERVER")
@@ -207,10 +210,10 @@ func TestSendMailPlainText(t *testing.T) {
 func TestSendMailWithEmbeddedFilesUsingConfig(t *testing.T) {
 	cfg := getConfig()
 
-	var emailTo = "test@example.com"
-	var emailSubject = "Testing this email"
-	var emailBody = "This is a test from autobot"
-	var emailCC = "test@example.com"
+	emailTo := fmt.Sprintf("embedded-files-%d@example.com", time.Now().UnixNano())
+	emailSubject := "Testing this email"
+	emailBody := "This is a test from autobot"
+	emailCC := emailTo
 
 	//Delete all the messages before check the sample email
 	DeleteMailBox(emailTo)
@@ -224,10 +227,26 @@ func TestSendMailWithEmbeddedFilesUsingConfig(t *testing.T) {
 
 	//Check if the email was send to the right email address
 	var resultsMailbox JSONMessageHeaderInbucket
-	err3 := RetryInbucket(5, func() error {
+	var resultsEmail JSONMessageInbucket
+	err3 := RetryInbucket(10, func() error {
 		var err error
 		resultsMailbox, err = GetMailBox(emailTo)
-		return err
+		if err != nil {
+			return err
+		}
+		if len(resultsMailbox) == 0 {
+			return fmt.Errorf("no messages in mailbox")
+		}
+
+		resultsEmail, err = GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
+		if err != nil {
+			return err
+		}
+		if resultsEmail.Size <= embeddedFileMinSize {
+			return fmt.Errorf("message size %d does not yet reflect embedded attachments", resultsEmail.Size)
+		}
+
+		return nil
 	})
 	if err3 != nil {
 		t.Log(err3)
@@ -235,11 +254,9 @@ func TestSendMailWithEmbeddedFilesUsingConfig(t *testing.T) {
 	} else {
 		if len(resultsMailbox) > 0 {
 			require.Contains(t, resultsMailbox[0].To[0], emailTo, "Wrong To: recipient")
-			resultsEmail, err := GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
-			require.NoError(t, err, "Could not get message from mailbox")
 			require.Contains(t, emailBody, resultsEmail.Body.Text, "Wrong received message %s", resultsEmail.Body.Text)
 			// Usign the message size because the inbucket API doesn't return embedded attachments through the API
-			require.Greater(t, resultsEmail.Size, 1500, "the file size should be more because the embedded attachments")
+			require.Greater(t, resultsEmail.Size, embeddedFileMinSize, "the file size should be more because the embedded attachments")
 		}
 	}
 }

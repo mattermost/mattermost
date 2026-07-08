@@ -30,14 +30,58 @@ export default class ChannelsSidebarLeft {
     }
 
     /**
-     * Clicks on the sidebar channel link with the given name.
+     * Locates the sidebar link with the given name.
      * It can be any sidebar item name including channels, direct messages, or group messages, threads, etc.
+     * Falls back to matching by visible text since some sidebar items (e.g. DMs) may not resolve by the plain ID.
+     * @param name
+     */
+    item(name: string): Locator {
+        return this.container
+            .locator(`#sidebarItem_${name}`)
+            .or(this.container.locator('.SidebarLink').filter({hasText: name}))
+            .first();
+    }
+
+    /**
+     * Clicks on the sidebar channel link with the given name.
      * @param channelName
      */
     async goToItem(channelName: string) {
-        const channel = this.container.locator(`#sidebarItem_${channelName}`);
+        const channel = this.item(channelName);
         await channel.waitFor();
         await channel.click();
+    }
+
+    /**
+     * Verifies the sidebar item with the given name is in the unread state.
+     * @param name
+     */
+    async assertItemUnread(name: string) {
+        await expect(this.item(name)).toHaveClass(/unread|unread-title/);
+    }
+
+    /**
+     * Verifies the sidebar item with the given name is in the read (not unread) state.
+     * @param name
+     */
+    async assertItemRead(name: string) {
+        await expect(this.item(name)).not.toHaveClass(/unread|unread-title/);
+    }
+
+    /**
+     * Locates the unread-mentions count badge nested inside the sidebar item with the given name.
+     * @param name
+     */
+    unreadMentionsBadge(name: string): Locator {
+        return this.item(name).locator('#unreadMentions');
+    }
+
+    /**
+     * Locates the group message member-count badge nested inside the sidebar item with the given name.
+     * @param name
+     */
+    memberCountBadge(name: string): Locator {
+        return this.item(name).locator('.status--group');
     }
 
     /**
