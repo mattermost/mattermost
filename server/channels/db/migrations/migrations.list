@@ -399,3 +399,5 @@ channels/db/migrations/postgres/000201_create_property_fields_groupid_updateat_i
 channels/db/migrations/postgres/000201_create_property_fields_groupid_updateat_id_index.up.sql
 channels/db/migrations/postgres/000202_create_property_values_groupid_updateat_id_index.down.sql
 channels/db/migrations/postgres/000202_create_property_values_groupid_updateat_id_index.up.sql
+channels/db/migrations/postgres/000203_resize_message_columns.down.sql
+channels/db/migrations/postgres/000203_resize_message_columns.up.sql

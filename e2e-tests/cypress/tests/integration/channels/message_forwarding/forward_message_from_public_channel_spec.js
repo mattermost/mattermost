@@ -11,9 +11,11 @@
 
 import * as TIMEOUTS from '@/fixtures/timeouts';
 
-const DEFAULT_CHARACTER_LIMIT = 16383;
-
 describe('Forward Message', () => {
+    // The maximum message length is decided by the server (config.MaxPostSize,
+    // derived from PostMessageMaxBytesV2 / 4), so read it rather than hardcoding.
+    let maxMessageLength;
+
     let user1;
     let user2;
     let user3;
@@ -30,6 +32,12 @@ describe('Forward Message', () => {
     const replyMessage = 'Forward this reply';
 
     before(() => {
+        // MaxPostSize is a computed value only present in the client config,
+        // so request that (old format) rather than the admin config.
+        cy.apiGetConfig(true).then(({config}) => {
+            maxMessageLength = parseInt(config.MaxPostSize, 10);
+        });
+
         cy.apiUpdateConfig({
             ServiceSettings: {
                 ThreadAutoFollow: true,
@@ -305,7 +313,7 @@ describe('Forward Message', () => {
      */
     const forwardPost = ({channelId, comment = '', testLongComment = false}) => {
         const permalink = `${Cypress.config('baseUrl')}/${testTeam.name}/pl/${testPost.id}`;
-        const maxPostSize = DEFAULT_CHARACTER_LIMIT - permalink.length - 1;
+        const maxPostSize = maxMessageLength - permalink.length - 1;
         const longMessage = 'M'.repeat(maxPostSize);
         const extraChars = 'X';
 
