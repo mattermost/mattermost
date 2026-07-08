@@ -271,6 +271,36 @@ func (_m *SessionStore) GetSessionsWithActiveDeviceIds(userID string) ([]*model.
 	return r0, r1
 }
 
+// GetSessionsWithActiveDeviceIdsForTestNotifications provides a mock function with given fields: userID
+func (_m *SessionStore) GetSessionsWithActiveDeviceIdsForTestNotifications(userID string) ([]*model.Session, error) {
+	ret := _m.Called(userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSessionsWithActiveDeviceIdsForTestNotifications")
+	}
+
+	var r0 []*model.Session
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) ([]*model.Session, error)); ok {
+		return rf(userID)
+	}
+	if rf, ok := ret.Get(0).(func(string) []*model.Session); ok {
+		r0 = rf(userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Session)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // PermanentDeleteSessionsByUser provides a mock function with given fields: teamID
 func (_m *SessionStore) PermanentDeleteSessionsByUser(teamID string) error {
 	ret := _m.Called(teamID)

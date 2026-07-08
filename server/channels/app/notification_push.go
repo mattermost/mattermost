@@ -52,23 +52,24 @@ type PushNotificationsHub struct {
 }
 
 type PushNotification struct {
-	notificationType   notificationType
-	currentSessionId   string
-	userID             string
-	channelID          string
-	rootID             string
-	post               *model.Post
-	user               *model.User
-	channel            *model.Channel
-	senderName         string
-	channelName        string
-	explicitMention    bool
-	channelWideMention bool
-	replyToThreadType  string
+	notificationType     notificationType
+	forTestNotification  bool
+	currentSessionId     string
+	userID               string
+	channelID            string
+	rootID               string
+	post                 *model.Post
+	user                 *model.User
+	channel              *model.Channel
+	senderName           string
+	channelName          string
+	explicitMention      bool
+	channelWideMention   bool
+	replyToThreadType    string
 }
 
 func (a *App) sendPushNotificationSync(rctx request.CTX, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
-	explicitMention bool, channelWideMention bool, replyToThreadType string,
+	explicitMention bool, channelWideMention bool, replyToThreadType string, forTestNotification bool,
 ) *model.AppError {
 	cfg := a.Config()
 	msg, appErr := a.BuildPushNotificationMessage(
@@ -87,10 +88,10 @@ func (a *App) sendPushNotificationSync(rctx request.CTX, post *model.Post, user 
 		return appErr
 	}
 
-	return a.sendPushNotificationToAllSessions(rctx, msg, user.Id, "")
+	return a.sendPushNotificationToAllSessions(rctx, msg, user.Id, "", forTestNotification)
 }
 
-func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.PushNotification, userID string, skipSessionId string) *model.AppError {
+func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.PushNotification, userID string, skipSessionId string, forTestNotification bool) *model.AppError {
 	rejectionReason := ""
 
 	if msg == nil {
@@ -146,7 +147,7 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 		return nil
 	}
 
-	sessions, appErr := a.getMobileAppSessions(userID)
+	sessions, appErr := a.getMobileAppSessions(userID, forTestNotification)
 	if appErr != nil {
 		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonFetchError, model.NotificationNoPlatform)
 		rctx.Logger().LogM(mlog.MlvlNotificationError, "Failed to send mobile app sessions",
@@ -177,8 +178,12 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 		// We made a copy to avoid decoding and parsing all the time
 		tmpMessage := msg.DeepCopy()
 
-		standardUsable := session.DeviceId != "" && session.Props[model.SessionPropLastRemovedDeviceId] != session.DeviceId
-		voIPUsable := session.VoIPDeviceId != "" && session.Props[model.SessionPropLastRemovedVoIPDeviceId] != session.VoIPDeviceId
+		standardUsable := session.DeviceId != ""
+		voIPUsable := session.VoIPDeviceId != ""
+		if !forTestNotification {
+			standardUsable = standardUsable && session.Props[model.SessionPropLastRemovedDeviceId] != session.DeviceId
+			voIPUsable = voIPUsable && session.Props[model.SessionPropLastRemovedVoIPDeviceId] != session.VoIPDeviceId
+		}
 
 		var deviceId string
 		if tmpMessage.Transport == model.PushTransportVoIP {
@@ -225,7 +230,7 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 		}
 		tmpMessage.Signature = signature
 
-		err = a.sendToPushProxy(rctx, tmpMessage, session)
+		err = a.sendToPushProxy(rctx, tmpMessage, session, forTestNotification)
 		if err != nil {
 			reason := model.NotificationReasonPushProxySendError
 			if err.Error() == notificationErrorRemoveDevice {
@@ -285,9 +290,12 @@ func (a *App) sendPushNotification(notification *PostNotification, user *model.U
 	channelName := notification.GetChannelName(nameFormat, user.Id)
 	senderName := notification.GetSenderName(nameFormat, *cfg.ServiceSettings.EnablePostUsernameOverride)
 
+	forTestNotification := post.GetProp(model.PostPropsTestNotification) != nil && post.GetProp(model.PostPropsTestNotification) != ""
+
 	select {
 	case a.Srv().PushNotificationsHub.notificationsChan <- PushNotification{
-		notificationType:   notificationTypeMessage,
+		notificationType:    notificationTypeMessage,
+		forTestNotification: forTestNotification,
 		post:               post,
 		user:               user,
 		channel:            channel,
@@ -393,7 +401,7 @@ func (a *App) clearPushNotificationSync(rctx request.CTX, currentSessionId, user
 		IsCRTEnabled:     isCRTEnabled,
 	}
 
-	return a.sendPushNotificationToAllSessions(rctx, msg, userID, currentSessionId)
+	return a.sendPushNotificationToAllSessions(rctx, msg, userID, currentSessionId, false)
 }
 
 func (a *App) clearPushNotification(currentSessionId, userID, channelID, rootID string) {
@@ -423,7 +431,7 @@ func (a *App) updateMobileAppBadgeSync(rctx request.CTX, userID string) *model.A
 		ContentAvailable: 1,
 		Badge:            badgeCount,
 	}
-	return a.sendPushNotificationToAllSessions(rctx, msg, userID, "")
+	return a.sendPushNotificationToAllSessions(rctx, msg, userID, "", false)
 }
 
 func (a *App) UpdateMobileAppBadge(userID string) {
@@ -491,6 +499,7 @@ func (hub *PushNotificationsHub) start(rctx request.CTX) {
 						notification.explicitMention,
 						notification.channelWideMention,
 						notification.replyToThreadType,
+						notification.forTestNotification,
 					)
 				case notificationTypeUpdateBadge:
 					err = hub.app.updateMobileAppBadgeSync(rctx, notification.userID)
@@ -567,7 +576,7 @@ func (a *App) rawSendToPushProxy(msg *model.PushNotification) (model.PushRespons
 	return pushResponse, nil
 }
 
-func (a *App) sendToPushProxy(rctx request.CTX, msg *model.PushNotification, session *model.Session) error {
+func (a *App) sendToPushProxy(rctx request.CTX, msg *model.PushNotification, session *model.Session, recoverRemovedDeviceOnSuccess bool) error {
 	msg.ServerId = a.ServerId()
 
 	rctx.Logger().LogM(mlog.MlvlNotificationTrace, "Notification will be sent",
@@ -601,7 +610,75 @@ func (a *App) sendToPushProxy(rctx request.CTX, msg *model.PushNotification, ses
 	case model.PushStatusFail:
 		return errors.New(pushResponse[model.PushStatusErrorMsg])
 	}
+
+	if recoverRemovedDeviceOnSuccess {
+		a.recoverRemovedDeviceFromSession(rctx, session, msg)
+	}
 	return nil
+}
+
+func (a *App) recoverRemovedDeviceFromSession(rctx request.CTX, session *model.Session, msg *model.PushNotification) {
+	removedProp := model.SessionPropLastRemovedDeviceId
+	deviceID := session.DeviceId
+	if msg.Transport == model.PushTransportVoIP {
+		removedProp = model.SessionPropLastRemovedVoIPDeviceId
+		deviceID = session.VoIPDeviceId
+	}
+
+	if deviceID == "" || session.Props[removedProp] != deviceID {
+		return
+	}
+
+	appErr := a.SetExtraSessionProps(session, map[string]string{
+		removedProp: "",
+	})
+	if appErr != nil {
+		rctx.Logger().Error("Failed to recover session device after successful test notification",
+			mlog.String("user_id", session.UserId),
+			mlog.String("session_id", session.Id),
+			mlog.String("deviceId", model.RedactDeviceId(deviceID)),
+			mlog.Err(appErr),
+		)
+		return
+	}
+
+	a.ClearSessionCacheForUser(session.UserId)
+	rctx.Logger().Info("Recovered session device from last_removed state after successful test notification",
+		mlog.String("user_id", session.UserId),
+		mlog.String("session_id", session.Id),
+		mlog.String("deviceId", model.RedactDeviceId(deviceID)),
+		mlog.String("transport", string(msg.Transport)),
+	)
+}
+
+func (a *App) recoverRemovedDeviceForTestPush(rctx request.CTX, userID, deviceID string) {
+	sessions, appErr := a.getMobileAppSessions(userID, true)
+	if appErr != nil {
+		rctx.Logger().Error("Failed to get mobile app sessions while recovering device from test push",
+			mlog.String("user_id", userID),
+			mlog.String("deviceId", model.RedactDeviceId(deviceID)),
+			mlog.Err(appErr),
+		)
+		return
+	}
+
+	msg := &model.PushNotification{
+		Transport: model.PushTransportStandard,
+	}
+	msg.SetDeviceIdAndPlatform(deviceID)
+
+	for _, session := range sessions {
+		if session.DeviceId == deviceID {
+			a.recoverRemovedDeviceFromSession(rctx, session, msg)
+		}
+		if session.VoIPDeviceId == deviceID {
+			voIPMsg := &model.PushNotification{
+				Transport: model.PushTransportVoIP,
+			}
+			voIPMsg.SetDeviceIdAndPlatform(deviceID)
+			a.recoverRemovedDeviceFromSession(rctx, session, voIPMsg)
+		}
+	}
 }
 
 func (a *App) SendAckToPushProxy(rctx request.CTX, ack *model.PushNotificationAck) error {
@@ -650,8 +727,14 @@ func (a *App) SendAckToPushProxy(rctx request.CTX, ack *model.PushNotificationAc
 	return err
 }
 
-func (a *App) getMobileAppSessions(userID string) ([]*model.Session, *model.AppError) {
-	sessions, err := a.Srv().Store().Session().GetSessionsWithActiveDeviceIds(userID)
+func (a *App) getMobileAppSessions(userID string, forTestNotification bool) ([]*model.Session, *model.AppError) {
+	var sessions []*model.Session
+	var err error
+	if forTestNotification {
+		sessions, err = a.Srv().Store().Session().GetSessionsWithActiveDeviceIdsForTestNotifications(userID)
+	} else {
+		sessions, err = a.Srv().Store().Session().GetSessionsWithActiveDeviceIds(userID)
+	}
 	if err != nil {
 		return nil, model.NewAppError("getMobileAppSessions", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -845,6 +928,10 @@ func (a *App) SendTestPushNotification(rctx request.CTX, deviceId string) string
 			mlog.Err(errors.New(pushResponse[model.PushStatusErrorMsg])),
 		)
 		return "unknown"
+	}
+
+	if session := rctx.Session(); session != nil {
+		a.recoverRemovedDeviceForTestPush(rctx, session.UserId, deviceId)
 	}
 
 	return "true"

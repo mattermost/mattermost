@@ -204,6 +204,28 @@ func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*mode
 	return sessions, nil
 }
 
+func (me SqlSessionStore) GetSessionsWithActiveDeviceIdsForTestNotifications(userId string) ([]*model.Session, error) {
+	now := model.GetMillis()
+
+	// Same as GetSessionsWithActiveDeviceIds but includes sessions whose device
+	// tokens were previously marked removed so test notifications can attempt recovery.
+	builder := me.sessionSelectQuery.
+		Where(sq.Eq{"UserId": userId}).
+		Where(sq.NotEq{"ExpiresAt": 0}).
+		Where(sq.GtOrEq{"ExpiresAt": now}).
+		Where(sq.Or{
+			sq.NotEq{"DeviceId": ""},
+			sq.NotEq{"VoIPDeviceId": ""},
+		})
+
+	sessions := []*model.Session{}
+
+	if err := me.GetReplica().SelectBuilder(&sessions, builder); err != nil {
+		return nil, errors.Wrapf(err, "failed to find Sessions with userId=%s for test notifications", userId)
+	}
+	return sessions, nil
+}
+
 func (me SqlSessionStore) GetAllSessionsWithActiveDeviceIds() ([]*model.Session, error) {
 	builder := me.sessionSelectQuery.
 		Where(sq.NotEq{"DeviceId": ""}).

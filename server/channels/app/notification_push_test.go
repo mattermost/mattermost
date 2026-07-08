@@ -1095,11 +1095,11 @@ func TestSendPushNotifications(t *testing.T) {
 	require.Nil(t, err)
 
 	t.Run("should return error if data is not valid or nil", func(t *testing.T) {
-		err := th.App.sendPushNotificationToAllSessions(th.Context, nil, th.BasicUser.Id, "")
+		err := th.App.sendPushNotificationToAllSessions(th.Context, nil, th.BasicUser.Id, "", false)
 		require.NotNil(t, err)
 		assert.Equal(t, "api.push_notifications.message.parse.app_error", err.Id)
 		// Errors derived of using an empty object are handled internally through the notifications log
-		err = th.App.sendPushNotificationToAllSessions(th.Context, &model.PushNotification{}, th.BasicUser.Id, "")
+		err = th.App.sendPushNotificationToAllSessions(th.Context, &model.PushNotification{}, th.BasicUser.Id, "", false)
 		require.Nil(t, err)
 	})
 }
@@ -1211,7 +1211,7 @@ func TestSendPushNotificationsTransportRouting(t *testing.T) {
 				SubType:   model.PushSubTypeCalls,
 				Transport: tc.transport,
 			}
-			appErr := th.App.sendPushNotificationToAllSessions(th.Context, msg, th.BasicUser.Id, "")
+			appErr := th.App.sendPushNotificationToAllSessions(th.Context, msg, th.BasicUser.Id, "", false)
 			require.Nil(t, appErr)
 
 			if !tc.expectSent {
@@ -1258,7 +1258,7 @@ func TestSendPushNotificationsVoIPRemoveTracking(t *testing.T) {
 		SubType:   model.PushSubTypeCalls,
 		Transport: model.PushTransportVoIP,
 	}
-	appErr := th.App.sendPushNotificationToAllSessions(th.Context, msg, th.BasicUser.Id, "")
+	appErr := th.App.sendPushNotificationToAllSessions(th.Context, msg, th.BasicUser.Id, "", false)
 	require.Nil(t, appErr)
 
 	require.Eventually(t, func() bool {
@@ -1278,7 +1278,7 @@ func TestSendPushNotificationsVoIPRemoveTracking(t *testing.T) {
 		SubType:   model.PushSubTypeCalls,
 		Transport: model.PushTransportVoIP,
 	}
-	appErr = th.App.sendPushNotificationToAllSessions(th.Context, msg2, th.BasicUser.Id, "")
+	appErr = th.App.sendPushNotificationToAllSessions(th.Context, msg2, th.BasicUser.Id, "", false)
 	require.Nil(t, appErr)
 
 	require.Eventually(t, func() bool {
@@ -1642,6 +1642,109 @@ func TestSendTestPushNotification(t *testing.T) {
 	require.Equal(t, 2, handler.numReqs())
 	assert.Equal(t, model.PushTypeTest, handler.notifications()[0].Type)
 	assert.Equal(t, model.PushTypeTest, handler.notifications()[1].Type)
+}
+
+func TestSendPushNotificationToAllSessionsRecoversRemovedDeviceOnTestNotification(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	const deviceToken = model.PushNotifyAppleReactNative + ":removedtoken"
+
+	handler := &testPushNotificationHandler{t: t, behavior: "simple"}
+	pushServer := httptest.NewServer(http.HandlerFunc(handler.handleReq))
+	defer pushServer.Close()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+	})
+
+	session, appErr := th.App.CreateSession(th.Context, &model.Session{
+		UserId:    th.BasicUser.Id,
+		DeviceId:  deviceToken,
+		ExpiresAt: model.GetMillis() + 100000,
+		Props: map[string]string{
+			model.SessionPropLastRemovedDeviceId: deviceToken,
+		},
+	})
+	require.Nil(t, appErr)
+
+	msg := &model.PushNotification{
+		Type: model.PushTypeMessage,
+	}
+	appErr = th.App.sendPushNotificationToAllSessions(th.Context, msg, th.BasicUser.Id, "", true)
+	require.Nil(t, appErr)
+
+	updatedSession, err := th.App.Srv().Store().Session().Get(th.Context, session.Id)
+	require.NoError(t, err)
+	require.Empty(t, updatedSession.Props[model.SessionPropLastRemovedDeviceId])
+}
+
+func TestSendPushNotificationToAllSessionsDoesNotRecoverRemovedDeviceForRegularNotifications(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	const deviceToken = model.PushNotifyAppleReactNative + ":removedtoken"
+
+	handler := &testPushNotificationHandler{t: t, behavior: "simple"}
+	pushServer := httptest.NewServer(http.HandlerFunc(handler.handleReq))
+	defer pushServer.Close()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+	})
+
+	session, appErr := th.App.CreateSession(th.Context, &model.Session{
+		UserId:    th.BasicUser.Id,
+		DeviceId:  deviceToken,
+		ExpiresAt: model.GetMillis() + 100000,
+		Props: map[string]string{
+			model.SessionPropLastRemovedDeviceId: deviceToken,
+		},
+	})
+	require.Nil(t, appErr)
+
+	msg := &model.PushNotification{
+		Type: model.PushTypeMessage,
+	}
+	appErr = th.App.sendPushNotificationToAllSessions(th.Context, msg, th.BasicUser.Id, "", false)
+	require.Nil(t, appErr)
+
+	updatedSession, err := th.App.Srv().Store().Session().Get(th.Context, session.Id)
+	require.NoError(t, err)
+	require.Equal(t, deviceToken, updatedSession.Props[model.SessionPropLastRemovedDeviceId])
+	assert.Empty(t, handler.notifications())
+}
+
+func TestSendTestPushNotificationRecoversRemovedDevice(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	const deviceToken = model.PushNotifyAppleReactNative + ":testtoken"
+
+	handler := &testPushNotificationHandler{t: t, behavior: "simple"}
+	pushServer := httptest.NewServer(http.HandlerFunc(handler.handleReq))
+	defer pushServer.Close()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+	})
+
+	session, appErr := th.App.CreateSession(th.Context, &model.Session{
+		UserId:    th.BasicUser.Id,
+		DeviceId:  deviceToken,
+		ExpiresAt: model.GetMillis() + 100000,
+		Props: map[string]string{
+			model.SessionPropLastRemovedDeviceId: deviceToken,
+		},
+	})
+	require.Nil(t, appErr)
+
+	result := th.App.SendTestPushNotification(th.Context.WithSession(session), deviceToken)
+	assert.Equal(t, "true", result)
+
+	updatedSession, err := th.App.Srv().Store().Session().Get(th.Context, session.Id)
+	require.NoError(t, err)
+	require.Empty(t, updatedSession.Props[model.SessionPropLastRemovedDeviceId])
 }
 
 func TestSendAckToPushProxy(t *testing.T) {

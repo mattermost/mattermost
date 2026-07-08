@@ -40,6 +40,7 @@ func TestSessionStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("UpdateExpiredNotify", func(t *testing.T) { testUpdateExpiredNotify(t, rctx, ss) })
 	t.Run("GetLRUSessions", func(t *testing.T) { testGetLRUSessions(t, rctx, ss) })
 	t.Run("GetSessionsWithActiveDeviceIds", func(t *testing.T) { testGetSessionsWithActiveDeviceIds(t, rctx, ss) })
+	t.Run("GetSessionsWithActiveDeviceIdsForTestNotifications", func(t *testing.T) { testGetSessionsWithActiveDeviceIdsForTestNotifications(t, rctx, ss) })
 	t.Run("GetAllSessionsWithActiveDeviceIds", func(t *testing.T) { testGetAllSessionsWithActiveDeviceIds(t, rctx, ss) })
 	t.Run("GetMobileSessionMetadata", func(t *testing.T) { testGetMobileSessionMetadata(t, rctx, ss) })
 }
@@ -532,6 +533,44 @@ func testGetSessionsWithActiveDeviceIds(t *testing.T, rctx request.CTX, ss store
 	require.False(t, sessionIds[s4.Id])
 	require.False(t, sessionIds[s5.Id])
 	require.False(t, sessionIds[s8.Id])
+}
+
+func testGetSessionsWithActiveDeviceIdsForTestNotifications(t *testing.T, rctx request.CTX, ss store.Store) {
+	userId := model.NewId()
+
+	s1 := &model.Session{}
+	s1.UserId = userId
+	s1.ExpiresAt = model.GetMillis() + 100000
+	s1.DeviceId = model.NewId()
+	s1, err := ss.Session().Save(rctx, s1)
+	require.NoError(t, err)
+
+	s3 := &model.Session{}
+	s3.UserId = userId
+	s3.ExpiresAt = model.GetMillis() + 100000
+	s3.DeviceId = model.NewId()
+	s3.AddProp(model.SessionPropLastRemovedDeviceId, s3.DeviceId)
+	s3, err = ss.Session().Save(rctx, s3)
+	require.NoError(t, err)
+
+	s5 := &model.Session{}
+	s5.UserId = userId
+	s5.ExpiresAt = model.GetMillis() - 100000
+	s5.DeviceId = model.NewId()
+	s5, err = ss.Session().Save(rctx, s5)
+	require.NoError(t, err)
+
+	sessions, err := ss.Session().GetSessionsWithActiveDeviceIdsForTestNotifications(userId)
+	require.NoError(t, err)
+	require.Len(t, sessions, 2)
+
+	sessionIds := make(map[string]bool)
+	for _, session := range sessions {
+		sessionIds[session.Id] = true
+	}
+	require.True(t, sessionIds[s1.Id])
+	require.True(t, sessionIds[s3.Id], "sessions marked as removed should be included for test notifications")
+	require.False(t, sessionIds[s5.Id])
 }
 
 func testUpdateExpiredNotify(t *testing.T, rctx request.CTX, ss store.Store) {

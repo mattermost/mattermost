@@ -3321,6 +3321,7 @@ func (a *App) SendTestMessage(rctx request.CTX, userID string) (*model.Post, *mo
 		Type:      model.PostTypeDefault,
 		UserId:    bot.UserId,
 	}
+	post.AddProp(model.PostPropsTestNotification, model.NewId())
 
 	// We don't check the preview membership because the test message does not send a link to a different post.
 	post, _, err = a.CreatePost(rctx, post, channel, model.CreatePostFlags{ForceNotification: true})

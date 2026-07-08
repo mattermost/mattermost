@@ -1710,7 +1710,7 @@ func TestHookNotificationWillBePushedTransportPreserved(t *testing.T) {
 				SubType:   model.PushSubTypeCalls,
 				Transport: model.PushTransportVoIP,
 			}
-			appErr := th.App.sendPushNotificationToAllSessions(th.Context, msg, th.BasicUser.Id, "")
+			appErr := th.App.sendPushNotificationToAllSessions(th.Context, msg, th.BasicUser.Id, "", false)
 			require.Nil(t, appErr)
 
 			require.Eventually(t, func() bool {

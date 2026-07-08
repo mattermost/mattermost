@@ -56,7 +56,7 @@ func (a *App) NotifySessionsExpired() error {
 			mlog.String("post_id", msg.PostId),
 		))
 
-		errPush := a.sendToPushProxy(rctx, tmpMessage, session)
+		errPush := a.sendToPushProxy(rctx, tmpMessage, session, false)
 		if errPush != nil {
 			reason := model.NotificationReasonPushProxySendError
 			if errPush.Error() == notificationErrorRemoveDevice {
