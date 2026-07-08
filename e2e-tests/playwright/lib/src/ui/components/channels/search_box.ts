@@ -41,7 +41,26 @@ export default class SearchBox {
         await expect(this.container).toBeVisible();
     }
 
+    /**
+     * Fills the search input with the given term and submits the search.
+     */
+    async search(term: string) {
+        await expect(this.searchInput).toBeVisible();
+        await this.searchInput.fill(term);
+        await this.searchInput.press('Enter');
+    }
+
     getSelectedSuggestion() {
         return this.searchHints.getByTestId('suggestion-selected');
+    }
+
+    /**
+     * Locates a day cell in the "on:" date-filter day picker by day-of-month.
+     * Matches on the leading day number in the accessible name (e.g. "15th January (Tuesday)"),
+     * so callers don't need to compute the ordinal suffix or day-of-week.
+     * @param dayOfMonth
+     */
+    getDayPickerDay(dayOfMonth: number): Locator {
+        return this.container.getByRole('button', {name: new RegExp(`^${dayOfMonth}\\D`)});
     }
 }

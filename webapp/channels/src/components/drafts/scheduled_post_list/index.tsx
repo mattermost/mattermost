@@ -14,8 +14,8 @@ import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import type {GlobalState} from 'types/store';
 
 import EmptyScheduledPostList from './empty_scheduled_post_list';
-import NonVirtualizedScheduledPostList from './non_virtualized_scheduled_post_list';
 import ScheduledPostError from './scheduled_post_error';
+import VirtualizedScheduledPostList from './virtualized_scheduled_post_list';
 
 import './scheduled_post_list.scss';
 
@@ -46,10 +46,10 @@ export default function ScheduledPostList(props: Props) {
     }
 
     return (
-        <div className='ScheduledPostList nonVirtualizedScheduledPostList'>
+        <div className='ScheduledPostList'>
             {scheduledPostsHasError && (<ScheduledPostError/>)}
 
-            <NonVirtualizedScheduledPostList
+            <VirtualizedScheduledPostList
                 scheduledPosts={props.scheduledPosts}
                 currentUser={props.currentUser}
                 userDisplayName={props.userDisplayName}

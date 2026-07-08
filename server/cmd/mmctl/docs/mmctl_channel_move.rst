@@ -10,7 +10,7 @@ Synopsis
 
 
 Moves the provided channels to the specified team.
-Validates that all users in the channel belong to the target team. Incoming/Outgoing webhooks are moved along with the channel.
+Validates that all users in the channel belong to the target team. If some users are not members of the target team, the move fails and the missing users are listed; use --auto-add-users to add them to the target team automatically, or --force to remove them from the channel. Incoming/Outgoing webhooks are moved along with the channel.
 Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.
 
 ::
@@ -29,8 +29,9 @@ Options
 
 ::
 
-      --force   Remove users that are not members of target team before moving the channel.
-  -h, --help    help for move
+      --auto-add-users   Add users that are not members of the target team to it before moving the channel.
+      --force            Remove users that are not members of target team before moving the channel.
+  -h, --help             help for move
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

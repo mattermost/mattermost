@@ -599,6 +599,10 @@ func (a *App) DoCommandRequest(rctx request.CTX, cmd *model.Command, p url.Value
 		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed_empty.app_error", map[string]any{"Trigger": cmd.Trigger}, "", http.StatusInternalServerError)
 	}
 
+	if appErr := response.IsValid(); appErr != nil {
+		rctx.Logger().Warn("Command response is not valid. Please update your integration to be compliant.", mlog.Err(appErr))
+	}
+
 	return cmd, response, nil
 }
 

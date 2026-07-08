@@ -80,6 +80,7 @@ interface CELEditorProps {
     userAttributes: Array<{
         attribute: string;
         values: string[];
+        isNative?: boolean;
     }>;
 
     /**
@@ -128,12 +129,23 @@ function CELEditor({
         isWaitingForValidation: false,
     });
 
-    const schemas = {
-        user: ['attributes'],
-        'user.attributes': userAttributes.
-            map((attr) => attr.attribute).
-            filter((attr) => !attr.includes(' ') && attr.trim() !== ''),
+    const usableNames = (attrs: typeof userAttributes) => attrs.
+        map((attr) => attr.attribute).
+        filter((attr) => !attr.includes(' ') && attr.trim() !== '');
+
+    const nativeNames = usableNames(userAttributes.filter((attr) => attr.isNative));
+    const cpaNames = usableNames(userAttributes.filter((attr) => !attr.isNative));
+
+    // Native attributes complete directly off `user.` (e.g. user.email), while
+    // custom profile attributes live under `user.attributes.`. createat exposes
+    // the youngerThanDays member helper.
+    const schemas: Record<string, string[]> = {
+        user: ['attributes', ...nativeNames],
+        'user.attributes': cpaNames,
     };
+    if (nativeNames.includes('createat')) {
+        schemas['user.createat'] = ['youngerThanDays'];
+    }
 
     const editorRef = useRef(null);
     const monacoRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);

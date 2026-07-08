@@ -43,24 +43,28 @@ func TestCommandResponseFromJSON(t *testing.T) {
 		Json                    string
 		ExpectedCommandResponse *CommandResponse
 		ShouldError             bool
+		ExpectInvalid           bool
 	}{
 		{
 			"empty response",
 			"",
 			nil,
 			true,
+			false,
 		},
 		{
 			"malformed response",
 			`{"text": }`,
 			nil,
 			true,
+			false,
 		},
 		{
 			"invalid response",
 			`{"text": "test", "response_type": 5}`,
 			nil,
 			true,
+			false,
 		},
 		{
 			"ephemeral response",
@@ -69,8 +73,8 @@ func TestCommandResponseFromJSON(t *testing.T) {
 				"text": "response text",
 				"username": "response username",
 				"channel_id": "response channel id",
-				"icon_url": "response icon url",
-				"goto_location": "response goto location",
+				"icon_url": "http://example.com/icon.png",
+				"goto_location": "http://example.com/icon.png",
 				"attachments": [{
 					"text": "attachment 1 text",
 					"pretext": "attachment 1 pretext"
@@ -92,8 +96,8 @@ func TestCommandResponseFromJSON(t *testing.T) {
 				Text:         "response text",
 				Username:     "response username",
 				ChannelId:    "response channel id",
-				IconURL:      "response icon url",
-				GotoLocation: "response goto location",
+				IconURL:      "http://example.com/icon.png",
+				GotoLocation: "http://example.com/icon.png",
 				Attachments: []*MessageAttachment{
 					{
 						Text:    "attachment 1 text",
@@ -117,6 +121,7 @@ func TestCommandResponseFromJSON(t *testing.T) {
 				},
 			},
 			false,
+			false,
 		},
 		{
 			"null array items",
@@ -134,6 +139,7 @@ func TestCommandResponseFromJSON(t *testing.T) {
 					},
 				},
 			},
+			false,
 			false,
 		},
 		{
@@ -154,6 +160,49 @@ func TestCommandResponseFromJSON(t *testing.T) {
 					},
 				},
 			},
+			false,
+			false,
+		},
+		{
+			"invalid response type should fail validation",
+			`{"text": "hello","response_type": "shliapa_type"}`,
+			&CommandResponse{
+				ResponseType: "shliapa_type",
+				Text:         "hello",
+			},
+			false,
+			true,
+		},
+		{
+			"invalid response type inside extra_responses should fail validation",
+			`{
+                "text": "main ok",
+                "response_type": "in_channel",
+                "extra_responses": [
+                    {"text": "nested bad", "response_type": "invalid_nested_type"}
+                ]
+            }`,
+			&CommandResponse{
+				ResponseType: "in_channel",
+				Text:         "main ok",
+				ExtraResponses: []*CommandResponse{
+					{
+						ResponseType: "invalid_nested_type",
+						Text:         "nested bad",
+					},
+				},
+			},
+			false,
+			true,
+		},
+		{
+			"valid https goto_location should pass validation",
+			`{"text": "hello", "goto_location": "https://example.com"}`,
+			&CommandResponse{
+				Text:         "hello",
+				GotoLocation: "https://example.com",
+			},
+			false,
 			false,
 		},
 		{
@@ -200,6 +249,7 @@ func TestCommandResponseFromJSON(t *testing.T) {
 				},
 			},
 			false,
+			false,
 		},
 	}
 
@@ -209,11 +259,18 @@ func TestCommandResponseFromJSON(t *testing.T) {
 
 			response, err := CommandResponseFromJSON(strings.NewReader(testCase.Json))
 			if testCase.ShouldError {
+				assert.Error(t, err)
 				assert.Nil(t, response)
 			} else {
 				assert.NoError(t, err)
 				if assert.NotNil(t, response) {
 					assert.Equal(t, testCase.ExpectedCommandResponse, response)
+
+					if testCase.ExpectInvalid {
+						assert.NotNil(t, response.IsValid())
+					} else {
+						assert.Nil(t, response.IsValid())
+					}
 				}
 			}
 		})

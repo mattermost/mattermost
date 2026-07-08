@@ -20,6 +20,8 @@ export default class ChannelsPostCreate {
     readonly scheduleMessageButton;
     readonly priorityButton;
     readonly suggestionList;
+    readonly suggestionOptions;
+    readonly selectedSuggestion;
     readonly filePreview;
 
     // Burn-on-Read elements
@@ -41,6 +43,8 @@ export default class ChannelsPostCreate {
         this.scheduleMessageButton = container.getByLabel('Schedule message');
         this.priorityButton = container.getByLabel('Message priority');
         this.suggestionList = container.getByRole('listbox', {name: 'Suggestions'});
+        this.suggestionOptions = this.suggestionList.getByRole('option');
+        this.selectedSuggestion = this.suggestionList.getByTestId('suggestion-selected');
         this.filePreview = container.getByTestId('file-preview-container');
 
         // Burn-on-Read elements
@@ -160,6 +164,27 @@ export default class ChannelsPostCreate {
 
         // Click to select the command
         await suggestion.click();
+    }
+
+    /**
+     * Types the given keystrokes to trigger the autocomplete suggestion list,
+     * optionally moves the highlight down with ArrowDown, then completes the
+     * highlighted suggestion by pressing Tab.
+     * @param keystrokes - Partial text that triggers autocomplete (e.g. "@jo", ":tomato")
+     * @param options.arrowDown - Number of ArrowDown presses before selecting
+     */
+    async selectFromAutocompleteWithTab(keystrokes: string, {arrowDown = 0}: {arrowDown?: number} = {}) {
+        await this.input.waitFor();
+        await expect(this.input).toBeVisible();
+
+        await this.input.fill(keystrokes);
+        await expect(this.suggestionList).toBeVisible();
+
+        for (let i = 0; i < arrowDown; i++) {
+            await this.input.press('ArrowDown');
+        }
+
+        await this.input.press('Tab');
     }
 
     async openEmojiPicker() {
