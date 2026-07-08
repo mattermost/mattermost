@@ -528,7 +528,7 @@ function buildOverviewSidebar(autoCat) {
 }
 
 function main() {
-  if (!existsSync(SRC)) { console.error(`docs/ not found at ${SRC}`); process.exit(1); }
+  if (!existsSync(SRC)) { console.error(`SRC not found at ${SRC}`); process.exit(1); }
 
   const sidebar = [];
   for (const {dir, label} of TOP_LEVEL) {
