@@ -850,6 +850,7 @@ export const JobTypes = {
     LDAP_SYNC: 'ldap_sync',
     MESSAGE_EXPORT: 'message_export',
     ACCESS_CONTROL_SYNC: 'access_control_sync',
+    ACCESS_CONTROL_TEAM_SYNC: 'access_control_team_sync',
 } as const;
 
 export const JobStatuses = {

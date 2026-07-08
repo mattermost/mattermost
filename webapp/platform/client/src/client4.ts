@@ -3477,10 +3477,13 @@ export default class Client4 {
         );
     };
 
-    getJobsByType = (type: string, page = 0, perPage = PER_PAGE_DEFAULT, teamId?: string) => {
+    getJobsByType = (type: string, page = 0, perPage = PER_PAGE_DEFAULT, teamId?: string, policyId?: string) => {
         const params: Record<string, any> = {page, per_page: perPage};
         if (teamId) {
             params.team_id = teamId;
+        }
+        if (policyId) {
+            params.policy_id = policyId;
         }
         return this.doFetch<Job[]>(
             `${this.getJobsRoute()}/type/${type}${buildQueryString(params)}`,
