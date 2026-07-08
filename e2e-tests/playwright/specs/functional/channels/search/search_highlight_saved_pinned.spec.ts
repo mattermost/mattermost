@@ -53,7 +53,8 @@ test(
         // * Verify the search term is highlighted in the search results panel
         await expect(channelsPage.searchResultsPanel.getHighlightedTerms().first()).toBeVisible();
 
-        // # Reopen the saved messages panel
+        // # Close the search results panel, then reopen the saved messages panel
+        await channelsPage.sidebarRight.close();
         await channelsPage.globalHeader.openSavedMessages();
         await channelsPage.searchResultsPanel.toBeVisible();
         await channelsPage.searchResultsPanel.toContainText(token);
