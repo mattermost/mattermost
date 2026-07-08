@@ -159,12 +159,17 @@ jobs:
         with:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
+      - name: ci/restore-npm-cache
+        uses: ./.github/actions/restore-e2e-npm-cache
       - name: ci/setup-node
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: "e2e-tests/playwright/package-lock.json"
+      - name: ci/npm-cache-verify
+        # Heal any partial/dangling entries left in the restored ~/.npm cache
+        # before running `npm ci`. Avoids the intermittent EEXIST/ENOENT
+        # failures in npm's cacache writer.
+        run: npm cache verify
       - name: ci/get-webapp-node-modules
         working-directory: webapp
         run: make node_modules
@@ -210,12 +215,12 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: ci/restore-npm-cache
+        uses: ./.github/actions/restore-e2e-npm-cache
       - name: ci/setup-node
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: "e2e-tests/playwright/package-lock.json"
       - name: ci/download-shard-results
         uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
@@ -323,12 +328,12 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: ci/restore-npm-cache
+        uses: ./.github/actions/restore-e2e-npm-cache
       - name: ci/setup-node
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: "e2e-tests/playwright/package-lock.json"
 
       # Download merged results (uploaded by calculate-results)
       - name: ci/download-results
