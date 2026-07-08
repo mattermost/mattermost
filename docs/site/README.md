@@ -39,28 +39,30 @@ make -C docs docs-dev
 
 ### Full production build
 
-The production build includes an OpenAPI prebuild step (`npm run prebuild`)
-that invokes `make -C api build`. This requires Go and takes ~2 minutes.
+The production build includes an OpenAPI prebuild step (`npm run
+build:openapi`, wired to run automatically before `npm run build` via npm's
+`prebuild` lifecycle hook) that invokes `make -C api build`. This requires
+Go and takes ~2 minutes.
 
 ```shell
 cd docs/site
 npm ci
-npm run build      # runs prebuild (OpenAPI) then Docusaurus build
+npm run build      # runs build:openapi (via prebuild) then Docusaurus build
 ```
 
 To skip the OpenAPI rebuild during iterative content work:
 
 ```shell
 cd docs/site
-npm run build -- --no-minify   # still runs prebuild
+npm run build -- --no-minify   # still runs build:openapi first
 ```
 
-If you need to bypass `prebuild` entirely (e.g., the api/Makefile output
-already exists and is current), run:
+If you need to bypass the OpenAPI step entirely (e.g., the api/Makefile
+output already exists and is current), run:
 
 ```shell
 cd docs/site
-npm run docusaurus build       # calls docusaurus directly, skips prebuild
+npm run docusaurus build       # calls docusaurus directly, skips build:openapi
 ```
 
 ### Algolia search (local)
@@ -83,7 +85,7 @@ build time.
 |---|---|
 | `npm start` | Dev server with hot reload |
 | `npm run build` | Production build to `build/` |
-| `npm run prebuild` | Regenerate OpenAPI bundle only |
+| `npm run build:openapi` | Regenerate the OpenAPI bundle only (runs automatically before `npm run build` via the `prebuild` hook) |
 | `npm run serve` | Serve the `build/` output locally |
 | `npm run typecheck` | TypeScript type check |
 | `node scripts/gen-documentation-sidebar.mjs` | Regenerate documentation sidebar JSON |
