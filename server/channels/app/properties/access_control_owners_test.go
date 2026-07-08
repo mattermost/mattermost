@@ -249,9 +249,6 @@ func TestMultipleDistinctPluginOwners(t *testing.T) {
 	})
 
 	rctxA := RequestContextWithCallerID(th.Context, "plugin-a")
-	// Field-definition edits are scope-gated, so plugin-a must act as one of
-	// its owned scopes to reach the owner-mutation rules.
-	rctxAScoped := RequestContextWithCallerIDAndOptions(th.Context, "plugin-a", model.PropertyRequestOptions{ActingAsScope: "scope-a"})
 
 	t.Run("rejects create when a plugin lists another plugin as owner", func(t *testing.T) {
 		_, err := th.service.CreatePropertyField(rctxA, &model.PropertyField{
@@ -297,7 +294,7 @@ func TestMultipleDistinctPluginOwners(t *testing.T) {
 			{ID: "plugin-a", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"scope-a"}},
 			{ID: "plugin-b", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"scope-b"}},
 		}
-		_, _, upErr := th.service.UpdatePropertyField(rctxAScoped, th.CPAGroupID, existing)
+		_, _, upErr := th.service.UpdatePropertyField(rctxA, th.CPAGroupID, existing)
 		require.Error(t, upErr)
 		assert.ErrorIs(t, upErr, ErrAccessDenied)
 	})
@@ -335,7 +332,9 @@ func TestMultipleDistinctPluginOwners(t *testing.T) {
 				{ID: "plugin-a", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"scope-a", "scope-a2"}},
 				{ID: "plugin-b", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"scope-b"}},
 			}
-			updated, _, upErr := th.service.UpdatePropertyField(rctxAScoped, th.CPAGroupID, existing)
+			// Adding scope-a2 requires acting as it.
+			rctxA2 := RequestContextWithCallerIDAndOptions(th.Context, "plugin-a", model.PropertyRequestOptions{ActingAsScope: "scope-a2"})
+			updated, _, upErr := th.service.UpdatePropertyField(rctxA2, th.CPAGroupID, existing)
 			require.NoError(t, upErr)
 			owners := model.GetPropertyFieldOwners(updated)
 			require.Len(t, owners, 2)
@@ -353,7 +352,7 @@ func TestMultipleDistinctPluginOwners(t *testing.T) {
 				{ID: "plugin-a", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"scope-a"}},
 				{ID: "plugin-b", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"scope-b", "scope-b2"}},
 			}
-			_, _, upErr := th.service.UpdatePropertyField(rctxAScoped, th.CPAGroupID, existing)
+			_, _, upErr := th.service.UpdatePropertyField(rctxA, th.CPAGroupID, existing)
 			require.Error(t, upErr)
 			assert.ErrorIs(t, upErr, ErrAccessDenied)
 		})
@@ -433,8 +432,8 @@ func TestOwnerMutationIdentityBinding(t *testing.T) {
 	})
 
 	rctxOwner := RequestContextWithCallerID(th.Context, "plugin-owner")
-	// Field-definition edits are scope-gated, so the owning plugin must act as
-	// one of its owned scopes to edit an existing owner-managed field.
+	// Edits outside the owners struct are scope-gated, so the owning plugin must
+	// act as one of its owned scopes to change a field's schema/attrs.
 	rctxOwnerScoped := RequestContextWithCallerIDAndOptions(th.Context, "plugin-owner", model.PropertyRequestOptions{ActingAsScope: "entra"})
 	rctxHuman := RequestContextWithCallerID(th.Context, model.NewId())
 
@@ -513,10 +512,125 @@ func TestOwnerMutationIdentityBinding(t *testing.T) {
 		existing.Attrs[model.PropertyAttrsOwners] = []model.PropertyOwner{
 			{ID: "plugin-owner", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra", "okta"}},
 		}
-		updated, _, upErr := th.service.UpdatePropertyField(rctxOwnerScoped, th.CPAGroupID, existing)
+		// Adding a scope requires acting as that scope.
+		rctxOkta := RequestContextWithCallerIDAndOptions(th.Context, "plugin-owner", model.PropertyRequestOptions{ActingAsScope: "okta"})
+		updated, _, upErr := th.service.UpdatePropertyField(rctxOkta, th.CPAGroupID, existing)
 		require.NoError(t, upErr)
 		owners := model.GetPropertyFieldOwners(updated)
 		require.Len(t, owners, 1)
 		assert.ElementsMatch(t, []string{"entra", "okta"}, owners[0].Scopes)
+	})
+
+	t.Run("rejects removing an owner scope without acting as it", func(t *testing.T) {
+		existing, getErr := th.service.GetPropertyField(rctxOwner, th.CPAGroupID, created.ID)
+		require.NoError(t, getErr)
+		// created now owns {entra, okta}; drop okta while acting as entra.
+		existing.Attrs[model.PropertyAttrsOwners] = []model.PropertyOwner{
+			{ID: "plugin-owner", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra"}},
+		}
+		_, _, upErr := th.service.UpdatePropertyField(rctxOwnerScoped, th.CPAGroupID, existing)
+		require.Error(t, upErr)
+		assert.ErrorIs(t, upErr, ErrAccessDenied)
+	})
+
+	t.Run("allows removing an owner scope when acting as it", func(t *testing.T) {
+		existing, getErr := th.service.GetPropertyField(rctxOwner, th.CPAGroupID, created.ID)
+		require.NoError(t, getErr)
+		// created owns {entra, okta}; drop okta while acting as okta.
+		existing.Attrs[model.PropertyAttrsOwners] = []model.PropertyOwner{
+			{ID: "plugin-owner", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra"}},
+		}
+		rctxOkta := RequestContextWithCallerIDAndOptions(th.Context, "plugin-owner", model.PropertyRequestOptions{ActingAsScope: "okta"})
+		updated, _, upErr := th.service.UpdatePropertyField(rctxOkta, th.CPAGroupID, existing)
+		require.NoError(t, upErr)
+		owners := model.GetPropertyFieldOwners(updated)
+		require.Len(t, owners, 1)
+		assert.ElementsMatch(t, []string{"entra"}, owners[0].Scopes)
+	})
+}
+
+func TestPluginSelfOwnershipNotScopeGated(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	th.service.setPluginCheckerForTests(func(pluginID string) bool {
+		return pluginID == "plugin-a" || pluginID == "plugin-b"
+	})
+
+	rctxA := RequestContextWithCallerID(th.Context, "plugin-a")
+	created, err := th.service.CreatePropertyField(rctxA, ownerField(th.CPAGroupID, "SelfOwnership", "plugin-a", []string{"scope-a"}))
+	require.NoError(t, err)
+
+	rctxB := RequestContextWithCallerID(th.Context, "plugin-b")
+
+	t.Run("a plugin may add itself as a co-owner by acting as the scope it claims", func(t *testing.T) {
+		rctxBScoped := RequestContextWithCallerIDAndOptions(th.Context, "plugin-b", model.PropertyRequestOptions{ActingAsScope: "scope-b"})
+		existing, getErr := th.service.GetPropertyField(rctxB, th.CPAGroupID, created.ID)
+		require.NoError(t, getErr)
+		existing.Attrs[model.PropertyAttrsOwners] = []model.PropertyOwner{
+			{ID: "plugin-a", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"scope-a"}},
+			{ID: "plugin-b", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"scope-b"}},
+		}
+		updated, _, upErr := th.service.UpdatePropertyField(rctxBScoped, th.CPAGroupID, existing)
+		require.NoError(t, upErr)
+		require.Len(t, model.GetPropertyFieldOwners(updated), 2)
+	})
+
+	t.Run("editing schema still requires acting as an owned scope", func(t *testing.T) {
+		existing, getErr := th.service.GetPropertyField(rctxB, th.CPAGroupID, created.ID)
+		require.NoError(t, getErr)
+		existing.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility] = model.PropertyFieldVisibilityHidden
+		_, _, upErr := th.service.UpdatePropertyField(rctxB, th.CPAGroupID, existing)
+		require.Error(t, upErr)
+		assert.ErrorIs(t, upErr, ErrAccessDenied)
+
+		rctxBScoped := RequestContextWithCallerIDAndOptions(th.Context, "plugin-b", model.PropertyRequestOptions{ActingAsScope: "scope-b"})
+		scoped, getErr := th.service.GetPropertyField(rctxB, th.CPAGroupID, created.ID)
+		require.NoError(t, getErr)
+		scoped.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility] = model.PropertyFieldVisibilityHidden
+		_, _, upErr = th.service.UpdatePropertyField(rctxBScoped, th.CPAGroupID, scoped)
+		require.NoError(t, upErr)
+	})
+}
+
+func TestOwnerAddFirstThenEditSchema(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	th.service.setPluginCheckerForTests(func(pluginID string) bool {
+		return pluginID == "plugin-a" || pluginID == "plugin-b"
+	})
+
+	rctxA := RequestContextWithCallerID(th.Context, "plugin-a")
+	created, err := th.service.CreatePropertyField(rctxA, ownerField(th.CPAGroupID, "AddFirst", "plugin-a", []string{"scope-a"}))
+	require.NoError(t, err)
+
+	rctxB := RequestContextWithCallerIDAndOptions(th.Context, "plugin-b", model.PropertyRequestOptions{ActingAsScope: "scope-b"})
+
+	coOwners := []model.PropertyOwner{
+		{ID: "plugin-a", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"scope-a"}},
+		{ID: "plugin-b", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"scope-b"}},
+	}
+
+	t.Run("cannot add itself and edit the schema in one call", func(t *testing.T) {
+		existing, getErr := th.service.GetPropertyField(rctxB, th.CPAGroupID, created.ID)
+		require.NoError(t, getErr)
+		existing.Attrs[model.PropertyAttrsOwners] = coOwners
+		existing.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility] = model.PropertyFieldVisibilityHidden
+		_, _, upErr := th.service.UpdatePropertyField(rctxB, th.CPAGroupID, existing)
+		require.Error(t, upErr)
+		assert.ErrorIs(t, upErr, ErrAccessDenied)
+	})
+
+	t.Run("may add itself in one call then edit the schema in the next", func(t *testing.T) {
+		// Call 1: become an owner for scope-b (owners-only change).
+		existing, getErr := th.service.GetPropertyField(rctxB, th.CPAGroupID, created.ID)
+		require.NoError(t, getErr)
+		existing.Attrs[model.PropertyAttrsOwners] = coOwners
+		owned, _, upErr := th.service.UpdatePropertyField(rctxB, th.CPAGroupID, existing)
+		require.NoError(t, upErr)
+		require.Len(t, model.GetPropertyFieldOwners(owned), 2)
+
+		// Call 2: now edit the schema acting as scope-b.
+		owned.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility] = model.PropertyFieldVisibilityHidden
+		updated, _, upErr := th.service.UpdatePropertyField(rctxB, th.CPAGroupID, owned)
+		require.NoError(t, upErr)
+		assert.Equal(t, model.PropertyFieldVisibilityHidden, updated.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility])
 	})
 }
