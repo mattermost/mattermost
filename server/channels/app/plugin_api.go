@@ -660,7 +660,7 @@ func (api *PluginAPI) SearchPostsInTeamForUser(teamID string, userID string, sea
 }
 
 func (api *PluginAPI) AddChannelMember(channelID, userID string) (*model.ChannelMember, *model.AppError) {
-	channel, err := api.app.GetChannel(api.ctx, channelID)
+	channel, err := api.GetChannel(channelID)
 	if err != nil {
 		if err.StatusCode != http.StatusNotFound {
 			return nil, err
@@ -678,7 +678,7 @@ func (api *PluginAPI) AddChannelMember(channelID, userID string) (*model.Channel
 }
 
 func (api *PluginAPI) AddUserToChannel(channelID, userID, asUserID string) (*model.ChannelMember, *model.AppError) {
-	channel, err := api.app.GetChannel(api.ctx, channelID)
+	channel, err := api.GetChannel(channelID)
 	if err != nil {
 		if err.StatusCode != http.StatusNotFound {
 			return nil, err

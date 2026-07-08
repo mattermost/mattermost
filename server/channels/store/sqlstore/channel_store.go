@@ -2515,9 +2515,6 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(rctx request.CTX, userId st
 		LeftJoin("Schemes ChannelScheme ON Channels.SchemeId = ChannelScheme.Id").
 		LeftJoin("Teams ON Channels.TeamId = Teams.Id").
 		LeftJoin("Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id").
-		// No channel-type filter: this membership map backs per-channel authorization and
-		// WebSocket broadcast scoping, so space backing channels must resolve here —
-		// matching how board channels are handled.
 		Where(sq.Eq{"ChannelMembers.UserId": userId})
 	if !includeDeleted {
 		query = query.Where(sq.Eq{"Channels.DeleteAt": 0})
