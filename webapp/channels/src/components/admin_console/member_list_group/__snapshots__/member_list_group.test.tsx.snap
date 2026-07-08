@@ -7,6 +7,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
   >
     <div
       class="DataGrid"
+      data-testid="dataGrid"
     >
       <div
         class="DataGrid_search"
@@ -37,9 +38,11 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
       </div>
       <div
         class="DataGrid_header"
+        data-testid="dataGrid-header"
       />
       <div
         class="DataGrid_rows"
+        data-testid="dataGrid-rows"
       >
         <div
           class="DataGrid_loading"
@@ -59,11 +62,16 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
       </div>
       <div
         class="DataGrid_footer"
+        data-testid="dataGrid-footer"
       >
         <div
           class="DataGrid_cell"
         >
-          1 - 10 of 15
+          <span
+            data-testid="dataGrid-footer-paginationInfo"
+          >
+            1 - 10 of 15
+          </span>
           <button
             aria-label="Previous page"
             class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
@@ -99,6 +107,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
   >
     <div
       class="DataGrid"
+      data-testid="dataGrid"
     >
       <div
         class="DataGrid_search"
@@ -129,9 +138,11 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
       </div>
       <div
         class="DataGrid_header"
+        data-testid="dataGrid-header"
       />
       <div
         class="DataGrid_rows"
+        data-testid="dataGrid-rows"
       >
         <div
           class="DataGrid_loading"

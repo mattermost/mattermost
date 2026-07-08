@@ -1,0 +1,395 @@
+---
+title: "Generate a Support Packet"
+draft: true
+---
+<PlanAvailability slug="all-commercial" />
+
+The Support Packet is used to help customers diagnose and troubleshoot issues. Use the System Console or the [mmctl system supportpacket](/administration-guide/manage/mmctl-command-line-tool#mmctl-system-supportpacket) command to generate a zip file that includes configuration information, logs, plugin details, and data on external dependencies across all nodes in a high-availability cluster. Confidential data, such as passwords, are automatically stripped.
+
+## Generate
+
+<Important>
+
+- Before generating a Support Packet, go to **System Console \> Environment \> Logging** and ensure **Output logs to file** is set to **true**, and set **File Log Level** to **DEBUG**
+- From Mattermost v11.4, support packet generation is recorded in the audit log (when [audit logging is enabled and configured](/administration-guide/manage/logging#audit-logging)). The audit event includes the username, timestamp, success/failure status, whether logs were included, plugin packets requested, and the output filename. This audit trail helps track access to potentially sensitive log data for compliance purposes.
+
+</Important>
+
+<div class="tab">
+
+Web/Desktop
+
+1.  Go to the System Console, and select **Commercial Support** from the System Console menu.
+
+    ![Example of available System Console menu options.](/images/system-console-commercial-support.png)
+
+2.  Select **Download Support Packet**. A zip file is downloaded to the local machine. You'll be notified if any packet files are unavailable during packet generation. See the `warning.txt` file for details.
+
+</div>
+
+<div class="tab">
+
+mmctl
+
+Run the [mmctl system supportpacket](/administration-guide/manage/mmctl-command-line-tool#mmctl-system-supportpacket) command to generate and download a Support Packet to share with Mattermost Support.
+
+``` sh
+go run ./cmd/mmctl system supportpacket
+```
+
+``` text
+Downloading Support Packet
+Downloaded Support Packet to mattermost_support_packet_.zip
+```
+
+</div>
+
+## Santitize confidential data
+
+Please sanitize any confidential data you wish to exclude before sharing the packet with Mattermost.
+
+When present, the following information is automatically santized during packet generation: `LdapSettings.BindPassword`, `FileSettings.PublicLinkSalt`, `FileSettings.AmazonS3SecretAccessKey`, `EmailSettings.SMTPPassword`, `GitLabSettings.Secret`, `GoogleSettings.Secret`, `Office365Settings.Secret`, `OpenIdSettings.Secret`, `SqlSettings.DataSource`, `SqlSettings.AtRestEncryptKey`, `ElasticsearchSettings.Password`, `All SqlSettings.DataSourceReplicas`, `All SqlSettings.DataSourceSearchReplicas`, `MessageExportSettings.GlobalRelaySettings.SmtpPassword`, `ServiceSettings.SplitKey`, `FileSettings.ExportAmazonS3SecretAccessKey`, `ElasticsearchSettings.ClientKey`, `ServiceSettings.GoogleDeveloperKey`, and `ServiceSettings.GiphySdkKey` (from Mattermost v11.6.0).
+
+<Important>
+
+Plugins may not be sanitized during packet generation.
+
+- From Mattermost v10.1, plugins can mark their configuration as hidden. If a plugin marks its configuration as hidden, the configuration is sanitized during packet generation.
+- Otherwise, ensure you sanitize any additional confidential details in the `plugin.json` file before sharing it with Mattermost. Replace details with example strings that contain the same special characters if possible, as special characters are common causes of configuration errors.
+
+</Important>
+
+## Share the packet with Mattermost
+
+Add the generated Support Packet to a [standard support request](https://support.mattermost.com/hc/en-us/requests/new), or share with with the Mattermost team you're working with.
+
+<Important>
+
+Disable debug logging once you've generated the Support Packet. Debug logging can cause log files to expand substantially, and may adversely impact server performance. We recommend enabling it temporarily, or in development environments, but not production enviornments.
+
+</Important>
+
+## Contents of a Support Packet
+
+The contents of a Mattermost Support Packet can differ by server version. Select the tab that corresponds to your Mattermost version to see the files included in the Support Packet.
+
+<div class="tab" parse-titles="">
+
+v11.0 and later
+
+### Cluster-wide files
+
+The following cluster-wide files are located in the root directory of the Support Packet:
+
+- [metadata.yaml](#metadata)
+- `plugins.json` (all active and inactive plugins)
+- `sanitized_config.json` (sanitized copy of the Mattermost configuration)
+- `stats.yaml` (Mattermost usage statistics)
+- `jobs.yaml` (last runs of important jobs)
+- `diagnostics.yaml` (system and plugin diagnostics)
+- `permissions.yaml` (role and scheme information)
+- `postgres_schema_dump.sql` (PostgreSQL database schema information including tables, indexes, constraints, and other metadata to assist with database configuration diagnosis)
+- `warning.txt` (present when issues are encountered during packet generation)
+- `tsdb_dump.tar.gz` (present when the Metrics plugin is installed and the **Performance metrics** option is selected when generating the Support Packet)
+
+### Node-specific files
+
+The following node-specific files are located in node subdirectories:
+
+- `&lt;node-id&gt;/mattermost.log` (Mattermost logs for each node)
+- `&lt;node-id&gt;/audit.log` (Mattermost audit logs for each node)
+- `&lt;node-id&gt;/ldap.log` (AD/LDAP logs for each node)
+- `&lt;node-id&gt;/notifications.log` (notifications logs for each node)
+- `&lt;node-id&gt;/cpu.prof` ([Go performance metrics](#go-performance-metrics) for each node)
+- `&lt;node-id&gt;/heap.prof` ([Go performance metrics](#go-performance-metrics) for each node)
+- `&lt;node-id&gt;/goroutines` ([Go performance metrics](#go-performance-metrics) for each node)
+
+### Diagnostics highlights
+
+The Support Packet `diagnostics.yaml` file includes system and plugin diagnostics to support troubleshooting and configuration validation.
+
+### Plugin diagnostic data
+
+The following additional plugin diagnostic data is available when the plugin is enabled and operational:
+
+- GitHub: `/github/diagnostics.yaml`
+- GitLab: `/com.github.manland.mattermost-plugin-gitlab/diagnostics.yaml`
+- Jira: `/jira/diagnostics.yaml`
+- Calls: `/com.mattermost.calls/diagnostics.yaml`
+- Boards: `/focalboard/diagnostics.yaml`
+- Playbooks: `/playbooks/diagnostics.yaml`
+- MSCalendar: `/com.mattermost.mscalendar/diagnostics.yaml`
+- Google Calendar: `/com.mattermost.gcal/diagnostics.yaml`
+
+</div>
+
+<div class="tab">
+
+v10.11
+
+From v10.11, Support Packets include PostgreSQL database schema dump information that provides comprehensive metadata to help diagnose database configuration issues, performance problems, collation mismatches, and other database-related issues.
+
+**Cluster-wide files (root directory):**
+
+- [metadata.yaml](#metadata)
+- `plugins.json` (all active and inactive plugins)
+- `sanitized_config.json` (sanitized copy of the Mattermost configuration)
+- `stats.yaml` (Mattermost usage statistics)
+- `jobs.yaml` (last runs of important jobs)
+- `diagnostics.yaml` (core plugin diagnostics data)
+- `permissions.yaml` (role & scheme information)
+- `postgres_schema_dump.sql` (PostgreSQL database schema information including tables, indexes, constraints, and other database metadata to assist with database configuration diagnosis)
+- `warning.txt` (present when issues are encountered during packet generation)
+- `tsdb_dump.tar.gz` (present when the Metrics plugin is installed and the **Performance metrics** option is selected when generating the Support Packet)
+
+**Cluster-specific files (in node subdirectories):**
+
+- `&lt;node-id&gt;/mattermost.log` (Mattermost logs for each node)
+- `&lt;node-id&gt;/audit.log` (Mattermost audit logs for each node)
+- `&lt;node-id&gt;/ldap.log` (AD/LDAP logs for each node)
+- `&lt;node-id&gt;/notifications.log` (notifications logs for each node)
+- `&lt;node-id&gt;/cpu.prof` ([Go performance metrics](#go-performance-metrics) for each node)
+- `&lt;node-id&gt;/heap.prof` ([Go performance metrics](#go-performance-metrics) for each node)
+- `&lt;node-id&gt;/goroutines` ([Go performance metrics](#go-performance-metrics) for each node)
+
+The following additional plugin diagnostic data is included in the generated Support Packet when the plugin is enabled and operational:
+
+- GitHub: `/github/diagnostics.yaml`
+- GitLab: `/com.github.manland.mattermost-plugin-gitlab/diagnostics.yaml`
+- Jira: `/jira/diagnostics.yaml`
+- Calls: `/com.mattermost.calls/diagnostics.yaml`
+- Boards: `/focalboard/diagnostics.yaml`
+- Playbooks: `/playbooks/diagnostics.yaml`
+- MSCalendar: `/com.mattermost.mscalendar/diagnostics.yaml`
+- Google Calendar: `/com.mattermost.gcal/diagnostics.yaml`
+
+</div>
+
+<div class="tab">
+
+v10.10
+
+From Mattermost v10.10, Support Packets from [high availability](/administration-guide/scale/high-availability-cluster-based-deployment) deployments organize cluster-specific files (such as log files) in subdirectories named after each cluster node, while cluster-wide files remain in the root directory.
+
+Support packet file organization has been improved to make it easier to identify cluster-wide versus cluster-specific files:
+
+- **Cluster-wide files** (identical across all nodes in a [high-availability cluster](/administration-guide/scale/high-availability-cluster-based-deployment)) remain in the root directory of the support packet.
+- **Cluster-specific files** (unique per node) are now organized in subdirectories named after each cluster node.
+
+**Cluster-wide files (root directory):**
+
+- [metadata.yaml](#metadata)
+- `plugins.json` (all active and inactive plugins)
+- `sanitized_config.json` (sanitized copy of the Mattermost configuration)
+- `stats.yaml` (Mattermost usage statistics)
+- `jobs.yaml` (last runs of important jobs)
+- `diagnostics.yaml` (core plugin diagnostics data)
+- `permissions.yaml` (role & scheme information)
+- `warning.txt` (present when issues are encountered during packet generation)
+- `tsdb_dump.tar.gz` (present when the Metrics plugin is installed and the **Performance metrics** option is selected when generating the Support Packet)
+
+**Cluster-specific files (in node subdirectories):**
+
+- `&lt;node-id&gt;/mattermost.log` (Mattermost logs for each node)
+- `&lt;node-id&gt;/audit.log` (Mattermost audit logs for each node)
+- `&lt;node-id&gt;/ldap.log` (AD/LDAP logs for each node)
+- `&lt;node-id&gt;/notifications.log` (notifications logs for each node)
+- `&lt;node-id&gt;/cpu.prof` ([Go performance metrics](#go-performance-metrics) for each node)
+- `&lt;node-id&gt;/heap.prof` ([Go performance metrics](#go-performance-metrics) for each node)
+- `&lt;node-id&gt;/goroutines` ([Go performance metrics](#go-performance-metrics) for each node)
+
+The following additional plugin diagnostic data is included in the generated support packet when the plugin is enabled and operational:
+
+- GitHub: `/github/diagnostics.yaml`
+- GitLab: `/com.github.manland.mattermost-plugin-gitlab/diagnostics.yaml`
+- Jira: `/jira/diagnostics.yaml`
+- Calls: `/com.mattermost.calls/diagnostics.yaml`
+- Boards: `/focalboard/diagnostics.yaml`
+- Playbooks: `/playbooks/diagnostics.yaml`
+- MSCalendar: `/com.mattermost.mscalendar/diagnostics.yaml`
+- Google Calendar: `/com.mattermost.gcal/diagnostics.yaml`
+
+</div>
+
+<div class="tab">
+
+v10.5 to v10.9
+
+Prior to v10.10, each node in the cluster of a high availability deployment has its own `mattermost.log` file and advanced logging files included directly in the Support Packet.
+
+From v10.5, the following Support Packet data has changed:
+
+- The `support_packet.yaml` file has been removed and split into `diagnostics.yaml` and `stats.yaml` files.
+- All fields in `diagnostics.yaml` have been moved into their own objects for improved readability.
+- Field names are normalized.
+- New data includes server statistics, logs, permissions, and extended job list details.
+- Mattermost-supported plugin diagnostic data is included where applicable.
+
+The contents of a support packet include:
+
+- [metadata.yaml](#metadata)
+- `mattermost.log` (Mattermost logs)
+- `audit.log` (Mattermost audit logs)
+- `ldap.log` (AD/LDAP logs)
+- `notifications.log` (notifications logs)
+- `plugins.json` (all active and inactive plugins)
+- `sanitized_config.json` (sanitized copy of the Mattermost configuration)
+- `stats.yaml` (Mattermost usage statistics)
+- `jobs.yaml` (last runs of important jobs)
+- `diagnostics.yaml` (core plugin diagnostics data)
+- `permissions.yaml` (role & scheme information)
+- [Go performance metrics](#go-performance-metrics), including: `cpu.prof`, `heap.prof`, and `goroutines`
+- `warning.txt` (present when issues are encountered during packet generation)
+- `tsdb_dump.tar.gz` (present when the Metrics plugin is installed and the **Performance metrics** option is selected when generating the Support Packet)
+
+The following additional plugin diagnostic data is included in the generated support packet when the plugin is enabled and operational:
+
+- GitHub: `/github/diagnostics.yaml`
+- GitLab: `/com.github.manland.mattermost-plugin-gitlab/diagnostics.yaml`
+- Jira: `/jira/diagnostics.yaml`
+- Calls: `/com.mattermost.calls/diagnostics.yaml`
+- Boards: `/focalboard/diagnostics.yaml`
+- Playbooks: `/playbooks/diagnostics.yaml`
+- MSCalendar: `/com.mattermost.mscalendar/diagnostics.yaml`
+- Google Calendar: `/com.mattermost.gcal/diagnostics.yaml`
+
+</div>
+
+<div class="tab">
+
+Prior to v10.5
+
+From Mattermost v10.4, a new `diagnostics.yaml` file includes Mattermost Calls diagostics data, including plugin version, calls and active session counts, as well as average duration and participant counts.
+
+- [metadata.yaml](#metadata)
+- `mattermost.log`
+- `plugins.json`
+- `sanitized_config.json`
+- `support_packet.yaml`
+- `diagnostics.yaml` (core plugin diagnostics data)
+- [Go performance metrics](#go-performance-metrics), including: `cpu.prof`, `heap.prof`, and `goroutines`
+- `warning.txt` (present when issues are encountered during packet generation)
+
+</div>
+
+<Note>
+
+- LDAP groups are not included during Support Packet generation. Only `LDAP Version` and `LDAP Vendor` are included when present. These values are included in the `support_packet.yaml` file.
+- From Mattermost v9.11, `LDAP Vendor` errors are included in the Support Packet. If fetching the LDAP Vendor name fails, the Support Packet generation includes the error in `warning.txt`. If no LDAP Vendor name is found, the Support Packet lists them as `unknown`.
+
+</Note>
+
+## Metadata
+
+From Mattermost v9.11, generated Support Packets include a `metadata.yaml` file that contains the following information.
+
+<table style={{width: '99%'}}>
+<colgroup>
+<col style={{width: '12%'}} />
+<col style={{width: '12%'}} />
+<col style={{width: '59%'}} />
+<col style={{width: '14%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Field name</strong></th>
+<th><strong>Required/Optional</strong></th>
+<th><strong>Description</strong></th>
+<th><blockquote>
+<p><strong>Example</strong></p>
+</blockquote></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>version</td>
+<td>Required</td>
+<td>Version of the schema that the current metadata file is compatible with. Current version is 1.</td>
+<td>1</td>
+</tr>
+<tr>
+<td>type</td>
+<td>Required</td>
+<td>The type of the packet. Each type of Support Packet can be mapped to a specific component generating the Support Packet.</td>
+<td>mattermost</td>
+</tr>
+<tr>
+<td>generated_at</td>
+<td>Required</td>
+<td>The date and time the packet was created. Value is in epoch (ms).</td>
+<td>1707473288731</td>
+</tr>
+<tr>
+<td>server_version</td>
+<td>Required</td>
+<td>Version of the server that the Support Packet was generated at. Semver is expected.</td>
+<td>9.1.1</td>
+</tr>
+<tr>
+<td>server_id</td>
+<td>Required</td>
+<td>Unique identifier of the server. Expected to be 26 characters or longer.</td>
+<td>9qpiszyjr3g8bxda35abcd1234</td>
+</tr>
+<tr>
+<td>license_id</td>
+<td>Optional</td>
+<td>Unique identifier of the current server's license. Expected to be 26 characters or longer. This field is empty when there's no license.</td>
+<td>abcdejisd67yigqhmkz4ho1234</td>
+</tr>
+<tr>
+<td>customer_id</td>
+<td>Optional</td>
+<td>The id of the customer, as defined in the license file. Expected to be 26 characters or longer. Empty when there's no license.</td>
+<td>a1b2c3d4qbbr5cpkbpbmef123h</td>
+</tr>
+<tr>
+<td>extras</td>
+<td>Optional</td>
+<td>Key/value of any additional information, specific to the plugin/component that generated the file. Can be useful for identifying the contents of the data. Consider adding plugin (or component) versions in order to set expectation regarding the contents of this object.</td>
+<td></td>
+</tr>
+<tr>
+<td>extras.plugin_id</td>
+<td>Required for plugins</td>
+<td>The ID of the plugin.</td>
+<td></td>
+</tr>
+<tr>
+<td>extras.plugin_version</td>
+<td>Required for plugins</td>
+<td>The version of the plugin.</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+
+For example:
+
+``` yaml
+version: 1
+type: support-packet
+generated_at: 1622569200
+server_version: 9.1.1
+server_id: 8fqk9rti13fmpxdd5934a3xsxh
+license_id: 3g3pqn8in3brzjkozcn1kdidgr
+customer_id: 74cmws7gf3ykpj31car7zahsny
+extras:
+ plugin_version: 0.1.0
+```
+
+## Go performance metrics
+
+The Support Packet contains 3 go runtime profiling files:
+
+- `cpu.prof` contains a 5-second CPU profile
+- `heap.prof` contains a heap profile
+- `goroutines` contains a dump of all the running go routines
+
+These files can be read using [pprof](https://golang.google.cn/cmd/pprof/).
+
+Use `go tool pprof -web X` to open a visualization of the profile in your browser, replacing `X` with the profile's file name.
+
+## Load metric
+
+From Mattermost v10.10, the **Load Metric** field under **Product Menu \> About Mattermost** displays monthly active users relative to the total number of licensed users. This value gives Mattermost support teams a contextual reference point for understanding deployment active usage for troubleshooting and guidance. It isn’t a comprehensive performance monitoring tool or health indicator, but serves as a supplementary data point when traditional diagnostic methods aren’t available.

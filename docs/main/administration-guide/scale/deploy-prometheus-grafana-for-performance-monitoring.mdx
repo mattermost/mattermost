@@ -1,0 +1,137 @@
+---
+title: "Deploy Prometheus and Grafana for performance monitoring"
+---
+<PlanAvailability slug="entry-ent" />
+
+Performance monitoring support enables admins to track system health for large Enterprise deployments through integrations with [Prometheus](https://prometheus.io/) and [Grafana](https://grafana.com/). These integrations support data collection from several Mattermost servers, which is particularly useful if you're running Mattermost [in high availability mode](/administration-guide/scale/high-availability-cluster-based-deployment). Once you're tracking system health, you can [set up performance alerts](/administration-guide/scale/performance-alerting) on your Grafana dashboard.
+
+Admins can collect and store various data points from the Mattermost application in an [OpenMetrics](https://openmetrics.io) format by [deploying Prometheus](#install-prometheus) and [Grafana](#install-grafana).
+
+<Tip>
+
+Don't want to deploy Prometheus and Grafana? You can also [collect performance metrics using the Mattermost Metrics plugin](/administration-guide/scale/collect-performance-metrics).
+
+</Tip>
+
+## Install Prometheus
+
+<Important>
+
+While Prometheus and Grafana may be installed on the same server as Mattermost, we recommend installing these integrations on separate servers, and configure Prometheus to pull all metrics from Mattermost and other connected servers.
+
+</Important>
+
+1.  [Download a precompiled binary for Prometheus](https://prometheus.io/download/). Binaries are provided for many popular distributions, including Darwin, Linux, and Windows. For installation instructions, see the [Prometheus install guides](https://prometheus.io/docs/prometheus/latest/getting_started/).
+
+2.  The following settings are recommended in the Prometheus configuration file named `prometheus.yml`:
+
+    ``` yaml
+    # my global config
+    global:
+       scrape_interval:     5s # Set to 5 seconds for optimal performance monitoring.
+       evaluation_interval: 5s # Set to 5 seconds for optimal performance monitoring.
+       # scrape_timeout is set to the global default (10s).
+
+      # Attach these labels to any time series or alerts when communicating with
+      # external systems (federation, remote storage, Alertmanager).
+      external_labels:
+        monitor: 'mattermost-monitor'
+
+    # Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+    rule_files:
+      # - "first.rules"
+      # - "second.rules"
+
+    # A scrape configuration containing exactly one endpoint to scrape:
+    # Here it's Prometheus itself.
+    scrape_configs:
+      # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+      - job_name: 'prometheus'
+
+       # The scrape_interval can be overridden per job if needed (5s matches the global default).
+       # scrape_interval: 5s
+
+      # metrics_path defaults to '/metrics'
+      # scheme defaults to 'http'.
+
+        static_configs:
+          - targets: ["<hostname1>:<port>", "<hostname2>:<port>"]
+    ```
+
+3.  Replace the `&lt;hostname1&gt;:&lt;port&gt;` parameter with your Mattermost host IP address and port to scrape the data. It connects to `/metrics` using HTTP.
+
+4.  In the Mattermost System Console, go to **Environment \> Performance Monitoring** to set **Enable Performance Monitoring** to **true**, then specify the **Listen Address** (port-only, e.g., `8067`), and select **Save**. See our [Configuration Settings](/administration-guide/configure/environment-configuration-settings#performance-monitoring) documentation for details.
+
+    ![Enable performance monitoring options in the System Console by going to Environment \> Performance Monitoring, then specifying a listen address.](/images/perf_monitoring_system_console.png)
+
+5.  To test that the server is running, go to `&lt;ip&gt;:&lt;port&gt;/metrics`.
+
+<Note>
+
+A Mattermost Enterprise license is required to connect to `/metrics` using HTTP.
+
+</Note>
+
+6.  Finally, run `vi prometheus.yml` to finish configuring Prometheus. For starting the Prometheus service, read the [comprehensive guides provided by Prometheus](https://prometheus.io/docs/prometheus/latest/getting_started/).
+7.  Once the service has started, you can access the data in `&lt;localhost&gt;:&lt;port&gt;/graph`. While you can use the Prometheus service to create graphs, we'll focus on creating metric and analytics dashboards in Grafana.
+
+<Tip>
+
+For troubleshooting advice, check the [Prometheus FAQ page](https://prometheus.io/docs/introduction/faq/).
+
+</Tip>
+
+## Install Grafana
+
+<Important>
+
+While Prometheus and Grafana may be installed on the same server as Mattermost, we recommend installing these integrations on separate servers, and configure Prometheus to pull all metrics from Mattermost and other connected servers.
+
+</Important>
+
+1.  [Download a precompiled binary for Grafana](https://grafana.com/docs/grafana/latest/setup-grafana/installation/debian/) on Ubuntu or Debian. Binaries are also available for other distributions, including Redhat, Windows and Mac. For install instructions, see [Grafana install guides](https://grafana.com/docs/grafana/latest/setup-grafana/installation/debian/)
+
+2.  The Grafana package is installed as a service, so it is easy to start the server. See their [install guides](https://grafana.com/docs/grafana/latest/setup-grafana/installation/debian/) to learn more.
+
+3.  The default HTTP port is `3000` and default username and password are `admin`.
+
+4.  Add a Mattermost data source with the following settings as defined in the screenshot below
+
+    ![Mattermost data source configuration settings for a Grafana installation.](/images/mattermost_datasource.png)
+
+<Tip>
+
+- For troubleshooting advice, check the [Grafana Troubleshooting page](https://grafana.com/docs/grafana/latest/troubleshooting/).
+- For user guides and tutorials, check the [Grafana documentation to learn more](https://grafana.com/docs/grafana/latest/).
+
+</Tip>
+
+## Getting started
+
+To help you get started, you can download three sample dashboards shared in Grafana:
+
+<Tip>
+
+See [this Grafana guide](https://grafana.com/docs/grafana/v7.5/dashboards/export-import/) to learn how to import Grafana dashboards either from the UI or from the HTTP API.
+
+</Tip>
+
+- [Mattermost Performance Monitoring v2](https://grafana.com/grafana/dashboards/15582-mattermost-performance-monitoring-v2/), which contains detailed charts for performance monitoring including application, cluster, job server, and system metrics.
+- [Mattermost Notification Health Monitoring](https://grafana.com/grafana/dashboards/21305-mattermost-notification-health/), which can be used to track different types of notifications sent from Mattermost. Accessing and enabling Mattermost Notification Health Monitoring requires the feature flag `NotificationMonitoring` to be set to `true`. System admins can [disable notification monitoring data collection](/administration-guide/configure/site-configuration-settings#enable-notification-monitoring) through the System Console.
+- [Mattermost Web App Performance Metrics](https://grafana.com/grafana/dashboards/21460-web-app-metrics/), which contains detailed metrics for client-side performance, including web vitals and Mattermost-specifc metrics.
+- [Mattermost Desktop App Performance Metrics](https://grafana.com/grafana/dashboards/22736-desktop-app-metrics/), which contains detailed metrics for client-side desktop performance, including CPU and memory usage metrics.
+- [Mattermost Mobile App Performance Metrics](https://grafana.com/grafana/dashboards/21695-mobile-performance-metrics/), which contains detailed metrics for client-side mobile performance, including web vitals and Mattermost-specifc metrics.
+- [Mattermost Threaded Discussion Metrics](https://grafana.com/grafana/dashboards/15581-collapsed-reply-threads-performance/), which contains detailed metrics on the queries involved in our threaded discussions feature.
+- [Mattermost Performance KPI Metrics](https://grafana.com/grafana/dashboards/2539-mattermost-performance-kpi-metrics/), which contains key metrics for monitoring performance and system health.
+- [Mattermost Performance Monitoring (Bonus Metrics)](https://grafana.com/grafana/dashboards/2545-mattermost-performance-monitoring-bonus-metrics/), which contains additional metrics such as emails sent or files uploaded, which may be important to monitor in some deployments.
+
+## What's collected?
+
+Mattermost provides [custom metrics](/administration-guide/scale/performance-monitoring-metrics#custom-mattermost-metrics) and [standard Go metrics](/administration-guide/scale/performance-monitoring-metrics#standard-go-metrics) that can be used to monitor your system's performance.
+
+## Next steps
+
+Once you've set up performance monitoring, you may want to:
+
+- [Set up performance alerts](/administration-guide/scale/performance-alerting) to be notified when metrics exceed thresholds.
+- [Deploy Grafana Loki for centralized logging](/administration-guide/scale/deploy-grafana-loki-for-centralized-logging) to search and correlate logs with metric spikes.

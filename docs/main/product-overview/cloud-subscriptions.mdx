@@ -1,0 +1,155 @@
+---
+title: "Cloud"
+draft: true
+---
+Mattermost offers secure, cloud-based collaboration for fast moving enterprises that’s private, scaleable, and low maintenance. Cloud-native architecture supports organizations of any size for a deployment that scales with your team, without any resource planning.
+
+Enterprises can choose between dedicated and shared infrastructure based on your organizations’ size, budget, technical requirements, and level of control and customization needed:
+
+- [Mattermost Cloud Dedicated](/product-overview/cloud-dedicated): Better suited for larger organizations or those with specific needs around security, compliance, and customization, who are willing to pay a premium for dedicated resources and enhanced support.
+- [Mattermost Cloud Shared](/product-overview/cloud-shared): A cost-effective solution for companies who don't have strict security and compliance requirements that need a straightforward, managed communication platform without the necessity for extensive customization or dedicated resources.
+- [Cloud VPC Private Connectivity](/product-overview/cloud-vpc-private-connectivity): Learn how to access Mattermost Cloud within your own internal network.
+
+## Compare offerings
+
+<table style={{width: '90%'}}>
+<colgroup>
+<col style={{width: '26%'}} />
+<col style={{width: '63%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td rowspan="2"><blockquote>
+<p><strong>Resource</strong></p>
+</blockquote>
+<dl>
+<dt>===============================</dt>
+<dd>
+<p>Mattermost High Availability cluster-based deployment</p>
+</dd>
+</dl></td>
+<td rowspan="2"><blockquote>
+<p><strong>Dedicated</strong> | <strong>Shared</strong> |</p>
+</blockquote>
+<dl>
+<dt>===============+=============+</dt>
+<dd>
+<dl>
+<dt><a href="mm-subst:checkmark">checkmark</a> | <a href="mm-subst:checkmark">checkmark</a></dt>
+<dd>
+<div class="line-block">            |</div>
+</dd>
+</dl>
+</dd>
+</dl></td>
+</tr>
+<tr>
+</tr>
+<tr>
+<td>Network policy</td>
+<td><a href="mm-subst:checkmark">checkmark</a> | <a href="mm-subst:checkmark">checkmark</a></td>
+</tr>
+<tr>
+<td>Namespace</td>
+<td><a href="mm-subst:checkmark">checkmark</a> | <a href="mm-subst:checkmark">checkmark</a></td>
+</tr>
+<tr>
+<td>Network</td>
+<td><a href="mm-subst:checkmark">checkmark</a> | |</td>
+</tr>
+<tr>
+<td>Kubernetes High Availability</td>
+<td><a href="mm-subst:checkmark">checkmark</a> | |</td>
+</tr>
+<tr>
+<td>Database High Availability</td>
+<td><a href="mm-subst:checkmark">checkmark</a> | |</td>
+</tr>
+<tr>
+<td>Object storage</td>
+<td><a href="mm-subst:checkmark">checkmark</a> | |</td>
+</tr>
+<tr>
+<td>Encryption keys</td>
+<td><a href="mm-subst:checkmark">checkmark</a> | |</td>
+</tr>
+<tr>
+<td>Custom backup schedule</td>
+<td><a href="mm-subst:checkmark">checkmark</a> | |</td>
+</tr>
+<tr>
+<td>IP Filtering</td>
+<td><a href="mm-subst:checkmark">checkmark</a> | <a href="mm-subst:checkmark">checkmark</a></td>
+</tr>
+<tr>
+<td>Bring your own key</td>
+<td><a href="mm-subst:checkmark">checkmark</a> | |</td>
+</tr>
+</tbody>
+</table>
+
+## Frequently asked questions about Mattermost Cloud
+
+### How do I buy a Mattermost Cloud subscription?
+
+Mattermost Cloud subscriptions are offered as an annual subscription. Contact a [Mattermost Expert](https://mattermost.com/contact-sales/) to buy a new subscription, or to renew, change, or cancel your existing subscription.
+
+If you’re currently using a Mattermost Cloud trial, contact a [Mattermost Expert](https://mattermost.com/contact-sales/) to upgrade to Mattermost Enterprise. Your plan immediately changes to your upgraded plan. You will be invoiced as specified in your sales agreement.
+
+### What is the minimum number of users I can purchase on a subscription?
+
+The minimum purchase for a Mattermost license subscription is 100 users, with no set maximum. You can buy as many user seats as needed.
+
+### Is Mattermost Cloud subject to taxes?
+
+Yes. Mattermost reserves the right to assess applicable taxes as required by local law. Depending on location, you may be charged transaction taxes when purchasing our product. [Prices](https://mattermost.com/pricing/) on our website are exclusive of sales tax or VAT.
+
+### Where does instance and data reside?
+
+Dedicated instance and data, including logs and backups, resides in the **AWS us-east-1 region**, located in Virginia, United States.
+
+For data residency options outside of the US, contact a [Mattermost Expert](https://mattermost.com/contact-sales/), or work with a [Mattermost partner](https://mattermost.com/partners/).
+
+### When will more region support be available?
+
+[Mattermost Cloud Dedicated](/product-overview/cloud-dedicated) will support data residency based on feedback from our customers.
+
+If you require your data to reside in an area outside of the United States, please contact a [Mattermost Expert](https://mattermost.com/contact-sales/) or consider deploying one of our [self-hosted options](https://mattermost.com/download/) that provides you with full control of your data.
+
+### Do you provide cross-region failover in the event of an outage in AWS us-east-1 region?
+
+Mattermost Cloud is hosted in AWS us-east-1 region. Cross-region failover is planned, but not yet in the roadmap. If you have feedback or require cross-region failover, please reach out to a [Mattermost Expert](https://mattermost.com/contact-sales/).
+
+### Is Mattermost Cloud a dedicated instance running on AWS systems?
+
+Mattermost Cloud Dedicated can be deployed as a dedicated Mattermost environment running with separate infrastructure for your requirements (e.g., separate database, separate VMs, separate Kubernetes cluster).
+
+### How is customer data in Mattermost Cloud Dedicated encrypted?
+
+Mattermost uses AWS-provided functionality to enable encryption-at-rest for both databases and file stores. See [Encrypting Amazon RDS resources - Amazon Relational Database Service](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.Encryption.html) and [Protecting data using server-side encryption - Amazon Simple Storage Service](https://docs.aws.amazon.com/AmazonS3/latest/userguide/serv-side-encryption.html) for details.
+
+Whether customer data should be stored in Mattermost Cloud depends heavily on the nature of the data and compliance requirements. We recommend that customers set up their own internal policies or controls around what can and cannot be put into Mattermost.
+
+### Are S3-managed keys used for server-side encryption?
+
+Yes, with Mattermost Cloud Dedicated. You can also bring your own keys for database and Amazon S3.
+
+### Are you SOC2 Type 2 certified?
+
+Yes.
+
+### Who is responsible for server maintenance and upgrades?
+
+For Mattermost Cloud deployments, Mattermost is responsible for regular security patches, software updates/releases, performance tuning, and ensuring uptime commitments.
+
+Mattermost performs monthly upgrades to your instance with the latest patch release during your preferred maintenance window.
+
+Mattermost may conduct unscheduled maintenance to address high-severity issues affecting the security, availability, or reliability of your instance. Maintenance windows are announced in advance on [https://status.mattermost.com/](https://status.mattermost.com/)
+
+Mattermost Cloud uses a Cloud-First Release Strategy with Ring-Based staged releases aligned to Mattermost licenses with a 24 hour soak time for [Mattermost Cloud Dedicated](/product-overview/cloud-dedicated) and for Enterprise customers using [Mattermost Cloud Shared](/product-overview/cloud-shared).
+
+### Can I use a custom URL at my organization's domain?
+
+No. Custom URLs are not currently supported for Mattermost Cloud deployments.
+
+[Book a live demo](https://mattermost.com/request-demo/) or [talk to a Mattermost expert](https://mattermost.com/contact-sales/) to explore tailored solutions for your organization's secure collaboration needs. Or try Mattermost yourself with a [1-hour preview](https://mattermost.com/sign-up/) for instant access to a live sandbox environment.

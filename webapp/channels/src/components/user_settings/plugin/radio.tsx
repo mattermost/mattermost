@@ -6,14 +6,11 @@ import {useSelector} from 'react-redux';
 
 import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
 
-import Markdown from 'components/markdown';
-
+import Radio from 'plugins/settings_schema/controls/radio';
 import {getPluginPreferenceKey} from 'utils/plugins/preferences';
 
 import type {PluginConfigurationRadioSetting} from 'types/plugins/user_settings';
 import type {GlobalState} from 'types/store';
-
-import RadioOption from './radio_option';
 
 type Props = {
     setting: PluginConfigurationRadioSetting;
@@ -21,42 +18,26 @@ type Props = {
     informChange: (name: string, value: string) => void;
 };
 
+// Binds the controlled shared Radio control to user preferences.
 const RadioInput = ({
     setting,
     pluginId,
     informChange,
 }: Props) => {
     const preference = useSelector<GlobalState, string>((state: GlobalState) => getPreference(state, getPluginPreferenceKey(pluginId), setting.name, setting.default));
-    const [selectedValue, setSelectedValue] = useState(preference);
+    const [value, setValue] = useState(preference);
 
-    const onSelected = useCallback((value: string) => {
-        setSelectedValue(value);
-        informChange(setting.name, value);
-    }, [setting.name]);
+    const onChange = useCallback((newValue: string) => {
+        setValue(newValue);
+        informChange(setting.name, newValue);
+    }, [informChange, setting.name]);
 
     return (
-        <fieldset key={setting.name}>
-            <legend className='form-legend hidden-label'>
-                {setting.title || setting.name}
-            </legend>
-            {setting.options.map((option) => (
-                <RadioOption
-                    key={option.value}
-                    name={setting.name}
-                    option={option}
-                    selectedValue={selectedValue}
-                    onSelected={onSelected}
-                />
-            ))}
-            {setting.helpText && (
-                <div className='mt-5'>
-                    <Markdown
-                        message={setting.helpText}
-                        options={{mentionHighlight: false}}
-                    />
-                </div>
-            )}
-        </fieldset>
+        <Radio
+            setting={setting}
+            value={value}
+            onChange={onChange}
+        />
     );
 };
 

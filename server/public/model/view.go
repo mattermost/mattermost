@@ -30,6 +30,13 @@ const (
 	BoardsStatusOptionInProgress = "In Progress"
 	BoardsStatusOptionComplete   = "Complete"
 
+	// Default colours seeded for the protected Status field. Tokens map to the
+	// webapp's `colorTokenMap` in board_attributes_values.tsx; gray for unstarted
+	// work, blue for active, green for done — standard kanban convention.
+	BoardsStatusColorTodo       = "default"
+	BoardsStatusColorInProgress = "blue"
+	BoardsStatusColorComplete   = "green"
+
 	MaxKanbanColumns = 100
 )
 

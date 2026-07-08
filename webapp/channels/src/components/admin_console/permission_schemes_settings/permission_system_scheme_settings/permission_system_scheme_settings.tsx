@@ -461,6 +461,7 @@ export class PermissionSystemSchemeSettings extends React.PureComponent<Props, S
 
                         <AdminPanelTogglable
                             className='permissions-block'
+                            id='channelAdministratorsSection'
                             open={this.state.openRoles.channel_admin}
                             onToggle={() => this.toggleRole('channel_admin')}
                             title={defineMessage({id: 'admin.permissions.systemScheme.channelAdminsTitle', defaultMessage: 'Channel Administrators'})}
@@ -496,6 +497,7 @@ export class PermissionSystemSchemeSettings extends React.PureComponent<Props, S
 
                         <AdminPanelTogglable
                             className='permissions-block'
+                            id='teamAdministratorsSection'
                             open={this.state.openRoles.team_admin}
                             onToggle={() => this.toggleRole('team_admin')}
                             title={defineMessage({id: 'admin.permissions.systemScheme.teamAdminsTitle', defaultMessage: 'Team Administrators'})}
@@ -513,6 +515,7 @@ export class PermissionSystemSchemeSettings extends React.PureComponent<Props, S
 
                         <AdminPanelTogglable
                             className='permissions-block'
+                            id='systemAdministratorsSection'
                             open={this.state.openRoles.system_admin}
                             onToggle={() => this.toggleRole('system_admin')}
                             title={defineMessage({id: 'admin.permissions.systemScheme.systemAdminsTitle', defaultMessage: 'System Administrators'})}

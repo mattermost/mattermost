@@ -15,6 +15,8 @@ export default class ChannelsPost {
 
     readonly body;
     readonly profileIcon;
+    readonly emoticon;
+    readonly messageText;
 
     readonly removePostButton;
 
@@ -29,20 +31,22 @@ export default class ChannelsPost {
     constructor(container: Locator) {
         this.container = container;
 
-        this.body = container.locator('.post__body');
+        this.body = container.getByTestId('post-body');
 
-        this.profileIcon = container.locator('.profile-icon');
+        this.profileIcon = container.getByTestId('profile-icon');
+        this.emoticon = container.locator('.emoticon');
+        this.messageText = container.locator('.post-message__text p');
 
-        this.removePostButton = container.locator('.post__remove');
+        this.removePostButton = container.getByTestId('post-remove-button');
 
-        this.postMenu = new PostMenu(container.locator('.post-menu'));
-        this.threadFooter = new ThreadFooter(container.locator('.ThreadFooter'));
+        this.postMenu = new PostMenu(container.getByTestId(/^post-menu($|-)/));
+        this.threadFooter = new ThreadFooter(container.getByTestId('thread-footer'));
 
         // Burn-on-Read components
-        this.burnOnReadBadge = new BurnOnReadBadge(container.locator('.BurnOnReadBadge'));
-        this.burnOnReadTimerChip = new BurnOnReadTimerChip(container.locator('.BurnOnReadTimerChip'));
+        this.burnOnReadBadge = new BurnOnReadBadge(container.getByTestId(/^burn-on-read-badge-/));
+        this.burnOnReadTimerChip = new BurnOnReadTimerChip(container.getByTestId('burn-on-read-timer-chip'));
         this.concealedPlaceholder = new BurnOnReadConcealedPlaceholder(
-            container.locator('.BurnOnReadConcealedPlaceholder'),
+            container.getByTestId(/^burn-on-read-concealed-/),
         );
     }
 
@@ -68,6 +72,14 @@ export default class ChannelsPost {
 
     async getProfileImage(username: string) {
         return this.profileIcon.getByAltText(`${username} profile image`);
+    }
+
+    /**
+     * Locates a rendered link with the given accessible name inside the post body.
+     * @param name
+     */
+    getLink(name: string): Locator {
+        return this.container.getByRole('link', {name});
     }
 
     async openAThread() {

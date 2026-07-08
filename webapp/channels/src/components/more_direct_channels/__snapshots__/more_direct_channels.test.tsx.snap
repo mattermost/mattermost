@@ -168,6 +168,7 @@ exports[`components/MoreDirectChannels should exclude deleted users if there is 
                       >
                         <div
                           class="loading-screen"
+                          data-testid="loading-screen"
                           style="position: absolute;"
                         >
                           <div
@@ -420,6 +421,7 @@ exports[`components/MoreDirectChannels should match snapshot 1`] = `
                       >
                         <div
                           class="loading-screen"
+                          data-testid="loading-screen"
                           style="position: absolute;"
                         >
                           <div

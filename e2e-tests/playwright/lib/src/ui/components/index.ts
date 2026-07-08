@@ -15,6 +15,7 @@ import ChannelsHeader from './channels/header';
 import ChannelsPost from './channels/post';
 import ChannelsPostCreate from './channels/post_create';
 import ChannelsPostEdit from './channels/post_edit';
+import ChannelNotificationPreferencesModal from './channels/channel_notification_preferences_modal';
 import ChannelSettingsModal from './channels/channel_settings/channel_settings_modal';
 import ChannelsSidebarLeft from './channels/sidebar_left';
 import ChannelsSidebarRight from './channels/sidebar_right';
@@ -86,6 +87,7 @@ const components = {
     ChannelsAppBar,
     ChannelsCenterView,
     CreateTeamForm,
+    ChannelNotificationPreferencesModal,
     ChannelsHeader,
     ChannelsPost,
     ChannelsPostCreate,
@@ -165,6 +167,7 @@ export {
     ChannelsAppBar,
     ChannelsCenterView,
     CreateTeamForm,
+    ChannelNotificationPreferencesModal,
     ChannelsHeader,
     ChannelsPost,
     ChannelsPostCreate,

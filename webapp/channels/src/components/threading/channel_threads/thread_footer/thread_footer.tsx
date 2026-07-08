@@ -83,7 +83,10 @@ function ThreadFooter({
     }
 
     return (
-        <div className='ThreadFooter'>
+        <div
+            className='ThreadFooter'
+            data-testid='thread-footer'
+        >
             {!isFollowing || threadIsSynthetic(thread) || !thread.unread_replies ? (
                 <div className='indicator'/>
             ) : (
@@ -116,6 +119,7 @@ function ThreadFooter({
                 <Button
                     onClick={handleReply}
                     className='ReplyButton separated'
+                    data-testid='thread-footer-reply-button'
                     prepend={
                         <span className='icon'>
                             <i className='icon-reply-outline'/>

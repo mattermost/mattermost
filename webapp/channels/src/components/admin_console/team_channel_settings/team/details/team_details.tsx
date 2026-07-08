@@ -19,6 +19,7 @@ import FormError from 'components/form_error';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import {getHistory} from 'utils/browser_history';
+import Constants from 'utils/constants';
 
 import {TeamAccessControl} from './team_access_control_policy';
 import {TeamGroups} from './team_groups';
@@ -62,6 +63,9 @@ export type Props = {
 };
 
 type State = {
+    name: string;
+    description: string;
+    nameError?: React.ReactNode;
     groups: Group[];
     syncChecked: boolean;
     allAllowedChecked: boolean;
@@ -104,6 +108,9 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
         super(props);
         const team = props.team;
         this.state = {
+            name: team?.display_name || '',
+            description: team?.description || '',
+            nameError: undefined,
             groups: props.groups,
             syncChecked: Boolean(team?.group_constrained),
             allAllowedChecked: Boolean(team?.allow_open_invite),
@@ -130,9 +137,12 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
 
     componentDidUpdate(prevProps: Props) {
         const {totalGroups, team} = this.props;
-        if (prevProps.team?.id !== team?.id || totalGroups !== prevProps.totalGroups) {
+        if (prevProps.team?.id !== team?.id) {
             this.setState({
                 totalGroups,
+                name: team?.display_name || '',
+                description: team?.description || '',
+                nameError: undefined,
                 syncChecked: Boolean(team?.group_constrained),
                 allAllowedChecked: Boolean(team?.allow_open_invite),
                 allowedDomainsChecked: Boolean(team?.allowed_domains),
@@ -140,9 +150,11 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                 isLocalArchived: team ? team.delete_at > 0 : true,
                 policyEnforced: Boolean(team?.policy_enforced),
             });
-            if (this.props.abacSupported && prevProps.team?.id !== team?.id && team?.id) {
+            if (this.props.abacSupported && team?.id) {
                 this.fetchAccessControlPolicies(team.id);
             }
+        } else if (totalGroups !== prevProps.totalGroups) {
+            this.setState({totalGroups});
         }
     }
 
@@ -231,6 +243,16 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
         this.props.actions.setNavigationBlocked(true);
     };
 
+    handleNameChange = (name: string) => {
+        this.setState({name, nameError: undefined, saveNeeded: true});
+        this.props.actions.setNavigationBlocked(true);
+    };
+
+    handleDescriptionChange = (description: string) => {
+        this.setState({description, saveNeeded: true});
+        this.props.actions.setNavigationBlocked(true);
+    };
+
     setNewGroupRole = (gid: string) => {
         const groups = cloneDeep(this.state.groups).map((g) => {
             if (g.id === gid) {
@@ -241,19 +263,52 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
         this.processGroupsChange(groups);
     };
 
+    getTeamNameError = (): React.ReactNode => {
+        if (this.state.name.trim().length < Constants.MIN_TEAMNAME_LENGTH) {
+            return (
+                <FormattedMessage
+                    id='admin.team_settings.team_detail.teamNameRestrictions'
+                    defaultMessage='Team name must be {min} or more characters up to a maximum of {max}.'
+                    values={{min: Constants.MIN_TEAMNAME_LENGTH, max: Constants.MAX_TEAMNAME_LENGTH}}
+                />
+            );
+        }
+        return undefined;
+    };
+
     handleSubmit = async () => {
         const {team, groups: origGroups, teamID, actions} = this.props;
         if (!team) {
             return;
         }
 
-        this.setState({showRemoveConfirmation: false, saving: true});
-        const {groups, allAllowedChecked, allowedDomainsChecked, allowedDomains, syncChecked, usersToAdd, usersToRemove, rolesToUpdate} = this.state;
+        this.setState({showRemoveConfirmation: false, showArchiveConfirmModal: false, saving: true});
+        const {name, description, groups, allAllowedChecked, allowedDomainsChecked, allowedDomains, syncChecked, usersToAdd, usersToRemove, rolesToUpdate} = this.state;
 
         let serverError: JSX.Element | undefined;
 
+        const nameError = this.getTeamNameError();
+        if (nameError) {
+            this.setState({nameError, saving: false, saveNeeded: true});
+            actions.setNavigationBlocked(true);
+            return;
+        }
+
         if (this.teamToBeArchived()) {
             let saveNeeded = false;
+            const patchTeamResult = await actions.patchTeam({
+                ...team,
+                display_name: name.trim(),
+                description,
+            });
+            if (patchTeamResult.error) {
+                serverError = <FormError error={patchTeamResult.error?.message}/>;
+                saveNeeded = true;
+                this.setState({serverError, saving: false, saveNeeded, usersToRemoveCount: 0, rolesToUpdate: {}, usersToAdd: {}, usersToRemove: {}});
+                actions.setNavigationBlocked(saveNeeded);
+                return;
+            }
+
             const result = await actions.deleteTeam(team.id);
             if ('error' in result) {
                 serverError = <FormError error={result.error.message}/>;
@@ -304,6 +359,8 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             // After group operations succeed, patch the team
             const patchTeamResult = await actions.patchTeam({
                 ...team,
+                display_name: name.trim(),
+                description,
                 group_constrained: syncChecked,
                 allowed_domains: allowedDomainsChecked ? allowedDomains : '',
                 allow_open_invite: allAllowedChecked,
@@ -547,6 +604,13 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
     hideArchiveConfirmModal = () => this.setState({showArchiveConfirmModal: false});
 
     onSave = () => {
+        const nameError = this.getTeamNameError();
+        if (nameError) {
+            this.setState({nameError, saveNeeded: true});
+            this.props.actions.setNavigationBlocked(true);
+            return;
+        }
+
         if (this.teamToBeArchived()) {
             this.setState({showArchiveConfirmModal: true});
         } else if (this.state.usersToRemoveCount > 0) {
@@ -691,6 +755,11 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                     <div className='admin-console__content'>
                         <TeamProfile
                             team={team}
+                            name={this.state.name}
+                            description={this.state.description}
+                            nameError={this.state.nameError}
+                            onNameChange={this.handleNameChange}
+                            onDescriptionChange={this.handleDescriptionChange}
                             onToggleArchive={this.onToggleArchive}
                             isArchived={isLocalArchived}
                             isDisabled={this.props.isDisabled}

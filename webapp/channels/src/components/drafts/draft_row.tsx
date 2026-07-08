@@ -32,7 +32,6 @@ import {getChannelURL} from 'selectors/urls';
 
 import usePriority from 'components/advanced_text_editor/use_priority';
 import useSubmit from 'components/advanced_text_editor/use_submit';
-import {useScrollOnRender} from 'components/common/hooks/use_scroll_on_render';
 import ScheduledPostActions from 'components/drafts/draft_actions/schedule_post_actions/scheduled_post_actions';
 import PlaceholderScheduledPostsTitle
     from 'components/drafts/placeholder_scheduled_post_title/placeholder_scheduled_posts_title';
@@ -58,7 +57,7 @@ type Props = {
     displayName: string;
     item: PostDraft | ScheduledPost;
     isRemote?: boolean;
-    scrollIntoView?: boolean;
+    highlight?: boolean;
     containerClassName?: string;
 };
 
@@ -70,7 +69,7 @@ function DraftRow({
     status,
     displayName,
     isRemote,
-    scrollIntoView,
+    highlight,
     containerClassName,
 }: Props) {
     const [isEditing, setIsEditing] = useState(false);
@@ -323,8 +322,6 @@ function DraftRow({
         }
     }, [thread?.id, rootId]);
 
-    const alertRef = useScrollOnRender();
-
     if (!channel && !isScheduledPost) {
         return null;
     }
@@ -375,8 +372,7 @@ function DraftRow({
             dataPostId={(item as ScheduledPost).id}
             onClick={goToMessage}
             hasError={Boolean(postError)}
-            innerRef={scrollIntoView ? alertRef : undefined}
-            isHighlighted={scrollIntoView}
+            isHighlighted={highlight}
             className={containerClassName}
             ariaLabel={isScheduledPost ? intl.formatMessage({
                 id: 'drafts.draft_row.aria_label.scheduled_post',

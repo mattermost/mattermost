@@ -912,6 +912,7 @@ function PostComponent(props: Props) {
                         <div
                             className={postClass}
                             id={isRHS ? undefined : `${post.id}_message`}
+                            data-testid='post-body'
                         >
                             {post.failed && <FailedPostOptions post={post}/>}
                             <AutoHeightSwitcher
