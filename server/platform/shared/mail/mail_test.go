@@ -119,18 +119,18 @@ func TestMailConnectionAdvanced(t *testing.T) {
 func TestSendMailUsingConfig(t *testing.T) {
 	cfg := getConfig()
 
-	var emailTo = "test@example.com"
-	var emailSubject = "Testing this email"
-	var emailBody = "This is a test from autobot"
-	var emailCC = "test@example.com"
+	emailTo := "test@example.com"
+	emailSubject := "Testing this email"
+	emailBody := "This is a test from autobot"
+	emailCC := "test@example.com"
 
-	//Delete all the messages before check the sample email
+	// Delete all the messages before check the sample email
 	DeleteMailBox(emailTo)
 
 	err2 := SendMailUsingConfig(emailTo, emailSubject, emailBody, cfg, true, "", "", "", emailCC, "")
 	require.NoError(t, err2, "Should connect to the SMTP Server")
 
-	//Check if the email was send to the right email address
+	// Check if the email was send to the right email address
 	var resultsMailbox JSONMessageHeaderInbucket
 	err3 := RetryInbucket(5, func() error {
 		var err error
@@ -152,9 +152,9 @@ func TestSendMailUsingConfig(t *testing.T) {
 
 func TestSendMailPlainText(t *testing.T) {
 	cfg := getConfig()
-	var emailTo = "test@example.com"
-	var emailSubject = "Testing this email"
-	var emailCC = "test@example.com"
+	emailTo := "test@example.com"
+	emailSubject := "Testing this email"
+	emailCC := "test@example.com"
 
 	tests := []struct {
 		name             string
@@ -210,12 +210,12 @@ func TestSendMailPlainText(t *testing.T) {
 func TestSendMailWithEmbeddedFilesUsingConfig(t *testing.T) {
 	cfg := getConfig()
 
-	var emailTo = "test@example.com"
-	var emailSubject = "Testing this email"
-	var emailBody = "This is a test from autobot"
-	var emailCC = "test@example.com"
+	emailTo := "test@example.com"
+	emailSubject := "Testing this email"
+	emailBody := "This is a test from autobot"
+	emailCC := "test@example.com"
 
-	//Delete all the messages before check the sample email
+	// Delete all the messages before check the sample email
 	DeleteMailBox(emailTo)
 
 	embeddedFiles := map[string]io.Reader{
@@ -225,7 +225,7 @@ func TestSendMailWithEmbeddedFilesUsingConfig(t *testing.T) {
 	err2 := SendMailWithEmbeddedFilesUsingConfig(emailTo, emailSubject, emailBody, embeddedFiles, cfg, true, "", "", "", emailCC, "")
 	require.NoError(t, err2, "Should connect to the SMTP Server")
 
-	//Check if the email was send to the right email address
+	// Check if the email was send to the right email address
 	var resultsMailbox JSONMessageHeaderInbucket
 	err3 := RetryInbucket(5, func() error {
 		var err error
@@ -250,7 +250,7 @@ func TestSendMailWithEmbeddedFilesUsingConfig(t *testing.T) {
 func TestSendMailUsingConfigAdvanced(t *testing.T) {
 	cfg := getConfig()
 
-	//Delete all the messages before check the sample email
+	// Delete all the messages before check the sample email
 	DeleteMailBox("test2@example.com")
 
 	// create two files with the same name that will both be attached to the email
@@ -287,7 +287,7 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 	err = sendMailUsingConfigAdvanced(md, cfg)
 	require.NoError(t, err, "Should connect to the SMTP Server: %v", err)
 
-	//Check if the email was send to the right email address
+	// Check if the email was send to the right email address
 	var resultsMailbox JSONMessageHeaderInbucket
 	err = RetryInbucket(5, func() error {
 		var mailErr error
