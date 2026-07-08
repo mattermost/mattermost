@@ -49,6 +49,8 @@ const (
 // the legacy protected / source_plugin_id gating and the sync-lock:
 //   - Value writes by a machine caller are allowed only if it is a listed owner
 //     (matching ID and Type) whose Scopes contain the caller's acting-as scope.
+//     An owner with an empty Scopes list is not scope-restricted and may write
+//     for any scope.
 //   - Field-definition edits and deletes by a machine caller require listed-owner
 //     membership (matching ID and Type); the scope is not consulted.
 //   - The field's PermissionValues is pinned to sysadmin so human callers are
@@ -58,8 +60,7 @@ const (
 // What it does NOT change: source_plugin_id immutability and the protected-flag
 // rules still apply as invariants on field-definition writes (a plugin-created
 // owner field still carries its source_plugin_id), and read/masking is unchanged
-// and still keys off access_mode. Folding those remaining mechanisms into the
-// owners model is deferred to the v12 permissions work.
+// and still keys off access_mode.
 type PropertyOwner struct {
 	ID     string   `json:"id"`
 	Type   string   `json:"type"`

@@ -1595,7 +1595,7 @@ func (api *PluginAPI) psaPluginContext() request.CTX {
 // declarations, used by the *WithOptions value write methods so owner-based
 // access control can match the scope against a field's owners list.
 func (api *PluginAPI) psaPluginContextWithOptions(options model.PropertyRequestOptions) request.CTX {
-	return RequestContextWithCallerIDAndOptions(api.ctx, api.manifest.Id, options)
+	return requestContextWithCallerIDAndOptions(api.ctx, api.manifest.Id, options)
 }
 
 func (api *PluginAPI) CreatePropertyField(field *model.PropertyField) (*model.PropertyField, error) {
