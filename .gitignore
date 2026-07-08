@@ -187,3 +187,7 @@ docs/site/node_modules/
 docs/api/reference/
 docs/pdf/build/
 docs/pdf/node_modules/
+
+# Docs site — local env and generated artifacts
+docs/site/.env.local
+docs/site/openapi/
