@@ -15,6 +15,7 @@ import ChannelsHeader from './channels/header';
 import ChannelsPost from './channels/post';
 import ChannelsPostCreate from './channels/post_create';
 import ChannelsPostEdit from './channels/post_edit';
+import ChannelNotificationPreferencesModal from './channels/channel_notification_preferences_modal';
 import ChannelSettingsModal from './channels/channel_settings/channel_settings_modal';
 import ChannelsSidebarLeft from './channels/sidebar_left';
 import ChannelsSidebarRight from './channels/sidebar_right';
@@ -29,7 +30,6 @@ import NewChannelModal from './channels/new_channel_modal';
 import FlagPostConfirmationDialog from './channels/flag_post_confirmation_dialog';
 import GenericConfirmModal from './channels/generic_confirm_modal';
 import InvitePeopleModal from './channels/invite_people_modal';
-import KeyboardShortcutsModal from './channels/keyboard_shortcuts_modal';
 import MembersInvitedModal from './channels/members_invited_modal';
 import MessagePriority from './channels/message_priority';
 import PostDotMenu from './channels/post_dot_menu';
@@ -88,6 +88,7 @@ const components = {
     ChannelsAppBar,
     ChannelsCenterView,
     CreateTeamForm,
+    ChannelNotificationPreferencesModal,
     ChannelsHeader,
     ChannelsPost,
     ChannelsPostCreate,
@@ -107,7 +108,6 @@ const components = {
     BrowseChannelsModal,
     GenericConfirmModal,
     InvitePeopleModal,
-    KeyboardShortcutsModal,
     MembersInvitedModal,
     MessagePriority,
     PostDotMenu,
@@ -169,6 +169,7 @@ export {
     ChannelsAppBar,
     ChannelsCenterView,
     CreateTeamForm,
+    ChannelNotificationPreferencesModal,
     ChannelsHeader,
     ChannelsPost,
     ChannelsPostCreate,
@@ -188,7 +189,6 @@ export {
     DirectChannelsModal,
     GenericConfirmModal,
     InvitePeopleModal,
-    KeyboardShortcutsModal,
     MembersInvitedModal,
     MessagePriority,
     PostDotMenu,

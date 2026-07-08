@@ -32,6 +32,7 @@ func (api *API) InitTeamLocal() {
 
 	api.BaseRoutes.TeamByName.Handle("", api.APILocal(getTeamByName)).Methods(http.MethodGet)
 	api.BaseRoutes.TeamMembers.Handle("", api.APILocal(addTeamMember)).Methods(http.MethodPost)
+	api.BaseRoutes.TeamMembers.Handle("/ids", api.APILocal(getTeamMembersByIds)).Methods(http.MethodPost)
 	api.BaseRoutes.TeamMember.Handle("", api.APILocal(removeTeamMember)).Methods(http.MethodDelete)
 }
 

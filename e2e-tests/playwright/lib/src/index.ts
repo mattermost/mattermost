@@ -16,6 +16,7 @@ export {
     getOnPremServerConfig,
     isWebhookTestServerReachable,
     setupWebhookTestServer,
+    PlaywrightClient4,
 } from './server';
 
 export {

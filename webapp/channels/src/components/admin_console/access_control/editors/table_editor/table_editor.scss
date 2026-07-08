@@ -41,6 +41,12 @@
         }
     }
 
+    &__value-error {
+        margin-top: 4px;
+        color: var(--error-text);
+        font-size: 12px;
+    }
+
     &__row-remove {
         border: none;
         background: none;

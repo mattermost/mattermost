@@ -10,9 +10,7 @@ test('MM-T1722 opens a saved post from an archived channel without a reply box',
     // # Create and log in as a test user, and prepare a channel they belong to
     const {user, team, adminClient, userClient} = await pw.initSetup();
     const message = `Archived saved post ${pw.random.id()}`;
-    const channel = await adminClient.createChannel(
-        pw.random.channel({teamId: team.id, name: 'archive-saved', displayName: 'Archive Saved', type: 'O'}),
-    );
+    const channel = await adminClient.createPublicChannel(team.id, 'Archive Saved');
     await adminClient.addToChannel(user.id, channel.id);
 
     // # Post a message in the channel, then archive the channel

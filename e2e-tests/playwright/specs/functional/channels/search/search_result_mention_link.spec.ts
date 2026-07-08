@@ -9,8 +9,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 test('MM-T348 shows a full special-character username as a link in search results', {tag: '@search'}, async ({pw}) => {
     // # Create a user whose username contains '-' and '_', plus a user who mentions them
     const {user: mentioningUser, team, adminClient, userClient} = await pw.initSetup();
-    const specialUser = await pw.createNewUserProfile(adminClient, {prefix: 'test-user_'});
-    await adminClient.addToTeam(team.id, specialUser.id);
+    const [specialUser] = await adminClient.createUsers(team.id, 1, 'test-user_');
     const townSquare = await adminClient.getChannelByName(team.id, 'town-square');
     await adminClient.addToChannel(specialUser.id, townSquare.id);
 

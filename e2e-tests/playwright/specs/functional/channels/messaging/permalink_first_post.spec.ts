@@ -12,9 +12,7 @@ test('MM-T3308 follows a permalink to the first post without endless loading', {
 
     // # Create and log in as a test user, and create a private channel with several posts
     const {user, team, adminClient} = await pw.initSetup();
-    const privateChannel = await adminClient.createChannel(
-        pw.random.channel({teamId: team.id, name: 'permalink-first', displayName: 'Permalink First', type: 'P'}),
-    );
+    const privateChannel = await adminClient.createPrivateChannel(team.id, 'Permalink First');
     await adminClient.addToChannel(user.id, privateChannel.id);
 
     let firstPostId = '';

@@ -13,11 +13,11 @@ import type {Channel} from '@mattermost/types/channels';
 
 import {getAgents} from 'mattermost-redux/actions/agents';
 import {createRecap} from 'mattermost-redux/actions/recaps';
-import {getAgents as getAgentsSelector} from 'mattermost-redux/selectors/entities/agents';
+import {getAgents as getAgentsSelector, getDefaultAgent} from 'mattermost-redux/selectors/entities/agents';
 import {getMyChannels, getUnreadChannelIds} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {AgentDropdown} from 'components/common/agents';
+import {AgentDropdown, useSelectedAgent} from 'components/common/agents';
 import PaginationDots from 'components/common/pagination_dots';
 
 import ChannelSelector from './channel_selector';
@@ -41,12 +41,13 @@ const CreateRecapModal = ({onExited}: Props) => {
     const myChannels = useSelector(getMyChannels);
     const unreadChannelIds = useSelector(getUnreadChannelIds);
     const agents = useSelector(getAgentsSelector);
+    const defaultAgent = useSelector(getDefaultAgent);
+    const [selectedBotId, setSelectedBotId] = useSelectedAgent(agents);
 
     const [currentStep, setCurrentStep] = useState(1);
     const [recapName, setRecapName] = useState('');
     const [recapType, setRecapType] = useState<RecapType | null>(null);
     const [selectedChannelIds, setSelectedChannelIds] = useState<string[]>([]);
-    const [selectedBotId, setSelectedBotId] = useState<string>('');
     const [isAgentMenuOpen, setIsAgentMenuOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -55,13 +56,6 @@ const CreateRecapModal = ({onExited}: Props) => {
     useEffect(() => {
         dispatch(getAgents());
     }, [dispatch]);
-
-    // Set default bot when agents are loaded
-    useEffect(() => {
-        if (agents.length > 0 && !selectedBotId) {
-            setSelectedBotId(agents[0].id);
-        }
-    }, [agents, selectedBotId]);
 
     // Get unread channels
     const unreadChannels = myChannels.filter((channel: Channel) =>
@@ -180,7 +174,7 @@ const CreateRecapModal = ({onExited}: Props) => {
 
     const handleBotSelect = useCallback((botId: string) => {
         setSelectedBotId(botId);
-    }, []);
+    }, [setSelectedBotId]);
 
     const handleAgentMenuToggle = useCallback((isOpen: boolean) => {
         setIsAgentMenuOpen(isOpen);
@@ -195,7 +189,7 @@ const CreateRecapModal = ({onExited}: Props) => {
                     selectedBotId={selectedBotId}
                     onBotSelect={handleBotSelect}
                     bots={agents}
-                    defaultBotId={agents.length > 0 ? agents[0].id : undefined}
+                    defaultBotId={defaultAgent?.id}
                     disabled={isSubmitting}
                     onMenuToggle={handleAgentMenuToggle}
                 />

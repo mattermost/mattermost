@@ -2681,6 +2681,14 @@
     "translation": "This license only supports {{.Users}} users, when your system has {{.Count}} unique users. Unique users are counted distinctly by email address. You can see total user count under Site Reports -> View Statistics."
   },
   {
+    "id": "api.license.add_license.wrong_environment_production.app_error",
+    "translation": "This is a production license, but this server is running in a test or development environment. Production licenses can only be used on production servers."
+  },
+  {
+    "id": "api.license.add_license.wrong_environment_test.app_error",
+    "translation": "This is a test or development license, but this server is running in a production environment. Test or development licenses can only be used on test or development servers."
+  },
+  {
     "id": "api.license.client.old_format.app_error",
     "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
   },
@@ -11481,6 +11489,22 @@
   {
     "id": "model.command_hook.user_id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.command_response.is_valid.attachment.app_error",
+    "translation": "Invalid attachment."
+  },
+  {
+    "id": "model.command_response.is_valid.goto_location.app_error",
+    "translation": "Invalid goto location."
+  },
+  {
+    "id": "model.command_response.is_valid.icon_url.app_error",
+    "translation": "Invalid icon url."
+  },
+  {
+    "id": "model.command_response.is_valid.response_type.app_error",
+    "translation": "Invalid response type."
   },
   {
     "id": "model.compliance.is_valid.create_at.app_error",

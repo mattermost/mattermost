@@ -509,8 +509,8 @@ jobs:
           # milestone title contains quotes or other special characters.
           NUM=$(gh api 'repos/mattermost/docs/milestones?state=all' \
             --paginate \
-            --jq '.[] | select(.title == $title) | .number' \
-            --arg title "$MILESTONE_TITLE" \
+            | jq -r --arg title "$MILESTONE_TITLE" \
+                '.[] | select(.title == $title) | .number' \
             | head -1)
 
           if [ -z "$NUM" ]; then

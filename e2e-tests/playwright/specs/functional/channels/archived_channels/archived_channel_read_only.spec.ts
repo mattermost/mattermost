@@ -9,9 +9,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 test('MM-T1716 hides center and RHS message boxes in an archived channel', {tag: '@channels'}, async ({pw}) => {
     // # Create and log in as a test user, then open a new channel
     const {user, team, adminClient} = await pw.initSetup();
-    const channel = await adminClient.createChannel(
-        pw.random.channel({teamId: team.id, name: 'archive-readonly', displayName: 'Archive Read Only', type: 'O'}),
-    );
+    const channel = await adminClient.createPublicChannel(team.id, 'Archive Read Only');
     await adminClient.addToChannel(user.id, channel.id);
 
     const {channelsPage} = await pw.testBrowser.login(user);

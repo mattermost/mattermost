@@ -17,11 +17,11 @@ test('MM-T1279 opens keyboard shortcuts modal from the Help menu', {tag: '@keybo
     await channelsPage.globalHeader.openKeyboardShortcuts();
 
     // * Verify the Keyboard Shortcuts modal is displayed
-    await channelsPage.keyboardShortcutsModal.toBeVisible();
+    await expect(channelsPage.keyboardShortcutsModal).toBeVisible();
 
     // # Close the modal with the Escape key
-    await channelsPage.keyboardShortcutsModal.closeWithEscape();
+    await channelsPage.page.keyboard.press('Escape');
 
     // * Verify the Keyboard Shortcuts modal is no longer displayed
-    await expect(channelsPage.keyboardShortcutsModal.heading).not.toBeVisible();
+    await expect(channelsPage.keyboardShortcutsModal).not.toBeVisible();
 });

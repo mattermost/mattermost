@@ -38,8 +38,7 @@ test('MM-T359 returns all case variants when searching a hashtag', {tag: '@searc
 test('MM-T360 searches a hashtag from a recent mention', {tag: '@search'}, async ({pw}) => {
     // # Create the test user plus a second user who will mention them
     const {user, team, adminClient} = await pw.initSetup();
-    const mentioner = await pw.createNewUserProfile(adminClient, {prefix: 'mentioner'});
-    await adminClient.addToTeam(team.id, mentioner.id);
+    const [mentioner] = await adminClient.createUsers(team.id, 1, 'mentioner');
     const townSquare = await adminClient.getChannelByName(team.id, 'town-square');
     await adminClient.addToChannel(mentioner.id, townSquare.id);
 
