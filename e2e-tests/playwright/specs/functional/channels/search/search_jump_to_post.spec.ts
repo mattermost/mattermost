@@ -9,9 +9,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 test('MM-T380 jumps from a search result to a post in another channel', {tag: '@search'}, async ({pw}) => {
     // # Create and log in as a test user, and create a channel with many posts
     const {user, team, adminClient} = await pw.initSetup();
-    const linkChannel = await adminClient.createChannel(
-        pw.random.channel({teamId: team.id, name: 'link-test', displayName: 'Link Test', type: 'O'}),
-    );
+    const linkChannel = await adminClient.createPublicChannel(team.id, 'Link Test', 'link-test');
     await adminClient.addToChannel(user.id, linkChannel.id);
 
     // # Post a target message surrounded by many other messages so it is not initially loaded elsewhere

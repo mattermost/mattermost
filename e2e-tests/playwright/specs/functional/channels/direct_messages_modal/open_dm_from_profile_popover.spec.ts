@@ -9,8 +9,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 test('MM-T455 opens a direct message from a profile popover', {tag: '@direct_messages'}, async ({pw}) => {
     // # Create the test user plus another user who posts in a shared channel
     const {user, team, adminClient} = await pw.initSetup();
-    const author = await pw.createNewUserProfile(adminClient, {prefix: 'author'});
-    await adminClient.addToTeam(team.id, author.id);
+    const [author] = await adminClient.createUsers(team.id, 1, 'author');
     const offTopic = await adminClient.getChannelByName(team.id, 'off-topic');
     await adminClient.addToChannel(author.id, offTopic.id);
 

@@ -62,6 +62,15 @@ export default class SearchResultsPanel {
     }
 
     /**
+     * Hovers the result item that contains the given text and opens its "more" (dot) menu.
+     */
+    async openResultDotMenu(text: string) {
+        const item = this.getResultByText(text).first();
+        await item.hover();
+        await item.getByRole('button', {name: 'more'}).click();
+    }
+
+    /**
      * Clicks the "Jump" link on the result item that contains the given text.
      */
     async jumpToResultWithText(text: string) {

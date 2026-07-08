@@ -12,8 +12,7 @@ test(
     async ({pw}) => {
         // # Create the test user plus another user to direct message
         const {user, team, adminClient} = await pw.initSetup();
-        const otherUser = await pw.createNewUserProfile(adminClient, {prefix: 'other'});
-        await adminClient.addToTeam(team.id, otherUser.id);
+        const [otherUser] = await adminClient.createUsers(team.id, 1, 'other');
 
         const {channelsPage} = await pw.testBrowser.login(user);
         await channelsPage.goto(team.name, 'town-square');

@@ -9,9 +9,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 test('MM-T382 keeps search results unchanged while scrolling the center channel', {tag: '@search'}, async ({pw}) => {
     // # Create and log in as a test user, and open a channel with many matching posts
     const {user, team, adminClient} = await pw.initSetup();
-    const channel = await adminClient.createChannel(
-        pw.random.channel({teamId: team.id, name: 'search-scroll', displayName: 'Search Scroll', type: 'O'}),
-    );
+    const channel = await adminClient.createPublicChannel(team.id, 'Search Scroll', 'search-scroll');
     await adminClient.addToChannel(user.id, channel.id);
 
     const token = `searchfun${pw.random.id()}`;

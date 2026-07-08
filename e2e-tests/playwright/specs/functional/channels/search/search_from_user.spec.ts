@@ -9,8 +9,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 test('MM-T377 completes a from: user search from the autocomplete', {tag: '@search'}, async ({pw}) => {
     // # Create the test user plus another user who authors a post
     const {user, team, adminClient} = await pw.initSetup();
-    const author = await pw.createNewUserProfile(adminClient, {prefix: 'author'});
-    await adminClient.addToTeam(team.id, author.id);
+    const [author] = await adminClient.createUsers(team.id, 1, 'author');
     const townSquare = await adminClient.getChannelByName(team.id, 'town-square');
     await adminClient.addToChannel(author.id, townSquare.id);
 

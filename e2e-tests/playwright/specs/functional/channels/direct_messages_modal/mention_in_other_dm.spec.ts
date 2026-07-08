@@ -9,10 +9,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 test('MM-T448 does not notify a user mentioned in a different DM', {tag: '@direct_messages'}, async ({pw}) => {
     // # Create the test user plus two more users on the team
     const {user, team, adminClient} = await pw.initSetup();
-    const partner = await pw.createNewUserProfile(adminClient, {prefix: 'partner'});
-    const mentioned = await pw.createNewUserProfile(adminClient, {prefix: 'mentioned'});
-    await adminClient.addToTeam(team.id, partner.id);
-    await adminClient.addToTeam(team.id, mentioned.id);
+    const [partner, mentioned] = await adminClient.createUsers(team.id, 2, 'dmuser');
 
     const token = `dmmention${pw.random.id()}`;
 

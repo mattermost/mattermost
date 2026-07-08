@@ -14,12 +14,7 @@ test(
     async ({pw}) => {
         // # Create the test user plus three more users on the team
         const {user, team, adminClient} = await pw.initSetup();
-        const member1 = await pw.createNewUserProfile(adminClient, {prefix: 'gma'});
-        const member2 = await pw.createNewUserProfile(adminClient, {prefix: 'gmb'});
-        const member3 = await pw.createNewUserProfile(adminClient, {prefix: 'gmc'});
-        for (const member of [member1, member2, member3]) {
-            await adminClient.addToTeam(team.id, member.id);
-        }
+        const [member1, member2, member3] = await adminClient.createUsers(team.id, 3, 'gm');
 
         const {channelsPage, page} = await pw.testBrowser.login(user);
         await channelsPage.goto(team.name, 'town-square');

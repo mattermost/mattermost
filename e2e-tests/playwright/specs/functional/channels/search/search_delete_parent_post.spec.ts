@@ -9,9 +9,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 test('MM-T381 deletes a parent post from the search results', {tag: '@search'}, async ({pw}) => {
     // # Create and log in as a test user, and open a channel
     const {user, team, adminClient} = await pw.initSetup();
-    const channel = await adminClient.createChannel(
-        pw.random.channel({teamId: team.id, name: 'delete-parent', displayName: 'Delete Parent', type: 'O'}),
-    );
+    const channel = await adminClient.createPublicChannel(team.id, 'Delete Parent', 'delete-parent');
     await adminClient.addToChannel(user.id, channel.id);
 
     const parentToken = `parentpost${pw.random.id()}`;
