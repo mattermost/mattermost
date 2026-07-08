@@ -30,6 +30,9 @@ jobs:
   warm:
     name: Warm E2E npm Registry Cache
     runs-on: ubuntu-24.04
+    # Bound a hung run so it can't hold the concurrency group for the default
+    # 6-hour timeout and block subsequent warm runs.
+    timeout-minutes: 60
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
