@@ -8065,36 +8065,38 @@ func TestChannelEndpointsExcludeSpaces(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	})
 
-	// --- Generic read endpoints that only check SessionHasPermissionToChannel also reject spaces ---
+	// --- Generic read endpoints that resolve the channel via GetChannel return 403 for spaces,
+	// --- because GetChannel returns not-found for space channels, which SessionHasPermissionToChannel
+	// --- treats as no permission. No explicit space guard is needed here. ---
 
 	t.Run("getChannelStats rejects a space", func(t *testing.T) {
 		_, resp, err := client.GetChannelStats(ctx, space.Id, "", false)
 		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("getChannelMembers rejects a space", func(t *testing.T) {
 		_, resp, err := client.GetChannelMembers(ctx, space.Id, 0, 100, "")
 		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("getChannelMembersTimezones rejects a space", func(t *testing.T) {
 		_, resp, err := client.GetChannelMembersTimezones(ctx, space.Id)
 		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("getChannelMembersByIds rejects a space", func(t *testing.T) {
 		_, resp, err := client.GetChannelMembersByIds(ctx, space.Id, []string{th.BasicUser.Id})
 		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("getChannelMember rejects a space", func(t *testing.T) {
 		_, resp, err := client.GetChannelMember(ctx, space.Id, th.BasicUser.Id, "")
 		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("channelMemberCountsByGroup rejects a space", func(t *testing.T) {

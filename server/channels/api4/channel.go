@@ -998,10 +998,6 @@ func getChannelStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
-		return
-	}
-
 	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
 		c.SetPermissionError(model.PermissionReadChannel)
 		return
@@ -1858,10 +1854,6 @@ func getChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
-		return
-	}
-
 	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
 		c.SetPermissionError(model.PermissionReadChannel)
 		return
@@ -1887,10 +1879,6 @@ func getChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 func getChannelMembersTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireChannelId()
 	if c.Err != nil {
-		return
-	}
-
-	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
 		return
 	}
 
@@ -1925,10 +1913,6 @@ func getChannelMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
-		return
-	}
-
 	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
 		c.SetPermissionError(model.PermissionReadChannel)
 		return
@@ -1954,10 +1938,6 @@ func getChannelMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) 
 func getChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireChannelId().RequireUserId()
 	if c.Err != nil {
-		return
-	}
-
-	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
 		return
 	}
 
@@ -3202,9 +3182,6 @@ func convertGroupMessageToChannel(c *Context, w http.ResponseWriter, r *http.Req
 	}
 
 	if rejectBoardChannelByID(c, c.Params.ChannelId) {
-		return
-	}
-	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
 		return
 	}
 
