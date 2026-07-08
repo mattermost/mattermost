@@ -1,0 +1,30 @@
+name: Restore Go Cache
+description: >
+  Read-only restore of the Go module cache, build cache, and CI tool binaries
+  warmed by server-ci-cache-warm. Module/build caches live under RUNNER_TEMP
+  (outside the checkout); tool binaries in server/bin.
+runs:
+  using: composite
+  steps:
+    - name: Export Go cache paths
+      shell: bash
+      run: |
+        echo "GOMODCACHE=${RUNNER_TEMP}/go-cache/mod" >> "$GITHUB_ENV"
+        echo "GOCACHE=${RUNNER_TEMP}/go-cache/build" >> "$GITHUB_ENV"
+        echo "GOBIN=${{ github.workspace }}/server/bin" >> "$GITHUB_ENV"
+    - name: Create Go cache directories
+      shell: bash
+      run: mkdir -p "$GOMODCACHE" "$GOCACHE" "$GOBIN"
+    - name: Restore Go module and build cache
+      uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      with:
+        path: |
+          ${{ runner.temp }}/go-cache/mod
+          ${{ runner.temp }}/go-cache/build
+          server/bin
+        key: gomod-v1-${{ hashFiles('server/.go-version') }}-${{ hashFiles('server/go.mod', 'server/go.sum', 'server/public/go.mod', 'server/public/go.sum', 'tools/mattermost-govet/go.sum') }}
+        # On a go.mod change, prefix-match the newest cache for this Go version
+        # and download only the delta. The Go-version segment is never dropped:
+        # build cache and tool binaries can't be reused across toolchains.
+        restore-keys: |
+          gomod-v1-${{ hashFiles('server/.go-version') }}-
