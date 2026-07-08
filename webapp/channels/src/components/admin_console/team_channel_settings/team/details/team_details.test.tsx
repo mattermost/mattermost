@@ -741,4 +741,49 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             expect(createAccessControlTeamSyncJob).toHaveBeenCalledWith({policy_id: '123'});
         });
     });
+
+    test('toggling auto-add from the Membership policies list persists the team child active on save', async () => {
+        const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: [], active: false}, enforced: true},
+        });
+        const getAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: [], active: false},
+        });
+        const updateAccessControlPoliciesActive = jest.fn().mockResolvedValue({data: {}});
+        const saveTeamAccessPolicy = jest.fn().mockResolvedValue({data: {}});
+        const patchTeam = jest.fn().mockResolvedValue({data: {}});
+        const props = {
+            ...baseProps,
+            abacSupported: true,
+            team: {...baseProps.team, policy_enforced: true},
+            actions: {
+                ...baseProps.actions,
+                getTeamAccessControlPolicy,
+                getAccessControlPolicy,
+                updateAccessControlPoliciesActive,
+                saveTeamAccessPolicy,
+                patchTeam,
+            },
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        await waitFor(() => {
+            expect(screen.getByText('Engineering Policy')).toBeInTheDocument();
+        });
+
+        // The per-policy Auto-add checkbox in the Membership policies list starts
+        // unchecked (child.active = false) and toggles the team child's auto-add.
+        const autoAdd = screen.getByLabelText('Auto-add members for Engineering Policy');
+        expect(autoAdd).not.toBeChecked();
+        await userEvent.click(autoAdd);
+        expect(screen.getByLabelText('Auto-add members for Engineering Policy')).toBeChecked();
+
+        await userEvent.click(screen.getByText('Save'));
+
+        // The team child's active is flipped to true; the parent policy is untouched.
+        await waitFor(() => {
+            expect(updateAccessControlPoliciesActive).toHaveBeenCalledWith([{id: '123', active: true}]);
+        });
+        expect(saveTeamAccessPolicy).toHaveBeenCalled();
+    });
 });

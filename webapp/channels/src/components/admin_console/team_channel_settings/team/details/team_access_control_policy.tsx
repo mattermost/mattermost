@@ -19,15 +19,21 @@ const PAGE_SIZE = 10;
 
 interface Props {
     parentPolicies: AccessControlPolicy[];
+
+    // The team child policy's auto-add flag. A single per-team value (the team
+    // has one child policy even when several parents are linked), surfaced here
+    // so it can be seeded on link and toggled on already-linked policies.
+    autoAddMembers: boolean;
     actions: {
         searchPolicies: (term: string, type: string, after: string, limit: number) => Promise<ActionResult>;
-        onPolicySelected?: (policy: AccessControlPolicy) => void;
+        onPolicySelected?: (policy: AccessControlPolicy, autoAdd?: boolean) => void;
         onPolicyRemove: (policyId: string) => void;
+        onAutoAddChange: (autoAdd: boolean) => void;
     };
 }
 
 export const TeamAccessControl: React.FC<Props> = (props: Props): JSX.Element => {
-    const {parentPolicies: accessControlPolicies, actions} = props;
+    const {parentPolicies: accessControlPolicies, autoAddMembers, actions} = props;
     const [showPolicySelectionModal, setShowPolicySelectionModal] = useState<boolean>(false);
     const [policyPendingRemoval, setPolicyPendingRemoval] = useState<AccessControlPolicy | null>(null);
     const [page, setPage] = useState(0);
@@ -43,9 +49,9 @@ export const TeamAccessControl: React.FC<Props> = (props: Props): JSX.Element =>
 
     const handleCancelPolicyRemove = useCallback(() => setPolicyPendingRemoval(null), []);
 
-    const handlePolicySelected = useCallback((policy: AccessControlPolicy) => {
+    const handlePolicySelected = useCallback((policy: AccessControlPolicy, autoAdd?: boolean) => {
         if (actions.onPolicySelected && policy) {
-            actions.onPolicySelected(policy);
+            actions.onPolicySelected(policy, autoAdd);
         }
         setShowPolicySelectionModal(false);
     }, [actions]);
@@ -63,6 +69,7 @@ export const TeamAccessControl: React.FC<Props> = (props: Props): JSX.Element =>
             show={showPolicySelectionModal}
             onHide={handleClosePolicyModal}
             onPolicySelected={handlePolicySelected}
+            showAutoAdd={true}
             actions={{searchPolicies: actions.searchPolicies}}
         />
     );
@@ -142,6 +149,12 @@ export const TeamAccessControl: React.FC<Props> = (props: Props): JSX.Element =>
                             defaultMessage='Policy Name'
                         />
                     </span>
+                    <span className='team-policy-list__col-auto-add'>
+                        <FormattedMessage
+                            id='admin.team_settings.team_detail.access_control_policy_auto_add'
+                            defaultMessage='Auto-add'
+                        />
+                    </span>
                     <span className='team-policy-list__col-actions'>
                         <FormattedMessage
                             id='admin.team_settings.team_detail.access_control_policy_actions'
@@ -157,6 +170,18 @@ export const TeamAccessControl: React.FC<Props> = (props: Props): JSX.Element =>
                     >
                         <span className='team-policy-list__col-name team-policy-list__policy-name policy-name'>
                             {policy.name}
+                        </span>
+                        <span className='team-policy-list__col-auto-add'>
+                            <input
+                                type='checkbox'
+                                className='team-policy-list__auto-add-checkbox'
+                                checked={autoAddMembers}
+                                onChange={(e) => actions.onAutoAddChange(e.target.checked)}
+                                aria-label={intl.formatMessage({
+                                    id: 'admin.team_settings.team_detail.auto_add.aria_label',
+                                    defaultMessage: 'Auto-add members for {policyName}',
+                                }, {policyName: policy.name})}
+                            />
                         </span>
                         <span className='team-policy-list__col-actions'>
                             <Link

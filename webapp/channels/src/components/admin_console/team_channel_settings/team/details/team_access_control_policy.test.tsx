@@ -10,6 +10,7 @@ import {TeamAccessControl} from './team_access_control_policy';
 const baseActions = {
     searchPolicies: jest.fn().mockResolvedValue({data: {policies: [], total: 0}}),
     onPolicyRemove: jest.fn(),
+    onAutoAddChange: jest.fn(),
 };
 
 const parentPolicy = {
@@ -26,6 +27,7 @@ describe('TeamAccessControl', () => {
         renderWithContext(
             <TeamAccessControl
                 parentPolicies={[]}
+                autoAddMembers={false}
                 actions={baseActions}
             />,
         );
@@ -38,6 +40,7 @@ describe('TeamAccessControl', () => {
         renderWithContext(
             <TeamAccessControl
                 parentPolicies={[]}
+                autoAddMembers={false}
                 actions={baseActions}
             />,
         );
@@ -49,6 +52,7 @@ describe('TeamAccessControl', () => {
         renderWithContext(
             <TeamAccessControl
                 parentPolicies={[parentPolicy]}
+                autoAddMembers={false}
                 actions={baseActions}
             />,
         );
@@ -61,6 +65,7 @@ describe('TeamAccessControl', () => {
         renderWithContext(
             <TeamAccessControl
                 parentPolicies={[parentPolicy]}
+                autoAddMembers={false}
                 actions={baseActions}
             />,
         );
@@ -72,6 +77,7 @@ describe('TeamAccessControl', () => {
         renderWithContext(
             <TeamAccessControl
                 parentPolicies={[parentPolicy]}
+                autoAddMembers={false}
                 actions={baseActions}
             />,
         );
@@ -85,6 +91,7 @@ describe('TeamAccessControl', () => {
         renderWithContext(
             <TeamAccessControl
                 parentPolicies={[parentPolicy]}
+                autoAddMembers={false}
                 actions={{...baseActions, onPolicyRemove}}
             />,
         );
@@ -101,6 +108,7 @@ describe('TeamAccessControl', () => {
         renderWithContext(
             <TeamAccessControl
                 parentPolicies={[parentPolicy]}
+                autoAddMembers={false}
                 actions={{...baseActions, onPolicyRemove}}
             />,
         );
@@ -118,6 +126,7 @@ describe('TeamAccessControl', () => {
         renderWithContext(
             <TeamAccessControl
                 parentPolicies={[parentPolicy]}
+                autoAddMembers={false}
                 actions={{...baseActions, onPolicyRemove}}
             />,
         );
@@ -131,6 +140,7 @@ describe('TeamAccessControl', () => {
         renderWithContext(
             <TeamAccessControl
                 parentPolicies={[parentPolicy]}
+                autoAddMembers={false}
                 actions={baseActions}
             />,
         );
@@ -143,11 +153,48 @@ describe('TeamAccessControl', () => {
         renderWithContext(
             <TeamAccessControl
                 parentPolicies={[]}
+                autoAddMembers={false}
                 actions={baseActions}
             />,
         );
 
         expect(screen.queryByTestId('auto-add-members-checkbox')).not.toBeInTheDocument();
+    });
+
+    test('per-policy Auto-add checkbox reflects autoAddMembers', () => {
+        const {rerender} = renderWithContext(
+            <TeamAccessControl
+                parentPolicies={[parentPolicy]}
+                autoAddMembers={false}
+                actions={baseActions}
+            />,
+        );
+
+        const checkbox = screen.getByLabelText('Auto-add members for Engineering Policy');
+        expect(checkbox).not.toBeChecked();
+
+        rerender(
+            <TeamAccessControl
+                parentPolicies={[parentPolicy]}
+                autoAddMembers={true}
+                actions={baseActions}
+            />,
+        );
+        expect(screen.getByLabelText('Auto-add members for Engineering Policy')).toBeChecked();
+    });
+
+    test('toggling the per-policy Auto-add checkbox calls onAutoAddChange', async () => {
+        const onAutoAddChange = jest.fn();
+        renderWithContext(
+            <TeamAccessControl
+                parentPolicies={[parentPolicy]}
+                autoAddMembers={false}
+                actions={{...baseActions, onAutoAddChange}}
+            />,
+        );
+
+        await userEvent.click(screen.getByLabelText('Auto-add members for Engineering Policy'));
+        expect(onAutoAddChange).toHaveBeenCalledWith(true);
     });
 
     describe('pagination', () => {
@@ -166,6 +213,7 @@ describe('TeamAccessControl', () => {
             renderWithContext(
                 <TeamAccessControl
                     parentPolicies={makePolicies(12)}
+                    autoAddMembers={false}
                     actions={baseActions}
                 />,
             );
@@ -180,6 +228,7 @@ describe('TeamAccessControl', () => {
             renderWithContext(
                 <TeamAccessControl
                     parentPolicies={makePolicies(12)}
+                    autoAddMembers={false}
                     actions={baseActions}
                 />,
             );
@@ -192,6 +241,7 @@ describe('TeamAccessControl', () => {
             renderWithContext(
                 <TeamAccessControl
                     parentPolicies={makePolicies(12)}
+                    autoAddMembers={false}
                     actions={baseActions}
                 />,
             );
@@ -208,6 +258,7 @@ describe('TeamAccessControl', () => {
             renderWithContext(
                 <TeamAccessControl
                     parentPolicies={makePolicies(12)}
+                    autoAddMembers={false}
                     actions={baseActions}
                 />,
             );

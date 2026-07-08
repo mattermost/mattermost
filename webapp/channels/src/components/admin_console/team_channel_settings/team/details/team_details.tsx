@@ -313,13 +313,31 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
         this.props.actions.setNavigationBlocked(true);
     };
 
-    onPolicySelected = (policy: AccessControlPolicy) => {
+    onPolicySelected = (policy: AccessControlPolicy, autoAdd?: boolean) => {
         const {accessControlPolicies} = this.state;
         if (accessControlPolicies.find((p) => p.id === policy.id)) {
             return;
         }
+
+        // The team child policy carries a single auto-add flag (teamRulesAutoSync,
+        // persisted as the child's active). Seed it from the checkbox chosen in the
+        // selection modal, which itself defaults to the parent policy's own active.
+        // The parent policy is never modified — only the team child's flag changes.
         this.setState({
             accessControlPolicies: [...accessControlPolicies, policy],
+            policyEnforced: true,
+            saveNeeded: true,
+            teamRulesAutoSync: autoAdd === undefined ? this.state.teamRulesAutoSync : autoAdd,
+        });
+        this.props.actions.setNavigationBlocked(true);
+    };
+
+    onAutoAddChange = (autoAdd: boolean) => {
+        // Toggle auto-add on an already-linked team from the Membership policies
+        // list. Updates only the team child's flag (teamRulesAutoSync → child
+        // active on save); the linked parent policy is left untouched.
+        this.setState({
+            teamRulesAutoSync: autoAdd,
             policyEnforced: true,
             saveNeeded: true,
         });
@@ -938,9 +956,11 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                     <>
                         <TeamAccessControl
                             parentPolicies={this.state.accessControlPolicies}
+                            autoAddMembers={this.state.teamRulesAutoSync}
                             actions={{
                                 onPolicySelected: this.onPolicySelected,
                                 onPolicyRemove: this.onPolicyRemove,
+                                onAutoAddChange: this.onAutoAddChange,
                                 searchPolicies: this.props.actions.searchPolicies,
                             }}
                         />
