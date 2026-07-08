@@ -15,6 +15,7 @@ import ChannelsHeader from './channels/header';
 import ChannelsPost from './channels/post';
 import ChannelsPostCreate from './channels/post_create';
 import ChannelsPostEdit from './channels/post_edit';
+import ChannelNotificationPreferencesModal from './channels/channel_notification_preferences_modal';
 import ChannelSettingsModal from './channels/channel_settings/channel_settings_modal';
 import ChannelsSidebarLeft from './channels/sidebar_left';
 import ChannelsSidebarRight from './channels/sidebar_right';
@@ -42,6 +43,7 @@ import ScheduledPostIndicator from './channels/scheduled_post_indicator';
 import ScheduleMessageMenu from './channels/schedule_message_menu';
 import ScheduleMessageModal from './channels/schedule_message_modal';
 import SearchBox from './channels/search_box';
+import SearchResultsPanel from './channels/search_results_panel';
 import SendMessageNowModal from './channels/send_message_now_modal';
 import SettingsModal from './channels/settings/settings_modal';
 import TeamMenu from './channels/team_menu';
@@ -86,6 +88,7 @@ const components = {
     ChannelsAppBar,
     ChannelsCenterView,
     CreateTeamForm,
+    ChannelNotificationPreferencesModal,
     ChannelsHeader,
     ChannelsPost,
     ChannelsPostCreate,
@@ -118,6 +121,7 @@ const components = {
     ScheduleMessageMenu,
     ScheduleMessageModal,
     SearchBox,
+    SearchResultsPanel,
     SendMessageNowModal,
     SettingsModal,
     TeamMenu,
@@ -165,6 +169,7 @@ export {
     ChannelsAppBar,
     ChannelsCenterView,
     CreateTeamForm,
+    ChannelNotificationPreferencesModal,
     ChannelsHeader,
     ChannelsPost,
     ChannelsPostCreate,
@@ -197,6 +202,7 @@ export {
     ScheduleMessageMenu,
     ScheduleMessageModal,
     SearchBox,
+    SearchResultsPanel,
     SendMessageNowModal,
     SettingsModal,
     TeamMenu,
