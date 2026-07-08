@@ -13,7 +13,7 @@
  */
 
 import type {Client4} from '@mattermost/client';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {expect, test} from '@mattermost/playwright-lib';
 import type {PlaywrightExtended, SystemConsolePage} from '@mattermost/playwright-lib';

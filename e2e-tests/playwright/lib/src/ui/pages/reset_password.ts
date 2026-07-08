@@ -13,7 +13,6 @@ export default class ResetPasswordPage {
     readonly subtitle;
     readonly emailInput;
     readonly resetButton;
-    readonly formContainer;
 
     readonly header;
     readonly footer;
@@ -21,13 +20,12 @@ export default class ResetPasswordPage {
     constructor(page: Page) {
         this.page = page;
 
-        this.title = page.locator('h1:has-text("Password Reset")');
-        this.subtitle = page.locator('text=To reset your password, enter the email address you used to sign up');
+        this.title = page.getByRole('heading', {name: 'Password Reset'});
+        this.subtitle = page.getByText('To reset your password, enter the email address you used to sign up');
         this.emailInput = page.locator('#passwordResetEmailInput');
         this.resetButton = page.locator('#passwordResetButton');
-        this.formContainer = page.locator('.signup-team__container');
 
-        this.header = new components.MainHeader(page.locator('.signup-header'));
+        this.header = new components.MainHeader(page.getByTestId('signup-header'));
         this.footer = new components.Footer(page.locator('#footer_section'));
     }
 

@@ -1592,6 +1592,7 @@ func (a *App) GetPermalinkPost(rctx request.CTX, postID string, userID string) (
 }
 
 func (a *App) GetPostsBeforePost(rctx request.CTX, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+	options.ExcludeExpiredBurnOnReadPosts = a.isBurnOnReadEnabled()
 	postList, err := a.Srv().Store().Post().GetPostsBefore(rctx, options, a.Config().GetSanitizeOptions())
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -1628,6 +1629,7 @@ func (a *App) GetPostsBeforePost(rctx request.CTX, options model.GetPostsOptions
 }
 
 func (a *App) GetPostsAfterPost(rctx request.CTX, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+	options.ExcludeExpiredBurnOnReadPosts = a.isBurnOnReadEnabled()
 	postList, err := a.Srv().Store().Post().GetPostsAfter(rctx, options, a.Config().GetSanitizeOptions())
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -1666,6 +1668,7 @@ func (a *App) GetPostsAfterPost(rctx request.CTX, options model.GetPostsOptions)
 func (a *App) GetPostsAroundPost(rctx request.CTX, before bool, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
 	var postList *model.PostList
 	var err error
+	options.ExcludeExpiredBurnOnReadPosts = a.isBurnOnReadEnabled()
 	sanitize := a.Config().GetSanitizeOptions()
 	if before {
 		postList, err = a.Srv().Store().Post().GetPostsBefore(rctx, options, sanitize)
@@ -1727,49 +1730,52 @@ func (a *App) GetPostIdAfterTime(channelID string, time int64, collapsedThreads 
 	return postID, nil
 }
 
-func (a *App) GetPostIdBeforeTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError) {
-	postID, err := a.Srv().Store().Post().GetPostIdBeforeTime(channelID, time, collapsedThreads)
+func (a *App) GetNextPostIdFromPostList(postList *model.PostList, userID string, collapsedThreads bool) string {
+	if len(postList.Order) == 0 {
+		return ""
+	}
+	first := postList.Posts[postList.Order[0]]
+	return a.getCursorPostId(first.ChannelId, first.CreateAt, userID, collapsedThreads, false)
+}
+
+func (a *App) GetPrevPostIdFromPostList(postList *model.PostList, userID string, collapsedThreads bool) string {
+	if len(postList.Order) == 0 {
+		return ""
+	}
+	last := postList.Posts[postList.Order[len(postList.Order)-1]]
+	return a.getCursorPostId(last.ChannelId, last.CreateAt, userID, collapsedThreads, true)
+}
+
+// getCursorPostId returns the id of the next (before=false) or previous
+// (before=true) post that is visible to the user, used for the NextPostId and
+// PrevPostId pagination cursors. The store query skips burn-on-read posts that
+// have expired for the user, so any number of consecutive expired posts are
+// stepped over in a single round trip and the cursor never references a post
+// that was filtered out of the response.
+func (a *App) getCursorPostId(channelID string, fromTime int64, userID string, collapsedThreads bool, before bool) string {
+	var postId string
+	var err error
+	// Only the visibility-aware query (which carries the burn-on-read receipt
+	// subquery) is used when the feature is enabled; otherwise fall back to the
+	// plain lookups so there is no added query cost for instances not using it.
+	if a.isBurnOnReadEnabled() {
+		postId, err = a.Srv().Store().Post().GetVisiblePostIdAroundTime(channelID, fromTime, before, collapsedThreads, userID)
+	} else if before {
+		postId, err = a.Srv().Store().Post().GetPostIdBeforeTime(channelID, fromTime, collapsedThreads)
+	} else {
+		postId, err = a.Srv().Store().Post().GetPostIdAfterTime(channelID, fromTime, collapsedThreads)
+	}
 	if err != nil {
-		return "", model.NewAppError("GetPostIdBeforeTime", "app.post.get_post_id_around.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		mlog.Warn("getCursorPostId: failed to get post id", mlog.Err(err))
+		return ""
 	}
-
-	return postID, nil
-}
-
-func (a *App) GetNextPostIdFromPostList(postList *model.PostList, collapsedThreads bool) string {
-	if len(postList.Order) > 0 {
-		firstPostId := postList.Order[0]
-		firstPost := postList.Posts[firstPostId]
-		nextPostId, err := a.GetPostIdAfterTime(firstPost.ChannelId, firstPost.CreateAt, collapsedThreads)
-		if err != nil {
-			mlog.Warn("GetNextPostIdFromPostList: failed in getting next post", mlog.Err(err))
-		}
-
-		return nextPostId
-	}
-
-	return ""
-}
-
-func (a *App) GetPrevPostIdFromPostList(postList *model.PostList, collapsedThreads bool) string {
-	if len(postList.Order) > 0 {
-		lastPostId := postList.Order[len(postList.Order)-1]
-		lastPost := postList.Posts[lastPostId]
-		previousPostId, err := a.GetPostIdBeforeTime(lastPost.ChannelId, lastPost.CreateAt, collapsedThreads)
-		if err != nil {
-			mlog.Warn("GetPrevPostIdFromPostList: failed in getting previous post", mlog.Err(err))
-		}
-
-		return previousPostId
-	}
-
-	return ""
+	return postId
 }
 
 // AddCursorIdsForPostList adds NextPostId and PrevPostId as cursor to the PostList.
 // The conditional blocks ensure that it sets those cursor IDs immediately as afterPost, beforePost or empty,
 // and only query to database whenever necessary.
-func (a *App) AddCursorIdsForPostList(originalList *model.PostList, afterPost, beforePost string, since int64, page, perPage int, collapsedThreads bool) {
+func (a *App) AddCursorIdsForPostList(originalList *model.PostList, userID string, afterPost, beforePost string, since int64, page, perPage int, collapsedThreads bool) {
 	prevPostIdSet := false
 	prevPostId := ""
 	nextPostIdSet := false
@@ -1799,11 +1805,11 @@ func (a *App) AddCursorIdsForPostList(originalList *model.PostList, afterPost, b
 	}
 
 	if !nextPostIdSet {
-		nextPostId = a.GetNextPostIdFromPostList(originalList, collapsedThreads)
+		nextPostId = a.GetNextPostIdFromPostList(originalList, userID, collapsedThreads)
 	}
 
 	if !prevPostIdSet {
-		prevPostId = a.GetPrevPostIdFromPostList(originalList, collapsedThreads)
+		prevPostId = a.GetPrevPostIdFromPostList(originalList, userID, collapsedThreads)
 	}
 
 	originalList.NextPostId = nextPostId

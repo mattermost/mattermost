@@ -41,12 +41,12 @@ export default class ChannelsPostCreate {
         this.scheduleMessageButton = container.getByLabel('Schedule message');
         this.priorityButton = container.getByLabel('Message priority');
         this.suggestionList = container.getByRole('listbox', {name: 'Suggestions'});
-        this.filePreview = container.locator('.file-preview__container');
+        this.filePreview = container.getByTestId('file-preview-container');
 
         // Burn-on-Read elements
         // Use a flexible locator that matches the aria-label pattern
         this.burnOnReadButton = container.getByRole('button', {name: /Burn-on-read/i});
-        this.burnOnReadLabel = container.locator('.BurnOnReadLabel');
+        this.burnOnReadLabel = container.getByTestId('burn-on-read-label');
     }
 
     async toBeVisible() {
@@ -170,8 +170,8 @@ export default class ChannelsPostCreate {
     async waitUntilFilePreviewContains(files: string[], timeout = duration.ten_sec) {
         await waitUntil(
             async () => {
-                const previews = this.filePreview.locator('.file-preview');
-                const details = this.filePreview.locator('.post-image__details');
+                const previews = this.filePreview.getByTestId('file-preview-item');
+                const details = this.filePreview.getByTestId('post-image-details');
 
                 const [previewsCount, detailsCount] = await Promise.all([previews.count(), details.count()]);
 

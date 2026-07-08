@@ -1,0 +1,126 @@
+---
+title: "Configure SAML with Okta"
+---
+import Inc0_sso_saml_before_you_begin from './sso-saml-before-you-begin.mdx';
+import Inc1_sso_saml_ldapsync from './sso-saml-ldapsync.mdx';
+import Inc2_sso_saml_faq from './sso-saml-faq.mdx';
+
+<PlanAvailability slug="all-commercial" />
+
+The following process provides steps to configure SAML 2.0 with Okta for Mattermost.
+
+See the encryption options documentation for details on what [encryption methods](/deployment-guide/encryption-options#saml-encryption-support) Mattermost supports for SAML.
+
+<Inc0_sso_saml_before_you_begin />
+
+## Set Up a connection app for Mattermost Single Sign-On
+
+1.  Log in to Okta as an administrator.
+
+2.  Switch to the **Classic UI**, using the drop-down in the upper left.
+
+3.  Go to **Admin Dashboard \> Applications \> Add Application**.
+
+4.  Select **Create New App**, then choose **SAML 2.0** as the Sign on method.
+
+    > ![In Okta, switch to the Classic UI, then go to the Admin Dashboard \> Applications \> Add Application to create a new app. Choose SAML 2.0 as the Sign on method.](/images/okta_1_new_app.png)
+
+5.  Enter **General Settings** for the application, including **App name** and **App logo** (optional). It's recommended to display the application icon to users, including in the Okta Mobile app. If you’d like to use a Mattermost logo for the application, you can download one [from our page](https://handbook.mattermost.com/operations/operations/publishing/publishing-guidelines/brand-and-visual-design-guidelines).
+
+    > ![In Okta, under General Settings, enter an App name and an optional logo. Mattermost recommends displaying the application icon to users and within the Okta mobile app. Select Next to continue.](/images/okta_2_general_settings.png)
+
+6.  Enter **SAML Settings**, including:
+
+> - **Single sign on URL:** `https://&lt;your-mattermost-url&gt;/login/sso/saml` where `https://&lt;your-mattermost-url&gt;` should typically match the [Mattermost Site URL](/administration-guide/configure/environment-configuration-settings#site-url).
+>
+> - **Audience URI:** For instance, `mattermost`
+>
+> - **Name ID format:** `unspecified`
+>
+> - **Application username:** `Email`
+>
+>   > ![In Okta, under Configure SAML, enter required SAML settings.](/images/okta_3_initial_saml_settings.png)
+
+7.  To set up encryption for your SAML connection, select **Show Advanced Settings**.
+
+    ![In Okta, under Configure SAML, set up encryption for your SAML connection by selecting Show Advanced Settings.](/images/okta_4_initial_saml_settings.png)
+
+8.  Set **Assertion Encryption** as **Encrypted**, then upload the Service Provider Public Certificate you generated earlier to the **Encryption Certificate** field.
+
+    > ![In Advanced Settings, set the Assertion Encryption as Encrypted, then upload the generated Service Provider Public Certificate to the Encryption Certificate field](/images/okta_5_advanced_saml_settings.png)
+
+9.  Enter attribute statements used to map attributes between Okta and Mattermost. For more information on which attributes are configurable, see our [documentation on SAML configuration settings](/administration-guide/configure/authentication-configuration-settings#saml-2-0). Email and username attributes are required. For SAML with Okta, an [ID attribute](/administration-guide/configure/authentication-configuration-settings#id-attribute) is also required, and that ID must be mapped to `user.id`.
+
+    > ![Enter attribute statements used to map attributes between Okta and Mattermost. Email and username attributes are required. Okta also requires an ID attribute that must be mapped to user.id.](/images/okta_6_attribute_statements.png)
+
+10. Select **Next**. Then, set Okta support parameters for the application. Recommended settings:
+
+> - **I’m an Okta customer adding an internal app**
+>
+> - **This is an internal app that we have created**
+>
+>   > ![Set recommended Okta support parameters for the application, including I'm an Okta customer adding an internal app and This is an internal app that we have created.](/images/okta_7_support_configuration.png)
+
+11. Select **Finish**.
+
+12. In the Mattermost System Console, go to **Authentication \> SAML 2.0**, then set **Override SAML bind data with AD/LDAP information** to **false** if currently set to **true**. You can re-enable [this configuration setting](/administration-guide/configure/authentication-configuration-settings#override-saml-bind-data-with-ad-ldap-information) later when once setup is complete.
+
+13. On the next screen, select the **Sign On** tab, then select **View Setup Instructions**.
+
+14. Select the **Identity Provider metadata** link, then copy the link from the browser URL field. This will be used during the SAML configuration steps in the next section.
+
+    ![In the Mattermost System Console, after disabling the Override SAML bind data with AD/LDAP information setting, select the Sign On tab, then select View Setup Instructions. Select the Identity Provider metadata link, then copy the link from the browser URL field to a convenient location.](/images/okta_8_view_instructions.png)
+
+15. Take note of **Identity Provider Single Sign-On URL** (also known as **SAML SSO URL**), and the Identity Provider Issuer, as both may be needed to configure SAML for Mattermost.
+
+16. Download the X.509 Certificate file and save it. You may need to upload it to Mattermost in a later step.
+
+    ![Download the X.509 certificate file and save it. You'll upload this certificate file to Mattermost later.](/images/okta_9_view_instructions.png)
+
+## Configure SAML Sign-On for Mattermost
+
+Start the Mattermost server and log in to Mattermost as a system admin. Go to **System Console \> Authentication \> SAML 2.0**, then paste the copied Identity Provider Metadata URL in the **Identity Provider Metadata URL** field and select **Get SAML Metadata from IdP**.
+
+This populates the **SAML SSO URL** and the **Identity Provider Issuer URL** fields automatically. The Identity Provider Public Certificate is also downloaded from the server and set locally.
+
+Alternatively you can enter the following fields manually:  
+- **SAML SSO URL:** `Identity Provider Single Sign-On URL` from Okta, specified earlier.
+
+- **Identity Provider Issuer URL:** `Identity Provider Issuer` from Okta, specified earlier.
+
+- **Identity Provider Public Certificate:** X.509 Public Certificate file you downloaded from Okta earlier.
+
+  > ![In the Mattermost System Console, go to Authentication \> SAML 2.0 to manually enter the SAML SSO URL and Identity Provider Issuer URL, and upload the Identity Provider Public Certificate manually.](/images/okta_10_mattermost_basics.png)
+
+2.  Configure Mattermost to verify the signature. The **Service Provider Login URL** is the `Single sign on URL` you specified in Okta earlier.
+
+    > ![On the SAML 2.0 page, configure Mattermost to verify the signature, and set the Service Provider Login ULR as the Single sign on URL configured in Okta.](/images/okta_11_mattermost_verification.png)
+
+3.  Enable encryption based on the parameters provided earlier.
+
+    > ![On the SAML 2.0 page, enable encryption and upload both the Service Provider Private Key and the Service Provider Public Certificate.](/images/okta_12_mattermost_encryption.png)
+
+4.  Configure Mattermost to sign SAML requests using the Service Provider Private Key.
+
+5.  Set attributes for the SAML Assertions used to update user information in Mattermost.  
+    - Attributes for Email, Username, and Id are required and should match the values you entered in Okta earlier.
+
+    ![Set attributes for the SAML Assertions used to update user information in Mattermost.  Attributes for Email, Username, and Id are required and should match the values set in Okta.](/images/okta_13_mattermost_attributes.png)
+
+6.  (Optional) Customize the login button text.
+
+    > ![You can customize the login button text. By default, the text displays as "With SAML".](/images/okta_14_mattermost_login_button.png)
+
+7.  Select **Save**.
+
+8.  (Optional) If you configured `First Name` Attribute and `Last Name` Attribute, go to **System Console \> Site Configuration \> Users and Teams**, then set **Teammate Name Display** to **Show first and last name**. This is recommended for a better user experience.
+
+Once complete, and to confirm SAML SSO is successfully enabled, switch your system admin account from email to SAML-based authentication from your profile picture via **Profile \> Security \> Sign-in Method \> Switch to SAML SSO**, then log in with your SAML credentials to complete the switch.
+
+We also recommend that you post an announcement for your users to explain how the migration will work.
+
+You may also configure SAML for Okta by editing the `config.json` file to enable SAML based on [SAML configuration settings](#saml-enterprise). You must restart the Mattermost server for the changes to take effect.
+
+<Inc1_sso_saml_ldapsync />
+
+<Inc2_sso_saml_faq />

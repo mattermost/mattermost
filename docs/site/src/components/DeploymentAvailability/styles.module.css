@@ -1,0 +1,52 @@
+/* Shares the visual contract with EditionAvailability. */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0.35rem 0.6rem 0.35rem 0;
+  padding: 0.35rem 0.7rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  line-height: 1.2;
+  background: var(--mm-denim-50, rgba(30, 50, 92, 0.05));
+  border-left: 3px solid var(--mm-color-denim, #1E325C);
+  color: var(--mm-text-primary);
+}
+
+[data-theme='dark'] .badge {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.deployment {
+  border-left-color: var(--mm-color-denim, #1E325C);
+}
+
+.key {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.72rem;
+  opacity: 0.75;
+}
+
+.value {
+  font-weight: 600;
+}
+
+.value a {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px dotted currentColor;
+}
+
+.value a:hover {
+  text-decoration: none;
+  border-bottom-style: solid;
+}
+
+.unknown {
+  background: #fff3cd;
+  color: #664d03;
+  border-left-color: #ffc107;
+}

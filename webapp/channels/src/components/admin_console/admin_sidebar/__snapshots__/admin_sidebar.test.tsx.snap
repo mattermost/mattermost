@@ -4,6 +4,7 @@ exports[`components/AdminSidebar Plugins should filter plugins 1`] = `
 <div>
   <div
     class="admin-sidebar"
+    data-testid="admin-sidebar"
   >
     <div
       class="filter-container"
@@ -93,6 +94,7 @@ exports[`components/AdminSidebar Plugins should filter plugins 1`] = `
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -123,6 +125,7 @@ exports[`components/AdminSidebar Plugins should filter plugins 1`] = `
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -183,6 +186,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
 <div>
   <div
     class="admin-sidebar"
+    data-testid="admin-sidebar"
   >
     <div
       class="filter-container"
@@ -259,6 +263,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -289,6 +294,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -368,6 +374,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
 <div>
   <div
     class="admin-sidebar"
+    data-testid="admin-sidebar"
   >
     <div
       class="filter-container"
@@ -444,6 +451,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -469,6 +477,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -497,6 +506,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -522,6 +532,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -607,6 +618,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -638,6 +650,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -791,6 +804,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -818,6 +832,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -1070,6 +1085,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -1095,6 +1111,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -1309,6 +1326,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -1334,6 +1352,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -1589,6 +1608,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -1619,6 +1639,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -1665,6 +1686,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -1692,6 +1714,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -1796,6 +1819,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -1821,6 +1845,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -1932,6 +1957,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -1957,6 +1983,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -2037,6 +2064,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
 <div>
   <div
     class="admin-sidebar"
+    data-testid="admin-sidebar"
   >
     <div
       class="filter-container"
@@ -2113,6 +2141,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -2138,6 +2167,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -2166,6 +2196,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -2191,6 +2222,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -2257,6 +2289,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -2282,6 +2315,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -2348,6 +2382,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -2379,6 +2414,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -2532,6 +2568,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -2557,6 +2594,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -2619,6 +2657,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -2646,6 +2685,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -2883,6 +2923,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -2908,6 +2949,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -3141,6 +3183,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -3166,6 +3209,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -3425,6 +3469,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -3455,6 +3500,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -3501,6 +3547,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -3528,6 +3575,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -3632,6 +3680,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -3657,6 +3706,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -3787,6 +3837,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -3812,6 +3863,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -3892,6 +3944,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
 <div>
   <div
     class="admin-sidebar"
+    data-testid="admin-sidebar"
   >
     <div
       class="filter-container"
@@ -3968,6 +4021,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -3993,6 +4047,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -4021,6 +4076,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -4046,6 +4102,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -4112,6 +4169,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -4137,6 +4195,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -4203,6 +4262,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -4234,6 +4294,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -4387,6 +4448,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -4412,6 +4474,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -4459,6 +4522,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -4486,6 +4550,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -4723,6 +4788,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -4748,6 +4814,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -4981,6 +5048,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -5006,6 +5074,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -5265,6 +5334,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -5295,6 +5365,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -5341,6 +5412,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -5368,6 +5440,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -5472,6 +5545,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -5497,6 +5571,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -5627,6 +5702,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -5652,6 +5728,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -5732,6 +5809,7 @@ exports[`components/AdminSidebar should match snapshot with license with profess
 <div>
   <div
     class="admin-sidebar"
+    data-testid="admin-sidebar"
   >
     <div
       class="filter-container"
@@ -5808,6 +5886,7 @@ exports[`components/AdminSidebar should match snapshot with license with profess
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -5833,6 +5912,7 @@ exports[`components/AdminSidebar should match snapshot with license with profess
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -5861,6 +5941,7 @@ exports[`components/AdminSidebar should match snapshot with license with profess
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -5886,6 +5967,7 @@ exports[`components/AdminSidebar should match snapshot with license with profess
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -5971,6 +6053,7 @@ exports[`components/AdminSidebar should match snapshot with license with profess
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -6002,6 +6085,7 @@ exports[`components/AdminSidebar should match snapshot with license with profess
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -6155,6 +6239,7 @@ exports[`components/AdminSidebar should match snapshot with license with profess
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -6182,6 +6267,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -6434,6 +6520,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -6459,6 +6546,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -6673,6 +6761,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -6698,6 +6787,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -6972,6 +7062,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -7002,6 +7093,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -7048,6 +7140,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -7075,6 +7168,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -7179,6 +7273,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -7204,6 +7299,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -7315,6 +7411,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -7340,6 +7437,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -7420,6 +7518,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
 <div>
   <div
     class="admin-sidebar"
+    data-testid="admin-sidebar"
   >
     <div
       class="filter-container"
@@ -7496,6 +7595,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -7521,6 +7621,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -7549,6 +7650,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -7574,6 +7676,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -7659,6 +7762,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -7690,6 +7794,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -7843,6 +7948,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -7870,6 +7976,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -8122,6 +8229,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -8147,6 +8255,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -8361,6 +8470,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -8386,6 +8496,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -8641,6 +8752,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -8671,6 +8783,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -8717,6 +8830,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -8744,6 +8858,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -8848,6 +8963,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -8873,6 +8989,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -8984,6 +9101,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -9009,6 +9127,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -9089,6 +9208,7 @@ exports[`components/AdminSidebar should match snapshot, no access 1`] = `
 <div>
   <div
     class="admin-sidebar"
+    data-testid="admin-sidebar"
   >
     <div
       class="filter-container"
@@ -9197,6 +9317,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
 <div>
   <div
     class="admin-sidebar"
+    data-testid="admin-sidebar"
   >
     <div
       class="filter-container"
@@ -9273,6 +9394,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -9298,6 +9420,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -9326,6 +9449,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -9351,6 +9475,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -9436,6 +9561,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -9467,6 +9593,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -9620,6 +9747,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -9647,6 +9775,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -9899,6 +10028,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -9924,6 +10054,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -10138,6 +10269,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -10163,6 +10295,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -10418,6 +10551,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -10448,6 +10582,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -10494,6 +10629,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -10521,6 +10657,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -10625,6 +10762,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -10650,6 +10788,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -10761,6 +10900,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -10786,6 +10926,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -10866,6 +11007,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
 <div>
   <div
     class="admin-sidebar"
+    data-testid="admin-sidebar"
   >
     <div
       class="filter-container"
@@ -10942,6 +11084,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -10967,6 +11110,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -10995,6 +11139,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -11020,6 +11165,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -11105,6 +11251,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -11136,6 +11283,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -11289,6 +11437,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -11316,6 +11465,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -11568,6 +11718,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -11593,6 +11744,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -11807,6 +11959,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -11832,6 +11985,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -12087,6 +12241,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -12117,6 +12272,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -12163,6 +12319,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -12190,6 +12347,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -12294,6 +12452,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -12319,6 +12478,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -12430,6 +12590,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -12455,6 +12616,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -12535,6 +12697,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
 <div>
   <div
     class="admin-sidebar"
+    data-testid="admin-sidebar"
   >
     <div
       class="filter-container"
@@ -12611,6 +12774,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -12636,6 +12800,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -12664,6 +12829,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -12689,6 +12855,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -12774,6 +12941,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -12805,6 +12973,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -12928,6 +13097,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -12955,6 +13125,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -13264,6 +13435,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -13289,6 +13461,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -13488,6 +13661,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -13513,6 +13687,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -13693,6 +13868,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -13723,6 +13899,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -13769,6 +13946,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -13796,6 +13974,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -13900,6 +14079,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -13925,6 +14105,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -14010,6 +14191,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -14035,6 +14217,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -14115,6 +14298,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
 <div>
   <div
     class="admin-sidebar"
+    data-testid="admin-sidebar"
   >
     <div
       class="filter-container"
@@ -14191,6 +14375,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -14216,6 +14401,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -14244,6 +14430,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -14269,6 +14456,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -14354,6 +14542,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -14385,6 +14574,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -14538,6 +14728,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -14565,6 +14756,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -14817,6 +15009,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -14842,6 +15035,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -15056,6 +15250,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -15081,6 +15276,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -15355,6 +15551,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -15385,6 +15582,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -15431,6 +15629,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -15458,6 +15657,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -15562,6 +15762,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -15587,6 +15788,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"
@@ -15698,6 +15900,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                       >
                         <div
                           class="category-title category-title--active"
+                          data-testid="sidebar-category-title"
                         >
                           <span
                             class="category-icon"
@@ -15723,6 +15926,7 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                         </div>
                         <ul
                           class="sections"
+                          data-testid="sidebar-category-sections"
                         >
                           <li
                             class="sidebar-section"

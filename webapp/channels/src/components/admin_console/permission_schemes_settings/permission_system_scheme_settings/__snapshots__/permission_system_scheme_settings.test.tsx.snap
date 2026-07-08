@@ -4,6 +4,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
 <div>
   <div
     class="loading-screen"
+    data-testid="loading-screen"
     style="position: relative;"
   >
     <div
@@ -174,6 +175,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
   >
     <div
       class="admin-console__header with-back"
+      data-testid="admin-console-header"
     >
       <div>
         <a
@@ -645,6 +647,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-teams-create_team"
                         >
                           <div
@@ -694,6 +697,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-public_channel-create_public_channel"
                         >
                           <div
@@ -713,6 +717,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-public_channel-manage_public_channel_properties"
                         >
                           <div
@@ -755,6 +760,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-public_channel-delete_public_channel"
                         >
                           <div
@@ -774,6 +780,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-public_channel-convert_public_channel_to_private"
                         >
                           <div
@@ -823,6 +830,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-private_channel-create_private_channel"
                         >
                           <div
@@ -842,6 +850,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-private_channel-manage_private_channel_properties"
                         >
                           <div
@@ -884,6 +893,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-private_channel-delete_private_channel"
                         >
                           <div
@@ -933,6 +943,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-playbook_public-playbook_public_create"
                         >
                           <div
@@ -952,6 +963,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-playbook_public-playbook_public_manage_properties"
                         >
                           <div
@@ -971,6 +983,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-playbook_public-playbook_public_manage_members"
                         >
                           <div
@@ -1020,6 +1033,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-runs-run_create"
                         >
                           <div
@@ -1097,6 +1111,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="all_users-posts-edit_posts-edit_post"
                             >
                               <div
@@ -1125,6 +1140,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="all_users-posts-edit_posts-edit_others_posts"
                             >
                               <div
@@ -1146,6 +1162,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-posts-edit_file_attachment"
                         >
                           <div
@@ -1193,6 +1210,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="all_users-posts-delete_posts-delete_post"
                             >
                               <div
@@ -1212,6 +1230,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="all_users-posts-delete_posts-delete_others_posts"
                             >
                               <div
@@ -1256,6 +1275,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-posts-use_channel_mentions"
                         >
                           <div
@@ -1356,6 +1376,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="all_users-integrations-manage_agents_group-manage_own_agent"
                             >
                               <div
@@ -1375,6 +1396,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="all_users-integrations-manage_agents_group-manage_others_agent"
                             >
                               <div
@@ -1426,6 +1448,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-custom_groups-create_custom_group"
                         >
                           <div
@@ -1445,6 +1468,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-custom_groups-manage_custom_group_members"
                         >
                           <div
@@ -1464,6 +1488,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-custom_groups-edit_custom_group"
                         >
                           <div
@@ -1483,6 +1508,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-custom_groups-delete_custom_group"
                         >
                           <div
@@ -1510,6 +1536,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         </div>
         <div
           class="AdminPanel clearfix AdminPanelTogglable permissions-block"
+          id="channelAdministratorsSection"
         >
           <div
             class="header"
@@ -1640,6 +1667,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-public_channel-manage_public_channel_properties"
                         >
                           <div
@@ -1682,6 +1710,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-public_channel-delete_public_channel"
                         >
                           <div
@@ -1701,6 +1730,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-public_channel-convert_public_channel_to_private"
                         >
                           <div
@@ -1750,6 +1780,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-private_channel-manage_private_channel_properties"
                         >
                           <div
@@ -1792,6 +1823,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-private_channel-delete_private_channel"
                         >
                           <div
@@ -1869,6 +1901,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="-posts-edit_posts-edit_post"
                             >
                               <div
@@ -1897,6 +1930,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="-posts-edit_posts-edit_others_posts"
                             >
                               <div
@@ -1918,6 +1952,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-posts-edit_file_attachment"
                         >
                           <div
@@ -1965,6 +2000,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="-posts-delete_posts-delete_post"
                             >
                               <div
@@ -1984,6 +2020,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="-posts-delete_posts-delete_others_posts"
                             >
                               <div
@@ -2028,6 +2065,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-posts-use_channel_mentions"
                         >
                           <div
@@ -2208,6 +2246,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-playbook_public-playbook_public_manage_properties"
                         >
                           <div
@@ -2227,6 +2266,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-playbook_public-playbook_public_manage_members"
                         >
                           <div
@@ -2276,6 +2316,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-runs-run_create"
                         >
                           <div
@@ -2303,6 +2344,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         </div>
         <div
           class="AdminPanel clearfix AdminPanelTogglable permissions-block"
+          id="teamAdministratorsSection"
         >
           <div
             class="header"
@@ -2486,6 +2528,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-public_channel-create_public_channel"
                         >
                           <div
@@ -2505,6 +2548,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-public_channel-manage_public_channel_properties"
                         >
                           <div
@@ -2547,6 +2591,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-public_channel-delete_public_channel"
                         >
                           <div
@@ -2566,6 +2611,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-public_channel-convert_public_channel_to_private"
                         >
                           <div
@@ -2615,6 +2661,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-private_channel-create_private_channel"
                         >
                           <div
@@ -2634,6 +2681,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-private_channel-manage_private_channel_properties"
                         >
                           <div
@@ -2676,6 +2724,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-private_channel-delete_private_channel"
                         >
                           <div
@@ -2725,6 +2774,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-playbook_public-playbook_public_create"
                         >
                           <div
@@ -2744,6 +2794,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-playbook_public-playbook_public_manage_properties"
                         >
                           <div
@@ -2763,6 +2814,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-playbook_public-playbook_public_manage_members"
                         >
                           <div
@@ -2812,6 +2864,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-runs-run_create"
                         >
                           <div
@@ -2889,6 +2942,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="-posts-edit_posts-edit_post"
                             >
                               <div
@@ -2917,6 +2971,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="-posts-edit_posts-edit_others_posts"
                             >
                               <div
@@ -2938,6 +2993,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-posts-edit_file_attachment"
                         >
                           <div
@@ -2985,6 +3041,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="-posts-delete_posts-delete_post"
                             >
                               <div
@@ -3004,6 +3061,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="-posts-delete_posts-delete_others_posts"
                             >
                               <div
@@ -3048,6 +3106,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-posts-use_channel_mentions"
                         >
                           <div
@@ -3098,6 +3157,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         </div>
         <div
           class="AdminPanel clearfix AdminPanelTogglable permissions-block"
+          id="systemAdministratorsSection"
         >
           <div
             class="header"
@@ -3251,6 +3311,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-teams-create_team"
                         >
                           <div
@@ -3300,6 +3361,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-public_channel-create_public_channel"
                         >
                           <div
@@ -3319,6 +3381,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-public_channel-manage_public_channel_properties"
                         >
                           <div
@@ -3361,6 +3424,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-public_channel-delete_public_channel"
                         >
                           <div
@@ -3380,6 +3444,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-public_channel-convert_public_channel_to_private"
                         >
                           <div
@@ -3429,6 +3494,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-private_channel-create_private_channel"
                         >
                           <div
@@ -3448,6 +3514,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-private_channel-manage_private_channel_properties"
                         >
                           <div
@@ -3490,6 +3557,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-private_channel-delete_private_channel"
                         >
                           <div
@@ -3539,6 +3607,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-playbook_public-playbook_public_create"
                         >
                           <div
@@ -3558,6 +3627,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-playbook_public-playbook_public_manage_properties"
                         >
                           <div
@@ -3577,6 +3647,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-playbook_public-playbook_public_manage_members"
                         >
                           <div
@@ -3626,6 +3697,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-runs-run_create"
                         >
                           <div
@@ -3703,6 +3775,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row read-only"
+                              data-testid="permissionRow"
                               id="-posts-edit_posts-edit_post"
                             >
                               <div
@@ -3732,6 +3805,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row read-only"
+                              data-testid="permissionRow"
                               id="-posts-edit_posts-edit_others_posts"
                             >
                               <div
@@ -3753,6 +3827,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-posts-edit_file_attachment"
                         >
                           <div
@@ -3800,6 +3875,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row read-only"
+                              data-testid="permissionRow"
                               id="-posts-delete_posts-delete_post"
                             >
                               <div
@@ -3819,6 +3895,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row read-only"
+                              data-testid="permissionRow"
                               id="-posts-delete_posts-delete_others_posts"
                             >
                               <div
@@ -3863,6 +3940,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-posts-use_channel_mentions"
                         >
                           <div
@@ -3963,6 +4041,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row read-only"
+                              data-testid="permissionRow"
                               id="-integrations-manage_agents_group-manage_own_agent"
                             >
                               <div
@@ -3982,6 +4061,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row read-only"
+                              data-testid="permissionRow"
                               id="-integrations-manage_agents_group-manage_others_agent"
                             >
                               <div
@@ -4033,6 +4113,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-custom_groups-create_custom_group"
                         >
                           <div
@@ -4052,6 +4133,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-custom_groups-manage_custom_group_members"
                         >
                           <div
@@ -4071,6 +4153,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-custom_groups-edit_custom_group"
                         >
                           <div
@@ -4090,6 +4173,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-custom_groups-delete_custom_group"
                         >
                           <div
@@ -4159,6 +4243,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
   >
     <div
       class="admin-console__header with-back"
+      data-testid="admin-console-header"
     >
       <div>
         <a
@@ -4629,6 +4714,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-teams-create_team"
                         >
                           <div
@@ -4678,6 +4764,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-public_channel-create_public_channel"
                         >
                           <div
@@ -4697,6 +4784,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-public_channel-manage_public_channel_properties"
                         >
                           <div
@@ -4739,6 +4827,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-public_channel-delete_public_channel"
                         >
                           <div
@@ -4758,6 +4847,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-public_channel-convert_public_channel_to_private"
                         >
                           <div
@@ -4807,6 +4897,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-private_channel-create_private_channel"
                         >
                           <div
@@ -4826,6 +4917,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-private_channel-manage_private_channel_properties"
                         >
                           <div
@@ -4868,6 +4960,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-private_channel-delete_private_channel"
                         >
                           <div
@@ -4917,6 +5010,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-playbook_public-playbook_public_create"
                         >
                           <div
@@ -4936,6 +5030,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-playbook_public-playbook_public_manage_properties"
                         >
                           <div
@@ -4955,6 +5050,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-playbook_public-playbook_public_manage_members"
                         >
                           <div
@@ -5004,6 +5100,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-runs-run_create"
                         >
                           <div
@@ -5081,6 +5178,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="all_users-posts-edit_posts-edit_post"
                             >
                               <div
@@ -5109,6 +5207,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="all_users-posts-edit_posts-edit_others_posts"
                             >
                               <div
@@ -5130,6 +5229,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-posts-edit_file_attachment"
                         >
                           <div
@@ -5177,6 +5277,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="all_users-posts-delete_posts-delete_post"
                             >
                               <div
@@ -5196,6 +5297,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="all_users-posts-delete_posts-delete_others_posts"
                             >
                               <div
@@ -5240,6 +5342,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-posts-use_channel_mentions"
                         >
                           <div
@@ -5340,6 +5443,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="all_users-integrations-manage_agents_group-manage_own_agent"
                             >
                               <div
@@ -5359,6 +5463,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="all_users-integrations-manage_agents_group-manage_others_agent"
                             >
                               <div
@@ -5410,6 +5515,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-custom_groups-create_custom_group"
                         >
                           <div
@@ -5429,6 +5535,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-custom_groups-manage_custom_group_members"
                         >
                           <div
@@ -5448,6 +5555,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-custom_groups-edit_custom_group"
                         >
                           <div
@@ -5467,6 +5575,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-custom_groups-delete_custom_group"
                         >
                           <div
@@ -5494,6 +5603,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         </div>
         <div
           class="AdminPanel clearfix AdminPanelTogglable permissions-block"
+          id="channelAdministratorsSection"
         >
           <div
             class="header"
@@ -5624,6 +5734,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-public_channel-manage_public_channel_properties"
                         >
                           <div
@@ -5666,6 +5777,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-public_channel-delete_public_channel"
                         >
                           <div
@@ -5685,6 +5797,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-public_channel-convert_public_channel_to_private"
                         >
                           <div
@@ -5734,6 +5847,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-private_channel-manage_private_channel_properties"
                         >
                           <div
@@ -5776,6 +5890,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-private_channel-delete_private_channel"
                         >
                           <div
@@ -5853,6 +5968,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="-posts-edit_posts-edit_post"
                             >
                               <div
@@ -5881,6 +5997,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="-posts-edit_posts-edit_others_posts"
                             >
                               <div
@@ -5902,6 +6019,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-posts-edit_file_attachment"
                         >
                           <div
@@ -5949,6 +6067,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="-posts-delete_posts-delete_post"
                             >
                               <div
@@ -5968,6 +6087,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="-posts-delete_posts-delete_others_posts"
                             >
                               <div
@@ -6012,6 +6132,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-posts-use_channel_mentions"
                         >
                           <div
@@ -6192,6 +6313,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-playbook_public-playbook_public_manage_properties"
                         >
                           <div
@@ -6211,6 +6333,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-playbook_public-playbook_public_manage_members"
                         >
                           <div
@@ -6260,6 +6383,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-runs-run_create"
                         >
                           <div
@@ -6287,6 +6411,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         </div>
         <div
           class="AdminPanel clearfix AdminPanelTogglable permissions-block"
+          id="teamAdministratorsSection"
         >
           <div
             class="header"
@@ -6470,6 +6595,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-public_channel-create_public_channel"
                         >
                           <div
@@ -6489,6 +6615,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-public_channel-manage_public_channel_properties"
                         >
                           <div
@@ -6531,6 +6658,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-public_channel-delete_public_channel"
                         >
                           <div
@@ -6550,6 +6678,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-public_channel-convert_public_channel_to_private"
                         >
                           <div
@@ -6599,6 +6728,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-private_channel-create_private_channel"
                         >
                           <div
@@ -6618,6 +6748,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-private_channel-manage_private_channel_properties"
                         >
                           <div
@@ -6660,6 +6791,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-private_channel-delete_private_channel"
                         >
                           <div
@@ -6709,6 +6841,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-playbook_public-playbook_public_create"
                         >
                           <div
@@ -6728,6 +6861,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-playbook_public-playbook_public_manage_properties"
                         >
                           <div
@@ -6747,6 +6881,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-playbook_public-playbook_public_manage_members"
                         >
                           <div
@@ -6796,6 +6931,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-runs-run_create"
                         >
                           <div
@@ -6873,6 +7009,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="-posts-edit_posts-edit_post"
                             >
                               <div
@@ -6901,6 +7038,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="-posts-edit_posts-edit_others_posts"
                             >
                               <div
@@ -6922,6 +7060,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-posts-edit_file_attachment"
                         >
                           <div
@@ -6969,6 +7108,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="-posts-delete_posts-delete_post"
                             >
                               <div
@@ -6988,6 +7128,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="-posts-delete_posts-delete_others_posts"
                             >
                               <div
@@ -7032,6 +7173,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-posts-use_channel_mentions"
                         >
                           <div
@@ -7082,6 +7224,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         </div>
         <div
           class="AdminPanel clearfix AdminPanelTogglable permissions-block"
+          id="systemAdministratorsSection"
         >
           <div
             class="header"
@@ -7235,6 +7378,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-teams-create_team"
                         >
                           <div
@@ -7284,6 +7428,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-public_channel-create_public_channel"
                         >
                           <div
@@ -7303,6 +7448,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-public_channel-manage_public_channel_properties"
                         >
                           <div
@@ -7345,6 +7491,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-public_channel-delete_public_channel"
                         >
                           <div
@@ -7364,6 +7511,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-public_channel-convert_public_channel_to_private"
                         >
                           <div
@@ -7413,6 +7561,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-private_channel-create_private_channel"
                         >
                           <div
@@ -7432,6 +7581,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-private_channel-manage_private_channel_properties"
                         >
                           <div
@@ -7474,6 +7624,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-private_channel-delete_private_channel"
                         >
                           <div
@@ -7523,6 +7674,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-playbook_public-playbook_public_create"
                         >
                           <div
@@ -7542,6 +7694,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-playbook_public-playbook_public_manage_properties"
                         >
                           <div
@@ -7561,6 +7714,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-playbook_public-playbook_public_manage_members"
                         >
                           <div
@@ -7610,6 +7764,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-runs-run_create"
                         >
                           <div
@@ -7687,6 +7842,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row read-only"
+                              data-testid="permissionRow"
                               id="-posts-edit_posts-edit_post"
                             >
                               <div
@@ -7716,6 +7872,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row read-only"
+                              data-testid="permissionRow"
                               id="-posts-edit_posts-edit_others_posts"
                             >
                               <div
@@ -7737,6 +7894,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-posts-edit_file_attachment"
                         >
                           <div
@@ -7784,6 +7942,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row read-only"
+                              data-testid="permissionRow"
                               id="-posts-delete_posts-delete_post"
                             >
                               <div
@@ -7803,6 +7962,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row read-only"
+                              data-testid="permissionRow"
                               id="-posts-delete_posts-delete_others_posts"
                             >
                               <div
@@ -7847,6 +8007,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-posts-use_channel_mentions"
                         >
                           <div
@@ -7947,6 +8108,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row read-only"
+                              data-testid="permissionRow"
                               id="-integrations-manage_agents_group-manage_own_agent"
                             >
                               <div
@@ -7966,6 +8128,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row read-only"
+                              data-testid="permissionRow"
                               id="-integrations-manage_agents_group-manage_others_agent"
                             >
                               <div
@@ -8017,6 +8180,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-custom_groups-create_custom_group"
                         >
                           <div
@@ -8036,6 +8200,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-custom_groups-manage_custom_group_members"
                         >
                           <div
@@ -8055,6 +8220,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-custom_groups-edit_custom_group"
                         >
                           <div
@@ -8074,6 +8240,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-custom_groups-delete_custom_group"
                         >
                           <div
@@ -8143,6 +8310,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
   >
     <div
       class="admin-console__header with-back"
+      data-testid="admin-console-header"
     >
       <div>
         <a
@@ -8614,6 +8782,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-teams-create_team"
                         >
                           <div
@@ -8663,6 +8832,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-public_channel-create_public_channel"
                         >
                           <div
@@ -8682,6 +8852,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-public_channel-manage_public_channel_properties"
                         >
                           <div
@@ -8724,6 +8895,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-public_channel-delete_public_channel"
                         >
                           <div
@@ -8743,6 +8915,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-public_channel-convert_public_channel_to_private"
                         >
                           <div
@@ -8792,6 +8965,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-private_channel-create_private_channel"
                         >
                           <div
@@ -8811,6 +8985,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-private_channel-manage_private_channel_properties"
                         >
                           <div
@@ -8853,6 +9028,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-private_channel-delete_private_channel"
                         >
                           <div
@@ -8902,6 +9078,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-playbook_public-playbook_public_create"
                         >
                           <div
@@ -8921,6 +9098,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-playbook_public-playbook_public_manage_properties"
                         >
                           <div
@@ -8940,6 +9118,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-playbook_public-playbook_public_manage_members"
                         >
                           <div
@@ -8989,6 +9168,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-runs-run_create"
                         >
                           <div
@@ -9066,6 +9246,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="all_users-posts-edit_posts-edit_post"
                             >
                               <div
@@ -9094,6 +9275,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="all_users-posts-edit_posts-edit_others_posts"
                             >
                               <div
@@ -9115,6 +9297,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-posts-edit_file_attachment"
                         >
                           <div
@@ -9162,6 +9345,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="all_users-posts-delete_posts-delete_post"
                             >
                               <div
@@ -9181,6 +9365,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="all_users-posts-delete_posts-delete_others_posts"
                             >
                               <div
@@ -9225,6 +9410,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-posts-use_channel_mentions"
                         >
                           <div
@@ -9325,6 +9511,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="all_users-integrations-manage_agents_group-manage_own_agent"
                             >
                               <div
@@ -9344,6 +9531,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="all_users-integrations-manage_agents_group-manage_others_agent"
                             >
                               <div
@@ -9395,6 +9583,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-custom_groups-create_custom_group"
                         >
                           <div
@@ -9414,6 +9603,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-custom_groups-manage_custom_group_members"
                         >
                           <div
@@ -9433,6 +9623,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-custom_groups-edit_custom_group"
                         >
                           <div
@@ -9452,6 +9643,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-custom_groups-delete_custom_group"
                         >
                           <div
@@ -9479,6 +9671,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         </div>
         <div
           class="AdminPanel clearfix AdminPanelTogglable permissions-block"
+          id="channelAdministratorsSection"
         >
           <div
             class="header"
@@ -9609,6 +9802,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-public_channel-manage_public_channel_properties"
                         >
                           <div
@@ -9651,6 +9845,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-public_channel-delete_public_channel"
                         >
                           <div
@@ -9670,6 +9865,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-public_channel-convert_public_channel_to_private"
                         >
                           <div
@@ -9719,6 +9915,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-private_channel-manage_private_channel_properties"
                         >
                           <div
@@ -9761,6 +9958,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-private_channel-delete_private_channel"
                         >
                           <div
@@ -9838,6 +10036,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="-posts-edit_posts-edit_post"
                             >
                               <div
@@ -9866,6 +10065,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="-posts-edit_posts-edit_others_posts"
                             >
                               <div
@@ -9887,6 +10087,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-posts-edit_file_attachment"
                         >
                           <div
@@ -9934,6 +10135,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="-posts-delete_posts-delete_post"
                             >
                               <div
@@ -9953,6 +10155,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="-posts-delete_posts-delete_others_posts"
                             >
                               <div
@@ -9997,6 +10200,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-posts-use_channel_mentions"
                         >
                           <div
@@ -10177,6 +10381,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-playbook_public-playbook_public_manage_properties"
                         >
                           <div
@@ -10196,6 +10401,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-playbook_public-playbook_public_manage_members"
                         >
                           <div
@@ -10245,6 +10451,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-runs-run_create"
                         >
                           <div
@@ -10272,6 +10479,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         </div>
         <div
           class="AdminPanel clearfix AdminPanelTogglable permissions-block"
+          id="teamAdministratorsSection"
         >
           <div
             class="header"
@@ -10455,6 +10663,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-public_channel-create_public_channel"
                         >
                           <div
@@ -10474,6 +10683,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-public_channel-manage_public_channel_properties"
                         >
                           <div
@@ -10516,6 +10726,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-public_channel-delete_public_channel"
                         >
                           <div
@@ -10535,6 +10746,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-public_channel-convert_public_channel_to_private"
                         >
                           <div
@@ -10584,6 +10796,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-private_channel-create_private_channel"
                         >
                           <div
@@ -10603,6 +10816,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-private_channel-manage_private_channel_properties"
                         >
                           <div
@@ -10645,6 +10859,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-private_channel-delete_private_channel"
                         >
                           <div
@@ -10694,6 +10909,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-playbook_public-playbook_public_create"
                         >
                           <div
@@ -10713,6 +10929,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-playbook_public-playbook_public_manage_properties"
                         >
                           <div
@@ -10732,6 +10949,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-playbook_public-playbook_public_manage_members"
                         >
                           <div
@@ -10781,6 +10999,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-runs-run_create"
                         >
                           <div
@@ -10858,6 +11077,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="-posts-edit_posts-edit_post"
                             >
                               <div
@@ -10886,6 +11106,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="-posts-edit_posts-edit_others_posts"
                             >
                               <div
@@ -10907,6 +11128,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-posts-edit_file_attachment"
                         >
                           <div
@@ -10954,6 +11176,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="-posts-delete_posts-delete_post"
                             >
                               <div
@@ -10973,6 +11196,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="-posts-delete_posts-delete_others_posts"
                             >
                               <div
@@ -11017,6 +11241,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-posts-use_channel_mentions"
                         >
                           <div
@@ -11067,6 +11292,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         </div>
         <div
           class="AdminPanel clearfix AdminPanelTogglable permissions-block"
+          id="systemAdministratorsSection"
         >
           <div
             class="header"
@@ -11220,6 +11446,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-teams-create_team"
                         >
                           <div
@@ -11269,6 +11496,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-public_channel-create_public_channel"
                         >
                           <div
@@ -11288,6 +11516,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-public_channel-manage_public_channel_properties"
                         >
                           <div
@@ -11330,6 +11559,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-public_channel-delete_public_channel"
                         >
                           <div
@@ -11349,6 +11579,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-public_channel-convert_public_channel_to_private"
                         >
                           <div
@@ -11398,6 +11629,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-private_channel-create_private_channel"
                         >
                           <div
@@ -11417,6 +11649,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-private_channel-manage_private_channel_properties"
                         >
                           <div
@@ -11459,6 +11692,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-private_channel-delete_private_channel"
                         >
                           <div
@@ -11508,6 +11742,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-playbook_public-playbook_public_create"
                         >
                           <div
@@ -11527,6 +11762,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-playbook_public-playbook_public_manage_properties"
                         >
                           <div
@@ -11546,6 +11782,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-playbook_public-playbook_public_manage_members"
                         >
                           <div
@@ -11595,6 +11832,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-runs-run_create"
                         >
                           <div
@@ -11672,6 +11910,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row read-only"
+                              data-testid="permissionRow"
                               id="-posts-edit_posts-edit_post"
                             >
                               <div
@@ -11701,6 +11940,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row read-only"
+                              data-testid="permissionRow"
                               id="-posts-edit_posts-edit_others_posts"
                             >
                               <div
@@ -11722,6 +11962,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-posts-edit_file_attachment"
                         >
                           <div
@@ -11769,6 +12010,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row read-only"
+                              data-testid="permissionRow"
                               id="-posts-delete_posts-delete_post"
                             >
                               <div
@@ -11788,6 +12030,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row read-only"
+                              data-testid="permissionRow"
                               id="-posts-delete_posts-delete_others_posts"
                             >
                               <div
@@ -11832,6 +12075,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-posts-use_channel_mentions"
                         >
                           <div
@@ -11932,6 +12176,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row read-only"
+                              data-testid="permissionRow"
                               id="-integrations-manage_agents_group-manage_own_agent"
                             >
                               <div
@@ -11951,6 +12196,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row read-only"
+                              data-testid="permissionRow"
                               id="-integrations-manage_agents_group-manage_others_agent"
                             >
                               <div
@@ -12002,6 +12248,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-custom_groups-create_custom_group"
                         >
                           <div
@@ -12021,6 +12268,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-custom_groups-manage_custom_group_members"
                         >
                           <div
@@ -12040,6 +12288,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-custom_groups-edit_custom_group"
                         >
                           <div
@@ -12059,6 +12308,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-custom_groups-delete_custom_group"
                         >
                           <div
@@ -12128,6 +12378,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
   >
     <div
       class="admin-console__header with-back"
+      data-testid="admin-console-header"
     >
       <div>
         <a
@@ -12598,6 +12849,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-teams-create_team"
                         >
                           <div
@@ -12647,6 +12899,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-public_channel-create_public_channel"
                         >
                           <div
@@ -12666,6 +12919,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-public_channel-manage_public_channel_properties"
                         >
                           <div
@@ -12708,6 +12962,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-public_channel-delete_public_channel"
                         >
                           <div
@@ -12727,6 +12982,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-public_channel-convert_public_channel_to_private"
                         >
                           <div
@@ -12776,6 +13032,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-private_channel-create_private_channel"
                         >
                           <div
@@ -12795,6 +13052,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-private_channel-manage_private_channel_properties"
                         >
                           <div
@@ -12837,6 +13095,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-private_channel-delete_private_channel"
                         >
                           <div
@@ -12886,6 +13145,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-playbook_public-playbook_public_create"
                         >
                           <div
@@ -12905,6 +13165,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-playbook_public-playbook_public_manage_properties"
                         >
                           <div
@@ -12924,6 +13185,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-playbook_public-playbook_public_manage_members"
                         >
                           <div
@@ -12973,6 +13235,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-runs-run_create"
                         >
                           <div
@@ -13050,6 +13313,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="all_users-posts-edit_posts-edit_post"
                             >
                               <div
@@ -13078,6 +13342,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="all_users-posts-edit_posts-edit_others_posts"
                             >
                               <div
@@ -13099,6 +13364,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-posts-edit_file_attachment"
                         >
                           <div
@@ -13146,6 +13412,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="all_users-posts-delete_posts-delete_post"
                             >
                               <div
@@ -13165,6 +13432,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="all_users-posts-delete_posts-delete_others_posts"
                             >
                               <div
@@ -13209,6 +13477,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-posts-use_channel_mentions"
                         >
                           <div
@@ -13309,6 +13578,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="all_users-integrations-manage_agents_group-manage_own_agent"
                             >
                               <div
@@ -13328,6 +13598,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="all_users-integrations-manage_agents_group-manage_others_agent"
                             >
                               <div
@@ -13379,6 +13650,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-custom_groups-create_custom_group"
                         >
                           <div
@@ -13398,6 +13670,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-custom_groups-manage_custom_group_members"
                         >
                           <div
@@ -13417,6 +13690,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-custom_groups-edit_custom_group"
                         >
                           <div
@@ -13436,6 +13710,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="all_users-custom_groups-delete_custom_group"
                         >
                           <div
@@ -13463,6 +13738,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         </div>
         <div
           class="AdminPanel clearfix AdminPanelTogglable permissions-block"
+          id="channelAdministratorsSection"
         >
           <div
             class="header"
@@ -13593,6 +13869,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-public_channel-manage_public_channel_properties"
                         >
                           <div
@@ -13635,6 +13912,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-public_channel-delete_public_channel"
                         >
                           <div
@@ -13654,6 +13932,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-public_channel-convert_public_channel_to_private"
                         >
                           <div
@@ -13703,6 +13982,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-private_channel-manage_private_channel_properties"
                         >
                           <div
@@ -13745,6 +14025,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-private_channel-delete_private_channel"
                         >
                           <div
@@ -13822,6 +14103,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="-posts-edit_posts-edit_post"
                             >
                               <div
@@ -13850,6 +14132,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="-posts-edit_posts-edit_others_posts"
                             >
                               <div
@@ -13871,6 +14154,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-posts-edit_file_attachment"
                         >
                           <div
@@ -13918,6 +14202,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="-posts-delete_posts-delete_post"
                             >
                               <div
@@ -13937,6 +14222,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="-posts-delete_posts-delete_others_posts"
                             >
                               <div
@@ -13981,6 +14267,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-posts-use_channel_mentions"
                         >
                           <div
@@ -14161,6 +14448,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-playbook_public-playbook_public_manage_properties"
                         >
                           <div
@@ -14180,6 +14468,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-playbook_public-playbook_public_manage_members"
                         >
                           <div
@@ -14229,6 +14518,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-runs-run_create"
                         >
                           <div
@@ -14256,6 +14546,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         </div>
         <div
           class="AdminPanel clearfix AdminPanelTogglable permissions-block"
+          id="teamAdministratorsSection"
         >
           <div
             class="header"
@@ -14439,6 +14730,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-public_channel-create_public_channel"
                         >
                           <div
@@ -14458,6 +14750,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-public_channel-manage_public_channel_properties"
                         >
                           <div
@@ -14500,6 +14793,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-public_channel-delete_public_channel"
                         >
                           <div
@@ -14519,6 +14813,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-public_channel-convert_public_channel_to_private"
                         >
                           <div
@@ -14568,6 +14863,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-private_channel-create_private_channel"
                         >
                           <div
@@ -14587,6 +14883,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-private_channel-manage_private_channel_properties"
                         >
                           <div
@@ -14629,6 +14926,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-private_channel-delete_private_channel"
                         >
                           <div
@@ -14678,6 +14976,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-playbook_public-playbook_public_create"
                         >
                           <div
@@ -14697,6 +14996,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-playbook_public-playbook_public_manage_properties"
                         >
                           <div
@@ -14716,6 +15016,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-playbook_public-playbook_public_manage_members"
                         >
                           <div
@@ -14765,6 +15066,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-runs-run_create"
                         >
                           <div
@@ -14842,6 +15144,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="-posts-edit_posts-edit_post"
                             >
                               <div
@@ -14870,6 +15173,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="-posts-edit_posts-edit_others_posts"
                             >
                               <div
@@ -14891,6 +15195,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-posts-edit_file_attachment"
                         >
                           <div
@@ -14938,6 +15243,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="-posts-delete_posts-delete_post"
                             >
                               <div
@@ -14957,6 +15263,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row"
+                              data-testid="permissionRow"
                               id="-posts-delete_posts-delete_others_posts"
                             >
                               <div
@@ -15001,6 +15308,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row"
+                          data-testid="permissionRow"
                           id="-posts-use_channel_mentions"
                         >
                           <div
@@ -15051,6 +15359,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
         </div>
         <div
           class="AdminPanel clearfix AdminPanelTogglable permissions-block"
+          id="systemAdministratorsSection"
         >
           <div
             class="header"
@@ -15204,6 +15513,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-teams-create_team"
                         >
                           <div
@@ -15253,6 +15563,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-public_channel-create_public_channel"
                         >
                           <div
@@ -15272,6 +15583,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-public_channel-manage_public_channel_properties"
                         >
                           <div
@@ -15314,6 +15626,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-public_channel-delete_public_channel"
                         >
                           <div
@@ -15333,6 +15646,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-public_channel-convert_public_channel_to_private"
                         >
                           <div
@@ -15382,6 +15696,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-private_channel-create_private_channel"
                         >
                           <div
@@ -15401,6 +15716,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-private_channel-manage_private_channel_properties"
                         >
                           <div
@@ -15443,6 +15759,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-private_channel-delete_private_channel"
                         >
                           <div
@@ -15492,6 +15809,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-playbook_public-playbook_public_create"
                         >
                           <div
@@ -15511,6 +15829,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-playbook_public-playbook_public_manage_properties"
                         >
                           <div
@@ -15530,6 +15849,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-playbook_public-playbook_public_manage_members"
                         >
                           <div
@@ -15579,6 +15899,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-runs-run_create"
                         >
                           <div
@@ -15656,6 +15977,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row read-only"
+                              data-testid="permissionRow"
                               id="-posts-edit_posts-edit_post"
                             >
                               <div
@@ -15685,6 +16007,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row read-only"
+                              data-testid="permissionRow"
                               id="-posts-edit_posts-edit_others_posts"
                             >
                               <div
@@ -15706,6 +16029,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-posts-edit_file_attachment"
                         >
                           <div
@@ -15753,6 +16077,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row read-only"
+                              data-testid="permissionRow"
                               id="-posts-delete_posts-delete_post"
                             >
                               <div
@@ -15772,6 +16097,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row read-only"
+                              data-testid="permissionRow"
                               id="-posts-delete_posts-delete_others_posts"
                             >
                               <div
@@ -15816,6 +16142,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-posts-use_channel_mentions"
                         >
                           <div
@@ -15916,6 +16243,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           >
                             <div
                               class="permission-row read-only"
+                              data-testid="permissionRow"
                               id="-integrations-manage_agents_group-manage_own_agent"
                             >
                               <div
@@ -15935,6 +16263,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             </div>
                             <div
                               class="permission-row read-only"
+                              data-testid="permissionRow"
                               id="-integrations-manage_agents_group-manage_others_agent"
                             >
                               <div
@@ -15986,6 +16315,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                       >
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-custom_groups-create_custom_group"
                         >
                           <div
@@ -16005,6 +16335,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-custom_groups-manage_custom_group_members"
                         >
                           <div
@@ -16024,6 +16355,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-custom_groups-edit_custom_group"
                         >
                           <div
@@ -16043,6 +16375,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                         </div>
                         <div
                           class="permission-row read-only"
+                          data-testid="permissionRow"
                           id="-custom_groups-delete_custom_group"
                         >
                           <div

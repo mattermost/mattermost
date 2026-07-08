@@ -4,6 +4,7 @@ exports[`components/admin_console/data_grid/DataGrid should match snapshot while
 <div>
   <div
     class="DataGrid"
+    data-testid="dataGrid"
   >
     <div
       class="DataGrid_search"
@@ -34,9 +35,11 @@ exports[`components/admin_console/data_grid/DataGrid should match snapshot while
     </div>
     <div
       class="DataGrid_header"
+      data-testid="dataGrid-header"
     />
     <div
       class="DataGrid_rows"
+      data-testid="dataGrid-rows"
     >
       <div
         class="DataGrid_loading"
@@ -62,6 +65,7 @@ exports[`components/admin_console/data_grid/DataGrid should match snapshot with 
 <div>
   <div
     class="DataGrid"
+    data-testid="dataGrid"
   >
     <div
       class="DataGrid_search"
@@ -92,18 +96,23 @@ exports[`components/admin_console/data_grid/DataGrid should match snapshot with 
     </div>
     <div
       class="DataGrid_header"
+      data-testid="dataGrid-header"
     />
     <div
       class="DataGrid_rows"
+      data-testid="dataGrid-rows"
     >
       <div
         class="DataGrid_row"
+        data-testid="dataGrid-row"
       />
       <div
         class="DataGrid_row"
+        data-testid="dataGrid-row"
       />
       <div
         class="DataGrid_row"
+        data-testid="dataGrid-row"
       />
     </div>
   </div>
@@ -114,6 +123,7 @@ exports[`components/admin_console/data_grid/DataGrid should match snapshot with 
 <div>
   <div
     class="DataGrid customTable"
+    data-testid="dataGrid"
   >
     <div
       class="DataGrid_search"
@@ -144,18 +154,23 @@ exports[`components/admin_console/data_grid/DataGrid should match snapshot with 
     </div>
     <div
       class="DataGrid_header"
+      data-testid="dataGrid-header"
     />
     <div
       class="DataGrid_rows"
+      data-testid="dataGrid-rows"
     >
       <div
         class="DataGrid_row"
+        data-testid="dataGrid-row"
       />
       <div
         class="DataGrid_row"
+        data-testid="dataGrid-row"
       />
       <div
         class="DataGrid_row"
+        data-testid="dataGrid-row"
       />
     </div>
   </div>
@@ -166,6 +181,7 @@ exports[`components/admin_console/data_grid/DataGrid should match snapshot with 
 <div>
   <div
     class="DataGrid"
+    data-testid="dataGrid"
   >
     <div
       class="DataGrid_search"
@@ -196,9 +212,11 @@ exports[`components/admin_console/data_grid/DataGrid should match snapshot with 
     </div>
     <div
       class="DataGrid_header"
+      data-testid="dataGrid-header"
     />
     <div
       class="DataGrid_rows"
+      data-testid="dataGrid-rows"
     >
       <div
         class="DataGrid_empty"
