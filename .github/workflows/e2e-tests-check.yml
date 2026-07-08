@@ -36,10 +36,13 @@ jobs:
         # failures in npm's cacache writer.
         run: npm cache verify
 
-      # Set up web app subpackages and eslint plugin
-      - name: ci/get-webapp-node-modules
-        working-directory: webapp
-        run: make node_modules
+      # Set up web app subpackages and eslint plugin, restoring the warmed
+      # node_modules cache read-only and falling back to `make node_modules` on a
+      # miss.
+      - name: ci/webapp-setup
+        uses: ./.github/actions/webapp-setup
+        with:
+          read-only: "true"
 
       # Cypress check
       - name: ci/cypress/npm-install
