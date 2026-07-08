@@ -26,6 +26,7 @@ import LoggedInRoute from 'components/logged_in_route';
 import {LAUNCHING_WORKSPACE_FULLSCREEN_Z_INDEX} from 'components/preparing_workspace/launching_workspace';
 import {Animations} from 'components/preparing_workspace/steps';
 import Readout from 'components/readout/readout';
+import TeamScopedProductWrapper from 'components/team_scoped_product_wrapper';
 import {WithUserTheme} from 'components/theme_provider';
 
 import webSocketClient from 'client/web_websocket_client';
@@ -36,6 +37,7 @@ import {PageLoadContext, SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {EmojiIndicesByAlias} from 'utils/emoji';
 import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
+import {getProductRoutePath, isTeamScopedProductBaseURL} from 'utils/products';
 import {getSiteURL} from 'utils/url';
 import {isTextDroppableEvent} from 'utils/utils';
 
@@ -448,7 +450,7 @@ export default class Root extends React.PureComponent<Props, State> {
                                 {this.props.products?.map((product) => (
                                     <Route
                                         key={product.id}
-                                        path={product.baseURL}
+                                        path={getProductRoutePath(product.baseURL)}
                                         render={(props) => {
                                             let pluggable = (
                                                 <Pluggable
@@ -466,11 +468,22 @@ export default class Root extends React.PureComponent<Props, State> {
                                                     </div>
                                                 );
                                             }
-                                            return (
+
+                                            const loggedInProduct = (
                                                 <LoggedIn {...props}>
                                                     {pluggable}
                                                 </LoggedIn>
                                             );
+
+                                            if (isTeamScopedProductBaseURL(product.baseURL)) {
+                                                return (
+                                                    <TeamScopedProductWrapper>
+                                                        {loggedInProduct}
+                                                    </TeamScopedProductWrapper>
+                                                );
+                                            }
+
+                                            return loggedInProduct;
                                         }}
                                     />
                                 ))}

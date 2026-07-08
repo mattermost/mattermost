@@ -1613,6 +1613,7 @@ export const Constants = {
         'plugins',
         'playbooks',
         'boards',
+        'spaces',
     ],
     RESERVED_USERNAMES: [
         'valet',

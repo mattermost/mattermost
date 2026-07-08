@@ -13,6 +13,24 @@ import type {GlobalState} from 'types/store';
 import type {ProductComponent} from 'types/store/plugins';
 
 import {RecurringIntervals} from './constants';
+import {TEAM_NAME_PATH_PATTERN} from './path';
+
+export const TEAM_SCOPED_PRODUCT_PREFIX = '/:team/';
+
+export const isTeamScopedProductBaseURL = (baseURL: string): boolean => baseURL.startsWith(TEAM_SCOPED_PRODUCT_PREFIX);
+
+export const getTeamScopedProductRoutePath = (baseURL: string): string => baseURL.replace(TEAM_SCOPED_PRODUCT_PREFIX, `/:team(${TEAM_NAME_PATH_PATTERN})/`);
+
+export const getProductRoutePath = (baseURL: string): string => (isTeamScopedProductBaseURL(baseURL) ? getTeamScopedProductRoutePath(baseURL) : baseURL);
+
+export const getTeamScopedProductURL = (baseURL: string, teamName: string): string => baseURL.replace(TEAM_SCOPED_PRODUCT_PREFIX, `/${teamName}/`);
+
+export const getProductSwitcherLinkURL = (product: ProductComponent, currentTeamName?: string): string => {
+    if (isTeamScopedProductBaseURL(product.baseURL) && currentTeamName) {
+        return `/${currentTeamName}${product.switcherLinkURL}`;
+    }
+    return product.switcherLinkURL;
+};
 
 export const getCurrentProductId = (
     products: ProductComponent[],

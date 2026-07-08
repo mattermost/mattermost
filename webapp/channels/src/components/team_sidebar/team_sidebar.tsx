@@ -21,9 +21,11 @@ import WebSocketClient from 'client/web_websocket_client';
 import Pluggable from 'plugins/pluggable';
 import {Constants} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
-import {getCurrentProduct} from 'utils/products';
+import {getCurrentProduct, getTeamScopedProductURL, isTeamScopedProductBaseURL} from 'utils/products';
 import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
 import * as Utils from 'utils/utils';
+
+import type {ProductComponent} from 'types/store/plugins';
 
 import type {PropsFromRedux} from './index';
 
@@ -195,11 +197,16 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
             return null;
         }
 
+        let teamScopedProduct: ProductComponent | undefined;
+        if (currentProduct && isTeamScopedProductBaseURL(currentProduct.baseURL)) {
+            teamScopedProduct = currentProduct;
+        }
+
         const teams = sortedTeams.map((team: Team, index: number) => {
             return (
                 <TeamButton
                     key={'switch_team_' + team.name}
-                    url={`/${team.name}`}
+                    url={teamScopedProduct ? getTeamScopedProductURL(teamScopedProduct.baseURL, team.name) : `/${team.name}`}
                     tip={team.display_name}
                     active={team.id === this.props.currentTeamId}
                     displayName={team.display_name}
@@ -209,7 +216,7 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
                     mentions={this.props.mentionsInTeamMap.has(team.id) ? this.props.mentionsInTeamMap.get(team.id) : 0}
                     hasUrgent={this.props.teamHasUrgentMap.has(team.id) ? this.props.teamHasUrgentMap.get(team.id) : false}
                     teamIconUrl={Utils.imageURLForTeam(team)}
-                    switchTeam={(url: string) => this.props.actions.switchTeam(url, currentProduct ? team : undefined)}
+                    switchTeam={(url: string) => this.props.actions.switchTeam(url, currentProduct && !teamScopedProduct ? team : undefined)}
                     isDraggable={true}
                     teamId={team.id}
                     teamIndex={index}
