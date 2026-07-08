@@ -1,18 +1,5 @@
 name: Docs CI
 
-# PR-time build+typecheck gate for the Docusaurus docs site, replacing the
-# legacy `docs` repo's ci.yml (Sphinx: make python-deps / make test / make
-# html) now that docs live in this monorepo. Scoped with `paths:` since,
-# unlike the standalone docs repo, this workflow shares a repo with
-# server/webapp/etc. and must not run on every push.
-#
-# This is deliberately just a build+typecheck signal, not a deploy — see
-# docs-cd.yml (post-merge deploy) and docs-preview.yml (PR preview hosting)
-# for those. `npm run build` alone exercises the full OpenAPI pipeline
-# (prebuild -> make -C api build -> sanitize -> Docusaurus build), so it
-# doubles as both the "does the site build" and "is the OpenAPI spec still
-# valid" check.
-
 on:
   pull_request:
     paths:
