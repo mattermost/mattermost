@@ -117,6 +117,9 @@ jobs:
           go-version: ${{ inputs.go-version }}
           fips-enabled: ${{ inputs.fips-enabled }}
 
+      - name: Restore Go cache
+        uses: ./.github/actions/restore-go-cache
+
       - name: Restore test timing data
         if: inputs.shard-total > 1
         id: timing-cache
@@ -261,6 +264,9 @@ jobs:
             --env RACE_MODE \
             --env TEST_TARGET \
             --env BUILD_NUMBER \
+            --env GOMODCACHE=/gocache/mod \
+            --env GOCACHE=/gocache/build \
+            -v "${RUNNER_TEMP}/go-cache:/gocache" \
             -v $PWD:/mattermost \
             -w /mattermost/server \
             $BUILD_IMAGE \

@@ -99,6 +99,8 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
           persist-credentials: false
+      - name: Restore Go cache
+        uses: ./.github/actions/restore-go-cache
       - uses: ./.github/actions/run-in-buildenv
         with:
           run: |
@@ -124,6 +126,8 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
           persist-credentials: false
+      - name: Restore Go cache
+        uses: ./.github/actions/restore-go-cache
       - name: Check for renumbered or renamed migrations
         uses: ./.github/actions/run-in-buildenv
         with:
@@ -142,6 +146,8 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
           persist-credentials: false
+      - name: Restore Go cache
+        uses: ./.github/actions/restore-go-cache
       - uses: ./.github/actions/run-in-buildenv
         with:
           run: make check-style
@@ -155,6 +161,8 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
           persist-credentials: false
+      - name: Restore Go cache
+        uses: ./.github/actions/restore-go-cache
       - uses: ./.github/actions/run-in-buildenv
         with:
           run: make vet-api
@@ -331,6 +339,8 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
           persist-credentials: false
+      - name: Restore Go cache
+        uses: ./.github/actions/restore-go-cache
       - name: Build
         uses: ./.github/actions/run-in-buildenv
         with:

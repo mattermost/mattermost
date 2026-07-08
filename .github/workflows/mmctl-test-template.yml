@@ -66,6 +66,8 @@ jobs:
         with:
           go-version: ${{ inputs.go-version }}
           fips-enabled: ${{ inputs.fips-enabled }}
+      - name: Restore Go cache
+        uses: ./.github/actions/restore-go-cache
       - name: Setup log artifact name
         id: log-artifact
         run: |
@@ -107,6 +109,9 @@ jobs:
             --env MM_SQLSETTINGS_DATASOURCE="$INPUT_DATASOURCE" \
             --env MMCTL_TESTFLAGS="$TESTFLAGS" \
             --env FIPS_ENABLED="$INPUT_FIPS_ENABLED" \
+            --env GOMODCACHE=/gocache/mod \
+            --env GOCACHE=/gocache/build \
+            -v "${RUNNER_TEMP}/go-cache:/gocache" \
             -v $PWD:/mattermost \
             -w /mattermost/server \
             $BUILD_IMAGE \
