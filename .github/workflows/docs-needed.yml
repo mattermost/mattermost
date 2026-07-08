@@ -560,7 +560,7 @@ jobs:
             --base "${{ steps.base-branch.outputs.base }}" \
             --title "docs: ${PR_TITLE_SHORT}" \
             --body "$BODY" \
-            --milestone "$MILESTONE_NUMBER" \
+            --milestone "$MILESTONE_TITLE" \
             --draft)
 
           echo "number=$(echo "$URL" | grep -oE '[0-9]+$')" >> "$GITHUB_OUTPUT"
@@ -576,7 +576,7 @@ jobs:
         run: |
           gh pr edit "$DOCS_PR" \
             --repo mattermost/docs \
-            --milestone "$MILESTONE_NUMBER"
+            --milestone "$MILESTONE_TITLE"
 
       # 12. Resolve final docs PR reference
       - name: Resolve docs PR reference
