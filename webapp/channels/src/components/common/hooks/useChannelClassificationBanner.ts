@@ -16,6 +16,7 @@ import {getPropertyValueForTargetField} from 'mattermost-redux/selectors/entitie
 import {
     CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
     CLASSIFICATIONS_GROUP_NAME,
+    DISPLAY_BANNER_TOP,
 } from 'components/admin_console/classification_markings/utils';
 
 import useClassificationMarkings from './useClassificationMarkings';
@@ -84,6 +85,14 @@ export default function useChannelClassificationBanner(channelId: string): Chann
         };
 
         if (!propertyValue || !propertyValue.value) {
+            return noClassification;
+        }
+
+        // Per-channel banner placement lives on the value's attrs.actions.
+        // A value with no attrs.actions defaults to showing the top banner; an
+        // explicit empty actions set hides it.
+        const actions = (propertyValue.attrs?.actions as string[] | undefined) ?? [DISPLAY_BANNER_TOP];
+        if (!actions.includes(DISPLAY_BANNER_TOP)) {
             return noClassification;
         }
 

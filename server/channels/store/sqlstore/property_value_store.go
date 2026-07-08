@@ -24,7 +24,7 @@ func newPropertyValueStore(sqlStore *SqlStore) store.PropertyValueStore {
 	s := SqlPropertyValueStore{SqlStore: sqlStore}
 
 	s.tableSelectQuery = s.getQueryBuilder().
-		Select("ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt", "COALESCE(CreatedBy, '') as CreatedBy", "COALESCE(UpdatedBy, '') as UpdatedBy").
+		Select("ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "Attrs", "CreateAt", "UpdateAt", "DeleteAt", "COALESCE(CreatedBy, '') as CreatedBy", "COALESCE(UpdatedBy, '') as UpdatedBy").
 		From("PropertyValues")
 
 	return &s
@@ -48,8 +48,8 @@ func (s *SqlPropertyValueStore) Create(value *model.PropertyValue) (*model.Prope
 
 	builder := s.getQueryBuilder().
 		Insert("PropertyValues").
-		Columns("ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy").
-		Values(value.ID, value.TargetID, value.TargetType, value.GroupID, value.FieldID, valueJSON, value.CreateAt, value.UpdateAt, value.DeleteAt, value.CreatedBy, value.UpdatedBy)
+		Columns("ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "Attrs", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy").
+		Values(value.ID, value.TargetID, value.TargetType, value.GroupID, value.FieldID, valueJSON, value.Attrs, value.CreateAt, value.UpdateAt, value.DeleteAt, value.CreatedBy, value.UpdatedBy)
 	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
 		return nil, errors.Wrap(err, "property_value_create_insert")
 	}
@@ -82,8 +82,8 @@ func (s *SqlPropertyValueStore) CreateMany(values []*model.PropertyValue) ([]*mo
 
 		builder := s.getQueryBuilder().
 			Insert("PropertyValues").
-			Columns("ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy").
-			Values(value.ID, value.TargetID, value.TargetType, value.GroupID, value.FieldID, valueJSON, value.CreateAt, value.UpdateAt, value.DeleteAt, value.CreatedBy, value.UpdatedBy)
+			Columns("ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "Attrs", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy").
+			Values(value.ID, value.TargetID, value.TargetType, value.GroupID, value.FieldID, valueJSON, value.Attrs, value.CreateAt, value.UpdateAt, value.DeleteAt, value.CreatedBy, value.UpdatedBy)
 
 		if _, err := transaction.ExecBuilder(builder); err != nil {
 			return nil, errors.Wrap(err, "property_value_create_many_exec")
@@ -224,6 +224,7 @@ func (s *SqlPropertyValueStore) Update(groupID string, values []*model.PropertyV
 
 	updateTime := model.GetMillis()
 	valueCase := sq.Case("id")
+	attrsCase := sq.Case("id")
 	deleteAtCase := sq.Case("id")
 	updatedByCase := sq.Case("id")
 	ids := make([]string, len(values))
@@ -241,6 +242,7 @@ func (s *SqlPropertyValueStore) Update(groupID string, values []*model.PropertyV
 		}
 
 		valueCase = valueCase.When(sq.Expr("?", value.ID), sq.Expr("?::jsonb", valueJSON))
+		attrsCase = attrsCase.When(sq.Expr("?", value.ID), sq.Expr("?::jsonb", value.Attrs))
 		deleteAtCase = deleteAtCase.When(sq.Expr("?", value.ID), sq.Expr("?::bigint", value.DeleteAt))
 		updatedByCase = updatedByCase.When(sq.Expr("?", value.ID), sq.Expr("?::text", value.UpdatedBy))
 	}
@@ -248,6 +250,7 @@ func (s *SqlPropertyValueStore) Update(groupID string, values []*model.PropertyV
 	builder := s.getQueryBuilder().
 		Update("PropertyValues").
 		Set("Value", valueCase).
+		Set("Attrs", attrsCase).
 		Set("DeleteAt", deleteAtCase).
 		Set("UpdateAt", updateTime).
 		Set("UpdatedBy", updatedByCase).
@@ -310,15 +313,21 @@ func (s *SqlPropertyValueStore) Upsert(values []*model.PropertyValue) (_ []*mode
 
 		builder := s.getQueryBuilder().
 			Insert("PropertyValues").
-			Columns("ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy").
-			Values(value.ID, value.TargetID, value.TargetType, value.GroupID, value.FieldID, valueJSON, value.CreateAt, value.UpdateAt, value.DeleteAt, value.CreatedBy, value.UpdatedBy)
+			Columns("ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "Attrs", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy").
+			Values(value.ID, value.TargetID, value.TargetType, value.GroupID, value.FieldID, valueJSON, value.Attrs, value.CreateAt, value.UpdateAt, value.DeleteAt, value.CreatedBy, value.UpdatedBy)
 
+		// Only overwrite Attrs on conflict when the caller supplied some, so a
+		// value-only upsert never clobbers attrs written by another writer.
+		setClause := "Value = ?, UpdateAt = ?, DeleteAt = ?, UpdatedBy = ?"
+		suffixArgs := []any{valueJSON, value.UpdateAt, 0, value.UpdatedBy}
+		if value.Attrs != nil {
+			setClause += ", Attrs = ?"
+			suffixArgs = append(suffixArgs, value.Attrs)
+		}
 		builder = builder.SuffixExpr(sq.Expr(
-			"ON CONFLICT (GroupID, TargetID, FieldID) WHERE DeleteAt = 0 DO UPDATE SET Value = ?, UpdateAt = ?, DeleteAt = ?, UpdatedBy = ? RETURNING ID, TargetID, TargetType, GroupID, FieldID, Value, CreateAt, UpdateAt, DeleteAt, COALESCE(CreatedBy, '') as CreatedBy, COALESCE(UpdatedBy, '') as UpdatedBy",
-			valueJSON,
-			value.UpdateAt,
-			0,
-			value.UpdatedBy,
+			"ON CONFLICT (GroupID, TargetID, FieldID) WHERE DeleteAt = 0 DO UPDATE SET "+setClause+
+				" RETURNING ID, TargetID, TargetType, GroupID, FieldID, Value, Attrs, CreateAt, UpdateAt, DeleteAt, COALESCE(CreatedBy, '') as CreatedBy, COALESCE(UpdatedBy, '') as UpdatedBy",
+			suffixArgs...,
 		))
 
 		var values []*model.PropertyValue

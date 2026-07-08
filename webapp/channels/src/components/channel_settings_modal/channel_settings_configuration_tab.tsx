@@ -21,6 +21,7 @@ import {ColorSwatch, LevelOptionLabel} from 'components/admin_console/classifica
 import {
     CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
     CLASSIFICATIONS_GROUP_NAME,
+    DISPLAY_BANNER_TOP,
 } from 'components/admin_console/classification_markings/utils';
 import {classificationPresetDropdownStyles} from 'components/admin_console/classification_markings/utils/preset_dropdown_styles';
 import ColorInput from 'components/color_input';
@@ -434,12 +435,18 @@ function ChannelSettingsConfigurationTab({
 
         if (hasClassificationChanges && classification.channelField) {
             if (classificationEnabled && selectedClassificationId) {
+                // Per-channel banner actions live on the value — the value is
+                // classification's home for actions. The channel field is shared by
+                // all channels, so actions defined there would apply everywhere;
+                // hence there's no field mirror on this path (unlike the system
+                // banner). The actions are fixed to [top] here; a per-channel UI
+                // could vary them later.
                 try {
                     const values = await Client4.patchPropertyValues(
                         CLASSIFICATIONS_GROUP_NAME,
                         CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
                         channel.id,
-                        [{field_id: classification.channelField.id, value: selectedClassificationId}],
+                        [{field_id: classification.channelField.id, value: selectedClassificationId, attrs: {actions: [DISPLAY_BANNER_TOP]}}],
                     );
                     dispatch({type: PropertyTypes.RECEIVED_PROPERTY_VALUES, data: {values}});
                 } catch (err) {

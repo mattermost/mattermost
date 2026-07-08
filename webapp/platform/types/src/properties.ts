@@ -55,6 +55,9 @@ export type PropertyValue<T> = {
     group_id: string;
     field_id: string;
     value: T;
+    attrs?: {
+        [key: string]: unknown;
+    };
     create_at: number;
     update_at: number;
     delete_at: number;

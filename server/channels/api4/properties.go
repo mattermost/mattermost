@@ -795,6 +795,7 @@ func patchPropertyValuesCore(c *Context, w http.ResponseWriter, r *http.Request,
 			GroupID:    group.ID,
 			FieldID:    item.FieldID,
 			Value:      item.Value,
+			Attrs:      item.Attrs,
 			CreatedBy:  userID,
 			UpdatedBy:  userID,
 		}

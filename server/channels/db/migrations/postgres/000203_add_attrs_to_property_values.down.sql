@@ -1,0 +1,1 @@
+ALTER TABLE PropertyValues DROP COLUMN IF EXISTS Attrs;

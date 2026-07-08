@@ -1,0 +1,1 @@
+ALTER TABLE PropertyValues ADD COLUMN IF NOT EXISTS Attrs jsonb;

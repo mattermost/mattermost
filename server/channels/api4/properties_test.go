@@ -3034,6 +3034,37 @@ func TestPatchPropertyValues(t *testing.T) {
 		require.Equal(t, json.RawMessage(`"hello"`), values[0].Value)
 	})
 
+	t.Run("attrs on a value round-trips through the patch and get endpoints", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		items := []model.PropertyValuePatchItem{
+			{
+				FieldID: createdMemberField.ID,
+				Value:   json.RawMessage(`"with-attrs"`),
+				Attrs:   model.StringInterface{"actions": []any{"display_banner_top"}},
+			},
+		}
+		values, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "post", targetID, items)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, values, 1)
+		require.Equal(t, model.StringInterface{"actions": []any{"display_banner_top"}}, values[0].Attrs)
+
+		// Re-read to confirm the attrs persisted and serialize back to clients.
+		fetched, resp, err := th.Client.GetPropertyValues(context.Background(), group.Name, "post", targetID, model.PropertyValueSearch{PerPage: 100})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		var found *model.PropertyValue
+		for _, v := range fetched {
+			if v.FieldID == createdMemberField.ID {
+				found = v
+				break
+			}
+		}
+		require.NotNil(t, found)
+		require.Equal(t, model.StringInterface{"actions": []any{"display_banner_top"}}, found.Attrs)
+	})
+
 	t.Run("websocket event should be fired on values update", func(t *testing.T) {
 		th.LoginBasic(t)
 		webSocketClient := th.CreateConnectedWebSocketClient(t)

@@ -95,6 +95,23 @@ func testCreatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		require.Empty(t, value.CreatedBy)
 		require.Empty(t, value.UpdatedBy)
 	})
+
+	t.Run("should persist and round-trip attrs", func(t *testing.T) {
+		valueWithAttrs := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    model.NewId(),
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"opt1"`),
+			Attrs:      model.StringInterface{"actions": []any{"display_banner_top"}},
+		}
+		created, err := ss.PropertyValue().Create(valueWithAttrs)
+		require.NoError(t, err)
+
+		fromStore, err := ss.PropertyValue().Get("", created.ID)
+		require.NoError(t, err)
+		require.Equal(t, model.StringInterface{"actions": []any{"display_banner_top"}}, fromStore.Attrs)
+	})
 }
 
 func testCreateManyPropertyValues(t *testing.T, _ request.CTX, ss store.Store) {
@@ -844,6 +861,29 @@ func testUpdatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
 		require.Equal(t, user2, fetched2.UpdatedBy)
 		require.Equal(t, creatorUserID, fetched2.CreatedBy)
 	})
+
+	t.Run("should round-trip attrs on update", func(t *testing.T) {
+		value := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    model.NewId(),
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"opt1"`),
+			Attrs:      model.StringInterface{"actions": []any{"display_banner_top"}},
+		}
+		_, err := ss.PropertyValue().Create(value)
+		require.NoError(t, err)
+
+		value.Value = json.RawMessage(`"opt2"`)
+		value.Attrs = model.StringInterface{"actions": []any{"display_banner_top", "display_banner_bottom"}}
+		_, err = ss.PropertyValue().Update("", []*model.PropertyValue{value})
+		require.NoError(t, err)
+
+		fromStore, err := ss.PropertyValue().Get("", value.ID)
+		require.NoError(t, err)
+		require.Equal(t, json.RawMessage(`"opt2"`), fromStore.Value)
+		require.Equal(t, model.StringInterface{"actions": []any{"display_banner_top", "display_banner_bottom"}}, fromStore.Attrs)
+	})
 }
 
 func testUpsertPropertyValue(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
@@ -926,6 +966,90 @@ func testUpsertPropertyValue(t *testing.T, _ request.CTX, ss store.Store, s SqlS
 		require.NoError(t, err)
 		require.Equal(t, json.RawMessage(`"updated value"`), updated.Value)
 		require.Greater(t, updated.UpdateAt, updated.CreateAt)
+	})
+
+	t.Run("should persist attrs on insert via upsert", func(t *testing.T) {
+		value := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+			GroupID:    model.NewId(),
+			FieldID:    model.NewId(),
+			Value:      json.RawMessage(`"opt1"`),
+			Attrs:      model.StringInterface{"actions": []any{"display_banner_top"}},
+		}
+		upserted, err := ss.PropertyValue().Upsert([]*model.PropertyValue{value})
+		require.NoError(t, err)
+		require.Len(t, upserted, 1)
+		require.Equal(t, model.StringInterface{"actions": []any{"display_banner_top"}}, upserted[0].Attrs)
+
+		fromStore, err := ss.PropertyValue().Get("", upserted[0].ID)
+		require.NoError(t, err)
+		require.Equal(t, model.StringInterface{"actions": []any{"display_banner_top"}}, fromStore.Attrs)
+	})
+
+	t.Run("should preserve attrs on a value-only upsert", func(t *testing.T) {
+		targetID := model.NewId()
+		groupID := model.NewId()
+		fieldID := model.NewId()
+
+		// Seed a value carrying attrs.
+		_, err := ss.PropertyValue().Upsert([]*model.PropertyValue{{
+			TargetID:   targetID,
+			TargetType: "test_type",
+			GroupID:    groupID,
+			FieldID:    fieldID,
+			Value:      json.RawMessage(`"opt1"`),
+			Attrs:      model.StringInterface{"actions": []any{"display_banner_top", "display_banner_bottom"}},
+		}})
+		require.NoError(t, err)
+
+		// Upsert the same (group,target,field) with a new value but nil attrs.
+		upserted, err := ss.PropertyValue().Upsert([]*model.PropertyValue{{
+			TargetID:   targetID,
+			TargetType: "test_type",
+			GroupID:    groupID,
+			FieldID:    fieldID,
+			Value:      json.RawMessage(`"opt2"`),
+		}})
+		require.NoError(t, err)
+		require.Len(t, upserted, 1)
+
+		fromStore, err := ss.PropertyValue().Get("", upserted[0].ID)
+		require.NoError(t, err)
+		require.Equal(t, json.RawMessage(`"opt2"`), fromStore.Value)
+		require.Equal(t, model.StringInterface{"actions": []any{"display_banner_top", "display_banner_bottom"}}, fromStore.Attrs)
+	})
+
+	t.Run("should replace attrs when non-nil attrs provided on conflict", func(t *testing.T) {
+		targetID := model.NewId()
+		groupID := model.NewId()
+		fieldID := model.NewId()
+
+		_, err := ss.PropertyValue().Upsert([]*model.PropertyValue{{
+			TargetID:   targetID,
+			TargetType: "test_type",
+			GroupID:    groupID,
+			FieldID:    fieldID,
+			Value:      json.RawMessage(`"opt1"`),
+			Attrs:      model.StringInterface{"actions": []any{"display_banner_top"}},
+		}})
+		require.NoError(t, err)
+
+		// Re-upsert with an explicit empty actions set (non-nil attrs) → replace.
+		upserted, err := ss.PropertyValue().Upsert([]*model.PropertyValue{{
+			TargetID:   targetID,
+			TargetType: "test_type",
+			GroupID:    groupID,
+			FieldID:    fieldID,
+			Value:      json.RawMessage(`"opt1"`),
+			Attrs:      model.StringInterface{"actions": []any{}},
+		}})
+		require.NoError(t, err)
+		require.Len(t, upserted, 1)
+
+		fromStore, err := ss.PropertyValue().Get("", upserted[0].ID)
+		require.NoError(t, err)
+		require.Equal(t, model.StringInterface{"actions": []any{}}, fromStore.Attrs)
 	})
 
 	t.Run("should handle mixed insert and update operations", func(t *testing.T) {

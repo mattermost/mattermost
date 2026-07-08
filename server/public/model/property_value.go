@@ -35,6 +35,7 @@ type PropertyValue struct {
 	GroupID    string          `json:"group_id"`
 	FieldID    string          `json:"field_id"`
 	Value      json.RawMessage `json:"value"`
+	Attrs      StringInterface `json:"attrs,omitempty"`
 	CreateAt   int64           `json:"create_at"`
 	UpdateAt   int64           `json:"update_at"`
 	DeleteAt   int64           `json:"delete_at"`
@@ -198,6 +199,7 @@ type PropertyValueSearch struct {
 type PropertyValuePatchItem struct {
 	FieldID string          `json:"field_id"`
 	Value   json.RawMessage `json:"value"`
+	Attrs   StringInterface `json:"attrs,omitempty"`
 }
 
 // SanitizePropertyValue normalizes a raw property value's JSON:

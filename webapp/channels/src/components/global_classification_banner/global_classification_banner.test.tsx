@@ -53,8 +53,8 @@ function makeLinkedField(actions: string[], options: Array<{id: string; name: st
     };
 }
 
-function makeSystemValue(optionId: string): PropertyValue<string> {
-    return {
+function makeSystemValue(optionId: string, actions?: string[]): PropertyValue<string> {
+    const value: PropertyValue<string> = {
         id: 'value1',
         target_id: CLASSIFICATIONS_SYSTEM_VALUE_TARGET_ID,
         target_type: CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
@@ -67,6 +67,10 @@ function makeSystemValue(optionId: string): PropertyValue<string> {
         created_by: 'user1',
         updated_by: 'user1',
     };
+    if (actions) {
+        value.attrs = {actions};
+    }
+    return value;
 }
 
 type StateOptions = {
@@ -163,6 +167,46 @@ describe('GlobalClassificationBanner', () => {
         );
 
         expect(screen.queryByTestId('global-classification-banner-top')).not.toBeInTheDocument();
+    });
+
+    test('prefers value actions over field actions: renders when the value has top but the field is empty', () => {
+        const options = [{id: 'opt1', name: 'SECRET', color: '#C8102E'}];
+        const linked = makeLinkedField([], options); // field carries no actions
+        const value = makeSystemValue('opt1', [DISPLAY_BANNER_TOP]); // value carries top
+
+        renderWithContext(
+            <GlobalClassificationBanner position='top'/>,
+            makeState({linkedField: linked, systemValue: value}),
+        );
+
+        expect(screen.getByTestId('global-classification-banner-top')).toBeInTheDocument();
+        expect(screen.getByText('SECRET')).toBeInTheDocument();
+    });
+
+    test('value actions take precedence: an empty actions set on the value suppresses a field-configured banner', () => {
+        const options = [{id: 'opt1', name: 'SECRET', color: '#C8102E'}];
+        const linked = makeLinkedField([DISPLAY_BANNER_TOP], options); // field would show it
+        const value = makeSystemValue('opt1', []); // value explicitly clears actions
+
+        renderWithContext(
+            <GlobalClassificationBanner position='top'/>,
+            makeState({linkedField: linked, systemValue: value}),
+        );
+
+        expect(screen.queryByTestId('global-classification-banner-top')).not.toBeInTheDocument();
+    });
+
+    test('falls back to field actions when the value has no attrs', () => {
+        const options = [{id: 'opt1', name: 'SECRET', color: '#C8102E'}];
+        const linked = makeLinkedField([DISPLAY_BANNER_TOP], options);
+        const value = makeSystemValue('opt1'); // no attrs on the value
+
+        renderWithContext(
+            <GlobalClassificationBanner position='top'/>,
+            makeState({linkedField: linked, systemValue: value}),
+        );
+
+        expect(screen.getByTestId('global-classification-banner-top')).toBeInTheDocument();
     });
 
     test('does not render when system property value is absent', () => {

@@ -55,6 +55,21 @@ func TestPropertyValue_IsValid(t *testing.T) {
 		require.NoError(t, pv.IsValid())
 	})
 
+	t.Run("valid value with attrs", func(t *testing.T) {
+		pv := &PropertyValue{
+			ID:         NewId(),
+			TargetID:   NewId(),
+			TargetType: "test_type",
+			GroupID:    NewId(),
+			FieldID:    NewId(),
+			Value:      json.RawMessage(`"opt1"`),
+			Attrs:      StringInterface{"actions": []any{"display_banner_top", "display_banner_bottom"}},
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		require.NoError(t, pv.IsValid())
+	})
+
 	t.Run("invalid ID", func(t *testing.T) {
 		pv := &PropertyValue{
 			ID:         "invalid",
@@ -374,5 +389,46 @@ func TestSanitizePropertyValue(t *testing.T) {
 		raw := json.RawMessage(`"hello"`)
 		got := SanitizePropertyValue(raw)
 		assert.Equal(t, &raw[0], &got[0], "expected same backing array when unchanged")
+	})
+}
+
+func TestPropertyValue_AttrsJSON(t *testing.T) {
+	t.Run("attrs round-trips through JSON", func(t *testing.T) {
+		pv := &PropertyValue{
+			ID:         NewId(),
+			TargetID:   NewId(),
+			TargetType: "channel",
+			GroupID:    NewId(),
+			FieldID:    NewId(),
+			Value:      json.RawMessage(`"opt1"`),
+			Attrs:      StringInterface{"actions": []any{"display_banner_top"}},
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+
+		b, err := json.Marshal(pv)
+		require.NoError(t, err)
+		assert.Contains(t, string(b), `"attrs"`)
+
+		var got PropertyValue
+		require.NoError(t, json.Unmarshal(b, &got))
+		assert.Equal(t, pv.Attrs, got.Attrs)
+	})
+
+	t.Run("nil attrs is omitted from JSON", func(t *testing.T) {
+		pv := &PropertyValue{
+			ID:         NewId(),
+			TargetID:   NewId(),
+			TargetType: "channel",
+			GroupID:    NewId(),
+			FieldID:    NewId(),
+			Value:      json.RawMessage(`"opt1"`),
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+
+		b, err := json.Marshal(pv)
+		require.NoError(t, err)
+		assert.NotContains(t, string(b), `"attrs"`)
 	})
 }

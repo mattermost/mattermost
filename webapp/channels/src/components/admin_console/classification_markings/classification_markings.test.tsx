@@ -984,8 +984,8 @@ describe('GlobalClassificationIndicators section', () => {
                 }),
             );
 
-            // System value upserted with the resolved option ID.
-            expect(saveUpsertSpy).toHaveBeenCalledWith('linked_field1', 'lvl1');
+            // System value upserted with the resolved option ID and actions.
+            expect(saveUpsertSpy).toHaveBeenCalledWith('linked_field1', 'lvl1', [DISPLAY_BANNER_TOP, DISPLAY_BANNER_BOTTOM]);
         });
         await act(async () => {}); // flush pending React state updates
     });
@@ -1567,6 +1567,7 @@ describe('Custom preset caching and dropdown visibility', () => {
                 expect(saveUpsertSpy).toHaveBeenCalledWith(
                     'linked_field1',
                     serverGeneratedId,
+                    expect.any(Array),
                 );
             });
             await act(async () => {});

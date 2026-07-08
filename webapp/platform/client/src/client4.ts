@@ -2225,14 +2225,14 @@ export default class Client4 {
         );
     };
 
-    patchSystemPropertyValues = <T>(groupName: string, items: Array<{field_id: string; value: T}>) => {
+    patchSystemPropertyValues = <T>(groupName: string, items: Array<{field_id: string; value: T; attrs?: Record<string, unknown>}>) => {
         return this.doFetch<Array<PropertyValue<T>>>(
             `${this.getBaseRoute()}/properties/groups/${groupName}/system/values`,
             {method: 'PATCH', body: JSON.stringify(items)},
         );
     };
 
-    patchPropertyValues = <T>(groupName: string, objectType: string, targetId: string, items: Array<{field_id: string; value: T}>) => {
+    patchPropertyValues = <T>(groupName: string, objectType: string, targetId: string, items: Array<{field_id: string; value: T; attrs?: Record<string, unknown>}>) => {
         return this.doFetch<Array<PropertyValue<T>>>(
             `${this.getBaseRoute()}/properties/groups/${groupName}/${objectType}/values/${targetId}`,
             {method: 'PATCH', body: JSON.stringify(items)},

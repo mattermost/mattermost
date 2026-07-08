@@ -37,6 +37,7 @@ import {
     DEFAULT_GLOBAL_BANNER,
     DISPLAY_BANNER_TOP,
     actionsToGlobalBanner,
+    placementToActions,
     fetchChannelClassificationField,
     fetchClassificationField,
     fetchLinkedClassificationField,
@@ -404,10 +405,18 @@ export default function ClassificationMarkings({disabled}: Props) {
                 savedLinked = await saveCreateLinkedField(savedTemplate.id, disabledBanner);
             }
 
-            if (resolvedBanner.enabled && resolvedBanner.level_id) {
-                const savedValues = await saveUpsertSystemValue(savedLinked.id, resolvedBanner.level_id);
-                dispatch({type: PropertyTypes.RECEIVED_PROPERTY_VALUES, data: {values: savedValues}});
+            // The value is classification's home for actions: always upsert the
+            // system value with the resolved actions (empty when the banner is
+            // off) and level. The webapp reads actions from value.attrs.actions;
+            // the field is mirrored below so both carry the same actions.
+            const resolvedLevelId = resolvedBanner.enabled ? resolvedBanner.level_id : '';
+            const savedValues = await saveUpsertSystemValue(savedLinked.id, resolvedLevelId, placementToActions(resolvedBanner));
+            dispatch({type: PropertyTypes.RECEIVED_PROPERTY_VALUES, data: {values: savedValues}});
 
+            // Mirror the actions onto the field as well: mobile reads banner
+            // actions from field.attrs.actions, so this keeps it in sync. The
+            // field write can be removed once every client reads from the value.
+            if (resolvedBanner.enabled) {
                 savedLinked = await savePatchLinkedField(savedLinked.id, resolvedBanner);
             }
 

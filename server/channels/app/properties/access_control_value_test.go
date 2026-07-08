@@ -819,6 +819,126 @@ func TestGetPropertyValuesReadAccess(t *testing.T) {
 	})
 }
 
+// TestGetPropertyValues_AttrsSurviveReadAccessControl is a regression test for
+// the value `attrs` bag (used by classification markings to store banner
+// actions on a value). The access-control read hooks must never strip attrs:
+// public values pass through untouched, and shared_only rank values are
+// shallow-copied — so attrs survive even when the value itself is clamped down
+// to the caller's rank. If a future hook reconstructs a PropertyValue
+// field-by-field without carrying Attrs over, these assertions catch it.
+func TestGetPropertyValues_AttrsSurviveReadAccessControl(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	th.service.setPluginCheckerForTests(func(pluginID string) bool {
+		return pluginID == "test-plugin"
+	})
+
+	rctxSource := RequestContextWithCallerID(th.Context, "test-plugin")
+	wantAttrs := model.StringInterface{"actions": []any{"display_banner_top", "display_banner_bottom"}}
+
+	t.Run("public field: attrs survive read access control", func(t *testing.T) {
+		field, err := th.service.CreatePropertyField(rctxSource, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "attrs-public",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs:      model.StringInterface{model.PropertyAttrsAccessMode: model.PropertyAccessModePublic},
+		})
+		require.NoError(t, err)
+
+		created, err := th.service.CreatePropertyValue(rctxSource, &model.PropertyValue{
+			GroupID:    th.CPAGroupID,
+			FieldID:    field.ID,
+			TargetType: "user",
+			TargetID:   model.NewId(),
+			Value:      json.RawMessage(`"hello"`),
+			Attrs:      wantAttrs,
+		})
+		require.NoError(t, err)
+
+		// Read as an unrelated caller through the plural read path.
+		rctxOther := RequestContextWithCallerID(th.Context, model.NewId())
+		retrieved, err := th.service.GetPropertyValues(rctxOther, th.CPAGroupID, []string{created.ID})
+		require.NoError(t, err)
+		require.Len(t, retrieved, 1)
+		assert.Equal(t, wantAttrs, retrieved[0].Attrs)
+	})
+
+	t.Run("shared_only rank: attrs survive on a pass-through value", func(t *testing.T) {
+		field, err := th.service.CreatePropertyField(rctxSource, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "attrs-rank-passthrough",
+			Type:       model.PropertyFieldTypeRank,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyAttrsAccessMode:       model.PropertyAccessModeSharedOnly,
+				model.PropertyAttrsProtected:        true,
+				model.PropertyFieldAttributeOptions: rankOptions(),
+			},
+		})
+		require.NoError(t, err)
+
+		// Caller holds Secret (rank 3); target holds Confidential (rank 2) with attrs.
+		callerID := model.NewId()
+		_, err = th.service.CreatePropertyValue(rctxSource, &model.PropertyValue{
+			GroupID: th.CPAGroupID, FieldID: field.ID, TargetType: "user", TargetID: callerID,
+			Value: json.RawMessage(`"opt_secret"`),
+		})
+		require.NoError(t, err)
+
+		target, err := th.service.CreatePropertyValue(rctxSource, &model.PropertyValue{
+			GroupID: th.CPAGroupID, FieldID: field.ID, TargetType: "user", TargetID: model.NewId(),
+			Value: json.RawMessage(`"opt_confidential"`), Attrs: wantAttrs,
+		})
+		require.NoError(t, err)
+
+		retrieved, err := th.service.GetPropertyValues(RequestContextWithCallerID(th.Context, callerID), th.CPAGroupID, []string{target.ID})
+		require.NoError(t, err)
+		require.Len(t, retrieved, 1)
+		assert.Equal(t, json.RawMessage(`"opt_confidential"`), retrieved[0].Value)
+		assert.Equal(t, wantAttrs, retrieved[0].Attrs)
+	})
+
+	t.Run("shared_only rank: attrs survive even when the value is clamped", func(t *testing.T) {
+		field, err := th.service.CreatePropertyField(rctxSource, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "attrs-rank-clamped",
+			Type:       model.PropertyFieldTypeRank,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyAttrsAccessMode:       model.PropertyAccessModeSharedOnly,
+				model.PropertyAttrsProtected:        true,
+				model.PropertyFieldAttributeOptions: rankOptions(),
+			},
+		})
+		require.NoError(t, err)
+
+		// Caller holds Confidential (rank 2); target holds TopSecret (rank 4) with attrs.
+		callerID := model.NewId()
+		_, err = th.service.CreatePropertyValue(rctxSource, &model.PropertyValue{
+			GroupID: th.CPAGroupID, FieldID: field.ID, TargetType: "user", TargetID: callerID,
+			Value: json.RawMessage(`"opt_confidential"`),
+		})
+		require.NoError(t, err)
+
+		target, err := th.service.CreatePropertyValue(rctxSource, &model.PropertyValue{
+			GroupID: th.CPAGroupID, FieldID: field.ID, TargetType: "user", TargetID: model.NewId(),
+			Value: json.RawMessage(`"opt_topsecret"`), Attrs: wantAttrs,
+		})
+		require.NoError(t, err)
+
+		retrieved, err := th.service.GetPropertyValues(RequestContextWithCallerID(th.Context, callerID), th.CPAGroupID, []string{target.ID})
+		require.NoError(t, err)
+		require.Len(t, retrieved, 1)
+		// The value is clamped down to the caller's rank...
+		assert.Equal(t, json.RawMessage(`"opt_confidential"`), retrieved[0].Value)
+		// ...but the attrs must still be present.
+		assert.Equal(t, wantAttrs, retrieved[0].Attrs)
+	})
+}
+
 func TestSearchPropertyValuesReadAccess(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 	th.service.setPluginCheckerForTests(func(pluginID string) bool {

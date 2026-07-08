@@ -12,6 +12,7 @@ import {
     CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
     CLASSIFICATIONS_FIELD_TARGET_TYPE,
     CLASSIFICATIONS_GROUP_NAME,
+    DISPLAY_BANNER_TOP,
 } from 'components/admin_console/classification_markings/utils';
 import type {ClassificationLevel} from 'components/admin_console/classification_markings/utils/presets';
 
@@ -48,7 +49,7 @@ function makeChannelField(overrides: Partial<PropertyField> = {}): PropertyField
     };
 }
 
-function makePropertyValue(value: string | null): PropertyValue<string> {
+function makePropertyValue(value: string | null, attrs?: PropertyValue<string>['attrs']): PropertyValue<string> {
     return {
         id: 'value1',
         target_id: CHANNEL_ID,
@@ -56,6 +57,7 @@ function makePropertyValue(value: string | null): PropertyValue<string> {
         group_id: CLASSIFICATIONS_GROUP_NAME,
         field_id: FIELD_ID,
         value: value as string,
+        attrs,
         create_at: 2000,
         update_at: 2000,
         delete_at: 0,
@@ -188,6 +190,45 @@ describe('useChannelClassificationBanner', () => {
             text: '**UNCLASSIFIED**',
             background_color: '#007A33',
         });
+    });
+
+    test('renders the banner when the value actions include display_banner_top', () => {
+        mockClassification();
+        const value = makePropertyValue('lvl1', {actions: [DISPLAY_BANNER_TOP]});
+
+        const {result} = renderHookWithContext(
+            () => useChannelClassificationBanner(CHANNEL_ID),
+            stateWithValue(value),
+        );
+
+        expect(result.current.hasClassification).toBe(true);
+        expect(result.current.classificationId).toBe('lvl1');
+    });
+
+    test('hides the banner when the value has an explicit empty actions set', () => {
+        mockClassification();
+        const value = makePropertyValue('lvl1', {actions: []});
+
+        const {result} = renderHookWithContext(
+            () => useChannelClassificationBanner(CHANNEL_ID),
+            stateWithValue(value),
+        );
+
+        expect(result.current.hasClassification).toBe(false);
+        expect(result.current.classificationBanner).toBeUndefined();
+    });
+
+    test('renders when the value has no attrs (defaults to top placement)', () => {
+        mockClassification();
+        const value = makePropertyValue('lvl1'); // no attrs.actions
+
+        const {result} = renderHookWithContext(
+            () => useChannelClassificationBanner(CHANNEL_ID),
+            stateWithValue(value),
+        );
+
+        expect(result.current.hasClassification).toBe(true);
+        expect(result.current.classificationId).toBe('lvl1');
     });
 
     test('returns hasClassification=false when the referenced level no longer exists', () => {
