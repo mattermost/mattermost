@@ -28,6 +28,7 @@ export default class ChannelsSidebarRight {
     readonly currentVersionEditedPosttext;
     readonly restorePreviousPostVersionIcon;
     readonly channelBanner;
+    readonly notificationSeparator;
 
     constructor(container: Locator) {
         this.container = container;
@@ -53,6 +54,7 @@ export default class ChannelsSidebarRight {
             'button[aria-label="Select to restore an old message."]',
         );
         this.channelBanner = container.getByTestId('channel_banner_container');
+        this.notificationSeparator = container.locator('.NotificationSeparator');
     }
 
     async toBeVisible() {

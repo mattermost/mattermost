@@ -5,12 +5,25 @@ import type {Page} from '@playwright/test';
 
 type NotificationData = {title: string} & NotificationOptions;
 
+type MockWebSocket = {
+    wrappedSocket: WebSocket | null;
+    onopen: ((ev: Event) => void) | null;
+    onmessage: ((ev: MessageEvent) => void) | null;
+    onerror: ((ev: Event) => void) | null;
+    onclose: ((ev: CloseEvent) => void) | null;
+    readyState: number;
+    send(data: string | ArrayBuffer): void;
+    close(): void;
+    connect(): void;
+};
+
 // Extend the Window interface to add custom properties
 declare global {
     interface Window {
         originalNotification: typeof Notification;
         capturedNotifications: NotificationData[];
         getNotifications: () => NotificationData[];
+        mockWebsockets: MockWebSocket[];
     }
 }
 
@@ -87,4 +100,101 @@ export async function waitForNotification(
     // eslint-disable-next-line no-console
     console.error(`Notification not received within the timeout period of ${timeout}ms`);
     return [];
+}
+
+/**
+ * `mockWebsockets` wraps `window.WebSocket` so the test can close and reopen the underlying
+ * socket connection(s) on demand, to simulate a socket disconnect/reconnect without navigating
+ * away from the page. Mocked sockets do not auto-connect on construction — call
+ * `connectWebsockets` to open them.
+ *
+ * Must be called on a `page` that has not yet navigated (e.g. right after `pw.testBrowser.login()`,
+ * before `channelsPage.goto(...)`), since it installs the override via `addInitScript` so it's in
+ * place before the app's own bundle constructs its WebSocket client.
+ *
+ * @param page Page object, not yet navigated
+ */
+export async function mockWebsockets(page: Page) {
+    await page.addInitScript(() => {
+        const RealWebSocket = window.WebSocket;
+        window.mockWebsockets = [];
+
+        class MockWebSocketImpl {
+            // Match the standard WebSocket.readyState values so client code comparing
+            // against `WebSocket.OPEN` (now this class, since it replaces window.WebSocket)
+            // sees real state transitions instead of coincidental `undefined === undefined`.
+            static readonly CONNECTING = 0;
+            static readonly OPEN = 1;
+            static readonly CLOSING = 2;
+            static readonly CLOSED = 3;
+
+            wrappedSocket: WebSocket | null = null;
+            onopen: ((ev: Event) => void) | null = null;
+            onmessage: ((ev: MessageEvent) => void) | null = null;
+            onerror: ((ev: Event) => void) | null = null;
+            onclose: ((ev: CloseEvent) => void) | null = null;
+            readyState: number = MockWebSocketImpl.CONNECTING;
+            private readonly args: [string | URL, (string | string[])?];
+
+            constructor(...args: [string | URL, (string | string[])?]) {
+                this.args = args;
+                window.mockWebsockets.push(this);
+            }
+
+            send(data: string | ArrayBuffer) {
+                if (this.wrappedSocket) {
+                    this.wrappedSocket.send(data);
+                } else if (this.onerror) {
+                    this.onerror(new Event('error'));
+                }
+            }
+
+            close() {
+                if (this.wrappedSocket) {
+                    this.readyState = MockWebSocketImpl.CLOSING;
+                    this.wrappedSocket.close(1000);
+                } else {
+                    this.readyState = MockWebSocketImpl.CLOSED;
+                }
+            }
+
+            connect() {
+                const socket = new RealWebSocket(...this.args);
+                this.readyState = MockWebSocketImpl.CONNECTING;
+                socket.onopen = (ev) => {
+                    this.readyState = MockWebSocketImpl.OPEN;
+                    this.onopen?.(ev);
+                };
+                socket.onmessage = (ev) => this.onmessage?.(ev);
+                socket.onerror = (ev) => this.onerror?.(ev);
+                socket.onclose = (ev) => {
+                    this.readyState = MockWebSocketImpl.CLOSED;
+                    this.onclose?.(ev);
+                };
+                this.wrappedSocket = socket;
+            }
+        }
+
+        window.WebSocket = MockWebSocketImpl as unknown as typeof WebSocket;
+    });
+}
+
+/**
+ * Opens (or reopens) every mocked WebSocket tracked by `mockWebsockets`, simulating a reconnect.
+ * @param page Page object
+ */
+export async function connectWebsockets(page: Page) {
+    await page.evaluate(() => {
+        window.mockWebsockets.forEach((ws) => ws.connect());
+    });
+}
+
+/**
+ * Closes every mocked WebSocket tracked by `mockWebsockets`, simulating a disconnect.
+ * @param page Page object
+ */
+export async function closeWebsockets(page: Page) {
+    await page.evaluate(() => {
+        window.mockWebsockets.forEach((ws) => ws.close());
+    });
 }

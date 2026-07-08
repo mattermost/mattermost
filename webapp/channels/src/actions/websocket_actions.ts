@@ -1356,9 +1356,9 @@ function handlePropertyFieldCreatedOrUpdated(
             data: {fields: [field]},
         });
 
-        // Session attribute schema changed; tell the Desktop App to re-fetch its manifest.
+        // Session attribute field changed; forward the updated field to the Desktop App.
         if (msg.data.object_type === SESSION_ATTRIBUTES_OBJECT_TYPE) {
-            DesktopApp.invalidateSessionAttributeManifest();
+            DesktopApp.updateSessionAttribute(field);
         }
     };
 }

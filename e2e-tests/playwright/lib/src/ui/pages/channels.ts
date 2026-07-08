@@ -6,6 +6,7 @@ import {expect} from '@playwright/test';
 import {waitUntil} from 'async-wait-until';
 
 import type {
+    ChannelNotificationPreferencesModal,
     ChannelsPost,
     SettingsModal,
     TeamSettingsModal,
@@ -30,12 +31,14 @@ export default class ChannelsPage {
     readonly messagePriority;
 
     readonly channelSettingsModal;
+    readonly channelNotificationPreferencesModal;
     readonly createTeamForm;
     readonly deletePostModal;
     readonly findChannelsModal;
     readonly newChannelModal;
     readonly browseChannelsModal;
     readonly directChannelsModal;
+    readonly keyboardShortcutsModal;
     public invitePeopleModal: InvitePeopleModal | undefined;
     public membersInvitedModal: MembersInvitedModal | undefined;
     readonly profileModal;
@@ -54,7 +57,11 @@ export default class ChannelsPage {
     readonly teamMenu;
 
     readonly emojiGifPickerPopup;
+    readonly reactionEmojiPicker;
     readonly scheduleMessageMenu;
+
+    readonly searchResultsContainer;
+    readonly searchResultItems;
 
     constructor(page: Page) {
         this.page = page;
@@ -71,6 +78,10 @@ export default class ChannelsPage {
 
         // Modals
         this.channelSettingsModal = new ChannelSettingsModal(page.getByRole('dialog', {name: 'Channel Settings'}));
+        this.channelNotificationPreferencesModal = new components.ChannelNotificationPreferencesModal(
+            page.getByRole('dialog', {name: 'Notification Preferences'}),
+        );
+        this.keyboardShortcutsModal = page.getByRole('dialog', {name: /Keyboard shortcuts/});
         this.createTeamForm = new CreateTeamForm(page.getByTestId('create-team-form'));
         this.deletePostModal = new components.DeletePostModal(page.locator('#deletePostModal'));
         this.findChannelsModal = new components.FindChannelsModal(page.getByRole('dialog', {name: 'Find Channels'}));
@@ -85,6 +96,7 @@ export default class ChannelsPage {
         this.burnOnReadConfirmationModal = new components.BurnOnReadConfirmationModal(
             page.getByRole('dialog').filter({hasText: /burn|delete/i}),
         );
+        this.searchResultsPanel = new components.SearchResultsPanel(page.locator('#searchContainer'));
 
         // Menus
         this.postDotMenu = new components.PostDotMenu(page.getByRole('menu', {name: 'Post extra options'}));
@@ -95,6 +107,7 @@ export default class ChannelsPage {
 
         // Popovers
         this.emojiGifPickerPopup = new components.EmojiGifPicker(page.locator('#emojiGifPicker'));
+        this.reactionEmojiPicker = new components.EmojiGifPicker(page.getByRole('dialog', {name: 'Emoji Picker'}));
         this.scheduledDraftModal = new components.ScheduledDraftModal(page.getByRole('dialog', {name: /scheduled/i}));
         this.scheduleMessageModal = new components.ScheduleMessageModal(
             page.getByRole('dialog', {name: 'Schedule message'}),
@@ -103,10 +116,19 @@ export default class ChannelsPage {
 
         // Posts
         this.postContainer = page.getByTestId('post-message-text');
-        this.searchResultsPanel = new components.SearchResultsPanel(page.locator('#searchContainer'));
         this.archivedChannelMessage = page.locator('#channelArchivedMessage');
 
-        page.locator('#channelHeaderDropdownMenu');
+        // Search results
+        this.searchResultsContainer = page.locator('#search-items-container');
+        this.searchResultItems = page.getByTestId('search-item-container');
+    }
+
+    /**
+     * Locates a search result item containing the given text.
+     * @param text
+     */
+    getSearchResultItem(text: string) {
+        return this.page.getByTestId('search-item-container').filter({hasText: text});
     }
 
     async toBeVisible() {
@@ -203,6 +225,17 @@ export default class ChannelsPage {
     }
 
     /**
+     * Archives the current channel via the channel header menu and confirms the
+     * archive dialog. Waits for the archived-channel footer to appear.
+     */
+    async archiveChannel() {
+        await this.centerView.header.openChannelMenu();
+        await this.page.getByRole('menuitem', {name: 'Archive Channel'}).click();
+        await this.page.getByRole('button', {name: 'Archive', exact: true}).click();
+        await expect(this.archivedChannelMessage).toBeVisible();
+    }
+
+    /**
      * Opens the search UI, runs a search for the given term, and waits for the
      * results panel to appear.
      */
@@ -232,6 +265,19 @@ export default class ChannelsPage {
         await this.channelSettingsModal.toBeVisible();
 
         return this.channelSettingsModal;
+    }
+
+    async openChannelNotificationPreferences(): Promise<ChannelNotificationPreferencesModal> {
+        await this.centerView.header.openChannelMenu();
+        await this.page.getByRole('menuitem', {name: 'Notification Preferences'}).click();
+        await this.channelNotificationPreferencesModal.toBeVisible();
+
+        return this.channelNotificationPreferencesModal;
+    }
+
+    async closeGroupMessage() {
+        await this.centerView.header.openChannelMenu();
+        await this.page.getByRole('menuitem', {name: 'Close Group Message'}).click();
     }
 
     async openSettings(): Promise<SettingsModal> {

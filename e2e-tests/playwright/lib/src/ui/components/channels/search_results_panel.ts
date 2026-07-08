@@ -41,8 +41,24 @@ export default class SearchResultsPanel {
         return this.getResultItems().filter({hasText: text});
     }
 
+    /**
+     * All highlighted search terms currently rendered in the panel.
+     */
+    getHighlightedTerms() {
+        return this.container.getByTestId('search-highlight');
+    }
+
     async toContainText(text: string) {
         await expect(this.container).toContainText(text);
+    }
+
+    /**
+     * Clicks the reply (comment) arrow on the result item that contains the given text.
+     */
+    async replyToResultWithText(text: string) {
+        const item = this.getResultByText(text).first();
+        await item.hover();
+        await item.getByRole('button', {name: 'reply'}).click();
     }
 
     /**
@@ -50,14 +66,5 @@ export default class SearchResultsPanel {
      */
     async jumpToResultWithText(text: string) {
         await this.getResultByText(text).first().getByRole('link', {name: 'Jump'}).click();
-    }
-
-    /**
-     * Hovers the result item that contains the given text and opens its "more" (dot) menu.
-     */
-    async openResultDotMenu(text: string) {
-        const item = this.getResultByText(text).first();
-        await item.hover();
-        await item.getByRole('button', {name: 'more'}).click();
     }
 }
