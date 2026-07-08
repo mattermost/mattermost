@@ -27,6 +27,9 @@ runs:
           webapp/platform/shared/node_modules
           webapp/platform/types/node_modules
         key: node-modules-${{ runner.os }}-${{ hashFiles('webapp/package-lock.json') }}
+        # fall back to most recent cache for this OS if package-lock.json changed
+        restore-keys: |
+          node-modules-${{ runner.os }}-
     - name: ci/restore-node-modules
       if: inputs.read-only == 'true'
       uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
@@ -40,6 +43,9 @@ runs:
           webapp/platform/shared/node_modules
           webapp/platform/types/node_modules
         key: node-modules-${{ runner.os }}-${{ hashFiles('webapp/package-lock.json') }}
+        # fall back to most recent cache for this OS if package-lock.json changed
+        restore-keys: |
+          node-modules-${{ runner.os }}-
     - name: ci/resolve-cache-hit
       id: cache-hit
       shell: bash
