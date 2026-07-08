@@ -126,7 +126,6 @@ jobs:
         shell: bash
     outputs:
       workers: "${{ steps.generate.outputs.workers }}"
-      node-cache-dependency-path: "${{ steps.generate.outputs.node-cache-dependency-path }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -138,11 +137,9 @@ jobs:
         id: generate
         env:
           WORKERS: ${{ inputs.workers_number }}
-          TEST: ${{ inputs.TEST }}
         run: |
           [ "$WORKERS" -gt "0" ] # Assert that the workers number is an integer greater than 0
           echo "workers="$(jq --slurp --compact-output '[range('"$WORKERS"')] | map(tostring)' /dev/null) >> $GITHUB_OUTPUT
-          echo "node-cache-dependency-path=e2e-tests/${TEST}/package-lock.json" >> $GITHUB_OUTPUT
 
   generate-test-cycle:
     permissions:
