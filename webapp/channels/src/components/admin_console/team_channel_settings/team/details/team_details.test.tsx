@@ -502,6 +502,8 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         });
 
         await userEvent.click(screen.getByLabelText('Remove policy'));
+
+        await userEvent.click(document.getElementById('confirmModalButton')!);
         await userEvent.click(screen.getByTestId('policy-enforce-toggle-button'));
         await userEvent.click(screen.getByText('Save'));
 
@@ -538,6 +540,10 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         });
 
         await userEvent.click(screen.getByLabelText('Remove policy'));
+
+        // Confirm the disconnect dialog. The trash icon shares the "Remove policy"
+        // accessible name, so target the ConfirmModal button by id.
+        await userEvent.click(document.getElementById('confirmModalButton')!);
         await userEvent.click(screen.getByTestId('policy-enforce-toggle-button'));
         await userEvent.click(screen.getByText('Save'));
 
@@ -575,6 +581,10 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         });
 
         await userEvent.click(screen.getByLabelText('Remove policy'));
+
+        // Confirm the disconnect dialog. The trash icon shares the "Remove policy"
+        // accessible name, so target the ConfirmModal button by id.
+        await userEvent.click(document.getElementById('confirmModalButton')!);
         await userEvent.click(screen.getByTestId('policy-enforce-toggle-button'));
         await userEvent.click(screen.getByText('Save'));
 

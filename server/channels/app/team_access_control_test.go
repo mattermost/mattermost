@@ -652,11 +652,11 @@ func TestReconcilePolicyTeamScope(t *testing.T) {
 // is tested in isolation elsewhere; these tests confirm the integration.
 func TestCreateOrUpdateAccessControlPolicy_TeamSelfInclusion(t *testing.T) {
 	t.Run("team admin excluded by own expression is rejected before save", func(t *testing.T) {
-		th := Setup(t).InitBasic(t)
-		th.App.UpdateConfig(func(cfg *model.Config) {
+		// AttributeValueMasking defaults to true
+		th := SetupConfig(t, func(cfg *model.Config) {
 			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
 			cfg.FeatureFlags.AttributeValueMasking = false // keep the masking path out of scope
-		})
+		}).InitBasic(t)
 
 		callerID := th.BasicUser.Id
 		rctx := th.Context.WithSession(&model.Session{
@@ -700,11 +700,10 @@ func TestCreateOrUpdateAccessControlPolicy_TeamSelfInclusion(t *testing.T) {
 	})
 
 	t.Run("team admin included by own expression passes the guard and saves", func(t *testing.T) {
-		th := Setup(t).InitBasic(t)
-		th.App.UpdateConfig(func(cfg *model.Config) {
+		th := SetupConfig(t, func(cfg *model.Config) {
 			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
 			cfg.FeatureFlags.AttributeValueMasking = false
-		})
+		}).InitBasic(t)
 
 		callerID := th.BasicUser.Id
 		rctx := th.Context.WithSession(&model.Session{
@@ -755,11 +754,10 @@ func TestCreateOrUpdateAccessControlPolicy_TeamSelfInclusion(t *testing.T) {
 	})
 
 	t.Run("system admin bypasses the team self-inclusion guard", func(t *testing.T) {
-		th := Setup(t).InitBasic(t)
-		th.App.UpdateConfig(func(cfg *model.Config) {
+		th := SetupConfig(t, func(cfg *model.Config) {
 			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
 			cfg.FeatureFlags.AttributeValueMasking = false
-		})
+		}).InitBasic(t)
 
 		// System admin session — HasPermissionTo(PermissionManageSystem) returns true.
 		rctx := th.Context.WithSession(&model.Session{
