@@ -37,32 +37,47 @@ make -C docs docs-install
 make -C docs docs-dev
 ```
 
+### Sidebar generation
+
+The `documentation` and `developers` sidebars are generated from the content
+directories (`sidebars/documentation.generated.json` /
+`developers.generated.json`, both gitignored) by `npm run build:sidebars`.
+Docusaurus imports these files directly, so **they must exist before
+`docusaurus start` or `docusaurus build` runs** — on a fresh checkout there's
+no other source for them. This is wired automatically via the `prestart` and
+`prebuild` npm lifecycle hooks, so plain `npm start` / `npm run build` just
+work.
+
+(`sidebars/active-redirects.json`, by contrast, *is* committed — it's
+regenerated and checked in manually via `node scripts/gen-active-redirects.mjs`
+when the legacy redirect map changes, not on every build.)
+
 ### Full production build
 
-The production build includes an OpenAPI prebuild step (`npm run
-build:openapi`, wired to run automatically before `npm run build` via npm's
-`prebuild` lifecycle hook) that invokes `make -C api build`. This requires
-Go and takes ~2 minutes.
+The production build also includes an OpenAPI prebuild step (`npm run
+build:openapi`, wired to run automatically before `npm run build` via the
+same `prebuild` hook) that invokes `make -C api build`. This requires Go and
+takes ~2 minutes.
 
 ```shell
 cd docs/site
 npm ci
-npm run build      # runs build:openapi (via prebuild) then Docusaurus build
+npm run build      # runs build:sidebars + build:openapi (via prebuild), then Docusaurus build
 ```
 
 To skip the OpenAPI rebuild during iterative content work:
 
 ```shell
 cd docs/site
-npm run build -- --no-minify   # still runs build:openapi first
+npm run build -- --no-minify   # still runs build:sidebars + build:openapi first
 ```
 
-If you need to bypass the OpenAPI step entirely (e.g., the api/Makefile
-output already exists and is current), run:
+If you need to bypass the prebuild step entirely (e.g., all generated
+artifacts already exist and are current), run:
 
 ```shell
 cd docs/site
-npm run docusaurus build       # calls docusaurus directly, skips build:openapi
+npm run docusaurus build       # calls docusaurus directly, skips prebuild
 ```
 
 ### Algolia search (local)
@@ -83,13 +98,13 @@ build time.
 
 | Command | Description |
 |---|---|
-| `npm start` | Dev server with hot reload |
-| `npm run build` | Production build to `build/` |
-| `npm run build:openapi` | Regenerate the OpenAPI bundle only (runs automatically before `npm run build` via the `prebuild` hook) |
+| `npm start` | Dev server with hot reload (runs `build:sidebars` first via `prestart`) |
+| `npm run build` | Production build to `build/` (runs `build:sidebars` + `build:openapi` first via `prebuild`) |
+| `npm run build:sidebars` | Regenerate the documentation + developer sidebar JSON |
+| `npm run build:openapi` | Regenerate the OpenAPI bundle only |
 | `npm run serve` | Serve the `build/` output locally |
 | `npm run typecheck` | TypeScript type check |
-| `node scripts/gen-documentation-sidebar.mjs` | Regenerate documentation sidebar JSON |
-| `node scripts/gen-active-redirects.mjs` | Regenerate legacy redirect map |
+| `node scripts/gen-active-redirects.mjs` | Regenerate legacy redirect map (committed to git; run manually when it changes) |
 
 ## Make targets
 
