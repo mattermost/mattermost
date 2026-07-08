@@ -712,8 +712,8 @@ describe('components/apps_form/apps_form_file_upload/AppsFormFileUpload', () => 
             selectFiles(container, [makeFile('file1.png')]);
             expect(onPendingChange).toHaveBeenCalledWith(true);
 
-            // Both files should show uploading
-            let uploadingElements = screen.queryAllByTestId(/file-progress-/);
+            // File should show uploading
+            const uploadingElements = screen.queryAllByTestId(/file-progress-/);
             expect(uploadingElements).toHaveLength(1);
 
             // Complete first upload
