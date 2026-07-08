@@ -102,6 +102,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
             createJob: mockCreateJob,
             getVisualAST: mockGetVisualAST,
             updateAccessControlPoliciesActive: mockUpdateAccessControlPoliciesActive,
+            getTeam: jest.fn().mockResolvedValue({data: null}),
         },
     };
 
@@ -375,6 +376,12 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
 
                 // No channels assigned — only teams gate the deletion.
                 searchChannels: mockSearchChannels.mockResolvedValue({data: {channels: [], total_count: 0}}),
+
+                // child_ids lists channels first, then teams; with no channels the
+                // ids are the two team ids, resolved to names for the warning list.
+                getTeam: jest.fn().
+                    mockResolvedValueOnce({data: {id: 't1', display_name: 'Engineering'}}).
+                    mockResolvedValueOnce({data: {id: 't2', display_name: 'Design'}}),
             },
         };
 
@@ -386,6 +393,14 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
 
         // The has-resources subtitle is shown instead of the deletable subtitle.
         expect(screen.getByText(/Remove all assigned resources/)).toBeInTheDocument();
+
+        // The linked-teams warning lists each team, linking to its System Console page.
+        await waitFor(() => {
+            expect(screen.getByText('This policy is assigned to teams - Deletion not allowed')).toBeInTheDocument();
+        });
+        const engineeringLink = screen.getByRole('link', {name: 'Engineering'});
+        expect(engineeringLink).toHaveAttribute('href', '/admin_console/user_management/teams/t1');
+        expect(screen.getByRole('link', {name: 'Design'})).toHaveAttribute('href', '/admin_console/user_management/teams/t2');
 
         // Clicking Delete is a no-op — the confirmation modal never opens.
         const deleteButtons = screen.getAllByText('Delete');

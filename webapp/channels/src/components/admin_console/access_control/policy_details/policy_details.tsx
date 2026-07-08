@@ -13,6 +13,7 @@ import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/cha
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {JobTypeBase} from '@mattermost/types/jobs';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
+import type {Team} from '@mattermost/types/teams';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -48,7 +49,13 @@ interface PolicyActions {
     unassignChannelsFromAccessControlPolicy: (policyId: string, channelIds: string[]) => Promise<ActionResult>;
     createJob: (job: JobTypeBase & {data: any}) => Promise<ActionResult>;
     updateAccessControlPoliciesActive: (states: AccessControlPolicyActiveUpdate[]) => Promise<ActionResult>;
+    getTeam: (teamId: string) => Promise<ActionResult>;
 }
+
+type AssignedTeam = {
+    id: string;
+    display_name: string;
+};
 
 export interface PolicyDetailsProps {
     policy?: AccessControlPolicy;
@@ -107,6 +114,11 @@ function PolicyDetails({
     // any team is still linked, matching how channels gate deletion.
     const [teamsCount, setTeamsCount] = useState(0);
 
+    // The teams linked to this policy, resolved to id + name so the delete
+    // gate can list them with links to their System Console pages. Assignment
+    // itself lives on the per-team page (MVF), so this is display-only.
+    const [assignedTeams, setAssignedTeams] = useState<AssignedTeam[]>([]);
+
     // Map of saved channelId → channel type. Lets the confirmation modal show
     // the right messaging for mixed / public-only / private-only policies.
     const [savedChannelTypes, setSavedChannelTypes] = useState<Record<string, string>>({});
@@ -153,15 +165,31 @@ function PolicyDetails({
 
         if (policyId) {
             // For existing policies, fetch policy details and channels
-            const policyPromise = actions.fetchPolicy(policyId).then((result) => {
+            const policyPromise = actions.fetchPolicy(policyId).then(async (result) => {
                 setPolicyName(result.data?.name || '');
                 setExpression(getMembershipRule(result.data?.rules)?.expression || '');
                 setExistingRules(result.data?.rules || []);
                 setAutoSyncMembership(result.data?.active || false);
 
-                // team_count is stamped by the GET handler (see PopulateAccessControlPolicyChildCounts).
-                // Teams aren't editable here, so the count is used as-is to gate deletion.
-                setTeamsCount((result.data?.props?.team_count as unknown as number) || 0);
+                // Child counts + ids are stamped by the GET handler (see
+                // PopulateAccessControlPolicyChildCounts): child_ids lists channels
+                // first, then teams, so the team ids are the tail after channel_count.
+                // Teams aren't editable here — the count gates deletion and the ids
+                // let us list the linked teams in the delete warning below.
+                const policyProps = result.data?.props ?? {};
+                const teamCount = (policyProps.team_count as unknown as number) || 0;
+                const channelCount = (policyProps.channel_count as unknown as number) || 0;
+                const childIds = (policyProps.child_ids as unknown as string[]) || [];
+                setTeamsCount(teamCount);
+
+                const teamIds = teamCount > 0 ? childIds.slice(channelCount) : [];
+                if (teamIds.length > 0) {
+                    const teamResults = await Promise.all(teamIds.map((id) => actions.getTeam(id)));
+                    setAssignedTeams(teamResults.
+                        map((r) => r.data).
+                        filter((team): team is Team => Boolean(team)).
+                        map((team) => ({id: team.id, display_name: team.display_name})));
+                }
             });
 
             // Fetch the full assigned-channel list (not just a page) to know
@@ -664,6 +692,35 @@ function PolicyDetails({
                                             defaultMessage: 'Removing this policy could affect access for users you cannot fully account for.',
                                         })}
                                     />
+                                </div>
+                            )}
+                            {teamsCount > 0 && (
+                                <div className='admin-console__warning-notice EditPolicy__delete-linked-teams-warning'>
+                                    <SectionNotice
+                                        type='warning'
+                                        title={
+                                            <FormattedMessage
+                                                id='admin.access_control.policy.edit_policy.delete_policy.linked_teams_warning.title'
+                                                defaultMessage='This policy is assigned to teams - Deletion not allowed'
+                                            />
+                                        }
+                                        text={formatMessage({
+                                            id: 'admin.access_control.policy.edit_policy.delete_policy.linked_teams_warning.text',
+                                            defaultMessage: 'Remove this policy from the following teams before deleting it. Team assignment is managed from each team\'s System Console page.',
+                                        })}
+                                    >
+                                        {assignedTeams.length > 0 && (
+                                            <ul className='EditPolicy__delete-linked-teams-list'>
+                                                {assignedTeams.map((team) => (
+                                                    <li key={team.id}>
+                                                        <BlockableLink to={`/admin_console/user_management/teams/${team.id}`}>
+                                                            {team.display_name}
+                                                        </BlockableLink>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )}
+                                    </SectionNotice>
                                 </div>
                             )}
                             <Card.Header>
