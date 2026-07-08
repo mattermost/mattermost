@@ -27,6 +27,7 @@ export {
     SignupPage,
     ScheduledPostsPage,
     SystemConsolePage,
+    UnsupportedDesktopAppPage,
     DraftsPage,
 } from './ui/pages';
 

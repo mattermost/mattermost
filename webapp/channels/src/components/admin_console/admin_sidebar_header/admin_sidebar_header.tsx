@@ -39,6 +39,7 @@ const SidebarHeader = ({currentUser: me}: Props) => {
         <MenuWrapper
             className='AdminSidebarHeader'
             id='admin-sidebar-header'
+            data-testid='admin-sidebar-header'
         >
             <div>
                 {profilePicture}

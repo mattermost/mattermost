@@ -25,7 +25,7 @@ export default class SystemConsoleSidebar {
 
     constructor(container: Locator) {
         this.container = container;
-        this.header = new SystemConsoleSidebarHeader(container.locator('#admin-sidebar-header'));
+        this.header = new SystemConsoleSidebarHeader(container.getByTestId('admin-sidebar-header'));
         this.searchInput = container.getByPlaceholder('Find settings');
 
         this.about = new AboutCategory(container.getByTestId('about'));

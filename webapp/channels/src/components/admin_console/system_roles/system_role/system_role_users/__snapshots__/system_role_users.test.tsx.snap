@@ -4,6 +4,7 @@ exports[`admin_console/system_role_users should match snapshot 1`] = `
 <div>
   <div
     class="AdminPanel clearfix "
+    data-testid="SystemRoleUsers"
     id="SystemRoleUsers"
   >
     <div
@@ -144,6 +145,7 @@ exports[`admin_console/system_role_users should match snapshot with readOnly tru
 <div>
   <div
     class="AdminPanel clearfix "
+    data-testid="SystemRoleUsers"
     id="SystemRoleUsers"
   >
     <div

@@ -116,6 +116,7 @@ exports[`comoponents/rhs_card/RhsCard should match on post when no plugin defini
                        
                       <div
                         class="user-popover"
+                        data-testid="userPopover"
                       >
                         Someone
                       </div>
@@ -280,6 +281,7 @@ exports[`comoponents/rhs_card/RhsCard should match on post when plugin defining 
                        
                       <div
                         class="user-popover"
+                        data-testid="userPopover"
                       >
                         Someone
                       </div>
@@ -444,6 +446,7 @@ exports[`comoponents/rhs_card/RhsCard should match on post when plugin defining 
                        
                       <div
                         class="user-popover"
+                        data-testid="userPopover"
                       >
                         Someone
                       </div>

@@ -36,6 +36,7 @@ export default function PopoutButton({
             <button
                 type='button'
                 className={classNames('btn btn-icon btn-sm', 'PopoutButton', className)}
+                data-testid='popoutButton'
                 aria-label={intl.formatMessage({id: 'new_window_button.tooltip', defaultMessage: 'Open in new window'})}
                 onClick={onClick}
             >

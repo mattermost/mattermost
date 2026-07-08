@@ -8,6 +8,7 @@ import RecapsPage from './recaps';
 import ResetPasswordPage from './reset_password';
 import SignupPage from './signup';
 import SystemConsolePage from './system_console';
+import UnsupportedDesktopAppPage from './unsupported_desktop_app';
 import ScheduledPostsPage from './scheduled_posts';
 import DraftsPage from './drafts';
 import ThreadsPage from './threads';
@@ -23,6 +24,7 @@ const pages = {
     ScheduledPostsPage,
     ContentReviewPage,
     SystemConsolePage,
+    UnsupportedDesktopAppPage,
     DraftsPage,
     ThreadsPage,
 };
@@ -39,4 +41,5 @@ export {
     SignupPage,
     ScheduledPostsPage,
     SystemConsolePage,
+    UnsupportedDesktopAppPage,
 };

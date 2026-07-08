@@ -30,7 +30,7 @@ test('should open /dialog and post submit confirmation on submit', async ({pw}) 
     // clears the demo plugin config; re-running setupDemoPlugin is fast when the plugin
     // is already active (alreadyActive guard skips reinstall).
     await setupDemoPlugin(adminClient, pw);
-    const dialog = channelsPage.page.getByRole('dialog');
+    const interactiveDialog = channelsPage.interactiveDialog;
     for (let attempt = 0; attempt < 4; attempt++) {
         await sendDemoSlashCommand(channelsPage.page, async () => {
             await channelsPage.centerView.postCreate.input.fill('/dialog');
@@ -38,7 +38,7 @@ test('should open /dialog and post submit confirmation on submit', async ({pw}) 
         });
         try {
             // 5. Confirm dialog opens with title "Test Title"
-            await expect(dialog).toBeVisible({timeout: 45000});
+            await expect(interactiveDialog.container).toBeVisible({timeout: 45000});
             break; // dialog appeared — proceed
         } catch (err) {
             if (attempt === 3) {
@@ -49,39 +49,37 @@ test('should open /dialog and post submit confirmation on submit', async ({pw}) 
             // attempt timed out — retry the slash command
         }
     }
-    await expect(dialog.getByRole('heading', {level: 1})).toContainText('Test Title');
+    await expect(interactiveDialog.container.getByRole('heading', {level: 1})).toContainText('Test Title');
 
     // 6. Fill required fields
     // Display Name already has default "default text" — overwrite
-    await dialog.getByTestId('realnameinput').fill('Test Input');
+    await interactiveDialog.getFieldByTestId('realnameinput').fill('Test Input');
 
     // Email and Password are required
-    await dialog.getByTestId('someemailemail').fill('test@example.com');
-    await dialog.getByTestId('somepasswordpassword').fill('testpassword123');
+    await interactiveDialog.getFieldByTestId('someemailemail').fill('test@example.com');
+    await interactiveDialog.getFieldByTestId('somepasswordpassword').fill('testpassword123');
 
     // Number is required
-    await dialog.getByTestId('somenumbernumber').fill('42');
+    await interactiveDialog.getFieldByTestId('somenumbernumber').fill('42');
 
-    // Option Selector — required, no default (3rd combobox: User Selector, Channel Selector, Option Selector)
-    await dialog.getByRole('combobox').nth(2).click();
-    await channelsPage.page.getByRole('option', {name: 'Option1'}).click();
+    // Option Selector — required, no default
+    await interactiveDialog.getSelectControl('someoptionselector').click();
+    await interactiveDialog.selectOption('Option1');
 
     // Required checkboxes
-    await dialog.getByRole('checkbox', {name: 'Agree to the terms of service'}).check();
-    await dialog.getByRole('checkbox', {name: 'Agree to the annoying terms of service'}).check();
+    await interactiveDialog.container.getByRole('checkbox', {name: 'Agree to the terms of service'}).check();
+    await interactiveDialog.container.getByRole('checkbox', {name: 'Agree to the annoying terms of service'}).check();
 
     // Radio Option Selector — required
-    await dialog.getByRole('radio', {name: 'Option1'}).click();
+    await interactiveDialog.container.getByRole('radio', {name: 'Option1'}).click();
 
     // 7. Submit the dialog
-    await dialog.getByRole('button', {name: 'Submit'}).click();
-    await expect(dialog).not.toBeVisible();
+    await interactiveDialog.container.getByRole('button', {name: 'Submit'}).click();
+    await expect(interactiveDialog.container).not.toBeVisible();
 
     // 8. Verify the submit post appears in the channel
     // Note: "Interative" is a typo in the demo plugin — not a test error
-    await expect(
-        channelsPage.centerView.container.locator('p').filter({hasText: 'submitted an Interative Dialog'}),
-    ).toBeVisible();
+    await expect(channelsPage.centerView.getSystemMessage('submitted an Interative Dialog')).toBeVisible();
 });
 
 test('should post cancellation notification when /dialog is cancelled', async ({pw}) => {
@@ -104,7 +102,7 @@ test('should post cancellation notification when /dialog is cancelled', async ({
     // Re-apply guard: concurrent initSetup() resets PluginSettings.
     await setupDemoPlugin(adminClient, pw);
     await channelsPage.page.waitForTimeout(6000);
-    const dialog = channelsPage.page.getByRole('dialog');
+    const interactiveDialog = channelsPage.interactiveDialog;
     for (let attempt = 0; attempt < 4; attempt++) {
         await sendDemoSlashCommand(channelsPage.page, async () => {
             await channelsPage.centerView.postCreate.input.fill('/dialog');
@@ -112,7 +110,7 @@ test('should post cancellation notification when /dialog is cancelled', async ({
         });
         try {
             // 5. Confirm dialog opens
-            await expect(dialog).toBeVisible({timeout: 45000});
+            await expect(interactiveDialog.container).toBeVisible({timeout: 45000});
             break;
         } catch (err) {
             if (attempt === 3) {
@@ -122,19 +120,17 @@ test('should post cancellation notification when /dialog is cancelled', async ({
             await channelsPage.page.waitForTimeout(2000);
         }
     }
-    await expect(dialog.getByRole('heading', {level: 1})).toContainText('Test Title');
-    await expect(dialog.getByRole('button', {name: 'Cancel'})).toBeVisible();
-    await expect(dialog.getByRole('button', {name: 'Submit'})).toBeVisible();
+    await expect(interactiveDialog.container.getByRole('heading', {level: 1})).toContainText('Test Title');
+    await expect(interactiveDialog.container.getByRole('button', {name: 'Cancel'})).toBeVisible();
+    await expect(interactiveDialog.container.getByRole('button', {name: 'Submit'})).toBeVisible();
 
     // 6. Cancel the dialog
-    await dialog.getByRole('button', {name: 'Cancel'}).click();
-    await expect(dialog).not.toBeVisible();
+    await interactiveDialog.container.getByRole('button', {name: 'Cancel'}).click();
+    await expect(interactiveDialog.container).not.toBeVisible();
 
     // 7. Verify the cancellation post appears in the channel
     // Note: "Interative" is a typo in the demo plugin — not a test error
-    await expect(
-        channelsPage.centerView.container.locator('p').filter({hasText: 'canceled an Interative Dialog'}),
-    ).toBeVisible();
+    await expect(channelsPage.centerView.getSystemMessage('canceled an Interative Dialog')).toBeVisible();
 });
 
 test('should show validation errors when required fields are submitted empty', async ({pw}) => {
@@ -157,7 +153,7 @@ test('should show validation errors when required fields are submitted empty', a
     // Re-apply guard: concurrent initSetup() resets PluginSettings.
     await setupDemoPlugin(adminClient, pw);
     await channelsPage.page.waitForTimeout(6000);
-    const dialog = channelsPage.page.getByRole('dialog');
+    const interactiveDialog = channelsPage.interactiveDialog;
     for (let attempt = 0; attempt < 4; attempt++) {
         await sendDemoSlashCommand(channelsPage.page, async () => {
             await channelsPage.centerView.postCreate.input.fill('/dialog');
@@ -165,7 +161,7 @@ test('should show validation errors when required fields are submitted empty', a
         });
         try {
             // 5. Confirm dialog opens
-            await expect(dialog).toBeVisible({timeout: 45000});
+            await expect(interactiveDialog.container).toBeVisible({timeout: 45000});
             break;
         } catch (err) {
             if (attempt === 3) {
@@ -175,16 +171,18 @@ test('should show validation errors when required fields are submitted empty', a
             await channelsPage.page.waitForTimeout(2000);
         }
     }
-    await expect(dialog.getByRole('heading', {level: 1})).toContainText('Test Title');
+    await expect(interactiveDialog.container.getByRole('heading', {level: 1})).toContainText('Test Title');
 
     // 6. Clear the Number field and submit
-    await dialog.getByTestId('somenumbernumber').clear();
-    await dialog.getByRole('button', {name: 'Submit'}).click();
+    await interactiveDialog.getFieldByTestId('somenumbernumber').clear();
+    await interactiveDialog.container.getByRole('button', {name: 'Submit'}).click();
 
     // 7. Verify dialog stays open with validation errors
-    await expect(dialog).toBeVisible();
-    await expect(dialog.getByText('Please fix all field errors', {exact: true})).toBeVisible();
-    await expect(dialog.getByTestId('somenumber').getByText('This field is required.', {exact: true})).toBeVisible();
+    await expect(interactiveDialog.container).toBeVisible();
+    await expect(interactiveDialog.container.getByText('Please fix all field errors', {exact: true})).toBeVisible();
+    await expect(
+        interactiveDialog.getFieldByTestId('somenumber').getByText('This field is required.', {exact: true}),
+    ).toBeVisible();
 });
 
 test('should show general error and keep dialog open on /dialog error submit', async ({pw}) => {
@@ -207,7 +205,7 @@ test('should show general error and keep dialog open on /dialog error submit', a
     // Re-apply guard: concurrent initSetup() resets PluginSettings.
     await setupDemoPlugin(adminClient, pw);
     await channelsPage.page.waitForTimeout(6000);
-    const dialog = channelsPage.page.getByRole('dialog');
+    const interactiveDialog = channelsPage.interactiveDialog;
     for (let attempt = 0; attempt < 4; attempt++) {
         await sendDemoSlashCommand(channelsPage.page, async () => {
             await channelsPage.centerView.postCreate.input.fill('/dialog error');
@@ -215,7 +213,7 @@ test('should show general error and keep dialog open on /dialog error submit', a
         });
         try {
             // 5. Confirm dialog opens with title "Simple Dialog Test"
-            await expect(dialog).toBeVisible({timeout: 45000});
+            await expect(interactiveDialog.container).toBeVisible({timeout: 45000});
             break;
         } catch (err) {
             if (attempt === 3) {
@@ -225,18 +223,20 @@ test('should show general error and keep dialog open on /dialog error submit', a
             await channelsPage.page.waitForTimeout(2000);
         }
     }
-    await expect(dialog.getByRole('heading', {level: 1})).toContainText('Simple Dialog Test');
-    await expect(dialog.getByRole('button', {name: 'Cancel'})).toBeVisible();
-    await expect(dialog.getByRole('button', {name: 'Submit Test'})).toBeVisible();
+    await expect(interactiveDialog.container.getByRole('heading', {level: 1})).toContainText('Simple Dialog Test');
+    await expect(interactiveDialog.container.getByRole('button', {name: 'Cancel'})).toBeVisible();
+    await expect(interactiveDialog.container.getByRole('button', {name: 'Submit Test'})).toBeVisible();
 
     // 6. Fill the optional field and submit
-    await dialog.getByPlaceholder('Enter some text (optional)...').fill('sample test input');
-    await dialog.getByRole('button', {name: 'Submit Test'}).click();
+    await interactiveDialog.container.getByPlaceholder('Enter some text (optional)...').fill('sample test input');
+    await interactiveDialog.container.getByRole('button', {name: 'Submit Test'}).click();
 
     // 7. Verify general error appears and dialog stays open
-    await expect(dialog.getByText('some error', {exact: true})).toBeVisible();
-    await expect(dialog).toBeVisible();
-    await expect(dialog.getByPlaceholder('Enter some text (optional)...')).toHaveValue('sample test input');
+    await expect(interactiveDialog.container.getByText('some error', {exact: true})).toBeVisible();
+    await expect(interactiveDialog.container).toBeVisible();
+    await expect(interactiveDialog.container.getByPlaceholder('Enter some text (optional)...')).toHaveValue(
+        'sample test input',
+    );
 });
 
 test('should show general error on /dialog error-no-elements confirm', async ({pw}) => {
@@ -259,7 +259,7 @@ test('should show general error on /dialog error-no-elements confirm', async ({p
     // Re-apply guard: concurrent initSetup() resets PluginSettings.
     await setupDemoPlugin(adminClient, pw);
     await channelsPage.page.waitForTimeout(6000);
-    const dialog = channelsPage.page.getByRole('dialog');
+    const interactiveDialog = channelsPage.interactiveDialog;
     for (let attempt = 0; attempt < 4; attempt++) {
         await sendDemoSlashCommand(channelsPage.page, async () => {
             await channelsPage.centerView.postCreate.input.fill('/dialog error-no-elements');
@@ -267,7 +267,7 @@ test('should show general error on /dialog error-no-elements confirm', async ({p
         });
         try {
             // 5. Confirm dialog opens with title "Sample Confirmation Dialog" and no form fields
-            await expect(dialog).toBeVisible({timeout: 45000});
+            await expect(interactiveDialog.container).toBeVisible({timeout: 45000});
             break;
         } catch (err) {
             if (attempt === 3) {
@@ -277,17 +277,19 @@ test('should show general error on /dialog error-no-elements confirm', async ({p
             await channelsPage.page.waitForTimeout(2000);
         }
     }
-    await expect(dialog.getByRole('heading', {level: 1})).toContainText('Sample Confirmation Dialog');
-    await expect(dialog.getByRole('button', {name: 'Cancel'})).toBeVisible();
-    await expect(dialog.getByRole('button', {name: 'Confirm'})).toBeVisible();
-    await expect(dialog.getByRole('textbox')).not.toBeVisible();
+    await expect(interactiveDialog.container.getByRole('heading', {level: 1})).toContainText(
+        'Sample Confirmation Dialog',
+    );
+    await expect(interactiveDialog.container.getByRole('button', {name: 'Cancel'})).toBeVisible();
+    await expect(interactiveDialog.container.getByRole('button', {name: 'Confirm'})).toBeVisible();
+    await expect(interactiveDialog.container.getByRole('textbox')).not.toBeVisible();
 
     // 6. Click Confirm
-    await dialog.getByRole('button', {name: 'Confirm'}).click();
+    await interactiveDialog.container.getByRole('button', {name: 'Confirm'}).click();
 
     // 7. Verify general error appears and dialog stays open
-    await expect(dialog.getByText('some error', {exact: true})).toBeVisible();
-    await expect(dialog).toBeVisible();
-    await expect(dialog.getByRole('button', {name: 'Cancel'})).toBeVisible();
-    await expect(dialog.getByRole('button', {name: 'Confirm'})).toBeVisible();
+    await expect(interactiveDialog.container.getByText('some error', {exact: true})).toBeVisible();
+    await expect(interactiveDialog.container).toBeVisible();
+    await expect(interactiveDialog.container.getByRole('button', {name: 'Cancel'})).toBeVisible();
+    await expect(interactiveDialog.container.getByRole('button', {name: 'Confirm'})).toBeVisible();
 });

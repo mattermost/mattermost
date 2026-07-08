@@ -329,6 +329,7 @@ export default class SystemRolePermissions extends React.PureComponent<Props, St
         return (
             <AdminPanel
                 id='SystemRolePermissions'
+                dataTestId='SystemRolePermissions'
                 title={defineMessage({id: 'admin.permissions.system_role_permissions.title', defaultMessage: 'Privileges'})}
                 subtitle={defineMessage({id: 'admin.permissions.system_role_permissions.description', defaultMessage: 'Level of access to the system console.'})}
             >

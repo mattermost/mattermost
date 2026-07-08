@@ -24,12 +24,12 @@ test('should open /dialog date and post submit confirmation after selecting date
     await channelsPage.toBeVisible();
 
     // 4. Send /dialog date command (retry if the dialog doesn't appear — plugin races are common under PW_WORKERS=8).
-    const dialog = channelsPage.page.getByRole('dialog');
+    const interactiveDialog = channelsPage.interactiveDialog;
     for (let attempt = 0; attempt < 3; attempt++) {
         await channelsPage.centerView.postCreate.input.fill('/dialog date');
         await channelsPage.centerView.postCreate.sendMessage();
         try {
-            await expect(dialog).toBeVisible({timeout: 45000});
+            await expect(interactiveDialog.container).toBeVisible({timeout: 45000});
             break;
         } catch (err) {
             if (attempt === 2) {
@@ -49,19 +49,20 @@ test('should open /dialog date and post submit confirmation after selecting date
             await new Promise((resolve) => setTimeout(resolve, 6000));
         }
     }
-    await expect(dialog.getByRole('heading', {level: 1})).toContainText('Date & DateTime Test Dialog');
+    await expect(interactiveDialog.container.getByRole('heading', {level: 1})).toContainText(
+        'Date & DateTime Test Dialog',
+    );
 
     // 6. Verify field labels and Event Title default value
-    await expect(dialog.getByText('Meeting Date *', {exact: true})).toBeVisible();
-    await expect(dialog.getByText('Meeting Date & Time *', {exact: true})).toBeVisible();
-    await expect(dialog.getByText('Event Title *', {exact: true})).toBeVisible();
-    await expect(dialog.getByRole('textbox', {name: 'Event Title *'})).toHaveValue('Team Meeting');
+    await expect(interactiveDialog.container.getByText('Meeting Date *', {exact: true})).toBeVisible();
+    await expect(interactiveDialog.container.getByText('Meeting Date & Time *', {exact: true})).toBeVisible();
+    await expect(interactiveDialog.container.getByText('Event Title *', {exact: true})).toBeVisible();
+    await expect(interactiveDialog.container.getByRole('textbox', {name: 'Event Title *'})).toHaveValue('Team Meeting');
 
     // 7. Select a date using the Meeting Date picker
-    await dialog.getByRole('button', {name: /Select a meeting date/i}).click();
-    await expect(channelsPage.page.getByRole('grid')).toBeVisible();
+    await interactiveDialog.container.getByRole('button', {name: /Select a meeting date/i}).click();
     // Click day 20 — reliably available in any month
-    await channelsPage.page.getByRole('grid').getByText('20', {exact: true}).click();
+    await interactiveDialog.selectDate('20');
 
     // 8. Select date and time using the Meeting Date & Time picker.
     // The datetime field renders via DateTimeInput which wraps its date part in
@@ -70,24 +71,21 @@ test('should open /dialog date and post submit confirmation after selecting date
     // Scoping by that wrapper is more reliable than accessible-name matching on the
     // role="button" div, whose name includes a CSS icon-font glyph that browsers
     // include in accname but which is invisible to textContent inspection.
-    await dialog.locator('.dateTime__date').getByRole('button').click();
-    await expect(channelsPage.page.getByRole('grid')).toBeVisible();
-    await channelsPage.page.getByRole('grid').getByText('22', {exact: true}).click();
+    await interactiveDialog.datePickerButton.click();
+    await interactiveDialog.selectDate('22');
 
     // Select a time from the time picker.  The time button carries aria-label="Time"
     // (set explicitly in DateTimeInput), so the name-based locator is reliable here.
-    await dialog
+    await interactiveDialog.container
         .getByRole('button', {name: /Time|Select a time/i})
         .first()
         .click();
-    await channelsPage.page.getByRole('menuitem', {name: '3:00 PM'}).click();
+    await interactiveDialog.selectTime('3:00 PM');
 
     // 9. Submit — button is labelled "Create Event"
-    await dialog.getByRole('button', {name: 'Create Event'}).click();
-    await expect(dialog).not.toBeVisible();
+    await interactiveDialog.container.getByRole('button', {name: 'Create Event'}).click();
+    await expect(interactiveDialog.container).not.toBeVisible();
 
     // 10. Verify submit post appears in the channel
-    await expect(
-        channelsPage.centerView.container.locator('p').filter({hasText: 'submitted a Date Dialog'}),
-    ).toBeVisible();
+    await expect(channelsPage.centerView.getSystemMessage('submitted a Date Dialog')).toBeVisible();
 });

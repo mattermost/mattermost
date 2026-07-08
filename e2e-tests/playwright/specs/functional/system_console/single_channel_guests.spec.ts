@@ -83,7 +83,7 @@ test.describe('Single-channel guests', () => {
             );
 
             // * Verify the single-channel guests card is visible
-            await expect(systemConsolePage.page.getByTestId('singleChannelGuests')).toBeVisible({timeout: 30000});
+            await expect(systemConsolePage.siteStatistics.singleChannelGuests).toBeVisible({timeout: 30000});
 
             // * Verify the count is at least 1.
             // Analytics are indexed asynchronously on the server — poll with reload until
@@ -97,11 +97,7 @@ test.describe('Single-channel guests', () => {
                         await patchGuestEnabled(adminClient, true);
                         await systemConsolePage.page.reload();
                         await systemConsolePage.page.waitForLoadState('networkidle');
-                        const text = await systemConsolePage.page
-                            .getByTestId('singleChannelGuests')
-                            .textContent()
-                            .catch(() => '');
-                        return Number(text?.match(/(\d+)/)?.[1] ?? 0);
+                        return systemConsolePage.siteStatistics.getSingleChannelGuestCount();
                     },
                     {timeout: 180000, intervals: [3000, 5000, 8000, 12000]},
                 )
@@ -147,7 +143,7 @@ test.describe('Single-channel guests', () => {
             await navigateWithGuestPatch(systemConsolePage.page, adminClient, '/admin_console/about/license', true);
 
             // * Verify the single-channel guests row is visible
-            await expect(systemConsolePage.page.getByText('SINGLE-CHANNEL GUESTS:')).toBeVisible();
+            await expect(systemConsolePage.editionAndLicense.singleChannelGuestsLabel).toBeVisible();
         },
     );
 
@@ -181,7 +177,7 @@ test.describe('Single-channel guests', () => {
             );
 
             // * Verify the single-channel guests card is not in the DOM
-            await expect(systemConsolePage.page.getByTestId('singleChannelGuests')).not.toBeVisible();
+            await expect(systemConsolePage.siteStatistics.singleChannelGuests).not.toBeVisible();
         },
     );
 
@@ -261,9 +257,8 @@ test.describe('Single-channel guests', () => {
             );
 
             // * Verify the card title does NOT have error class (count is within limit)
-            const cardTitle = systemConsolePage.page.getByTestId('singleChannelGuestsTitle');
-            await expect(cardTitle).toBeVisible({timeout: 15000});
-            await expect(cardTitle).not.toHaveClass(/team_statistics--error/);
+            await expect(systemConsolePage.siteStatistics.singleChannelGuestsTitle).toBeVisible({timeout: 15000});
+            await systemConsolePage.siteStatistics.singleChannelGuestsTitleHasNoErrorStatus();
         },
     );
 
@@ -293,7 +288,7 @@ test.describe('Single-channel guests', () => {
         await systemConsolePage.page.waitForLoadState('networkidle');
 
         // * Verify the guest limit banner is not visible (count is within limit)
-        await expect(systemConsolePage.page.getByTestId('single_channel_guest_limit_banner')).not.toBeVisible();
+        await expect(systemConsolePage.siteStatistics.guestLimitBanner).not.toBeVisible();
     });
 
     /**
@@ -366,12 +361,11 @@ test.describe('Single-channel guests', () => {
             );
 
             // * Verify the card title has error styling
-            const cardTitle = systemConsolePage.page.getByTestId('singleChannelGuestsTitle');
-            await expect(cardTitle).toBeVisible({timeout: 15000});
-            await expect(cardTitle).toHaveClass(/team_statistics--error/);
+            await expect(systemConsolePage.siteStatistics.singleChannelGuestsTitle).toBeVisible({timeout: 15000});
+            await systemConsolePage.siteStatistics.singleChannelGuestsTitleHasErrorStatus();
 
             // * Verify the dismissible guest limit banner is visible
-            await expect(systemConsolePage.page.getByTestId('single_channel_guest_limit_banner')).toBeVisible();
+            await expect(systemConsolePage.siteStatistics.guestLimitBanner).toBeVisible();
         },
     );
 
@@ -431,11 +425,11 @@ test.describe('Single-channel guests', () => {
             );
 
             // * Verify the single-channel guests card is visible
-            const singleChannelGuestsCard = systemConsolePage.page.getByTestId('singleChannelGuests');
-            await expect(singleChannelGuestsCard).toBeVisible({timeout: 15000});
+            const {singleChannelGuests} = systemConsolePage.siteStatistics;
+            await expect(singleChannelGuests).toBeVisible({timeout: 15000});
 
             // * Verify the count text is present — multi-channel guest should not increment it
-            const countText = await singleChannelGuestsCard.textContent();
+            const countText = await singleChannelGuests.textContent();
             const match = countText?.match(/(\d+)/);
             expect(match).toBeTruthy();
 
@@ -452,7 +446,7 @@ test.describe('Single-channel guests', () => {
             await systemConsolePage.page.waitForLoadState('networkidle');
 
             // * Verify the count increased by exactly 1 for the new single-channel guest
-            const updatedCountText = await singleChannelGuestsCard.textContent();
+            const updatedCountText = await singleChannelGuests.textContent();
             const updatedMatch = updatedCountText?.match(/(\d+)/);
             expect(updatedMatch).toBeTruthy();
             expect(Number(updatedMatch![1])).toBe(singleChannelGuestCount + 1);

@@ -59,17 +59,17 @@ test.describe('Mobile view RHS auto-focus', () => {
         const {user} = await pw.initSetup();
 
         // # Log in as the test user
-        const {channelsPage, page} = await pw.testBrowser.login(user);
+        const {channelsPage} = await pw.testBrowser.login(user);
 
         // # Visit a default channel page
         await channelsPage.goto();
         await channelsPage.toBeVisible();
 
         // # Click the mobile channel header search button to open the search RHS
-        await page.locator('#navbar').getByRole('button', {name: 'Search', exact: true}).click();
+        await channelsPage.globalHeader.mobileSearchButton.click();
         await channelsPage.sidebarRight.toBeVisible();
 
         // * Verify the mobile RHS search input is focused
-        await expect(page.locator('#sbrSearchBox')).toBeFocused();
+        await expect(channelsPage.sidebarRight.threadSearchInput).toBeFocused();
     });
 });

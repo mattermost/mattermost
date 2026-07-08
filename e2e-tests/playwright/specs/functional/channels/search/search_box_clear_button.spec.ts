@@ -39,6 +39,5 @@ test('MM-64155 search box clear button should not leave type badge after closing
 
     // * Verify there is no search type badge/chip in the search bar
     // The search type badge is rendered when searchType is either 'messages' or 'files'
-    const searchTypeBadge = channelsPage.page.getByTestId('searchTypeBadge');
-    await expect(searchTypeBadge).not.toBeVisible();
+    await expect(channelsPage.searchBox.searchTypeBadge).not.toBeVisible();
 });

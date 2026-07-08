@@ -62,6 +62,7 @@ export default function UserProfile({
         return (
             <div
                 className='user-popover'
+                data-testid='userPopover'
                 style={userStyle}
             >
                 {name}
@@ -83,6 +84,7 @@ export default function UserProfile({
             <ProfilePopover<HTMLButtonElement>
                 triggerComponentAs='button'
                 triggerComponentClass='user-popover style--none'
+                triggerComponentDataTestId='userPopover'
                 triggerComponentStyle={userStyle}
                 userId={userId}
                 src={profileImg}

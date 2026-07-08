@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Locator} from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 import {expect} from '@playwright/test';
+
+import AddUsersToRoleModal from './add_users_to_role_modal';
 
 /**
  * System Console -> User Management -> Delegated Granular Administration -> [Role] Edit
@@ -10,6 +12,7 @@ import {expect} from '@playwright/test';
  */
 export default class SystemRoles {
     readonly container: Locator;
+    readonly page: Page;
 
     // Header
     readonly backLink: Locator;
@@ -21,19 +24,25 @@ export default class SystemRoles {
     // Assigned People Panel
     readonly assignedPeoplePanel: AssignedPeoplePanel;
 
+    // Modals
+    readonly addUsersToRoleModal: AddUsersToRoleModal;
+
     // Save section
     readonly saveButton: Locator;
     readonly cancelButton: Locator;
     readonly errorMessage: Locator;
 
-    constructor(container: Locator) {
+    constructor(container: Locator, page: Page) {
         this.container = container;
+        this.page = page;
 
         this.backLink = container.getByTestId('adminHeader-backLink');
         this.roleName = container.getByTestId('adminHeader-roleName');
 
-        this.privilegesPanel = new PrivilegesPanel(container.locator('#SystemRolePermissions'));
-        this.assignedPeoplePanel = new AssignedPeoplePanel(container.locator('#SystemRoleUsers'));
+        this.privilegesPanel = new PrivilegesPanel(container.getByTestId('SystemRolePermissions'));
+        this.assignedPeoplePanel = new AssignedPeoplePanel(container.getByTestId('SystemRoleUsers'));
+
+        this.addUsersToRoleModal = new AddUsersToRoleModal(page.getByTestId('addUsersToRoleModal'));
 
         this.saveButton = container.getByTestId('saveSetting');
         this.cancelButton = container.getByRole('link', {name: 'Cancel'});

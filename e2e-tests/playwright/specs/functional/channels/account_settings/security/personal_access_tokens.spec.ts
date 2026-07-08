@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Locator, Page} from '@playwright/test';
-
 import {expect, test} from '@mattermost/playwright-lib';
 
 /**
@@ -29,20 +27,6 @@ function isoPlusDays(n: number): string {
     return `${d.getFullYear()}-${month}-${day}`;
 }
 
-// Open Account Settings > Security and expand the Personal Access Tokens section.
-async function openTokensSection(page: Page): Promise<Locator> {
-    await page.locator('#userAccountMenuButton').click();
-    await page.getByRole('menuitem', {name: 'Profile'}).click();
-
-    const profileModal = page.getByRole('dialog', {name: 'Profile'});
-    await expect(profileModal).toBeVisible();
-
-    await profileModal.getByRole('tab', {name: 'Security'}).click();
-    await profileModal.locator('#tokensEdit').click();
-
-    return profileModal;
-}
-
 test.describe('Personal Access Tokens expiry @personal_access_tokens', () => {
     test('shows the expiry picker with all presets and reveals the custom date input', async ({pw}) => {
         test.setTimeout(120000);
@@ -59,23 +43,22 @@ test.describe('Personal Access Tokens expiry @personal_access_tokens', () => {
         await channelsPage.toBeVisible();
 
         // # Open the Personal Access Tokens section and start creating a token
-        const modal = await openTokensSection(channelsPage.page);
-        await modal.getByRole('button', {name: 'Create Token'}).click();
+        const patSection = await channelsPage.openPersonalAccessTokensSection();
+        await channelsPage.profileModal.container.getByRole('button', {name: 'Create Token'}).click();
 
         // * The expiry select offers "No expiry", every preset, and a custom option
-        const expirySelect = modal.locator('#newTokenExpiry');
-        await expect(expirySelect).toBeVisible();
-        await expect(expirySelect.locator('option', {hasText: 'No expiry'})).toHaveCount(1);
-        await expect(expirySelect.locator('option', {hasText: '7 days'})).toHaveCount(1);
-        await expect(expirySelect.locator('option', {hasText: '30 days'})).toHaveCount(1);
-        await expect(expirySelect.locator('option', {hasText: '90 days'})).toHaveCount(1);
-        await expect(expirySelect.locator('option', {hasText: '1 year'})).toHaveCount(1);
-        await expect(expirySelect.locator('option', {hasText: /Custom date/})).toHaveCount(1);
+        await expect(patSection.expirySelect).toBeVisible();
+        await expect(patSection.getExpiryOption('No expiry')).toHaveCount(1);
+        await expect(patSection.getExpiryOption('7 days')).toHaveCount(1);
+        await expect(patSection.getExpiryOption('30 days')).toHaveCount(1);
+        await expect(patSection.getExpiryOption('90 days')).toHaveCount(1);
+        await expect(patSection.getExpiryOption('1 year')).toHaveCount(1);
+        await expect(patSection.getExpiryOption(/Custom date/)).toHaveCount(1);
 
         // * The custom date input is hidden until the custom option is chosen
-        await expect(modal.locator('#newTokenExpiryCustom')).toBeHidden();
-        await expirySelect.selectOption('custom');
-        await expect(modal.locator('#newTokenExpiryCustom')).toBeVisible();
+        await expect(patSection.customExpiryInput).toBeHidden();
+        await patSection.expirySelect.selectOption('custom');
+        await expect(patSection.customExpiryInput).toBeVisible();
     });
 
     test('blocks submitting a custom expiry with no date chosen', async ({pw}) => {
@@ -92,18 +75,18 @@ test.describe('Personal Access Tokens expiry @personal_access_tokens', () => {
         await channelsPage.goto();
         await channelsPage.toBeVisible();
 
-        const modal = await openTokensSection(channelsPage.page);
-        await modal.getByRole('button', {name: 'Create Token'}).click();
+        const patSection = await channelsPage.openPersonalAccessTokensSection();
+        await channelsPage.profileModal.container.getByRole('button', {name: 'Create Token'}).click();
 
         // # Provide a description, pick the custom preset, then clear the date
-        await modal.locator('#newTokenDescription').fill('My token');
-        await modal.locator('#newTokenExpiry').selectOption('custom');
-        await modal.locator('#newTokenExpiryCustom').fill('');
+        await patSection.descriptionInput.fill('My token');
+        await patSection.expirySelect.selectOption('custom');
+        await patSection.customExpiryInput.fill('');
 
         // * The inline validation error surfaces and Save is disabled, so no token can be created
-        await expect(modal.getByText('An expiry date is required.')).toBeVisible();
-        await expect(modal.getByRole('button', {name: 'Save'})).toBeDisabled();
-        await expect(modal.getByText('Access Token:')).toBeHidden();
+        await expect(channelsPage.profileModal.container.getByText('An expiry date is required.')).toBeVisible();
+        await expect(channelsPage.profileModal.saveButton).toBeDisabled();
+        await expect(channelsPage.profileModal.container.getByText('Access Token:')).toBeHidden();
     });
 
     test('enforces expiry when a maximum lifetime is configured', async ({pw}) => {
@@ -125,28 +108,31 @@ test.describe('Personal Access Tokens expiry @personal_access_tokens', () => {
         await channelsPage.goto();
         await channelsPage.toBeVisible();
 
-        const modal = await openTokensSection(channelsPage.page);
-        await modal.getByRole('button', {name: 'Create Token'}).click();
+        const patSection = await channelsPage.openPersonalAccessTokensSection();
+        await channelsPage.profileModal.container.getByRole('button', {name: 'Create Token'}).click();
 
         // * "No expiry" and presets longer than the maximum are hidden; the enforced hint shows
-        const expirySelect = modal.locator('#newTokenExpiry');
-        await expect(expirySelect.locator('option', {hasText: 'No expiry'})).toHaveCount(0);
-        await expect(expirySelect.locator('option', {hasText: '90 days'})).toHaveCount(0);
-        await expect(expirySelect.locator('option', {hasText: '1 year'})).toHaveCount(0);
-        await expect(expirySelect.locator('option', {hasText: '7 days'})).toHaveCount(1);
-        await expect(expirySelect.locator('option', {hasText: '30 days'})).toHaveCount(1);
+        await expect(patSection.getExpiryOption('No expiry')).toHaveCount(0);
+        await expect(patSection.getExpiryOption('90 days')).toHaveCount(0);
+        await expect(patSection.getExpiryOption('1 year')).toHaveCount(0);
+        await expect(patSection.getExpiryOption('7 days')).toHaveCount(1);
+        await expect(patSection.getExpiryOption('30 days')).toHaveCount(1);
         await expect(
-            modal.getByText('Your administrator requires all personal access tokens to have an expiry date.'),
+            channelsPage.profileModal.container.getByText(
+                'Your administrator requires all personal access tokens to have an expiry date.',
+            ),
         ).toBeVisible();
 
         // # Choose a custom date beyond the configured maximum
-        await modal.locator('#newTokenDescription').fill('My token');
-        await expirySelect.selectOption('custom');
-        await modal.locator('#newTokenExpiryCustom').fill(isoPlusDays(60));
+        await patSection.descriptionInput.fill('My token');
+        await patSection.expirySelect.selectOption('custom');
+        await patSection.customExpiryInput.fill(isoPlusDays(60));
 
         // * The over-the-limit error surfaces inline and Save is disabled
-        await expect(modal.getByText('Expiry can be at most 30 days from now.')).toBeVisible();
-        await expect(modal.getByRole('button', {name: 'Save'})).toBeDisabled();
+        await expect(
+            channelsPage.profileModal.container.getByText('Expiry can be at most 30 days from now.'),
+        ).toBeVisible();
+        await expect(channelsPage.profileModal.saveButton).toBeDisabled();
     });
 
     test('creates a token with the default preset under a maximum lifetime', async ({pw}) => {
@@ -168,16 +154,18 @@ test.describe('Personal Access Tokens expiry @personal_access_tokens', () => {
         await channelsPage.goto();
         await channelsPage.toBeVisible();
 
-        const modal = await openTokensSection(channelsPage.page);
-        await modal.getByRole('button', {name: 'Create Token'}).click();
+        const patSection = await channelsPage.openPersonalAccessTokensSection();
+        await channelsPage.profileModal.container.getByRole('button', {name: 'Create Token'}).click();
 
         // # Accept the default preset (which equals the cap) and save
-        await modal.locator('#newTokenDescription').fill('My token');
-        await modal.getByRole('button', {name: 'Save'}).click();
+        await patSection.descriptionInput.fill('My token');
+        await channelsPage.profileModal.saveButton.click();
 
         // * The token is created (the server accepts the clamped expiry) and revealed
-        await expect(modal.getByText('Access Token:')).toBeVisible();
-        await expect(modal.getByText('Expiry can be at most 30 days from now.')).toBeHidden();
+        await expect(channelsPage.profileModal.container.getByText('Access Token:')).toBeVisible();
+        await expect(
+            channelsPage.profileModal.container.getByText('Expiry can be at most 30 days from now.'),
+        ).toBeHidden();
     });
 
     test('shows status and expiry for existing tokens', async ({pw}) => {
@@ -200,20 +188,20 @@ test.describe('Personal Access Tokens expiry @personal_access_tokens', () => {
         await channelsPage.goto();
         await channelsPage.toBeVisible();
 
-        const modal = await openTokensSection(channelsPage.page);
+        const patSection = await channelsPage.openPersonalAccessTokensSection();
 
         // * The never-expiring token is Active and shows "Never"
-        const neverRow = modal.locator('.setting-box__item', {hasText: 'never expires token'});
+        const neverRow = patSection.getTokenRow('never expires token');
         await expect(neverRow.getByText('Active')).toBeVisible();
         await expect(neverRow.getByText(/Never/)).toBeVisible();
 
         // * The soon-expiring token is Active and shows an "expires in N days" warning
-        const soonRow = modal.locator('.setting-box__item', {hasText: 'expiring soon token'});
+        const soonRow = patSection.getTokenRow('expiring soon token');
         await expect(soonRow.getByText('Active')).toBeVisible();
         await expect(soonRow.getByText(/Expires in \d+ days?/)).toBeVisible();
 
         // * The disabled token shows the Disabled badge
-        const disabledRow = modal.locator('.setting-box__item', {hasText: 'disabled token'});
+        const disabledRow = patSection.getTokenRow('disabled token');
         await expect(disabledRow.getByText('Disabled')).toBeVisible();
     });
 });

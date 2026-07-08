@@ -10,6 +10,7 @@ exports[`components/sidebar/sidebar_category should match snapshot 1`] = `
       class="SidebarChannelGroup a11y__section"
       data-rbd-draggable-context-id="0"
       data-rbd-draggable-id="category1"
+      data-testid="sidebarCategoryGroup"
     >
       <div
         class=""
@@ -69,6 +70,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when collapse
       class="SidebarChannelGroup a11y__section isCollapsed"
       data-rbd-draggable-context-id="2"
       data-rbd-draggable-id="category1"
+      data-testid="sidebarCategoryGroup"
     >
       <div
         class=""
@@ -128,6 +130,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when isNewCat
       class="SidebarChannelGroup a11y__section"
       data-rbd-draggable-context-id="1"
       data-rbd-draggable-id="category1"
+      data-testid="sidebarCategoryGroup"
     >
       <div
         class=""
@@ -212,6 +215,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when sorting 
       class="SidebarChannelGroup a11y__section"
       data-rbd-draggable-context-id="5"
       data-rbd-draggable-id="category1"
+      data-testid="sidebarCategoryGroup"
     >
       <div
         class=""
@@ -283,6 +287,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when the cate
       class="SidebarChannelGroup a11y__section"
       data-rbd-draggable-context-id="3"
       data-rbd-draggable-id="category1"
+      data-testid="sidebarCategoryGroup"
     >
       <div
         class=""

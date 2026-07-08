@@ -102,15 +102,14 @@ test.describe('Managed Channel Categories', () => {
             await channelSettingsModal.openInfoTab();
 
             // * Verify managed category selector is visible
-            const managedSelector = channelSettingsModal.container.locator('.ManagedCategory__control');
-            await expect(managedSelector).toBeVisible();
+            const managedCategorySelector = channelSettingsModal.managedCategorySelector;
+            await expect(managedCategorySelector.control).toBeVisible();
 
             // # Click the selector, type a new category name, and select "Create new category"
-            await managedSelector.click();
-            const input = channelSettingsModal.container.getByRole('combobox');
-            await input.fill('Operations');
+            await managedCategorySelector.control.click();
+            await managedCategorySelector.combobox.fill('Operations');
 
-            const createOption = page.getByRole('option', {name: 'Create new category: Operations'});
+            const createOption = managedCategorySelector.getCreateCategoryOption(page, 'Operations');
             await expect(createOption).toBeVisible();
             await createOption.click();
 
@@ -120,11 +119,8 @@ test.describe('Managed Channel Categories', () => {
             await channelSettingsModal.close();
 
             // * Verify the managed category appears in the sidebar with the channel under it
-            const sidebar = channelsPage.sidebarLeft.container;
-            await expect(sidebar.getByText('Operations')).toBeVisible();
-
-            const operationsSection = sidebar.locator('.SidebarChannelGroup').filter({hasText: 'Operations'});
-            await expect(operationsSection.locator(`#sidebarItem_${channelName}`)).toBeVisible();
+            await expect(channelsPage.sidebarLeft.getCategorySection('Operations')).toBeVisible();
+            await expect(channelsPage.sidebarLeft.getChannelItem(channelName)).toBeVisible();
         },
     );
 
@@ -155,22 +151,15 @@ test.describe('Managed Channel Categories', () => {
             // * Verify the managed category is visible in the sidebar.
             // Use waitUntil because fetchManagedCategories is async (two API calls:
             // getPropertyFields then getManagedCategories) and may take a moment.
-            const sidebar = channelsPage.sidebarLeft.container;
-            await pw.waitUntil(
-                async () =>
-                    sidebar
-                        .getByText('Removable')
-                        .isVisible()
-                        .catch(() => false),
-                {timeout: 15000},
-            );
-            await expect(sidebar.getByText('Removable')).toBeVisible();
+            const removableCategory = channelsPage.sidebarLeft.getCategorySection('Removable');
+            await pw.waitUntil(async () => removableCategory.isVisible().catch(() => false), {timeout: 15000});
+            await expect(removableCategory).toBeVisible();
 
             // # Open channel settings and click the clear button to remove the category
             const channelSettingsModal = await channelsPage.openChannelSettings();
             await channelSettingsModal.openInfoTab();
 
-            const clearButton = channelSettingsModal.container.locator('.ManagedCategory__clear-indicator');
+            const {clearButton} = channelSettingsModal.managedCategorySelector;
             await expect(clearButton).toBeVisible();
             await clearButton.click();
             await pw.wait(pw.duration.half_sec);
@@ -184,10 +173,9 @@ test.describe('Managed Channel Categories', () => {
             await channelSettingsModal.close();
 
             // * Verify the managed category is removed and the channel is back under CHANNELS
-            await expect(sidebar.getByText('Removable')).not.toBeVisible();
+            await expect(removableCategory).not.toBeVisible();
 
-            const channelsSection = sidebar.locator('.SidebarChannelGroup').filter({hasText: 'CHANNELS'});
-            await expect(channelsSection.locator(`#sidebarItem_${channel.name}`)).toBeVisible();
+            await expect(channelsPage.sidebarLeft.getChannelItem(channel.name)).toBeVisible();
         },
     );
 
@@ -215,8 +203,7 @@ test.describe('Managed Channel Categories', () => {
             await channelSettingsModal.openInfoTab();
 
             // * Verify managed category selector is not visible
-            const managedSelector = channelSettingsModal.container.locator('.ManagedCategory__control');
-            await expect(managedSelector).not.toBeVisible();
+            await expect(channelSettingsModal.managedCategorySelector.control).not.toBeVisible();
 
             await channelSettingsModal.close();
         },
@@ -244,15 +231,14 @@ test.describe('Managed Channel Categories', () => {
         await newChannelModal.fillDisplayName(displayName);
 
         // * Verify managed category selector is visible
-        const managedSelector = newChannelModal.container.locator('.ManagedCategory__control');
-        await expect(managedSelector).toBeVisible();
+        const managedCategorySelector = newChannelModal.managedCategorySelector;
+        await expect(managedCategorySelector.control).toBeVisible();
 
         // # Select a new managed category and create the channel
-        await managedSelector.click();
-        const input = newChannelModal.container.getByRole('combobox');
-        await input.fill('Flight Ops');
+        await managedCategorySelector.control.click();
+        await managedCategorySelector.combobox.fill('Flight Ops');
 
-        const createOption = page.getByRole('option', {name: 'Create new category: Flight Ops'});
+        const createOption = managedCategorySelector.getCreateCategoryOption(page, 'Flight Ops');
         await expect(createOption).toBeVisible();
         await createOption.click();
 
@@ -261,8 +247,7 @@ test.describe('Managed Channel Categories', () => {
         await pw.wait(pw.duration.two_sec);
 
         // * Verify the managed category appears in the sidebar
-        const sidebar = channelsPage.sidebarLeft.container;
-        await expect(sidebar.getByText('Flight Ops')).toBeVisible();
+        await expect(channelsPage.sidebarLeft.getCategorySection('Flight Ops')).toBeVisible();
     });
 
     /**
@@ -289,15 +274,14 @@ test.describe('Managed Channel Categories', () => {
             await channelsPage.toBeVisible();
 
             // * Verify the managed category is visible and positioned above CHANNELS
-            const sidebar = channelsPage.sidebarLeft.container;
-            const managedCategory = sidebar.getByText('Alpha Priority');
+            const managedCategory = channelsPage.sidebarLeft.getCategorySection('Alpha Priority');
             await pw.waitUntil(async () => managedCategory.isVisible().catch(() => false), {timeout: 15000});
             await expect(managedCategory).toBeVisible();
 
-            const channelsHeader = sidebar.getByText('CHANNELS', {exact: true});
-            await expect(channelsHeader).toBeVisible();
+            const channelsSection = channelsPage.sidebarLeft.getCategorySection('CHANNELS');
+            await expect(channelsSection).toBeVisible();
             const managedBox = await managedCategory.boundingBox();
-            const channelsBox = await channelsHeader.boundingBox();
+            const channelsBox = await channelsSection.boundingBox();
 
             expect(managedBox).toBeTruthy();
             expect(channelsBox).toBeTruthy();
@@ -328,8 +312,7 @@ test.describe('Managed Channel Categories', () => {
             await channelsPage.toBeVisible();
 
             // * Verify the managed category is not visible
-            const sidebar = channelsPage.sidebarLeft.container;
-            await expect(sidebar.getByText('Secret Ops')).not.toBeVisible();
+            await expect(channelsPage.sidebarLeft.getCategorySection('Secret Ops')).not.toBeVisible();
         },
     );
 
@@ -372,11 +355,10 @@ test.describe('Managed Channel Categories', () => {
         await channelsPage.toBeVisible();
 
         // * Verify both channels are visible and Alpha appears before Bravo
-        const sidebar = channelsPage.sidebarLeft.container;
-        await expect(sidebar.getByText('Sorted Category')).toBeVisible();
+        await expect(channelsPage.sidebarLeft.getCategorySection('Sorted Category')).toBeVisible();
 
-        const alphaItem = sidebar.locator(`#sidebarItem_${channelA.name}`);
-        const bravoItem = sidebar.locator(`#sidebarItem_${channelB.name}`);
+        const alphaItem = channelsPage.sidebarLeft.getChannelItem(channelA.name);
+        const bravoItem = channelsPage.sidebarLeft.getChannelItem(channelB.name);
 
         await expect(alphaItem).toBeVisible();
         await expect(bravoItem).toBeVisible();
@@ -409,18 +391,17 @@ test.describe('Managed Channel Categories', () => {
         await channelsPage.goto(team.name, channel.name);
         await channelsPage.toBeVisible();
 
-        const sidebar = channelsPage.sidebarLeft.container;
         await pw.waitUntil(
             async () =>
-                sidebar
-                    .getByText('No Favorites')
+                channelsPage.sidebarLeft
+                    .getCategorySection('No Favorites')
                     .isVisible()
                     .catch(() => false),
             {timeout: 15000},
         );
 
         // * Verify the favorite button is visible but disabled
-        const favoriteButton = channelsPage.page.locator('#toggleFavorite');
+        const {favoriteButton} = channelsPage.centerView.header;
         await expect(favoriteButton).toBeVisible();
         await expect(favoriteButton).toBeDisabled();
     });
@@ -446,17 +427,15 @@ test.describe('Managed Channel Categories', () => {
         await channelsPage.toBeVisible();
 
         // # Right-click on the managed category header
-        const sidebar = channelsPage.sidebarLeft.container;
-        const categoryHeader = sidebar.getByText('No Menu');
-        await pw.waitUntil(async () => categoryHeader.isVisible().catch(() => false), {timeout: 15000});
-        await expect(categoryHeader).toBeVisible();
+        const categorySection = channelsPage.sidebarLeft.getCategorySection('No Menu');
+        await pw.waitUntil(async () => categorySection.isVisible().catch(() => false), {timeout: 15000});
+        await expect(categorySection).toBeVisible();
 
-        await categoryHeader.click({button: 'right'});
+        await categorySection.click({button: 'right'});
         await pw.wait(pw.duration.one_sec);
 
         // * Verify no context menu appears
-        const categoryMenu = channelsPage.page.locator('.SidebarCategoryMenu');
-        await expect(categoryMenu).not.toBeVisible();
+        await expect(channelsPage.sidebarCategoryMenu.container).not.toBeVisible();
     });
 
     /**
@@ -483,16 +462,15 @@ test.describe('Managed Channel Categories', () => {
             await channelsPage.toBeVisible();
 
             // # Open the channel options menu via the three-dot button
-            const sidebar = channelsPage.sidebarLeft.container;
-            const channelItem = sidebar.locator(`#sidebarItem_${channel.name}`);
+            const channelItem = channelsPage.sidebarLeft.getChannelItem(channel.name);
             await expect(channelItem).toBeVisible();
 
             // Wait for managed-category data to load before opening the menu so
             // that isInManagedCategory is already true when the menu renders.
             await pw.waitUntil(
                 async () =>
-                    sidebar
-                        .getByText('Context Menu')
+                    channelsPage.sidebarLeft
+                        .getCategorySection('Context Menu')
                         .isVisible()
                         .catch(() => false),
                 {timeout: 15000},
@@ -503,7 +481,7 @@ test.describe('Managed Channel Categories', () => {
             await menuButton.click();
 
             // * Verify the Favorite menu item is visible but disabled
-            const favoriteMenuItem = channelsPage.page.getByRole('menuitem', {name: /Favorite/i});
+            const {favoriteMenuItem} = channelsPage.sidebarCategoryMenu;
             await expect(favoriteMenuItem).toBeVisible();
             await expect(favoriteMenuItem).toHaveAttribute('aria-disabled', 'true');
         },
@@ -533,14 +511,13 @@ test.describe('Managed Channel Categories', () => {
             await channelsPage.toBeVisible();
 
             // # Open the channel options menu via the three-dot button
-            const sidebar = channelsPage.sidebarLeft.container;
-            const channelItem = sidebar.locator(`#sidebarItem_${channel.name}`);
+            const channelItem = channelsPage.sidebarLeft.getChannelItem(channel.name);
             await expect(channelItem).toBeVisible();
 
             await pw.waitUntil(
                 async () =>
-                    sidebar
-                        .getByText('No Move')
+                    channelsPage.sidebarLeft
+                        .getCategorySection('No Move')
                         .isVisible()
                         .catch(() => false),
                 {timeout: 15000},
@@ -551,7 +528,7 @@ test.describe('Managed Channel Categories', () => {
             await menuButton.click();
 
             // * Verify the Move To menu item is visible but disabled
-            const moveToMenuItem = channelsPage.page.getByRole('menuitem', {name: /Move to/i});
+            const {moveToMenuItem} = channelsPage.sidebarCategoryMenu;
             await expect(moveToMenuItem).toBeVisible();
             await expect(moveToMenuItem).toHaveAttribute('aria-disabled', 'true');
         },
@@ -597,12 +574,10 @@ test.describe('Managed Channel Categories', () => {
             await channelsPage.toBeVisible();
 
             // * Verify only one category header exists and both channels are under it
-            const sidebar = channelsPage.sidebarLeft.container;
-            const categories = sidebar.getByText('Shared Category');
-            await expect(categories).toHaveCount(1);
+            await expect(channelsPage.sidebarLeft.getCategorySection('Shared Category')).toHaveCount(1);
 
-            await expect(sidebar.locator(`#sidebarItem_${channel1.name}`)).toBeVisible();
-            await expect(sidebar.locator(`#sidebarItem_${channel2.name}`)).toBeVisible();
+            await expect(channelsPage.sidebarLeft.getChannelItem(channel1.name)).toBeVisible();
+            await expect(channelsPage.sidebarLeft.getChannelItem(channel2.name)).toBeVisible();
         },
     );
 
@@ -636,25 +611,22 @@ test.describe('Managed Channel Categories', () => {
             await channelsPage.toBeVisible();
 
             // * Verify the managed category does not exist yet
-            const sidebar = channelsPage.sidebarLeft.container;
-            await expect(sidebar.getByText('Realtime Ops')).not.toBeVisible();
+            await expect(channelsPage.sidebarLeft.getCategorySection('Realtime Ops')).not.toBeVisible();
 
             // # Admin assigns a managed category to the channel via API
             await adminClient.patchChannel(channel.id, {managed_category_name: 'Realtime Ops'} as any);
 
             // * Verify the managed category appears in real-time
+            const realtimeCategory = channelsPage.sidebarLeft.getCategorySection('Realtime Ops');
             await pw.waitUntil(
                 async () => {
-                    return sidebar
-                        .getByText('Realtime Ops')
-                        .isVisible()
-                        .catch(() => false);
+                    return realtimeCategory.isVisible().catch(() => false);
                 },
                 {timeout: 10000},
             );
 
-            await expect(sidebar.getByText('Realtime Ops')).toBeVisible();
-            await expect(sidebar.locator(`#sidebarItem_${channel.name}`)).toBeVisible();
+            await expect(realtimeCategory).toBeVisible();
+            await expect(channelsPage.sidebarLeft.getChannelItem(channel.name)).toBeVisible();
         },
     );
 
@@ -716,8 +688,7 @@ test.describe('Managed Channel Categories', () => {
             await channelSettingsModal.openInfoTab();
 
             // * Verify the managed category selector is disabled
-            const disabledControl = channelSettingsModal.container.locator('.ManagedCategory__control--is-disabled');
-            await expect(disabledControl).toBeVisible();
+            await expect(channelSettingsModal.managedCategorySelector.disabledControl).toBeVisible();
 
             await channelSettingsModal.close();
         },

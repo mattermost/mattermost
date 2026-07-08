@@ -9,6 +9,7 @@ import './admin_panel.scss';
 
 type Props = {
     id?: string;
+    dataTestId?: string;
     className?: string;
     onHeaderClick?: React.EventHandler<React.MouseEvent>;
     title: MessageDescriptor;
@@ -25,12 +26,14 @@ const AdminPanel: React.FC<Props> = ({
     children,
     className = '',
     id,
+    dataTestId,
     onHeaderClick,
     subtitleValues,
 }: Props) => (
     <div
         className={'AdminPanel clearfix ' + className}
         id={id}
+        data-testid={dataTestId}
     >
         <div
             className='header'

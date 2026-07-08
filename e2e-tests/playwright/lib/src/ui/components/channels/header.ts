@@ -36,4 +36,8 @@ export default class ChannelsHeader {
         await expect(this.callButton).toBeVisible();
         await this.callButton.click();
     }
+
+    get favoriteButton() {
+        return this.container.page().locator('#toggleFavorite');
+    }
 }

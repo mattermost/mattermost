@@ -101,11 +101,11 @@ test.describe('autotranslation configuration tests', () => {
 
                 await channelsPage.centerView.header.openChannelMenu();
                 if (shouldShowEditHeader) {
-                    await expect(channelsPage.page.getByRole('menuitem', {name: 'Edit Header'})).toBeVisible();
-                    await expect(channelsPage.page.getByRole('menuitem', {name: 'Channel Settings'})).toHaveCount(0);
+                    await expect(channelsPage.channelHeaderMenu.editHeader).toBeVisible();
+                    await expect(channelsPage.channelHeaderMenu.channelSettings).toHaveCount(0);
                 } else {
-                    await expect(channelsPage.page.getByRole('menuitem', {name: 'Channel Settings'})).toBeVisible();
-                    await expect(channelsPage.page.getByRole('menuitem', {name: 'Edit Header'})).toHaveCount(0);
+                    await expect(channelsPage.channelHeaderMenu.channelSettings).toBeVisible();
+                    await expect(channelsPage.channelHeaderMenu.editHeader).toHaveCount(0);
                 }
             } finally {
                 await adminClient.updateConfig(originalConfig as any);
@@ -163,8 +163,8 @@ test.describe('autotranslation configuration tests', () => {
                 await channelsPage.toBeVisible();
 
                 await channelsPage.centerView.header.openChannelMenu();
-                await expect(channelsPage.page.getByRole('menuitem', {name: 'Edit Header'})).toBeVisible();
-                await expect(channelsPage.page.getByRole('menuitem', {name: 'Channel Settings'})).toHaveCount(0);
+                await expect(channelsPage.channelHeaderMenu.editHeader).toBeVisible();
+                await expect(channelsPage.channelHeaderMenu.channelSettings).toHaveCount(0);
             } finally {
                 await adminClient.updateConfig(originalConfig as any);
             }
@@ -203,8 +203,9 @@ test.describe('autotranslation configuration tests', () => {
             await channelSettingsModal.toBeVisible();
 
             const newHeader = `DM header ${pw.random.id()}`;
-            await channelsPage.page.getByTestId('channel_settings_header_textbox').fill(newHeader);
-            await channelsPage.page.getByRole('button', {name: 'Save'}).click();
+            const infoSettings = await channelSettingsModal.openInfoTab();
+            await infoSettings.headerTextbox.fill(newHeader);
+            await channelSettingsModal.save();
             await channelSettingsModal.close();
 
             await expect.poll(async () => (await adminClient.getChannel(dmChannel.id)).header).toBe(newHeader);

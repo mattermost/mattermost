@@ -95,6 +95,28 @@ export default class ChannelsCenterView {
         return new ChannelsPost(nthPost);
     }
 
+    getPostContainingText(text: string | RegExp) {
+        return this.container.locator('[id^="post_"]').filter({hasText: text});
+    }
+
+    getPostWithBodyText(text: string | RegExp) {
+        return this.container.locator('[id^="post_"]').filter({
+            has: this.page.getByTestId('post-body').filter({hasText: text}),
+        });
+    }
+
+    getSystemMessage(text: string | RegExp) {
+        return this.container.locator('p').filter({hasText: text});
+    }
+
+    get autotranslationDisabledSystemMessage() {
+        return this.container.locator('p').getByText(/You disabled Auto-translation for this channel/i);
+    }
+
+    get autotranslationTooltip() {
+        return this.page.getByRole('tooltip');
+    }
+
     /**
      * Returns the Center post by post's id
      * @param postId Just the ID without the prefix

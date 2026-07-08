@@ -68,4 +68,8 @@ export default class GlobalHeader {
         await expect(this.searchBox).toBeVisible();
         await this.searchBox.getByTestId('searchBoxClose').click();
     }
+
+    get mobileSearchButton() {
+        return this.channelsPage.page.locator('#navbar').getByRole('button', {name: 'Search', exact: true});
+    }
 }

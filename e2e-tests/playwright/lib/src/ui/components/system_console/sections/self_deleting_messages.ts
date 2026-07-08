@@ -62,6 +62,10 @@ export default class SelfDeletingMessages {
         await this.saveButton.click();
     }
 
+    async waitForSaveComplete() {
+        await expect(this.saveButton).toHaveText('Save', {timeout: 30000});
+    }
+
     async isEnabled(): Promise<boolean> {
         return this.enableToggleTrue.isChecked();
     }

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test, UnsupportedDesktopAppPage} from '@mattermost/playwright-lib';
 
 const MINIMUM_VERSION = '6.0.0';
 const OLD_DESKTOP_VERSION = '5.0.0';
@@ -25,17 +25,13 @@ test('Desktop App update required screen shows when connecting with older versio
 
     try {
         const page = await context.newPage();
-        await page.goto('/');
+        const unsupportedDesktopAppPage = new UnsupportedDesktopAppPage(page);
+        await unsupportedDesktopAppPage.goto();
+        await unsupportedDesktopAppPage.toBeVisible();
 
-        await expect(page.getByRole('heading', {name: 'Update Required'})).toBeVisible();
-
-        const message = page.locator('.message');
-        await expect(message).toContainText(OLD_DESKTOP_VERSION);
-        await expect(message).toContainText(MINIMUM_VERSION);
-
-        const downloadLink = page.getByRole('link', {name: 'Download Updated App'});
-        await expect(downloadLink).toBeVisible();
-        await expect(downloadLink).toHaveAttribute('href', appDownloadLink);
+        await expect(unsupportedDesktopAppPage.message).toContainText(OLD_DESKTOP_VERSION);
+        await expect(unsupportedDesktopAppPage.message).toContainText(MINIMUM_VERSION);
+        await expect(unsupportedDesktopAppPage.downloadLink).toHaveAttribute('href', appDownloadLink);
     } finally {
         await context.close();
     }

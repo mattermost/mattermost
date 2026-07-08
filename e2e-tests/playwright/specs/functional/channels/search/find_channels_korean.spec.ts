@@ -55,8 +55,8 @@ test('Find Channels modal handles Korean IME input correctly', async ({pw, brows
     await expect(input).toHaveValue(firstHalf);
 
     // * Verify that both channels are visible
-    await expect(page.getByRole('option', {name: fullMatchChannel.display_name, exact: true})).toBeVisible();
-    await expect(page.getByRole('option', {name: partialMatchChannel.display_name, exact: true})).toBeVisible();
+    await expect(channelsPage.findChannelsModal.getOptionByDisplayName(fullMatchChannel.display_name)).toBeVisible();
+    await expect(channelsPage.findChannelsModal.getOptionByDisplayName(partialMatchChannel.display_name)).toBeVisible();
 
     // # Type the second half of the test phrase
     await typeHangulWithIme(page, secondHalf);
@@ -65,8 +65,10 @@ test('Find Channels modal handles Korean IME input correctly', async ({pw, brows
     await expect(input).toHaveValue(koreanTestPhrase);
 
     // * Verify that the first channel is still visible but that the second is not
-    await expect(page.getByRole('option', {name: fullMatchChannel.display_name, exact: true})).toBeVisible();
-    await expect(page.getByRole('option', {name: partialMatchChannel.display_name, exact: true})).not.toBeAttached();
+    await expect(channelsPage.findChannelsModal.getOptionByDisplayName(fullMatchChannel.display_name)).toBeVisible();
+    await expect(
+        channelsPage.findChannelsModal.getOptionByDisplayName(partialMatchChannel.display_name),
+    ).not.toBeAttached();
 });
 
 test('Find Channels autocomplete lists channel after each incomplete Korean character', async ({pw, browserName}) => {
@@ -115,7 +117,7 @@ test('Find Channels autocomplete lists channel after each incomplete Korean char
         await expect(input).toHaveValue(randomPrefix + koreanTestPhrase.substring(0, i + 1));
 
         // * Verify that the channel appears in the autocomplete results
-        await expect(page.getByRole('option', {name: channel.display_name, exact: true})).toBeVisible();
+        await expect(channelsPage.findChannelsModal.getOptionByDisplayName(channel.display_name)).toBeVisible();
     }
 
     await client.detach();

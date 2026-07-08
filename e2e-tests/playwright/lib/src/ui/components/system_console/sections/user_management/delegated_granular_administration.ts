@@ -23,10 +23,10 @@ export default class DelegatedGranularAdministration {
         this.container = container;
         this.header = container.getByText('Delegated Granular Administration', {exact: true});
 
-        this.adminRolesPanel = new AdminRolesPanel(container.locator('#SystemRoles'));
+        this.adminRolesPanel = new AdminRolesPanel(container.getByTestId('SystemRoles'));
 
         // System Roles page (click Edit on a role to navigate here)
-        this.systemRoles = new SystemRoles(container);
+        this.systemRoles = new SystemRoles(container, container.page());
     }
 
     async toBeVisible() {

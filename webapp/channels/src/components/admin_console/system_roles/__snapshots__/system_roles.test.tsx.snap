@@ -19,6 +19,7 @@ exports[`admin_console/system_roles should match snapshot 1`] = `
       >
         <div
           class="AdminPanel clearfix "
+          data-testid="SystemRoles"
           id="SystemRoles"
         >
           <div

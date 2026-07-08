@@ -341,11 +341,15 @@ const CollapsibleBlock = ({block, postId, onAction}: CollapsibleBlockProps) => {
     const contentStyle: CSSProperties | undefined = contentMaxHeight === null ? undefined : {maxHeight: contentMaxHeight};
 
     return (
-        <div className={classNames('mm-blocks-collapsible', {'mm-blocks-collapsible--expanded': !collapsed})}>
+        <div
+            className={classNames('mm-blocks-collapsible', {'mm-blocks-collapsible--expanded': !collapsed})}
+            data-testid='mmBlocksCollapsible'
+        >
             <div className='mm-blocks-collapsible-header'>
                 <button
                     type='button'
                     className='mm-blocks-collapsible-header__toggle style--none'
+                    data-testid='mmBlocksCollapsibleToggle'
                     onClick={toggleCollapsed}
                     aria-expanded={!collapsed}
                     aria-controls={contentId}
@@ -373,6 +377,7 @@ const CollapsibleBlock = ({block, postId, onAction}: CollapsibleBlockProps) => {
             <div
                 id={contentId}
                 className='mm-blocks-collapsible-content'
+                data-testid='mmBlocksCollapsibleContent'
                 aria-hidden={collapsed}
                 style={contentStyle}
                 onTransitionEnd={handleContentTransitionEnd}

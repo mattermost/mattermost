@@ -10,10 +10,12 @@ import {expect} from '@playwright/test';
 export default class EditionAndLicense {
     readonly container: Locator;
     readonly header: Locator;
+    readonly singleChannelGuestsLabel: Locator;
 
     constructor(container: Locator) {
         this.container = container;
         this.header = container.getByText('Edition and License', {exact: true});
+        this.singleChannelGuestsLabel = container.getByText('SINGLE-CHANNEL GUESTS:', {exact: true});
     }
 
     async toBeVisible() {

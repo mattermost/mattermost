@@ -229,6 +229,7 @@ export class AddUsersToRoleModal extends React.PureComponent<Props, State> {
         return (
             <Modal
                 id='addUsersToRoleModal'
+                data-testid='addUsersToRoleModal'
                 dialogClassName={'a11y__modal more-modal more-direct-channels'}
                 show={this.state.show}
                 onHide={this.handleHide}

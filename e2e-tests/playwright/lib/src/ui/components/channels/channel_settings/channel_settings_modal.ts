@@ -4,8 +4,10 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-import InfoSettings from './info_settings';
+import ManagedCategorySelector from '../managed_category_selector';
+
 import ConfigurationSettings from './configuration_settings';
+import InfoSettings from './info_settings';
 
 export default class ChannelSettingsModal {
     readonly container: Locator;
@@ -18,6 +20,7 @@ export default class ChannelSettingsModal {
 
     readonly infoSettings;
     readonly configurationSettings;
+    readonly managedCategorySelector: ManagedCategorySelector;
 
     constructor(container: Locator) {
         this.container = container;
@@ -32,6 +35,7 @@ export default class ChannelSettingsModal {
         this.configurationSettings = new ConfigurationSettings(
             container.getByTestId('channel-settings-configuration-tab'),
         );
+        this.managedCategorySelector = new ManagedCategorySelector(container);
     }
 
     async toBeVisible() {

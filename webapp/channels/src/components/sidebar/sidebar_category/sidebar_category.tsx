@@ -338,6 +338,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                         menuIsOpen: this.state.isMenuOpen,
                         isCollapsed: this.state.isManagedCategoryCollapsed,
                     })}
+                    data-testid='sidebarCategoryGroup'
                 >
                     <div>
                         <SidebarCategoryHeader
@@ -393,6 +394,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                                 capture: this.props.draggingState.state === DraggingStates.CAPTURE,
                                 isCollapsed: category.collapsed,
                             })}
+                            data-testid='sidebarCategoryGroup'
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                         >

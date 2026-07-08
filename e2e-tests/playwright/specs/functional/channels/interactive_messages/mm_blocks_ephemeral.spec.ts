@@ -43,7 +43,7 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
             const lastPost = await channelsPage.getLastPost();
             await lastPost.toBeVisible();
             await expect(lastPost.container.getByText('(Only visible to you)', {exact: true})).toBeVisible();
-            await expect(lastPost.container.locator('.mm-blocks')).toBeVisible();
+            await expect(lastPost.mmBlocks).toBeVisible();
             await expect(lastPost.container.getByText(marker)).toBeVisible();
             await expect(lastPost.container.getByText('Second line after divider.')).toBeVisible();
         },
@@ -117,25 +117,25 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
 
             const lastPost = await channelsPage.getLastPost();
             await lastPost.toBeVisible();
-            const anchorPost = lastPost.container;
-            await anchorPost.hover();
-            const replyOnAnchor = anchorPost.getByRole('button', {name: 'reply'});
-            await expect(replyOnAnchor).toBeVisible();
-            await replyOnAnchor.click();
+            await lastPost.hover();
+            await expect(lastPost.postMenu.replyButton).toBeVisible();
+            await lastPost.postMenu.replyButton.click();
 
-            const threadPanel = channelsPage.page.getByRole('region', {name: /Thread/});
-            await expect(threadPanel).toBeVisible();
+            await channelsPage.sidebarRight.toBeVisible();
 
-            // Thread RHS uses data-testid="rhsPostView", not "postView" (center channel only).
-            const ephemeralInThread = threadPanel.getByTestId('rhsPostView').filter({hasText: ephemeralMarker});
-            await expect(ephemeralInThread).toBeVisible();
-            await ephemeralInThread.getByRole('button', {name: 'Ping integration'}).click();
+            const ephemeralInThread = await channelsPage.sidebarRight.getPostByText(ephemeralMarker);
+            await ephemeralInThread.toBeVisible();
+            await ephemeralInThread.container.getByRole('button', {name: 'Ping integration'}).click();
 
-            const integrationEphemeral = threadPanel
-                .getByTestId('rhsPostView')
-                .filter({hasText: /Playwright mm_blocks integration OK \(user:/});
-            await expect(integrationEphemeral).toBeVisible();
-            await expect(integrationEphemeral.getByText('(Only visible to you)', {exact: true})).toBeVisible();
+            await expect(channelsPage.sidebarRight.container).toContainText(
+                /Playwright mm_blocks integration OK \(user:/,
+            );
+
+            const integrationEphemeral = await channelsPage.sidebarRight.getLastPost();
+            await integrationEphemeral.toBeVisible();
+            await expect(
+                integrationEphemeral.container.getByText('(Only visible to you)', {exact: true}),
+            ).toBeVisible();
         },
     );
 
@@ -205,22 +205,18 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
 
             const lastPost = await channelsPage.getLastPost();
             await lastPost.toBeVisible();
-            const anchorPost = lastPost.container;
-            await anchorPost.hover();
-            const replyOnAnchor = anchorPost.getByRole('button', {name: 'reply'});
-            await expect(replyOnAnchor).toBeVisible();
-            await replyOnAnchor.click();
+            await lastPost.hover();
+            await expect(lastPost.postMenu.replyButton).toBeVisible();
+            await lastPost.postMenu.replyButton.click();
 
-            const threadPanel = channelsPage.page.getByRole('region', {name: /Thread/});
-            await expect(threadPanel).toBeVisible();
+            await channelsPage.sidebarRight.toBeVisible();
 
-            const ephemeralInThread = threadPanel.getByTestId('rhsPostView').filter({hasText: ephemeralMarker});
-            await expect(ephemeralInThread).toBeVisible();
-            await ephemeralInThread.getByRole('button', {name: 'Apply update'}).click();
+            const ephemeralInThread = await channelsPage.sidebarRight.getPostByText(ephemeralMarker);
+            await ephemeralInThread.toBeVisible();
+            await ephemeralInThread.container.getByRole('button', {name: 'Apply update'}).click();
 
-            await expect(
-                threadPanel.getByTestId('rhsPostView').filter({hasText: 'PLAYWRIGHT_MM_BLOCKS_UPDATED'}),
-            ).toBeVisible();
+            const updated = await channelsPage.sidebarRight.getPostByText('PLAYWRIGHT_MM_BLOCKS_UPDATED');
+            await updated.toBeVisible();
         },
     );
 
@@ -294,26 +290,22 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
 
             const lastPost = await channelsPage.getLastPost();
             await lastPost.toBeVisible();
-            const anchorPost = lastPost.container;
-            await anchorPost.hover();
-            const replyOnAnchor = anchorPost.getByRole('button', {name: 'reply'});
-            await expect(replyOnAnchor).toBeVisible();
-            await replyOnAnchor.click();
+            await lastPost.hover();
+            await expect(lastPost.postMenu.replyButton).toBeVisible();
+            await lastPost.postMenu.replyButton.click();
 
-            const threadPanel = channelsPage.page.getByRole('region', {name: /Thread/});
-            await expect(threadPanel).toBeVisible();
+            await channelsPage.sidebarRight.toBeVisible();
 
-            const ephemeralInThread = threadPanel.getByTestId('rhsPostView').filter({hasText: ephemeralMarker});
-            await expect(ephemeralInThread).toBeVisible();
+            const ephemeralInThread = await channelsPage.sidebarRight.getPostByText(ephemeralMarker);
+            await ephemeralInThread.toBeVisible();
 
-            const author = ephemeralInThread.locator('.post__header .user-popover');
-            await expect(author).toContainText(overrideAuthorName);
+            await expect(ephemeralInThread.userPopover).toContainText(overrideAuthorName);
 
-            await ephemeralInThread.getByRole('button', {name: 'Apply update'}).click();
+            await ephemeralInThread.container.getByRole('button', {name: 'Apply update'}).click();
 
-            const updated = threadPanel.getByTestId('rhsPostView').filter({hasText: 'PLAYWRIGHT_MM_BLOCKS_UPDATED'});
-            await expect(updated).toBeVisible();
-            await expect(updated.locator('.post__header .user-popover')).toContainText(overrideAuthorName);
+            const updated = await channelsPage.sidebarRight.getPostByText('PLAYWRIGHT_MM_BLOCKS_UPDATED');
+            await updated.toBeVisible();
+            await expect(updated.userPopover).toContainText(overrideAuthorName);
         },
     );
 
@@ -385,22 +377,24 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
 
             const lastPost = await channelsPage.getLastPost();
             await lastPost.toBeVisible();
-            const anchorPost = lastPost.container;
-            await anchorPost.hover();
-            await anchorPost.getByRole('button', {name: 'reply'}).click();
+            await lastPost.hover();
+            await lastPost.postMenu.replyButton.click();
 
-            const threadPanel = channelsPage.page.getByRole('region', {name: /Thread/});
-            await expect(threadPanel).toBeVisible();
+            await channelsPage.sidebarRight.toBeVisible();
 
-            const ephemeralInThread = threadPanel.getByTestId('rhsPostView').filter({hasText: ephemeralMarker});
-            await expect(ephemeralInThread).toBeVisible();
-            await ephemeralInThread.getByRole('button', {name: 'Run query merge'}).click();
+            const ephemeralInThread = await channelsPage.sidebarRight.getPostByText(ephemeralMarker);
+            await ephemeralInThread.toBeVisible();
+            await ephemeralInThread.container.getByRole('button', {name: 'Run query merge'}).click();
 
-            const integrationEphemeral = threadPanel
-                .getByTestId('rhsPostView')
-                .filter({hasText: /Playwright mm_blocks query OK \(cli=from_block&srv=from_action\)/});
-            await expect(integrationEphemeral).toBeVisible();
-            await expect(integrationEphemeral.getByText('(Only visible to you)', {exact: true})).toBeVisible();
+            await channelsPage.sidebarRight.toContainText(
+                'Playwright mm_blocks query OK (cli=from_block&srv=from_action)',
+            );
+
+            const integrationEphemeral = await channelsPage.sidebarRight.getLastPost();
+            await integrationEphemeral.toBeVisible();
+            await expect(
+                integrationEphemeral.container.getByText('(Only visible to you)', {exact: true}),
+            ).toBeVisible();
         },
     );
 
@@ -472,18 +466,16 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
 
             const lastPost = await channelsPage.getLastPost();
             await lastPost.toBeVisible();
-            const anchorPost = lastPost.container;
-            await anchorPost.hover();
-            await anchorPost.getByRole('button', {name: 'reply'}).click();
+            await lastPost.hover();
+            await lastPost.postMenu.replyButton.click();
 
-            const threadPanel = channelsPage.page.getByRole('region', {name: /Thread/});
-            await expect(threadPanel).toBeVisible();
+            await channelsPage.sidebarRight.toBeVisible();
 
-            const ephemeralInThread = threadPanel.getByTestId('rhsPostView').filter({hasText: ephemeralMarker});
-            await expect(ephemeralInThread).toBeVisible();
-            await ephemeralInThread.getByRole('button', {name: 'Override dup key'}).click();
+            const ephemeralInThread = await channelsPage.sidebarRight.getPostByText(ephemeralMarker);
+            await ephemeralInThread.toBeVisible();
+            await ephemeralInThread.container.getByRole('button', {name: 'Override dup key'}).click();
 
-            await expect(threadPanel.getByText('Playwright mm_blocks query OK (dup=from_block)')).toBeVisible();
+            await channelsPage.sidebarRight.toContainText('Playwright mm_blocks query OK (dup=from_block)');
         },
     );
 
@@ -558,27 +550,29 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
 
             const lastPost = await channelsPage.getLastPost();
             await lastPost.toBeVisible();
-            const anchorPost = lastPost.container;
-            await anchorPost.hover();
-            await anchorPost.getByRole('button', {name: 'reply'}).click();
+            await lastPost.hover();
+            await lastPost.postMenu.replyButton.click();
 
-            const threadPanel = channelsPage.page.getByRole('region', {name: /Thread/});
-            await expect(threadPanel).toBeVisible();
+            await channelsPage.sidebarRight.toBeVisible();
 
-            const ephemeralRow = threadPanel.getByTestId('rhsPostView').filter({hasText: ephemeralMarker}).last();
-            await expect(ephemeralRow).toBeVisible();
+            const ephemeralRow = await channelsPage.sidebarRight.getPostByText(ephemeralMarker);
+            await ephemeralRow.toBeVisible();
 
-            const regionSelect = ephemeralRow.getByRole('combobox', {name: 'Pick a region'});
+            const regionSelect = ephemeralRow.container.getByRole('combobox', {name: 'Pick a region'});
             await expect(regionSelect).toBeVisible();
             await regionSelect.click();
             await regionSelect.fill('Nor');
-            await channelsPage.page.getByRole('option', {name: 'North'}).click();
+            await channelsPage.selectOption('North');
 
-            const integrationEphemeral = threadPanel
-                .getByTestId('rhsPostView')
-                .filter({hasText: /Playwright mm_blocks query OK \(cli=from_block&srv=from_action\)/});
-            await expect(integrationEphemeral).toBeVisible();
-            await expect(integrationEphemeral.getByText('(Only visible to you)', {exact: true})).toBeVisible();
+            await channelsPage.sidebarRight.toContainText(
+                'Playwright mm_blocks query OK (cli=from_block&srv=from_action)',
+            );
+
+            const integrationEphemeral = await channelsPage.sidebarRight.getLastPost();
+            await integrationEphemeral.toBeVisible();
+            await expect(
+                integrationEphemeral.container.getByText('(Only visible to you)', {exact: true}),
+            ).toBeVisible();
         },
     );
 
@@ -648,31 +642,29 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
 
             const lastPost = await channelsPage.getLastPost();
             await lastPost.toBeVisible();
-            const anchorPost = lastPost.container;
-            await anchorPost.hover();
-            await anchorPost.getByRole('button', {name: 'reply'}).click();
+            await lastPost.hover();
+            await lastPost.postMenu.replyButton.click();
 
-            const threadPanel = channelsPage.page.getByRole('region', {name: /Thread/});
-            await expect(threadPanel).toBeVisible();
+            await channelsPage.sidebarRight.toBeVisible();
 
-            const ephemeralRow = threadPanel.getByTestId('rhsPostView').filter({hasText: ephemeralMarker}).last();
-            await expect(ephemeralRow).toBeVisible();
+            const ephemeralRow = await channelsPage.sidebarRight.getPostByText(ephemeralMarker);
+            await ephemeralRow.toBeVisible();
 
-            const userSelect = ephemeralRow.getByRole('combobox', {name: 'Pick a user'});
+            const userSelect = ephemeralRow.container.getByRole('combobox', {name: 'Pick a user'});
             await expect(userSelect).toBeVisible();
             await userSelect.click();
             await userSelect.fill(user.username);
-            await channelsPage.page
-                .getByRole('option')
-                .filter({hasText: new RegExp(`@${user.username}\\b`)})
-                .first()
-                .click();
+            await channelsPage.selectOption(`@${user.username}`);
 
-            const integrationEphemeral = threadPanel.getByTestId('rhsPostView').filter({
-                hasText: new RegExp(`Playwright mm_blocks static_select OK \\(selected_option: ${user.id}\\)`),
-            });
-            await expect(integrationEphemeral).toBeVisible();
-            await expect(integrationEphemeral.getByText('(Only visible to you)', {exact: true})).toBeVisible();
+            await channelsPage.sidebarRight.toContainText(
+                `Playwright mm_blocks static_select OK (selected_option: ${user.id})`,
+            );
+
+            const integrationEphemeral = await channelsPage.sidebarRight.getLastPost();
+            await integrationEphemeral.toBeVisible();
+            await expect(
+                integrationEphemeral.container.getByText('(Only visible to you)', {exact: true}),
+            ).toBeVisible();
         },
     );
 
@@ -742,30 +734,29 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
 
             const lastPost = await channelsPage.getLastPost();
             await lastPost.toBeVisible();
-            const anchorPost = lastPost.container;
-            await anchorPost.hover();
-            await anchorPost.getByRole('button', {name: 'reply'}).click();
+            await lastPost.hover();
+            await lastPost.postMenu.replyButton.click();
 
-            const threadPanel = channelsPage.page.getByRole('region', {name: /Thread/});
-            await expect(threadPanel).toBeVisible();
+            await channelsPage.sidebarRight.toBeVisible();
 
-            const ephemeralRow = threadPanel.getByTestId('rhsPostView').filter({hasText: ephemeralMarker}).last();
-            await expect(ephemeralRow).toBeVisible();
+            const ephemeralRow = await channelsPage.sidebarRight.getPostByText(ephemeralMarker);
+            await ephemeralRow.toBeVisible();
 
-            const channelSelect = ephemeralRow.getByRole('combobox', {name: 'Pick a channel'});
+            const channelSelect = ephemeralRow.container.getByRole('combobox', {name: 'Pick a channel'});
             await expect(channelSelect).toBeVisible();
             await channelSelect.click();
             await channelSelect.fill('Town');
-            await channelsPage.page
-                .getByRole('option', {name: /Town Square/})
-                .first()
-                .click();
+            await channelsPage.selectOption('Town Square');
 
-            const integrationEphemeral = threadPanel.getByTestId('rhsPostView').filter({
-                hasText: new RegExp(`Playwright mm_blocks static_select OK \\(selected_option: ${townSquare.id}\\)`),
-            });
-            await expect(integrationEphemeral).toBeVisible();
-            await expect(integrationEphemeral.getByText('(Only visible to you)', {exact: true})).toBeVisible();
+            await channelsPage.sidebarRight.toContainText(
+                `Playwright mm_blocks static_select OK (selected_option: ${townSquare.id})`,
+            );
+
+            const integrationEphemeral = await channelsPage.sidebarRight.getLastPost();
+            await integrationEphemeral.toBeVisible();
+            await expect(
+                integrationEphemeral.container.getByText('(Only visible to you)', {exact: true}),
+            ).toBeVisible();
         },
     );
 
@@ -836,22 +827,24 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
 
             const lastPost = await channelsPage.getLastPost();
             await lastPost.toBeVisible();
-            const anchorPost = lastPost.container;
-            await anchorPost.hover();
-            await anchorPost.getByRole('button', {name: 'reply'}).click();
+            await lastPost.hover();
+            await lastPost.postMenu.replyButton.click();
 
-            const threadPanel = channelsPage.page.getByRole('region', {name: /Thread/});
-            await expect(threadPanel).toBeVisible();
+            await channelsPage.sidebarRight.toBeVisible();
 
-            const ephemeralInThread = threadPanel.getByTestId('rhsPostView').filter({hasText: ephemeralMarker});
-            await expect(ephemeralInThread).toBeVisible();
-            await ephemeralInThread.getByRole('button', {name: 'Verify context'}).click();
+            const ephemeralInThread = await channelsPage.sidebarRight.getPostByText(ephemeralMarker);
+            await ephemeralInThread.toBeVisible();
+            await ephemeralInThread.container.getByRole('button', {name: 'Verify context'}).click();
 
-            const integrationEphemeral = threadPanel
-                .getByTestId('rhsPostView')
-                .filter({hasText: `Playwright mm_blocks context OK (test_marker: ${contextMarker})`});
-            await expect(integrationEphemeral).toBeVisible();
-            await expect(integrationEphemeral.getByText('(Only visible to you)', {exact: true})).toBeVisible();
+            await channelsPage.sidebarRight.toContainText(
+                `Playwright mm_blocks context OK (test_marker: ${contextMarker})`,
+            );
+
+            const integrationEphemeral = await channelsPage.sidebarRight.getLastPost();
+            await integrationEphemeral.toBeVisible();
+            await expect(
+                integrationEphemeral.container.getByText('(Only visible to you)', {exact: true}),
+            ).toBeVisible();
         },
     );
 
@@ -907,16 +900,14 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
 
             const lastPost = await channelsPage.getLastPost();
             await lastPost.toBeVisible();
-            const anchorPost = lastPost.container;
-            await anchorPost.hover();
-            await anchorPost.getByRole('button', {name: 'reply'}).click();
+            await lastPost.hover();
+            await lastPost.postMenu.replyButton.click();
 
-            const threadPanel = channelsPage.page.getByRole('region', {name: /Thread/});
-            await expect(threadPanel).toBeVisible();
+            await channelsPage.sidebarRight.toBeVisible();
 
-            const ephemeralInThread = threadPanel.getByTestId('rhsPostView').filter({hasText: ephemeralMarker});
-            await expect(ephemeralInThread).toBeVisible();
-            await ephemeralInThread.getByRole('button', {name: 'Go to Off-Topic'}).click();
+            const ephemeralInThread = await channelsPage.sidebarRight.getPostByText(ephemeralMarker);
+            await ephemeralInThread.toBeVisible();
+            await ephemeralInThread.container.getByRole('button', {name: 'Go to Off-Topic'}).click();
 
             await expect(channelsPage.page).toHaveURL(/\/channels\/off-topic/);
             expect(new URL(channelsPage.page.url()).searchParams.get('mm_openurl')).toBe('from_action_eph');

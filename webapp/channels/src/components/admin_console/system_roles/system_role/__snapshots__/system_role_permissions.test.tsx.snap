@@ -4,6 +4,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
 <div>
   <div
     class="AdminPanel clearfix "
+    data-testid="SystemRolePermissions"
     id="SystemRolePermissions"
   >
     <div
@@ -708,6 +709,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
 <div>
   <div
     class="AdminPanel clearfix "
+    data-testid="SystemRolePermissions"
     id="SystemRolePermissions"
   >
     <div

@@ -44,6 +44,7 @@ exports[`PostMessagePreview nested previews should render file preview 1`] = `
               >
                 <div
                   class="user-popover"
+                  data-testid="userPopover"
                 >
                   username1
                 </div>
@@ -137,6 +138,7 @@ exports[`PostMessagePreview nested previews should render opengraph preview 1`] 
               >
                 <div
                   class="user-popover"
+                  data-testid="userPopover"
                 >
                   username1
                 </div>
@@ -230,6 +232,7 @@ exports[`PostMessagePreview should not render bot icon 1`] = `
               >
                 <div
                   class="user-popover"
+                  data-testid="userPopover"
                 >
                   username1
                 </div>
@@ -323,6 +326,7 @@ exports[`PostMessagePreview should render bot icon 1`] = `
               >
                 <div
                   class="user-popover"
+                  data-testid="userPopover"
                 >
                   username1
                 </div>
@@ -416,6 +420,7 @@ exports[`PostMessagePreview should render correctly 1`] = `
               >
                 <div
                   class="user-popover"
+                  data-testid="userPopover"
                 >
                   username1
                 </div>
@@ -511,6 +516,7 @@ exports[`PostMessagePreview show render without preview when preview posts becom
               >
                 <div
                   class="user-popover"
+                  data-testid="userPopover"
                 >
                   username1
                 </div>

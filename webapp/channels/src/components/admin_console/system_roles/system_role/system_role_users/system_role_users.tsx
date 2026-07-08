@@ -244,6 +244,7 @@ export default class SystemRoleUsers extends React.PureComponent<Props, State> {
 
             <AdminPanel
                 id='SystemRoleUsers'
+                dataTestId='SystemRoleUsers'
                 title={defineMessage({id: 'admin.permissions.system_role_users.title', defaultMessage: 'Assigned People'})}
                 subtitle={defineMessage({id: 'admin.permissions.system_role_users.description', defaultMessage: 'List of people assigned to this system role.'})}
                 button={

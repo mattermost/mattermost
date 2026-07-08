@@ -96,6 +96,7 @@ const SystemRoles = ({roles}: Props) => {
                 <div className='admin-console__content'>
                     <AdminPanel
                         id='SystemRoles'
+                        dataTestId='SystemRoles'
                         title={defineMessage({id: 'admin.permissions.systemRolesBannerTitle', defaultMessage: 'Admin Roles'})}
                         subtitle={defineMessage({id: 'admin.permissions.systemRolesBannerText', defaultMessage: 'Manage different levels of access to the system console.'})}
                     >

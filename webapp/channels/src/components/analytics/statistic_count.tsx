@@ -48,6 +48,7 @@ const StatisticCount = ({
             >
                 <div
                     data-testid={`${id}Title`}
+                    data-status={status}
                     className={classNames({
                         title: true,
                         'team_statistics--warning': status === 'warning',

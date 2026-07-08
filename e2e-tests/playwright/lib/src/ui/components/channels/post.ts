@@ -7,6 +7,7 @@ import {expect} from '@playwright/test';
 import BurnOnReadBadge from './burn_on_read_badge';
 import BurnOnReadConcealedPlaceholder from './burn_on_read_concealed_placeholder';
 import BurnOnReadTimerChip from './burn_on_read_timer_chip';
+import MmBlocksCollapsible from './mm_blocks_collapsible';
 import PostMenu from './post_menu';
 import ThreadFooter from './thread_footer';
 
@@ -15,6 +16,8 @@ export default class ChannelsPost {
 
     readonly body;
     readonly profileIcon;
+    readonly mmBlocks;
+    readonly userPopover;
 
     readonly removePostButton;
 
@@ -32,6 +35,8 @@ export default class ChannelsPost {
         this.body = container.getByTestId('post-body');
 
         this.profileIcon = container.getByTestId('profile-icon');
+        this.mmBlocks = container.getByTestId('mmBlocks');
+        this.userPopover = container.getByTestId('userPopover');
 
         this.removePostButton = container.getByTestId('post-remove-button');
 
@@ -44,6 +49,10 @@ export default class ChannelsPost {
         this.concealedPlaceholder = new BurnOnReadConcealedPlaceholder(
             container.getByTestId(/^burn-on-read-concealed-/),
         );
+    }
+
+    get collapsible() {
+        return new MmBlocksCollapsible(this.container.getByTestId('mmBlocksCollapsible'));
     }
 
     async toBeVisible() {

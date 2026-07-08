@@ -252,3 +252,47 @@ Before running tests, a Mattermost server must be available. Two options:
     - The linter checks for proper JSDoc tags, test titles, feature tags, and action/verification comments
     - This is also included in the standard `npm run check` command
     - See the example in `specs/functional/channels/scheduled_messages/scheduled_messages.spec.ts`
+
+## POM & Locator Migration Playbook
+
+This section documents conventions for migrating E2E specs from raw DOM selectors to semantic-locator Page Object Model (POM) classes, and for adding leaf-component aria-snapshot coverage.
+
+### Locator conventions
+
+1. **Page Object Pattern**: Always use page/component objects from the library. No static UI selectors in test files.
+2. **Locator priority**: `getByRole()` (preferred; use `{exact: true}` when the accessible name may partially match) → `getByText()` → `getByLabel()` → `getByPlaceholder()` → `getByAltText()` → `getByTitle()` → `getByTestId()` (last resort). **Avoid** CSS selectors (`.class`, `#id`), XPath, and raw `locator()` calls unless none of the above can identify the element.
+3. `locator('#id')` is acceptable only for elements that already carry that id in the live DOM. For dynamic ids use `getByTestId(/^prefix-/)` or `locator('[data-testid^="..."]')`.
+4. **POM shape**: pages take `(page: Page)` → `this.page`; components take `(container: Locator)` → `this.container`; every class exposes `async toBeVisible()`; compose children via `new Child(container.locator(...))`; register new classes in the barrels `lib/src/ui/components/index.ts` / `lib/src/ui/pages/index.ts`.
+5. **`data-testid` naming**: descriptive kebab-case; add to React source only when no role/text/label locator works. Regenerate affected webapp Jest `__snapshots__/*.snap` when React source changes.
+
+### Agent-browser verify loop
+
+Before writing locators for a new or extended POM:
+
+1. Start the Mattermost server (`cd server && ENABLED_DOCKER_SERVICES='postgres redis' RUN_SERVER_IN_BACKGROUND=true make run`).
+2. Use the agent browser (or `npm run codegen`) to log in, open the target UI, and inspect real ARIA roles, accessible names, labels, and `data-testid` values.
+3. Prefer semantic locators from that inspection; add `data-testid` to React only as a last resort.
+4. Assertions still run through the Playwright test runner — the browser is for inspection only.
+
+### Component aria-snapshot project
+
+Leaf-component aria snapshots live in a dedicated Playwright project separate from functional, visual, and accessibility runs:
+
+- **Specs**: `specs/components/` — tag snapshot tests with `@snapshots` (and `@components` for categorization).
+- **Project**: `components` in `playwright.config.ts` (`testDir: 'specs/components'`, `dependencies: ['setup']`).
+- **Isolation**: `chrome`, `firefox`, and `ipad` projects set `testIgnore: /specs[\\/]+components[\\/]+/` so browser suites skip component specs. The default `npm run test` and `npm run test:ci` scripts do not include the `components` project.
+- **Baselines**: `toMatchAriaSnapshot` writes under `specs/components/<file>-snapshots-a11y/` (configured via `expect.toMatchAriaSnapshot.pathTemplate`).
+- **Commands**:
+    - `npm run test:components` — run component aria-snapshot specs only.
+    - `npm run test:components-update-snapshots` — regenerate baselines for `@snapshots` tests in the components project.
+
+Example component snapshot spec:
+
+```typescript
+test('aria-snapshot of login body card', {tag: ['@components', '@snapshots']}, async ({pw}) => {
+    await pw.hasSeenLandingPage();
+    await pw.loginPage.goto();
+    await pw.loginPage.toBeVisible();
+    await expect(pw.loginPage.bodyCard).toMatchAriaSnapshot();
+});
+```

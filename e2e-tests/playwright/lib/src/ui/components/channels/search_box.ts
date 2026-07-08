@@ -27,6 +27,14 @@ export default class SearchBox {
         this.clearButton = container.getByTestId('input-clear');
     }
 
+    get searchTypeBadge() {
+        return this.container.page().getByTestId('searchTypeBadge');
+    }
+
+    get searchInputField() {
+        return this.container.locator('input');
+    }
+
     // clearIfPossible clears the search input if the clear button is visible. Returns true if the clear button was clicked.
     async clearIfPossible() {
         if (await this.clearButton.isVisible()) {

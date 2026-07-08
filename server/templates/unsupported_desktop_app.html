@@ -151,7 +151,7 @@
                 <div class="content">
                     <img class="warning-icon" src="static/images/alert.svg" alt="" />
                     <h1 class="title">{{.Props.Title}}</h1>
-                    <div class="message">{{.Props.MessageString}}</div>
+                    <div class="message" data-testid="unsupportedDesktopAppMessage">{{.Props.MessageString}}</div>
                     <div class="download-container">
                         <a class="download-button" href="{{.Props.DownloadLink}}" target="_blank" rel="noopener noreferrer">{{.Props.DownloadButtonLabel}}</a>
                     </div>

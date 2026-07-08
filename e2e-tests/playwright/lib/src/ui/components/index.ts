@@ -48,6 +48,14 @@ import TeamMenu from './channels/team_menu';
 import TeamSettingsModal from './channels/team_settings/team_settings_modal';
 import ThreadFooter from './channels/thread_footer';
 import UserProfilePopover from './channels/user_profile_popover';
+import MmBlocksCollapsible from './channels/mm_blocks_collapsible';
+import SearchResults from './channels/search_results';
+import SearchTeamSelector from './channels/search_team_selector';
+import ManagedCategorySelector from './channels/managed_category_selector';
+import SidebarCategoryMenu from './channels/sidebar_category_menu';
+import ChannelHeaderMenu, {ShowTranslationModal} from './channels/channel_header_menu';
+import PersonalAccessTokensSection from './channels/personal_access_tokens_section';
+import InteractiveDialog from './channels/interactive_dialog';
 // Burn-on-Read Components
 import BurnOnReadBadge from './channels/burn_on_read_badge';
 import BurnOnReadTimerChip from './channels/burn_on_read_timer_chip';
@@ -73,6 +81,9 @@ import SystemConsoleNavbar from './system_console/navbar';
 import SystemConsoleSidebar from './system_console/sidebar';
 import SystemConsoleSidebarHeader from './system_console/sidebar_header';
 import TeamStatistics from './system_console/sections/reporting/team_statistics';
+import SiteStatistics from './system_console/sections/reporting/site_statistics';
+import Posts from './system_console/sections/site_configuration/posts';
+import AddUsersToRoleModal from './system_console/sections/user_management/add_users_to_role_modal';
 import Users from './system_console/sections/user_management/users';
 
 const components = {
@@ -124,6 +135,15 @@ const components = {
     TeamSettingsModal,
     ThreadFooter,
     UserProfilePopover,
+    MmBlocksCollapsible,
+    SearchResults,
+    SearchTeamSelector,
+    ManagedCategorySelector,
+    SidebarCategoryMenu,
+    ChannelHeaderMenu,
+    ShowTranslationModal,
+    PersonalAccessTokensSection,
+    InteractiveDialog,
 
     // Burn-on-Read
     BurnOnReadBadge,
@@ -132,6 +152,7 @@ const components = {
     BurnOnReadConfirmationModal,
 
     // System Console
+    AddUsersToRoleModal,
     AdminSectionPanel,
     DelegatedGranularAdministration,
     DropdownSetting,
@@ -139,7 +160,9 @@ const components = {
     MobileSecurity,
     Notifications,
     NumberInputSetting,
+    Posts,
     RadioSetting,
+    SiteStatistics,
     UsersAndTeams,
     SystemConsoleFeatureDiscovery,
     SystemConsoleHeader,
@@ -203,6 +226,15 @@ export {
     TeamSettingsModal,
     ThreadFooter,
     UserProfilePopover,
+    MmBlocksCollapsible,
+    SearchResults,
+    SearchTeamSelector,
+    ManagedCategorySelector,
+    SidebarCategoryMenu,
+    ChannelHeaderMenu,
+    ShowTranslationModal,
+    PersonalAccessTokensSection,
+    InteractiveDialog,
 
     // Burn-on-Read
     BurnOnReadBadge,
@@ -211,6 +243,7 @@ export {
     BurnOnReadConfirmationModal,
 
     // System Console
+    AddUsersToRoleModal,
     AdminSectionPanel,
     DelegatedGranularAdministration,
     DropdownSetting,
@@ -218,7 +251,9 @@ export {
     MobileSecurity,
     Notifications,
     NumberInputSetting,
+    Posts,
     RadioSetting,
+    SiteStatistics,
     UsersAndTeams,
     SystemConsoleFeatureDiscovery,
     SystemConsoleHeader,
