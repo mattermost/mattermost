@@ -11,6 +11,7 @@ type MockWebSocket = {
     onmessage: ((ev: MessageEvent) => void) | null;
     onerror: ((ev: Event) => void) | null;
     onclose: ((ev: CloseEvent) => void) | null;
+    readyState: number;
     send(data: string | ArrayBuffer): void;
     close(): void;
     connect(): void;
@@ -119,11 +120,20 @@ export async function mockWebsockets(page: Page) {
         window.mockWebsockets = [];
 
         class MockWebSocketImpl {
+            // Match the standard WebSocket.readyState values so client code comparing
+            // against `WebSocket.OPEN` (now this class, since it replaces window.WebSocket)
+            // sees real state transitions instead of coincidental `undefined === undefined`.
+            static readonly CONNECTING = 0;
+            static readonly OPEN = 1;
+            static readonly CLOSING = 2;
+            static readonly CLOSED = 3;
+
             wrappedSocket: WebSocket | null = null;
             onopen: ((ev: Event) => void) | null = null;
             onmessage: ((ev: MessageEvent) => void) | null = null;
             onerror: ((ev: Event) => void) | null = null;
             onclose: ((ev: CloseEvent) => void) | null = null;
+            readyState: number = MockWebSocketImpl.CONNECTING;
             private readonly args: [string | URL, (string | string[])?];
 
             constructor(...args: [string | URL, (string | string[])?]) {
@@ -141,16 +151,26 @@ export async function mockWebsockets(page: Page) {
 
             close() {
                 if (this.wrappedSocket) {
+                    this.readyState = MockWebSocketImpl.CLOSING;
                     this.wrappedSocket.close(1000);
+                } else {
+                    this.readyState = MockWebSocketImpl.CLOSED;
                 }
             }
 
             connect() {
                 const socket = new RealWebSocket(...this.args);
-                socket.onopen = (ev) => this.onopen?.(ev);
+                this.readyState = MockWebSocketImpl.CONNECTING;
+                socket.onopen = (ev) => {
+                    this.readyState = MockWebSocketImpl.OPEN;
+                    this.onopen?.(ev);
+                };
                 socket.onmessage = (ev) => this.onmessage?.(ev);
                 socket.onerror = (ev) => this.onerror?.(ev);
-                socket.onclose = (ev) => this.onclose?.(ev);
+                socket.onclose = (ev) => {
+                    this.readyState = MockWebSocketImpl.CLOSED;
+                    this.onclose?.(ev);
+                };
                 this.wrappedSocket = socket;
             }
         }
