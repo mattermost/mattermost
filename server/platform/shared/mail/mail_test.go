@@ -273,7 +273,7 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 	headers := make(map[string]string)
 	headers["TestHeader"] = "TestValue"
 
-	mail := mailData{
+	md := mailData{
 		mimeTo:        "test@example.com",
 		smtpTo:        "test2@example.com",
 		from:          mail.Address{Name: "Nobody", Address: "nobody@mattermost.com"},
@@ -284,32 +284,32 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 		mimeHeaders:   headers,
 	}
 
-	err = sendMailUsingConfigAdvanced(mail, cfg)
+	err = sendMailUsingConfigAdvanced(md, cfg)
 	require.NoError(t, err, "Should connect to the SMTP Server: %v", err)
 
 	//Check if the email was send to the right email address
 	var resultsMailbox JSONMessageHeaderInbucket
 	err = RetryInbucket(5, func() error {
 		var mailErr error
-		resultsMailbox, mailErr = GetMailBox(mail.smtpTo)
+		resultsMailbox, mailErr = GetMailBox(md.smtpTo)
 		return mailErr
 	})
-	require.NoError(t, err, "No emails found for address %s. error: %v", mail.smtpTo, err)
+	require.NoError(t, err, "No emails found for address %s. error: %v", md.smtpTo, err)
 	require.NotEqual(t, len(resultsMailbox), 0)
 
-	require.Contains(t, resultsMailbox[0].To[0], mail.mimeTo, "Wrong To recipient")
+	require.Contains(t, resultsMailbox[0].To[0], md.mimeTo, "Wrong To recipient")
 
-	resultsEmail, err := GetMessageFromMailbox(mail.smtpTo, resultsMailbox[0].ID)
+	resultsEmail, err := GetMessageFromMailbox(md.smtpTo, resultsMailbox[0].ID)
 	require.NoError(t, err)
 
-	require.Contains(t, mail.htmlBody, resultsEmail.Body.Text, "Wrong received message")
+	require.Contains(t, md.htmlBody, resultsEmail.Body.Text, "Wrong received message")
 
 	// verify that the To header of the email message is set to the MIME recipient, even though we got it out of the SMTP recipient's email inbox
 	require.NotEmpty(t, resultsEmail.Header["To"], "missing To header")
-	assert.Contains(t, resultsEmail.Header["To"][0], mail.mimeTo)
+	assert.Contains(t, resultsEmail.Header["To"][0], md.mimeTo)
 
 	// verify that the MIME from address is correct - unfortunately, we can't verify the SMTP from address
-	assert.Equal(t, mail.from.String(), resultsEmail.Header["From"][0])
+	assert.Equal(t, md.from.String(), resultsEmail.Header["From"][0])
 
 	// check that the custom mime headers came through - header case seems to get mutated
 	assert.Equal(t, "TestValue", resultsEmail.Header["Testheader"][0])
@@ -622,9 +622,9 @@ func TestSendMail(t *testing.T) {
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			mail := mailData{"test@example.com", "test@example.com", mail.Address{Address: "from@example.com"}, "", tc.replyTo, "", "", nil, nil, tc.messageID, tc.inReplyTo, tc.references, ""}
+			md := mailData{"test@example.com", "test@example.com", mail.Address{Address: "from@example.com"}, "", tc.replyTo, "", "", nil, nil, tc.messageID, tc.inReplyTo, tc.references, ""}
 			cfg := getConfig()
-			err = sendMail(mocm, mail, time.Now(), cfg)
+			err = sendMail(mocm, md, time.Now(), cfg)
 			require.NoError(t, err)
 			if tc.contains != "" {
 				require.Contains(t, string(mocm.data), tc.contains)
