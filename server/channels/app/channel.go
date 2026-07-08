@@ -962,7 +962,7 @@ func (a *App) RestoreChannel(rctx request.CTX, channel *model.Channel, userID st
 		return nil, model.NewAppError("restoreChannel", "api.channel.restore_channel.restored.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	// Space backing channels are internal: no plugin gets to veto their restore.
+	// Space backing channels are internal; plugin ChannelWillBeRestored hooks are skipped.
 	if !channel.IsSpace() {
 		if appErr := a.runGuardedChannelWillBeRestored(rctx, channel); appErr != nil {
 			return nil, appErr
@@ -1717,7 +1717,7 @@ func (a *App) DeleteChannel(rctx request.CTX, channel *model.Channel, userID str
 		return err
 	}
 
-	// Space backing channels are internal: no plugin gets to veto their archival.
+	// Space backing channels are internal; plugin ChannelWillBeArchived hooks are skipped.
 	if !channel.IsSpace() {
 		var archiveRejectionReason string
 		pluginContext := pluginContext(rctx)

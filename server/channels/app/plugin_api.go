@@ -467,6 +467,7 @@ func (api *PluginAPI) GetLDAPUserAttributes(userID string, attributes []string) 
 
 func (api *PluginAPI) CreateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
 	UseAnonymousURLs := model.SafeDereference(api.app.Config().PrivacySettings.UseAnonymousURLs) && model.MinimumEnterpriseAdvancedLicense(api.app.License())
+	// Space backing channels have system-assigned names, not user-visible URLs — anonymous-URL scrambling does not apply.
 	if !channel.IsGroupOrDirect() && !channel.IsSpace() && UseAnonymousURLs {
 		channel.Name = model.NewId()
 	}
