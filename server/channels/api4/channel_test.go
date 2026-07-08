@@ -8115,10 +8115,12 @@ func TestChannelEndpointsExcludeSpaces(t *testing.T) {
 		require.Equal(t, http.StatusBadRequest, r.StatusCode)
 	})
 
+	// convertGroupMessageToChannel has no explicit space guard; the permission check fires
+	// first (empty TeamID in the body → no create_private_channel permission → 403).
 	t.Run("convertGroupMessageToChannel rejects a space", func(t *testing.T) {
 		resp, err := client.DoAPIPost(ctx, "/channels/"+space.Id+"/convert_to_channel", "{}")
 		require.Error(t, err)
-		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 	})
 
 	// --- rejectSpaceChannelByID's swallowed GetChannel error still lets the endpoint's own
