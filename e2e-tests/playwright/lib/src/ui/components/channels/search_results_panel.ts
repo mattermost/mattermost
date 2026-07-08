@@ -41,6 +41,13 @@ export default class SearchResultsPanel {
         return this.getResultItems().filter({hasText: text});
     }
 
+    /**
+     * All highlighted search terms currently rendered in the panel.
+     */
+    getHighlightedTerms() {
+        return this.container.getByTestId('search-highlight');
+    }
+
     async toContainText(text: string) {
         await expect(this.container).toContainText(text);
     }
