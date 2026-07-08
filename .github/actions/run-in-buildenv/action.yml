@@ -58,9 +58,14 @@ runs:
         SCRIPT=$(mktemp)
         printf 'git config --global --add safe.directory /mattermost\n' > "${SCRIPT}"
         printf '%s\n' "${CMD}" >> "${SCRIPT}"
+        # Reuse the Go caches warmed by server-ci-cache-warm and restored by
+        # restore-go-cache (under RUNNER_TEMP, outside the checkout).
         docker run --rm \
           --network host \
           -e HEAD_REF -e REF_NAME -e RUN_ID \
+          -e GOMODCACHE=/gocache/mod \
+          -e GOCACHE=/gocache/build \
+          -v "${RUNNER_TEMP}/go-cache:/gocache" \
           -v "$PWD:/mattermost" \
           -v "${SCRIPT}:/run-script.sh" \
           -w "${WORKING_DIR}" \
