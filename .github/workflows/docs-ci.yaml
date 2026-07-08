@@ -1,0 +1,75 @@
+name: Docs CI
+
+# PR-time build+typecheck gate for the Docusaurus docs site, replacing the
+# legacy `docs` repo's ci.yml (Sphinx: make python-deps / make test / make
+# html) now that docs live in this monorepo. Scoped with `paths:` since,
+# unlike the standalone docs repo, this workflow shares a repo with
+# server/webapp/etc. and must not run on every push.
+#
+# This is deliberately just a build+typecheck signal, not a deploy — see
+# docs-cd.yml (post-merge deploy) and docs-preview.yml (PR preview hosting)
+# for those. `npm run build` alone exercises the full OpenAPI pipeline
+# (prebuild -> make -C api build -> sanitize -> Docusaurus build), so it
+# doubles as both the "does the site build" and "is the OpenAPI spec still
+# valid" check.
+
+on:
+  pull_request:
+    paths:
+      - "docs/**"
+      - "api/v4/source/**"
+      - "api/playbooks/**"
+  push:
+    branches:
+      - master
+    paths:
+      - "docs/**"
+      - "api/v4/source/**"
+      - "api/playbooks/**"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version-file: docs/site/.nvmrc
+          cache: "npm"
+          cache-dependency-path: docs/site/package-lock.json
+
+      - name: Set up Go
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+        with:
+          go-version-file: api/server/go.mod
+
+      - name: Install docs dependencies
+        working-directory: docs/site
+        run: npm ci
+
+      - name: Typecheck
+        working-directory: docs/site
+        run: npm run typecheck
+
+      - name: Build docs site (includes OpenAPI prebuild)
+        working-directory: docs/site
+        run: npm run build
+        env:
+          ALGOLIA_APP_ID: ${{ vars.ALGOLIA_APP_ID }}
+          ALGOLIA_SEARCH_API_KEY: ${{ vars.ALGOLIA_SEARCH_API_KEY }}
+
+      - name: Upload built site
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: docs-site-build
+          path: docs/site/build
+          retention-days: 7

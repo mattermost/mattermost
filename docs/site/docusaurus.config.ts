@@ -133,6 +133,10 @@ const config: Config = {
         redirects: activeRedirects.redirects,
       },
     ],
+    // Generates API reference pages from the OpenAPI bundle produced by
+    // build-openapi.mjs, which delegates to `make -C api build` and
+    // sanitizes the output for MDX compatibility (see docs/site/scripts/
+    // build-openapi.mjs for the sanitization rationale).
     [
       'docusaurus-plugin-openapi-docs',
       {
