@@ -604,5 +604,132 @@ describe('components/apps_form/apps_form_file_upload/AppsFormFileUpload', () => 
 
             expect(screen.getByText('Max file size: 10MB')).toBeVisible();
         });
+
+        it('submit button is disabled while upload is in progress', () => {
+            const onPendingChange = jest.fn();
+            const {container} = renderComponent({onPendingChange});
+
+            // Select a file to trigger upload
+            selectFiles(container, [makeFile('test.png')]);
+
+            // At this point upload is in progress, so onPendingChange(true) should have been called
+            expect(onPendingChange).toHaveBeenCalledWith(true);
+
+            // Verify the button is disabled by checking the Choose File button
+            const chooseButton = screen.getByRole('button', {name: /Choose File/i});
+            expect(chooseButton).toBeDisabled();
+        });
+
+        it('submit button is re-enabled after upload completes', () => {
+            const onPendingChange = jest.fn();
+            const {container} = renderComponent({onPendingChange});
+
+            // Select and upload a file
+            selectFiles(container, [makeFile('test.png')]);
+            const {onSuccess} = getUploadCallbacks();
+            const fileInfo = makeFileInfo({id: 'completed-id', name: 'test.png'});
+            act(() => {
+                onSuccess({file_infos: [fileInfo]});
+            });
+
+            // After upload completes, onPendingChange(false) should be called
+            expect(onPendingChange).toHaveBeenCalledWith(false);
+
+            // Verify the button is re-enabled
+            const chooseButton = screen.getByRole('button', {name: /Choose File/i});
+            expect(chooseButton).not.toBeDisabled();
+        });
+
+        it('concurrent uploads in two different file fields do not clobber state', async () => {
+            // Render two file upload fields with different IDs
+            const onFileSelected1 = jest.fn();
+            const onFileSelected2 = jest.fn();
+            const onPendingChange1 = jest.fn();
+            const onPendingChange2 = jest.fn();
+
+            const {container: container1} = renderComponent({
+                id: 'file-field-1',
+                onFileSelected: onFileSelected1,
+                onPendingChange: onPendingChange1,
+            });
+
+            const {container: container2} = renderComponent({
+                id: 'file-field-2',
+                onFileSelected: onFileSelected2,
+                onPendingChange: onPendingChange2,
+            });
+
+            // Start upload in field 1
+            selectFiles(container1, [makeFile('file1.png')]);
+            expect(onPendingChange1).toHaveBeenCalledWith(true);
+
+            // Start upload in field 2 (while field 1 is still uploading)
+            selectFiles(container2, [makeFile('file2.png')]);
+            expect(onPendingChange2).toHaveBeenCalledWith(true);
+
+            // Both should be uploading
+            expect(screen.getAllByTestId(/file-progress-/)).toHaveLength(2);
+
+            // Complete upload in field 1
+            const {onSuccess: onSuccess1} = getUploadCallbacks(0);
+            const fileInfo1 = makeFileInfo({id: 'file1-id', name: 'file1.png'});
+            act(() => {
+                onSuccess1({file_infos: [fileInfo1]});
+            });
+
+            // Field 1 should be done uploading
+            expect(onPendingChange1).toHaveBeenLastCalledWith(false);
+
+            // Field 2 should still be uploading
+            expect(onPendingChange2).toHaveBeenLastCalledWith(true);
+            expect(mockUploadFile).toHaveBeenCalledTimes(2);
+
+            // Complete upload in field 2
+            const {onSuccess: onSuccess2} = getUploadCallbacks(1);
+            const fileInfo2 = makeFileInfo({id: 'file2-id', name: 'file2.png'});
+            act(() => {
+                onSuccess2({file_infos: [fileInfo2]});
+            });
+
+            // Field 2 should now be done uploading
+            expect(onPendingChange2).toHaveBeenLastCalledWith(false);
+
+            // Verify both callbacks were called with the correct file IDs
+            expect(onFileSelected1).toHaveBeenCalledWith(['file1-id']);
+            expect(onFileSelected2).toHaveBeenCalledWith(['file2-id']);
+        });
+
+        it('upload state is tracked independently per field when allow_multiple is used', () => {
+            const onFileSelected = jest.fn();
+            const onPendingChange = jest.fn();
+            const {container} = renderComponent({
+                allowMultiple: true,
+                onFileSelected,
+                onPendingChange,
+            });
+
+            // Upload first file
+            selectFiles(container, [makeFile('file1.png')]);
+            expect(onPendingChange).toHaveBeenCalledWith(true);
+
+            // Both files should show uploading
+            let uploadingElements = screen.queryAllByTestId(/file-progress-/);
+            expect(uploadingElements).toHaveLength(1);
+
+            // Complete first upload
+            const {onSuccess: onSuccess1} = getUploadCallbacks();
+            act(() => {
+                onSuccess1({file_infos: [makeFileInfo({id: 'file1-id', name: 'file1.png'})]});
+            });
+
+            // After first file completes, show in FilePreview
+            expect(screen.getByTestId('file-preview-item-file1-id')).toBeInTheDocument();
+
+            // onFileSelected should be called with the completed file
+            expect(onFileSelected).toHaveBeenCalledWith(['file1-id']);
+
+            // onPendingChange should be false since no more uploads are in progress
+            expect(onPendingChange).toHaveBeenLastCalledWith(false);
+        });
     });
 });
