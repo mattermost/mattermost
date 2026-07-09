@@ -182,13 +182,17 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
     };
 
     handleImageClick = (e: MouseEvent<HTMLImageElement>) => {
-        if (this.state.loaded) {
-            this.props.onClick?.(e, this.props.src);
+        if (!this.state.loaded) {
+            return;
         }
+
+        e.stopPropagation();
+        this.props.onClick?.(e, this.props.src);
     };
 
     onEnterKeyDown = (e: KeyboardEvent<HTMLImageElement>) => {
         if (e.key === 'Enter') {
+            e.stopPropagation();
             this.props.onClick?.(e, this.props.src);
         }
     };
