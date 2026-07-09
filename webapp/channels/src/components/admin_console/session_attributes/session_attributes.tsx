@@ -51,26 +51,27 @@ export default function SessionAttributesPage(props: Props) {
 
     useEffect(() => {
         let active = true;
-        Promise.resolve(dispatch(fetchPropertyFields(SESSION_ATTRIBUTES_GROUP_ID, SESSION_ATTRIBUTES_OBJECT_TYPE, SESSION_ATTRIBUTES_TARGET_TYPE))).
-            then(
-                () => {
-                    if (active) {
-                        setLoadError(false);
-                    }
-                },
 
+        const load = async () => {
+            try {
+                await dispatch(fetchPropertyFields(SESSION_ATTRIBUTES_GROUP_ID, SESSION_ATTRIBUTES_OBJECT_TYPE, SESSION_ATTRIBUTES_TARGET_TYPE));
+                if (active) {
+                    setLoadError(false);
+                }
+            } catch {
                 // Surface an error state instead of a misleading empty state.
-                () => {
-                    if (active) {
-                        setLoadError(true);
-                    }
-                },
-            ).
-            finally(() => {
+                if (active) {
+                    setLoadError(true);
+                }
+            } finally {
                 if (active) {
                     setLoaded(true);
                 }
-            });
+            }
+        };
+
+        load();
+
         return () => {
             active = false;
         };
