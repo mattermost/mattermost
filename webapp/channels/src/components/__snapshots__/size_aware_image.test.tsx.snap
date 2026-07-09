@@ -15,8 +15,8 @@ exports[`components/SizeAwareImage should load download and copy link buttons wh
           aria-label="file thumbnail photo-1533709752211-118fcaf03312"
           class="image-loading__placeholder class"
           height="200"
+          role="presentation"
           src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22300%22%20height%3D%22200%22%20viewBox%3D%220%200%20300%20200%22%2F%3E"
-          tabindex="0"
           width="300"
         />
       </div>
@@ -100,8 +100,8 @@ exports[`components/SizeAwareImage should match snapshot when handleSmallImageCo
           aria-label="file thumbnail photo-1533709752211-118fcaf03312"
           class="image-loading__placeholder class"
           height="200"
+          role="presentation"
           src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22300%22%20height%3D%22200%22%20viewBox%3D%220%200%20300%20200%22%2F%3E"
-          tabindex="0"
           width="300"
         />
       </div>
@@ -205,8 +205,8 @@ exports[`components/SizeAwareImage should render a placeholder and has loader wh
           aria-label="file thumbnail photo-1533709752211-118fcaf03312"
           class="image-loading__placeholder class"
           height="200"
+          role="presentation"
           src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22300%22%20height%3D%22200%22%20viewBox%3D%220%200%20300%20200%22%2F%3E"
-          tabindex="0"
           width="300"
         />
       </div>

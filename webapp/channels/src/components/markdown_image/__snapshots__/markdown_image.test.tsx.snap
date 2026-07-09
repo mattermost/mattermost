@@ -15,8 +15,8 @@ exports[`components/MarkdownImage should match snapshot 1`] = `
           aria-label="file thumbnail"
           class="image-loading__placeholder markdown-inline-img markdown-inline-img--loading"
           height="90"
+          role="presentation"
           src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221041%22%20height%3D%2290%22%20viewBox%3D%220%200%201041%2090%22%2F%3E"
-          tabindex="0"
           width="1041"
         />
       </div>
@@ -171,8 +171,8 @@ exports[`components/MarkdownImage should match snapshot for broken link 1`] = `
           aria-label="file thumbnail"
           class="image-loading__placeholder markdown-inline-img markdown-inline-img--loading"
           height="10"
+          role="presentation"
           src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2210%22%20height%3D%2210%22%20viewBox%3D%220%200%2010%2010%22%2F%3E"
-          tabindex="0"
           width="10"
         />
       </div>

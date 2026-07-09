@@ -126,7 +126,7 @@ describe('components/SingleImageView', () => {
         expect(container).toMatchSnapshot();
 
         // Simulate loaded state by triggering image load
-        const img = container.querySelector('img:not(.image-loading__placeholder)');
+        const img = screen.getByRole('img', {hidden: true});
         expect(img).toBeInTheDocument();
         Object.defineProperty(img, 'naturalHeight', {value: 100, configurable: true});
         Object.defineProperty(img, 'naturalWidth', {value: 100, configurable: true});
@@ -155,7 +155,7 @@ describe('components/SingleImageView', () => {
         expect(container).toMatchSnapshot();
 
         // Simulate loaded state by triggering image load
-        const img = container.querySelector('img:not(.image-loading__placeholder)');
+        const img = screen.getByRole('img', {hidden: true});
         expect(img).toBeInTheDocument();
         Object.defineProperty(img, 'naturalHeight', {value: 100, configurable: true});
         Object.defineProperty(img, 'naturalWidth', {value: 100, configurable: true});
@@ -174,7 +174,7 @@ describe('components/SingleImageView', () => {
             expect(container.querySelector('img')).toBeInTheDocument();
         });
 
-        const img = container.querySelector('img:not(.image-loading__placeholder)');
+        const img = screen.getByRole('img', {hidden: true});
         expect(img).toBeInTheDocument();
 
         // Simulate loaded state
@@ -226,7 +226,7 @@ describe('components/SingleImageView', () => {
         expect(imageLoadedDiv).not.toHaveClass('image-fade-in');
 
         // Simulate image loaded
-        const img = container.querySelector('img:not(.image-loading__placeholder)');
+        const img = screen.getByRole('img', {hidden: true});
         expect(img).toBeInTheDocument();
         Object.defineProperty(img, 'naturalHeight', {value: 100, configurable: true});
         Object.defineProperty(img, 'naturalWidth', {value: 100, configurable: true});

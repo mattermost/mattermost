@@ -73,7 +73,7 @@ describe('components/MarkdownImage', () => {
             <MarkdownImage {...props}/>,
         );
 
-        const img = container.querySelector('img:not(.image-loading__placeholder)');
+        const img = screen.getByRole('img', {hidden: true});
         expect(img).toBeInTheDocument();
         expect(img).not.toHaveClass('broken-image');
 
@@ -99,7 +99,7 @@ describe('components/MarkdownImage', () => {
             <MarkdownImage {...props}/>,
         );
 
-        const img = container.querySelector('img:not(.image-loading__placeholder)');
+        const img = screen.getByRole('img', {hidden: true});
 
         fireEvent.error(img!);
         expect(container.querySelector('img:not(.image-loading__placeholder)')).toHaveClass('broken-image');
@@ -117,7 +117,7 @@ describe('components/MarkdownImage', () => {
         const {container} = renderWithContext(
             <MarkdownImage {...props}/>,
         );
-        const img = container.querySelector('img:not(.image-loading__placeholder)');
+        const img = screen.getByRole('img', {hidden: true});
         expect(img).toHaveAttribute('alt', props.alt);
         expect(img).toHaveClass('broken-image');
         expect(container).toMatchSnapshot();
@@ -125,33 +125,33 @@ describe('components/MarkdownImage', () => {
 
     test('should handle not loaded state properly', () => {
         const props = {...baseProps, src: 'https://example.com/image.png'};
-        const {container} = renderWithContext(
+        renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
         // Initially image should have loading class
-        const img = container.querySelector('img:not(.image-loading__placeholder)');
+        const img = screen.getByRole('img', {hidden: true});
         expect(img).toHaveClass('markdown-inline-img--loading');
     });
 
     test('should handle not loaded state properly in case of a header change system message', () => {
         const props = {...baseProps, src: 'https://example.com/image.png', postType: 'system_header_change'};
-        const {container} = renderWithContext(
+        renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
         // For header change system message, should have scaled-down-loading class
-        const img = container.querySelector('img:not(.image-loading__placeholder)');
+        const img = screen.getByRole('img', {hidden: true});
         expect(img).toHaveClass('markdown-inline-img--scaled-down-loading');
     });
 
     test('should set loaded state when img loads and call onImageLoaded prop', () => {
         const props = {...baseProps, src: 'https://example.com/image.png'};
-        const {container} = renderWithContext(
+        renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
-        const img = container.querySelector('img:not(.image-loading__placeholder)');
+        const img = screen.getByRole('img', {hidden: true});
 
         // Initially should have loading class
         expect(img).toHaveClass('markdown-inline-img--loading');
@@ -179,7 +179,7 @@ describe('components/MarkdownImage', () => {
             <MarkdownImage {...props}/>,
         );
 
-        const img = container.querySelector('img:not(.image-loading__placeholder)');
+        const img = screen.getByRole('img', {hidden: true});
 
         // Mock naturalHeight/naturalWidth for SizeAwareImage's onImageLoaded callback
         Object.defineProperty(img, 'naturalHeight', {value: 90, configurable: true});
@@ -196,7 +196,7 @@ describe('components/MarkdownImage', () => {
             <MarkdownImage {...props}/>,
         );
 
-        const img = container.querySelector('img:not(.image-loading__placeholder)');
+        const img = screen.getByRole('img', {hidden: true});
 
         // Mock naturalHeight/naturalWidth for SizeAwareImage's onImageLoaded callback
         Object.defineProperty(img, 'naturalHeight', {value: 90, configurable: true});
@@ -217,7 +217,7 @@ describe('components/MarkdownImage', () => {
             <MarkdownImage {...props}/>,
         );
 
-        const img = container.querySelector('img:not(.image-loading__placeholder)');
+        const img = screen.getByRole('img', {hidden: true});
 
         // Mock naturalHeight/naturalWidth for SizeAwareImage's onImageLoaded callback
         Object.defineProperty(img, 'naturalHeight', {value: 90, configurable: true});
@@ -233,11 +233,11 @@ describe('components/MarkdownImage', () => {
 
     test('should call openModal when showModal is called', async () => {
         const props = {...baseProps, src: 'https://example.com/image.png'};
-        const {container} = renderWithContext(
+        renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
-        const img = container.querySelector('img:not(.image-loading__placeholder)');
+        const img = screen.getByRole('img', {hidden: true});
 
         // Mock naturalHeight/naturalWidth for SizeAwareImage's onImageLoaded callback
         Object.defineProperty(img, 'naturalHeight', {value: 90, configurable: true});
@@ -253,11 +253,11 @@ describe('components/MarkdownImage', () => {
 
     test('should properly scale down the image in case of a header change system message', () => {
         const props = {...baseProps, src: 'https://example.com/image.png', postType: 'system_header_change'};
-        const {container} = renderWithContext(
+        renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
-        const img = container.querySelector('img:not(.image-loading__placeholder)');
+        const img = screen.getByRole('img', {hidden: true});
 
         // Mock naturalHeight/naturalWidth for SizeAwareImage's onImageLoaded callback
         Object.defineProperty(img, 'naturalHeight', {value: 90, configurable: true});
@@ -283,11 +283,11 @@ describe('components/MarkdownImage', () => {
             width: '50',
         };
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
-        const img = container.querySelector('img:not(.image-loading__placeholder)');
+        const img = screen.getByRole('img', {hidden: true});
 
         // Mock naturalHeight/naturalWidth for SizeAwareImage's onImageLoaded callback
         Object.defineProperty(img, 'naturalHeight', {value: 76, configurable: true});
@@ -317,7 +317,7 @@ describe('components/MarkdownImage', () => {
             <MarkdownImage {...props}/>,
         );
 
-        const img = container.querySelector('img:not(.image-loading__placeholder)');
+        const img = screen.getByRole('img', {hidden: true});
 
         // Mock naturalHeight/naturalWidth for SizeAwareImage's onImageLoaded callback
         Object.defineProperty(img, 'naturalHeight', {value: 250, configurable: true});

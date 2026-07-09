@@ -64,8 +64,8 @@ exports[`components/SingleImageView permalink preview should render with permali
                     aria-label="file thumbnail name"
                     class="image-loading__placeholder image-permalink"
                     height="200"
+                    role="presentation"
                     src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22350%22%20height%3D%22200%22%20viewBox%3D%220%200%20350%20200%22%2F%3E"
-                    tabindex="0"
                     width="350"
                   />
                 </div>
@@ -185,8 +185,8 @@ exports[`components/SingleImageView should match snapshot 1`] = `
                     aria-label="file thumbnail name"
                     class="image-loading__placeholder"
                     height="200"
+                    role="presentation"
                     src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22350%22%20height%3D%22200%22%20viewBox%3D%220%200%20350%20200%22%2F%3E"
-                    tabindex="0"
                     width="350"
                   />
                 </div>
@@ -387,8 +387,8 @@ exports[`components/SingleImageView should match snapshot, SVG image 1`] = `
                     aria-label="file thumbnail name_svg"
                     class="image-loading__placeholder"
                     height="200"
+                    role="presentation"
                     src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22350%22%20height%3D%22200%22%20viewBox%3D%220%200%20350%20200%22%2F%3E"
-                    tabindex="0"
                     width="350"
                   />
                 </div>
