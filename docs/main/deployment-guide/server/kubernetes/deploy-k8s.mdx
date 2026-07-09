@@ -118,14 +118,14 @@ The Mattermost Kubernetes Operator can be installed using Helm.
 > type: Opaque
 > ```
 >
-> Example for AWS Aurora with PostgreSQL:
+> Example for AWS Aurora with PostgreSQL (`DB_CONNECTION_CHECK_URL`, `DB_CONNECTION_STRING`, and `MM_SQLSETTINGS_DATASOURCEREPLICAS` are the base64-encoded form of your Aurora connection URL, e.g. `postgres://user:password@host:5432/mattermost`):
 >
 > ``` yaml
 > apiVersion: v1
 > data:
->   DB_CONNECTION_CHECK_URL: cG9zdGdyZXM6Ly91c2VyOnN1cGVyX3NlY3JldF9wYXNzd29yZEBteS1kYXRhYmFzZS5jbHVzdGVyLWFiY2QudXMtZWFzdC0xLnJkcy5hbWF6b25hd3MuY29tOjU0MzIvbWF0dGVybW9zdD9jb25uZWN0X3RpbWVvdXQ9MTA=
->   DB_CONNECTION_STRING: cG9zdGdyZXM6Ly91c2VyOnN1cGVyX3NlY3JldF9wYXNzd29yZEBteS1kYXRhYmFzZS5jbHVzdGVyLWFiY2QudXMtZWFzdC0xLnJkcy5hbWF6b25hd3MuY29tOjU0MzIvbWF0dGVybW9zdD9jb25uZWN0X3RpbWVvdXQ9MTA=
->   MM_SQLSETTINGS_DATASOURCEREPLICAS: cG9zdGdyZXM6Ly91c2VyOnN1cGVyX3NlY3JldF9wYXNzd29yZEBteS1kYXRhYmFzZS5jbHVzdGVyLXJvLWFiY2QudXMtZWFzdC0xLnJkcy5hbWF6b25hd3MuY29tOjU0MzIvbWF0dGVybW9zdD9jb25uZWN0X3RpbWVvdXQ9MTA=
+>   DB_CONNECTION_CHECK_URL: cG9zdGdyZXM6Ly91c2Vy...  # base64-encoded connection URL
+>   DB_CONNECTION_STRING: cG9zdGdyZXM6Ly91c2Vy...     # base64-encoded connection URL
+>   MM_SQLSETTINGS_DATASOURCEREPLICAS: cG9zdGdyZXM6...  # base64-encoded replica URL
 > kind: Secret
 > metadata:
 >   name: my-postgres-connection
