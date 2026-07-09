@@ -12666,5 +12666,13 @@
   {
     "id": "shared_channel.system_message.no_longer_shared_unknown",
     "translation": "Kanał ten nie jest już udostępniany innej przestrzeni roboczej."
+  },
+  {
+    "id": "api.access_control.assign.team_group_constrained",
+    "translation": "Do zespołu zsynchronizowanego z grupą nie można zastosować polityki członkostwa."
+  },
+  {
+    "id": "api.access_control_policy.channel_permission_policies.feature_disabled",
+    "translation": "Funkcja polityki uprawnień na poziomie kanału nie jest włączona."
   }
 ]
