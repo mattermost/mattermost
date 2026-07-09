@@ -2714,3 +2714,58 @@ func TestDialogElementFileValidation(t *testing.T) {
 		})
 	}
 }
+
+func TestDialogElementIsValid_ActionButton(t *testing.T) {
+	t.Run("should pass validation with valid action_button element", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Action Button",
+			Name:        "action_button_element",
+			Type:        "action_button",
+			ActionButton: &DialogActionButton{
+				URL: "https://example.com/action",
+			},
+		}
+		err := element.IsValid()
+		assert.NoError(t, err)
+	})
+
+	t.Run("should fail when ActionButton config is nil", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Action Button",
+			Name:         "action_button_element",
+			Type:         "action_button",
+			ActionButton: nil,
+		}
+		err := element.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "action_button configuration")
+	})
+
+	t.Run("should fail when ActionButton URL is empty", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Action Button",
+			Name:        "action_button_element",
+			Type:        "action_button",
+			ActionButton: &DialogActionButton{
+				URL: "",
+			},
+		}
+		err := element.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "non-empty URL")
+	})
+
+	t.Run("should fail when ActionButton URL is invalid", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Action Button",
+			Name:        "action_button_element",
+			Type:        "action_button",
+			ActionButton: &DialogActionButton{
+				URL: "not-a-url",
+			},
+		}
+		err := element.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid action_button URL")
+	})
+}

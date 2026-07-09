@@ -43,4 +43,5 @@ export const AppFieldTypes: {[name: string]: AppFieldType} = {
     DATE: 'date',
     DATETIME: 'datetime',
     FILE: 'file',
+    ACTION_BUTTON: 'action_button',
 };

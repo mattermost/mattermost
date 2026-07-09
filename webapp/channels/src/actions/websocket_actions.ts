@@ -173,6 +173,7 @@ import {getHistory} from 'utils/browser_history';
 import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {getIntl} from 'utils/i18n';
+import {MAX_OPEN_DIALOGS, getOpenDialogCount} from 'utils/interactive_dialog';
 import {isEnterpriseLicense} from 'utils/license_utils';
 import {isChannelPopoutWindow} from 'utils/popouts/popout_windows';
 import {getSiteURL} from 'utils/url';
@@ -1752,6 +1753,10 @@ function handleOpenDialogEvent(msg: WebSocketMessages.OpenDialog) {
     const data = (msg.data && msg.data.dialog);
     const dialog = JSON.parse(data) as OpenDialogRequest || {};
 
+    // Store the dialog before the trigger-id guard. The WS open_dialog event can
+    // arrive before the command/action response has set dialogTriggerId; storing
+    // the dialog now lets the store.subscribe fallback in interactive_dialog.ts
+    // open it once the trigger id lands. Skipping this dispatch loses the dialog.
     store.dispatch({type: IntegrationTypes.RECEIVED_DIALOG, data: dialog});
 
     const currentTriggerId = getState().entities.integrations.dialogTriggerId;
@@ -1760,7 +1765,22 @@ function handleOpenDialogEvent(msg: WebSocketMessages.OpenDialog) {
         return;
     }
 
-    store.dispatch(openModal({modalId: ModalIdentifiers.INTERACTIVE_DIALOG, dialogType: DialogRouter}));
+    if (getOpenDialogCount(getState()) >= MAX_OPEN_DIALOGS) {
+        // eslint-disable-next-line no-console
+        console.warn('Maximum number of open dialogs reached');
+        store.dispatch({type: IntegrationTypes.REMOVE_DIALOG, data: dialog.trigger_id});
+        return;
+    }
+
+    const modalId = `${ModalIdentifiers.INTERACTIVE_DIALOG}_${dialog.trigger_id}`;
+    store.dispatch(openModal({
+        modalId,
+        dialogType: DialogRouter,
+        dialogProps: {
+            triggerId: dialog.trigger_id,
+            onExited: () => store.dispatch({type: IntegrationTypes.REMOVE_DIALOG, data: dialog.trigger_id}),
+        },
+    }));
 }
 
 function handleGroupUpdatedEvent(msg: WebSocketMessages.ReceivedGroup) {

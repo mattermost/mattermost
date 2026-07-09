@@ -47,6 +47,7 @@ export default class ChannelsPage {
     readonly scheduledDraftModal;
     readonly scheduleMessageModal;
     readonly burnOnReadConfirmationModal;
+    readonly searchResultsPanel;
     readonly archivedChannelMessage;
 
     readonly postContainer;
@@ -56,6 +57,7 @@ export default class ChannelsPage {
     readonly teamMenu;
 
     readonly emojiGifPickerPopup;
+    readonly reactionEmojiPicker;
     readonly scheduleMessageMenu;
 
     readonly searchResultsContainer;
@@ -94,6 +96,7 @@ export default class ChannelsPage {
         this.burnOnReadConfirmationModal = new components.BurnOnReadConfirmationModal(
             page.getByRole('dialog').filter({hasText: /burn|delete/i}),
         );
+        this.searchResultsPanel = new components.SearchResultsPanel(page.locator('#searchContainer'));
 
         // Menus
         this.postDotMenu = new components.PostDotMenu(page.getByRole('menu', {name: 'Post extra options'}));
@@ -104,6 +107,7 @@ export default class ChannelsPage {
 
         // Popovers
         this.emojiGifPickerPopup = new components.EmojiGifPicker(page.locator('#emojiGifPicker'));
+        this.reactionEmojiPicker = new components.EmojiGifPicker(page.getByRole('dialog', {name: 'Emoji Picker'}));
         this.scheduledDraftModal = new components.ScheduledDraftModal(page.getByRole('dialog', {name: /scheduled/i}));
         this.scheduleMessageModal = new components.ScheduleMessageModal(
             page.getByRole('dialog', {name: 'Schedule message'}),
@@ -220,6 +224,28 @@ export default class ChannelsPage {
         return this.teamSettingsModal;
     }
 
+    /**
+     * Archives the current channel via the channel header menu and confirms the
+     * archive dialog. Waits for the archived-channel footer to appear.
+     */
+    async archiveChannel() {
+        await this.centerView.header.openChannelMenu();
+        await this.page.getByRole('menuitem', {name: 'Archive Channel'}).click();
+        await this.page.getByRole('button', {name: 'Archive', exact: true}).click();
+        await expect(this.archivedChannelMessage).toBeVisible();
+    }
+
+    /**
+     * Opens the search UI, runs a search for the given term, and waits for the
+     * results panel to appear.
+     */
+    async searchFor(term: string) {
+        await this.globalHeader.openSearch();
+        await this.searchBox.toBeVisible();
+        await this.searchBox.search(term);
+        await this.searchResultsPanel.toBeVisible();
+    }
+
     async openChannelSettings(): Promise<ChannelSettingsModal> {
         await this.centerView.header.openChannelMenu();
 
@@ -309,6 +335,23 @@ export default class ChannelsPage {
         await this.userAccountMenuButton.click();
         await expect(this.userAccountMenu.container).toBeVisible();
         return this.userAccountMenu;
+    }
+
+    /**
+     * Switches to another team via its button in the team sidebar.
+     */
+    async switchToTeam(teamName: string) {
+        const teamButton = this.page.locator(`#${teamName}TeamButton`);
+        await teamButton.waitFor();
+        await teamButton.click();
+    }
+
+    /**
+     * Logs the current user out via the user account menu.
+     */
+    async logout() {
+        const menu = await this.openUserAccountMenu();
+        await menu.logout.click();
     }
 
     async openProfileModal() {

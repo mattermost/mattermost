@@ -20,6 +20,7 @@ import {getThread} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {
     isFromWebhook,
+    isNotificationSuppressed,
     isSystemMessage,
     shouldIgnorePost,
 } from 'mattermost-redux/utils/post_utils';
@@ -77,7 +78,7 @@ export function completePostReceive(post: Post, websocketMessageProps: NewPostMe
         }
         dispatch(batchActions(actions));
 
-        if (isCRTReply) {
+        if (isCRTReply && !isNotificationSuppressed(post)) {
             dispatch(setThreadRead(post));
         }
 
@@ -131,6 +132,10 @@ export function setChannelReadAndViewed(dispatch: DispatchFunc, getState: GetSta
         }
 
         return actionsToMarkChannelAsRead(getState, post.channel_id);
+    }
+
+    if (isNotificationSuppressed(post)) {
+        return [];
     }
 
     return actionsToMarkChannelAsUnread(getState, websocketMessageProps.team_id || '', post.channel_id, websocketMessageProps.mentions || '', fetchedChannelMember, post.root_id === '', post?.metadata?.priority?.priority);

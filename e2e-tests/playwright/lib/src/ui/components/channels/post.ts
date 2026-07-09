@@ -96,6 +96,15 @@ export default class ChannelsPost {
     }
 
     /**
+     * Hovers the post and opens the emoji reaction picker via the "add reaction" button.
+     */
+    async openReactionPicker() {
+        await this.container.hover();
+        await this.postMenu.toBeVisible();
+        await this.postMenu.addReactionButton.click();
+    }
+
+    /**
      * Clicks on the deleted post's remove 'x' button.
      * Also verifies that the post is a deleted post.
      */

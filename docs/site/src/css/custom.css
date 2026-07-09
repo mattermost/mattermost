@@ -426,12 +426,29 @@ blockquote {
 .docMainContainer_TBSr,
 [class*='docMainContainer'] {
   max-width: none !important;
+  /* Sits in an outer flex row alongside the left sidebar; without
+   * min-width: 0 its default `min-width: auto` lets wide content (long
+   * code block lines, etc.) force it — and the whole row — wider than
+   * the viewport instead of scrolling within its own content. */
+  min-width: 0;
 }
 .docMainContainer_TBSr > .container,
 [class*='docMainContainer'] > .container {
   max-width: 1600px;
   padding-left: clamp(1rem, 2vw, 2rem);
   padding-right: clamp(1rem, 2vw, 2rem);
+}
+
+/* Without max-width, the doc content flex column no longer has an upper
+ * bound to shrink against, so a wide code block (long lines, e.g. inline
+ * YAML comments) inflates its own intrinsic min-content size and drags the
+ * whole row — including the TOC column — wider than the viewport, instead
+ * of just scrolling horizontally within the code block itself. `min-width:
+ * 0` restores the standard flexbox shrink behavior so `overflow-x: auto` on
+ * code blocks can do its job. */
+.docMainContainer_TBSr > .container > .row > [class*='col'],
+[class*='docMainContainer'] > .container > .row > [class*='col'] {
+  min-width: 0;
 }
 
 /* TOC right column (per-page) */
@@ -470,16 +487,21 @@ blockquote {
   text-decoration: none;
 }
 
+/* Tables: scroll horizontally within themselves instead of overflowing the
+ * viewport. Applied unconditionally (not just under the mobile breakpoint
+ * below) since a wide table can force the same horizontal-overflow problem
+ * at any viewport width — e.g. at higher browser zoom levels, where the
+ * effective layout width shrinks but the media query doesn't re-trigger. */
+.markdown table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* === Mobile / responsive === */
 
 @media (max-width: 996px) {
-  /* Tables: scroll horizontally instead of overflowing the viewport. */
-  .markdown table {
-    display: block;
-    width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
 
   /* Tighter heading scale on small screens. */
   .markdown h1 { font-size: 1.85rem; line-height: 1.15; }

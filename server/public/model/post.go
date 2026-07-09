@@ -97,6 +97,7 @@ const (
 	PostPropsGroupHighlightDisabled   = "disable_group_highlight"
 	PostPropsPreviewedPost            = "previewed_post"
 	PostPropsForceNotification        = "force_notification"
+	PostPropsSilentNotification       = "silent_notification"
 	PostPropsChannelMentions          = "channel_mentions"
 	PostPropsCurrentTeamId            = "current_team_id"
 	PostPropsUnsafeLinks              = "unsafe_links"
@@ -407,9 +408,12 @@ func (o *Post) EncodeJSON(w io.Writer) error {
 }
 
 type CreatePostFlags struct {
-	TriggerWebhooks   bool
-	SetOnline         bool
-	ForceNotification bool
+	TriggerWebhooks     bool
+	SetOnline           bool
+	ForceNotification   bool
+	SilentNotification  bool
+	FromIncomingWebhook bool
+	FromPlugin          bool
 	// AllowMmBlocksActions permits props.mm_blocks_actions on create. Set only
 	// by CreateWebhookPost — from_webhook is user-forgeable on the REST API.
 	AllowMmBlocksActions bool
@@ -589,7 +593,33 @@ func (o *Post) SanitizeProps() {
 	}
 	membersToSanitize := []string{
 		PropsAddChannelMember,
-		PostPropsForceNotification,
+	}
+
+	// Notification-policy markers (silent_notification, force_notification) are
+	// authorization-load-bearing: they change notification delivery for everyone
+	// in the channel, so they must be stripped on every locally-originated post-
+	// creation path. The server re-injects them in app.CreatePost under verified
+	// authority: silent_notification via isIntegrationPostAuthor, force_notification
+	// via the server-set CreatePostFlags.ForceNotification flag. For posts that
+	// arrived through Shared Channels federation (RemoteId is set by the receiving
+	// cluster, never by an API caller — see SanitizeInput), the origin cluster has
+	// already enforced its own integration-prop authority, so we preserve them to
+	// keep notification semantics consistent across federation.
+	//
+	// The from_* identity markers (from_webhook, from_bot, from_oauth_app,
+	// from_plugin) are render hints and remain user-settable under hardened-OFF
+	// (the default) for backward compatibility with the user-PAT-impersonation
+	// idiom (forge + override_username + override_icon_url). Hardened mode rejects
+	// from_webhook and from_plugin via ContainsIntegrationsReservedProps;
+	// from_bot and from_oauth_app are not currently in that reserved set. The
+	// full impersonation surface — these plus override_username/override_icon_url
+	// — is scheduled to default-strip in v12.
+	isFederated := o.RemoteId != nil && *o.RemoteId != ""
+	if !isFederated {
+		membersToSanitize = append(membersToSanitize,
+			PostPropsForceNotification,
+			PostPropsSilentNotification,
+		)
 	}
 
 	for _, member := range membersToSanitize {
@@ -599,6 +629,27 @@ func (o *Post) SanitizeProps() {
 	}
 	for _, p := range o.Participants {
 		p.Sanitize(map[string]bool{})
+	}
+}
+
+// postIdentityPropsPreservedOnUpdate are server-controlled markers re-applied after
+// SanitizeProps during UpdatePost so edits cannot strip integration identity.
+var postIdentityPropsPreservedOnUpdate = []string{
+	PostPropsSilentNotification,
+	PostPropsFromBot,
+	PostPropsFromWebhook,
+	PostPropsFromOAuthApp,
+	PostPropsFromPlugin,
+}
+
+func (o *Post) PreserveIdentityPropsFrom(old *Post) {
+	if o == nil || old == nil {
+		return
+	}
+	for _, key := range postIdentityPropsPreservedOnUpdate {
+		if v := old.GetProp(key); v != nil {
+			o.AddProp(key, v)
+		}
 	}
 }
 
@@ -629,6 +680,9 @@ func ContainsIntegrationsReservedProps(props StringInterface) []string {
 	if props != nil {
 		reservedProps := []string{
 			PostPropsFromWebhook,
+			PostPropsFromPlugin,
+			PostPropsSilentNotification,
+			PostPropsForceNotification,
 			PostPropsOverrideUsername,
 			PostPropsWebhookDisplayName,
 			PostPropsOverrideIconURL,
@@ -955,6 +1009,12 @@ func (o *Post) propsIsValid() error {
 		}
 	}
 
+	if props[PostPropsSilentNotification] != nil {
+		if _, ok := props[PostPropsSilentNotification].(bool); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("silent_notification prop must be a boolean"))
+		}
+	}
+
 	if props[PostPropsAIGeneratedByUserID] != nil {
 		if aiGenUserID, ok := props[PostPropsAIGeneratedByUserID].(string); !ok {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("ai_generated_by prop must be a string"))
@@ -990,6 +1050,44 @@ func (o *Post) propsIsValid() error {
 
 func (o *Post) IsSystemMessage() bool {
 	return len(o.Type) >= len(PostSystemMessagePrefix) && o.Type[:len(PostSystemMessagePrefix)] == PostSystemMessagePrefix
+}
+
+func (o *Post) HasForceNotification() bool {
+	switch v := o.GetProp(PostPropsForceNotification).(type) {
+	case bool:
+		return v
+	case string:
+		return v != ""
+	default:
+		return false
+	}
+}
+
+func (o *Post) HasSilentNotification() bool {
+	prop := o.GetProp(PostPropsSilentNotification)
+	if prop == nil {
+		return false
+	}
+	if silent, ok := prop.(bool); ok {
+		return silent
+	}
+	return false
+}
+
+// IsNotificationSuppressed reports whether the post should not trigger delivery-side
+// notifications (push, email, mention counts, CRT thread_updated). Force notification wins.
+func (o *Post) IsNotificationSuppressed() bool {
+	if o.HasForceNotification() {
+		return false
+	}
+	return o.HasSilentNotification()
+}
+
+// ExcludesFromChannelMessageCount reports whether the post should not advance channel message counts.
+// Mirrors IsNotificationSuppressed so force_notification overrides silent_notification consistently
+// across the notification and unread paths.
+func (o *Post) ExcludesFromChannelMessageCount() bool {
+	return o.IsJoinLeaveMessage() || o.IsNotificationSuppressed()
 }
 
 // IsRemote returns true if the post originated on a remote cluster.

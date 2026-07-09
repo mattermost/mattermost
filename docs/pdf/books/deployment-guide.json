@@ -23,7 +23,6 @@
     "/deployment-guide/server/linux/deploy-tar",
     "/deployment-guide/server/deploy-kubernetes",
     "/deployment-guide/server/kubernetes/deploy-k8s",
-    "/deployment-guide/server/kubernetes/deploy-k8s-aks",
     "/deployment-guide/server/kubernetes/deploy-k8s-oke",
     "/deployment-guide/server/deploy-containers",
     "/deployment-guide/server/containers/install-docker",

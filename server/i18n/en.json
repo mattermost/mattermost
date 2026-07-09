@@ -2997,6 +2997,14 @@
     "translation": "Invalid RootId parameter."
   },
   {
+    "id": "api.post.create_post.silent_notification.app_error",
+    "translation": "Only bot, webhook, OAuth app, and plugin posts can be delivered silently."
+  },
+  {
+    "id": "api.post.create_post.silent_persistent_notification.app_error",
+    "translation": "Silent posts cannot use persistent notifications."
+  },
+  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Error creating post."
   },
@@ -7913,6 +7921,18 @@
     "translation": "Could not update active status of access control policies."
   },
   {
+    "id": "app.pat_expiry_notify.dm",
+    "translation": "Your personal access token \"{{.Description}}\" will expire in {{.Days}} days or less. Open **Profile > Security** to regenerate it before it stops working."
+  },
+  {
+    "id": "app.pat_expiry_notify.dm_final",
+    "translation": "Your personal access token \"{{.Description}}\" will expire within 24 hours. Open **Profile > Security** to regenerate it before it stops working."
+  },
+  {
+    "id": "app.pat_expiry_notify.unnamed_token",
+    "translation": "(no description)"
+  },
+  {
     "id": "app.pdp.access_evaluation.app_error",
     "translation": "Failed evaluate access control policy."
   },
@@ -9699,6 +9719,10 @@
     "translation": "The personal access token has expired."
   },
   {
+    "id": "app.user_access_token.expired_deleted_notification",
+    "translation": "Your personal access token \"{{.Description}}\" has expired and been removed. Open **Profile → Security** to create a new token."
+  },
+  {
     "id": "app.user_access_token.expires_at_in_past.app_error",
     "translation": "The provided expires_at is in the past."
   },
@@ -9717,6 +9741,10 @@
   {
     "id": "app.user_access_token.get_by_user.app_error",
     "translation": "Unable to get the personal access tokens by user."
+  },
+  {
+    "id": "app.user_access_token.get_expiring.app_error",
+    "translation": "Unable to retrieve expiring personal access tokens."
   },
   {
     "id": "app.user_access_token.invalid_or_missing",

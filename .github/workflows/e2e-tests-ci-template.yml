@@ -126,7 +126,6 @@ jobs:
         shell: bash
     outputs:
       workers: "${{ steps.generate.outputs.workers }}"
-      node-cache-dependency-path: "${{ steps.generate.outputs.node-cache-dependency-path }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -138,11 +137,9 @@ jobs:
         id: generate
         env:
           WORKERS: ${{ inputs.workers_number }}
-          TEST: ${{ inputs.TEST }}
         run: |
           [ "$WORKERS" -gt "0" ] # Assert that the workers number is an integer greater than 0
           echo "workers="$(jq --slurp --compact-output '[range('"$WORKERS"')] | map(tostring)' /dev/null) >> $GITHUB_OUTPUT
-          echo "node-cache-dependency-path=e2e-tests/${TEST}/package-lock.json" >> $GITHUB_OUTPUT
 
   generate-test-cycle:
     permissions:
@@ -163,13 +160,13 @@ jobs:
           persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
+      - name: ci/restore-npm-cache
+        uses: ./.github/actions/restore-e2e-npm-cache
       - name: ci/setup-node
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         id: setup_node
         with:
           node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: "e2e-tests/cypress/package-lock.json" # NB: the generate-cycle script is cypress-specific operation for now
       - name: ci/e2e-test-gencycle
         id: e2e-test-gencycle
         env:
@@ -265,13 +262,13 @@ jobs:
           mkdir -p ~/.docker/cli-plugins
           ln -sfn /usr/local/opt/docker-compose/bin/docker-compose ~/.docker/cli-plugins/docker-compose
           sudo ln -sf $HOME/.colima/default/docker.sock /var/run/docker.sock
+      - name: ci/restore-npm-cache
+        uses: ./.github/actions/restore-e2e-npm-cache
       - name: ci/setup-node
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         id: setup_node
         with:
           node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: ${{ needs.generate-build-variables.outputs.node-cache-dependency-path }}
       - name: ci/e2e-test
         run: |
           make cloud-init
@@ -379,14 +376,15 @@ jobs:
           path: |
             e2e-tests/${{ inputs.TEST }}/logs/
             e2e-tests/${{ inputs.TEST }}/results/
+      - name: ci/restore-npm-cache
+        if: "${{ inputs.enable_reporting }}"
+        uses: ./.github/actions/restore-e2e-npm-cache
       - name: ci/setup-node
         if: "${{ inputs.enable_reporting }}"
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         id: setup_node
         with:
           node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: ${{ needs.generate-build-variables.outputs.node-cache-dependency-path }}
       - name: ci/publish-report
         if: "${{ inputs.enable_reporting }}"
         env:
