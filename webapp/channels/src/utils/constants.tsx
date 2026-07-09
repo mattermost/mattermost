@@ -1922,6 +1922,7 @@ export const Constants = {
         handlebars: {name: 'Handlebars', extensions: ['handlebars', 'hbs', 'html.hbs', 'html.handlebars'], aliases: ['hbs', 'mustache']},
         haskell: {name: 'Haskell', extensions: ['hs'], aliases: ['hs']},
         haxe: {name: 'Haxe', extensions: ['hx'], aliases: ['hx']},
+        hcl: {name: 'HCL', extensions: ['hcl', 'tf'], aliases: ['terraform', 'tf']},
         java: {name: 'Java', extensions: ['java', 'jsp']},
         javascript: {name: 'JavaScript', extensions: ['js', 'jsx'], aliases: ['js']},
         json: {name: 'JSON', extensions: ['json']},
