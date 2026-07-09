@@ -45,6 +45,15 @@ jobs:
         working-directory: docs/site
         run: npm ci
 
+      - name: cd/typecheck
+        # docusaurus build (next step) doesn't run tsc — it strips types via
+        # babel without validating them. docs-ci.yaml typechecks the same
+        # commit in parallel, but that's a separate, uncoupled workflow (see
+        # docs-cd's on/push trigger) — this guards against deploying anyway
+        # if CI fails or a required check is bypassed on master.
+        working-directory: docs/site
+        run: npm run typecheck
+
       - name: cd/build-docs-site
         # npm's prebuild lifecycle script regenerates sidebars and the OpenAPI
         # spec (via `make -C api build`) before docusaurus build runs.
