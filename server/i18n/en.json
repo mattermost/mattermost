@@ -7645,6 +7645,18 @@
     "translation": "Unable to send notification post."
   },
   {
+    "id": "app.notify_expiring_access_tokens.dm",
+    "translation": "Your personal access token \"{{.Description}}\" will expire in {{.Days}} days or less. Open **Profile > Security** to regenerate it before it stops working."
+  },
+  {
+    "id": "app.notify_expiring_access_tokens.dm_final",
+    "translation": "Your personal access token \"{{.Description}}\" will expire within 24 hours. Open **Profile > Security** to regenerate it before it stops working."
+  },
+  {
+    "id": "app.notify_expiring_access_tokens.unnamed_token",
+    "translation": "(no description)"
+  },
+  {
     "id": "app.oauth.delete_app.app_error",
     "translation": "An error occurred while deleting the OAuth2 App."
   },
@@ -7927,18 +7939,6 @@
   {
     "id": "app.pap.update_access_control_policies_active.app_error",
     "translation": "Could not update active status of access control policies."
-  },
-  {
-    "id": "app.pat_expiry_notify.dm",
-    "translation": "Your personal access token \"{{.Description}}\" will expire in {{.Days}} days or less. Open **Profile > Security** to regenerate it before it stops working."
-  },
-  {
-    "id": "app.pat_expiry_notify.dm_final",
-    "translation": "Your personal access token \"{{.Description}}\" will expire within 24 hours. Open **Profile > Security** to regenerate it before it stops working."
-  },
-  {
-    "id": "app.pat_expiry_notify.unnamed_token",
-    "translation": "(no description)"
   },
   {
     "id": "app.pdp.access_evaluation.app_error",

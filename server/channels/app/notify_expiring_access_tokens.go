@@ -12,6 +12,9 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
+// "PAT" throughout this file refers to the same entity as model.UserAccessToken;
+// see the package doc on jobs/notify_expiring_access_tokens for why the naming differs.
+
 // patExpiryNotifyBatchLimit bounds the number of tokens processed per run.
 // GetExpiringTokens returns only actionable rows (most urgent first), so this
 // caps work per run while a backlog larger than the limit drains across
@@ -25,7 +28,7 @@ var patExpiryThresholds = []int{1, 3, 7}
 
 // NotifyPersonalAccessTokensExpiring warns the owners of personal access tokens
 // that are approaching expiry, on a fixed 7 / 3 / 1 day cascade. It is invoked
-// hourly by the pat_expiry_notify job.
+// hourly by the notify_expiring_access_tokens job.
 //
 // Bot tokens and tokens owned by deactivated users are excluded by the store
 // query. For each remaining token this computes the current warning bucket,
@@ -40,7 +43,7 @@ func (a *App) NotifyPersonalAccessTokensExpiring() error {
 		return nil
 	}
 
-	rctx := request.EmptyContext(a.Log().With(mlog.String("component", "pat_expiry_notify")))
+	rctx := request.EmptyContext(a.Log().With(mlog.String("component", "notify_expiring_access_tokens")))
 
 	now := model.GetMillis()
 
@@ -125,7 +128,7 @@ func (a *App) sendPATExpiryNotification(rctx request.CTX, systemBot *model.Bot, 
 
 	description := token.Description
 	if description == "" {
-		description = T("app.pat_expiry_notify.unnamed_token")
+		description = T("app.notify_expiring_access_tokens.unnamed_token")
 	}
 
 	// The cascade is 7/3/1; the multi-day message is only ever rendered with a
@@ -133,11 +136,11 @@ func (a *App) sendPATExpiryNotification(rctx request.CTX, systemBot *model.Bot, 
 	// message, so neither string needs an awkward "day(s)" plural.
 	var message string
 	if bucket <= 1 {
-		message = T("app.pat_expiry_notify.dm_final", map[string]any{
+		message = T("app.notify_expiring_access_tokens.dm_final", map[string]any{
 			"Description": description,
 		})
 	} else {
-		message = T("app.pat_expiry_notify.dm", map[string]any{
+		message = T("app.notify_expiring_access_tokens.dm", map[string]any{
 			"Description": description,
 			"Days":        bucket,
 		})

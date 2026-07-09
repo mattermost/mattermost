@@ -346,7 +346,7 @@ func (s SqlUserAccessTokenStore) GetExpiringTokens(now int64, thresholds []int, 
 
 // UpdateLastNotifiedAt records the time (Unix milliseconds) at which the token
 // owner was most recently warned about the token's upcoming expiry, so the hourly
-// pat_expiry_notify job does not re-send the same warning on subsequent runs.
+// notify_expiring_access_tokens job does not re-send the same warning on subsequent runs.
 func (s SqlUserAccessTokenStore) UpdateLastNotifiedAt(tokenId string, notifiedAt int64) error {
 	if _, err := s.GetMaster().Exec("UPDATE UserAccessTokens SET LastNotifiedAt = ? WHERE Id = ?", notifiedAt, tokenId); err != nil {
 		return errors.Wrapf(err, "failed to update LastNotifiedAt for UserAccessToken with id=%s", tokenId)

@@ -51,13 +51,13 @@ func TestCreateJob(t *testing.T) {
 	})
 }
 
-func TestCreatePatExpiryNotifyJob(t *testing.T) {
+func TestCreateNotifyExpiringAccessTokensJob(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
 	th.LoginSystemManager(t)
 
-	job := &model.Job{Type: model.JobTypePatExpiryNotify}
+	job := &model.Job{Type: model.JobTypeNotifyExpiringAccessTokens}
 
 	t.Run("forbidden without manage_jobs permission", func(t *testing.T) {
 		_, resp, err := th.SystemManagerClient.CreateJob(context.Background(), job)
@@ -72,7 +72,7 @@ func TestCreatePatExpiryNotifyJob(t *testing.T) {
 			result, appErr := th.App.Srv().Store().Job().Delete(received.Id)
 			require.NoErrorf(t, appErr, "Failed to delete job (result: %v): %v", result, appErr)
 		}()
-		require.Equal(t, model.JobTypePatExpiryNotify, received.Type)
+		require.Equal(t, model.JobTypeNotifyExpiringAccessTokens, received.Type)
 	})
 }
 

@@ -59,7 +59,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/migrations"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/mobile_session_metadata"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/notify_admin"
-	"github.com/mattermost/mattermost/server/v8/channels/jobs/pat_expiry_notify"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/notify_expiring_access_tokens"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/plugins"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/post_persistent_notifications"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/product_notices"
@@ -1749,9 +1749,9 @@ func (s *Server) initJobs() {
 	)
 
 	s.Jobs.RegisterJobType(
-		model.JobTypePatExpiryNotify,
-		pat_expiry_notify.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())).NotifyPersonalAccessTokensExpiring),
-		pat_expiry_notify.MakeScheduler(s.Jobs),
+		model.JobTypeNotifyExpiringAccessTokens,
+		notify_expiring_access_tokens.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())).NotifyPersonalAccessTokensExpiring),
+		notify_expiring_access_tokens.MakeScheduler(s.Jobs),
 	)
 
 	s.Jobs.RegisterJobType(
