@@ -22,7 +22,7 @@ runs:
           ${{ runner.temp }}/go-cache/mod
           ${{ runner.temp }}/go-cache/build
           server/bin
-        key: gomod-v1-${{ hashFiles('server/.go-version') }}-${{ hashFiles('server/go.mod', 'server/go.sum', 'server/public/go.mod', 'server/public/go.sum', 'tools/mattermost-govet/go.sum') }}
+        key: gomod-v1-${{ hashFiles('server/.go-version') }}-${{ hashFiles('**/go.mod', '**/go.sum') }}
         # On a go.mod change, prefix-match the newest cache for this Go version
         # and download only the delta. The Go-version segment is never dropped:
         # build cache and tool binaries can't be reused across toolchains.
