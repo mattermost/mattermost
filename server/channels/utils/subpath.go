@@ -28,10 +28,6 @@ func getSubpathScript(subpath string) string {
 		return ""
 	}
 
-	if subpath == "" {
-		subpath = "/"
-	}
-
 	newPath := path.Join(subpath, "static") + "/"
 
 	return fmt.Sprintf("window.publicPath='%s'", newPath)
@@ -60,7 +56,7 @@ func GetScriptHash(script string) string {
 }
 
 // GetStaticScriptHashes computes the combined script-src additions required for the inline scripts injected
-// intl root.html to bypass CSP protections.
+// into root.html to bypass CSP protections.
 func GetStaticScriptHashes(subpath string, enableConcurrentReact bool) string {
 	return GetScriptHash(getSubpathScript(subpath)) + GetScriptHash(getConcurrentReactScript(enableConcurrentReact))
 }

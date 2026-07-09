@@ -59,10 +59,7 @@ function renderReactRootComponent() {
 
     if (window.enableConcurrentReact) {
         // eslint-disable-next-line no-console
-        console.log(
-            'Enabling concurrent React 18. To disable this, go to Settings > Advanced > Enable Concurrent React ' +
-            '(Experimental) or clear your browser storage.',
-        );
+        console.log('Enabling concurrent React 18 due to server-wide feature flag');
 
         // Enable this experimentally since it may cause other issues
         ReactDOMClient.createRoot(container).render(<App/>);
