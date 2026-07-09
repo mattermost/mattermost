@@ -18,6 +18,7 @@ export type IncomingWebhook = {
     username: string;
     icon_url: string;
     channel_locked: boolean;
+    bot_user_id: string;
 };
 
 export type IncomingWebhooksWithCount = {

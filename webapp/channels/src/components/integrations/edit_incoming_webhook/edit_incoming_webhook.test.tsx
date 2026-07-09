@@ -64,13 +64,16 @@ describe('components/integrations/EditIncomingWebhook', () => {
         icon_url: 'http://test/icon.png',
         channel_locked: false,
         last_used: 0,
+        bot_user_id: '',
     };
 
     const updateIncomingHook = jest.fn();
     const getIncomingHook = jest.fn();
+    const getBots = jest.fn();
     const actions = {
         updateIncomingHook: updateIncomingHook as (hook: IncomingWebhook) => Promise<ActionResult>,
         getIncomingHook: getIncomingHook as (hookId: string) => Promise<ActionResult>,
+        getBots,
     };
 
     const requiredProps = {
@@ -84,6 +87,7 @@ describe('components/integrations/EditIncomingWebhook', () => {
         enableIncomingWebhooks: true,
         enablePostUsernameOverride: true,
         enablePostIconOverride: true,
+        bots: [],
     };
 
     afterEach(() => {

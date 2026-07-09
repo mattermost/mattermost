@@ -16,16 +16,13 @@ import {getRandomId} from '@/utils';
 import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Incoming webhook', () => {
-    let sysadmin;
     let testTeam;
     let testChannel;
     let testUser;
     let incomingWebhook;
+    let systemBot;
 
     before(() => {
-        cy.apiGetMe().then(({user}) => {
-            sysadmin = user;
-        });
         cy.apiInitSetup().then(({team, channel, user}) => {
             testTeam = team;
             testChannel = channel;
@@ -40,6 +37,13 @@ describe('Incoming webhook', () => {
 
             cy.apiCreateWebhook(newHook).then((hook) => {
                 incomingWebhook = hook;
+
+                // Incoming webhook posts are now authored by the System Bot by default.
+                // Post once to ensure the System Bot exists, then capture it for assertions.
+                cy.postIncomingWebhook({url: hook.url, data: {channel: testChannel.name, text: `${getRandomId()} - create system bot`}});
+                cy.apiGetUsersByUsernames(['system-bot']).then(({users}) => {
+                    systemBot = users[0];
+                });
             });
         });
     });
@@ -91,11 +95,11 @@ describe('Incoming webhook', () => {
             // * Verify that another message is posted via incoming webhook
             cy.findByText(payload2.text).should('be.visible');
 
-            // * Verify that the username shown is of the webhook creator and override is not allowed.
-            cy.get('.post__header').find('.user-popover').should('have.text', sysadmin.username);
+            // * Verify that the username shown is the System Bot (the default post author) since override is not allowed.
+            cy.get('.post__header').find('.user-popover').should('have.text', systemBot.username);
 
-            // * Verify that the user icon shown is of the webhook creator and override is not allowed.
-            cy.get('.profile-icon > img').should('have.attr', 'src', `${Cypress.config('baseUrl')}/api/v4/users/${sysadmin.id}/image?_=0`);
+            // * Verify that the user icon shown is the System Bot's since override is not allowed.
+            cy.get('.profile-icon > img').should('have.attr', 'src', `${Cypress.config('baseUrl')}/api/v4/users/${systemBot.id}/image?_=${systemBot.last_picture_update || 0}`);
         });
 
         // * Verify previous webhook message if new setting is respected.
@@ -103,11 +107,11 @@ describe('Incoming webhook', () => {
             // * Verify that the post is from previous webhook message.
             cy.findByText(payload1.text).should('be.visible');
 
-            // * Verify that the username shown is updated as webhook creator and override didn't take effect.
-            cy.get('.post__header').find('.user-popover').should('have.text', sysadmin.username);
+            // * Verify that the username shown is updated to the System Bot and override didn't take effect.
+            cy.get('.post__header').find('.user-popover').should('have.text', systemBot.username);
 
-            // * Verify that the user icon shown is updated as webhook creator and override didn't take effect.
-            cy.get('.profile-icon > img').should('have.attr', 'src', `${Cypress.config('baseUrl')}/api/v4/users/${sysadmin.id}/image?_=0`);
+            // * Verify that the user icon shown is updated to the System Bot's and override didn't take effect.
+            cy.get('.profile-icon > img').should('have.attr', 'src', `${Cypress.config('baseUrl')}/api/v4/users/${systemBot.id}/image?_=${systemBot.last_picture_update || 0}`);
         });
     });
 });

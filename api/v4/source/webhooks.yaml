@@ -244,6 +244,51 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+  "/api/v4/hooks/incoming/{hook_id}/move/{user_id}":
+    post:
+      tags:
+        - webhooks
+      summary: Move an incoming webhook to a new owner
+      description: >
+        Transfer ownership of an incoming webhook to another user. The new owner
+        must be an active, non-bot user that can read the webhook's channel, and
+        cannot hold privileges the requester lacks. Post authorship (the bot the
+        webhook posts as) is unaffected.
+
+        ##### Permissions
+
+        `manage_others_incoming_webhooks` for the team the webhook is in.
+
+        __Minimum server version__: 11.9
+      operationId: MoveIncomingWebhook
+      parameters:
+        - name: hook_id
+          in: path
+          description: Incoming Webhook GUID
+          required: true
+          schema:
+            type: string
+        - name: user_id
+          in: path
+          description: The ID of the user to transfer ownership to
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Webhook ownership transfer successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncomingWebhook"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /api/v4/hooks/outgoing:
     post:
       tags:

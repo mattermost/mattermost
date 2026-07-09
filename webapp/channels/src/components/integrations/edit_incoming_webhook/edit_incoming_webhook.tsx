@@ -4,6 +4,7 @@
 import React from 'react';
 import {defineMessages} from 'react-intl';
 
+import type {Bot} from '@mattermost/types/bots';
 import type {IncomingWebhook} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
@@ -66,6 +67,11 @@ type Props = {
      */
     canBypassChannelLock?: boolean;
 
+    /**
+     * The bot accounts that can be selected as the post author.
+     */
+    bots: Bot[];
+
     actions: {
 
         /**
@@ -77,6 +83,11 @@ type Props = {
          * The function to call to get an incoming webhook
          */
         getIncomingHook: (hookId: string) => Promise<ActionResult>;
+
+        /**
+         * The function to load the available bot accounts.
+         */
+        getBots: () => void;
     };
 };
 
@@ -145,6 +156,8 @@ export default class EditIncomingWebhook extends React.PureComponent<Props, Stat
                 enablePostUsernameOverride={this.props.enablePostUsernameOverride}
                 enablePostIconOverride={this.props.enablePostIconOverride}
                 canBypassChannelLock={this.props.canBypassChannelLock}
+                bots={this.props.bots}
+                actions={this.props.actions}
                 action={this.editIncomingHook}
                 serverError={this.state.serverError}
                 initialHook={this.props.hook}

@@ -416,6 +416,78 @@ func (s *MmctlUnitTestSuite) TestModifyIncomingWebhookCmd() {
 	})
 }
 
+func (s *MmctlUnitTestSuite) TestMoveIncomingWebhookCmd() {
+	incomingWebhookID := "incomingWebhookID"
+	channelID := "channelID"
+	userID := "userID"
+	userName := "newowner"
+
+	s.Run("Successfully move incoming webhook", func() {
+		printer.Clean()
+
+		mockHook := model.IncomingWebhook{Id: incomingWebhookID, ChannelId: channelID}
+		mockUser := model.User{Id: userID, Username: userName}
+		movedHook := mockHook
+		movedHook.UserId = userID
+
+		s.client.
+			EXPECT().
+			GetIncomingWebhook(context.TODO(), incomingWebhookID, "").
+			Return(&mockHook, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), userName, "").
+			Return(&mockUser, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			MoveIncomingWebhook(context.TODO(), incomingWebhookID, userID).
+			Return(&movedHook, &model.Response{}, nil).
+			Times(1)
+
+		err := moveIncomingWebhookCmdF(s.client, &cobra.Command{}, []string{incomingWebhookID, userName})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Len(printer.GetErrorLines(), 0)
+		s.Require().Equal(&movedHook, printer.GetLines()[0])
+	})
+
+	s.Run("Move incoming webhook errored", func() {
+		printer.Clean()
+
+		mockHook := model.IncomingWebhook{Id: incomingWebhookID, ChannelId: channelID}
+		mockUser := model.User{Id: userID, Username: userName}
+		mockError := errors.New("mock error")
+
+		s.client.
+			EXPECT().
+			GetIncomingWebhook(context.TODO(), incomingWebhookID, "").
+			Return(&mockHook, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), userName, "").
+			Return(&mockUser, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			MoveIncomingWebhook(context.TODO(), incomingWebhookID, userID).
+			Return(nil, &model.Response{}, mockError).
+			Times(1)
+
+		err := moveIncomingWebhookCmdF(s.client, &cobra.Command{}, []string{incomingWebhookID, userName})
+		s.Require().Error(err)
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 1)
+		s.Require().Equal("Unable to move webhook '"+incomingWebhookID+"'", printer.GetErrorLines()[0])
+	})
+}
+
 func (s *MmctlUnitTestSuite) TestCreateOutgoingWebhookCmd() {
 	teamID := "teamID"
 	outgoingWebhookID := "outgoingWebhookID"

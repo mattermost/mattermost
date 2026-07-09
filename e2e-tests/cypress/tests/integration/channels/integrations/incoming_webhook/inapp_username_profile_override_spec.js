@@ -18,14 +18,10 @@ describe('Incoming webhook', () => {
 
     let testTeam;
     let testChannel;
-    let sysadmin;
+    let systemBot;
     let incomingWebhook;
 
     before(() => {
-        cy.apiGetMe().then(({user}) => {
-            sysadmin = user;
-        });
-
         cy.apiUpdateConfig({
             ServiceSettings: {
                 EnablePostUsernameOverride: true,
@@ -49,6 +45,14 @@ describe('Incoming webhook', () => {
                 incomingWebhook = hook;
 
                 editIncomingWebhook(incomingWebhook.id, team.name, inAppUsername, inAppIconURL);
+
+                // Incoming webhook posts are now authored by the System Bot by default,
+                // which is the integration the disclaimer attributes the post to. Post once
+                // to ensure the System Bot exists, then capture it for assertions.
+                cy.postIncomingWebhook({url: hook.url, data: {channel: channel.name, text: `${getRandomId()} - create system bot`}});
+                cy.apiGetUsersByUsernames(['system-bot']).then(({users}) => {
+                    systemBot = users[0];
+                });
             });
         });
     });
@@ -72,7 +76,7 @@ describe('Incoming webhook', () => {
         }));
 
         // * Verify that the username and profile icon are overridden per webhook payload
-        verifyLastPost(sysadmin, payload.username, payload.icon_url);
+        verifyLastPost(systemBot, payload.username, payload.icon_url);
     });
 
     it('MM-T621 Override username and profile picture - remove overrides from payload', () => {
@@ -90,7 +94,7 @@ describe('Incoming webhook', () => {
         }));
 
         // * Verify that the username and profile icon are based from webhook settings
-        verifyLastPost(sysadmin, inAppUsername, inAppIconURL);
+        verifyLastPost(systemBot, inAppUsername, inAppIconURL);
     });
 });
 
