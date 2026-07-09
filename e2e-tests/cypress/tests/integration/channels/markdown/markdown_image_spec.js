@@ -70,8 +70,8 @@ describe('Markdown', () => {
                 and('have.class', 'a11y--active').
                 and('have.attr', 'alt', 'Github').
                 and('have.attr', 'src', `${baseUrl}/api/v4/image?url=https%3A%2F%2Fgithub.githubassets.com%2Ffavicon.ico`).
-                and('have.css', 'height', '34px').
-                and('have.css', 'width', '34px');
+                and('have.css', 'height', '32px').
+                and('have.css', 'width', '32px');
         });
     });
 
@@ -107,8 +107,8 @@ describe('Markdown', () => {
         cy.uiGetPostBody().within(() => {
             cy.get('.markdown-inline-img').
                 should('be.visible').
-                and('have.css', 'height', '34px').
-                and('have.css', 'width', '34px').
+                and('have.css', 'height', '32px').
+                and('have.css', 'width', '32px').
                 click();
         });
 
