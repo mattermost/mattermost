@@ -110,7 +110,7 @@ test.describe('Post height', () => {
             },
             additionalCheck: async ({postComponent}) => {
                 // * Verify that the image has rendered
-                const image = postComponent.container.locator('.file-preview__button .small-image__container');
+                const image = postComponent.container.locator('.small-image__container');
                 await expect(image).toBeVisible();
             },
         },
@@ -134,7 +134,7 @@ test.describe('Post height', () => {
             },
             additionalCheck: async ({postComponent}) => {
                 // * Verify that the image has rendered
-                const image = postComponent.container.locator('.file-preview__button .small-image__container img');
+                const image = postComponent.container.locator('.small-image__container img');
                 await expect(image).toBeVisible();
             },
         },
@@ -146,7 +146,7 @@ test.describe('Post height', () => {
             },
             additionalCheck: async ({postComponent}) => {
                 // * Verify that the image has rendered
-                const image = postComponent.container.locator('.file-preview__button .small-image__container img');
+                const image = postComponent.container.locator('.small-image__container img');
                 await expect(image).toBeVisible();
             },
         },
@@ -376,6 +376,8 @@ test.describe('Post height', () => {
 
             // * Verify no height changes were detected
             expect(await sizeWatcher.getObservations()).toHaveLength(1);
+
+            // TODO screenshot the post
         });
     }
 

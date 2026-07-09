@@ -7,6 +7,7 @@ import type {RouteComponentProps} from 'react-router-dom';
 
 import {Button} from '@mattermost/shared/components/button';
 
+import AdvancedCreatePost from 'components/advanced_create_post';
 import {makeAsyncComponent} from 'components/async_load';
 import deferComponentRender from 'components/deferComponentRender';
 import {DropOverlayIdCenterChannel} from 'components/file_upload_overlay/file_upload_overlay';
@@ -22,7 +23,6 @@ import type {PropsFromRedux} from './index';
 const ChannelHeader = makeAsyncComponent('ChannelHeader', lazy(() => import('components/channel_header')));
 const FileUploadOverlay = makeAsyncComponent('FileUploadOverlay', lazy(() => import('components/file_upload_overlay')));
 const ChannelBookmarks = makeAsyncComponent('ChannelBookmarks', lazy(() => import('components/channel_bookmarks')));
-const AdvancedCreatePost = makeAsyncComponent('AdvancedCreatePost', lazy(() => import('components/advanced_create_post')));
 const ChannelBanner = makeAsyncComponent('ChannelBanner', lazy(() => import('components/channel_banner/channel_banner')));
 
 export type Props = PropsFromRedux & RouteComponentProps<{
