@@ -37,7 +37,7 @@ jobs:
             ${{ runner.temp }}/go-cache/mod
             ${{ runner.temp }}/go-cache/build
             server/bin
-          key: gomod-v1-${{ hashFiles('server/.go-version') }}-${{ hashFiles('server/go.mod', 'server/go.sum', 'server/public/go.mod', 'server/public/go.sum', 'tools/mattermost-govet/go.sum') }}
+          key: gomod-v1-${{ hashFiles('server/.go-version') }}-${{ hashFiles('**/go.mod', '**/go.sum') }}
           lookup-only: true
 
       - name: Warm cache inside build container
@@ -60,4 +60,4 @@ jobs:
             ${{ runner.temp }}/go-cache/mod
             ${{ runner.temp }}/go-cache/build
             server/bin
-          key: gomod-v1-${{ hashFiles('server/.go-version') }}-${{ hashFiles('server/go.mod', 'server/go.sum', 'server/public/go.mod', 'server/public/go.sum', 'tools/mattermost-govet/go.sum') }}
+          key: gomod-v1-${{ hashFiles('server/.go-version') }}-${{ hashFiles('**/go.mod', '**/go.sum') }}
