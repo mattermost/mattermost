@@ -141,6 +141,9 @@ type FeatureFlags struct {
 	MmBlocksEnabled bool
 
 	ChannelBookmarks bool
+
+	// Enable React concurrent rendering
+	EnableConcurrentReact bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -201,6 +204,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.MmBlocksEnabled = true
 
 	f.ChannelBookmarks = true
+
+	f.EnableConcurrentReact = false
 }
 
 // IsChannelPermissionPoliciesEnabled reports whether channel-scope
