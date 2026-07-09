@@ -3,12 +3,12 @@
 
 import type {Page} from '@playwright/test';
 
-export type SizeObservastion = {width: number; height: number; at: number};
+export type SizeObservation = {width: number; height: number; at: number};
 export type SizeWatcher = {
     /** Callback to clean up and remove the SizeWatcher */
     cleanup: () => Promise<void>;
     /** Returns an array of all height observations made since the last time the page loaded. */
-    getObservations: () => Promise<SizeObservastion[]>;
+    getObservations: () => Promise<SizeObservation[]>;
     /** Callback that returns true if the watched element has been found. */
     isWatchingElement: () => Promise<boolean>;
 };
@@ -24,7 +24,7 @@ export async function watchElementSize(page: Page, elementId: string): Promise<S
 
     type SizeWatcherInternal = {
         element?: Element;
-        observations: SizeObservastion[];
+        observations: SizeObservation[];
         mutationObserver?: MutationObserver;
         resizeObserver?: ResizeObserver;
     };

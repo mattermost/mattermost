@@ -100,7 +100,7 @@ const server = createServer((req, res) => {
     });
 });
 
-server.listen(PORT, '0.0.0.0', () => {
+server.listen(PORT, '127.0.0.1', () => {
     const address = server.address();
     const actualPort = typeof address === 'object' && address ? address.port : PORT;
     console.log(`File server serving ${ASSET_DIR} on port ${actualPort}!`);

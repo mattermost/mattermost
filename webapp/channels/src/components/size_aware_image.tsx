@@ -182,7 +182,9 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
     };
 
     handleImageClick = (e: MouseEvent<HTMLImageElement>) => {
-        this.props.onClick?.(e, this.props.src);
+        if (this.state.loaded) {
+            this.props.onClick?.(e, this.props.src);
+        }
     };
 
     onEnterKeyDown = (e: KeyboardEvent<HTMLImageElement>) => {
@@ -463,6 +465,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         return (
             <div
                 className='file-preview__button'
+                onClick={this.handleImageClick}
                 style={{display}}
             >
                 <figure
