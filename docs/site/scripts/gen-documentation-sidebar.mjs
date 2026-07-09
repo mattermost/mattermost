@@ -287,7 +287,6 @@ const DEPLOYMENT_GROUPS = {
       ]},
       {label: 'Install on Kubernetes', landing: 'server/deploy-kubernetes', items: [
         'server/kubernetes/deploy-k8s',
-        'server/kubernetes/deploy-k8s-aks',
         'server/kubernetes/deploy-k8s-oke',
       ]},
       {label: 'Install with Containers', landing: 'server/deploy-containers', items: [
