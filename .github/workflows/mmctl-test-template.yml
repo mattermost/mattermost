@@ -111,6 +111,7 @@ jobs:
             --env FIPS_ENABLED="$INPUT_FIPS_ENABLED" \
             --env GOMODCACHE=/gocache/mod \
             --env GOCACHE=/gocache/build \
+            --env GOBIN=/mattermost/server/bin \
             -v "${RUNNER_TEMP}/go-cache:/gocache" \
             -v $PWD:/mattermost \
             -w /mattermost/server \
