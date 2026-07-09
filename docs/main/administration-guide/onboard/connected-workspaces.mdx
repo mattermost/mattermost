@@ -16,7 +16,7 @@ The process of connecting Mattermost workspaces involves the following 5 steps:
 1.  Ensure that all Mattermost Enterprise servers are running v10.2 or later.
 2.  [Enable the connected workspaces functionality](#enable-connected-workspaces) for each Mattermost Enterprise instance you want to connect.
 3.  System admins must [create a secure and trusted connection](#create-a-secure-connection) with other Mattermost Enterprise instances using the System Console or slash commands. This process involves creating a password-protected, encrypted invitation, creating a strong decryption password, then sending the invitation and password to the admin of a remote Mattermost instance. From Mattermost v11.0, remote cluster invitations use PBKDF2 key derivation for enhanced security.
-4.  When a remote system admin receives the invitation, they must [accept the invitation](#accept-a-secure-connection-invitation) using the System Console or slash commands.
+4.  When a remote system admin receives the invitation, they must [accept the invitation](#accept-a-connection-invitation) using the System Console or slash commands.
 5.  Once a trusted relationship is established between 2 Mattermost servers, system admins or users with the **Shared Channel Manager** role can [share specific public or private channels](#share-channels-with-secure-connections) with secure connections.
 
 <Note>
@@ -166,7 +166,7 @@ To convert a read-only shared channel to a participation channel, remove the ori
 
 This slash command invites the shared connection to the current channel based on its `connectionID`.
 
-See [Reviewing Secure Connection Status](#review-secure-connection-status) to find the `connectionID` for a shared connection.
+See [Reviewing Secure Connection Status](#review-connection-status) to find the `connectionID` for a shared connection.
 
 </Tip>
 
