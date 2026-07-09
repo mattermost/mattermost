@@ -65,6 +65,7 @@ runs:
           -e HEAD_REF -e REF_NAME -e RUN_ID \
           -e GOMODCACHE=/gocache/mod \
           -e GOCACHE=/gocache/build \
+          -e GOBIN=/mattermost/server/bin \
           -v "${RUNNER_TEMP}/go-cache:/gocache" \
           -v "$PWD:/mattermost" \
           -v "${SCRIPT}:/run-script.sh" \
