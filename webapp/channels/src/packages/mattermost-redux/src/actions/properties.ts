@@ -68,7 +68,7 @@ export function fetchPropertyFields(
  * Patches a single property field's attrs and, on success, reconciles the
  * returned field into the Redux property fields state via an upsert.
  */
-export function patchSessionAttributeField(
+export function patchPropertyField(
     groupName: string,
     objectType: string,
     fieldId: string,

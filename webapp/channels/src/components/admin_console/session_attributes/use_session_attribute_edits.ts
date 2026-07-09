@@ -6,7 +6,7 @@ import {useDispatch} from 'react-redux';
 
 import {SESSION_ATTRIBUTES_GROUP_ID, SESSION_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties_user';
 
-import {patchSessionAttributeField} from 'mattermost-redux/actions/properties';
+import {patchPropertyField} from 'mattermost-redux/actions/properties';
 
 import {getSessionAttrs} from './utils';
 import type {SessionAttributeField} from './utils';
@@ -79,7 +79,7 @@ export function useSessionAttributeEdits(serverFields: SessionAttributeField[]):
         setServerError(null);
 
         const results = await Promise.allSettled(entries.map(([id, attrs]) =>
-            dispatch(patchSessionAttributeField(SESSION_ATTRIBUTES_GROUP_ID, SESSION_ATTRIBUTES_OBJECT_TYPE, id, {attrs})),
+            dispatch(patchPropertyField(SESSION_ATTRIBUTES_GROUP_ID, SESSION_ATTRIBUTES_OBJECT_TYPE, id, {attrs})),
         ));
 
         const saved: PendingMap = {};

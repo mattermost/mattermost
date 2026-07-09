@@ -6,7 +6,7 @@ import nock from 'nock';
 import type {PropertyField} from '@mattermost/types/properties';
 import type {GlobalState} from '@mattermost/types/store';
 
-import {fetchPropertyFields, patchSessionAttributeField} from 'mattermost-redux/actions/properties';
+import {fetchPropertyFields, patchPropertyField} from 'mattermost-redux/actions/properties';
 import {Client4} from 'mattermost-redux/client';
 
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
@@ -29,7 +29,7 @@ function makeField(id: string, attrs: Record<string, unknown>): PropertyField {
     } as unknown as PropertyField;
 }
 
-describe('Actions.patchSessionAttributeField', () => {
+describe('Actions.patchPropertyField', () => {
     const store = configureStore();
 
     beforeAll(() => {
@@ -47,7 +47,7 @@ describe('Actions.patchSessionAttributeField', () => {
             patch(`/properties/groups/${GROUP}/${OBJECT_TYPE}/fields/field-1`).
             reply(200, updated);
 
-        const result = await store.dispatch(patchSessionAttributeField(GROUP, OBJECT_TYPE, 'field-1', {attrs: {ttl_seconds: 3600}}));
+        const result = await store.dispatch(patchPropertyField(GROUP, OBJECT_TYPE, 'field-1', {attrs: {ttl_seconds: 3600}}));
 
         expect(result.data).toEqual(updated);
 
@@ -60,7 +60,7 @@ describe('Actions.patchSessionAttributeField', () => {
             patch(`/properties/groups/${GROUP}/${OBJECT_TYPE}/fields/field-missing`).
             reply(403, {message: 'forbidden'});
 
-        const result = await store.dispatch(patchSessionAttributeField(GROUP, OBJECT_TYPE, 'field-missing', {attrs: {enabled: false}}));
+        const result = await store.dispatch(patchPropertyField(GROUP, OBJECT_TYPE, 'field-missing', {attrs: {enabled: false}}));
 
         expect(result.error).toBeDefined();
 

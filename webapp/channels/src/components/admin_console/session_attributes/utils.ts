@@ -32,8 +32,6 @@ export const SERVER_SOURCED_NAMES = [
     'user_agent_browser_version',
 ] as const;
 
-export const DURATION_PRESETS_SECONDS = [30, 60, 300, 3600, 86400] as const;
-
 const DURATION_PRESET_LABELS: Record<number, string> = {
     30: '30s',
     60: '1m',
@@ -41,6 +39,9 @@ const DURATION_PRESET_LABELS: Record<number, string> = {
     3600: '1h',
     86400: '24h',
 };
+
+// Integer-like keys enumerate in ascending numeric order, so this stays sorted.
+export const DURATION_PRESETS_SECONDS = Object.keys(DURATION_PRESET_LABELS).map(Number);
 
 // Precedence: select options decide Boolean vs Enum; everything else is String.
 export function getDisplayType(field: SessionAttributeField): SessionAttributeDisplayType {
