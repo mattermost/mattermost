@@ -756,8 +756,13 @@
 
 .image-loading__container {
     position: relative;
+    display: inline-block;
     overflow: clip;
     max-height: inherit;
+
+    .image-loading__placeholder {
+        box-sizing: content-box;
+    }
 }
 
 .file-preview__button {

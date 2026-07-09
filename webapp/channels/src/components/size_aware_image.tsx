@@ -214,6 +214,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             fileURL,
             enablePublicLink,
             intl,
+            renderPlaceholderOnly,
             ...props
         } = this.props;
         Reflect.deleteProperty(props, 'showLoader');
@@ -226,7 +227,6 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         Reflect.deleteProperty(props, 'hideUtilities');
         Reflect.deleteProperty(props, 'getFilePublicLink');
         Reflect.deleteProperty(props, 'isFileRejected');
-        Reflect.deleteProperty(props, 'renderPlaceholderOnly');
         Reflect.deleteProperty(props, 'intl');
         Reflect.deleteProperty(props, 'style');
 
@@ -384,29 +384,14 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             );
         }
 
-        let containerClass;
-        let containerStyle;
-        if (this.props.handleSmallImageContainer && this.state.isSmallImage) {
-            containerClass = 'small-image__container cursor--pointer a11y--active';
-            if (this.state.imageWidth < MIN_IMAGE_SIZE) {
-                containerClass += ' small-image__container--min-width';
-            }
+        const shouldShowImg = !renderPlaceholderOnly && (!this.dimensionsAvailable(dimensions) || this.state.loaded);
 
-            containerStyle = this.state.imageWidth > MIN_IMAGE_SIZE ? {
-                width: this.state.imageWidth + 2, // 2px to account for the border
-            } : {};
-        } else {
-            containerClass = 'image-loaded-container';
-        }
-
-        return (
-            <figure
-                className={containerClass}
-                style={containerStyle}
-            >
+        return this.renderImageContainer(
+            <>
                 {image}
                 {utilityButtons}
-            </figure>
+            </>,
+            shouldShowImg ? 'block' : 'none',
         );
     };
 
@@ -434,73 +419,31 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             const shouldShowMiniPreview = !renderPlaceholderOnly && !this.props.isFileRejected;
             const miniPreview = shouldShowMiniPreview ? getFileMiniPreviewUrl(fileInfo) : null;
 
-            if (miniPreview) {
-                fallback = (
-                    <div
-                        className={'image-loading__container'}
-                        style={{backgroundColor: 'blue', display: 'inline-block'}}
-                    >
-                        <img
-                            aria-label={ariaLabelImage}
-                            className={this.props.className}
+            const fallbackSrc = miniPreview ?? emptyImageForDimensions(width, height);
 
-                            //     className={(this.props.handleSmallImageContainer &&
-                            // this.state.isSmallImage ? ' small-image--inside-container' : '')}
-                            src={miniPreview}
-                            tabIndex={0}
-                            height={height}
-                            width={width}
-                            style={{boxSizing: 'content-box'}}
-                        />
-                    </div>
-                );
-            } else {
-                fallback = (
-                    <div
-                        className={'image-loading__container'}
-                        style={{backgroundColor: 'red', display: 'inline-block'}}
-                    >
-                        <img
-                            aria-label={ariaLabelImage}
-                            className={this.props.className}
-
-                            //     className={(this.props.handleSmallImageContainer &&
-                            // this.state.isSmallImage ? ' small-image--inside-container' : '')}
-                            src={emptyImageForDimensions(width, height)}
-                            tabIndex={0}
-                            height={height}
-                            width={width}
-                            style={{boxSizing: 'content-box'}}
-                        />
-                    </div>
-                );
-            }
-
-            fallback = (
-                <div className='file-preview__button'>
-                    {this.renderContainer(fallback)}
-                </div>
+            fallback = this.renderImageContainer(
+                <div className={'image-loading__container'}>
+                    <img
+                        aria-label={ariaLabelImage}
+                        className={classNames('image-loading__placeholder', this.props.className)}
+                        src={fallbackSrc}
+                        tabIndex={0}
+                        height={height}
+                        width={width}
+                    />
+                </div>,
             );
         }
-
-        const shouldShowImg = !renderPlaceholderOnly && (!this.dimensionsAvailable(dimensions) || this.state.loaded);
 
         return (
             <>
                 {fallback}
-                {!renderPlaceholderOnly && (
-                    <div
-                        className='file-preview__button'
-                        style={{display: shouldShowImg ? 'block' : 'none'}}
-                    >
-                        {this.renderImageWithContainerIfNeeded()}
-                    </div>
-                )}
+                {!renderPlaceholderOnly && this.renderImageWithContainerIfNeeded()}
             </>
         );
     };
 
-    renderContainer = (children: React.ReactNode) => {
+    renderImageContainer = (children: React.ReactNode, display?: string) => {
         let containerClass;
         let containerStyle;
         if (this.props.handleSmallImageContainer && this.state.isSmallImage) {
@@ -517,12 +460,17 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         }
 
         return (
-            <figure
-                className={containerClass}
-                style={containerStyle}
+            <div
+                className='file-preview__button'
+                style={{display}}
             >
-                {children}
-            </figure>
+                <figure
+                    className={containerClass}
+                    style={containerStyle}
+                >
+                    {children}
+                </figure>
+            </div>
         );
     };
 
