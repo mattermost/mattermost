@@ -2,3 +2,4 @@
 // See LICENSE.txt for license information.
 
 export {default as AgentDropdown} from './agent_dropdown';
+export {default as useSelectedAgent} from './use_selected_agent';

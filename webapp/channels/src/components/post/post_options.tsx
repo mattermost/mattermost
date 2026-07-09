@@ -259,6 +259,7 @@ const PostOptions = (props: Props): JSX.Element => {
             <div className='col col__remove'>
                 <button
                     className='post__remove theme color--link style--none'
+                    data-testid='post-remove-button'
                     onClick={removePost}
                 >
                     {'×'}
@@ -270,7 +271,10 @@ const PostOptions = (props: Props): JSX.Element => {
     } else if (props.location === Locations.SEARCH) {
         const hasCRTFooter = props.collapsedThreadsEnabled && !post.root_id && (post.reply_count > 0 || post.is_following);
         options = (
-            <ul className='col__controls post-menu'>
+            <ul
+                className='col__controls post-menu'
+                data-testid={`post-menu-${props.post.id}`}
+            >
                 {dotMenu}
                 {flagIcon}
                 {props.canReply && !hasCRTFooter &&

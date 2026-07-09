@@ -36,11 +36,7 @@ type FeatureFlags struct {
 
 	MoveThreadsEnabled bool
 
-	StreamlinedMarketplace bool
-
 	CloudDedicatedExportUI bool
-
-	WebSocketEventScope bool
 
 	NotificationMonitoring bool
 
@@ -143,6 +139,8 @@ type FeatureFlags struct {
 
 	// Enable the new mm_blocks Interactive Messages framework
 	MmBlocksEnabled bool
+
+	ChannelBookmarks bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -156,9 +154,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.OnboardingTourTips = true
 	f.EnableExportDirectDownload = false
 	f.MoveThreadsEnabled = false
-	f.StreamlinedMarketplace = true
 	f.CloudDedicatedExportUI = false
-	f.WebSocketEventScope = true
 	f.NotificationMonitoring = true
 	f.ExperimentalAuditSettingsSystemConsoleUI = true
 	f.CustomProfileAttributes = true
@@ -203,6 +199,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PropertyFieldRank = true
 
 	f.MmBlocksEnabled = true
+
+	f.ChannelBookmarks = true
 }
 
 // IsChannelPermissionPoliciesEnabled reports whether channel-scope

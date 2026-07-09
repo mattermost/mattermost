@@ -8,7 +8,7 @@ import {expect, test} from '@mattermost/playwright-lib';
  * and correctly focuses the reply textbox, even when there are large messages with attachments from other users.
  */
 test(
-    'Keyboard shortcuts Shift+Up on center textbox opens the last post in the RHS and correctly focuses the reply textbox',
+    'MM-T1275 Keyboard shortcuts Shift+Up on center textbox opens the last post in the RHS and correctly focuses the reply textbox',
     {tag: '@keyboard_shortcuts'},
     async ({pw}, testInfo) => {
         const ROOT_MESSAGE = 'The root message for testing Shift+Up keyboard shortcut';

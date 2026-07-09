@@ -38,5 +38,6 @@ SEE ALSO
 
 * `mmctl channel <mmctl_channel.rst>`_ 	 - Management of channels
 * `mmctl channel users add <mmctl_channel_users_add.rst>`_ 	 - Add users to channel
+* `mmctl channel users list <mmctl_channel_users_list.rst>`_ 	 - List users of a channel
 * `mmctl channel users remove <mmctl_channel_users_remove.rst>`_ 	 - Remove users from channel
 

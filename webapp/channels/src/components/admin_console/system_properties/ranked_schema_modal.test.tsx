@@ -124,7 +124,7 @@ describe('RankedSchemaModal', () => {
 
         // The new value sits at the bottom (highest) and "High" is no longer the top rank.
         const allRows = rows();
-        expect(allRows).toHaveLength(4);
+        expect(allRows).toHaveLength(5);
         const last = allRows[3];
         expect(within(last).getByText('Critical')).toBeInTheDocument();
         expect(within(last).getByText('Highest')).toBeInTheDocument();
@@ -163,6 +163,6 @@ describe('RankedSchemaModal', () => {
         expect(screen.getByText('Values must be unique.')).toBeInTheDocument();
 
         await userEvent.keyboard('{enter}');
-        expect(rows()).toHaveLength(3);
+        expect(rows()).toHaveLength(4);
     });
 });
