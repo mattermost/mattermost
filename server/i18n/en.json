@@ -9691,6 +9691,10 @@
     "translation": "The personal access token has expired."
   },
   {
+    "id": "app.user_access_token.expired_deleted_notification",
+    "translation": "Your personal access token \"{{.Description}}\" has expired and been removed. Open **Profile → Security** to create a new token."
+  },
+  {
     "id": "app.user_access_token.expires_at_in_past.app_error",
     "translation": "The provided expires_at is in the past."
   },

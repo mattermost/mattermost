@@ -1744,7 +1744,7 @@ func (s *Server) initJobs() {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeCleanupExpiredAccessTokens,
-		cleanup_expired_access_tokens.MakeWorker(s.Jobs, s.platform.ClearUserSessionCache),
+		cleanup_expired_access_tokens.MakeWorker(s.Jobs, s.platform.ClearUserSessionCache, New(ServerConnector(s.Channels())).NotifyExpiredAccessTokensDeleted),
 		cleanup_expired_access_tokens.MakeScheduler(s.Jobs),
 	)
 
