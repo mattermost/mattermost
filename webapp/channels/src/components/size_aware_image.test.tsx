@@ -187,7 +187,7 @@ describe('components/SizeAwareImage', () => {
         const img = container.querySelector('img')!;
         simulateImageLoad(img, 24, 24);
 
-        const smallContainer = container.querySelector('div.small-image__container');
+        const smallContainer = container.querySelector('.small-image__container');
         expect(smallContainer).not.toBeNull();
         expect(smallContainer?.className).
             toEqual('small-image__container cursor--pointer a11y--active small-image__container--min-width');
@@ -205,9 +205,9 @@ describe('components/SizeAwareImage', () => {
         const img = container.querySelector('img')!;
         simulateImageLoad(img, 24, 24);
 
-        expect((container.querySelector('div.small-image__container') as HTMLElement)?.style.width).
+        expect((container.querySelector('.small-image__container') as HTMLElement)?.style.width).
             toEqual('');
-        expect(container.querySelector('div.small-image__container')?.classList.contains('small-image__container--min-width')).
+        expect(container.querySelector('.small-image__container')?.classList.contains('small-image__container--min-width')).
             toEqual(true);
     });
 
@@ -224,7 +224,7 @@ describe('components/SizeAwareImage', () => {
 
         // The component sets isSmallImage based on dimensions at construction time
         // since height=30 < MIN_IMAGE_SIZE=48, it will be a small image container
-        const smallContainer = container.querySelector('div.small-image__container');
+        const smallContainer = container.querySelector('.small-image__container');
         expect(smallContainer).not.toBeNull();
     });
 

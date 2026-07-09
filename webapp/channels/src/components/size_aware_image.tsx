@@ -336,12 +336,8 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             </WithTooltip>
         );
 
+        let utilityButtons;
         if (this.props.handleSmallImageContainer && this.state.isSmallImage) {
-            let className = 'small-image__container cursor--pointer a11y--active';
-            if (this.state.imageWidth < MIN_IMAGE_SIZE) {
-                className += ' small-image__container--min-width';
-            }
-
             // 24 is the offset on a 48px wide image, for every pixel added to the width of the image, it's added to the left offset to buttons
             const wideImageButtonsOffset = (24 + this.state.imageWidth) - MIN_IMAGE_SIZE;
 
@@ -360,36 +356,20 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                 left: `min(${wideImageButtonsOffset + (modifierCopyButton - modifierLargerWidth)}px, calc(100% - ${31 - (modifierCopyButton - modifierLargerWidth)}px)`,
             } : {};
 
-            const wideSmallImageStyle = this.state.imageWidth > MIN_IMAGE_SIZE ? {
-                width: this.state.imageWidth + 2, // 2px to account for the border
-            } : {};
-            return (
-                <div
-                    className='small-image-utility-buttons-wrapper'
+            utilityButtons = (
+                <span
+                    className={classNames('image-preview-utility-buttons-container', 'image-preview-utility-buttons-container--small-image', {
+                        'image-preview-utility-buttons-container--small-image-no-copy-button': !enablePublicLink,
+                    })}
+                    style={leftStyle}
                 >
-                    <div
-                        onClick={this.handleImageClick}
-                        className={classNames(className)}
-                        style={wideSmallImageStyle}
-                    >
-                        {image}
-                    </div>
-                    <span
-                        className={classNames('image-preview-utility-buttons-container', 'image-preview-utility-buttons-container--small-image', {
-                            'image-preview-utility-buttons-container--small-image-no-copy-button': !enablePublicLink,
-                        })}
-                        style={leftStyle}
-                    >
-                        {enablePublicLink && copyLink}
-                        {download}
-                    </span>
-                </div>
+                    {enablePublicLink && copyLink}
+                    {download}
+                </span>
             );
-        }
-
-        // handling external small images (OR) handling all large internal / large external images
-        const utilityButtonsWrapper = this.props.hideUtilities || (this.state.isSmallImage && !this.isInternalImage) ? null :
-            (
+        } else if (!this.props.hideUtilities && (!this.state.isSmallImage || this.isInternalImage)) {
+            // handling external small images (OR) handling all large internal / large external images
+            utilityButtons = (
                 <span
                     className={classNames('image-preview-utility-buttons-container', {
 
@@ -402,10 +382,30 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                     {download}
                 </span>
             );
+        }
+
+        let containerClass;
+        let containerStyle;
+        if (this.props.handleSmallImageContainer && this.state.isSmallImage) {
+            containerClass = 'small-image__container cursor--pointer a11y--active';
+            if (this.state.imageWidth < MIN_IMAGE_SIZE) {
+                containerClass += ' small-image__container--min-width';
+            }
+
+            containerStyle = this.state.imageWidth > MIN_IMAGE_SIZE ? {
+                width: this.state.imageWidth + 2, // 2px to account for the border
+            } : {};
+        } else {
+            containerClass = 'image-loaded-container';
+        }
+
         return (
-            <figure className={classNames('image-loaded-container')}>
+            <figure
+                className={containerClass}
+                style={containerStyle}
+            >
                 {image}
-                {utilityButtonsWrapper}
+                {utilityButtons}
             </figure>
         );
     };

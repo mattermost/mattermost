@@ -238,12 +238,8 @@
 
             .file-preview__button {
                 display: block;
-
-                &,
-                .small-image-utility-buttons-wrapper {
-                    max-width: 100%;
-                    max-height: $max-image-height;
-                }
+                max-width: 100%;
+                max-height: $max-image-height;
             }
 
             .image-permalink {
