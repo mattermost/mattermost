@@ -211,6 +211,7 @@ describe('notification_actions', () => {
                     body: '@username: Where is Jessica Hyde?',
                     requireInteraction: false,
                     silent: false,
+                    tag: 'post_id',
                     title: 'Utopia',
                     onClick: expect.any(Function),
                 });
@@ -358,6 +359,7 @@ describe('notification_actions', () => {
                     body: '@username: Where is Jessica Hyde?',
                     requireInteraction: false,
                     silent: false,
+                    tag: 'post_id',
                     title: 'Muted Channel',
                     onClick: expect.any(Function),
                 });
@@ -459,6 +461,7 @@ describe('notification_actions', () => {
                         body: '@username: Where is Jessica Hyde?',
                         requireInteraction: false,
                         silent: false,
+                        tag: 'post_id',
                         title: 'Reply in Utopia',
                         onClick: expect.any(Function),
                     });
