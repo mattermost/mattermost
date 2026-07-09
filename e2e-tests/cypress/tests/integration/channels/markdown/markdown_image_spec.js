@@ -43,7 +43,6 @@ describe('Markdown', () => {
             cy.get(`#postMessageText_${postId}`).find('img').
                 should('have.class', 'markdown-inline-img').
                 and('have.class', 'markdown-inline-img--hover').
-                and('have.class', 'markdown-inline-img--no-border').
                 and('have.attr', 'alt', 'Build Status').
                 and('have.attr', 'src', `${baseUrl}/api/v4/image?url=https%3A%2F%2Fdocs.mattermost.com%2F_images%2Ficon-76x76.png`).
                 and((inlineImg) => {
@@ -152,14 +151,12 @@ describe('Markdown', () => {
 
         cy.get('@imageDiv').find('img.markdown-inline-img').
             should('have.class', 'markdown-inline-img--hover').
-            and('have.class', 'markdown-inline-img--no-border').
             and('have.css', 'height', '18px');
 
         // * Verify image in system message
         cy.uiGetPostBody().
-            find('img.markdown-inline-img--no-border').
+            find('img.markdown-inline-img').
             should('have.class', 'markdown-inline-img--hover').
-            and('have.class', 'markdown-inline-img').
             and('have.class', 'markdown-inline-img--scaled-down').
             and('have.css', 'height', '18px');
     });

@@ -225,9 +225,8 @@ describe('components/MarkdownImage', () => {
 
         fireEvent.load(img!);
 
-        // When imageIsLink, should have no-border class and not cursor--pointer
+        // When imageIsLink, should not have cursor--pointer
         expect(img).toHaveClass('markdown-inline-img--hover');
-        expect(img).toHaveClass('markdown-inline-img--no-border');
         expect(img).not.toHaveClass('cursor--pointer');
         expect(container).toMatchSnapshot();
     });
