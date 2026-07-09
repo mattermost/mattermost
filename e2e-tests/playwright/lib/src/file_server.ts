@@ -15,11 +15,15 @@ import {test} from './test_fixture';
  * @returns A promise that resolves to the URL of the file server
  */
 export function setupFileServer(): Promise<string> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         let fileServer: ChildProcess;
 
         test.beforeAll(async () => {
-            resolve(await startFileServer());
+            try {
+                resolve(await startFileServer());
+            } catch (err) {
+                reject(err);
+            }
         });
 
         test.afterAll(() => {

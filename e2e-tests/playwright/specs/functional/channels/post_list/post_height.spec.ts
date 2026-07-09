@@ -411,7 +411,7 @@ test.describe('Post height', () => {
 
         // * Verify that the post has no replies
         await postComponent.toBeVisible();
-        expect(postComponent.threadFooter.container).not.toBeVisible();
+        await expect(postComponent.threadFooter.container).not.toBeVisible();
 
         // # Reply to the post from another client
         await userClient.createPost({

@@ -41,7 +41,15 @@ function setCorsHeaders(res) {
 
 const server = createServer((req, res) => {
     const method = req.method;
-    const requestPath = decodeURIComponent(req.url.split('?')[0]);
+    let requestPath;
+    try {
+        requestPath = decodeURIComponent(req.url.split('?')[0]);
+    } catch (err) {
+        console.log(`[mock-file-server] Invalid request URL ${req.url.split('?')[0]}:`, err);
+        res.writeHead(400);
+        res.end();
+        return;
+    }
 
     // Handle CORS preflight
     if (method === 'OPTIONS') {
