@@ -423,6 +423,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
 
             fallback = this.renderImageContainer(
                 <div className={'image-loading__container'}>
+                    {this.renderImageLoaderIfNeeded()}
                     <img
                         aria-label={ariaLabelImage}
                         className={classNames('image-loading__placeholder', this.props.className)}
