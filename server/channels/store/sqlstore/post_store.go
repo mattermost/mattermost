@@ -2217,6 +2217,12 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		// It also adds complexity as we would only need that index for CJK deployments.
 		baseQuery = s.buildCJKSearchClause(baseQuery, searchType, terms, excludedTerms, params.OrTerms)
 	} else {
+		// Preserve internal hyphens (e.g. "t-shirt") as compound-word searches,
+		// while neutralizing malformed hyphen usage that would otherwise be
+		// passed to to_tsquery.
+		terms = neutralizeNonWordHyphens(terms)
+		excludedTerms = neutralizeNonWordHyphens(excludedTerms)
+
 		// Parse text for wildcards
 		terms = wildCardRegex.ReplaceAllLiteralString(terms, ":* ")
 		excludedTerms = wildCardRegex.ReplaceAllLiteralString(excludedTerms, ":* ")
