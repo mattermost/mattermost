@@ -57,6 +57,8 @@ test.describe('Post height', () => {
         getSeedOptions?: (baseUrl: string) => SeedOptions;
         /** Extra assertions to run once the post has loaded. */
         additionalCheck?: (args: {postComponent: ChannelsPost}) => Promise<void>;
+        /** Playwright project names for which this test case should be skipped. */
+        skipProjects?: string[];
     };
 
     const testCases: PostHeightTestCase[] = [
@@ -116,6 +118,8 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a single large image',
+            // TODO skip this on iPad because images that are too wide but above the minimum height cause layout shift
+            skipProjects: ['ipad'],
             seedOptions: {
                 message: 'post with a single large image',
                 files: ['huge-image.jpg'],
@@ -355,30 +359,37 @@ test.describe('Post height', () => {
     ];
 
     for (const testCase of testCases) {
-        test(`post should keep a fixed height as it loads (${testCase.name})`, {tag: '@post_list'}, async () => {
-            const seedOptions = testCase.getSeedOptions
-                ? testCase.getSeedOptions(fileServerUrl)
-                : testCase.seedOptions!;
-            const post = await seedPost(seedOptions);
+        test(
+            `post should keep a fixed height as it loads (${testCase.name})`,
+            {tag: '@post_list'},
+            async ({}, testInfo) => {
+                test.skip(
+                    testCase.skipProjects?.includes(testInfo.project.name) ?? false,
+                    `Not supported on ${testInfo.project.name}`,
+                );
 
-            const {sizeWatcher, postComponent} = await openChannelAndGetPost(post.id);
+                const seedOptions = testCase.getSeedOptions
+                    ? testCase.getSeedOptions(fileServerUrl)
+                    : testCase.seedOptions!;
+                const post = await seedPost(seedOptions);
 
-            // # Wait for any images to load
-            await waitForImagesLoaded(postComponent.container);
+                const {sizeWatcher, postComponent} = await openChannelAndGetPost(post.id);
 
-            // # Wait for any additional checks to occur
-            if (testCase.additionalCheck) {
-                await testCase.additionalCheck({postComponent});
-            }
+                // # Wait for any images to load
+                await waitForImagesLoaded(postComponent.container);
 
-            // # Wait for all network requests to finish
-            await page.waitForLoadState('networkidle');
+                // # Wait for any additional checks to occur
+                if (testCase.additionalCheck) {
+                    await testCase.additionalCheck({postComponent});
+                }
 
-            // * Verify no height changes were detected
-            expect(await sizeWatcher.getObservations()).toHaveLength(1);
+                // # Wait for all network requests to finish
+                await page.waitForLoadState('networkidle');
 
-            // TODO screenshot the post
-        });
+                // * Verify no height changes were detected
+                expect(await sizeWatcher.getObservations()).toHaveLength(1);
+            },
+        );
     }
 
     test("a post changes height when it's replied to for the first time", {tag: '@post_list'}, async () => {

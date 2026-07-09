@@ -133,7 +133,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             linkCopiedRecently: false,
             linkCopyInProgress: false,
             error: false,
-            imageWidth: 0,
+            imageWidth: dimensions?.width ?? 0,
         };
 
         this.heightTimeout = 0;
@@ -437,34 +437,48 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             if (miniPreview) {
                 fallback = (
                     <div
-                        className={`image-loading__container ${this.props.className}`}
-                        style={{maxWidth: dimensions?.width}}
+                        className={'image-loading__container'}
+                        style={{backgroundColor: 'blue', display: 'inline-block'}}
                     >
                         <img
                             aria-label={ariaLabelImage}
-                            className={this.props.className}
+
+                            //     className={(this.props.handleSmallImageContainer &&
+                            // this.state.isSmallImage ? ' small-image--inside-container' : '')}
                             src={miniPreview}
                             tabIndex={0}
                             height={height}
                             width={width}
+                            style={{boxSizing: 'content-box'}}
                         />
                     </div>
                 );
             } else {
                 fallback = (
                     <div
-                        className={`image-loading__container ${this.props.className}`}
-                        style={{maxWidth: width}}
+                        className={'image-loading__container'}
+                        style={{backgroundColor: 'red', display: 'inline-block'}}
                     >
-                        {this.renderImageLoaderIfNeeded()}
-                        <svg
-                            xmlns='http://www.w3.org/2000/svg'
-                            viewBox={`0 0 ${width} ${height}`}
-                            style={{maxHeight: height, maxWidth: width, verticalAlign: 'middle'}}
+                        <img
+                            aria-label={ariaLabelImage}
+
+                            //     className={(this.props.handleSmallImageContainer &&
+                            // this.state.isSmallImage ? ' small-image--inside-container' : '')}
+                            src={emptyImageForDimensions(width, height)}
+                            tabIndex={0}
+                            height={height}
+                            width={width}
+                            style={{boxSizing: 'content-box'}}
                         />
                     </div>
                 );
             }
+
+            fallback = (
+                <div className='file-preview__button'>
+                    {this.renderContainer(fallback)}
+                </div>
+            );
         }
 
         const shouldShowImg = !renderPlaceholderOnly && (!this.dimensionsAvailable(dimensions) || this.state.loaded);
@@ -475,12 +489,38 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                 {!renderPlaceholderOnly && (
                     <div
                         className='file-preview__button'
-                        style={{display: shouldShowImg ? 'inline-block' : 'none'}}
+                        style={{display: shouldShowImg ? 'block' : 'none'}}
                     >
                         {this.renderImageWithContainerIfNeeded()}
                     </div>
                 )}
             </>
+        );
+    };
+
+    renderContainer = (children: React.ReactNode) => {
+        let containerClass;
+        let containerStyle;
+        if (this.props.handleSmallImageContainer && this.state.isSmallImage) {
+            containerClass = 'small-image__container cursor--pointer a11y--active';
+            if (this.state.imageWidth < MIN_IMAGE_SIZE) {
+                containerClass += ' small-image__container--min-width';
+            }
+
+            containerStyle = this.state.imageWidth > MIN_IMAGE_SIZE ? {
+                width: this.state.imageWidth + 2, // 2px to account for the border
+            } : {};
+        } else {
+            containerClass = 'image-loaded-container';
+        }
+
+        return (
+            <figure
+                className={containerClass}
+                style={containerStyle}
+            >
+                {children}
+            </figure>
         );
     };
 
@@ -525,6 +565,16 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             this.renderImageOrFallback()
         );
     }
+}
+
+// Returns a transparent SVG data URI with the given intrinsic dimensions. Used as the src of the
+// placeholder image so it reserves exactly the same space (once clamped by CSS) as the real image.
+// The viewBox is required in addition to width/height: without it Firefox doesn't give the SVG an
+// intrinsic aspect ratio when used as an <img>, so the placeholder collapses instead of reserving the
+// image's box (Chrome infers the ratio from width/height alone, but Firefox does not).
+function emptyImageForDimensions(width: number, height: number): string {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"/>`;
+    return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }
 
 export default injectIntl(SizeAwareImage);

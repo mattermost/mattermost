@@ -756,7 +756,7 @@
 
 .image-loading__container {
     position: relative;
-    overflow: hidden;
+    overflow: clip;
     max-height: inherit;
 }
 
