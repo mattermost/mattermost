@@ -13,12 +13,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 test(
     'MM-T483 triggers notification with uppercase channel-wide mention and highlights message for all users',
     {tag: '@notifications'},
-    async ({pw, headless, browserName}) => {
-        test.skip(
-            headless && browserName !== 'firefox',
-            'Works across browsers and devices, except in headless mode, where stubbing the Notification API is supported only in Firefox and WebKit.',
-        );
-
+    async ({pw}) => {
         // # Initialize setup and get the required users and team
         const {team, adminUser, user} = await pw.initSetup();
 

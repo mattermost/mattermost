@@ -5,7 +5,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 
 import {sendDemoSlashCommand, setupDemoPlugin} from '../../helpers';
 
-test.fixme('should toggle hooks on and off via /demo_plugin command', async ({pw}) => {
+test('should toggle hooks on and off via /demo_plugin command', async ({pw}) => {
     test.setTimeout(120000);
     // 1. Setup: install and activate the demo plugin
     const {adminClient, user, team} = await pw.initSetup();

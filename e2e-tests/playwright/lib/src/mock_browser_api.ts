@@ -31,7 +31,6 @@ declare global {
  * `stubNotification` intercepts the Notification API to capture notifications.
  *
  * Note:
- * - Works across browsers and devices, except in headless mode, where stubbing the Notification API is supported only in Firefox and WebKit.
  * - An `Error: page.evaluate: window.getNotifications is not a function` may occur if the `stubNotification` function is called before the page has fully loaded.
  *
  * @param page Page object
