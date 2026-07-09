@@ -6,9 +6,13 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {doPostActionWithQuery} from 'mattermost-redux/actions/posts';
+import type {PostActionIntegrationFormat} from '@mattermost/types/integration_actions';
+
+import {doPostActionWithCookie} from 'mattermost-redux/actions/posts';
 
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
+
+import {applyIntegrationGotoLocation} from 'utils/integration_navigation';
 
 import './inline_action_button.scss';
 
@@ -22,7 +26,7 @@ const INLINE_ACTION_TIMEOUT_MS = 15_000;
 // Mirrors the server-side action ID regex (model.mmBlocksActionIDRegex). An
 // invalid ID can never resolve to an mm_blocks_actions entry, so reject at
 // render time rather than emitting a dead button.
-const MMACTION_ID_REGEX = /^[A-Za-z0-9]+$/;
+const MMACTION_ID_REGEX = /^[A-Za-z0-9_-]+$/;
 
 // Cap the per-click params byte length so a crafted markdown link can't
 // trigger an oversized server request. Server-side ValidateActionQuery
@@ -40,11 +44,19 @@ type Props = {
     // text. Required when {children} is icon-only (otherwise the button
     // has no accessible name — WCAG 4.1.2).
     label?: string;
+
+    /**
+     * Encrypted mm_blocks_actions cookie from post.props. When set, clicks use
+     * doPostActionWithCookie with an empty cookie (server resolves from the post).
+     */
+    mmBlocksActionCookie?: string;
+
+    integrationFormat?: PostActionIntegrationFormat;
 };
 
 // parseMmactionHref extracts (actionId, query) from an mmaction:// URL,
 // applying the same validation the server enforces. Returns null if the URL
-// is malformed, has an unknown scheme, has a non-alphanumeric action ID, or
+// is malformed, has an unknown scheme, has an invalid action ID, or
 // exceeds the params length cap. The component renders {children} as plain
 // text when this returns null, so a malformed link degrades to readable text
 // rather than a broken button.
@@ -80,7 +92,7 @@ function parseMmactionHref(href: string): {actionId: string; query: Record<strin
     }
 }
 
-const InlineActionButton: React.FC<Props> = ({href, postId, children, label}) => {
+const InlineActionButton: React.FC<Props> = ({href, postId, children, label, mmBlocksActionCookie, integrationFormat = 'mm_block'}) => {
     const parsed = useMemo(() => parseMmactionHref(href), [href]);
 
     const [executing, setExecuting] = useState(false);
@@ -132,12 +144,15 @@ const InlineActionButton: React.FC<Props> = ({href, postId, children, label}) =>
         });
 
         try {
-            // Mirror the MessageAttachment.handleAction pattern: capture
-            // {error} from the thunk and surface it inline. The thunk's
-            // logError call is silent in production (no errorBarMode set),
-            // so without this the user has no feedback on a failed click.
             const result = await Promise.race([
-                dispatch(doPostActionWithQuery(postId, parsed.actionId, parsed.query)) as unknown as Promise<{error?: {message?: string}}>,
+                dispatch(doPostActionWithCookie(
+                    postId,
+                    parsed.actionId,
+                    mmBlocksActionCookie ?? '',
+                    '',
+                    parsed.query,
+                    integrationFormat ?? '',
+                )) as unknown as Promise<{error?: {message?: string}; data?: {goto_location?: string}}>,
                 timeoutPromise,
             ]);
             if (mountedRef.current && result?.error) {
@@ -156,6 +171,27 @@ const InlineActionButton: React.FC<Props> = ({href, postId, children, label}) =>
                         ),
                     );
                 }
+            } else if (
+                mountedRef.current &&
+                result &&
+                'data' in result &&
+                result.data?.goto_location
+            ) {
+                applyIntegrationGotoLocation(result.data.goto_location);
+            }
+        } catch {
+            if (mountedRef.current && !timedOut) {
+                setActionError(
+                    <FormattedMessage
+                        id='post.message_attachment.action_failed'
+                        defaultMessage='Action failed to execute'
+                    />,
+                );
+            } else if (mountedRef.current && timedOut) {
+                setActionError(formatMessage({
+                    id: 'inline_action_button.timeout',
+                    defaultMessage: 'Action timed out. Try again.',
+                }));
             }
         } finally {
             // The race may have resolved via timeout while the dispatch
@@ -170,7 +206,7 @@ const InlineActionButton: React.FC<Props> = ({href, postId, children, label}) =>
                 setExecuting(false);
             }
         }
-    }, [parsed, postId, dispatch, formatMessage]);
+    }, [parsed, postId, dispatch, formatMessage, mmBlocksActionCookie, integrationFormat]);
 
     // Malformed href (or empty postId): render the link body as plain text
     // so users see something readable rather than a broken button.

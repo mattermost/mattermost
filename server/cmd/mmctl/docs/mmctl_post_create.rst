@@ -9,7 +9,7 @@ Synopsis
 ~~~~~~~~
 
 
-Create a post
+Create a post in a channel or send a direct message to a user by prefixing the user with '@'.
 
 ::
 
@@ -21,6 +21,7 @@ Examples
 ::
 
     post create myteam:mychannel --message "some text for the post"
+    post create @target-user --message "some text for the direct message"
 
 Options
 ~~~~~~~

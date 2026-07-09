@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 export {makeClient} from './client';
+export {PlaywrightClient4} from './playwright_client';
 export {createRandomChannel} from './channel';
 export {getOnPremServerConfig, mergeWithOnPremServerConfig} from './default_config';
 export {initSetup, getAdminClient} from './init';
@@ -34,3 +35,4 @@ export {
     updateUserAttributes,
 } from './abac_helpers';
 export {installAndEnablePlugin, isPluginActive, getPluginStatus} from './plugin';
+export {isWebhookTestServerReachable, setupWebhookTestServer} from './webhook_server';

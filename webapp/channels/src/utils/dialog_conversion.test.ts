@@ -7,6 +7,7 @@ import type {DialogElement} from '@mattermost/types/integrations';
 import {
     convertDialogToAppForm,
     convertAppFormValuesToDialogSubmission,
+    convertElement,
     DialogElementTypes,
     extractPrimitiveValues,
     getDefaultValue,
@@ -1970,6 +1971,185 @@ describe('dialog_conversion', () => {
                 expect(submission).toEqual({
                     meeting_time: '2025-01-15T14:30:00Z',
                 });
+            });
+        });
+    });
+
+    describe('action_button element handling', () => {
+        const legacyOptions: ConversionOptions = {enhanced: false};
+
+        describe('getFieldType', () => {
+            it('should map action_button to AppFieldTypes.ACTION_BUTTON', () => {
+                expect(
+                    getFieldType({type: DialogElementTypes.ACTION_BUTTON} as DialogElement),
+                ).toBe('action_button');
+            });
+        });
+
+        describe('getDefaultValue', () => {
+            it('should return null for action_button elements', () => {
+                const element = {
+                    type: DialogElementTypes.ACTION_BUTTON,
+                    default: 'ignored',
+                } as DialogElement;
+                expect(getDefaultValue(element)).toBeNull();
+            });
+        });
+
+        describe('convertElement', () => {
+            it('should convert action_button element with url and context to AppField', () => {
+                const element = {
+                    name: 'my_button',
+                    display_name: 'My Button',
+                    type: DialogElementTypes.ACTION_BUTTON,
+                    optional: false,
+                    action_button: {
+                        url: 'https://example.com/action',
+                        context: {key1: 'value1', key2: 'value2'},
+                    },
+                } as unknown as DialogElement;
+
+                const {field, errors} = convertElement(element, legacyOptions);
+
+                expect(errors).toHaveLength(0);
+                expect(field).not.toBeNull();
+                expect(field?.type).toBe('action_button');
+                expect(field?.action_button_url).toBe('https://example.com/action');
+                expect(field?.action_button_context).toEqual({key1: 'value1', key2: 'value2'});
+            });
+
+            it('should set is_required to false for action_button regardless of optional flag', () => {
+                const requiredButton = {
+                    name: 'required_button',
+                    display_name: 'Required Button',
+                    type: DialogElementTypes.ACTION_BUTTON,
+                    optional: false,
+                    action_button: {url: 'https://example.com/action'},
+                } as DialogElement;
+
+                const optionalButton = {
+                    name: 'optional_button',
+                    display_name: 'Optional Button',
+                    type: DialogElementTypes.ACTION_BUTTON,
+                    optional: true,
+                    action_button: {url: 'https://example.com/action'},
+                } as DialogElement;
+
+                const {field: requiredField} = convertElement(requiredButton, legacyOptions);
+                const {field: optionalField} = convertElement(optionalButton, legacyOptions);
+
+                expect(requiredField?.is_required).toBe(false);
+                expect(optionalField?.is_required).toBe(false);
+            });
+
+            it('should not crash and leave action_button_url/context undefined when action_button object is absent', () => {
+                const element = {
+                    name: 'bare_button',
+                    display_name: 'Bare Button',
+                    type: DialogElementTypes.ACTION_BUTTON,
+                    optional: false,
+                } as DialogElement;
+
+                const {field, errors} = convertElement(element, legacyOptions);
+
+                expect(errors).toHaveLength(0);
+                expect(field).not.toBeNull();
+                expect(field?.type).toBe('action_button');
+                expect(field?.action_button_url).toBeUndefined();
+                expect(field?.action_button_context).toBeUndefined();
+            });
+        });
+
+        describe('convertDialogToAppForm', () => {
+            it('should include action_button field in the form', () => {
+                const elements: DialogElement[] = [
+                    {
+                        name: 'submit_button',
+                        display_name: 'Submit',
+                        type: DialogElementTypes.ACTION_BUTTON,
+                        optional: false,
+                        action_button: {
+                            url: 'https://example.com/submit',
+                            context: {token: 'abc123'},
+                        },
+                    } as unknown as DialogElement,
+                ];
+
+                const {form, errors} = convertDialogToAppForm(
+                    elements,
+                    'Test Dialog',
+                    undefined,
+                    undefined,
+                    undefined,
+                    '',
+                    '',
+                    legacyOptions,
+                );
+
+                expect(errors).toHaveLength(0);
+                expect(form.fields).toHaveLength(1);
+                expect(form.fields?.[0].type).toBe('action_button');
+                expect(form.fields?.[0].is_required).toBe(false);
+                expect(form.fields?.[0].action_button_url).toBe('https://example.com/submit');
+                expect(form.fields?.[0].action_button_context).toEqual({token: 'abc123'});
+            });
+        });
+
+        describe('convertAppFormValuesToDialogSubmission', () => {
+            it('should exclude action_button from submission values when value is present', () => {
+                const values = {
+                    my_button: 'clicked',
+                    text_field: 'hello',
+                } as unknown as AppFormValues;
+
+                const elements: DialogElement[] = [
+                    {
+                        name: 'my_button',
+                        display_name: 'My Button',
+                        type: DialogElementTypes.ACTION_BUTTON,
+                        optional: false,
+                        action_button: {url: 'https://example.com/action'},
+                    } as DialogElement,
+                    {
+                        name: 'text_field',
+                        display_name: 'Text Field',
+                        type: 'text',
+                        optional: false,
+                    } as DialogElement,
+                ];
+
+                const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                    values,
+                    elements,
+                    legacyOptions,
+                );
+
+                expect(errors).toHaveLength(0);
+                expect(submission).not.toHaveProperty('my_button');
+                expect(submission).toEqual({text_field: 'hello'});
+            });
+
+            it('should not include action_button in submission even when value is null/undefined', () => {
+                const values = {} as unknown as AppFormValues;
+
+                const elements: DialogElement[] = [
+                    {
+                        name: 'my_button',
+                        display_name: 'My Button',
+                        type: DialogElementTypes.ACTION_BUTTON,
+                        optional: true,
+                        action_button: {url: 'https://example.com/action'},
+                    } as DialogElement,
+                ];
+
+                const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                    values,
+                    elements,
+                    legacyOptions,
+                );
+
+                expect(errors).toHaveLength(0);
+                expect(submission).toEqual({});
             });
         });
     });

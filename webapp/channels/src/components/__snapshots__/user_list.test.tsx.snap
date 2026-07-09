@@ -29,6 +29,7 @@ exports[`components/UserList should match default snapshot when there are users 
       >
         <span
           class="profile-icon "
+          data-testid="profile-icon"
         >
           <img
             alt="some-user profile image"
@@ -82,6 +83,7 @@ exports[`components/UserList should match default snapshot when there are users 
       >
         <span
           class="profile-icon "
+          data-testid="profile-icon"
         >
           <img
             alt="some-user profile image"

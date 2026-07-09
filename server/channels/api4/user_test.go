@@ -6537,6 +6537,131 @@ func TestGetUserAccessTokens(t *testing.T) {
 	})
 }
 
+// seedNonCompliantTokens creates a mix of tokens for a user while no lifetime
+// policy is in effect (so never-expiring and far-future tokens can be saved),
+// plus a bot token, and returns the IDs of the tokens that should be considered
+// non-compliant once a 30-day policy is enabled.
+func seedNonCompliantTokens(t *testing.T, th *TestHelper) (nonCompliantIDs []string, compliantID string, botTokenID string) {
+	t.Helper()
+
+	day := int64(24 * 60 * 60 * 1000)
+
+	// Never-expiring token — non-compliant once a policy requires expiry.
+	noExpiry, appErr := th.App.CreateUserAccessToken(th.Context, &model.UserAccessToken{UserId: th.BasicUser.Id, Description: "no expiry"})
+	require.Nil(t, appErr)
+
+	// Far-future token beyond the 30-day cap — non-compliant.
+	farFuture, appErr := th.App.CreateUserAccessToken(th.Context, &model.UserAccessToken{UserId: th.BasicUser.Id, Description: "far future", ExpiresAt: model.GetMillis() + 60*day})
+	require.Nil(t, appErr)
+
+	// Token expiring within the cap — compliant, must survive.
+	compliant, appErr := th.App.CreateUserAccessToken(th.Context, &model.UserAccessToken{UserId: th.BasicUser.Id, Description: "compliant", ExpiresAt: model.GetMillis() + 10*day})
+	require.Nil(t, appErr)
+
+	// Bot token with no expiry — bots are exempt from the policy, must survive.
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableBotAccountCreation = true })
+	bot := th.CreateBotWithSystemAdminClient(t)
+	botToken, appErr := th.App.CreateUserAccessToken(th.Context, &model.UserAccessToken{UserId: bot.UserId, Description: "bot token"})
+	require.Nil(t, appErr)
+
+	return []string{noExpiry.Id, farFuture.Id}, compliant.Id, botToken.Id
+}
+
+func TestGetNonCompliantUserAccessTokenCount(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("forbidden for non-admin", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		_, resp, err := th.Client.GetNonCompliantUserAccessTokenCount(context.Background())
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("returns zero when no policy is configured", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+		seedNonCompliantTokens(t, th)
+
+		result, _, err := th.SystemAdminClient.GetNonCompliantUserAccessTokenCount(context.Background())
+		require.NoError(t, err)
+		assert.Equal(t, int64(0), result.Count)
+	})
+
+	t.Run("counts only non-compliant non-bot tokens", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+		seedNonCompliantTokens(t, th)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.MaximumPersonalAccessTokenLifetimeDays = 30 })
+
+		result, _, err := th.SystemAdminClient.GetNonCompliantUserAccessTokenCount(context.Background())
+		require.NoError(t, err)
+		assert.Equal(t, int64(2), result.Count)
+	})
+}
+
+func TestRevokeNonCompliantUserAccessTokens(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("forbidden for non-admin", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		_, resp, err := th.Client.RevokeNonCompliantUserAccessTokens(context.Background())
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("refused when no policy is configured", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+		seedNonCompliantTokens(t, th)
+
+		_, resp, err := th.SystemAdminClient.RevokeNonCompliantUserAccessTokens(context.Background())
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("revokes only non-compliant non-bot tokens", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+		nonCompliantIDs, compliantID, botTokenID := seedNonCompliantTokens(t, th)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.MaximumPersonalAccessTokenLifetimeDays = 30 })
+
+		result, _, err := th.SystemAdminClient.RevokeNonCompliantUserAccessTokens(context.Background())
+		require.NoError(t, err)
+		assert.Equal(t, int64(2), result.Count)
+
+		// Non-compliant tokens are gone.
+		for _, id := range nonCompliantIDs {
+			_, appErr := th.App.GetUserAccessToken(id, false)
+			require.NotNil(t, appErr)
+		}
+
+		// Compliant and bot tokens survive.
+		_, appErr := th.App.GetUserAccessToken(compliantID, false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.GetUserAccessToken(botTokenID, false)
+		require.Nil(t, appErr)
+
+		// A second run is now a no-op.
+		result, _, err = th.SystemAdminClient.RevokeNonCompliantUserAccessTokens(context.Background())
+		require.NoError(t, err)
+		assert.Equal(t, int64(0), result.Count)
+	})
+}
+
 func TestSearchUserAccessToken(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -6984,6 +7109,76 @@ func TestEnableUserAccessToken(t *testing.T) {
 			require.NoError(t, err)
 		})
 	})
+}
+
+func TestRevokeUserAccessTokenDeniesOAuthSession(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+
+	_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+	require.Nil(t, appErr)
+
+	token, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token", 0)
+	require.NoError(t, err)
+	assertToken(t, th, token, th.BasicUser.Id)
+
+	session, _ := th.App.GetSession(th.Client.AuthToken)
+	session.IsOAuth = true
+	th.App.AddSessionToCache(session)
+
+	resp, err := th.Client.RevokeUserAccessToken(context.Background(), token.Id)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+}
+
+func TestDisableUserAccessTokenDeniesOAuthSession(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+
+	_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+	require.Nil(t, appErr)
+
+	token, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token", 0)
+	require.NoError(t, err)
+	assertToken(t, th, token, th.BasicUser.Id)
+
+	session, _ := th.App.GetSession(th.Client.AuthToken)
+	session.IsOAuth = true
+	th.App.AddSessionToCache(session)
+
+	resp, err := th.Client.DisableUserAccessToken(context.Background(), token.Id)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+}
+
+func TestEnableUserAccessTokenDeniesOAuthSession(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+
+	_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+	require.Nil(t, appErr)
+
+	token, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "test token", 0)
+	require.NoError(t, err)
+	assertToken(t, th, token, th.BasicUser.Id)
+
+	_, err = th.Client.DisableUserAccessToken(context.Background(), token.Id)
+	require.NoError(t, err)
+	assertInvalidToken(t, th, token)
+
+	session, _ := th.App.GetSession(th.Client.AuthToken)
+	session.IsOAuth = true
+	th.App.AddSessionToCache(session)
+
+	resp, err := th.Client.EnableUserAccessToken(context.Background(), token.Id)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
 }
 
 func TestUserAccessTokenInactiveUser(t *testing.T) {

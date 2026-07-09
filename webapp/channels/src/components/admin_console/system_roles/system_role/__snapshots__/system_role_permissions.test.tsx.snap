@@ -25,6 +25,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
     >
       <div
         class="PermissionRow"
+        data-testid="permissionRow_about"
       >
         <div
           class="PermissionSection"
@@ -35,11 +36,13 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
           >
             <div
               class="PermissionSectionText_title"
+              data-testid="permissionSection-title"
             >
               About
             </div>
             <div
               class="PermissionSection_description"
+              data-testid="permissionSection-description"
             >
               The ability to install or upgrade your servers enterprise licensing.
             </div>
@@ -48,6 +51,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
             >
               <button
                 class="dropdown-toggle theme color--link style--none"
+                data-testid="permissionSubsectionsToggle-button"
               >
                 Show 1 subsections
                 <i
@@ -70,6 +74,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
               >
                 <div
                   class="PermissionSectionDropdownButton_text"
+                  data-testid="permissionDropdownButton-text"
                 >
                   No access
                 </div>
@@ -89,6 +94,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
       </div>
       <div
         class="PermissionRow"
+        data-testid="permissionRow_reporting"
       >
         <div
           class="PermissionSection"
@@ -99,11 +105,13 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
           >
             <div
               class="PermissionSectionText_title"
+              data-testid="permissionSection-title"
             >
               Reporting
             </div>
             <div
               class="PermissionSection_description"
+              data-testid="permissionSection-description"
             >
               Review site statistics, team statistics and server logs.
             </div>
@@ -112,6 +120,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
             >
               <button
                 class="dropdown-toggle theme color--link style--none"
+                data-testid="permissionSubsectionsToggle-button"
               >
                 Show 3 subsections
                 <i
@@ -134,6 +143,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
               >
                 <div
                   class="PermissionSectionDropdownButton_text"
+                  data-testid="permissionDropdownButton-text"
                 >
                   No access
                 </div>
@@ -153,6 +163,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
       </div>
       <div
         class="PermissionRow"
+        data-testid="permissionRow_user_management"
       >
         <div
           class="PermissionSection"
@@ -163,11 +174,13 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
           >
             <div
               class="PermissionSectionText_title"
+              data-testid="permissionSection-title"
             >
               User Management
             </div>
             <div
               class="PermissionSection_description"
+              data-testid="permissionSection-description"
             >
               Review users, groups, teams, channels, permissions and system roles.
             </div>
@@ -176,6 +189,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
             >
               <button
                 class="dropdown-toggle theme color--link style--none"
+                data-testid="permissionSubsectionsToggle-button"
               >
                 Show 6 subsections
                 <i
@@ -198,6 +212,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
               >
                 <div
                   class="PermissionSectionDropdownButton_text"
+                  data-testid="permissionDropdownButton-text"
                 >
                   No access
                 </div>
@@ -217,6 +232,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
       </div>
       <div
         class="PermissionRow"
+        data-testid="permissionRow_environment"
       >
         <div
           class="PermissionSection"
@@ -227,11 +243,13 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
           >
             <div
               class="PermissionSectionText_title"
+              data-testid="permissionSection-title"
             >
               Environment
             </div>
             <div
               class="PermissionSection_description"
+              data-testid="permissionSection-description"
             >
               Review server environment configuration such as URLs, database and performance.
             </div>
@@ -240,6 +258,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
             >
               <button
                 class="dropdown-toggle theme color--link style--none"
+                data-testid="permissionSubsectionsToggle-button"
               >
                 Show 14 subsections
                 <i
@@ -262,6 +281,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
               >
                 <div
                   class="PermissionSectionDropdownButton_text"
+                  data-testid="permissionDropdownButton-text"
                 >
                   No access
                 </div>
@@ -281,6 +301,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
       </div>
       <div
         class="PermissionRow"
+        data-testid="permissionRow_site"
       >
         <div
           class="PermissionSection"
@@ -291,11 +312,13 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
           >
             <div
               class="PermissionSectionText_title"
+              data-testid="permissionSection-title"
             >
               Site Configuration
             </div>
             <div
               class="PermissionSection_description"
+              data-testid="permissionSection-description"
             >
               Review site specific configurations such as site name, notification defaults and file sharing.
             </div>
@@ -304,6 +327,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
             >
               <button
                 class="dropdown-toggle theme color--link style--none"
+                data-testid="permissionSubsectionsToggle-button"
               >
                 Show 10 subsections
                 <i
@@ -326,6 +350,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
               >
                 <div
                   class="PermissionSectionDropdownButton_text"
+                  data-testid="permissionDropdownButton-text"
                 >
                   No access
                 </div>
@@ -345,6 +370,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
       </div>
       <div
         class="PermissionRow"
+        data-testid="permissionRow_authentication"
       >
         <div
           class="PermissionSection"
@@ -355,11 +381,13 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
           >
             <div
               class="PermissionSectionText_title"
+              data-testid="permissionSection-title"
             >
               Authentication
             </div>
             <div
               class="PermissionSection_description"
+              data-testid="permissionSection-description"
             >
               Review the configuration around how users can signup and access Mattermost.
             </div>
@@ -368,6 +396,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
             >
               <button
                 class="dropdown-toggle theme color--link style--none"
+                data-testid="permissionSubsectionsToggle-button"
               >
                 Show 8 subsections
                 <i
@@ -390,6 +419,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
               >
                 <div
                   class="PermissionSectionDropdownButton_text"
+                  data-testid="permissionDropdownButton-text"
                 >
                   No access
                 </div>
@@ -409,6 +439,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
       </div>
       <div
         class="PermissionRow"
+        data-testid="permissionRow_plugins"
       >
         <div
           class="PermissionSection"
@@ -419,11 +450,13 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
           >
             <div
               class="PermissionSectionText_title"
+              data-testid="permissionSection-title"
             >
               Plugins
             </div>
             <div
               class="PermissionSection_description"
+              data-testid="permissionSection-description"
             >
               Review installed plugins and their configuration.
             </div>
@@ -442,6 +475,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
               >
                 <div
                   class="PermissionSectionDropdownButton_text"
+                  data-testid="permissionDropdownButton-text"
                 >
                   Can edit
                 </div>
@@ -460,6 +494,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
       </div>
       <div
         class="PermissionRow"
+        data-testid="permissionRow_integrations"
       >
         <div
           class="PermissionSection"
@@ -470,11 +505,13 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
           >
             <div
               class="PermissionSectionText_title"
+              data-testid="permissionSection-title"
             >
               Integrations
             </div>
             <div
               class="PermissionSection_description"
+              data-testid="permissionSection-description"
             >
               Review integration configurations such as webhooks, bots and cross-origin requests.
             </div>
@@ -483,6 +520,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
             >
               <button
                 class="dropdown-toggle theme color--link style--none"
+                data-testid="permissionSubsectionsToggle-button"
               >
                 Show 4 subsections
                 <i
@@ -505,6 +543,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
               >
                 <div
                   class="PermissionSectionDropdownButton_text"
+                  data-testid="permissionDropdownButton-text"
                 >
                   No access
                 </div>
@@ -524,6 +563,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
       </div>
       <div
         class="PermissionRow"
+        data-testid="permissionRow_compliance"
       >
         <div
           class="PermissionSection"
@@ -534,11 +574,13 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
           >
             <div
               class="PermissionSectionText_title"
+              data-testid="permissionSection-title"
             >
               Compliance
             </div>
             <div
               class="PermissionSection_description"
+              data-testid="permissionSection-description"
             >
               Review compliance settings such as retention, exports and activity logs.
             </div>
@@ -547,6 +589,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
             >
               <button
                 class="dropdown-toggle theme color--link style--none"
+                data-testid="permissionSubsectionsToggle-button"
               >
                 Show 4 subsections
                 <i
@@ -569,6 +612,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
               >
                 <div
                   class="PermissionSectionDropdownButton_text"
+                  data-testid="permissionDropdownButton-text"
                 >
                   No access
                 </div>
@@ -588,6 +632,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
       </div>
       <div
         class="PermissionRow"
+        data-testid="permissionRow_experimental"
       >
         <div
           class="PermissionSection"
@@ -598,11 +643,13 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
           >
             <div
               class="PermissionSectionText_title"
+              data-testid="permissionSection-title"
             >
               Experimental
             </div>
             <div
               class="PermissionSection_description"
+              data-testid="permissionSection-description"
             >
               Review the settings of experimental features
             </div>
@@ -611,6 +658,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
             >
               <button
                 class="dropdown-toggle theme color--link style--none"
+                data-testid="permissionSubsectionsToggle-button"
               >
                 Show 2 subsections
                 <i
@@ -633,6 +681,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
               >
                 <div
                   class="PermissionSectionDropdownButton_text"
+                  data-testid="permissionDropdownButton-text"
                 >
                   No access
                 </div>
@@ -680,6 +729,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
     >
       <div
         class="PermissionRow"
+        data-testid="permissionRow_reporting"
       >
         <div
           class="PermissionSection"
@@ -690,11 +740,13 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
           >
             <div
               class="PermissionSectionText_title"
+              data-testid="permissionSection-title"
             >
               Reporting
             </div>
             <div
               class="PermissionSection_description"
+              data-testid="permissionSection-description"
             >
               Review site statistics, team statistics and server logs.
             </div>
@@ -703,6 +755,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
             >
               <button
                 class="dropdown-toggle theme color--link style--none"
+                data-testid="permissionSubsectionsToggle-button"
               >
                 Show 3 subsections
                 <i
@@ -725,6 +778,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
               >
                 <div
                   class="PermissionSectionDropdownButton_text"
+                  data-testid="permissionDropdownButton-text"
                 >
                   No access
                 </div>
@@ -744,6 +798,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
       </div>
       <div
         class="PermissionRow"
+        data-testid="permissionRow_user_management"
       >
         <div
           class="PermissionSection"
@@ -754,11 +809,13 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
           >
             <div
               class="PermissionSectionText_title"
+              data-testid="permissionSection-title"
             >
               User Management
             </div>
             <div
               class="PermissionSection_description"
+              data-testid="permissionSection-description"
             >
               Review users, groups, teams, channels, permissions and system roles.
             </div>
@@ -767,6 +824,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
             >
               <button
                 class="dropdown-toggle theme color--link style--none"
+                data-testid="permissionSubsectionsToggle-button"
               >
                 Show 6 subsections
                 <i
@@ -789,6 +847,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
               >
                 <div
                   class="PermissionSectionDropdownButton_text"
+                  data-testid="permissionDropdownButton-text"
                 >
                   No access
                 </div>
@@ -808,6 +867,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
       </div>
       <div
         class="PermissionRow"
+        data-testid="permissionRow_site"
       >
         <div
           class="PermissionSection"
@@ -818,11 +878,13 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
           >
             <div
               class="PermissionSectionText_title"
+              data-testid="permissionSection-title"
             >
               Site Configuration
             </div>
             <div
               class="PermissionSection_description"
+              data-testid="permissionSection-description"
             >
               Review site specific configurations such as site name, notification defaults and file sharing.
             </div>
@@ -831,6 +893,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
             >
               <button
                 class="dropdown-toggle theme color--link style--none"
+                data-testid="permissionSubsectionsToggle-button"
               >
                 Show 10 subsections
                 <i
@@ -853,6 +916,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
               >
                 <div
                   class="PermissionSectionDropdownButton_text"
+                  data-testid="permissionDropdownButton-text"
                 >
                   No access
                 </div>
@@ -872,6 +936,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
       </div>
       <div
         class="PermissionRow"
+        data-testid="permissionRow_authentication"
       >
         <div
           class="PermissionSection"
@@ -882,11 +947,13 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
           >
             <div
               class="PermissionSectionText_title"
+              data-testid="permissionSection-title"
             >
               Authentication
             </div>
             <div
               class="PermissionSection_description"
+              data-testid="permissionSection-description"
             >
               Review the configuration around how users can signup and access Mattermost.
             </div>
@@ -895,6 +962,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
             >
               <button
                 class="dropdown-toggle theme color--link style--none"
+                data-testid="permissionSubsectionsToggle-button"
               >
                 Show 8 subsections
                 <i
@@ -917,6 +985,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
               >
                 <div
                   class="PermissionSectionDropdownButton_text"
+                  data-testid="permissionDropdownButton-text"
                 >
                   No access
                 </div>
@@ -936,6 +1005,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
       </div>
       <div
         class="PermissionRow"
+        data-testid="permissionRow_plugins"
       >
         <div
           class="PermissionSection"
@@ -946,11 +1016,13 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
           >
             <div
               class="PermissionSectionText_title"
+              data-testid="permissionSection-title"
             >
               Plugins
             </div>
             <div
               class="PermissionSection_description"
+              data-testid="permissionSection-description"
             >
               Review installed plugins and their configuration.
             </div>
@@ -969,6 +1041,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
               >
                 <div
                   class="PermissionSectionDropdownButton_text"
+                  data-testid="permissionDropdownButton-text"
                 >
                   Can edit
                 </div>
@@ -987,6 +1060,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
       </div>
       <div
         class="PermissionRow"
+        data-testid="permissionRow_integrations"
       >
         <div
           class="PermissionSection"
@@ -997,11 +1071,13 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
           >
             <div
               class="PermissionSectionText_title"
+              data-testid="permissionSection-title"
             >
               Integrations
             </div>
             <div
               class="PermissionSection_description"
+              data-testid="permissionSection-description"
             >
               Review integration configurations such as webhooks, bots and cross-origin requests.
             </div>
@@ -1010,6 +1086,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
             >
               <button
                 class="dropdown-toggle theme color--link style--none"
+                data-testid="permissionSubsectionsToggle-button"
               >
                 Show 4 subsections
                 <i
@@ -1032,6 +1109,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
               >
                 <div
                   class="PermissionSectionDropdownButton_text"
+                  data-testid="permissionDropdownButton-text"
                 >
                   No access
                 </div>
@@ -1051,6 +1129,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
       </div>
       <div
         class="PermissionRow"
+        data-testid="permissionRow_compliance"
       >
         <div
           class="PermissionSection"
@@ -1061,11 +1140,13 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
           >
             <div
               class="PermissionSectionText_title"
+              data-testid="permissionSection-title"
             >
               Compliance
             </div>
             <div
               class="PermissionSection_description"
+              data-testid="permissionSection-description"
             >
               Review compliance settings such as retention, exports and activity logs.
             </div>
@@ -1074,6 +1155,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
             >
               <button
                 class="dropdown-toggle theme color--link style--none"
+                data-testid="permissionSubsectionsToggle-button"
               >
                 Show 4 subsections
                 <i
@@ -1096,6 +1178,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
               >
                 <div
                   class="PermissionSectionDropdownButton_text"
+                  data-testid="permissionDropdownButton-text"
                 >
                   No access
                 </div>
@@ -1115,6 +1198,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
       </div>
       <div
         class="PermissionRow"
+        data-testid="permissionRow_experimental"
       >
         <div
           class="PermissionSection"
@@ -1125,11 +1209,13 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
           >
             <div
               class="PermissionSectionText_title"
+              data-testid="permissionSection-title"
             >
               Experimental
             </div>
             <div
               class="PermissionSection_description"
+              data-testid="permissionSection-description"
             >
               Review the settings of experimental features
             </div>
@@ -1138,6 +1224,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
             >
               <button
                 class="dropdown-toggle theme color--link style--none"
+                data-testid="permissionSubsectionsToggle-button"
               >
                 Show 2 subsections
                 <i
@@ -1160,6 +1247,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
               >
                 <div
                   class="PermissionSectionDropdownButton_text"
+                  data-testid="permissionDropdownButton-text"
                 >
                   No access
                 </div>

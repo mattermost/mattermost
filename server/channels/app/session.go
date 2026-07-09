@@ -4,12 +4,14 @@
 package app
 
 import (
+	"context"
 	"crypto/subtle"
 	"errors"
 	"math"
 	"net/http"
 	"os"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -182,8 +184,75 @@ func (a *App) GetLRUSessions(rctx request.CTX, userID string, limit uint64, offs
 	return sessions, nil
 }
 
+func (a *App) sendMobileWipeSignal(rctx request.CTX, sessions ...*model.Session) {
+	// detach from request context and runs async after the caller returns
+	rctx = rctx.WithContext(context.Background())
+
+	if !model.SafeDereference(a.Config().MobileEphemeralModeSettings.Enable) {
+		return
+	}
+
+	if !a.canSendPushNotifications() {
+		rctx.Logger().Warn("Cannot send mobile wipe signal because push notifications are disabled")
+		return
+	}
+
+	for _, session := range sessions {
+		if session.DeviceId == "" || session.DeviceId == session.Props[model.SessionPropLastRemovedDeviceId] {
+			continue
+		}
+
+		// Send an empty push notification of type Session that will cause apps to terminate sessions and wipe data.
+		// ContentAvailable and SoundNone are set to trigger a silent notification that wakes up
+		// the app in the background without alerting the user.
+		msg := &model.PushNotification{
+			Version:          model.PushMessageV2,
+			Type:             model.PushTypeSession,
+			ContentAvailable: 1,
+			Sound:            model.PushSoundNone,
+		}
+
+		msg.SetDeviceIdAndPlatform(session.DeviceId)
+		msg.AckId = model.NewId()
+		signature, signErr := jwt.NewWithClaims(jwt.SigningMethodES256, pushJWTClaims{
+			AckId:    msg.AckId,
+			DeviceId: msg.DeviceId,
+		}).SignedString(a.AsymmetricSigningKey())
+		if signErr != nil {
+			rctx.Logger().Warn("Failed to sign session wipe push", mlog.String("session_id", session.Id), mlog.Err(signErr))
+			continue
+		}
+		msg.Signature = signature
+		msg.ServerId = a.ServerId()
+		pushResponse, sendErr := a.rawSendToPushProxy(msg)
+
+		reason := model.NotificationReasonPushProxySendError
+		switch pushResponse[model.PushStatus] {
+		case model.PushStatusRemove:
+			reason = model.NotificationReasonPushProxyRemoveDevice
+			sendErr = errors.New(notificationErrorRemoveDevice)
+		case model.PushStatusFail:
+			sendErr = errors.New(pushResponse[model.PushStatusErrorMsg])
+		}
+
+		if sendErr != nil {
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, reason, msg.Platform)
+			rctx.Logger().Warn("Failed to send session wipe push",
+				mlog.String("session_id", session.Id),
+				mlog.String("reason", reason),
+				mlog.Err(sendErr))
+			continue
+		}
+
+		if a.Metrics() != nil {
+			a.Metrics().IncrementPostSentPush()
+		}
+	}
+}
+
 func (a *App) RevokeAllSessions(rctx request.CTX, userID string) *model.AppError {
-	if err := a.ch.srv.platform.RevokeAllSessions(rctx, userID); err != nil {
+	sessions, err := a.ch.srv.platform.RevokeAllSessions(rctx, userID)
+	if err != nil {
 		switch {
 		case errors.Is(err, platform.GetSessionError):
 			return model.NewAppError("RevokeAllSessions", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -193,6 +262,10 @@ func (a *App) RevokeAllSessions(rctx request.CTX, userID string) *model.AppError
 			return model.NewAppError("RevokeAllSessions", "app.session.remove.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
+
+	a.Srv().Go(func() {
+		a.sendMobileWipeSignal(rctx, sessions...)
+	})
 
 	return nil
 }
@@ -205,7 +278,19 @@ func (a *App) AddSessionToCache(session *model.Session) {
 
 // RevokeSessionsFromAllUsers will go through all the sessions active
 // in the server and revoke them
-func (a *App) RevokeSessionsFromAllUsers() *model.AppError {
+func (a *App) RevokeSessionsFromAllUsers(rctx request.CTX) *model.AppError {
+	// When Mobile Ephemeral Mode is enabled, fetch sessions with active device ids
+	// before revoking them, so we can send wipe signals to the correct devices.
+	var sessionsWithActiveDevices []*model.Session
+	if model.SafeDereference(a.Config().MobileEphemeralModeSettings.Enable) {
+		var err error
+		// Sessions created between this fetch and the deletion below are revoked but won't receive a wipe signal.
+		sessionsWithActiveDevices, err = a.Srv().Store().Session().GetAllSessionsWithActiveDeviceIds()
+		if err != nil {
+			return model.NewAppError("RevokeSessionsFromAllUsers", "app.session.remove_all_sessions_for_team.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
 	if err := a.ch.srv.platform.RevokeSessionsFromAllUsers(); err != nil {
 		switch {
 		case errors.Is(err, users.DeleteAllAccessDataError):
@@ -214,6 +299,10 @@ func (a *App) RevokeSessionsFromAllUsers() *model.AppError {
 			return model.NewAppError("RevokeSessionsFromAllUsers", "app.session.remove_all_sessions_for_team.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
+
+	a.Srv().Go(func() {
+		a.sendMobileWipeSignal(rctx, sessionsWithActiveDevices...)
+	})
 
 	return nil
 }
@@ -287,6 +376,10 @@ func (a *App) RevokeSession(rctx request.CTX, session *model.Session) *model.App
 			return model.NewAppError("RevokeSession", "app.session.remove.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
+
+	a.Srv().Go(func() {
+		a.sendMobileWipeSignal(rctx, session)
+	})
 
 	return nil
 }
@@ -604,6 +697,102 @@ func (a *App) RevokeUserAccessToken(rctx request.CTX, token *model.UserAccessTok
 	}
 
 	return a.RevokeSession(rctx, session)
+}
+
+// revokeNonCompliantBatchLimit bounds both the number of rows fetched by
+// GetNonCompliantExpiry and the corresponding DeleteByIds call, keeping the
+// transaction footprint bounded even when a large number of tokens are
+// non-compliant. revokeNonCompliantMaxBatches caps the iterations of a single
+// revoke call so a runaway loop can't develop.
+const (
+	revokeNonCompliantBatchLimit = 1000
+	revokeNonCompliantMaxBatches = 1000
+)
+
+// maxPersonalAccessTokenExpiry returns the latest ExpiresAt a token may carry to
+// comply with the current ServiceSettings.MaximumPersonalAccessTokenLifetimeDays
+// policy, along with whether a policy is in effect. When no maximum is
+// configured (0), no policy applies and every token is compliant.
+func (a *App) maxPersonalAccessTokenExpiry() (maxExpiresAt int64, enabled bool) {
+	cfg := a.Config().ServiceSettings
+
+	maxDays := int64(0)
+	if cfg.MaximumPersonalAccessTokenLifetimeDays != nil {
+		maxDays = int64(*cfg.MaximumPersonalAccessTokenLifetimeDays)
+	}
+
+	if maxDays <= 0 {
+		return 0, false
+	}
+
+	return model.GetMillis() + maxDays*24*60*60*1000, true
+}
+
+// CountNonCompliantUserAccessTokens returns the number of active, non-bot
+// personal access tokens that violate the current maximum lifetime policy. It
+// lets an admin preview the blast radius before revoking. When no policy is in
+// effect it returns 0 — nothing is non-compliant.
+func (a *App) CountNonCompliantUserAccessTokens() (int64, *model.AppError) {
+	maxExpiresAt, enabled := a.maxPersonalAccessTokenExpiry()
+	if !enabled {
+		return 0, nil
+	}
+
+	count, err := a.Srv().Store().UserAccessToken().CountNonCompliantExpiry(maxExpiresAt)
+	if err != nil {
+		return 0, model.NewAppError("CountNonCompliantUserAccessTokens", "app.user_access_token.count_non_compliant.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return count, nil
+}
+
+// RevokeNonCompliantUserAccessTokens hard-deletes every active, non-bot personal
+// access token that violates the current maximum lifetime policy, along with any
+// sessions minted from them. It returns the number of tokens actually deleted.
+// Work is done in bounded batches to keep transactions small, and the per-user
+// session cache is cleared so stale sessions aren't served from memory. When no
+// policy is in effect the call is refused — there is nothing to revoke and a
+// caller reaching this path likely has a stale view of the config. Auditing is
+// the caller's responsibility, matching RevokeUserAccessToken.
+func (a *App) RevokeNonCompliantUserAccessTokens(rctx request.CTX) (int64, *model.AppError) {
+	maxExpiresAt, enabled := a.maxPersonalAccessTokenExpiry()
+	if !enabled {
+		return 0, model.NewAppError("RevokeNonCompliantUserAccessTokens", "app.user_access_token.revoke_non_compliant.no_policy.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	var totalRevoked int64
+	allRevoked := false
+	for range revokeNonCompliantMaxBatches {
+		userIDs, err := a.Srv().Store().UserAccessToken().DeleteNonCompliantExpiry(maxExpiresAt, revokeNonCompliantBatchLimit)
+		if err != nil {
+			return totalRevoked, model.NewAppError("RevokeNonCompliantUserAccessTokens", "app.user_access_token.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		if len(userIDs) == 0 {
+			allRevoked = true
+			break
+		}
+
+		totalRevoked += int64(len(userIDs))
+
+		seen := make(map[string]struct{}, len(userIDs))
+		for _, userID := range userIDs {
+			if _, ok := seen[userID]; !ok {
+				seen[userID] = struct{}{}
+				a.ClearSessionCacheForUser(userID)
+			}
+		}
+
+		if len(userIDs) < revokeNonCompliantBatchLimit {
+			allRevoked = true
+			break
+		}
+	}
+
+	if !allRevoked {
+		return totalRevoked, model.NewAppError("RevokeNonCompliantUserAccessTokens", "app.user_access_token.revoke_non_compliant.partial.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	return totalRevoked, nil
 }
 
 func (a *App) DisableUserAccessToken(rctx request.CTX, token *model.UserAccessToken) *model.AppError {

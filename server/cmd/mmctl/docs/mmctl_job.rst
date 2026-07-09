@@ -37,6 +37,9 @@ SEE ALSO
 ~~~~~~~~
 
 * `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
+* `mmctl job cancel <mmctl_job_cancel.rst>`_ 	 - Cancel a job
+* `mmctl job create <mmctl_job_create.rst>`_ 	 - Create a new job
 * `mmctl job list <mmctl_job_list.rst>`_ 	 - List the latest jobs
+* `mmctl job show <mmctl_job_show.rst>`_ 	 - Show a job
 * `mmctl job update <mmctl_job_update.rst>`_ 	 - Update the status of a job
 

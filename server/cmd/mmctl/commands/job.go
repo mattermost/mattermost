@@ -32,6 +32,36 @@ var listJobsCmd = &cobra.Command{
 	RunE: withClient(listJobsCmdF),
 }
 
+var createJobCmd = &cobra.Command{
+	Use:   "create [type]",
+	Short: "Create a new job",
+	Long:  "Create a new job of the given type. Use --data to pass type-specific options as key=value pairs.",
+	Example: `  job create ldap_sync
+	job create data_retention
+	job create message_export --data batch_size=1000`,
+	Args:              cobra.ExactArgs(1),
+	ValidArgsFunction: jobTypeCompletionF,
+	RunE:              withClient(createJobCmdF),
+}
+
+var showJobCmd = &cobra.Command{
+	Use:               "show [job]",
+	Short:             "Show a job",
+	Example:           "  job show jobID",
+	Args:              cobra.ExactArgs(1),
+	ValidArgsFunction: validateArgsWithClient(jobCompletionF),
+	RunE:              withClient(showJobCmdF),
+}
+
+var cancelJobCmd = &cobra.Command{
+	Use:               "cancel [job]",
+	Short:             "Cancel a job",
+	Example:           "  job cancel jobID",
+	Args:              cobra.ExactArgs(1),
+	ValidArgsFunction: validateArgsWithClient(jobCompletionF),
+	RunE:              withClient(cancelJobCmdF),
+}
+
 var updateJobCmd = &cobra.Command{
 	Use:   "update [job] [status]",
 	Short: "Update the status of a job",
@@ -49,17 +79,22 @@ var updateJobCmd = &cobra.Command{
 }
 
 func init() {
-	listJobsCmd.Flags().Int("page", 0, "Page number to fetch for the list of import jobs")
-	listJobsCmd.Flags().Int("per-page", 5, "Number of import jobs to be fetched")
-	listJobsCmd.Flags().Bool("all", false, "Fetch all import jobs. --page flag will be ignored if provided")
+	listJobsCmd.Flags().Int("page", 0, "Page number to fetch for the list of jobs")
+	listJobsCmd.Flags().Int("per-page", 5, "Number of jobs to be fetched")
+	listJobsCmd.Flags().Bool("all", false, "Fetch all jobs. --page flag will be ignored if provided")
 	listJobsCmd.Flags().StringSlice("ids", nil, "Comma-separated list of job IDs to which the operation will be applied. All other flags are ignored")
 	listJobsCmd.Flags().String("status", "", "Filter by job status")
 	listJobsCmd.Flags().String("type", "", "Filter by job type")
+
+	createJobCmd.Flags().StringToString("data", nil, "Comma-separated list of key=value pairs passed to the job as type-specific options")
 
 	updateJobCmd.Flags().Bool("force", false, "Setting a job status is restricted to certain statuses. You can overwrite these restrictions by using --force. This might cause unexpected behaviour on your Mattermost Server. Use this option with caution.")
 
 	JobCmd.AddCommand(
 		listJobsCmd,
+		createJobCmd,
+		showJobCmd,
+		cancelJobCmd,
 		updateJobCmd,
 	)
 
@@ -127,6 +162,72 @@ func updateJobCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+func createJobCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	jobType := args[0]
+
+	data, err := cmd.Flags().GetStringToString("data")
+	if err != nil {
+		return err
+	}
+
+	job, _, err := c.CreateJob(context.TODO(), &model.Job{
+		Type: jobType,
+		Data: data,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create job: %w", err)
+	}
+
+	printer.PrintT("Job successfully created, ID: {{.Id}}", job)
+
+	return nil
+}
+
+func showJobCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	jobId := args[0]
+	if !model.IsValidId(jobId) {
+		return fmt.Errorf("invalid job ID: %s", jobId)
+	}
+
+	job, _, err := c.GetJob(context.TODO(), jobId)
+	if err != nil {
+		return fmt.Errorf("failed to get job: %w", err)
+	}
+
+	printJob(job)
+
+	return nil
+}
+
+func cancelJobCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	jobId := args[0]
+	if !model.IsValidId(jobId) {
+		return fmt.Errorf("invalid job ID: %s", jobId)
+	}
+
+	if _, err := c.CancelJob(context.TODO(), jobId); err != nil {
+		return fmt.Errorf("failed to cancel job: %w", err)
+	}
+
+	return nil
+}
+
+func jobTypeCompletionF(_ *cobra.Command, args []string, _ string) ([]string, cobra.ShellCompDirective) {
+	if len(args) > 0 {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+	return model.AllJobTypes[:], cobra.ShellCompDirectiveNoFileComp
+}
+
+func jobCompletionF(ctx context.Context, c client.Client, cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return fetchAndComplete(
+		func(ctx context.Context, c client.Client, page, perPage int) ([]*model.Job, *model.Response, error) {
+			return c.GetJobs(ctx, "", "", page, perPage)
+		},
+		func(j *model.Job) []string { return []string{j.Id} },
+	)(ctx, c, cmd, args, toComplete)
 }
 
 func jobListCmdF(c client.Client, command *cobra.Command, jobType string, status string) error {

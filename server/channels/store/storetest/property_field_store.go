@@ -23,6 +23,7 @@ func TestPropertyFieldStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("GetPropertyField", func(t *testing.T) { testGetPropertyField(t, rctx, ss, s) })
 	t.Run("GetManyPropertyFields", func(t *testing.T) { testGetManyPropertyFields(t, rctx, ss) })
 	t.Run("GetFieldByName", func(t *testing.T) { testGetFieldByName(t, rctx, ss) })
+	t.Run("GetFieldByNameForObjectType", func(t *testing.T) { testGetFieldByNameForObjectType(t, rctx, ss) })
 	t.Run("UpdatePropertyField", func(t *testing.T) { testUpdatePropertyField(t, rctx, ss) })
 	t.Run("DeletePropertyField", func(t *testing.T) { testDeletePropertyField(t, rctx, ss) })
 	t.Run("SearchPropertyFields", func(t *testing.T) { testSearchPropertyFields(t, rctx, ss, s) })
@@ -498,6 +499,63 @@ func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
 		require.Equal(t, replacementField.ID, field.ID)
 		require.Equal(t, model.PropertyFieldTypeText, field.Type)
 		require.Zero(t, field.DeleteAt)
+	})
+}
+
+func testGetFieldByNameForObjectType(t *testing.T, _ request.CTX, ss store.Store) {
+	// Two system-scoped fields share group and name, differing only by
+	// ObjectType — the collision the scoped lookup must disambiguate.
+	groupID := model.NewId()
+	targetType := string(model.PropertyFieldTargetLevelSystem)
+
+	userField := &model.PropertyField{
+		GroupID:    groupID,
+		Name:       "classification",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: targetType,
+	}
+	_, cErr := ss.PropertyField().Create(userField)
+	require.NoError(t, cErr)
+	require.NotZero(t, userField.ID)
+
+	systemField := &model.PropertyField{
+		GroupID:    groupID,
+		Name:       "classification",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeSystem,
+		TargetType: targetType,
+	}
+	_, cErr = ss.PropertyField().Create(systemField)
+	require.NoError(t, cErr)
+	require.NotZero(t, systemField.ID)
+
+	t.Run("should resolve to the field matching the requested object type", func(t *testing.T) {
+		field, err := ss.PropertyField().GetFieldByNameForObjectType(context.Background(), groupID, "", model.PropertyFieldObjectTypeUser, "classification")
+		require.NoError(t, err)
+		require.Equal(t, userField.ID, field.ID)
+		require.Equal(t, model.PropertyFieldObjectTypeUser, field.ObjectType)
+
+		field, err = ss.PropertyField().GetFieldByNameForObjectType(context.Background(), groupID, "", model.PropertyFieldObjectTypeSystem, "classification")
+		require.NoError(t, err)
+		require.Equal(t, systemField.ID, field.ID)
+		require.Equal(t, model.PropertyFieldObjectTypeSystem, field.ObjectType)
+	})
+
+	t.Run("should not match a field of a different object type", func(t *testing.T) {
+		field, err := ss.PropertyField().GetFieldByNameForObjectType(context.Background(), groupID, "", model.PropertyFieldObjectTypeChannel, "classification")
+		require.Zero(t, field)
+		var enf *store.ErrNotFound
+		require.ErrorAs(t, err, &enf)
+	})
+
+	t.Run("empty object type is matched exactly, not as match-any", func(t *testing.T) {
+		// Neither field has an empty object type, so an empty-object-type lookup
+		// must miss rather than return an arbitrary match.
+		field, err := ss.PropertyField().GetFieldByNameForObjectType(context.Background(), groupID, "", "", "classification")
+		require.Zero(t, field)
+		var enf *store.ErrNotFound
+		require.ErrorAs(t, err, &enf)
 	})
 }
 

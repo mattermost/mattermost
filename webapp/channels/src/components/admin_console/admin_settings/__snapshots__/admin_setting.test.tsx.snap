@@ -11,6 +11,7 @@ exports[`AdminSettings should match snapshot 1`] = `
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Some title
       </div>

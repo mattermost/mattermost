@@ -19,7 +19,10 @@ func (api *API) InitLimits() {
 func getServerLimits(c *Context, w http.ResponseWriter, r *http.Request) {
 	isAdmin := c.IsSystemAdmin() && c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementUsers)
 
-	serverLimits, err := c.App.GetServerLimits()
+	// Only admins receive (and need) the user/guest counts, so only compute them for
+	// admins. This keeps the expensive count queries off the per-login/per-refresh hot
+	// path that non-admin clients hit via loadMe()/loadConfigAndMe().
+	serverLimits, err := c.App.GetServerLimits(isAdmin)
 	if err != nil {
 		c.Err = err
 		return

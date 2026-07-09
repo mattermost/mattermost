@@ -83,6 +83,9 @@ function createElement(type, config) {
     if (config.refresh) {
         baseElement.refresh = config.refresh;
     }
+    if (config.action_button) {
+        baseElement.action_button = config.action_button;
+    }
 
     return baseElement;
 }
@@ -186,6 +189,20 @@ const DIALOG_CONFIGS = {
             createElement('bool', {display_name: 'Terms & Conditions', name: 'terms_accepted'}),
         ],
         form_props: {state: 'step3'},
+    },
+
+    actionButtonParent: {
+        callback_id: 'action_button_parent_callback',
+        title: 'Parent Dialog with Action Button',
+        elements: [],
+    },
+
+    actionButtonChild: {
+        callback_id: 'child_callback',
+        title: 'Child Dialog',
+        elements: [
+            createElement('text', {display_name: 'Child Input', name: 'child_input', placeholder: 'Enter value', optional: true}),
+        ],
     },
 };
 
@@ -570,6 +587,48 @@ function getTimezoneManualDialog(triggerId, webhookBaseUrl) {
     });
 }
 
+function getActionButtonParentDialog(triggerId, webhookBaseUrl) {
+    const config = {
+        ...DIALOG_CONFIGS.actionButtonParent,
+        elements: [
+            createElement('text', {display_name: 'Your Name', name: 'your_name', placeholder: 'Enter your name', optional: true}),
+
+            // Two action buttons on the same dialog. Each carries a distinct
+            // context.source so the child dialog can reflect which one was pressed.
+            createElement('action_button', {
+                display_name: 'Open Details',
+                name: 'open_details',
+                action_button: {
+                    url: `${webhookBaseUrl}/dialog/open_child`,
+                    context: {source: 'Details'},
+                },
+            }),
+            createElement('action_button', {
+                display_name: 'Open Summary',
+                name: 'open_summary',
+                action_button: {
+                    url: `${webhookBaseUrl}/dialog/open_child`,
+                    context: {source: 'Summary'},
+                },
+            }),
+        ],
+    };
+    return createDialog(triggerId, webhookBaseUrl, config);
+}
+
+// `source` comes from the pressed action button's context.source and is reflected
+// in the child dialog's title and introduction text, so a test can verify which
+// button opened it.
+function getActionButtonChildDialog(triggerId, webhookBaseUrl, source) {
+    const label = source || 'Unknown';
+    const config = {
+        ...DIALOG_CONFIGS.actionButtonChild,
+        title: `${label} Dialog`,
+        introduction_text: `This child dialog was opened from the "${label}" action button.`,
+    };
+    return createDialog(triggerId, webhookBaseUrl, config);
+}
+
 module.exports = {
     getFullDialog,
     getSimpleDialog,
@@ -588,4 +647,6 @@ module.exports = {
     getCustomIntervalDialog,
     getRelativeDateDialog,
     getTimezoneManualDialog,
+    getActionButtonParentDialog,
+    getActionButtonChildDialog,
 };

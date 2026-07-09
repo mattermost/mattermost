@@ -1,0 +1,2779 @@
+{
+  "_meta": {
+    "source": "docs-site/scripts/migrate-main-docs/redirects.json",
+    "active": 691,
+    "missing_target": 217,
+    "dropped_anchored_from": 1113,
+    "total_internal": 2021
+  },
+  "redirects": [
+    {
+      "from": "/about/accessibility-compliance-policy",
+      "to": "/product-overview/accessibility-compliance-policy"
+    },
+    {
+      "from": "/about/cloud-supported-integrations",
+      "to": "/product-overview/cloud-supported-integrations"
+    },
+    {
+      "from": "/about/common-esr-support-rst",
+      "to": "/product-overview/common-esr-support-rst"
+    },
+    {
+      "from": "/about/desktop",
+      "to": "/product-overview/desktop"
+    },
+    {
+      "from": "/about/frequently-asked-questions",
+      "to": "/product-overview/frequently-asked-questions"
+    },
+    {
+      "from": "/about/mobile",
+      "to": "/product-overview/mobile"
+    },
+    {
+      "from": "/about/security/zero-trust",
+      "to": "/security-guide/zero-trust"
+    },
+    {
+      "from": "/about/cloud-dedicated",
+      "to": "/product-overview/cloud-dedicated"
+    },
+    {
+      "from": "/about/cloud-shared",
+      "to": "/product-overview/cloud-shared"
+    },
+    {
+      "from": "/about/cloud-vpc-private-connectivity",
+      "to": "/product-overview/cloud-vpc-private-connectivity"
+    },
+    {
+      "from": "/about/common-esr-support-upgrade",
+      "to": "/product-overview/common-esr-support-upgrade"
+    },
+    {
+      "from": "/about/common-esr-support",
+      "to": "/product-overview/common-esr-support"
+    },
+    {
+      "from": "/about/corporate-directory-integration",
+      "to": "/product-overview/corporate-directory-integration"
+    },
+    {
+      "from": "/about/deprecated-features",
+      "to": "/product-overview/deprecated-features"
+    },
+    {
+      "from": "/about/deployments-and-editions",
+      "to": "/product-overview/editions-and-offerings"
+    },
+    {
+      "from": "/about/desktop-app-changelog",
+      "to": "/product-overview/desktop-app-changelog"
+    },
+    {
+      "from": "/about/devops-collaboration",
+      "to": "/use-case-guide/devops-collaboration"
+    },
+    {
+      "from": "/about/editions-and-offerings",
+      "to": "/product-overview/editions-and-offerings"
+    },
+    {
+      "from": "/about/faq-community",
+      "to": "/get-help/contribute-to-documentation#frequently-asked-questions.html"
+    },
+    {
+      "from": "/about/faq-enterprise",
+      "to": "/product-overview/faq-enterprise"
+    },
+    {
+      "from": "/about/faq-federal-procurement",
+      "to": "/product-overview/faq-federal-procurement"
+    },
+    {
+      "from": "/about/faq-general",
+      "to": "/product-overview/faq-general"
+    },
+    {
+      "from": "/about/faq-integrations",
+      "to": "/integrations-guide/integrations-guide-index#frequently-asked-questions.html"
+    },
+    {
+      "from": "/about/faq-mattermost-source-available-license",
+      "to": "/product-overview/faq-mattermost-source-available-license"
+    },
+    {
+      "from": "/about/faq-notifications",
+      "to": "/end-user-guide/preferences/troubleshoot-notifications#frequently-asked-questions.html"
+    },
+    {
+      "from": "/about/faq-video-audio-screensharing",
+      "to": "/end-user-guide/collaborate/audio-and-screensharing"
+    },
+    {
+      "from": "/about/integrated-security-operations",
+      "to": "/use-case-guide/integrated-security-operations"
+    },
+    {
+      "from": "/about/mattermost-desktop-releases",
+      "to": "/product-overview/mattermost-desktop-releases"
+    },
+    {
+      "from": "/about/mattermost-mobile-releases",
+      "to": "/product-overview/mattermost-mobile-releases"
+    },
+    {
+      "from": "/about/mattermost-server-releases",
+      "to": "/product-overview/mattermost-server-releases"
+    },
+    {
+      "from": "/about/mattermost-v10-changelog",
+      "to": "/product-overview/mattermost-v10-changelog"
+    },
+    {
+      "from": "/about/maximize-microsoft-investments",
+      "to": "/use-case-guide/maximize-microsoft-investments"
+    },
+    {
+      "from": "/about/mission-ready-mobile",
+      "to": "/use-case-guide/mission-ready-mobile"
+    },
+    {
+      "from": "/about/mobile-app-changelog",
+      "to": "/product-overview/mobile-app-changelog"
+    },
+    {
+      "from": "/about/non-profit-subscriptions",
+      "to": "/product-overview/non-profit-subscriptions"
+    },
+    {
+      "from": "/about/on-prem-skype-for-business-replacement",
+      "to": "/use-case-guide/on-prem-skype-for-business-replacement"
+    },
+    {
+      "from": "/about/out-of-band-incident-response",
+      "to": "/use-case-guide/out-of-band-incident-response"
+    },
+    {
+      "from": "/about/purpose-built-collaboration",
+      "to": "/use-case-guide/purpose-built-collaboration"
+    },
+    {
+      "from": "/about/release-policy",
+      "to": "/product-overview/release-policy"
+    },
+    {
+      "from": "/about/releases-lifecycle",
+      "to": "/product-overview/releases-lifecycle"
+    },
+    {
+      "from": "/about/secure-command-and-control",
+      "to": "/use-case-guide/secure-command-and-control"
+    },
+    {
+      "from": "/about/security",
+      "to": "/security-guide/security-guide-index"
+    },
+    {
+      "from": "/about/security/dependency-vulnerability-analysis",
+      "to": "/security-guide/dependency-vulnerability-analysis"
+    },
+    {
+      "from": "/about/security/mobile-security",
+      "to": "/security-guide/mobile-security"
+    },
+    {
+      "from": "/about/self-hosted-subscriptions",
+      "to": "/product-overview/self-hosted-subscriptions"
+    },
+    {
+      "from": "/about/self-sovereign-collaboration",
+      "to": "/use-case-guide/self-sovereign-collaboration"
+    },
+    {
+      "from": "/about/server",
+      "to": "/product-overview/server"
+    },
+    {
+      "from": "/about/subscription",
+      "to": "/product-overview/subscription"
+    },
+    {
+      "from": "/about/unsupported-legacy-releases",
+      "to": "/product-overview/unsupported-legacy-releases"
+    },
+    {
+      "from": "/about/version-archive",
+      "to": "/product-overview/version-archive"
+    },
+    {
+      "from": "/boards/boards-settings",
+      "to": "/end-user-guide/project-management/boards-settings"
+    },
+    {
+      "from": "/boards/calculations",
+      "to": "/end-user-guide/project-management/calculations"
+    },
+    {
+      "from": "/boards/groups-filter-sort",
+      "to": "/end-user-guide/project-management/groups-filter-sort"
+    },
+    {
+      "from": "/boards/migrate-to-boards",
+      "to": "/end-user-guide/project-management/migrate-to-boards"
+    },
+    {
+      "from": "/boards/navigate-boards",
+      "to": "/end-user-guide/project-management/navigate-boards"
+    },
+    {
+      "from": "/boards/work-with-boards",
+      "to": "/end-user-guide/project-management/work-with-boards"
+    },
+    {
+      "from": "/boards/work-with-cards",
+      "to": "/end-user-guide/project-management/work-with-cards"
+    },
+    {
+      "from": "/boards/work-with-views",
+      "to": "/end-user-guide/project-management/work-with-views"
+    },
+    {
+      "from": "/collaborate/access-your-workspace",
+      "to": "/end-user-guide/access/access-your-workspace"
+    },
+    {
+      "from": "/collaborate/agents-context-management",
+      "to": "/end-user-guide/collaborate/agents-context-management"
+    },
+    {
+      "from": "/collaborate/archive-unarchive-channels",
+      "to": "/end-user-guide/collaborate/archive-unarchive-channels"
+    },
+    {
+      "from": "/collaborate/audio-and-screensharing",
+      "to": "/end-user-guide/collaborate/audio-and-screensharing"
+    },
+    {
+      "from": "/collaborate/browse-channels",
+      "to": "/end-user-guide/collaborate/browse-channels"
+    },
+    {
+      "from": "/collaborate/built-in-slash-commands",
+      "to": "/integrations-guide/built-in-slash-commands"
+    },
+    {
+      "from": "/collaborate/channel-header-purpose",
+      "to": "/end-user-guide/collaborate/channel-header-purpose"
+    },
+    {
+      "from": "/collaborate/channel-naming-conventions",
+      "to": "/end-user-guide/collaborate/channel-naming-conventions"
+    },
+    {
+      "from": "/collaborate/channel-types",
+      "to": "/end-user-guide/collaborate/channel-types"
+    },
+    {
+      "from": "/collaborate/collaborate-within-connected-microsoft-teams",
+      "to": "/end-user-guide/collaborate/collaborate-within-connected-microsoft-teams"
+    },
+    {
+      "from": "/collaborate/convert-group-messages",
+      "to": "/end-user-guide/collaborate/convert-group-messages"
+    },
+    {
+      "from": "/collaborate/convert-public-channels",
+      "to": "/end-user-guide/collaborate/convert-public-channels"
+    },
+    {
+      "from": "/collaborate/create-channels",
+      "to": "/end-user-guide/collaborate/create-channels"
+    },
+    {
+      "from": "/collaborate/display-channel-banners",
+      "to": "/end-user-guide/collaborate/display-channel-banners"
+    },
+    {
+      "from": "/collaborate/extend-mattermost-with-integrations",
+      "to": "/end-user-guide/collaborate/extend-mattermost-with-integrations"
+    },
+    {
+      "from": "/collaborate/favorite-channels",
+      "to": "/end-user-guide/collaborate/favorite-channels"
+    },
+    {
+      "from": "/collaborate/forward-messages",
+      "to": "/end-user-guide/collaborate/forward-messages"
+    },
+    {
+      "from": "/collaborate/install-android-app",
+      "to": "/end-user-guide/access/install-android-app"
+    },
+    {
+      "from": "/collaborate/install-desktop-app",
+      "to": "/end-user-guide/access/install-desktop-app"
+    },
+    {
+      "from": "/collaborate/install-ios-app",
+      "to": "/end-user-guide/access/install-ios-app"
+    },
+    {
+      "from": "/collaborate/invite-people",
+      "to": "/end-user-guide/collaborate/invite-people"
+    },
+    {
+      "from": "/collaborate/join-leave-channels",
+      "to": "/end-user-guide/collaborate/join-leave-channels"
+    },
+    {
+      "from": "/collaborate/learn-about-roles",
+      "to": "/end-user-guide/collaborate/learn-about-roles"
+    },
+    {
+      "from": "/collaborate/log-out",
+      "to": "/end-user-guide/access/log-out"
+    },
+    {
+      "from": "/collaborate/manage-channel-bookmarks",
+      "to": "/end-user-guide/collaborate/manage-channel-bookmarks"
+    },
+    {
+      "from": "/collaborate/manage-channel-members",
+      "to": "/end-user-guide/collaborate/manage-channel-members"
+    },
+    {
+      "from": "/collaborate/mark-channels-unread",
+      "to": "/end-user-guide/collaborate/mark-channels-unread"
+    },
+    {
+      "from": "/collaborate/mark-messages-unread",
+      "to": "/end-user-guide/collaborate/mark-messages-unread"
+    },
+    {
+      "from": "/collaborate/mention-people",
+      "to": "/end-user-guide/collaborate/mention-people"
+    },
+    {
+      "from": "/collaborate/message-priority",
+      "to": "/end-user-guide/collaborate/message-priority"
+    },
+    {
+      "from": "/collaborate/message-reminders",
+      "to": "/end-user-guide/collaborate/message-reminders"
+    },
+    {
+      "from": "/collaborate/navigate-between-channels",
+      "to": "/end-user-guide/collaborate/navigate-between-channels"
+    },
+    {
+      "from": "/collaborate/organize-conversations",
+      "to": "/end-user-guide/collaborate/organize-conversations"
+    },
+    {
+      "from": "/collaborate/organize-using-custom-user-groups",
+      "to": "/end-user-guide/collaborate/organize-using-custom-user-groups"
+    },
+    {
+      "from": "/collaborate/organize-using-teams",
+      "to": "/end-user-guide/collaborate/organize-using-teams"
+    },
+    {
+      "from": "/collaborate/react-with-emojis-gifs",
+      "to": "/end-user-guide/collaborate/react-with-emojis-gifs"
+    },
+    {
+      "from": "/collaborate/rename-channels",
+      "to": "/end-user-guide/collaborate/rename-channels"
+    },
+    {
+      "from": "/collaborate/reply-to-messages",
+      "to": "/end-user-guide/collaborate/reply-to-messages"
+    },
+    {
+      "from": "/collaborate/save-pin-messages",
+      "to": "/end-user-guide/collaborate/save-pin-messages"
+    },
+    {
+      "from": "/collaborate/schedule-messages",
+      "to": "/end-user-guide/collaborate/schedule-messages"
+    },
+    {
+      "from": "/collaborate/search-for-messages",
+      "to": "/end-user-guide/collaborate/search-for-messages"
+    },
+    {
+      "from": "/collaborate/collaborate-within-channels",
+      "to": "/end-user-guide/collaborate/collaborate-within-channels"
+    },
+    {
+      "from": "/collaborate/communicate-with-messages",
+      "to": "/end-user-guide/collaborate/communicate-with-messages"
+    },
+    {
+      "from": "/collaborate/send-messages",
+      "to": "/end-user-guide/collaborate/send-messages"
+    },
+    {
+      "from": "/collaborate/share-files-in-messages",
+      "to": "/end-user-guide/collaborate/share-files-in-messages"
+    },
+    {
+      "from": "/collaborate/share-links",
+      "to": "/end-user-guide/collaborate/share-links"
+    },
+    {
+      "from": "/collaborate/team-settings",
+      "to": "/end-user-guide/collaborate/team-settings"
+    },
+    {
+      "from": "/collaborate/view-system-information",
+      "to": "/end-user-guide/collaborate/view-system-information"
+    },
+    {
+      "from": "/administration/announcement-banner",
+      "to": "/administration-guide/manage/system-wide-notifications"
+    },
+    {
+      "from": "/administration/backup",
+      "to": "/deployment-guide/backup-disaster-recovery"
+    },
+    {
+      "from": "/administration/branding",
+      "to": "/administration-guide/manage/admin/customize-branding"
+    },
+    {
+      "from": "/administration/changelog",
+      "to": "/product-overview/mattermost-server-releases"
+    },
+    {
+      "from": "/administration/command-line-tools",
+      "to": "/administration-guide/manage/command-line-tools"
+    },
+    {
+      "from": "/administration/compliance-export",
+      "to": "/administration-guide/comply/compliance-export"
+    },
+    {
+      "from": "/administration/config-in-database",
+      "to": "/administration-guide/configure/configuration-in-your-database"
+    },
+    {
+      "from": "/administration/data-retention",
+      "to": "/administration-guide/comply/data-retention-policy"
+    },
+    {
+      "from": "/administration/downgrade",
+      "to": "/administration-guide/upgrade/downgrading-mattermost-server"
+    },
+    {
+      "from": "/administration/ediscovery",
+      "to": "/administration-guide/comply/electronic-discovery"
+    },
+    {
+      "from": "/administration/encryption",
+      "to": "/deployment-guide/encryption-options"
+    },
+    {
+      "from": "/administration/extended-support-release",
+      "to": "/product-overview/release-policy#extended-support-releases"
+    },
+    {
+      "from": "/administration/hipchat-migration-guidelines",
+      "to": "/administration-guide/onboard/migrating-to-mattermost"
+    },
+    {
+      "from": "/administration/image-proxy",
+      "to": "/deployment-guide/server/image-proxy"
+    },
+    {
+      "from": "/administration/legacy-upgrade",
+      "to": "/administration-guide/upgrade/upgrading-mattermost-server"
+    },
+    {
+      "from": "/administration/light-install-hindi",
+      "to": "/deployment-guide/server/deploy-containers"
+    },
+    {
+      "from": "/administration/migrating",
+      "to": "/administration-guide/onboard/migrating-to-mattermost"
+    },
+    {
+      "from": "/administration/migration-announcement-email-template",
+      "to": "/administration-guide/onboard/migration-announcement-email"
+    },
+    {
+      "from": "/administration/mobile-changelog",
+      "to": "/product-overview/mobile-app-changelog"
+    },
+    {
+      "from": "/administration/notices",
+      "to": "/administration-guide/manage/in-product-notices"
+    },
+    {
+      "from": "/administration/open-source-components",
+      "to": "/administration-guide/upgrade/open-source-components"
+    },
+    {
+      "from": "/administration/prev-config-settings",
+      "to": "/administration-guide/configure/configuration-settings"
+    },
+    {
+      "from": "/administration/releases-lifecycle",
+      "to": "/product-overview/releases-lifecycle"
+    },
+    {
+      "from": "/administration/statistics",
+      "to": "/administration-guide/manage/statistics"
+    },
+    {
+      "from": "/administration/telemetry",
+      "to": "/administration-guide/manage/telemetry"
+    },
+    {
+      "from": "/administration/upgrade",
+      "to": "/administration-guide/upgrade/upgrading-mattermost-server"
+    },
+    {
+      "from": "/administration/upgrade-guide",
+      "to": "/administration-guide/upgrade/upgrading-mattermost-server"
+    },
+    {
+      "from": "/administration/upgrading-to-2.0",
+      "to": "/administration-guide/upgrade/upgrading-mattermost-server"
+    },
+    {
+      "from": "/administration/upgrading-to-3.0",
+      "to": "/administration-guide/upgrade/upgrading-mattermost-server"
+    },
+    {
+      "from": "/administration/user-provisioning",
+      "to": "/administration-guide/onboard/user-provisioning-workflows"
+    },
+    {
+      "from": "/administration/config-settings",
+      "to": "/administration-guide/configure/configuration-settings"
+    },
+    {
+      "from": "/administration/version-archive",
+      "to": "/product-overview/version-archive"
+    },
+    {
+      "from": "/administration/release-lifecycle",
+      "to": "/product-overview/releases-lifecycle"
+    },
+    {
+      "from": "/administration-guide/configure/calls-deployment",
+      "to": "/administration-guide/configure/calls-deployment-guide"
+    },
+    {
+      "from": "/administration-guide/configure/calls-overview",
+      "to": "/administration-guide/configure/calls-deployment-guide"
+    },
+    {
+      "from": "/channels/find-channels",
+      "to": "/end-user-guide/collaborate/browse-channels"
+    },
+    {
+      "from": "/channels/sign-in",
+      "to": "/end-user-guide/access/access-your-workspace"
+    },
+    {
+      "from": "/channels/channel-types",
+      "to": "/end-user-guide/collaborate/channel-types"
+    },
+    {
+      "from": "/channels/create-channels",
+      "to": "/end-user-guide/collaborate/create-channels"
+    },
+    {
+      "from": "/channels/channel-naming-conventions",
+      "to": "/end-user-guide/collaborate/channel-naming-conventions"
+    },
+    {
+      "from": "/channels/rename-channels",
+      "to": "/end-user-guide/collaborate/rename-channels"
+    },
+    {
+      "from": "/channels/convert-public-channels",
+      "to": "/end-user-guide/collaborate/convert-public-channels"
+    },
+    {
+      "from": "/channels/join-leave-channels",
+      "to": "/end-user-guide/collaborate/join-leave-channels"
+    },
+    {
+      "from": "/channels/manage-channel-members",
+      "to": "/end-user-guide/collaborate/manage-channel-members"
+    },
+    {
+      "from": "/channels/browse-channels",
+      "to": "/end-user-guide/collaborate/browse-channels"
+    },
+    {
+      "from": "/channels/navigate-between-channels",
+      "to": "/end-user-guide/collaborate/navigate-between-channels"
+    },
+    {
+      "from": "/channels/favorite-channels",
+      "to": "/end-user-guide/collaborate/favorite-channels"
+    },
+    {
+      "from": "/channels/mark-channels-unread",
+      "to": "/end-user-guide/collaborate/mark-channels-unread"
+    },
+    {
+      "from": "/channels/customize-your-channel-sidebar",
+      "to": "/end-user-guide/preferences/customize-your-channel-sidebar"
+    },
+    {
+      "from": "/channels/archive-unarchive-channels",
+      "to": "/end-user-guide/collaborate/archive-unarchive-channels"
+    },
+    {
+      "from": "/channels/send-messages",
+      "to": "/end-user-guide/collaborate/send-messages"
+    },
+    {
+      "from": "/channels/message-priority",
+      "to": "/end-user-guide/collaborate/message-priority"
+    },
+    {
+      "from": "/channels/reply-to-messages",
+      "to": "/end-user-guide/collaborate/reply-to-messages"
+    },
+    {
+      "from": "/channels/organize-conversations",
+      "to": "/end-user-guide/collaborate/organize-conversations"
+    },
+    {
+      "from": "/channels/mention-people",
+      "to": "/end-user-guide/collaborate/mention-people"
+    },
+    {
+      "from": "/channels/mark-messages-unread",
+      "to": "/end-user-guide/collaborate/mark-messages-unread"
+    },
+    {
+      "from": "/channels/share-files-in-messages",
+      "to": "/end-user-guide/collaborate/share-files-in-messages"
+    },
+    {
+      "from": "/channels/forward-messages",
+      "to": "/end-user-guide/collaborate/forward-messages"
+    },
+    {
+      "from": "/channels/share-links",
+      "to": "/end-user-guide/collaborate/share-links"
+    },
+    {
+      "from": "/channels/save-pin-messages",
+      "to": "/end-user-guide/collaborate/save-pin-messages"
+    },
+    {
+      "from": "/channels/message-reminders",
+      "to": "/end-user-guide/collaborate/message-reminders"
+    },
+    {
+      "from": "/channels/search-for-messages",
+      "to": "/end-user-guide/collaborate/search-for-messages"
+    },
+    {
+      "from": "/channels/collaborate-using-mattermost-for-microsoft-teams",
+      "to": "/end-user-guide/collaborate/collaborate-within-connected-microsoft-teams"
+    },
+    {
+      "from": "/cloud/cloud-administration/cloud-changelog",
+      "to": "/product-overview/mattermost-server-releases"
+    },
+    {
+      "from": "/cloud/cloud-administration/compliance-export",
+      "to": "/administration-guide/comply/compliance-export"
+    },
+    {
+      "from": "/cloud/cloud-administration/custom-terms-of-service",
+      "to": "/administration-guide/comply/custom-terms-of-service"
+    },
+    {
+      "from": "/cloud/cloud-administration/data-retention-policy",
+      "to": "/administration-guide/comply/data-retention-policy"
+    },
+    {
+      "from": "/cloud/cloud-administration/sso-openid-connect",
+      "to": "/administration-guide/onboard/convert-oauth20-service-providers-to-openidconnect"
+    },
+    {
+      "from": "/cloud/cloud-guest-accounts",
+      "to": "/administration-guide/onboard/guest-accounts"
+    },
+    {
+      "from": "/cloud/cloud-mobile/cloud-app-config",
+      "to": "/deployment-guide/mobile/deploy-mobile-apps-using-emm-provider"
+    },
+    {
+      "from": "/cloud/cloud-mobile/troubleshooting-mobile",
+      "to": "/deployment-guide/mobile/mobile-faq"
+    },
+    {
+      "from": "/cloud/cloud-reporting",
+      "to": "/administration-guide/manage/statistics"
+    },
+    {
+      "from": "/cloud/mobile-apps-faq",
+      "to": "/deployment-guide/mobile/mobile-faq"
+    },
+    {
+      "from": "/cloud/cloud-user-management",
+      "to": "/end-user-guide/collaborate/manage-channel-members"
+    },
+    {
+      "from": "/collaborate/collaborate-using-mattermost-for-microsoft-teams",
+      "to": "/end-user-guide/collaborate/collaborate-within-connected-microsoft-teams"
+    },
+    {
+      "from": "/collaborate-within-embedded-microsoft-teams",
+      "to": "/end-user-guide/collaborate/collaborate-within-connected-microsoft-teams"
+    },
+    {
+      "from": "/comply/cloud-data-retention-policy",
+      "to": "/administration-guide/comply/data-retention-policy"
+    },
+    {
+      "from": "/comply/compliance-export",
+      "to": "/administration-guide/comply/compliance-export"
+    },
+    {
+      "from": "/comply/custom-terms-of-service",
+      "to": "/administration-guide/comply/custom-terms-of-service"
+    },
+    {
+      "from": "/comply/data-retention-policy",
+      "to": "/administration-guide/comply/data-retention-policy"
+    },
+    {
+      "from": "/comply/electronic-discovery",
+      "to": "/administration-guide/comply/electronic-discovery"
+    },
+    {
+      "from": "/comply/export-mattermost-channel-data",
+      "to": "/administration-guide/comply/export-mattermost-channel-data"
+    },
+    {
+      "from": "/comply/legal-hold",
+      "to": "/administration-guide/comply/legal-hold"
+    },
+    {
+      "from": "/configure/agents-admin-guide",
+      "to": "/administration-guide/configure/agents-admin-guide"
+    },
+    {
+      "from": "/configure/configuration-settings",
+      "to": "/administration-guide/configure/configuration-settings"
+    },
+    {
+      "from": "/configure/bleve-search",
+      "to": "/administration-guide/configure/bleve-search"
+    },
+    {
+      "from": "/configure/calls-deployment",
+      "to": "/administration-guide/configure/calls-deployment-guide"
+    },
+    {
+      "from": "/configure/calls-log-collection",
+      "to": "/administration-guide/configure/calls-logging"
+    },
+    {
+      "from": "/configure/calls-overview",
+      "to": "/administration-guide/configure/calls-deployment-guide"
+    },
+    {
+      "from": "/configure/calls-troubleshooting",
+      "to": "/administration-guide/configure/calls-logging"
+    },
+    {
+      "from": "/configure/cloud-billing-account-settings",
+      "to": "/administration-guide/configure/cloud-billing-account-settings"
+    },
+    {
+      "from": "/configure/common-config-settings-notation",
+      "to": "/administration-guide/configure/configuration-settings"
+    },
+    {
+      "from": "/configure/configuration-in-your-database",
+      "to": "/administration-guide/configure/configuration-in-your-database"
+    },
+    {
+      "from": "/configure/custom-branding-tools",
+      "to": "/administration-guide/configure/custom-branding-tools"
+    },
+    {
+      "from": "/configure/customize-mattermost",
+      "to": "/administration-guide/configure/customize-mattermost"
+    },
+    {
+      "from": "/configure/customizing-mattermost",
+      "to": "/administration-guide/configure/customize-mattermost"
+    },
+    {
+      "from": "/configure/enabling-chinese-japanese-korean-search",
+      "to": "/administration-guide/configure/enabling-chinese-japanese-korean-search"
+    },
+    {
+      "from": "/configure/environment-variables",
+      "to": "/administration-guide/configure/environment-variables"
+    },
+    {
+      "from": "/configure/install-boards",
+      "to": "/administration-guide/configure/install-boards"
+    },
+    {
+      "from": "/configure/manage-user-surveys",
+      "to": "/administration-guide/configure/manage-user-surveys"
+    },
+    {
+      "from": "/configure/self-hosted-account-settings",
+      "to": "/administration-guide/configure/self-hosted-account-settings"
+    },
+    {
+      "from": "/configure/smtp-email",
+      "to": "/administration-guide/configure/smtp-email"
+    },
+    {
+      "from": "/configure/system-attributes",
+      "to": "/administration-guide/configure/system-attributes"
+    },
+    {
+      "from": "/configure/configuration-in-mattermost-database",
+      "to": "/administration-guide/configure/configuration-in-your-database"
+    },
+    {
+      "from": "/configure/configuation-in-a-database",
+      "to": "/administration-guide/configure/configuration-in-your-database"
+    },
+    {
+      "from": "/configure/configuration-in-the-database",
+      "to": "/administration-guide/configure/configuration-in-your-database"
+    },
+    {
+      "from": "/deploy/backup-disaster-recovery",
+      "to": "/deployment-guide/backup-disaster-recovery"
+    },
+    {
+      "from": "/deploy/bleve-search",
+      "to": "/administration-guide/configure/bleve-search"
+    },
+    {
+      "from": "/deploy/build-custom-mobile-apps",
+      "to": "/deployment-guide/mobile/distribute-custom-mobile-apps"
+    },
+    {
+      "from": "/deploy/client-side-data",
+      "to": "/deployment-guide/mobile/mobile-app-deployment"
+    },
+    {
+      "from": "/deploy/consider-mobile-vpn-options",
+      "to": "/deployment-guide/mobile/consider-mobile-vpn-options"
+    },
+    {
+      "from": "/deploy/deploy-mobile-apps-using-emm-provider",
+      "to": "/deployment-guide/mobile/deploy-mobile-apps-using-emm-provider"
+    },
+    {
+      "from": "/deploy/desktop/desktop-app-deployment",
+      "to": "/deployment-guide/desktop/desktop-app-deployment"
+    },
+    {
+      "from": "/deploy/desktop/desktop-app-managed-resources",
+      "to": "/deployment-guide/desktop/desktop-app-managed-resources"
+    },
+    {
+      "from": "/deploy/mobile/mobile-app-deployment",
+      "to": "/deployment-guide/mobile/mobile-app-deployment"
+    },
+    {
+      "from": "/deploy/desktop/desktop-custom-dictionaries",
+      "to": "/deployment-guide/desktop/desktop-custom-dictionaries"
+    },
+    {
+      "from": "/deploy/desktop/desktop-msi-installer-and-group-policy-install",
+      "to": "/deployment-guide/desktop/desktop-msi-installer-and-group-policy-install"
+    },
+    {
+      "from": "/deploy/desktop/desktop-troubleshooting",
+      "to": "/deployment-guide/desktop/desktop-troubleshooting"
+    },
+    {
+      "from": "/deploy/desktop/distribute-a-custom-desktop-app",
+      "to": "/deployment-guide/desktop/distribute-a-custom-desktop-app"
+    },
+    {
+      "from": "/deploy/desktop/linux-desktop-install",
+      "to": "/deployment-guide/desktop/linux-desktop-install"
+    },
+    {
+      "from": "/deploy/desktop/silent-windows-desktop-distribution",
+      "to": "/deployment-guide/desktop/silent-windows-desktop-distribution"
+    },
+    {
+      "from": "/deploy/encryption-options",
+      "to": "/deployment-guide/encryption-options"
+    },
+    {
+      "from": "/deploy/image-proxy",
+      "to": "/deployment-guide/server/image-proxy"
+    },
+    {
+      "from": "/deploy/manual-postgres-migration",
+      "to": "/deployment-guide/manual-postgres-migration"
+    },
+    {
+      "from": "/deploy/mobile-appconfig",
+      "to": "/deployment-guide/mobile/deploy-mobile-apps-using-emm-provider"
+    },
+    {
+      "from": "/deploy/mobile-apps-faq",
+      "to": "/deployment-guide/mobile/mobile-faq"
+    },
+    {
+      "from": "/deploy/mobile/consider-mobile-vpn-options",
+      "to": "/deployment-guide/mobile/consider-mobile-vpn-options"
+    },
+    {
+      "from": "/deploy/mobile/deploy-mobile-apps-using-emm-provider",
+      "to": "/deployment-guide/mobile/deploy-mobile-apps-using-emm-provider"
+    },
+    {
+      "from": "/deploy/mobile/distribute-custom-mobile-apps",
+      "to": "/deployment-guide/mobile/distribute-custom-mobile-apps"
+    },
+    {
+      "from": "/deploy/mobile/host-your-own-push-proxy-service",
+      "to": "/deployment-guide/mobile/host-your-own-push-proxy-service"
+    },
+    {
+      "from": "/deploy/mobile/mobile-faq",
+      "to": "/deployment-guide/mobile/mobile-faq"
+    },
+    {
+      "from": "/deploy/mobile/mobile-security-features",
+      "to": "/deployment-guide/mobile/mobile-security-features"
+    },
+    {
+      "from": "/deploy/mobile/mobile-troubleshooting",
+      "to": "/deployment-guide/mobile/mobile-troubleshooting"
+    },
+    {
+      "from": "/deploy/mobile/secure-mobile-file-storage",
+      "to": "/deployment-guide/mobile/secure-mobile-file-storage"
+    },
+    {
+      "from": "/deploy/mobile-faq",
+      "to": "/deployment-guide/mobile/mobile-faq"
+    },
+    {
+      "from": "/deploy/mobile-hpns",
+      "to": "/deployment-guide/mobile/host-your-own-push-proxy-service"
+    },
+    {
+      "from": "/deploy/mobile-overview",
+      "to": "/deployment-guide/mobile/mobile-app-deployment"
+    },
+    {
+      "from": "/deploy/mobile-troubleshoot-notifications",
+      "to": "/deployment-guide/mobile/mobile-troubleshooting"
+    },
+    {
+      "from": "/deploy/mobile-troubleshoot",
+      "to": "/deployment-guide/mobile/mobile-troubleshooting"
+    },
+    {
+      "from": "/deploy/postgres-migration-assist-tool",
+      "to": "/deployment-guide/postgres-migration-assist-tool"
+    },
+    {
+      "from": "/deploy/postgres-migration",
+      "to": "/deployment-guide/postgres-migration"
+    },
+    {
+      "from": "/deploy/quick-start-evaluation",
+      "to": "/deployment-guide/quick-start-evaluation"
+    },
+    {
+      "from": "/deploy/server/containers/install-docker",
+      "to": "/deployment-guide/server/containers/install-docker"
+    },
+    {
+      "from": "/deploy/server/deploy-containers",
+      "to": "/deployment-guide/server/deploy-containers"
+    },
+    {
+      "from": "/deploy/server/deploy-kubernetes",
+      "to": "/deployment-guide/server/deploy-kubernetes"
+    },
+    {
+      "from": "/deploy/server/deploy-linux",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/deploy/server/docker-troubleshooting",
+      "to": "/deployment-guide/server/docker-troubleshooting"
+    },
+    {
+      "from": "/deploy/server/image-proxy",
+      "to": "/deployment-guide/server/image-proxy"
+    },
+    {
+      "from": "/deploy/server/kubernetes/deploy-k8s-aks",
+      "to": "/deployment-guide/server/deploy-kubernetes"
+    },
+    {
+      "from": "/deploy/server/kubernetes/deploy-k8s-oke",
+      "to": "/deployment-guide/server/kubernetes/deploy-k8s-oke"
+    },
+    {
+      "from": "/deploy/server/kubernetes/deploy-k8s",
+      "to": "/deployment-guide/server/kubernetes/deploy-k8s"
+    },
+    {
+      "from": "/deploy/server/orchestration",
+      "to": "/deployment-guide/server/orchestration"
+    },
+    {
+      "from": "/deploy/server/prepare-mattermost-mysql-database",
+      "to": "/deployment-guide/server/prepare-mattermost-mysql-database"
+    },
+    {
+      "from": "/deploy/server/setup-nginx-proxy",
+      "to": "/deployment-guide/server/setup-nginx-proxy"
+    },
+    {
+      "from": "/deploy/server/setup-tls",
+      "to": "/deployment-guide/server/setup-tls"
+    },
+    {
+      "from": "/deploy/server/trouble-postgres",
+      "to": "/deployment-guide/server/trouble-postgres"
+    },
+    {
+      "from": "/deploy/server/trouble_mysql",
+      "to": "/deployment-guide/server/trouble_mysql"
+    },
+    {
+      "from": "/deploy/server/troubleshooting",
+      "to": "/deployment-guide/server/troubleshooting"
+    },
+    {
+      "from": "/deploy/transport-encryption",
+      "to": "/deployment-guide/transport-encryption"
+    },
+    {
+      "from": "/deploy/use-prebuilt-mobile-apps",
+      "to": "/deployment-guide/mobile/mobile-app-deployment"
+    },
+    {
+      "from": "/deploy/desktop-app",
+      "to": "/deployment-guide/desktop/desktop-app-deployment"
+    },
+    {
+      "from": "/deploy/deprecated-features",
+      "to": "/product-overview/deprecated-features"
+    },
+    {
+      "from": "/deploy/desktop-app-changelog",
+      "to": "/product-overview/desktop-app-changelog"
+    },
+    {
+      "from": "/deploy/legacy-self-hosted-changelog",
+      "to": "/product-overview/unsupported-legacy-releases"
+    },
+    {
+      "from": "/deploy/mobile-app-changelog",
+      "to": "/product-overview/mobile-app-changelog"
+    },
+    {
+      "from": "/deploy/mattermost-changelog",
+      "to": "/product-overview/server"
+    },
+    {
+      "from": "/deploy/legacy-cloud-changelog",
+      "to": "/product-overview/mattermost-server-releases"
+    },
+    {
+      "from": "/deploy/deploy-openfaas",
+      "to": "/deployment-guide/deployment-guide-index"
+    },
+    {
+      "from": "/deploy/package-aws",
+      "to": "/deployment-guide/deployment-guide-index"
+    },
+    {
+      "from": "/deploy/deploy-http",
+      "to": "/deployment-guide/deployment-guide-index"
+    },
+    {
+      "from": "/deploy/deploy-mattermost-apps",
+      "to": "/end-user-guide/access/access-your-workspace"
+    },
+    {
+      "from": "/deploy/high-scale-troubleshoot",
+      "to": "/deployment-guide/server/troubleshooting#deployment-troubleshooting"
+    },
+    {
+      "from": "/deploy/server/linux/deploy-rhel",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/deployment/advanced-permissions",
+      "to": "/administration-guide/onboard/advanced-permissions"
+    },
+    {
+      "from": "/deployment/auth",
+      "to": "/administration-guide/onboard/multi-factor-authentication"
+    },
+    {
+      "from": "/deployment/converting-oauth20-service-providers-to-openidconnect",
+      "to": "/administration-guide/onboard/convert-oauth20-service-providers-to-openidconnect"
+    },
+    {
+      "from": "/deployment/certificate-based-authentication",
+      "to": "/administration-guide/onboard/certificate-based-authentication"
+    },
+    {
+      "from": "/deployment/team-channel-management",
+      "to": "/administration-guide/manage/team-channel-members"
+    },
+    {
+      "from": "/deployment/desktop-app-deployment",
+      "to": "/deployment-guide/desktop/desktop-app-deployment"
+    },
+    {
+      "from": "/deployment/elasticsearch",
+      "to": "/administration-guide/scale/elasticsearch-setup"
+    },
+    {
+      "from": "/deployment/enterprise-deployment-guide",
+      "to": "/administration-guide/scale/scaling-for-enterprise"
+    },
+    {
+      "from": "/deployment/guest-accounts",
+      "to": "/administration-guide/onboard/guest-accounts"
+    },
+    {
+      "from": "/deployment/ha",
+      "to": "/administration-guide/scale/high-availability-cluster-based-deployment"
+    },
+    {
+      "from": "/deployment/metrics",
+      "to": "/administration-guide/scale/deploy-prometheus-grafana-for-performance-monitoring"
+    },
+    {
+      "from": "/deployment/mobile-app-deployment",
+      "to": "/deployment-guide/mobile/mobile-app-deployment"
+    },
+    {
+      "from": "/deployment/on-boarding",
+      "to": "/administration-guide/upgrade/admin-onboarding-tasks"
+    },
+    {
+      "from": "/deployment/push",
+      "to": "/deployment-guide/mobile/host-your-own-push-proxy-service"
+    },
+    {
+      "from": "/deployment/scaling",
+      "to": "/administration-guide/scale/scaling-for-enterprise"
+    },
+    {
+      "from": "/deployment/sso-ldap",
+      "to": "/administration-guide/onboard/ad-ldap"
+    },
+    {
+      "from": "/deployment/sso-openidconnect",
+      "to": "/administration-guide/onboard/sso-openidconnect"
+    },
+    {
+      "from": "/deployment/sso-gitlab",
+      "to": "/administration-guide/onboard/sso-gitlab"
+    },
+    {
+      "from": "/deployment/sso-google",
+      "to": "/administration-guide/onboard/sso-google"
+    },
+    {
+      "from": "/deployment/sso-office",
+      "to": "/administration-guide/onboard/sso-entraid"
+    },
+    {
+      "from": "/deployment/sso-saml",
+      "to": "/administration-guide/onboard/sso-saml"
+    },
+    {
+      "from": "/deployment/sso-saml-technical",
+      "to": "/administration-guide/onboard/sso-saml-technical"
+    },
+    {
+      "from": "/deployment/sso-saml-troubleshooting",
+      "to": "/administration-guide/onboard/sso-saml"
+    },
+    {
+      "from": "/deployment/ssl-client-certificate",
+      "to": "/administration-guide/onboard/ssl-client-certificate"
+    },
+    {
+      "from": "/deployment/sso-saml-okta",
+      "to": "/administration-guide/onboard/sso-saml-okta"
+    },
+    {
+      "from": "/deployment/sso-saml-adfs-msws2016",
+      "to": "/administration-guide/onboard/sso-saml-adfs-msws2016"
+    },
+    {
+      "from": "/getting-started/feature-labels",
+      "to": "/administration-guide/manage/feature-labels"
+    },
+    {
+      "from": "/getting-started/admin-onboarding-tasks",
+      "to": "/administration-guide/upgrade/admin-onboarding-tasks"
+    },
+    {
+      "from": "/getting-started/enterprise-roll-out-checklist",
+      "to": "/administration-guide/upgrade/enterprise-roll-out-checklist"
+    },
+    {
+      "from": "/getting-started/welcome-email-to-end-users",
+      "to": "/administration-guide/upgrade/welcome-email-to-end-users"
+    },
+    {
+      "from": "/getting-started/light-install",
+      "to": "/deployment-guide/server/deploy-containers"
+    },
+    {
+      "from": "/getting-started/welcome_email",
+      "to": "/administration-guide/upgrade/welcome-email-to-end-users"
+    },
+    {
+      "from": "/getting-started/organizing-conversations",
+      "to": "/end-user-guide/collaborate/organize-conversations"
+    },
+    {
+      "from": "/guides/administrator",
+      "to": "/deployment-guide/deployment-guide-index"
+    },
+    {
+      "from": "/guides/deployment-guides",
+      "to": "/deployment-guide/deployment-guide-index"
+    },
+    {
+      "from": "/guides/deployment",
+      "to": "/deployment-guide/deployment-guide-index"
+    },
+    {
+      "from": "/guides/desktop-mobile-app-deployment",
+      "to": "/deployment-guide/desktop/desktop-app-deployment"
+    },
+    {
+      "from": "/guides/messaging",
+      "to": "/end-user-guide/end-user-guide-index"
+    },
+    {
+      "from": "/guides/orchestration",
+      "to": "/use-case-guide/use-cases-index"
+    },
+    {
+      "from": "/guides/cloud-admin-guide",
+      "to": "/deployment-guide/deployment-guide-index"
+    },
+    {
+      "from": "/guides/setup-onboard-manage-comply",
+      "to": "/administration-guide/administration-guide-index"
+    },
+    {
+      "from": "/guides/user",
+      "to": "/end-user-guide/end-user-guide-index"
+    },
+    {
+      "from": "/guides/channels",
+      "to": "/end-user-guide/end-user-guide-index"
+    },
+    {
+      "from": "/guides/playbooks",
+      "to": "/end-user-guide/workflow-automation"
+    },
+    {
+      "from": "/guides/welcome-to-mattermost",
+      "to": "/end-user-guide/end-user-guide-index"
+    },
+    {
+      "from": "/guides/changelogs",
+      "to": "/product-overview/releases-lifecycle"
+    },
+    {
+      "from": "/help/apps/desktop-changelog",
+      "to": "/product-overview/desktop-app-changelog"
+    },
+    {
+      "from": "/help/apps/desktop-guide",
+      "to": "/end-user-guide/preferences/connect-multiple-workspaces"
+    },
+    {
+      "from": "/help/messaging/attaching-files",
+      "to": "/end-user-guide/collaborate/share-files-in-messages"
+    },
+    {
+      "from": "/help/getting-started/creating-teams",
+      "to": "/end-user-guide/collaborate/organize-using-teams#create-a-team"
+    },
+    {
+      "from": "/help/getting-started/install-desktop-app",
+      "to": "/end-user-guide/access/install-desktop-app"
+    },
+    {
+      "from": "/help/messaging/flagging-messages",
+      "to": "/end-user-guide/collaborate/save-pin-messages"
+    },
+    {
+      "from": "/help/getting-started/light-install",
+      "to": "/deployment-guide/server/deploy-containers"
+    },
+    {
+      "from": "/help/getting-started/log-out",
+      "to": "/end-user-guide/access/log-out"
+    },
+    {
+      "from": "/help/getting-started/managing-members",
+      "to": "/end-user-guide/collaborate/manage-channel-members"
+    },
+    {
+      "from": "/help/messaging/mentioning-teammates",
+      "to": "/end-user-guide/collaborate/mention-people"
+    },
+    {
+      "from": "/help/getting-started/organizing",
+      "to": "/end-user-guide/collaborate/channel-naming-conventions"
+    },
+    {
+      "from": "/help/getting-started/organizing-conversations",
+      "to": "/end-user-guide/collaborate/organize-conversations"
+    },
+    {
+      "from": "/help/messaging/organizing-conversations",
+      "to": "/end-user-guide/collaborate/organize-conversations"
+    },
+    {
+      "from": "/help/messaging/pinning-messages",
+      "to": "/end-user-guide/collaborate/save-pin-messages"
+    },
+    {
+      "from": "/help/getting-started/signing-in",
+      "to": "/end-user-guide/access/access-your-workspace"
+    },
+    {
+      "from": "/help/getting-started/searching",
+      "to": "/end-user-guide/collaborate/search-for-messages"
+    },
+    {
+      "from": "/help/messaging/sending-messages",
+      "to": "/end-user-guide/collaborate/send-messages"
+    },
+    {
+      "from": "/help/getting-started/switch-between-teams",
+      "to": "/end-user-guide/collaborate/organize-using-teams#team-sidebar"
+    },
+    {
+      "from": "/help/getting-started/welcome-to-mattermost",
+      "to": "/end-user-guide/end-user-guide-index"
+    },
+    {
+      "from": "/help/settings/desktop-app-options",
+      "to": "/end-user-guide/preferences/customize-desktop-app-experience"
+    },
+    {
+      "from": "/help/settings/manage-servers",
+      "to": "/end-user-guide/preferences/connect-multiple-workspaces"
+    },
+    {
+      "from": "/help/settings/team-settings",
+      "to": "/end-user-guide/collaborate/team-settings"
+    },
+    {
+      "from": "/help/settings/theme-colors",
+      "to": "/end-user-guide/preferences/customize-your-theme"
+    },
+    {
+      "from": "/incident-collaboration/getting-started",
+      "to": "/end-user-guide/workflow-automation/learn-about-playbooks"
+    },
+    {
+      "from": "/incident-collaboration/launching-playbooks",
+      "to": "/end-user-guide/workflow-automation"
+    },
+    {
+      "from": "/incident-collaboration/overview",
+      "to": "/end-user-guide/workflow-automation/metrics-and-goals"
+    },
+    {
+      "from": "/incident-collaboration/playbook-planning",
+      "to": "/end-user-guide/workflow-automation"
+    },
+    {
+      "from": "/incident-collaboration/review-and-refine",
+      "to": "/end-user-guide/workflow-automation/metrics-and-goals"
+    },
+    {
+      "from": "/incident-collaboration/running-playbooks",
+      "to": "/end-user-guide/workflow-automation"
+    },
+    {
+      "from": "/incident-collaboration/refining-and-improving",
+      "to": "/end-user-guide/workflow-automation/metrics-and-goals"
+    },
+    {
+      "from": "/incident-collaboration/setting-up-playbooks",
+      "to": "/end-user-guide/workflow-automation"
+    },
+    {
+      "from": "/install/desktop-app-managed-resources",
+      "to": "/deployment-guide/desktop/desktop-app-managed-resources"
+    },
+    {
+      "from": "/install/desktop-custom-dictionaries",
+      "to": "/deployment-guide/desktop/desktop-custom-dictionaries"
+    },
+    {
+      "from": "/install/desktop-msi-installer-and-group-policy-install",
+      "to": "/deployment-guide/desktop/desktop-msi-installer-and-group-policy-install"
+    },
+    {
+      "from": "/install/installing-mattermost-omnibus",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/prepare-mattermost-mysql-database",
+      "to": "/deployment-guide/server/prepare-mattermost-mysql-database"
+    },
+    {
+      "from": "/install/setup-nginx-proxy",
+      "to": "/deployment-guide/server/setup-nginx-proxy"
+    },
+    {
+      "from": "/install/setup-tls",
+      "to": "/deployment-guide/server/setup-tls"
+    },
+    {
+      "from": "/install/setup-mattermost-server",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/trouble-postgres",
+      "to": "/deployment-guide/server/trouble-postgres"
+    },
+    {
+      "from": "/install/trouble_mysql",
+      "to": "/deployment-guide/server/trouble_mysql"
+    },
+    {
+      "from": "/install/troubleshooting",
+      "to": "/deployment-guide/server/troubleshooting"
+    },
+    {
+      "from": "/install/install-rhel",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/install-tar",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/install-ubuntu",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/install-kubernetes",
+      "to": "/deployment-guide/server/deploy-kubernetes"
+    },
+    {
+      "from": "/install/install-kubernetes-aks",
+      "to": "/deployment-guide/server/deploy-kubernetes"
+    },
+    {
+      "from": "/install/cluster-transport-encryption",
+      "to": "/deployment-guide/transport-encryption"
+    },
+    {
+      "from": "/install/database-transport-encryption",
+      "to": "/deployment-guide/transport-encryption"
+    },
+    {
+      "from": "/install/config-tls-mattermost",
+      "to": "/deployment-guide/transport-encryption"
+    },
+    {
+      "from": "/install/proxy-to-mattermost-transport-encryption",
+      "to": "/deployment-guide/transport-encryption"
+    },
+    {
+      "from": "/install/transport-encryption",
+      "to": "/deployment-guide/transport-encryption"
+    },
+    {
+      "from": "/install/deploy-bitnami",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/enterprise-install-upgrade",
+      "to": "/administration-guide/upgrade/enterprise-install-upgrade"
+    },
+    {
+      "from": "/install/desktop",
+      "to": "/end-user-guide/access/install-desktop-app"
+    },
+    {
+      "from": "/install/desktop-managed-resources",
+      "to": "/deployment-guide/desktop/desktop-app-managed-resources"
+    },
+    {
+      "from": "/install/desktop-msi-gpo",
+      "to": "/deployment-guide/desktop/desktop-msi-installer-and-group-policy-install"
+    },
+    {
+      "from": "/install/docker-ebs",
+      "to": "/deployment-guide/server/deploy-containers"
+    },
+    {
+      "from": "/install/i18n",
+      "to": "/administration-guide/configure/enabling-chinese-japanese-korean-search"
+    },
+    {
+      "from": "/install/installing-mattermost-desktop-app",
+      "to": "/end-user-guide/access/install-desktop-app"
+    },
+    {
+      "from": "/install/install-kubernetes-cluster",
+      "to": "/deployment-guide/server/deploy-kubernetes"
+    },
+    {
+      "from": "/install/install-kubernetes-mattermost",
+      "to": "/deployment-guide/server/deploy-kubernetes"
+    },
+    {
+      "from": "/install/install-ubuntu-2004",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/mattermost-omnibus",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/setting-up-local-machine-using-docker",
+      "to": "/deployment-guide/deployment-guide-index"
+    },
+    {
+      "from": "/install/smtp-email-setup",
+      "to": "/administration-guide/configure/smtp-email"
+    },
+    {
+      "from": "/install/use-kubernetes-mattermost",
+      "to": "/deployment-guide/server/deploy-kubernetes"
+    },
+    {
+      "from": "/install/cloud-changelog",
+      "to": "/product-overview/mattermost-server-releases"
+    },
+    {
+      "from": "/install/desktop-app-install",
+      "to": "/end-user-guide/access/install-desktop-app"
+    },
+    {
+      "from": "/install/install-ios-app",
+      "to": "/end-user-guide/access/install-ios-app"
+    },
+    {
+      "from": "/install/install-android-app",
+      "to": "/end-user-guide/access/install-android-app"
+    },
+    {
+      "from": "/install/desktop-app-changelog",
+      "to": "/product-overview/desktop-app-changelog"
+    },
+    {
+      "from": "/install/deprecated-features",
+      "to": "/product-overview/deprecated-features"
+    },
+    {
+      "from": "/install/install-mattermost-server-tarball",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/install-rhel-6-mattermost",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/mattermost-kubernetes-operator",
+      "to": "/deployment-guide/server/deploy-kubernetes"
+    },
+    {
+      "from": "/install/install-ubuntu-2004-server",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/install-rhel-7-server",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/install-ubuntu-1804-server",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/install-ubuntu-1804-postgresql",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/install-ubuntu-2004-mysql",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/install-debian-mysql",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/install-rhel-8-server",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/install-ubuntu-1804-mysql",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/install-debian-server",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/install-rhel-8-mysql",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/install-rhel-7-mysql",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/install-debian-postgresql",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/install-ubuntu-2004-postgresql",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/install-rhel-8-postgresql",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/installing-ubuntu-1804-LTS",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/install-ubuntu-1804-mattermost",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/install-rhel-8",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/install-ubuntu-2004-mattermost",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/install-rhel-7-mattermost",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/install-rhel-7-postgresql",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/install-rhel-8-mattermost",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/install-rhel-7",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/installing-ubuntu-2004-LTS",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/install-debian",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/install-centos-oracle-scientific",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/install-common-intro",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/install-latest-tarball",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/common-prod-deploy-docker",
+      "to": "/deployment-guide/server/deploy-containers"
+    },
+    {
+      "from": "/install/common-deploy-faq",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/install-rhel-nginx",
+      "to": "/deployment-guide/server/setup-nginx-proxy"
+    },
+    {
+      "from": "/install/config-ssl-http2-nginx",
+      "to": "/deployment-guide/server/setup-nginx-proxy#configure-nginx-with-ssl-and-http-2"
+    },
+    {
+      "from": "/install/config-proxy-nginx",
+      "to": "/deployment-guide/server/setup-nginx-proxy"
+    },
+    {
+      "from": "/install/install-nginx",
+      "to": "/deployment-guide/server/setup-nginx-proxy"
+    },
+    {
+      "from": "/install/faq_kubernetes",
+      "to": "/deployment-guide/server/kubernetes/deploy-k8s"
+    },
+    {
+      "from": "/install/common-prod-deploy-tar",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/common-prod-deploy-omnibus",
+      "to": "/deployment-guide/server/deploy-linux"
+    },
+    {
+      "from": "/install/common-local-deploy-docker",
+      "to": "/deployment-guide/server/deploy-containers"
+    },
+    {
+      "from": "/install/install-docker",
+      "to": "/deployment-guide/server/deploy-containers"
+    },
+    {
+      "from": "/install/manage_kubernetes",
+      "to": "/deployment-guide/server/deploy-kubernetes"
+    },
+    {
+      "from": "/install/trial-mattermost-using-docker",
+      "to": "/deployment-guide/server/deploy-containers"
+    },
+    {
+      "from": "/integrate/github",
+      "to": "/integrations-guide/github"
+    },
+    {
+      "from": "/integrate/gitlab",
+      "to": "/integrations-guide/gitlab"
+    },
+    {
+      "from": "/integrate/jira",
+      "to": "/integrations-guide/jira"
+    },
+    {
+      "from": "/integrate/mattermost-mission-collaboration-for-m365",
+      "to": "/integrations-guide/mattermost-mission-collaboration-for-m365"
+    },
+    {
+      "from": "/integrate/microsoft-calendar",
+      "to": "/integrations-guide/microsoft-calendar"
+    },
+    {
+      "from": "/integrate/microsoft-calendar-interoperability",
+      "to": "/integrations-guide/microsoft-calendar"
+    },
+    {
+      "from": "/integrate/microsoft-teams-meetings",
+      "to": "/integrations-guide/microsoft-teams-meetings"
+    },
+    {
+      "from": "/integrate/microsoft-teams-meetings-interoperability",
+      "to": "/integrations-guide/microsoft-teams-meetings"
+    },
+    {
+      "from": "/integrate/microsoft-teams-sync",
+      "to": "/integrations-guide/microsoft-teams-sync"
+    },
+    {
+      "from": "/integrate/servicenow",
+      "to": "/integrations-guide/servicenow"
+    },
+    {
+      "from": "/integrate/zoom",
+      "to": "/integrations-guide/zoom"
+    },
+    {
+      "from": "/integrations/integration-faq",
+      "to": "/integrations-guide/integrations-guide-index#frequently-asked-questions"
+    },
+    {
+      "from": "/integrations/net-promoter-score",
+      "to": "/administration-guide/manage/user-satisfaction-surveys"
+    },
+    {
+      "from": "/manage/admin/attribute-based-access-control",
+      "to": "/administration-guide/manage/admin/attribute-based-access-control"
+    },
+    {
+      "from": "/manage/admin/error-codes",
+      "to": "/administration-guide/manage/admin/error-codes"
+    },
+    {
+      "from": "/manage/admin/installing-license-key",
+      "to": "/administration-guide/manage/admin/installing-license-key"
+    },
+    {
+      "from": "/manage/admin/self-hosted-billing",
+      "to": "/administration-guide/manage/admin/self-hosted-billing"
+    },
+    {
+      "from": "/manage/admin/customize-branding",
+      "to": "/administration-guide/manage/admin/customize-branding"
+    },
+    {
+      "from": "/manage/admin/migration",
+      "to": "/administration-guide/manage/admin/migration"
+    },
+    {
+      "from": "/manage/admin/monitoring-and-performance",
+      "to": "/administration-guide/manage/admin/monitoring-and-performance"
+    },
+    {
+      "from": "/manage/admin/server-configuration",
+      "to": "/administration-guide/manage/admin/server-configuration"
+    },
+    {
+      "from": "/manage/admin/server-maintenance",
+      "to": "/administration-guide/manage/admin/server-maintenance"
+    },
+    {
+      "from": "/manage/admin/user-attributes",
+      "to": "/administration-guide/manage/admin/user-attributes"
+    },
+    {
+      "from": "/manage/admin/user-management",
+      "to": "/administration-guide/manage/admin/user-management"
+    },
+    {
+      "from": "/manage/admin/user-provisioning",
+      "to": "/administration-guide/manage/admin/user-provisioning"
+    },
+    {
+      "from": "/manage/cloud-byok",
+      "to": "/administration-guide/manage/cloud-byok"
+    },
+    {
+      "from": "/manage/cloud-data-residency",
+      "to": "/administration-guide/manage/cloud-data-residency"
+    },
+    {
+      "from": "/manage/cloud-ip-filtering",
+      "to": "/administration-guide/manage/cloud-ip-filtering"
+    },
+    {
+      "from": "/manage/code-signing-custom-builds",
+      "to": "/administration-guide/manage/code-signing-custom-builds"
+    },
+    {
+      "from": "/manage/command-line-tools",
+      "to": "/administration-guide/manage/command-line-tools"
+    },
+    {
+      "from": "/manage/configure-health-check-probes",
+      "to": "/administration-guide/manage/configure-health-check-probes"
+    },
+    {
+      "from": "/manage/error-codes",
+      "to": "/administration-guide/manage/admin/error-codes"
+    },
+    {
+      "from": "/manage/feature-labels",
+      "to": "/administration-guide/manage/feature-labels"
+    },
+    {
+      "from": "/manage/in-product-notices",
+      "to": "/administration-guide/manage/in-product-notices"
+    },
+    {
+      "from": "/manage/mmctl-command-line-tool",
+      "to": "/administration-guide/manage/mmctl-command-line-tool"
+    },
+    {
+      "from": "/manage/request-server-health-check",
+      "to": "/administration-guide/manage/request-server-health-check"
+    },
+    {
+      "from": "/manage/self-hosted-billing",
+      "to": "/administration-guide/manage/admin/self-hosted-billing"
+    },
+    {
+      "from": "/manage/statistics",
+      "to": "/administration-guide/manage/statistics"
+    },
+    {
+      "from": "/manage/system-wide-notifications",
+      "to": "/administration-guide/manage/system-wide-notifications"
+    },
+    {
+      "from": "/manage/team-channel-members",
+      "to": "/administration-guide/manage/team-channel-members"
+    },
+    {
+      "from": "/manage/telemetry",
+      "to": "/administration-guide/manage/telemetry"
+    },
+    {
+      "from": "/manage/product-limits",
+      "to": "/administration-guide/manage/product-limits"
+    },
+    {
+      "from": "/manage/user-satisfaction-surveys",
+      "to": "/administration-guide/manage/user-satisfaction-surveys"
+    },
+    {
+      "from": "/manage/announcement-banner",
+      "to": "/administration-guide/manage/system-wide-notifications"
+    },
+    {
+      "from": "/manage/heath-checks",
+      "to": "/administration-guide/manage/configure-health-check-probes"
+    },
+    {
+      "from": "/manage/cloud-vpc-private-connectivity",
+      "to": "/product-overview/cloud-vpc-private-connectivity"
+    },
+    {
+      "from": "/messaging/channels-basics",
+      "to": "/end-user-guide/collaborate/collaborate-within-channels"
+    },
+    {
+      "from": "/messaging/creating-teams",
+      "to": "/end-user-guide/collaborate/organize-using-teams#create-a-team"
+    },
+    {
+      "from": "/messaging/customizing-theme-colors",
+      "to": "/end-user-guide/preferences/customize-your-theme"
+    },
+    {
+      "from": "/messaging/logging-out",
+      "to": "/end-user-guide/access/log-out"
+    },
+    {
+      "from": "/messaging/managing-channels",
+      "to": "/end-user-guide/collaborate/collaborate-within-channels"
+    },
+    {
+      "from": "/messaging/managing-desktop-app-options",
+      "to": "/end-user-guide/preferences/customize-desktop-app-experience"
+    },
+    {
+      "from": "/messaging/managing-desktop-app-servers",
+      "to": "/end-user-guide/preferences/connect-multiple-workspaces"
+    },
+    {
+      "from": "/messaging/managing-members",
+      "to": "/end-user-guide/collaborate/manage-channel-members"
+    },
+    {
+      "from": "/messaging/mentioning-teammates",
+      "to": "/end-user-guide/collaborate/mention-people"
+    },
+    {
+      "from": "/messaging/messaging-basics",
+      "to": "/end-user-guide/collaborate/collaborate-within-channels"
+    },
+    {
+      "from": "/messaging/navigating-between-teams",
+      "to": "/end-user-guide/collaborate/organize-using-teams#team-sidebar"
+    },
+    {
+      "from": "/messaging/organizing-channels",
+      "to": "/end-user-guide/collaborate/channel-naming-conventions"
+    },
+    {
+      "from": "/messaging/organizing-conversations",
+      "to": "/end-user-guide/collaborate/organize-conversations"
+    },
+    {
+      "from": "/messaging/organizing-mattermost",
+      "to": "/end-user-guide/collaborate/channel-naming-conventions"
+    },
+    {
+      "from": "/messaging/pinning-messages",
+      "to": "/end-user-guide/collaborate/save-pin-messages"
+    },
+    {
+      "from": "/messaging/searching-in-mattermost",
+      "to": "/end-user-guide/collaborate/search-for-messages"
+    },
+    {
+      "from": "/messaging/sending-messages",
+      "to": "/end-user-guide/collaborate/send-messages"
+    },
+    {
+      "from": "/messaging/sending-receiving-messages",
+      "to": "/end-user-guide/collaborate/send-messages"
+    },
+    {
+      "from": "/messaging/sharing-messages",
+      "to": "/end-user-guide/collaborate/share-links"
+    },
+    {
+      "from": "/messaging/sharing-files",
+      "to": "/end-user-guide/collaborate/share-files-in-messages"
+    },
+    {
+      "from": "/messaging/signing-in",
+      "to": "/end-user-guide/access/access-your-workspace"
+    },
+    {
+      "from": "/messaging/switching-between-teams",
+      "to": "/end-user-guide/collaborate/organize-using-teams#team-sidebar"
+    },
+    {
+      "from": "/messaging/team-settings",
+      "to": "/end-user-guide/collaborate/team-settings"
+    },
+    {
+      "from": "/messaging/welcome-to-mattermost-channels",
+      "to": "/end-user-guide/end-user-guide-index"
+    },
+    {
+      "from": "/messaging/welcome-to-mattermost-messaging",
+      "to": "/end-user-guide/end-user-guide-index"
+    },
+    {
+      "from": "/messaging/cloud-user-management",
+      "to": "/end-user-guide/collaborate/manage-channel-members"
+    },
+    {
+      "from": "/mobile/deploy-mobile-apps-using-emm-provider",
+      "to": "/deployment-guide/mobile/deploy-mobile-apps-using-emm-provider"
+    },
+    {
+      "from": "/mobile/mobile-appstore-install",
+      "to": "/deployment-guide/mobile/mobile-app-deployment"
+    },
+    {
+      "from": "/mobile/mobile-blackberry",
+      "to": "/deployment-guide/mobile/deploy-mobile-apps-using-emm-provider"
+    },
+    {
+      "from": "/mobile/mobile-compile yourself",
+      "to": "/deployment-guide/mobile/distribute-custom-mobile-apps"
+    },
+    {
+      "from": "/mobile/mobile-hpns",
+      "to": "/deployment-guide/mobile/host-your-own-push-proxy-service"
+    },
+    {
+      "from": "/mobile/mobile-mobileiron",
+      "to": "/deployment-guide/mobile/distribute-custom-mobile-apps"
+    },
+    {
+      "from": "/mobile/mobile-overview",
+      "to": "/deployment-guide/mobile/mobile-app-deployment"
+    },
+    {
+      "from": "/mobile/mobile-testing-notifications",
+      "to": "/deployment-guide/mobile/mobile-troubleshooting"
+    },
+    {
+      "from": "/onboard/ad-ldap",
+      "to": "/administration-guide/onboard/ad-ldap"
+    },
+    {
+      "from": "/onboard/advanced-permissions",
+      "to": "/administration-guide/onboard/advanced-permissions"
+    },
+    {
+      "from": "/onboard/certificate-based-authentication",
+      "to": "/administration-guide/onboard/certificate-based-authentication"
+    },
+    {
+      "from": "/onboard/common-converting-oauth-to-openidconnect",
+      "to": "/administration-guide/onboard/common-converting-oauth-to-openidconnect"
+    },
+    {
+      "from": "/onboard/connected-workspaces",
+      "to": "/administration-guide/onboard/connected-workspaces"
+    },
+    {
+      "from": "/onboard/convert-oauth20-service-providers-to-openidconnect",
+      "to": "/administration-guide/onboard/convert-oauth20-service-providers-to-openidconnect"
+    },
+    {
+      "from": "/onboard/guest-accounts",
+      "to": "/administration-guide/onboard/guest-accounts"
+    },
+    {
+      "from": "/onboard/managing-team-channel-membership-using-ad-ldap-sync-groups",
+      "to": "/administration-guide/onboard/managing-team-channel-membership-using-ad-ldap-sync-groups"
+    },
+    {
+      "from": "/onboard/migrate-from-slack",
+      "to": "/administration-guide/onboard/migrate-from-slack"
+    },
+    {
+      "from": "/onboard/migrating-to-mattermost",
+      "to": "/administration-guide/onboard/migrating-to-mattermost"
+    },
+    {
+      "from": "/onboard/migration-announcement-email",
+      "to": "/administration-guide/onboard/migration-announcement-email"
+    },
+    {
+      "from": "/onboard/multi-factor-authentication",
+      "to": "/administration-guide/onboard/multi-factor-authentication"
+    },
+    {
+      "from": "/onboard/ssl-client-certificate",
+      "to": "/administration-guide/onboard/ssl-client-certificate"
+    },
+    {
+      "from": "/onboard/sso-entraid",
+      "to": "/administration-guide/onboard/sso-entraid"
+    },
+    {
+      "from": "/onboard/sso-gitlab",
+      "to": "/administration-guide/onboard/sso-gitlab"
+    },
+    {
+      "from": "/onboard/sso-google",
+      "to": "/administration-guide/onboard/sso-google"
+    },
+    {
+      "from": "/onboard/sso-openidconnect",
+      "to": "/administration-guide/onboard/sso-openidconnect"
+    },
+    {
+      "from": "/onboard/sso-saml-adfs-msws2016",
+      "to": "/administration-guide/onboard/sso-saml-adfs-msws2016"
+    },
+    {
+      "from": "/onboard/sso-saml-adfs",
+      "to": "/administration-guide/onboard/sso-saml-adfs"
+    },
+    {
+      "from": "/onboard/sso-saml-keycloak",
+      "to": "/administration-guide/onboard/sso-saml-keycloak"
+    },
+    {
+      "from": "/onboard/sso-saml-ldapsync",
+      "to": "/administration-guide/onboard/sso-saml-ldapsync"
+    },
+    {
+      "from": "/onboard/sso-saml-okta",
+      "to": "/administration-guide/onboard/sso-saml-okta"
+    },
+    {
+      "from": "/onboard/sso-saml-technical",
+      "to": "/administration-guide/onboard/sso-saml-technical"
+    },
+    {
+      "from": "/onboard/sso-saml",
+      "to": "/administration-guide/onboard/sso-saml"
+    },
+    {
+      "from": "/onboard/user-provisioning-workflows",
+      "to": "/administration-guide/onboard/user-provisioning-workflows"
+    },
+    {
+      "from": "/onboard/migrating-from-hipchat-to-mattermost",
+      "to": "/administration-guide/onboard/migrating-to-mattermost"
+    },
+    {
+      "from": "/onboard/sso-office",
+      "to": "/administration-guide/onboard/sso-entraid"
+    },
+    {
+      "from": "/onboard/guest-account-access",
+      "to": "/administration-guide/onboard/guest-accounts"
+    },
+    {
+      "from": "/onboard/common-sso-openidconnect",
+      "to": "/administration-guide/onboard/sso-openidconnect"
+    },
+    {
+      "from": "/onboard/common-disable-mfa",
+      "to": "/administration-guide/onboard/multi-factor-authentication"
+    },
+    {
+      "from": "/onboard/common-sso-google",
+      "to": "/administration-guide/onboard/sso-google"
+    },
+    {
+      "from": "/onboard/sso-saml-faq",
+      "to": "/administration-guide/onboard/sso-saml"
+    },
+    {
+      "from": "/onboard/common-sso-entraid",
+      "to": "/administration-guide/onboard/sso-entraid"
+    },
+    {
+      "from": "/onboard/shared-channels",
+      "to": "/administration-guide/onboard/connected-workspaces"
+    },
+    {
+      "from": "/overview/auth",
+      "to": "/product-overview/corporate-directory-integration"
+    },
+    {
+      "from": "/overview/authentication",
+      "to": "/administration-guide/onboard/multi-factor-authentication"
+    },
+    {
+      "from": "/overview/faq",
+      "to": "/product-overview/frequently-asked-questions"
+    },
+    {
+      "from": "/overview/license-and-subscription",
+      "to": "/product-overview/subscription"
+    },
+    {
+      "from": "/playbooks/getting-started",
+      "to": "/end-user-guide/workflow-automation/learn-about-playbooks"
+    },
+    {
+      "from": "/playbooks/setting-up-playbooks",
+      "to": "/end-user-guide/workflow-automation"
+    },
+    {
+      "from": "/playbooks/running-playbooks",
+      "to": "/end-user-guide/workflow-automation"
+    },
+    {
+      "from": "/playbooks/refining-and-improving",
+      "to": "/end-user-guide/workflow-automation/metrics-and-goals"
+    },
+    {
+      "from": "/playbooks/customize-a-playbook",
+      "to": "/end-user-guide/workflow-automation"
+    },
+    {
+      "from": "/playbooks/customize-a-run",
+      "to": "/end-user-guide/workflow-automation/work-with-runs"
+    },
+    {
+      "from": "/playbooks/reusing-and-sharing-playbooks",
+      "to": "/end-user-guide/workflow-automation/share-and-collaborate"
+    },
+    {
+      "from": "/playbooks/playbook-permissions",
+      "to": "/end-user-guide/workflow-automation/share-and-collaborate#playbooks-permissions"
+    },
+    {
+      "from": "/playbooks/overview",
+      "to": "/end-user-guide/workflow-automation/learn-about-playbooks"
+    },
+    {
+      "from": "/playbooks/work-with-playbooks",
+      "to": "/end-user-guide/workflow-automation/work-with-playbooks"
+    },
+    {
+      "from": "/playbooks/work-with-runs",
+      "to": "/end-user-guide/workflow-automation/work-with-runs"
+    },
+    {
+      "from": "/playbooks/work-with-tasks",
+      "to": "/end-user-guide/workflow-automation/work-with-tasks"
+    },
+    {
+      "from": "/playbooks/notifications-and-updates",
+      "to": "/end-user-guide/workflow-automation/notifications-and-updates"
+    },
+    {
+      "from": "/playbooks/metrics-and-goals",
+      "to": "/end-user-guide/workflow-automation/metrics-and-goals"
+    },
+    {
+      "from": "/playbooks/share-and-collaborate",
+      "to": "/end-user-guide/workflow-automation/share-and-collaborate"
+    },
+    {
+      "from": "/playbooks/interact-with-playbooks",
+      "to": "/end-user-guide/workflow-automation/interact-with-playbooks"
+    },
+    {
+      "from": "/playbooks/get-started-with-playbooks",
+      "to": "/end-user-guide/workflow-automation"
+    },
+    {
+      "from": "/preferences/manage-your-calls-preferences",
+      "to": "/end-user-guide/preferences/manage-your-plugin-preferences"
+    },
+    {
+      "from": "/product-overview/mattermost-v9-changelog",
+      "to": "/product-overview/unsupported-legacy-releases"
+    },
+    {
+      "from": "/preferences/connect-multiple-workspaces",
+      "to": "/end-user-guide/preferences/connect-multiple-workspaces"
+    },
+    {
+      "from": "/preferences/customize-desktop-app-experience",
+      "to": "/end-user-guide/preferences/customize-desktop-app-experience"
+    },
+    {
+      "from": "/preferences/customize-your-channel-sidebar",
+      "to": "/end-user-guide/preferences/customize-your-channel-sidebar"
+    },
+    {
+      "from": "/preferences/customize-your-theme",
+      "to": "/end-user-guide/preferences/customize-your-theme"
+    },
+    {
+      "from": "/preferences/manage-advanced-options",
+      "to": "/end-user-guide/preferences/manage-advanced-options"
+    },
+    {
+      "from": "/preferences/manage-your-channel-specific-notifications",
+      "to": "/end-user-guide/preferences/manage-your-channel-specific-notifications"
+    },
+    {
+      "from": "/preferences/manage-your-desktop-notifications",
+      "to": "/end-user-guide/preferences/manage-your-desktop-notifications"
+    },
+    {
+      "from": "/preferences/manage-your-display-options",
+      "to": "/end-user-guide/preferences/manage-your-display-options"
+    },
+    {
+      "from": "/preferences/manage-your-mentions-keywords-notifications",
+      "to": "/end-user-guide/preferences/manage-your-mentions-keywords-notifications"
+    },
+    {
+      "from": "/preferences/manage-your-mobile-notifications",
+      "to": "/end-user-guide/preferences/manage-your-mobile-notifications"
+    },
+    {
+      "from": "/preferences/manage-your-plugin-preferences",
+      "to": "/end-user-guide/preferences/manage-your-plugin-preferences"
+    },
+    {
+      "from": "/preferences/manage-your-sidebar-options",
+      "to": "/end-user-guide/preferences/manage-your-sidebar-options"
+    },
+    {
+      "from": "/preferences/manage-your-thread-reply-notifications",
+      "to": "/end-user-guide/preferences/manage-your-thread-reply-notifications"
+    },
+    {
+      "from": "/preferences/manage-your-web-notifications",
+      "to": "/end-user-guide/preferences/manage-your-web-notifications"
+    },
+    {
+      "from": "/preferences/troubleshoot-notifications",
+      "to": "/end-user-guide/preferences/troubleshoot-notifications"
+    },
+    {
+      "from": "/repeatable-processes/interact-with-playbooks",
+      "to": "/end-user-guide/workflow-automation/interact-with-playbooks"
+    },
+    {
+      "from": "/repeatable-processes/learn-about-playbooks",
+      "to": "/end-user-guide/workflow-automation/learn-about-playbooks"
+    },
+    {
+      "from": "/repeatable-processes/metrics-and-goals",
+      "to": "/end-user-guide/workflow-automation/metrics-and-goals"
+    },
+    {
+      "from": "/repeatable-processes/notifications-and-updates",
+      "to": "/end-user-guide/workflow-automation/notifications-and-updates"
+    },
+    {
+      "from": "/repeatable-processes/share-and-collaborate",
+      "to": "/end-user-guide/workflow-automation/share-and-collaborate"
+    },
+    {
+      "from": "/repeatable-processes/work-with-playbooks",
+      "to": "/end-user-guide/workflow-automation/work-with-playbooks"
+    },
+    {
+      "from": "/repeatable-processes/work-with-runs",
+      "to": "/end-user-guide/workflow-automation/work-with-runs"
+    },
+    {
+      "from": "/repeatable-processes/work-with-tasks",
+      "to": "/end-user-guide/workflow-automation/work-with-tasks"
+    },
+    {
+      "from": "/scale/additional-ha-considerations",
+      "to": "/administration-guide/scale/additional-ha-considerations"
+    },
+    {
+      "from": "/scale/collect-performance-metrics",
+      "to": "/administration-guide/scale/collect-performance-metrics"
+    },
+    {
+      "from": "/scale/common-configure-mattermost-for-enterprise-search",
+      "to": "/administration-guide/scale/common-configure-mattermost-for-enterprise-search"
+    },
+    {
+      "from": "/scale/deploy-prometheus-grafana-for-performance-monitoring",
+      "to": "/administration-guide/scale/deploy-prometheus-grafana-for-performance-monitoring"
+    },
+    {
+      "from": "/scale/elasticsearch-setup",
+      "to": "/administration-guide/scale/elasticsearch-setup"
+    },
+    {
+      "from": "/scale/ensuring-releases-perform-at-scale",
+      "to": "/administration-guide/scale/ensuring-releases-perform-at-scale"
+    },
+    {
+      "from": "/scale/enterprise-search",
+      "to": "/administration-guide/scale/enterprise-search"
+    },
+    {
+      "from": "/scale/estimated-storage-per-user-per-month",
+      "to": "/administration-guide/scale/estimated-storage-per-user-per-month"
+    },
+    {
+      "from": "/scale/high-availability-cluster-based-deployment",
+      "to": "/administration-guide/scale/high-availability-cluster-based-deployment"
+    },
+    {
+      "from": "/scale/lifetime-storage",
+      "to": "/administration-guide/scale/lifetime-storage"
+    },
+    {
+      "from": "/scale/opensearch-setup",
+      "to": "/administration-guide/scale/opensearch-setup"
+    },
+    {
+      "from": "/scale/performance-alerting",
+      "to": "/administration-guide/scale/performance-alerting"
+    },
+    {
+      "from": "/scale/performance-monitoring",
+      "to": "/administration-guide/scale/deploy-prometheus-grafana-for-performance-monitoring"
+    },
+    {
+      "from": "/scale/performance-monitoring-metrics",
+      "to": "/administration-guide/scale/performance-monitoring-metrics"
+    },
+    {
+      "from": "/scale/push-notification-health-targets",
+      "to": "/administration-guide/scale/push-notification-health-targets"
+    },
+    {
+      "from": "/scale/redis",
+      "to": "/administration-guide/scale/redis"
+    },
+    {
+      "from": "/scale/scale-to-100000-users",
+      "to": "/administration-guide/scale/scale-to-100000-users"
+    },
+    {
+      "from": "/scale/scale-to-15000-users",
+      "to": "/administration-guide/scale/scale-to-15000-users"
+    },
+    {
+      "from": "/scale/scale-to-200-users",
+      "to": "/administration-guide/scale/scale-to-200-users"
+    },
+    {
+      "from": "/scale/scale-to-2000-users",
+      "to": "/administration-guide/scale/scale-to-2000-users"
+    },
+    {
+      "from": "/scale/scale-to-200000-users",
+      "to": "/administration-guide/scale/scale-to-200000-users"
+    },
+    {
+      "from": "/scale/scale-to-30000-users",
+      "to": "/administration-guide/scale/scale-to-30000-users"
+    },
+    {
+      "from": "/scale/scale-to-50000-users",
+      "to": "/administration-guide/scale/scale-to-50000-users"
+    },
+    {
+      "from": "/scale/scale-to-80000-users",
+      "to": "/administration-guide/scale/scale-to-80000-users"
+    },
+    {
+      "from": "/scale/scale-to-90000-users",
+      "to": "/administration-guide/scale/scale-to-90000-users"
+    },
+    {
+      "from": "/scale/scaling-for-enterprise",
+      "to": "/administration-guide/scale/scaling-for-enterprise"
+    },
+    {
+      "from": "/scale/high-availability-cluster",
+      "to": "/administration-guide/scale/high-availability-cluster-based-deployment"
+    },
+    {
+      "from": "/scale/scale-to-100-users",
+      "to": "/administration-guide/scale/scale-to-200-users"
+    },
+    {
+      "from": "/scale/scale-to-1000-users",
+      "to": "/administration-guide/scale/scale-to-2000-users"
+    },
+    {
+      "from": "/scale/scale-to-25000-users",
+      "to": "/administration-guide/scale/scale-to-30000-users"
+    },
+    {
+      "from": "/scale/scale-to-70000-users",
+      "to": "/administration-guide/scale/scale-to-80000-users"
+    },
+    {
+      "from": "/scale/scale-to-79000-users",
+      "to": "/administration-guide/scale/scale-to-80000-users"
+    },
+    {
+      "from": "/scale/scale-to-88000-users",
+      "to": "/administration-guide/scale/scale-to-90000-users"
+    },
+    {
+      "from": "/scale/elasticsearch",
+      "to": "/administration-guide/scale/elasticsearch-setup"
+    },
+    {
+      "from": "/guides/agents",
+      "to": "/end-user-guide/agents"
+    },
+    {
+      "from": "/guides/cloud-workspace-management",
+      "to": "/administration-guide/cloud-workspace-management"
+    },
+    {
+      "from": "/guides/compliance-with-mattermost",
+      "to": "/administration-guide/compliance-with-mattermost"
+    },
+    {
+      "from": "/guides/deployment-troubleshooting",
+      "to": "/deployment-guide/deployment-troubleshooting"
+    },
+    {
+      "from": "/guides/messaging-collaboration",
+      "to": "/end-user-guide/messaging-collaboration"
+    },
+    {
+      "from": "/guides/preferences",
+      "to": "/end-user-guide/preferences"
+    },
+    {
+      "from": "/guides/project-task-management",
+      "to": "/end-user-guide/project-task-management"
+    },
+    {
+      "from": "/guides/secure-mattermost",
+      "to": "/security-guide/secure-mattermost"
+    },
+    {
+      "from": "/guides/upgrade-mattermost",
+      "to": "/administration-guide/upgrade-mattermost"
+    },
+    {
+      "from": "/guides/workflow-automation",
+      "to": "/end-user-guide/workflow-automation"
+    },
+    {
+      "from": "/guides/about-mattermost",
+      "to": "/"
+    },
+    {
+      "from": "/overview/index",
+      "to": "/"
+    },
+    {
+      "from": "/upgrade/admin-onboarding-tasks",
+      "to": "/administration-guide/upgrade/admin-onboarding-tasks"
+    },
+    {
+      "from": "/upgrade/communicate-scheduled-maintenance",
+      "to": "/administration-guide/upgrade/communicate-scheduled-maintenance"
+    },
+    {
+      "from": "/upgrade/downgrading-mattermost-server",
+      "to": "/administration-guide/upgrade/downgrading-mattermost-server"
+    },
+    {
+      "from": "/upgrade/enterprise-install-upgrade",
+      "to": "/administration-guide/upgrade/enterprise-install-upgrade"
+    },
+    {
+      "from": "/upgrade/enterprise-roll-out-checklist",
+      "to": "/administration-guide/upgrade/enterprise-roll-out-checklist"
+    },
+    {
+      "from": "/upgrade/notify-admin",
+      "to": "/administration-guide/upgrade/notify-admin"
+    },
+    {
+      "from": "/upgrade/open-source-components",
+      "to": "/administration-guide/upgrade/open-source-components"
+    },
+    {
+      "from": "/upgrade/prepare-to-upgrade-mattermost",
+      "to": "/administration-guide/upgrade/prepare-to-upgrade-mattermost"
+    },
+    {
+      "from": "/upgrade/upgrade-mattermost-kubernetes-ha",
+      "to": "/administration-guide/upgrade/upgrade-mattermost-kubernetes-ha"
+    },
+    {
+      "from": "/upgrade/upgrading-mattermost-server",
+      "to": "/administration-guide/upgrade/upgrading-mattermost-server"
+    },
+    {
+      "from": "/upgrade/welcome-email-to-end-users",
+      "to": "/administration-guide/upgrade/welcome-email-to-end-users"
+    },
+    {
+      "from": "/upgrade/installing-license-key",
+      "to": "/administration-guide/manage/admin/installing-license-key"
+    },
+    {
+      "from": "/upgrade/extended-support-release",
+      "to": "/product-overview/release-policy#extended-support-releases"
+    },
+    {
+      "from": "/upgrade/releases-lifecycle",
+      "to": "/product-overview/releases-lifecycle"
+    },
+    {
+      "from": "/upgrade/release-definitions",
+      "to": "/product-overview/release-policy#release-types"
+    },
+    {
+      "from": "/upgrade/version-archive",
+      "to": "/product-overview/version-archive"
+    },
+    {
+      "from": "/upgrade/release-lifecycle",
+      "to": "/product-overview/release-policy"
+    },
+    {
+      "from": "/welcome/manage-desktop-app-server-connections",
+      "to": "/end-user-guide/preferences/connect-multiple-workspaces"
+    },
+    {
+      "from": "/welcome/insights",
+      "to": "/product-overview/deprecated-features#mattermost-server-v9-0-0"
+    },
+    {
+      "from": "/welcome/log-in",
+      "to": "/end-user-guide/access/access-your-workspace"
+    },
+    {
+      "from": "/welcome/log-out",
+      "to": "/end-user-guide/access/log-out"
+    },
+    {
+      "from": "/welcome/manage-custom-groups",
+      "to": "/end-user-guide/collaborate/organize-using-custom-user-groups"
+    },
+    {
+      "from": "/welcome/about-teams",
+      "to": "/end-user-guide/collaborate/organize-using-teams"
+    },
+    {
+      "from": "/welcome/team-settings",
+      "to": "/end-user-guide/collaborate/team-settings"
+    },
+    {
+      "from": "/welcome/about-user-roles",
+      "to": "/end-user-guide/collaborate/learn-about-roles"
+    },
+    {
+      "from": "/welcome/customize-your-theme",
+      "to": "/end-user-guide/preferences/customize-your-theme"
+    },
+    {
+      "from": "/welcome/customize-desktop-app-experience",
+      "to": "/end-user-guide/preferences/customize-desktop-app-experience"
+    },
+    {
+      "from": "/welcome/manage-multiple-server-connections",
+      "to": "/end-user-guide/preferences/connect-multiple-workspaces"
+    },
+    {
+      "from": "/welcome/what-changed-in-v70",
+      "to": "/product-overview/mattermost-v10-changelog"
+    },
+    {
+      "from": "/welcome/sign-in",
+      "to": "/end-user-guide/access/access-your-workspace"
+    },
+    {
+      "from": "/guides/get-help",
+      "to": "/get-help/get-help-index"
+    },
+    {
+      "from": "/guides/community-chat",
+      "to": "/get-help/community-chat"
+    },
+    {
+      "from": "/guides/community-for-mattermost",
+      "to": "/get-help/community-for-mattermost"
+    },
+    {
+      "from": "/guides/contribute-to-documentation",
+      "to": "/get-help/contribute-to-documentation"
+    },
+    {
+      "from": "/about/integrations",
+      "to": "/integrations-guide/integrations-guide-index"
+    },
+    {
+      "from": "/about/product",
+      "to": "/"
+    },
+    {
+      "from": "/guides/deployment-guide",
+      "to": "/deployment-guide/deployment-guide-index"
+    },
+    {
+      "from": "/guides/administration-guide",
+      "to": "/administration-guide/administration-guide-index"
+    },
+    {
+      "from": "/end-user-guide/collaborate/access-your-workspace",
+      "to": "/end-user-guide/access/access-your-workspace"
+    },
+    {
+      "from": "/end-user-guide/collaborate/install-android-app",
+      "to": "/end-user-guide/access/install-android-app"
+    },
+    {
+      "from": "/end-user-guide/collaborate/install-desktop-app",
+      "to": "/end-user-guide/access/install-desktop-app"
+    },
+    {
+      "from": "/end-user-guide/collaborate/install-ios-app",
+      "to": "/end-user-guide/access/install-ios-app"
+    },
+    {
+      "from": "/end-user-guide/collaborate/log-out",
+      "to": "/end-user-guide/access/log-out"
+    },
+    {
+      "from": "/guides/use-mattermost",
+      "to": "/end-user-guide/end-user-guide-index"
+    },
+    {
+      "from": "/product-overview/product-overview-index",
+      "to": "/"
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+/*
+ * Mattermost brand design tokens.
+ * Source: Mattermost-Brand-Guidelines-2025.
+ * See PLAN.md §3.2 for the full token spec and rationale.
+ *
+ * Accessibility constraint (per brand guidelines): use only black or white
+ * text on the four primary colors — these combinations are pre-approved
+ * for contrast.
+ */
+
+:root {
+  /* === Primary palette === */
+  --mm-color-denim:    #1E325C;   /* primary brand, dominant */
+  --mm-color-marigold: #FFBC1F;   /* accent — CTAs only, used sparingly */
+  --mm-color-white:    #FFFFFF;
+  --mm-color-black:    #1B1D22;
+
+  /* === Secondary palette (sparingly, never overpower) === */
+  --mm-color-sand: #CCC4AE;
+  --mm-color-bark: #604F3D;
+  --mm-color-sky:  #C5D2EC;
+
+  /* === Denim shade ramp (derived for surfaces, borders, focus rings) === */
+  --mm-denim-50:  #EEF1F8;
+  --mm-denim-100: #D6DDEC;
+  --mm-denim-200: #ADBBD8;
+  --mm-denim-300: #8499C5;
+  --mm-denim-400: #5B77B1;
+  --mm-denim-500: #1E325C;       /* = denim, brand primary */
+  --mm-denim-600: #182849;
+  --mm-denim-700: #121E37;
+  --mm-denim-800: #0C1424;
+  --mm-denim-900: #060A12;
+
+  /* === Marigold shade ramp === */
+  --mm-marigold-100: #FFEFC8;
+  --mm-marigold-300: #FFD672;
+  --mm-marigold-500: #FFBC1F;    /* = marigold, brand accent */
+  --mm-marigold-700: #B27F00;
+
+  /* === Typography ===
+   * Trade Gothic Next is licensed via Adobe Fonts and not embedded yet
+   * (open item — see PLAN.md §12). Until licensing is confirmed, body uses
+   * Inter and headlines use Archivo Black, which is the closest free match
+   * for Trade Gothic Heavy's geometric, ultra-bold display feel. */
+  --mm-font-sans:    "Inter", "Trade Gothic Next", -apple-system, BlinkMacSystemFont,
+                     "Segoe UI", "Helvetica Neue", system-ui, sans-serif;
+  --mm-font-heading: "Archivo Black", "Trade Gothic Next Heavy",
+                     "Helvetica Neue", "Impact", system-ui, sans-serif;
+  --mm-font-mono:    "JetBrains Mono", "SF Mono", "Menlo", "Consolas",
+                     "Liberation Mono", monospace;
+
+  /* === Semantic surfaces (light) === */
+  --mm-bg-page:        var(--mm-color-white);
+  --mm-bg-surface:     var(--mm-color-white);
+  --mm-bg-inverse:     var(--mm-color-denim);
+  --mm-bg-subtle:      var(--mm-denim-50);
+  --mm-text-primary:   var(--mm-color-black);
+  --mm-text-secondary: var(--mm-denim-600);
+  --mm-text-inverse:   var(--mm-color-white);
+  --mm-text-on-accent: var(--mm-color-black);  /* black text on marigold */
+  --mm-border-subtle:  var(--mm-denim-100);
+  --mm-border-strong:  var(--mm-denim-300);
+  --mm-link:           var(--mm-color-denim);
+  --mm-link-hover:     var(--mm-denim-700);
+  --mm-accent:         var(--mm-color-marigold);
+  --mm-focus-ring:     var(--mm-marigold-500);
+}
+
+/* === Dark mode (data-theme=dark applied by Docusaurus) === */
+[data-theme='dark'] {
+  --mm-bg-page:        #0E1525;
+  --mm-bg-surface:     #14213D;
+  --mm-bg-inverse:     var(--mm-color-denim);
+  --mm-bg-subtle:      var(--mm-denim-800);
+  --mm-text-primary:   var(--mm-color-white);
+  --mm-text-secondary: var(--mm-denim-200);
+  --mm-text-inverse:   var(--mm-color-black);
+  --mm-text-on-accent: var(--mm-color-black);
+  --mm-border-subtle:  var(--mm-denim-700);
+  --mm-border-strong:  var(--mm-denim-500);
+  --mm-link:           var(--mm-color-sky);
+  --mm-link-hover:     var(--mm-color-white);
+  --mm-accent:         var(--mm-color-marigold);
+}

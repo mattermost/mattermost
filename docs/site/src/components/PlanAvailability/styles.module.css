@@ -1,0 +1,90 @@
+/* Plan-availability banner + Academy callout card.
+ * Ports the visual contract of the Sphinx _static/badges/*.rst includes. */
+
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 1rem 0;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+/* Plan-availability — flat denim-tinted strip, marigold flag on the left. */
+.plan {
+  padding: 0.55rem 0.85rem;
+  background: var(--mm-denim-50, rgba(30, 50, 92, 0.05));
+  border-left: 3px solid var(--mm-color-marigold);
+  color: var(--mm-text-primary);
+}
+
+[data-theme='dark'] .plan {
+  background: rgba(255, 188, 31, 0.07);
+  color: var(--mm-text-primary);
+}
+
+.plan a {
+  font-weight: 600;
+}
+
+.flag {
+  flex: 0 0 1.05rem;
+  width: 1.05rem;
+  height: auto;
+}
+
+/* Academy callout — full-bleed card with image on the left, two stacked
+ * lines of copy on the right. Whole card is the clickable link. */
+.academy {
+  display: flex;
+  align-items: stretch;
+  text-decoration: none;
+  color: inherit;
+  overflow: hidden;
+  border: 1px solid var(--mm-border-subtle);
+  background: var(--mm-bg-surface);
+  transition: box-shadow 120ms ease, transform 120ms ease;
+}
+
+.academy:hover {
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(30, 50, 92, 0.12);
+  transform: translateY(-1px);
+}
+
+.academyImg {
+  flex: 0 0 auto;
+  width: 6rem;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.academyCopy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0.7rem 1rem;
+  gap: 0.15rem;
+}
+
+.academyAccent {
+  font-family: var(--mm-font-heading);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--mm-color-marigold);
+}
+
+.academyTitle {
+  font-weight: 600;
+  color: var(--mm-text-primary);
+}
+
+.unknown {
+  padding: 0.55rem 0.85rem;
+  background: #fff3cd;
+  color: #664d03;
+  border-left: 3px solid #ffc107;
+}

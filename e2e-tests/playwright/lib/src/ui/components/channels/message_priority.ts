@@ -47,7 +47,7 @@ export default class MessagePriority {
     async verifyPriorityMenuVisible() {
         await expect(this.priorityMenu).toBeVisible();
         // Look for beta text in header
-        await expect(this.priorityMenu.locator('text=Message Priority')).toBeVisible();
+        await expect(this.priorityMenu.getByText('Message Priority')).toBeVisible();
     }
 
     async closePriorityMenu() {
@@ -56,7 +56,7 @@ export default class MessagePriority {
     }
 
     async verifyNoPriorityLabel(postText: string) {
-        const post = this.container.locator(`text=${postText}`);
+        const post = this.container.getByText(postText);
         await expect(post).toBeVisible();
 
         // Verify no priority label exists
