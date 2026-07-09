@@ -180,8 +180,8 @@ export type CELEditorAttribute = {attribute: string; values: string[]; isNative?
 
 // Maps autocomplete fields to the reduced shape the CEL editor consumes, keeping
 // native attributes and enabled session attributes (both always usable)
-// alongside the safe custom profile attributes. Session attributes carry their
-// object_type so the editor can bucket them under user.session.*.
+// alongside the safe custom profile attributes. Every attribute carries its
+// object_type so the editor can bucket it (user vs user.session.*).
 export function toCELEditorAttributes(
     fields: UserPropertyField[],
     enableUserManagedAttributes: boolean,
@@ -200,7 +200,7 @@ export function toCELEditorAttributes(
             attribute: attr.name,
             values: [],
             isNative: isNativeField(attr),
-            ...(isSessionAttributeField(attr) ? {objectType: attr.object_type} : {}),
+            objectType: attr.object_type,
         }));
 }
 

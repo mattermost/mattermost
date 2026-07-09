@@ -316,7 +316,7 @@ const AttributeSelectorMenu = ({currentAttribute, currentAttributeObjectType, av
             )}
             {nativeOptions.map(renderOption)}
             {nativeOptions.length > 0 && customOptions.length > 0 && <Menu.Separator/>}
-            {nativeOptions.length > 0 && customOptions.length > 0 && (
+            {customOptions.length > 0 && (
                 <Menu.Title role='presentation'>
                     {formatMessage({id: 'admin.access_control.table_editor.selector.custom_attributes', defaultMessage: 'Custom attributes'})}
                 </Menu.Title>

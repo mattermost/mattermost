@@ -15,7 +15,7 @@ jest.mock('monaco-editor', () => ({
 describe('buildCELSchemas', () => {
     test('offers only user.attributes when no session attributes are present', () => {
         const schemas = buildCELSchemas([
-            {attribute: 'department', values: []},
+            {attribute: 'department', values: [], objectType: 'user'},
             {attribute: 'location', values: [], objectType: 'user'},
         ]);
 
@@ -26,7 +26,7 @@ describe('buildCELSchemas', () => {
 
     test('adds the user.session bucket when a session attribute is present', () => {
         const schemas = buildCELSchemas([
-            {attribute: 'department', values: []},
+            {attribute: 'department', values: [], objectType: 'user'},
             {attribute: 'ip_address', values: [], objectType: 'session'},
         ]);
 
@@ -37,9 +37,9 @@ describe('buildCELSchemas', () => {
 
     test('drops names with spaces or that are empty', () => {
         const schemas = buildCELSchemas([
-            {attribute: 'has space', values: []},
-            {attribute: '   ', values: []},
-            {attribute: 'valid', values: []},
+            {attribute: 'has space', values: [], objectType: 'user'},
+            {attribute: '   ', values: [], objectType: 'user'},
+            {attribute: 'valid', values: [], objectType: 'user'},
             {attribute: 'session valid', values: [], objectType: 'session'},
             {attribute: 'ip_address', values: [], objectType: 'session'},
         ]);

@@ -23,6 +23,10 @@ export type UserPropertyFieldGroupID = 'custom_profile_attributes' | 'session_at
 export const SESSION_ATTRIBUTES_GROUP_ID: UserPropertyFieldGroupID = 'session_attributes';
 export const SESSION_ATTRIBUTES_OBJECT_TYPE = 'session';
 
+// Custom profile attributes and native user attributes both target the `user`
+// object type; session attributes are the exception (`session`).
+export const USER_OBJECT_TYPE = 'user';
+
 /**
  * Session attributes are the only property fields targeting the `session`
  * object type, so identity is keyed off `object_type` rather than the group

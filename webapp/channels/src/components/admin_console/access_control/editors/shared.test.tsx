@@ -16,7 +16,7 @@ const makeField = (name: string, attrs: Partial<UserPropertyField['attrs']>, typ
     group_id: 'custom_profile_attributes',
     target_id: '',
     target_type: '',
-    object_type: '',
+    object_type: 'user',
     attrs: {
         sort_order: 0,
         visibility: 'always',
@@ -614,8 +614,8 @@ describe('toCELEditorAttributes', () => {
         ];
 
         expect(toCELEditorAttributes(fields, false)).toEqual([
-            {attribute: 'email', values: [], isNative: true},
-            {attribute: 'synced', values: [], isNative: false},
+            {attribute: 'email', values: [], isNative: true, objectType: 'user'},
+            {attribute: 'synced', values: [], isNative: false, objectType: 'user'},
         ]);
     });
 
@@ -626,8 +626,8 @@ describe('toCELEditorAttributes', () => {
         ];
 
         expect(toCELEditorAttributes(fields, true)).toEqual([
-            {attribute: 'email', values: [], isNative: true},
-            {attribute: 'unsafe', values: [], isNative: false},
+            {attribute: 'email', values: [], isNative: true, objectType: 'user'},
+            {attribute: 'unsafe', values: [], isNative: false, objectType: 'user'},
         ]);
     });
 });

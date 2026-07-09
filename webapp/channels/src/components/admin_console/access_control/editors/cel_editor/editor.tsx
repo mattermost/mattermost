@@ -6,7 +6,7 @@ import React, {useCallback, useEffect, useRef, useState, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {AccessControlTestResult} from '@mattermost/types/access_control';
-import {SESSION_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties_user';
+import {SESSION_ATTRIBUTES_OBJECT_TYPE, USER_OBJECT_TYPE} from '@mattermost/types/properties_user';
 
 import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
 import {debounce} from 'mattermost-redux/actions/helpers';
@@ -73,7 +73,8 @@ type CELUserAttribute = {
     attribute: string;
     values: string[];
 
-    // 'session' marks a user.session.* attribute; anything else is user.attributes.*
+    // 'session' marks a user.session.* attribute; 'user' marks a user.* /
+    // user.attributes.* attribute. Always populated by toCELEditorAttributes.
     objectType?: string;
 
     // Native user attributes (e.g. user.email) complete directly off `user.`
@@ -90,8 +91,8 @@ export function buildCELSchemas(userAttributes: CELUserAttribute[]): Record<stri
         map((attr) => attr.attribute).
         filter((name) => !name.includes(' ') && name.trim() !== '');
     const sessionAttrNames = cleanNames(userAttributes.filter((attr) => attr.objectType === SESSION_ATTRIBUTES_OBJECT_TYPE));
-    const nativeNames = cleanNames(userAttributes.filter((attr) => attr.objectType !== SESSION_ATTRIBUTES_OBJECT_TYPE && attr.isNative));
-    const cpaNames = cleanNames(userAttributes.filter((attr) => attr.objectType !== SESSION_ATTRIBUTES_OBJECT_TYPE && !attr.isNative));
+    const nativeNames = cleanNames(userAttributes.filter((attr) => attr.objectType === USER_OBJECT_TYPE && attr.isNative));
+    const cpaNames = cleanNames(userAttributes.filter((attr) => attr.objectType === USER_OBJECT_TYPE && !attr.isNative));
 
     const schemas: Record<string, string[]> = {
         user: ['attributes', ...(sessionAttrNames.length ? ['session'] : []), ...nativeNames],
