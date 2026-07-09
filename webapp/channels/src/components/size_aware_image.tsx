@@ -442,6 +442,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                     >
                         <img
                             aria-label={ariaLabelImage}
+                            className={this.props.className}
 
                             //     className={(this.props.handleSmallImageContainer &&
                             // this.state.isSmallImage ? ' small-image--inside-container' : '')}
@@ -461,6 +462,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                     >
                         <img
                             aria-label={ariaLabelImage}
+                            className={this.props.className}
 
                             //     className={(this.props.handleSmallImageContainer &&
                             // this.state.isSmallImage ? ' small-image--inside-container' : '')}

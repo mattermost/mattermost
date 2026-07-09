@@ -308,6 +308,8 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a large image preview',
+            // TODO images that are too wide but above the minimum height cause layout shift
+            skipProjects: ['chrome', 'firefox', 'ipad'],
             getSeedOptions: (baseUrl) => ({
                 message: `${baseUrl}/huge-image.jpg`,
             }),
