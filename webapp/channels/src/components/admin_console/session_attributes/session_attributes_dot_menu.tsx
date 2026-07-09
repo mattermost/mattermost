@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
@@ -30,6 +30,10 @@ export default function SessionAttributesDotMenu({field, onStageChange, disabled
 
     const attrs = getSessionAttrs(field);
     const menuId = `session-attribute-dotmenu-${field.id}`;
+
+    const handleTtlChange = useCallback((seconds: number) => {
+        onStageChange(field.id, {ttl_seconds: seconds});
+    }, [field.id, onStageChange]);
 
     const openDisableModal = () => {
         dispatch(openModal({
@@ -93,7 +97,7 @@ export default function SessionAttributesDotMenu({field, onStageChange, disabled
                     </>
                 )}
             >
-                {renderPresets(attrs.ttl_seconds, `session-attribute-ttl-option-${field.id}`, (seconds) => onStageChange(field.id, {ttl_seconds: seconds}))}
+                {renderPresets(attrs.ttl_seconds, `session-attribute-ttl-option-${field.id}`, handleTtlChange)}
             </Menu.SubMenu>
             <Menu.SubMenu
                 id={`${menuId}-grace`}

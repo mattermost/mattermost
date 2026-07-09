@@ -68,17 +68,9 @@ describe('session_attributes utils', () => {
             expect(getDisplayType(field)).toBe('Enum');
         });
 
-        it('maps a text field ending in ip_address to IP', () => {
-            expect(getDisplayType(makeField({type: 'text', name: 'ip_address'}))).toBe('IP');
-            expect(getDisplayType(makeField({type: 'text', name: 'source_ip_address'}))).toBe('IP');
-        });
-
-        it('maps a text field ending in _version to Version', () => {
-            expect(getDisplayType(makeField({type: 'text', name: 'app_version'}))).toBe('Version');
-            expect(getDisplayType(makeField({type: 'text', name: 'os_version'}))).toBe('Version');
-        });
-
-        it('maps other text fields to String', () => {
+        it('maps text fields to String', () => {
+            expect(getDisplayType(makeField({type: 'text', name: 'ip_address'}))).toBe('String');
+            expect(getDisplayType(makeField({type: 'text', name: 'app_version'}))).toBe('String');
             expect(getDisplayType(makeField({type: 'text', name: 'user_agent'}))).toBe('String');
             expect(getDisplayType(makeField({type: 'text', name: 'device_model'}))).toBe('String');
         });

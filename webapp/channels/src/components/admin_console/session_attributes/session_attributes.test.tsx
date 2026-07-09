@@ -142,7 +142,7 @@ describe('SessionAttributesPage', () => {
         expect(await screen.findByText('Client IP')).toBeInTheDocument();
 
         const typeLabels = screen.getAllByTestId('session-attribute-type').map((cell) => cell.textContent);
-        expect(typeLabels).toContain('IP');
+        expect(typeLabels).toContain('String');
         expect(typeLabels).toContain('Boolean');
 
         const statuses = screen.getAllByTestId('session-attribute-status').map((cell) => cell.textContent);

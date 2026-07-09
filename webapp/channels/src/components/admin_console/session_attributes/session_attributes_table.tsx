@@ -6,7 +6,7 @@ import type {ComponentType, CSSProperties} from 'react';
 import React, {useMemo} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
-import {CheckboxMarkedCircleOutlineIcon, ChevronDownCircleOutlineIcon, MapMarkerOutlineIcon, MenuVariantIcon, UpdateIcon} from '@mattermost/compass-icons/components';
+import {CheckboxMarkedCircleOutlineIcon, ChevronDownCircleOutlineIcon, MenuVariantIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 
 import PlatformIcons from './platform_icons';
@@ -24,9 +24,7 @@ const columnHelper = createColumnHelper<SessionAttributeField>();
 
 const TYPE_ICONS: Record<SessionAttributeDisplayType, ComponentType<IconProps>> = {
     String: MenuVariantIcon,
-    IP: MapMarkerOutlineIcon,
     Boolean: CheckboxMarkedCircleOutlineIcon,
-    Version: UpdateIcon,
     Enum: ChevronDownCircleOutlineIcon,
 };
 
@@ -256,8 +254,6 @@ export default function SessionAttributesTable({data, onStageChange, disabled = 
 
 const typeLabels = defineMessages({
     String: {id: 'admin.session_attributes.type.string', defaultMessage: 'String'},
-    IP: {id: 'admin.session_attributes.type.ip', defaultMessage: 'IP'},
     Boolean: {id: 'admin.session_attributes.type.boolean', defaultMessage: 'Boolean'},
-    Version: {id: 'admin.session_attributes.type.version', defaultMessage: 'Version'},
     Enum: {id: 'admin.session_attributes.type.enum', defaultMessage: 'Enum'},
 });

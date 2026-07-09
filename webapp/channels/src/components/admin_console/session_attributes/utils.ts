@@ -7,7 +7,7 @@ export type SessionAttributeField = UserPropertyField;
 
 export const SESSION_ATTRIBUTES_TARGET_TYPE = 'system';
 
-export type SessionAttributeDisplayType = 'String' | 'IP' | 'Boolean' | 'Version' | 'Enum';
+export type SessionAttributeDisplayType = 'String' | 'Boolean' | 'Enum';
 
 export type SessionPlatform = 'desktop' | 'mobile' | 'browser';
 
@@ -42,24 +42,12 @@ const DURATION_PRESET_LABELS: Record<number, string> = {
     86400: '24h',
 };
 
-// Precedence: select options decide Boolean vs Enum; text names map to IP/Version; everything else is String.
+// Precedence: select options decide Boolean vs Enum; everything else is String.
 export function getDisplayType(field: SessionAttributeField): SessionAttributeDisplayType {
-    const name = field.name.toLowerCase();
-
     if (field.type === 'select') {
         const optionNames = field.attrs.options?.map((option) => option.name.toLowerCase()) ?? [];
         const isBoolean = optionNames.length === 2 && optionNames.includes('true') && optionNames.includes('false');
         return isBoolean ? 'Boolean' : 'Enum';
-    }
-
-    if (field.type === 'text') {
-        if (name.endsWith('ip_address')) {
-            return 'IP';
-        }
-        if (name.endsWith('_version')) {
-            return 'Version';
-        }
-        return 'String';
     }
 
     return 'String';
