@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {lazy} from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
@@ -25,11 +24,10 @@ import LoggedIn from 'components/logged_in';
 import LoggedInRoute from 'components/logged_in_route';
 import {LAUNCHING_WORKSPACE_FULLSCREEN_Z_INDEX} from 'components/preparing_workspace/launching_workspace';
 import {Animations} from 'components/preparing_workspace/steps';
+import ProductPluggable from 'components/product_pluggable';
 import Readout from 'components/readout/readout';
-import TeamScopedProductWrapper from 'components/team_scoped_product_wrapper';
 import {WithUserTheme} from 'components/theme_provider';
 
-import webSocketClient from 'client/web_websocket_client';
 import {initializePlugins} from 'plugins';
 import 'utils/a11y_controller_instance';
 import {expirationScheduler} from 'utils/burn_on_read_expiration_scheduler';
@@ -37,7 +35,7 @@ import {PageLoadContext, SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {EmojiIndicesByAlias} from 'utils/emoji';
 import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
-import {getProductRoutePath, isTeamScopedProductBaseURL} from 'utils/products';
+import {isTeamScopedProduct} from 'utils/products';
 import {getSiteURL} from 'utils/url';
 import {isTextDroppableEvent} from 'utils/utils';
 
@@ -447,44 +445,15 @@ export default class Root extends React.PureComponent<Props, State> {
                                         }}
                                     />
                                 ))}
-                                {this.props.products?.map((product) => (
+                                {this.props.products?.filter((product) => !isTeamScopedProduct(product)).map((product) => (
                                     <Route
                                         key={product.id}
-                                        path={getProductRoutePath(product.baseURL)}
-                                        render={(props) => {
-                                            let pluggable = (
-                                                <Pluggable
-                                                    pluggableName={'Product'}
-                                                    subComponentName={'mainComponent'}
-                                                    pluggableId={product.id}
-                                                    webSocketClient={webSocketClient}
-                                                    css={product.wrapped ? undefined : {gridArea: 'center'}}
-                                                />
-                                            );
-                                            if (product.wrapped) {
-                                                pluggable = (
-                                                    <div className={classNames(['product-wrapper', {wide: !product.showTeamSidebar}])}>
-                                                        {pluggable}
-                                                    </div>
-                                                );
-                                            }
-
-                                            const loggedInProduct = (
-                                                <LoggedIn {...props}>
-                                                    {pluggable}
-                                                </LoggedIn>
-                                            );
-
-                                            if (isTeamScopedProductBaseURL(product.baseURL)) {
-                                                return (
-                                                    <TeamScopedProductWrapper>
-                                                        {loggedInProduct}
-                                                    </TeamScopedProductWrapper>
-                                                );
-                                            }
-
-                                            return loggedInProduct;
-                                        }}
+                                        path={product.baseURL}
+                                        render={(props) => (
+                                            <LoggedIn {...props}>
+                                                <ProductPluggable product={product}/>
+                                            </LoggedIn>
+                                        )}
                                     />
                                 ))}
                                 {this.props.plugins?.map((plugin) => (
