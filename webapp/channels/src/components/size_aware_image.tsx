@@ -353,7 +353,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
 
             // since there is a max-width constraint on images, a max-left clause follows.
             const leftStyle = this.state.imageWidth > MIN_IMAGE_SIZE ? {
-                left: `min(${wideImageButtonsOffset + (modifierCopyButton - modifierLargerWidth)}px, calc(100% - ${31 - (modifierCopyButton - modifierLargerWidth)}px)`,
+                left: `min(${wideImageButtonsOffset + (modifierCopyButton - modifierLargerWidth)}px, calc(100% - ${31 - (modifierCopyButton - modifierLargerWidth)}px))`,
             } : {};
 
             utilityButtons = (

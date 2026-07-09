@@ -50,21 +50,24 @@ describe('components/SizeAwareImage', () => {
         },
     };
 
-    test('should render an svg when first mounted with dimensions and img display set to none', () => {
+    test('should render a placeholder when first mounted with dimensions and hide the image until it loads', () => {
         const {container} = renderWithContext(<SizeAwareImage {...baseProps}/>, state);
 
-        // since download and copy icons use svgs now, attachment svg should be searched as a direct child of image-loading__container
-        const svgElement = container.querySelector('.image-loading__container > svg');
-        expect(svgElement).not.toBeNull();
-        expect(svgElement?.getAttribute('viewBox')).toEqual('0 0 300 200');
-        const filePreviewButton = container.querySelector('.file-preview__button') as HTMLElement;
-        expect(filePreviewButton.style.display).toEqual('none');
+        // The placeholder is an <img> whose SVG data URI reserves the image's dimensions until it loads
+        const placeholder = container.querySelector('.image-loading__container > img.image-loading__placeholder');
+        expect(placeholder).not.toBeNull();
+        expect(placeholder?.getAttribute('src')).toContain(encodeURIComponent('viewBox="0 0 300 200"'));
+
+        // The actual image is rendered but its container is hidden until the image loads
+        const realImage = container.querySelector('img[src="https://example.com/image.png"]');
+        const imageContainer = realImage?.closest('.file-preview__button') as HTMLElement;
+        expect(imageContainer.style.display).toEqual('none');
     });
 
     test('img should have inherited class name from prop', () => {
         const {container} = renderWithContext(<SizeAwareImage {...{...baseProps, className: 'imgClass'}}/>, state);
 
-        const img = container.querySelector('img');
+        const img = container.querySelector('img[src="https://example.com/image.png"]');
         expect(img?.className).toEqual('imgClass');
     });
 
@@ -93,12 +96,13 @@ describe('components/SizeAwareImage', () => {
 
         const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
 
-        const svgElement = container.querySelector('.image-loading__container > svg');
-        expect(svgElement).not.toBeNull();
-        expect(svgElement?.getAttribute('viewBox')).toEqual('0 0 300 200');
-        expect(container.querySelector('img')).toBeNull();
+        // Only the dimension-reserving placeholder is rendered, using an empty SVG data URI
+        // rather than the mini preview, and no actual image content is shown.
+        const placeholder = container.querySelector('.image-loading__container > img.image-loading__placeholder');
+        expect(placeholder).not.toBeNull();
+        expect(placeholder?.getAttribute('src')).toContain(encodeURIComponent('viewBox="0 0 300 200"'));
+        expect(container.querySelector('img[src="https://example.com/image.png"]')).toBeNull();
         expect(container.querySelector('.file__image-loading')).toBeNull();
-        expect(container.querySelector('.file-preview__button')).toBeNull();
     });
 
     test('should render a mini preview when showLoader is true and preview is set', () => {
@@ -121,11 +125,11 @@ describe('components/SizeAwareImage', () => {
     test('should have display set to initial in loaded state', () => {
         const {container} = renderWithContext(<SizeAwareImage {...baseProps}/>, state);
 
-        const img = container.querySelector('img')!;
+        const img = container.querySelector('img[src="https://example.com/image.png"]') as HTMLImageElement;
         simulateImageLoad(img, 300, 200);
 
         const filePreviewButton = container.querySelector('.file-preview__button') as HTMLElement;
-        expect(filePreviewButton.style.display).toEqual('inline-block');
+        expect(filePreviewButton.style.display).toEqual('block');
     });
 
     test('should render the actual image when first mounted without dimensions', () => {
@@ -145,23 +149,25 @@ describe('components/SizeAwareImage', () => {
 
         const {container} = renderWithContext(<SizeAwareImage {...baseProps}/>, state);
 
-        const img = container.querySelector('img')!;
+        const img = container.querySelector('img[src="https://example.com/image.png"]') as HTMLImageElement;
         simulateImageLoad(img, width, height);
 
         // Verify loaded state through DOM: file-preview__button should be visible
         const filePreviewButton = container.querySelector('.file-preview__button') as HTMLElement;
-        expect(filePreviewButton.style.display).toEqual('inline-block');
+        expect(filePreviewButton.style.display).toEqual('block');
         expect(baseProps.onImageLoaded).toHaveBeenCalledWith({height, width});
     });
 
-    test('should call onImageLoadFail when image load fails and should have svg', () => {
+    test('should call onImageLoadFail when image load fails and should keep the placeholder', () => {
         const {container} = renderWithContext(<SizeAwareImage {...baseProps}/>, state);
 
-        const img = container.querySelector('img')!;
+        const img = container.querySelector('img[src="https://example.com/image.png"]') as HTMLImageElement;
         simulateImageError(img);
 
         expect(baseProps.onImageLoadFail).toHaveBeenCalled();
-        expect(container.querySelector('svg')).not.toBeNull();
+
+        // The placeholder still reserves the image's space after a load failure
+        expect(container.querySelector('img.image-loading__placeholder')).not.toBeNull();
         expect(container.querySelector('.loading-image__preview')).toBeNull();
     });
 
@@ -184,7 +190,7 @@ describe('components/SizeAwareImage', () => {
         const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
 
         // Simulate loading a small image (< 48px)
-        const img = container.querySelector('img')!;
+        const img = container.querySelector('img[src="https://example.com/image.png"]') as HTMLImageElement;
         simulateImageLoad(img, 24, 24);
 
         const smallContainer = container.querySelector('.small-image__container');
@@ -238,10 +244,10 @@ describe('components/SizeAwareImage', () => {
         const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
 
         // Simulate loading a small image
-        const img = container.querySelector('img')!;
+        const img = container.querySelector('img[src="https://example.com/image.png"]') as HTMLImageElement;
         simulateImageLoad(img, 24, 24);
 
-        expect(container.querySelector('img')?.className).toBe(`${props.className} small-image--inside-container`);
+        expect(container.querySelector('img[src="https://example.com/image.png"]')?.className).toBe(`${props.className} small-image--inside-container`);
     });
 
     test('should load download and copy link buttons when an image is mounted', () => {
