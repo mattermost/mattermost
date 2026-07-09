@@ -111,7 +111,7 @@ Use this checklist to confirm you have the infrastructure, skills, and access re
 
 - [ ] You know how to open a [request](https://support.mattermost.com) with Mattermost support if you encounter issues.
 
-  _Please include the exact **step number** (e.g. 2A.2.1) that failed, along with your [Mattermost support packet](/../../administration-guide/manage/admin/generating-support-packet) and [Calls logs](calls-logging.md)._
+  _Please include the exact **step number** (e.g. 2A.2.1) that failed, along with your [Mattermost support packet](/../../administration-guide/manage/admin/generating-support-packet) and [Calls logs](calls-logging.mdx)._
 
 <Note>
 
@@ -302,7 +302,7 @@ Since the Mattermost server is handling all media processing, you can skip this 
 
 **RTCD**
 
-You will need to provision a new server for RTCD. Use the [performance baselines](calls-metrics-monitoring.md#performance-baselines) for benchmark examples of hardware sizing. The RTCD service supports [horizontal scaling](calls-rtcd-setup.md#horizontal-scaling), but we recommend starting with one server and then scaling out if your expected workload requires it.
+You will need to provision a new server for RTCD. Use the [performance baselines](calls-metrics-monitoring.mdx#performance-baselines) for benchmark examples of hardware sizing. The RTCD service supports [horizontal scaling](calls-rtcd-setup.mdx#horizontal-scaling), but we recommend starting with one server and then scaling out if your expected workload requires it.
 
 **Recording**
 
@@ -619,7 +619,7 @@ Now smoke test your Calls deployment with your test accounts:
 
 #### 2B.2 Install RTCD
 
-Follow the [RTCD Setup and Configuration](calls-rtcd-setup.md) guide for the actual installation. The guide covers:
+Follow the [RTCD Setup and Configuration](calls-rtcd-setup.mdx) guide for the actual installation. The guide covers:
 
 - Binary installation
 - `rtcd.toml` configuration
@@ -628,7 +628,7 @@ Follow the [RTCD Setup and Configuration](calls-rtcd-setup.md) guide for the act
 
 <Note>
 
-If you are deploying on Kubernetes, also use the [Calls Deployment on Kubernetes](calls-kubernetes.md) guide for cluster-specific installation and Helm-based configuration.
+If you are deploying on Kubernetes, also use the [Calls Deployment on Kubernetes](calls-kubernetes.mdx) guide for cluster-specific installation and Helm-based configuration.
 
 </Note>
 
@@ -668,7 +668,7 @@ Calls monitoring uses Prometheus (a tool that collects metrics from your servers
 - **Calls plugin metrics**: `http://YOUR_MATTERMOST_SERVER:8067/plugins/com.mattermost.calls/metrics`
 - **Grafana dashboard**: Import dashboard ID `23225`
 
-See [Calls Metrics and Monitoring](calls-metrics-monitoring.md) for full configuration details.
+See [Calls Metrics and Monitoring](calls-metrics-monitoring.mdx) for full configuration details.
 
 #### 2B.5 Verification Checks
 
@@ -717,7 +717,7 @@ Now we will install and configure the `calls-offloader` job service that handles
 
 ### 3.2 Install calls-offloader
 
-Follow the [Calls Offloader Setup and Configuration](calls-offloader-setup.md) guide for installation. The guide covers:
+Follow the [Calls Offloader Setup and Configuration](calls-offloader-setup.mdx) guide for installation. The guide covers:
 
 - Binary installation
 - `config.toml` configuration
