@@ -14,5 +14,5 @@ jobs:
     secrets: inherit
     with:
       PR_NUMBER: ${{ github.event.number }}
-      TRIGGERING_ACTOR: ${{ github.event.pull_request.head.user.login }}
+      TRIGGERING_ACTOR: ${{ github.event.pull_request.user.login }}
       COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
