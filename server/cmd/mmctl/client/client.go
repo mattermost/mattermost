@@ -88,6 +88,7 @@ type Client interface {
 	UpdateUserHashedPassword(ctx context.Context, userID, newHashedPassword string) (*model.Response, error)
 	CreateUserAccessToken(ctx context.Context, userID, description string, expiresAt int64) (*model.UserAccessToken, *model.Response, error)
 	RevokeUserAccessToken(ctx context.Context, tokenID string) (*model.Response, error)
+	RotateUserAccessToken(ctx context.Context, tokenID string, expiresAt int64) (*model.UserAccessToken, *model.Response, error)
 	GetUserAccessTokensForUser(ctx context.Context, userID string, page, perPage int) ([]*model.UserAccessToken, *model.Response, error)
 	ConvertUserToBot(ctx context.Context, userID string) (*model.Bot, *model.Response, error)
 	ConvertBotToUser(ctx context.Context, userID string, userPatch *model.UserPatch, setSystemAdmin bool) (*model.User, *model.Response, error)

@@ -12,20 +12,20 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-// patExpiryNotifyBatchLimit bounds the number of tokens processed per run.
+// expiringAccessTokenBatchLimit bounds the number of tokens processed per run.
 // GetExpiringTokens returns only actionable rows (most urgent first), so this
 // caps work per run while a backlog larger than the limit drains across
 // subsequent hourly runs without starving the least-urgent tokens.
-const patExpiryNotifyBatchLimit = 1000
+const expiringAccessTokenBatchLimit = 1000
 
-// patExpiryThresholds is the pre-expiry warning cascade, in days, ordered from
-// most to least urgent. A token owner is warned once as the token crosses into
-// each bucket.
-var patExpiryThresholds = []int{1, 3, 7}
+// expiringAccessTokenThresholds is the pre-expiry warning cascade, in days,
+// ordered from most to least urgent. A token owner is warned once as the
+// token crosses into each bucket.
+var expiringAccessTokenThresholds = []int{1, 3, 7}
 
-// NotifyPersonalAccessTokensExpiring warns the owners of personal access tokens
-// that are approaching expiry, on a fixed 7 / 3 / 1 day cascade. It is invoked
-// hourly by the pat_expiry_notify job.
+// NotifyExpiringAccessTokens warns the owners of personal access tokens that
+// are approaching expiry, on a fixed 7 / 3 / 1 day cascade. It is invoked
+// hourly by the notify_expiring_access_tokens job.
 //
 // Bot tokens and tokens owned by deactivated users are excluded by the store
 // query. For each remaining token this computes the current warning bucket,
@@ -35,18 +35,18 @@ var patExpiryThresholds = []int{1, 3, 7}
 // visible already inside the window (e.g. created with a short lifetime, or owned
 // by a just-reactivated user) gets a single warning rather than a catch-up burst
 // of every threshold it has already passed.
-func (a *App) NotifyPersonalAccessTokensExpiring() error {
+func (a *App) NotifyExpiringAccessTokens() error {
 	if !*a.Config().ServiceSettings.EnableUserAccessTokens {
 		return nil
 	}
 
-	rctx := request.EmptyContext(a.Log().With(mlog.String("component", "pat_expiry_notify")))
+	rctx := request.EmptyContext(a.Log().With(mlog.String("component", "notify_expiring_access_tokens")))
 
 	now := model.GetMillis()
 
-	tokens, err := a.Srv().Store().UserAccessToken().GetExpiringTokens(now, patExpiryThresholds, patExpiryNotifyBatchLimit)
+	tokens, err := a.Srv().Store().UserAccessToken().GetExpiringTokens(now, expiringAccessTokenThresholds, expiringAccessTokenBatchLimit)
 	if err != nil {
-		return model.NewAppError("NotifyPersonalAccessTokensExpiring", "app.user_access_token.get_expiring.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("NotifyExpiringAccessTokens", "app.user_access_token.get_expiring.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if len(tokens) == 0 {
 		return nil
@@ -58,7 +58,7 @@ func (a *App) NotifyPersonalAccessTokensExpiring() error {
 	}
 
 	for _, token := range tokens {
-		bucket := patExpiryBucket(token.ExpiresAt, now)
+		bucket := accessTokenExpiryBucket(token.ExpiresAt, now)
 		if bucket == 0 {
 			// Already expired or outside the cascade; the store window should
 			// prevent this, but guard against clock skew between runs.
@@ -73,7 +73,7 @@ func (a *App) NotifyPersonalAccessTokensExpiring() error {
 			continue
 		}
 
-		if appErr := a.sendPATExpiryNotification(rctx, systemBot, token, bucket); appErr != nil {
+		if appErr := a.sendAccessTokenExpiryNotification(rctx, systemBot, token, bucket); appErr != nil {
 			rctx.Logger().Error("Failed to send personal access token expiry notification",
 				mlog.String("token_id", token.Id),
 				mlog.String("user_id", token.UserId),
@@ -93,16 +93,17 @@ func (a *App) NotifyPersonalAccessTokensExpiring() error {
 	return nil
 }
 
-// patExpiryBucket returns the most urgent warning threshold (in days) that the
-// token currently qualifies for, or 0 if it is already expired or further out
-// than the largest threshold. A token with N days remaining maps to the smallest
-// threshold T such that N <= T (e.g. 2 days remaining -> the 3-day bucket).
-func patExpiryBucket(expiresAt int64, now int64) int {
+// accessTokenExpiryBucket returns the most urgent warning threshold (in days)
+// that the token currently qualifies for, or 0 if it is already expired or
+// further out than the largest threshold. A token with N days remaining maps
+// to the smallest threshold T such that N <= T (e.g. 2 days remaining -> the
+// 3-day bucket).
+func accessTokenExpiryBucket(expiresAt int64, now int64) int {
 	remaining := expiresAt - now
 	if remaining <= 0 {
 		return 0
 	}
-	for _, threshold := range patExpiryThresholds {
+	for _, threshold := range expiringAccessTokenThresholds {
 		if remaining <= int64(threshold)*model.DayInMilliseconds {
 			return threshold
 		}
@@ -110,7 +111,7 @@ func patExpiryBucket(expiresAt int64, now int64) int {
 	return 0
 }
 
-func (a *App) sendPATExpiryNotification(rctx request.CTX, systemBot *model.Bot, token *model.UserAccessToken, bucket int) *model.AppError {
+func (a *App) sendAccessTokenExpiryNotification(rctx request.CTX, systemBot *model.Bot, token *model.UserAccessToken, bucket int) *model.AppError {
 	channel, appErr := a.GetOrCreateDirectChannel(rctx, token.UserId, systemBot.UserId)
 	if appErr != nil {
 		return appErr
@@ -125,7 +126,7 @@ func (a *App) sendPATExpiryNotification(rctx request.CTX, systemBot *model.Bot, 
 
 	description := token.Description
 	if description == "" {
-		description = T("app.pat_expiry_notify.unnamed_token")
+		description = T("app.notify_expiring_access_tokens.unnamed_token")
 	}
 
 	// The cascade is 7/3/1; the multi-day message is only ever rendered with a
@@ -133,11 +134,11 @@ func (a *App) sendPATExpiryNotification(rctx request.CTX, systemBot *model.Bot, 
 	// message, so neither string needs an awkward "day(s)" plural.
 	var message string
 	if bucket <= 1 {
-		message = T("app.pat_expiry_notify.dm_final", map[string]any{
+		message = T("app.notify_expiring_access_tokens.dm_final", map[string]any{
 			"Description": description,
 		})
 	} else {
-		message = T("app.pat_expiry_notify.dm", map[string]any{
+		message = T("app.notify_expiring_access_tokens.dm", map[string]any{
 			"Description": description,
 			"Days":        bucket,
 		})

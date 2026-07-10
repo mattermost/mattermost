@@ -1,22 +1,35 @@
-.. _mmctl_token:
+.. _mmctl_token_rotate:
 
-mmctl token
------------
+mmctl token rotate
+------------------
 
-manage users' access tokens
+Rotate a personal access token
 
 Synopsis
 ~~~~~~~~
 
 
-manage users' access tokens
+Generate a new secret for an existing personal access token, immediately invalidating the old secret. Use --expires-in to set a new expiry.
+
+::
+
+  mmctl token rotate [token-id] [flags]
+
+Examples
+~~~~~~~~
+
+::
+
+    rotate xwt6numaubyj9mqjfkqjk5pfqr
+    rotate xwt6numaubyj9mqjfkqjk5pfqr --expires-in 90d
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for token
+      --expires-in string   New expiry duration for the rotated token (e.g. 90d, 12h). If empty, the token does not expire (subject to server policy).
+  -h, --help                help for rotate
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -36,9 +49,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
-* `mmctl token generate <mmctl_token_generate.rst>`_ 	 - Generate token for a user
-* `mmctl token list <mmctl_token_list.rst>`_ 	 - List users tokens
-* `mmctl token revoke <mmctl_token_revoke.rst>`_ 	 - Revoke tokens for a user
-* `mmctl token rotate <mmctl_token_rotate.rst>`_ 	 - Rotate a personal access token
+* `mmctl token <mmctl_token.rst>`_ 	 - manage users' access tokens
 

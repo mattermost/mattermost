@@ -2007,6 +2007,24 @@ func (c *Client4) RevokeUserAccessToken(ctx context.Context, tokenId string) (*R
 	return BuildResponse(r), nil
 }
 
+// RotateUserAccessToken generates a new secret for the token identified by tokenId,
+// sets a new expiry, and immediately invalidates the old secret and its sessions.
+// The returned token carries the new secret (shown once, like CreateUserAccessToken).
+// Must have the 'create_user_access_token' permission and if rotating for another
+// user, must have the 'edit_other_users' permission.
+func (c *Client4) RotateUserAccessToken(ctx context.Context, tokenId string, expiresAt int64) (*UserAccessToken, *Response, error) {
+	requestBody := struct {
+		TokenId   string `json:"token_id"`
+		ExpiresAt int64  `json:"expires_at"`
+	}{TokenId: tokenId, ExpiresAt: expiresAt}
+	r, err := c.doAPIPostJSON(ctx, c.usersRoute().Join("tokens", "rotate"), requestBody)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*UserAccessToken](r)
+}
+
 // SearchUserAccessTokens returns user access tokens matching the provided search term.
 func (c *Client4) SearchUserAccessTokens(ctx context.Context, search *UserAccessTokenSearch) ([]*UserAccessToken, *Response, error) {
 	r, err := c.doAPIPostJSON(ctx, c.usersRoute().Join("tokens", "search"), search)

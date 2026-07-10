@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package pat_expiry_notify
+package notify_expiring_access_tokens
 
 import (
 	"time"
@@ -16,5 +16,5 @@ func MakeScheduler(jobServer *jobs.JobServer) *jobs.PeriodicScheduler {
 	isEnabled := func(cfg *model.Config) bool {
 		return *cfg.ServiceSettings.EnableUserAccessTokens
 	}
-	return jobs.NewPeriodicScheduler(jobServer, model.JobTypePatExpiryNotify, schedFreq, isEnabled)
+	return jobs.NewPeriodicScheduler(jobServer, model.JobTypeNotifyExpiringAccessTokens, schedFreq, isEnabled)
 }
