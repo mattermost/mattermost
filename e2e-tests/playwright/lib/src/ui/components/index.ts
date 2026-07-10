@@ -23,7 +23,9 @@ import DeletePostConfirmationDialog from './channels/delete_post_confirmation_di
 import DeletePostModal from './channels/delete_post_modal';
 import DeleteScheduledPostModal from './channels/delete_scheduled_post_modal';
 import DirectChannelsModal from './channels/direct_channels_modal';
+import ChannelMenu from './channels/channel_menu';
 import DraftPost from './channels/draft_post';
+import EditChannelHeaderModal from './channels/edit_channel_header_modal';
 import EmojiGifPicker from './channels/emoji_gif_picker';
 import FindChannelsModal from './channels/find_channels_modal';
 import NewChannelModal from './channels/new_channel_modal';
@@ -99,8 +101,10 @@ const components = {
     DeletePostConfirmationDialog,
     DeletePostModal,
     DeleteScheduledPostModal,
+    ChannelMenu,
     DirectChannelsModal,
     DraftPost,
+    EditChannelHeaderModal,
     EmojiGifPicker,
     FindChannelsModal,
     FlagPostConfirmationDialog,
@@ -181,6 +185,8 @@ export {
     DeletePostModal,
     DeleteScheduledPostModal,
     DraftPost,
+    ChannelMenu,
+    EditChannelHeaderModal,
     EmojiGifPicker,
     FindChannelsModal,
     FlagPostConfirmationDialog,

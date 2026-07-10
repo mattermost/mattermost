@@ -32,6 +32,7 @@ export default class ChannelsPage {
 
     readonly channelSettingsModal;
     readonly channelNotificationPreferencesModal;
+    readonly editChannelHeaderModal;
     readonly createTeamForm;
     readonly deletePostModal;
     readonly findChannelsModal;
@@ -51,6 +52,7 @@ export default class ChannelsPage {
     readonly archivedChannelMessage;
 
     readonly postContainer;
+    readonly channelMenu;
     readonly postDotMenu;
     readonly postReminderMenu;
     readonly userAccountMenu;
@@ -81,6 +83,9 @@ export default class ChannelsPage {
         this.channelNotificationPreferencesModal = new components.ChannelNotificationPreferencesModal(
             page.getByRole('dialog', {name: 'Notification Preferences'}),
         );
+        this.editChannelHeaderModal = new components.EditChannelHeaderModal(
+            page.getByRole('dialog', {name: /Edit Header/}),
+        );
         this.keyboardShortcutsModal = page.getByRole('dialog', {name: /Keyboard shortcuts/});
         this.createTeamForm = new CreateTeamForm(page.getByTestId('create-team-form'));
         this.deletePostModal = new components.DeletePostModal(page.locator('#deletePostModal'));
@@ -99,6 +104,8 @@ export default class ChannelsPage {
         this.searchResultsPanel = new components.SearchResultsPanel(page.locator('#searchContainer'));
 
         // Menus
+        // The channel header dropdown menu's accessible name is "<channel> Channel Menu".
+        this.channelMenu = new components.ChannelMenu(page.getByRole('menu', {name: /Channel Menu/i}));
         this.postDotMenu = new components.PostDotMenu(page.getByRole('menu', {name: 'Post extra options'}));
         this.postReminderMenu = new components.PostReminderMenu(page.getByRole('menu', {name: 'Set a reminder for:'}));
         this.userAccountMenu = new components.UserAccountMenu(page.locator('#userAccountMenu'));
@@ -225,12 +232,31 @@ export default class ChannelsPage {
     }
 
     /**
+     * Returns a confirm-modal page object scoped to the dialog with the given title (its accessible name).
+     * @param title The modal's title text.
+     * @param confirmLabel The confirm button label (defaults to "Confirm").
+     */
+    getConfirmModal(title: string, confirmLabel = 'Confirm') {
+        return new components.GenericConfirmModal(this.page.getByRole('dialog', {name: title}), confirmLabel);
+    }
+
+    /**
+     * Opens the channel header dropdown menu and returns it.
+     */
+    async openChannelMenu() {
+        await this.centerView.header.openChannelMenu();
+        await this.channelMenu.toBeVisible();
+
+        return this.channelMenu;
+    }
+
+    /**
      * Archives the current channel via the channel header menu and confirms the
      * archive dialog. Waits for the archived-channel footer to appear.
      */
     async archiveChannel() {
-        await this.centerView.header.openChannelMenu();
-        await this.page.getByRole('menuitem', {name: 'Archive Channel'}).click();
+        const channelMenu = await this.openChannelMenu();
+        await channelMenu.archiveToggle.click();
         await this.page.getByRole('button', {name: 'Archive', exact: true}).click();
         await expect(this.archivedChannelMessage).toBeVisible();
     }
@@ -247,10 +273,10 @@ export default class ChannelsPage {
     }
 
     async openChannelSettings(): Promise<ChannelSettingsModal> {
-        await this.centerView.header.openChannelMenu();
+        const channelMenu = await this.openChannelMenu();
 
-        const channelSettingsMenuItem = this.page.getByRole('menuitem', {name: 'Channel Settings'});
-        const moreActionsMenuItem = this.page.getByRole('menuitem', {name: /More actions/i});
+        const channelSettingsMenuItem = channelMenu.channelSettings;
+        const moreActionsMenuItem = channelMenu.item(/More actions/i);
 
         const channelSettingsVisible = await channelSettingsMenuItem.isVisible({timeout: 1500}).catch(() => false);
         if (!channelSettingsVisible) {
@@ -268,16 +294,16 @@ export default class ChannelsPage {
     }
 
     async openChannelNotificationPreferences(): Promise<ChannelNotificationPreferencesModal> {
-        await this.centerView.header.openChannelMenu();
-        await this.page.getByRole('menuitem', {name: 'Notification Preferences'}).click();
+        const channelMenu = await this.openChannelMenu();
+        await channelMenu.notificationPreferences.click();
         await this.channelNotificationPreferencesModal.toBeVisible();
 
         return this.channelNotificationPreferencesModal;
     }
 
     async closeGroupMessage() {
-        await this.centerView.header.openChannelMenu();
-        await this.page.getByRole('menuitem', {name: 'Close Group Message'}).click();
+        const channelMenu = await this.openChannelMenu();
+        await channelMenu.closeConversation.click();
     }
 
     async openSettings(): Promise<SettingsModal> {

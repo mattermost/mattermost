@@ -8,7 +8,7 @@ import {getChannelSlugFromUrl} from './helpers';
 /**
  * @objective Verify that a closed group message can be reopened via a saved message and via the Direct Messages modal.
  *
- * MM-T477 and MM-T479 are duplicates of MM-T476 (all map to Rainforest RF-MTD188) and are covered by this test.
+ * MM-T477 and MM-T479 are duplicates of MM-T476 and are covered by this test.
  */
 test(
     'MM-T476 MM-T477 MM-T479 closes and reopens a group message via saved messages and the DM modal',

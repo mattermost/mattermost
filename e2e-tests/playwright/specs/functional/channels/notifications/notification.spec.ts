@@ -13,12 +13,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 test(
     'MM-T483 triggers notification with uppercase channel-wide mention and highlights message for all users',
     {tag: '@notifications'},
-    async ({pw, headless, browserName}) => {
-        test.skip(
-            headless && browserName !== 'firefox',
-            'Works across browsers and devices, except in headless mode, where stubbing the Notification API is supported only in Firefox and WebKit.',
-        );
-
+    async ({pw}) => {
         // # Initialize setup and get the required users and team
         const {team, adminUser, user} = await pw.initSetup();
 
@@ -46,13 +41,18 @@ test(
         const notification = notifications[0];
         expect(notification.title).toBe('Off-Topic');
         expect(notification.body).toBe(`@${user.username}: ${message}`);
-        expect(notification.tag).toBe(`@${user.username}: ${message}`);
+
+        // The Notifications API tag must not leak the message body; the app uses the
+        // opaque post ID as the tag so notifications coalesce per conversation.
+        const otherLastPost = await otherChannelsPage.getLastPost();
+        expect(notification.tag).toBe(await otherLastPost.getId());
+        expect(notification.tag).not.toContain(message);
+
         expect(notification.icon).toContain('.png');
         expect(notification.requireInteraction).toBe(false);
         expect(notification.silent).toBe(false);
 
         // * Verify the last post as viewed by the regular user in the "off-topic" channel contains the message and is highlighted
-        const otherLastPost = await otherChannelsPage.getLastPost();
         await otherLastPost.toContainText(message);
         await expect(otherLastPost.container.locator('.mention--highlight')).toBeVisible();
         await expect(otherLastPost.container.locator('.mention--highlight').getByText('@ALL')).toBeVisible();

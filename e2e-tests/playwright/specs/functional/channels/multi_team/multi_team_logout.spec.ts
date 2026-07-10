@@ -6,7 +6,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 /**
  * @objective Verify that a user who belongs to multiple teams can switch between them and log out to the sign-in page.
  *
- * MM-T432 is a duplicate of MM-T430 (both map to Rainforest RF-MTD180) and is covered by this test.
+ * MM-T432 is a duplicate of MM-T430 and is covered by this test.
  */
 test('MM-T430 MM-T432 switches between teams and logs out', {tag: '@multi_team'}, async ({pw}) => {
     // # Create a user in one team, then add them to a second team

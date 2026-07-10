@@ -7,9 +7,11 @@ import {getChannelSlugFromUrl} from './helpers';
 
 /**
  * @objective Verify that a group message can be created with a mention, closed, and then recreated with the same members.
+ *
+ * MM-T480 covers the same behavior as MM-T466 and is covered by this test.
  */
 test(
-    'MM-T466 creates a group message with a mention, closes it, and recreates it',
+    'MM-T466 MM-T480 creates a group message with a mention, closes it, and recreates it',
     {tag: '@direct_messages'},
     async ({pw}) => {
         // # Create the test user plus two more users on the team

@@ -67,8 +67,10 @@ test('MM-T1242 CTRL/CMD+K typed characters are not lost after switching channels
 
 /**
  * @objective Verify Ctrl/Cmd+Up and Ctrl/Cmd+Down cycle through previous messages in the post textbox.
+ *
+ * MM-T1256 and MM-T1257 cover the same behavior as MM-T1254 and are covered by this test.
  */
-test('MM-T1254 CTRL/CMD+UP and CTRL/CMD+DOWN cycle previous messages', async ({pw}) => {
+test('MM-T1254 MM-T1256 MM-T1257 CTRL/CMD+UP and CTRL/CMD+DOWN cycle previous messages', async ({pw}) => {
     const {user, team} = await pw.initSetup();
     const messages = ['post 1', 'post 2', 'post 3', 'post 4', 'post 5'];
 
