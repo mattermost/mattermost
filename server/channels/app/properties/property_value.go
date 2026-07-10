@@ -332,15 +332,17 @@ func (ps *PropertyService) DeletePropertyValue(rctx request.CTX, groupID, id str
 	// A genuine miss (ErrNotFound) yields a nil snapshot; a real read failure
 	// (e.g. replica lag or a transient error) is logged so it does not silently
 	// suppress the delete audit with incomplete metadata.
-	deleted, getErr := ps.getPropertyValue(groupID, id)
-	if getErr != nil {
+	deleted, snapshotErr := ps.getPropertyValue(groupID, id)
+	if snapshotErr != nil {
 		rctx.Logger().Warn("DeletePropertyValue: failed to snapshot value before delete; audit metadata may be incomplete",
 			mlog.String("group_id", groupID),
 			mlog.String("value_id", id),
-			mlog.Err(getErr),
+			mlog.Err(snapshotErr),
 		)
 	}
-	defer func() { ps.runPostDeletePropertyValue(rctx, deleted, err) }()
+	defer func() {
+		ps.runPostDeletePropertyValue(rctx, groupID, id, deleted, err)
+	}()
 
 	if err = ps.runPreDeletePropertyValue(rctx, groupID, id); err != nil {
 		return fmt.Errorf("DeletePropertyValue: %w", err)

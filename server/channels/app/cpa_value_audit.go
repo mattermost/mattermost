@@ -14,7 +14,7 @@ import (
 // group. Logged at the content audit level (data change).
 func (a *App) auditCPAValueChange(rctx request.CTX, e properties.ValueAuditEvent) {
 	callerID, _ := CallerIDFromRequestContext(rctx)
-	scope, _ := ActingAsScopeFromRequestContext(rctx)
+	scope := model.PropertyRequestOptionsFromContext(rctx.Context()).ActingAsScope
 
 	status := model.AuditStatusFail
 	if e.Success() {
@@ -30,6 +30,9 @@ func (a *App) auditCPAValueChange(rctx request.CTX, e properties.ValueAuditEvent
 	rec.AddMeta("target_id", e.TargetID)
 	if e.FieldID != "" {
 		rec.AddMeta("field_id", e.FieldID)
+	}
+	if e.ValueID != "" {
+		rec.AddMeta("value_id", e.ValueID)
 	}
 	if e.Err != nil {
 		rec.AddMeta("error", e.Err.Error())

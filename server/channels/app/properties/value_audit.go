@@ -29,6 +29,7 @@ type ValueAuditEvent struct {
 	TargetType string
 	TargetID   string
 	FieldID    string
+	ValueID    string
 	Prev       *model.PropertyValue
 	Current    *model.PropertyValue
 	Err        error
@@ -148,20 +149,22 @@ func (h *PropertyValueAuditHook) PostUpsertPropertyValues(rctx request.CTX, valu
 	return nil
 }
 
-func (h *PropertyValueAuditHook) PostDeletePropertyValue(rctx request.CTX, deleted *model.PropertyValue, opErr error) error {
-	// A nil snapshot means the value did not exist — nothing was (or would be)
-	// removed, so there is no change to audit.
-	if deleted == nil {
-		return nil
+func (h *PropertyValueAuditHook) PostDeletePropertyValue(rctx request.CTX, groupID, valueID string, deleted *model.PropertyValue, opErr error) error {
+	event := ValueAuditEvent{
+		Action:  ValueAuditActionDelete,
+		ValueID: valueID,
+		Err:     opErr,
 	}
-	h.emit(rctx, deleted.GroupID, ValueAuditEvent{
-		Action:     ValueAuditActionDelete,
-		TargetType: deleted.TargetType,
-		TargetID:   deleted.TargetID,
-		FieldID:    deleted.FieldID,
-		Prev:       deleted,
-		Err:        opErr,
-	})
+	emitGroupID := groupID
+	if deleted != nil {
+		event.TargetType = deleted.TargetType
+		event.TargetID = deleted.TargetID
+		event.FieldID = deleted.FieldID
+		event.Prev = deleted
+		emitGroupID = deleted.GroupID
+	}
+
+	h.emit(rctx, emitGroupID, event)
 	return nil
 }
 

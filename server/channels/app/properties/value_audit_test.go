@@ -9,6 +9,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -202,28 +203,55 @@ func TestPropertyValueAuditHook_PostDelete(t *testing.T) {
 	rec := &recordingSink{}
 	hook := newRegisteredAuditHook(managed, rec.sink())
 
-	require.NoError(t, hook.PostDeletePropertyValue(th.Context, &model.PropertyValue{GroupID: managed, TargetType: "user", TargetID: "u1", FieldID: "f1"}, nil))
+	require.NoError(t, hook.PostDeletePropertyValue(th.Context, managed, "v1", &model.PropertyValue{GroupID: managed, TargetType: "user", TargetID: "u1", FieldID: "f1"}, nil))
 	require.NoError(t, hook.PostDeletePropertyValuesForTarget(th.Context, managed, "user", "u1", nil))
 	require.NoError(t, hook.PostDeletePropertyValuesForField(th.Context, managed, "f1", nil))
 
 	// A failed delete of an existing value is a legitimate failure → audited.
-	require.NoError(t, hook.PostDeletePropertyValue(th.Context, &model.PropertyValue{GroupID: managed, TargetType: "user", TargetID: "u2", FieldID: "f1"}, errDenied))
+	require.NoError(t, hook.PostDeletePropertyValue(th.Context, managed, "v2", &model.PropertyValue{GroupID: managed, TargetType: "user", TargetID: "u2", FieldID: "f1"}, errDenied))
 
-	// A nil snapshot (value did not exist) is a no-op → not audited.
-	require.NoError(t, hook.PostDeletePropertyValue(th.Context, nil, nil))
+	// A failed delete without a snapshot is still audited by its identifiers.
+	require.NoError(t, hook.PostDeletePropertyValue(th.Context, managed, "missing", nil, store.NewErrNotFound("PropertyValue", "missing")))
 
 	// Unregistered group is ignored on every delete variant.
-	require.NoError(t, hook.PostDeletePropertyValue(th.Context, &model.PropertyValue{GroupID: "other"}, nil))
+	require.NoError(t, hook.PostDeletePropertyValue(th.Context, "other", "v3", &model.PropertyValue{GroupID: "other"}, nil))
 	require.NoError(t, hook.PostDeletePropertyValuesForTarget(th.Context, "other", "user", "u1", nil))
 	require.NoError(t, hook.PostDeletePropertyValuesForField(th.Context, "other", "f1", nil))
 
-	require.Len(t, rec.calls, 4)
+	require.Len(t, rec.calls, 5)
 	assert.Equal(t, ValueAuditActionDelete, rec.calls[0].event.Action)
+	assert.Equal(t, "v1", rec.calls[0].event.ValueID)
 	assert.True(t, rec.calls[0].event.Success())
 	assert.Equal(t, ValueAuditActionDeleteForTarget, rec.calls[1].event.Action)
 	assert.Equal(t, ValueAuditActionDeleteForField, rec.calls[2].event.Action)
 	assert.Equal(t, ValueAuditActionDelete, rec.calls[3].event.Action)
 	assert.False(t, rec.calls[3].event.Success())
+	assert.Equal(t, ValueAuditActionDelete, rec.calls[4].event.Action)
+	assert.Equal(t, "missing", rec.calls[4].event.ValueID)
+	assert.False(t, rec.calls[4].event.Success())
+}
+
+func TestPropertyValueAuditHook_PostDeleteSparseSnapshot(t *testing.T) {
+	th := Setup(t)
+	managed := registerCPAGroup(t, th)
+	rec := &recordingSink{}
+	hook := newRegisteredAuditHook(managed, rec.sink())
+
+	t.Run("audits a successful delete without a snapshot", func(t *testing.T) {
+		require.NoError(t, hook.PostDeletePropertyValue(th.Context, managed, "value-id", nil, nil))
+		require.Len(t, rec.calls, 1)
+		assert.Equal(t, ValueAuditActionDelete, rec.calls[0].event.Action)
+		assert.Equal(t, "value-id", rec.calls[0].event.ValueID)
+		assert.True(t, rec.calls[0].event.Success())
+	})
+
+	rec.calls = nil
+	t.Run("audits a failed delete without a snapshot", func(t *testing.T) {
+		require.NoError(t, hook.PostDeletePropertyValue(th.Context, managed, "value-id", nil, errDenied))
+		require.Len(t, rec.calls, 1)
+		assert.Equal(t, "value-id", rec.calls[0].event.ValueID)
+		assert.False(t, rec.calls[0].event.Success())
+	})
 }
 
 // TestPropertyValueAuditHook_ServiceUpsert exercises the full service path:
