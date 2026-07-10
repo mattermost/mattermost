@@ -43,18 +43,12 @@ This section provides a quick start guide for deploying Mattermost on Docker by 
     cp env.example .env
     ```
 
-    <div class="important">
-
-    <div class="title">
-
-    Important
-
-    </div>
+    <Important>
 
     - At a minimum, you must edit the `DOMAIN` value in the `.env` file to correspond to the domain for your Mattermost server.
     - We recommend configuring the [Support Email](/administration-guide/configure/site-configuration-settings#support-email-address) via `MM_SUPPORTSETTINGS_SUPPORTEMAIL`. This is the email address your users will contact when they need help.
 
-    </div>
+    </Important>
 
 3.  Create the required directories and set their permissions.
 
@@ -163,17 +157,11 @@ For additional help or questions, please refer to [this issue](https://github.co
 
 3.  Adjust the `MATTERMOST_IMAGE_TAG` in the `.env` file to point your desired [enterprise](https://hub.docker.com/r/mattermost/mattermost-enterprise-edition/tags?page=1&ordering=last_updated) or [team](https://hub.docker.com/r/mattermost/mattermost-team-edition/tags?page=1&ordering=last_updated) image version.
 
-    <div class="important">
-
-    <div class="title">
-
-    Important
-
-    </div>
+    <Important>
 
     **For production environments**, we recommend using specific version tags such as `MATTERMOST_IMAGE_TAG=release-10.5` rather than generic tags like `MATTERMOST_IMAGE_TAG=release-10`. Generic `release-x` tags are intended for development use only and do not automatically receive new patch releases within that major version. Using specific version tags ensures a more reproducible and deterministic environment for your production deployment.
 
-    </div>
+    </Important>
 
 4.  Redeploy Mattermost.
 
