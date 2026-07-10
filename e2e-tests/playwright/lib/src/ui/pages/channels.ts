@@ -49,6 +49,7 @@ export default class ChannelsPage {
     readonly scheduleMessageModal;
     readonly burnOnReadConfirmationModal;
     readonly searchResultsPanel;
+    readonly marketplaceModal;
     readonly archivedChannelMessage;
 
     readonly postContainer;
@@ -102,6 +103,7 @@ export default class ChannelsPage {
             page.getByRole('dialog').filter({hasText: /burn|delete/i}),
         );
         this.searchResultsPanel = new components.SearchResultsPanel(page.locator('#searchContainer'));
+        this.marketplaceModal = new components.MarketplaceModal(page.getByRole('dialog', {name: 'App Marketplace'}));
 
         // Menus
         // The channel header dropdown menu's accessible name is "<channel> Channel Menu".
@@ -159,6 +161,10 @@ export default class ChannelsPage {
             this.page.getByRole('dialog', {name: `Invite people to ${teamDisplayName}`}),
         );
         return this.invitePeopleModal;
+    }
+
+    getAddPeopleToChannelModal() {
+        return new components.AddPeopleToChannelModal(this.page.getByRole('dialog', {name: /Add people to/}));
     }
 
     async getMembersInvitedModal(teamDisplayName: string) {

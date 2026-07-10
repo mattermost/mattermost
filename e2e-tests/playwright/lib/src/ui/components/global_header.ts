@@ -18,6 +18,7 @@ export default class GlobalHeader {
     readonly helpButton;
     readonly searchBox;
     readonly userProfileMenu;
+    readonly appMarketplaceMenuItem;
 
     constructor(channelsPage: ChannelsPage, container: Locator) {
         this.channelsPage = channelsPage;
@@ -31,6 +32,9 @@ export default class GlobalHeader {
         this.helpButton = container.getByRole('button', {name: 'Help'});
         this.searchBox = container.locator('#searchFormContainer');
         this.userProfileMenu = container.locator('#userAccountMenuButton');
+
+        // Rendered in a portal at the page level once the product switch menu is open.
+        this.appMarketplaceMenuItem = container.page().getByRole('menuitem', {name: 'App Marketplace'});
     }
 
     async toBeVisible(name: string) {
@@ -40,6 +44,14 @@ export default class GlobalHeader {
     async switchProduct(name: string) {
         await this.productSwitchMenu.click();
         await this.container.getByRole('link', {name}).click();
+    }
+
+    /**
+     * Opens the product switch menu and selects the "App Marketplace" item.
+     */
+    async openAppMarketplace() {
+        await this.productSwitchMenu.click();
+        await this.appMarketplaceMenuItem.click();
     }
 
     async openSettings() {

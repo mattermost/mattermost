@@ -19,6 +19,8 @@ import ChannelNotificationPreferencesModal from './channels/channel_notification
 import ChannelSettingsModal from './channels/channel_settings/channel_settings_modal';
 import ChannelsSidebarLeft from './channels/sidebar_left';
 import ChannelsSidebarRight from './channels/sidebar_right';
+import AddPeopleToChannelModal from './channels/add_people_to_channel_modal';
+import MarketplaceModal from './channels/marketplace_modal';
 import DeletePostConfirmationDialog from './channels/delete_post_confirmation_dialog';
 import DeletePostModal from './channels/delete_post_modal';
 import DeleteScheduledPostModal from './channels/delete_scheduled_post_modal';
@@ -98,6 +100,8 @@ const components = {
     ChannelSettingsModal,
     ChannelsSidebarLeft,
     ChannelsSidebarRight,
+    AddPeopleToChannelModal,
+    MarketplaceModal,
     DeletePostConfirmationDialog,
     DeletePostModal,
     DeleteScheduledPostModal,
@@ -181,6 +185,8 @@ export {
     ChannelSettingsModal,
     ChannelsSidebarLeft,
     ChannelsSidebarRight,
+    AddPeopleToChannelModal,
+    MarketplaceModal,
     DeletePostConfirmationDialog,
     DeletePostModal,
     DeleteScheduledPostModal,
