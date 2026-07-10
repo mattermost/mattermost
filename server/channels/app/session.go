@@ -811,16 +811,8 @@ func (a *App) DisableUserAccessToken(rctx request.CTX, token *model.UserAccessTo
 }
 
 func (a *App) EnableUserAccessToken(rctx request.CTX, token *model.UserAccessToken) *model.AppError {
-	var session *model.Session
-	session, _ = a.ch.srv.platform.GetSessionContext(rctx, token.Token)
-
-	err := a.Srv().Store().UserAccessToken().UpdateTokenEnable(token.Id)
-	if err != nil {
+	if err := a.Srv().Store().UserAccessToken().UpdateTokenEnable(token.Id); err != nil {
 		return model.NewAppError("EnableUserAccessToken", "app.user_access_token.update_token_enable.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if session == nil {
-		return nil
 	}
 
 	return nil
