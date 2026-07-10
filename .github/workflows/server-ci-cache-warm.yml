@@ -1,0 +1,63 @@
+# Warms the Go module cache, build cache, and CI tool binaries that server CI
+# jobs restore read-only (via restore-go-cache). Runs daily on master and on
+# demand, keyed on the Go version and all go.mod/go.sum files.
+name: Server CI Cache Warm
+
+on:
+  schedule:
+    - cron: "0 2 * * *" # Daily 2am UTC — before the nightly server CI runs
+  workflow_dispatch:
+
+# Serialize scheduled and manual runs so they don't race to save the same key.
+concurrency:
+  group: server-ci-cache-warm
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: write # required to save the Actions cache
+
+jobs:
+  warm:
+    name: Warm Go Module and Build Cache
+    runs-on: ubuntu-22.04
+    # Don't let a hung run hold the concurrency group for the default 6 hours.
+    timeout-minutes: 60
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Check if Go cache already warm
+        id: go-cache-check
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: |
+            ${{ runner.temp }}/go-cache/mod
+            ${{ runner.temp }}/go-cache/build
+            server/bin
+          key: gomod-v1-${{ hashFiles('server/.go-version') }}-${{ hashFiles('server/go.mod', 'server/go.sum', 'server/public/go.mod', 'server/public/go.sum', 'tools/mattermost-govet/go.sum') }}
+          lookup-only: true
+
+      - name: Warm cache inside build container
+        if: steps.go-cache-check.outputs.cache-hit != 'true'
+        # Populates GOMODCACHE/GOCACHE (mounted from RUNNER_TEMP) and installs
+        # tools to server/bin — the paths saved below.
+        uses: ./.github/actions/run-in-buildenv
+        with:
+          run: make go-cache
+
+      - name: Fix file ownership (Docker writes files as root)
+        if: steps.go-cache-check.outputs.cache-hit != 'true'
+        run: sudo chown -R "$USER:$USER" "${RUNNER_TEMP}/go-cache" server/bin
+
+      - name: Save Go cache
+        if: steps.go-cache-check.outputs.cache-hit != 'true'
+        uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: |
+            ${{ runner.temp }}/go-cache/mod
+            ${{ runner.temp }}/go-cache/build
+            server/bin
+          key: gomod-v1-${{ hashFiles('server/.go-version') }}-${{ hashFiles('server/go.mod', 'server/go.sum', 'server/public/go.mod', 'server/public/go.sum', 'tools/mattermost-govet/go.sum') }}
