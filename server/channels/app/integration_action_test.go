@@ -3741,7 +3741,7 @@ func TestExecuteDialogAction(t *testing.T) {
 
 		_, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
 		require.NotNil(t, appErr)
-		// DoActionRequest maps non-200 upstream responses to a 400 AppError.
-		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		// DoActionRequest maps upstream 5xx (other than 429/503) to 502 Bad Gateway.
+		assert.Equal(t, http.StatusBadGateway, appErr.StatusCode)
 	})
 }
