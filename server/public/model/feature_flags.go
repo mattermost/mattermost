@@ -42,6 +42,11 @@ type FeatureFlags struct {
 
 	ExperimentalAuditSettingsSystemConsoleUI bool
 
+	// ExternalMarketplaceV2 enables new marketplace capabilities including install-event feedback,
+	// paid plugin UI, and license validation via the v2 marketplace API.
+	// See: https://github.com/pavelzeman/mm-marketplace
+	ExternalMarketplaceV2 bool `feature_flag_name:"external_marketplace_v2"`
+
 	CustomProfileAttributes bool
 
 	AttributeBasedAccessControl bool
@@ -157,6 +162,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CloudDedicatedExportUI = false
 	f.NotificationMonitoring = true
 	f.ExperimentalAuditSettingsSystemConsoleUI = true
+	f.ExternalMarketplaceV2 = false
 	f.CustomProfileAttributes = true
 	f.AttributeBasedAccessControl = true
 	f.AttributeValueMasking = true
