@@ -68,8 +68,6 @@ jobs:
     name: Check generated files
     needs: go
     runs-on: ubuntu-22.04
-    permissions:
-      contents: read
     services:
       # make default-roles-permissions snapshots a live database.
       postgres:
