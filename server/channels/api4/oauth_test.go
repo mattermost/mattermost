@@ -859,6 +859,50 @@ func TestRegisterOAuthClient_RedirectURIAllowlist(t *testing.T) {
 		assert.NotEmpty(t, dcrErr.ErrorDescription)
 	})
 
+	t.Run("wildcard host cannot be satisfied by query string", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"https://*.example.com/**"}
+		})
+
+		registerRedirectURI := func(redirectURI string) (*http.Response, model.DCRError) {
+			body, _ := json.Marshal(&model.ClientRegistrationRequest{
+				RedirectURIs:            []string{redirectURI},
+				ClientName:              model.NewPointer("Test Client"),
+				TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
+			})
+			req, err := http.NewRequest(http.MethodPost, client.APIURL+"/oauth/apps/register", bytes.NewReader(body))
+			require.NoError(t, err)
+			req.Header.Set("Content-Type", "application/json")
+
+			httpResp, err := client.HTTPClient.Do(req)
+			require.NoError(t, err)
+
+			var dcrErr model.DCRError
+			if httpResp.StatusCode == http.StatusBadRequest {
+				jsonErr := json.NewDecoder(httpResp.Body).Decode(&dcrErr)
+				require.NoError(t, jsonErr)
+			}
+			require.NoError(t, httpResp.Body.Close())
+
+			return httpResp, dcrErr
+		}
+
+		time.Sleep(time.Second)
+		httpResp, dcrErr := registerRedirectURI("https://attacker.example.net/cb")
+		require.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
+		assert.Equal(t, model.DCRErrorInvalidRedirectURI, dcrErr.Error)
+
+		time.Sleep(time.Second)
+		httpResp, dcrErr = registerRedirectURI("https://attacker.example.net?x=.example.com/cb")
+		require.Equal(t, http.StatusBadRequest, httpResp.StatusCode)
+		assert.Equal(t, model.DCRErrorInvalidRedirectURI, dcrErr.Error)
+
+		time.Sleep(time.Second)
+		httpResp, dcrErr = registerRedirectURI("https://app.example.com/cb")
+		require.Equal(t, http.StatusCreated, httpResp.StatusCode)
+		assert.Empty(t, dcrErr.Error)
+	})
+
 	t.Run("multi redirect partial mismatch rejects request", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"https://allowed.com/**"}
