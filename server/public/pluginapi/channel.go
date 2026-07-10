@@ -128,7 +128,7 @@ func (c *ChannelService) Delete(channelID string) error {
 
 // Restore restores a previously deleted (archived) channel.
 //
-// Minimum server version: 11.9
+// Minimum server version: 11.10
 func (c *ChannelService) Restore(channelID string) error {
 	return normalizeAppErr(c.api.RestoreChannel(channelID))
 }
@@ -136,7 +136,7 @@ func (c *ChannelService) Restore(channelID string) error {
 // GetSpaceBackingChannel resolves a space ("S") backing channel by ID. The generic Get
 // excludes space channels; docs/spaces plugins that manage them use this dedicated resolver.
 //
-// Minimum server version: 11.9
+// Minimum server version: 11.10
 func (c *ChannelService) GetSpaceBackingChannel(channelID string) (*model.Channel, error) {
 	channel, appErr := c.api.GetSpaceBackingChannel(channelID)
 

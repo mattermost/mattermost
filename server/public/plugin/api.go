@@ -450,14 +450,14 @@ type API interface {
 	// RestoreChannel restores a previously deleted (archived) channel.
 	//
 	// @tag Channel
-	// Minimum server version: 11.9
+	// Minimum server version: 11.10
 	RestoreChannel(channelId string) *model.AppError
 
 	// GetSpaceBackingChannel resolves a space ("S") backing channel by ID. Generic GetChannel
 	// excludes space channels; docs/spaces plugins that manage them use this dedicated resolver.
 	//
 	// @tag Channel
-	// Minimum server version: 11.9
+	// Minimum server version: 11.10
 	GetSpaceBackingChannel(channelId string) (*model.Channel, *model.AppError)
 
 	// GetPublicChannelsForTeam gets a list of all channels.

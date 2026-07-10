@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -9657,15 +9658,19 @@ func testChannelStoreSpaceExclusion(t *testing.T, rctx request.CTX, ss store.Sto
 	require.Contains(t, authMembers, space.Id, "space backing channels must resolve in the authorization membership map")
 
 	// Client-facing member listings exclude space backing channels.
+	hasChannel := func(channelID string) func(m model.ChannelMemberWithTeamData) bool {
+		return func(m model.ChannelMemberWithTeamData) bool { return m.ChannelId == channelID }
+	}
+
 	paged, err := ss.Channel().GetMembersForUserWithPagination(userID, 0, 100)
 	require.NoError(t, err)
-	require.False(t, channelMembersWithTeamDataContain(paged, space.Id), "GetMembersForUserWithPagination must exclude space channels")
-	require.True(t, channelMembersWithTeamDataContain(paged, open.Id))
+	require.False(t, slices.ContainsFunc(paged, hasChannel(space.Id)), "GetMembersForUserWithPagination must exclude space channels")
+	require.True(t, slices.ContainsFunc(paged, hasChannel(open.Id)))
 
 	cursored, err := ss.Channel().GetMembersForUserWithCursorPagination(userID, 100, "")
 	require.NoError(t, err)
-	require.False(t, channelMembersWithTeamDataContain(cursored, space.Id), "GetMembersForUserWithCursorPagination must exclude space channels")
-	require.True(t, channelMembersWithTeamDataContain(cursored, open.Id))
+	require.False(t, slices.ContainsFunc(cursored, hasChannel(space.Id)), "GetMembersForUserWithCursorPagination must exclude space channels")
+	require.True(t, slices.ContainsFunc(cursored, hasChannel(open.Id)))
 
 	exported, err := ss.Channel().GetChannelMembersForExport(userID, teamID, false)
 	require.NoError(t, err)
@@ -9684,8 +9689,8 @@ func testChannelStoreSpaceExclusion(t *testing.T, rctx request.CTX, ss store.Sto
 	// The team-scoped membership listing excludes space backing channels.
 	teamMembers, err := ss.Channel().GetMembersForUser(teamID, userID)
 	require.NoError(t, err)
-	require.False(t, channelMembersContain(teamMembers, space.Id), "GetMembersForUser must exclude space channels")
-	require.True(t, channelMembersContain(teamMembers, open.Id))
+	require.False(t, slices.ContainsFunc(teamMembers, func(m model.ChannelMember) bool { return m.ChannelId == space.Id }), "GetMembersForUser must exclude space channels")
+	require.True(t, slices.ContainsFunc(teamMembers, func(m model.ChannelMember) bool { return m.ChannelId == open.Id }))
 
 	// Scheme-scoped listing excludes space backing channels even when a space shares a scheme.
 	scheme := &model.Scheme{DisplayName: model.NewId(), Name: model.NewId(), Description: model.NewId(), Scope: model.SchemeScopeChannel}
@@ -9792,24 +9797,4 @@ func testChannelStoreGetTeamSpaceChannels(t *testing.T, rctx request.CTX, ss sto
 	empty, err := ss.Channel().GetTeamSpaceChannels(model.NewId())
 	require.NoError(t, err)
 	require.Empty(t, empty)
-}
-
-// channelMembersWithTeamDataContain reports whether the member list contains the given channel id.
-func channelMembersWithTeamDataContain(members model.ChannelMembersWithTeamData, channelID string) bool {
-	for _, m := range members {
-		if m.ChannelId == channelID {
-			return true
-		}
-	}
-	return false
-}
-
-// channelMembersContain reports whether the member list contains the given channel id.
-func channelMembersContain(members model.ChannelMembers, channelID string) bool {
-	for _, m := range members {
-		if m.ChannelId == channelID {
-			return true
-		}
-	}
-	return false
 }
