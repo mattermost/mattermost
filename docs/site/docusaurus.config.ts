@@ -12,6 +12,25 @@ import activeRedirects from './sidebars/active-redirects.json';
 //   /api        → API Reference (OpenAPI-generated)      sources: ../api
 // See PLAN.md §3.1 for the IA, §3.2 for design tokens.
 
+// Docusaurus's Algolia schema rejects an empty `appId`/`apiKey`, so the
+// block is only included when both are set. Without credentials the search
+// bar is simply omitted (rather than rendered as an inert element), which
+// keeps local and CI builds green.
+const algoliaAppId = process.env.ALGOLIA_APP_ID;
+const algoliaApiKey = process.env.ALGOLIA_SEARCH_API_KEY;
+const algoliaThemeConfig =
+  algoliaAppId && algoliaApiKey
+    ? {
+        algolia: {
+          appId: algoliaAppId,
+          apiKey: algoliaApiKey,
+          indexName: 'mattermost-docs',
+          contextualSearch: true,
+          searchPagePath: 'search',
+        },
+      }
+    : {};
+
 const config: Config = {
   title: 'Mattermost Documentation',
   tagline: 'Mission in Motion',
@@ -23,6 +42,7 @@ const config: Config = {
 
   url: 'https://docs.mattermost.com',
   baseUrl: '/',
+  trailingSlash: false,
 
   organizationName: 'mattermost',
   projectName: 'mattermost',
@@ -113,6 +133,8 @@ const config: Config = {
         redirects: activeRedirects.redirects,
       },
     ],
+    // Generates API reference pages from the OpenAPI bundle produced by
+    // build-openapi.mjs
     [
       'docusaurus-plugin-openapi-docs',
       {
@@ -213,6 +235,7 @@ const config: Config = {
       ],
       copyright: `Copyright © ${new Date().getFullYear()} Mattermost, Inc. All rights reserved.`,
     },
+    ...algoliaThemeConfig,
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,

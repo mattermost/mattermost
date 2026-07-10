@@ -100,7 +100,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
 
     componentDidUpdate(prevProps: Props) {
         // TODO: debounce
-        if (prevProps.channelId !== this.props.channelId && this.props.enableWebSocketEventScope) {
+        if (prevProps.channelId !== this.props.channelId) {
             WebSocketClient.updateActiveChannel(this.props.channelId);
         }
 

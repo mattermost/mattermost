@@ -963,12 +963,11 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	if chID := msg.GetBroadcast().ChannelId; chID != "" {
 		// For typing/reaction_added/reaction_removed events, we don't send them to users
 		// who don't have that channel or thread opened.
-		if wc.Platform.Config().FeatureFlags.WebSocketEventScope &&
-			slices.Contains([]model.WebsocketEventType{
-				model.WebsocketEventTyping,
-				model.WebsocketEventReactionAdded,
-				model.WebsocketEventReactionRemoved,
-			}, msg.EventType()) && wc.notInChannel(chID) && wc.notInThread(chID) {
+		if slices.Contains([]model.WebsocketEventType{
+			model.WebsocketEventTyping,
+			model.WebsocketEventReactionAdded,
+			model.WebsocketEventReactionRemoved,
+		}, msg.EventType()) && wc.notInChannel(chID) && wc.notInThread(chID) {
 			return false
 		}
 

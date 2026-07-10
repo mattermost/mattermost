@@ -13,27 +13,27 @@ Before deploying, make sure you have the following:
 - **Mattermost License Key** (Trial or Enterprise)
 - **Node Capacity**: At least 2 OKE nodes for high availability when deploying for 100 users or more
 
-# Installation steps
+## Installation steps
 
 The installation process includes deploying Mattermost and configuring the necessary components.
 
-## Step 1: Start from Oracle Cloud Marketplace
+### Step 1: Start from Oracle Cloud Marketplace
 
 Go to the Mattermost listing and select **Launch Stack**.
 
 ![Oracle Cloud Marketplace listing for Mattermost](/images/oracle/marketplace-listing.png)
 
-## Step 2: Stack Information
+### Step 2: Stack Information
 
 On the **Create stack** page, review the information, and then set the name, compartment, and Terraform version.
 
 ![Stack information page](/images/oracle/stack-info.png)
 
-## Step 3: Configure Variables
+### Step 3: Configure Variables
 
 Set all the details for your Mattermost deployment. Each section is important for a successful and secure installation.
 
-### OKE Cluster Configuration
+#### OKE Cluster Configuration
 
 - **Create new OKE Cluster:**
   - Check this if you want to create a new Kubernetes cluster.
@@ -47,7 +47,7 @@ Set all the details for your Mattermost deployment. Each section is important fo
 - **Operating System:**
   - Oracle Linux 8 is recommended for best compatibility.
 
-### OKE Network Configuration
+#### OKE Network Configuration
 
 - **Worker Node Visibility:**
   - Private is more secure for production. Public is easier for testing. For production environments, use private nodes and restrict access to the API endpoint.
@@ -58,7 +58,7 @@ Set all the details for your Mattermost deployment. Each section is important fo
 - **VCN CIDR Block:**
   - Set a unique network range (e.g., `10.20.0.0/16`). Avoid overlap with other networks.
 
-### OKE Worker Nodes
+#### OKE Worker Nodes
 
 - **Enable Cluster Autoscaler:**
   - Allows the cluster to automatically add or remove nodes based on usage.
@@ -71,7 +71,7 @@ Set all the details for your Mattermost deployment. Each section is important fo
 - **Image OS and Version:**
   - Oracle Linux 8 is recommended.
 
-### PostgreSQL Configuration
+#### PostgreSQL Configuration
 
 - **Admin Username:**
   - The main user for your PostgreSQL database (e.g., `admin1`).
@@ -82,7 +82,7 @@ Set all the details for your Mattermost deployment. Each section is important fo
 - **Database Password:**
   - Required if not using a secret.
 
-### General Configuration
+#### General Configuration
 
 - **Cluster Name Prefix:**
   - Used to identify all resources (e.g., `mm-oke`).
@@ -101,13 +101,13 @@ Set all the details for your Mattermost deployment. Each section is important fo
 - **Helm Repository:**
   - Default is `https://helm.mattermost.com`.
 
-## Step 4: Review and Apply
+### Step 4: Review and Apply
 
 Check all your settings and select **Create** to start the deployment. Monitor the Resource Manager job and logs.
 
 ![Resource Manager job monitor](/images/oracle/job-monitor.png)
 
-## Step 5: After Deployment
+### Step 5: After Deployment
 
 When the job is finished, your OKE cluster, PostgreSQL database, and Mattermost will be ready. To find the Mattermost web address, run:
 
@@ -117,7 +117,7 @@ kubectl -n mattermost-operator get ingress
 
 Copy the address and create a DNS record for your domain. Open your browser and go to your Mattermost URL.
 
-## Step 6: Upgrade Mattermost
+### Step 6: Upgrade Mattermost
 
 To upgrade your Mattermost installation:
 
@@ -138,7 +138,7 @@ To upgrade your Mattermost installation:
 
 </Tip>
 
-# Common Errors and How to Avoid Them
+## Common Errors and How to Avoid Them
 
 - **Error: Kubernetes API not reachable**
   - *Cause:* API endpoint is private and you're not connected to the VCN via VPN or Bastion.

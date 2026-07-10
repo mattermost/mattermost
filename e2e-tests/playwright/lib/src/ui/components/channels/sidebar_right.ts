@@ -15,6 +15,8 @@ export default class ChannelsSidebarRight {
     readonly container: Locator;
 
     readonly closeButton;
+    readonly expandButton;
+    readonly collapseButton;
     readonly postCreate;
     readonly rhsPostBody;
     readonly scheduledPostIndicator;
@@ -42,6 +44,8 @@ export default class ChannelsSidebarRight {
         this.rhsPostBody = container.getByTestId('post-message-text');
         this.postCreate = new ChannelsPostCreate(container.getByTestId('comment-create'), true);
         this.closeButton = container.getByRole('button', {name: 'Close'});
+        this.expandButton = container.getByRole('button', {name: 'Expand Sidebar Icon'});
+        this.collapseButton = container.getByRole('button', {name: 'Collapse Sidebar Icon'});
 
         this.editTextbox = container.locator('#edit_textbox');
         this.postEdit = new ChannelsPostEdit(container.getByTestId('post-edit-container'));
@@ -55,6 +59,14 @@ export default class ChannelsSidebarRight {
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
+    }
+
+    async expand() {
+        await this.expandButton.click();
+    }
+
+    async collapse() {
+        await this.collapseButton.click();
     }
 
     async postMessage(message: string) {

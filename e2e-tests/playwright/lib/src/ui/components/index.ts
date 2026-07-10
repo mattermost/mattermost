@@ -43,6 +43,7 @@ import ScheduledPostIndicator from './channels/scheduled_post_indicator';
 import ScheduleMessageMenu from './channels/schedule_message_menu';
 import ScheduleMessageModal from './channels/schedule_message_modal';
 import SearchBox from './channels/search_box';
+import SearchResultsPanel from './channels/search_results_panel';
 import SendMessageNowModal from './channels/send_message_now_modal';
 import SettingsModal from './channels/settings/settings_modal';
 import TeamMenu from './channels/team_menu';
@@ -120,6 +121,7 @@ const components = {
     ScheduleMessageMenu,
     ScheduleMessageModal,
     SearchBox,
+    SearchResultsPanel,
     SendMessageNowModal,
     SettingsModal,
     TeamMenu,
@@ -200,6 +202,7 @@ export {
     ScheduleMessageMenu,
     ScheduleMessageModal,
     SearchBox,
+    SearchResultsPanel,
     SendMessageNowModal,
     SettingsModal,
     TeamMenu,

@@ -10,6 +10,7 @@ export default class EmojiGifPicker {
     readonly gifTab: Locator;
     readonly gifSearchInput: Locator;
     readonly gifPickerItems: Locator;
+    readonly emojiSearchInput: Locator;
 
     constructor(container: Locator) {
         this.container = container;
@@ -17,10 +18,26 @@ export default class EmojiGifPicker {
         this.gifTab = container.getByText('GIFs');
         this.gifSearchInput = container.getByPlaceholder('Search GIPHY');
         this.gifPickerItems = container.getByTestId('gif-picker-items');
+        this.emojiSearchInput = container.getByPlaceholder('Search emojis');
     }
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
+    }
+
+    /**
+     * Types into the emoji picker search field to filter emojis.
+     */
+    async searchEmoji(text: string) {
+        await expect(this.emojiSearchInput).toBeVisible();
+        await this.emojiSearchInput.fill(text);
+    }
+
+    /**
+     * Returns the picker button for an emoji by its name, e.g. "taxi".
+     */
+    getEmoji(emojiName: string) {
+        return this.container.getByRole('button', {name: `${emojiName} emoji`, exact: true});
     }
 
     async notToBeVisible() {
@@ -28,7 +45,7 @@ export default class EmojiGifPicker {
     }
 
     async clickEmoji(emojiName: string) {
-        await this.container.getByRole('button', {name: `${emojiName} emoji`}).click();
+        await this.getEmoji(emojiName).click();
     }
 
     async openGifTab() {
