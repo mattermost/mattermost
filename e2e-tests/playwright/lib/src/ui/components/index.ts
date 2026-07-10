@@ -20,7 +20,11 @@ import ChannelSettingsModal from './channels/channel_settings/channel_settings_m
 import ChannelsSidebarLeft from './channels/sidebar_left';
 import ChannelsSidebarRight from './channels/sidebar_right';
 import AddPeopleToChannelModal from './channels/add_people_to_channel_modal';
+import ChannelBookmarksCreateModal from './channels/channel_bookmarks_create_modal';
+import LeaveTeamModal from './channels/leave_team_modal';
 import MarketplaceModal from './channels/marketplace_modal';
+import UserGroupsModal from './channels/user_groups_modal';
+import ViewUserGroupModal from './channels/view_user_group_modal';
 import DeletePostConfirmationDialog from './channels/delete_post_confirmation_dialog';
 import DeletePostModal from './channels/delete_post_modal';
 import DeleteScheduledPostModal from './channels/delete_scheduled_post_modal';
@@ -101,7 +105,11 @@ const components = {
     ChannelsSidebarLeft,
     ChannelsSidebarRight,
     AddPeopleToChannelModal,
+    ChannelBookmarksCreateModal,
+    LeaveTeamModal,
     MarketplaceModal,
+    UserGroupsModal,
+    ViewUserGroupModal,
     DeletePostConfirmationDialog,
     DeletePostModal,
     DeleteScheduledPostModal,
@@ -186,7 +194,11 @@ export {
     ChannelsSidebarLeft,
     ChannelsSidebarRight,
     AddPeopleToChannelModal,
+    ChannelBookmarksCreateModal,
+    LeaveTeamModal,
     MarketplaceModal,
+    UserGroupsModal,
+    ViewUserGroupModal,
     DeletePostConfirmationDialog,
     DeletePostModal,
     DeleteScheduledPostModal,

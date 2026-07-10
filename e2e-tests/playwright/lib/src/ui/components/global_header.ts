@@ -19,6 +19,7 @@ export default class GlobalHeader {
     readonly searchBox;
     readonly userProfileMenu;
     readonly appMarketplaceMenuItem;
+    readonly userGroupsMenuItem;
 
     constructor(channelsPage: ChannelsPage, container: Locator) {
         this.channelsPage = channelsPage;
@@ -35,6 +36,7 @@ export default class GlobalHeader {
 
         // Rendered in a portal at the page level once the product switch menu is open.
         this.appMarketplaceMenuItem = container.page().getByRole('menuitem', {name: 'App Marketplace'});
+        this.userGroupsMenuItem = container.page().getByRole('menuitem', {name: 'User Groups'});
     }
 
     async toBeVisible(name: string) {
@@ -52,6 +54,14 @@ export default class GlobalHeader {
     async openAppMarketplace() {
         await this.productSwitchMenu.click();
         await this.appMarketplaceMenuItem.click();
+    }
+
+    /**
+     * Opens the product switch menu and selects the "User Groups" item.
+     */
+    async openUserGroups() {
+        await this.productSwitchMenu.click();
+        await this.userGroupsMenuItem.click();
     }
 
     async openSettings() {

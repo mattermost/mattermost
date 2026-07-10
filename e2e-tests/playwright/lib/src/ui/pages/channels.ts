@@ -50,6 +50,11 @@ export default class ChannelsPage {
     readonly burnOnReadConfirmationModal;
     readonly searchResultsPanel;
     readonly marketplaceModal;
+    readonly channelBookmarksBar;
+    readonly bookmarkCreateModal;
+    readonly userGroupsModal;
+    readonly viewUserGroupModal;
+    readonly leaveTeamModal;
     readonly archivedChannelMessage;
 
     readonly postContainer;
@@ -104,6 +109,13 @@ export default class ChannelsPage {
         );
         this.searchResultsPanel = new components.SearchResultsPanel(page.locator('#searchContainer'));
         this.marketplaceModal = new components.MarketplaceModal(page.getByRole('dialog', {name: 'App Marketplace'}));
+        this.channelBookmarksBar = page.getByTestId('channel-bookmarks-container');
+        this.bookmarkCreateModal = new components.ChannelBookmarksCreateModal(
+            page.getByRole('dialog', {name: 'Add a bookmark'}),
+        );
+        this.userGroupsModal = new components.UserGroupsModal(page.locator('#userGroupsModal'));
+        this.viewUserGroupModal = new components.ViewUserGroupModal(page.locator('.view-user-groups-modal'));
+        this.leaveTeamModal = new components.LeaveTeamModal(page.getByRole('dialog', {name: 'Leave the team?'}));
 
         // Menus
         // The channel header dropdown menu's accessible name is "<channel> Channel Menu".
