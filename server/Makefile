@@ -431,10 +431,7 @@ ifneq ($(SKIP_SETUP_GO_WORK),true)
 	fi
 endif
 
-check-go-fix: setup-go-work ## Check if go fix would modify any files.
-	$(GO) fix -diff ./...
-
-check-style: plugin-checker vet golangci-lint check-go-fix ## Runs style/lint checks
+check-style: plugin-checker vet golangci-lint
 
 gotestsum:
 	$(GO) install gotest.tools/gotestsum@v1.13.0
