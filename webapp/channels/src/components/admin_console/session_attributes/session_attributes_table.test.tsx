@@ -125,9 +125,9 @@ describe('SessionAttributesTable', () => {
         expect(labels).toHaveLength(fields.length);
         expect(counts.Boolean).toBe(3);
         expect(counts.Enum).toBe(1);
-        expect(counts.IP).toBe(2);
-        expect(counts.Version).toBe(3);
-        expect(counts.String).toBe(2);
+
+        // IP/Version display types were removed; every non-select field is String.
+        expect(counts.String).toBe(7);
     });
 
     it('shows the Server badge only on request-derived fields', () => {
