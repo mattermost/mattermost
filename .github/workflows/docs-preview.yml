@@ -7,6 +7,10 @@ on:
       - 'docs/**'
       - 'api/**'
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   deploy:
     uses: ./.github/workflows/docs-preview-template.yml

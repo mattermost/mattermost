@@ -47,6 +47,11 @@ jobs:
           cache: npm
           cache-dependency-path: docs/site/package-lock.json
 
+      - name: Set up Go
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+        with:
+          go-version-file: api/server/go.mod
+
       - name: Install npm dependencies
         working-directory: docs/site
         run: npm ci
@@ -54,9 +59,6 @@ jobs:
       - name: Typecheck
         working-directory: docs/site
         run: npm run typecheck
-
-      - name: Build OpenAPI spec
-        run: make -C api build
 
       - name: Build Docusaurus site (preview)
         working-directory: docs/site
@@ -93,11 +95,16 @@ jobs:
             --no-progress
 
       - name: Post preview URL comment
-        uses: peter-evans/create-or-update-comment@7dfe4b0aa0c4bbd06d172692ff8a9e18381d6979 # v3.0.1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          issue-number: ${{ inputs.PR_NUMBER }}
-          body: |
-            Newest code from ${{ inputs.TRIGGERING_ACTOR }} and commit ${{ inputs.COMMIT_SHA }} has docs preview environment ready:
-
-            **[Open preview environment](http://${{ vars.DOCS_PREVIEW_BUCKET_NAME }}.s3-website-us-east-1.amazonaws.com/mattermost/pr-${{ inputs.PR_NUMBER }}/)**
+        # Plain gh CLI instead of a third-party action -- posts a new comment
+        # every run (same behavior peter-evans/create-or-update-comment had
+        # here, since it wasn't given a comment-id/body-includes matcher).
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ inputs.PR_NUMBER }}
+          TRIGGERING_ACTOR: ${{ inputs.TRIGGERING_ACTOR }}
+          COMMIT_SHA: ${{ inputs.COMMIT_SHA }}
+          BUCKET_NAME: ${{ vars.DOCS_PREVIEW_BUCKET_NAME }}
+        run: |
+          BODY=$(printf 'Newest code from %s and commit %s has docs preview environment ready:\n\n**[Open preview environment](http://%s.s3-website-us-east-1.amazonaws.com/mattermost/pr-%s/)**' \
+            "$TRIGGERING_ACTOR" "$COMMIT_SHA" "$BUCKET_NAME" "$PR_NUMBER")
+          gh pr comment "$PR_NUMBER" --repo "${{ github.repository }}" --body "$BODY"
