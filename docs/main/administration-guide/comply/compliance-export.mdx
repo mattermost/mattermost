@@ -26,7 +26,7 @@ Use the following guides to configure exports for [CSV](#csv), [Smarsh / Actianc
 
 - For self-hosted deployments, compliance exports are written to the `exports` subdirectory of the configured filestore in the chosen format. This will either be in the [Local Storage directory](/administration-guide/configure/environment-configuration-settings#file-storage) or the Mattermost S3 bucket if S3 storage is configured.
 - Alternatively, you can specify an alternate filestore target and generate an S3 presigned URL for compliance exports. See the [dedicated export filestore target](/administration-guide/configure/environment-configuration-settings#enable-dedicated-export-filestore-target) configuration settings documentation for details.
-- Compliance exports don't contain posts sent before the feature was enabled. For self-hosted deployments, you can export past history via the `export` [command line tool](/../manage/command-line-tools).
+- Compliance exports don't contain posts sent before the feature was enabled. For self-hosted deployments, you can export past history via the `export` [command line tool](/administration-guide/manage/mmctl-command-line-tool).
 
 </Note>
 
@@ -194,7 +194,7 @@ No. Compliance exports only include channel messages, direct messages, file uplo
 
 ### How do I export past history?
 
-Run the `export` [command line tool](/../manage/command-line-tools). You can specify an `exportFrom` option to export data from a specified timestamp. All posts that were made after this timestamp will be exported.
+Run the `export` [command line tool](/administration-guide/manage/mmctl-command-line-tool). You can specify an `exportFrom` option to export data from a specified timestamp. All posts that were made after this timestamp will be exported.
 
 ### How do I download compliance export jobs using mmctl?
 

@@ -111,7 +111,7 @@ The commands below use Loki version **3.4.2**. Check the [Loki releases page](ht
 
 2.  Download and install the production configuration file:
 
-    - [Download loki-config.yaml](/samples/loki/loki-config.yaml)
+    - [Download loki-config.yaml](https://github.com/mattermost/docs/blob/master/source/samples/loki/loki-config.yaml)
 
     ``` bash
     sudo cp loki-config.yaml /opt/loki/loki-config.yaml
@@ -217,7 +217,7 @@ Replace `<LOKI_HOST>` with the IP address or hostname of your monitoring server,
 
 2.  Download and edit the OpenTelemetry Collector configuration:
 
-    - [Download otel-collector-config-mattermost.yaml](/samples/loki/otel-collector-config-mattermost.yaml)
+    - [Download otel-collector-config-mattermost.yaml](https://github.com/mattermost/docs/blob/master/source/samples/loki/otel-collector-config-mattermost.yaml)
 
     ``` bash
     sudo cp otel-collector-config-mattermost.yaml /etc/otelcol-contrib/config.yaml
@@ -273,7 +273,7 @@ Replace `<LOKI_HOST>` with the IP address or hostname of your monitoring server,
 
 A pre-built Grafana dashboard is recommended for monitoring your logs. This dashboard is provided as a basic example:
 
-- [Download the Mattermost Loki Logs dashboard JSON](/samples/grafana-dashboards/mattermost-loki-logs.json)
+- [Download the Mattermost Loki Logs dashboard JSON](https://github.com/mattermost/docs/blob/master/source/samples/grafana-dashboards/mattermost-loki-logs.json)
 
 <Note>
 
@@ -369,7 +369,7 @@ If your PostgreSQL database runs on a dedicated server (not RDS), you can ship i
 
 A separate configuration file is provided for PostgreSQL log collection. Install the OpenTelemetry Collector on the PostgreSQL server using the same steps from **Step 3**, then use this configuration file instead of the Mattermost one:
 
-- [Download otel-collector-config-postgres.yaml](/samples/loki/otel-collector-config-postgres.yaml)
+- [Download otel-collector-config-postgres.yaml](https://github.com/mattermost/docs/blob/master/source/samples/loki/otel-collector-config-postgres.yaml)
 
 The PostgreSQL configuration handles common Ubuntu/Debian JSON log paths (`/var/log/postgresql/*.json`). Replace the same `<LOKI_HOST>`, `<HOSTNAME>`, and `<SERVICE_NAME>` placeholders as described in Step 3.
 

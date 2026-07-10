@@ -86,8 +86,8 @@ This table will be updated when validation is complete. The Mattermost release n
 There is no in-place migration from a non-FIPS Mattermost install to a FIPS install. The supported procedure:
 
 1. Provision a new Mattermost cluster from scratch in FIPS mode.
-2. Export data from the non-FIPS cluster ([Migrate](../../administration-guide/) — Bulk Export).
-3. Import into the new FIPS cluster ([Migrate](../../administration-guide/) — Bulk Loading).
+2. Export data from the non-FIPS cluster ([Bulk Export Tool](/administration-guide/manage/bulk-export-tool)).
+3. Import into the new FIPS cluster ([Bulk Loading Data](/administration-guide/onboard/bulk-loading-data)).
 4. Decommission the non-FIPS cluster.
 
 This is the same procedure Red Hat OpenShift documents for non-FIPS → FIPS migration.
