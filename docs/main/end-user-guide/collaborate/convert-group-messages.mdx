@@ -1,6 +1,9 @@
 ---
 title: "Convert group messages to private channels"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 From Mattermost v9.1, you can change the members of your group conversation by converting the group message to a private channel. When a group message is converted to private, its history and membership are preserved. Membership in a private channel remains as invitation only.
@@ -13,20 +16,16 @@ From Mattermost v9.1, you can change the members of your group conversation by c
 
 </Note>
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 1.  Select the group message name at the top of the center pane to access the drop-down menu, then select **Convert to Private Channel**.
 2.  Specify the team where the new private channel will be created. You're prompted to specify a team when all group message members share more than one team membership.
 3.  Enter a channel name.
 4.  Select **Convert to private channel**.
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 1.  Tap the group message you want to convert to a private channel.
 
@@ -50,4 +49,6 @@ Mobile
 
 6.  Tap **Convert to Private Channel** to confirm.
 
-</div>
+</TabItem>
+</Tabs>
+

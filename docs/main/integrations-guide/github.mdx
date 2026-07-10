@@ -1,6 +1,9 @@
 ---
 title: "Connect GitHub to Mattermost"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 Minimize distractions and reduce context switching between your GitHub code repositories and your communication platform by integrating GitHub with Mattermost. Help your teams stay focused and productive with real-time updates on commits, pull requests, issues, and more directly from Mattermost channels.
@@ -20,9 +23,8 @@ A Mattermost system admin must perform the following steps to deploy the GitHub 
 
 You can configure the GitHub integration using either the built-in setup wizard (recommended) or by following the manual configuration steps.
 
-<div class="tab">
-
-Setup wizard (recommended)
+<Tabs>
+<TabItem value="setup-wizard-recommended" label="Setup wizard (recommended)">
 
 The recommended way to configure the GitHub integration is using the built-in setup wizard. The wizard guides you through each step of the configuration process, including creating the OAuth app and webhook in GitHub.
 
@@ -41,11 +43,8 @@ You can also run individual setup steps at any time using the following subcomma
 - `/github setup webhook`: Create a webhook from GitHub to Mattermost.
 - `/github setup announce`: Announce the integration availability to designated channels.
 
-</div>
-
-<div class="tab">
-
-Manual configuration
+</TabItem>
+<TabItem value="manual-configuration" label="Manual configuration">
 
 If you prefer to configure the integration manually instead of using the setup wizard, follow the steps below.
 
@@ -119,7 +118,9 @@ Create a webhook in GitHub for each GitHub organization you want to set up.
 > - (Optional) **Enable Webhook Event Logging**: Log webhook events when log level set to DEBUG by enabling the option.
 > - (Optional) **Show Author in commit notification**: Show commit author instead of committer in GitHub push event notifications.
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Upgrade
 

@@ -1,6 +1,9 @@
 ---
 title: "Deploy Mattermost on Kubernetes"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="entry-ent" />
 
 Mattermost server can be deployed on various Kubernetes platforms, providing a scalable and robust infrastructure for your team communication needs. This guide covers deployment options for major cloud providers and general Kubernetes installations.
@@ -17,25 +20,30 @@ Choose your preferred platform below for specific deployment instructions:
 
 <div id="install-mattermost-operator">
 
-<div class="tab" parse-titles="">
+<Tabs>
+<TabItem value="mattermost-operator" label="Mattermost Operator">
 
-Mattermost Operator
 
-</div>
 
-</div>
+</TabItem>
+</Tabs>
 
-<div class="tab" parse-titles="">
-
-Azure
 
 </div>
 
-<div class="tab" parse-titles="">
+<Tabs>
+<TabItem value="azure" label="Azure">
 
-Oracle
 
-</div>
+
+</TabItem>
+<TabItem value="oracle" label="Oracle">
+
+
+
+</TabItem>
+</Tabs>
+
 
 ## Frequently Asked Questions
 

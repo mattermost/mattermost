@@ -1,6 +1,9 @@
 ---
 title: "No-Code Automation"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 **Technical complexity:** [No-code](./faq#no-code)
@@ -11,9 +14,8 @@ When used in comination with outgoing webhooks or custom slash commands, users c
 
 Choosing the best platform for your team depends on your specific integration requirements, hosting preferences, and technical capabilities. Learn more about the capabilities of each platform below:
 
-<div class="tab" parse-titles="">
-
-n8n
+<Tabs>
+<TabItem value="n8n" label="n8n">
 
 [n8n](https://n8n.io/) is ideal for organizations prioritizing data residency and security, since it is self-hosted and can be supported in air-gapped environments where cloud solutions like Zapier and Make might not be feasible.
 
@@ -58,11 +60,8 @@ You can also use outgoing webhooks or slash commands in Mattermost as triggers u
 - Retrieve all users
 - Retrieve members of a channel
 
-</div>
-
-<div class="tab" parse-titles="">
-
-Make
+</TabItem>
+<TabItem value="make" label="Make">
 
 Make offers a more visual and flexible approach to automation, allowing you to build complex workflows with advanced logic and data manipulation. Make offers one of the most expansive sets of out-of-the-box triggers and actions for Mattermost.
 
@@ -98,11 +97,8 @@ You can also use outgoing webhooks or slash commands in Mattermost as triggers u
 - Get a User: Retrieve a user by their user ID.
 - Get a Team by Name: Retrieve team information by team name.
 
-</div>
-
-<div class="tab" parse-titles="">
-
-Zapier
+</TabItem>
+<TabItem value="zapier" label="Zapier">
 
 Zapier is ideal for non-technical users who want the fastest path to connect Mattermost with over 7000+ SaaS apps. It’s hosted in the cloud, easy to set up, and best for common business workflows.
 
@@ -118,4 +114,6 @@ Explore building workflows with the [Mattermost Zapier integration](https://n8n.
 
 - Compared with the wide range of triggers and actions supported by n8n or Make, Zapier supports only one action: posting a message.
 
-</div>
+</TabItem>
+</Tabs>
+

@@ -1,6 +1,9 @@
 ---
 title: "Deploy in Air-Gapped Environments"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 An air-gapped environment is one that is isolated from the public internet, requiring all necessary components to be available locally. This guide outlines what you'll need to deploy Mattermost in a self-hosted air-gapped environment, focusing on appropriate preparation, deployment guidance and configurations required for a successful deployment.
 
 ## Overview
@@ -45,9 +48,8 @@ Consider [talking to a Mattermost expert](https://mattermost.com/contact-sales/)
 
 On an internet connected machine, you must gather all required packages, container images, and dependencies needed for the installation process. The resources you'll need will depend on your deployment method, specifically:
 
-<div class="tab">
-
-Linux
+<Tabs>
+<TabItem value="linux" label="Linux">
 
 Using our provided tarball is recommeded as the simplest installation method for air-gapped environments. You can install the Mattermost Server in a few minutes on any air-gapped 64-bit Linux system.
 
@@ -65,11 +67,8 @@ Using our provided tarball is recommeded as the simplest installation method for
 > - [Elasticsearch](https://www.elastic.co/downloads/elasticsearch) can be [deployed](https://www.elastic.co/docs/deploy-manage/deploy/self-managed/installing-elasticsearch) for enhanced search performance at scale.
 > - [Prometheus](https://prometheus.io/download/) and [Grafana](https://grafana.com/grafana/download) for monitoring and observability
 
-</div>
-
-<div class="tab">
-
-Kubernetes
+</TabItem>
+<TabItem value="kubernetes" label="Kubernetes">
 
 Kubernetes is recommended for a highly scalable and robust deployment if your organization is already running a Kubernetes cluster in the air-gapped environment.
 
@@ -87,11 +86,8 @@ Kubernetes is recommended for a highly scalable and robust deployment if your or
 > - [Elasticsearch](https://www.elastic.co/docs/deploy-manage/deploy/cloud-on-k8s) can be [deployed in air-gapped k8 environments](https://www.elastic.co/guide/en/cloud-on-k8s/2.8/k8s-air-gapped.html) for enhanced search performance at scale.
 > - [Prometheus](https://github.com/prometheus-operator/prometheus-operator) and [Grafana](https://github.com/grafana/grafana-operator) operators for monitoring and observability
 
-</div>
-
-<div class="tab">
-
-Docker
+</TabItem>
+<TabItem value="docker" label="Docker">
 
 Docker can be used if you don't have a running Kubernetes cluster in the air-gapped environment, but want to use containers for simplified installation and dependency management. Docker is not recommended for production environments at high scale, as it doesn’t support clustered deployments or High Availability (HA) configurations out-of-the-box.
 
@@ -108,7 +104,9 @@ Docker can be used if you don't have a running Kubernetes cluster in the air-gap
 > - [Elasticsearch](https://hub.docker.com/_/elasticsearch) image for enhanced search performance at scale.
 > - [Prometheus](https://hub.docker.com/r/prom/prometheus) and [Grafana](https://hub.docker.com/r/grafana/grafana) images for monitoring and observability.
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ### Mattermost Plugins
 
@@ -163,9 +161,8 @@ To avoid log errors we recommend disabling [Telemetry-related features](/adminis
 
 A private container registry securely stores the Docker images necessary for air-gapped deployments, ensuring compliance with data isolation requirements. Similarly, a private package mirror stores operating system packages necessary for air-gapped deployments in Ubuntu or RHEL/CentOS Linux environments. Setting up a local registry or mirror is a critical step in deploying Mattermost to ensure all images, dependencies and packages are available to you in the air-gapped environment. The steps below outline the process required to setup a local registry or mirror, depending on the deployment method you are using. These steps are a rough guide, and can be supplemented with online resources depending on your specific deployment needs.
 
-<div class="tab">
-
-Linux
+<Tabs>
+<TabItem value="linux" label="Linux">
 
 **(Ubuntu) Set up a private Debian package mirror**
 
@@ -285,11 +282,8 @@ We will use reprosync for a local mirror.
     yum repolist
     ```
 
-</div>
-
-<div class="tab">
-
-Kubernetes
+</TabItem>
+<TabItem value="kubernetes" label="Kubernetes">
 
 **Set up a self-hosted private container registry**
 
@@ -369,11 +363,8 @@ When using Kubernetes in an air-gapped environment, you need to configure it to 
       - name: regcred
     ```
 
-</div>
-
-<div class="tab">
-
-Docker
+</TabItem>
+<TabItem value="docker" label="Docker">
 
 **Set up a self-hosted private container registry**
 
@@ -449,4 +440,6 @@ Configure Docker on all hosts to trust and use your private registry.
     docker pull registry.example.com:5000/mattermost/mattermost-enterprise-edition:latest
     ```
 
-</div>
+</TabItem>
+</Tabs>
+
