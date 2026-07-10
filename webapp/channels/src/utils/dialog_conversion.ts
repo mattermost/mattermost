@@ -17,6 +17,7 @@ export const DialogElementTypes = {
     RADIO: 'radio',
     DATE: 'date',
     DATETIME: 'datetime',
+    FILE: 'file',
     ACTION_BUTTON: 'action_button',
 } as const;
 
@@ -232,6 +233,8 @@ export function getFieldType(element: DialogElement): string | null {
         return AppFieldTypes.DATE;
     case DialogElementTypes.DATETIME:
         return AppFieldTypes.DATETIME;
+    case DialogElementTypes.FILE:
+        return AppFieldTypes.FILE;
     case DialogElementTypes.ACTION_BUTTON:
         return AppFieldTypes.ACTION_BUTTON;
     default:
@@ -419,6 +422,11 @@ export function convertElement(element: DialogElement, options: ConversionOption
         appField.subtype = 'textarea';
     } else if (element.type === DialogElementTypes.TEXT && element.subtype) {
         appField.subtype = element.subtype;
+    }
+
+    // Add allow_multiple support for file fields
+    if (element.type === DialogElementTypes.FILE && element.allow_multiple) {
+        appField.allow_multiple = true;
     }
 
     // Add length constraints for text fields
@@ -812,12 +820,16 @@ export function convertAppFormValuesToDialogSubmission(
                 submission[element.name] = value;
             }
             break;
-
         case DialogElementTypes.DATE:
         case DialogElementTypes.DATETIME:
             // Date and datetime values should be passed through as strings (ISO format)
             submission[element.name] = String(value);
             break;
+        case DialogElementTypes.FILE:
+            // File elements store file IDs as strings
+            submission[element.name] = String(value || '');
+            break;
+
         case DialogElementTypes.ACTION_BUTTON:
             break;
         default:

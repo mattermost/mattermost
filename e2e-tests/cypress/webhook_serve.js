@@ -28,6 +28,7 @@ server.post('/dialog_submit', onDialogSubmit);
 server.post('/boolean_dialog_request', onBooleanDialogRequest);
 server.post('/multiselect_dialog_request', onMultiSelectDialogRequest);
 server.post('/dynamic_select_dialog_request', onDynamicSelectDialogRequest);
+server.post('/file_upload_dialog_request', onFileUploadDialogRequest);
 server.post('/dynamic_select_source', onDynamicSelectSource);
 server.post('/dialog/field-refresh', onFieldRefreshDialogRequest);
 server.post('/dialog/multistep', onMultistepDialogRequest);
@@ -71,6 +72,7 @@ function ping(req, res) {
             'POST /boolean_dialog_request',
             'POST /multiselect_dialog_request',
             'POST /dynamic_select_dialog_request',
+            'POST /file_upload_dialog_request',
             'POST /dynamic_select_source',
             'POST /dialog/field-refresh',
             'POST /dialog/multistep',
@@ -357,6 +359,17 @@ function onDynamicSelectDialogRequest(req, res) {
     return res.json({text: 'Dynamic select dialog triggered via slash command!'});
 }
 
+function onFileUploadDialogRequest(req, res) {
+    const {body} = req;
+    if (body.trigger_id) {
+        const dialog = webhookUtils.getFileUploadDialog(body.trigger_id, webhookBaseUrl);
+        openDialog(dialog);
+    }
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.json({text: 'File upload dialog triggered via slash command!'});
+}
+
 function onDynamicSelectSource(req, res) {
     const {body} = req;
 
@@ -473,6 +486,7 @@ function onDialogSubmit(req, res) {
     let message;
     if (body.cancelled) {
         message = 'Dialog cancelled';
+        console.log('[WEBHOOK] Dialog cancelled');
         sendSysadminResponse(message, body.channel_id);
         return res.json({text: message});
     }
@@ -514,7 +528,13 @@ function onDialogSubmit(req, res) {
     }
 
     // Regular dialog submission
-    message = 'Dialog submitted';
+    // Format submission data for the channel message
+    const sanitize = (str) => String(str).replace(/[<>&"']/g, (ch) => `&#${ch.charCodeAt(0)};`);
+    const submissionData = Object.entries(body.submission || {}).
+        map(([key, value]) => `**${sanitize(key)}**: ${sanitize(value)}`).
+        join('\n');
+
+    message = `Dialog submitted successfully!\n\n**Submission Data:**\n${submissionData}`;
 
     sendSysadminResponse(message, body.channel_id);
     return res.json({text: message});

@@ -132,6 +132,14 @@
                 cancelled:
                   type: boolean
                   description: Set to true if the dialog was cancelled
+                file_ids:
+                  type: array
+                  items:
+                    type: string
+                  description: >
+                    List of file IDs uploaded as part of the dialog submission.
+                    Each file must have been uploaded by the submitting user. A
+                    maximum of 10 file IDs may be submitted.
         description: Dialog submission data
         required: true
       responses:
