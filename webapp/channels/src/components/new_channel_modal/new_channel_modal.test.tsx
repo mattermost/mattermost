@@ -678,7 +678,10 @@ describe('components/new_channel_modal - plugin channel-type options', () => {
             url: 'my-channel',
             purpose: '',
             type: 'plugin-option',
+            defaultCategoryName: undefined,
             managedCategoryName: undefined,
+            classificationId: undefined,
+            bannerText: undefined,
         }));
         expect(createChannel).not.toHaveBeenCalled();
     });
