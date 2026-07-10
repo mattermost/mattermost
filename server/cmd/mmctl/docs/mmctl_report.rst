@@ -1,36 +1,22 @@
-.. _mmctl_post_create:
+.. _mmctl_report:
 
-mmctl post create
------------------
+mmctl report
+------------
 
-Create a post
+Reporting commands
 
 Synopsis
 ~~~~~~~~
 
 
-Create a post
-
-::
-
-  mmctl post create [flags]
-
-Examples
-~~~~~~~~
-
-::
-
-    post create myteam:mychannel --message "some text for the post"
+Reporting commands
 
 Options
 ~~~~~~~
 
 ::
 
-  -b, --burn-on-read      Message will be deleted after a certain time after being read
-  -h, --help              help for create
-  -m, --message string    Message for the post
-  -r, --reply-to string   Post id to reply to
+  -h, --help   help for report
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -50,5 +36,6 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl post <mmctl_post.rst>`_ 	 - Management of posts
+* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
+* `mmctl report posts <mmctl_report_posts.rst>`_ 	 - Retrieve posts for reporting purposes
 
