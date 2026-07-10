@@ -16,6 +16,11 @@ on:
         required: true
         description: "Full commit SHA to build"
 
+permissions:
+  contents: read
+  statuses: write
+  pull-requests: write
+
 jobs:
   update-initial-status:
     runs-on: ubuntu-latest
@@ -33,7 +38,9 @@ jobs:
 
   preview:
     uses: ./.github/workflows/docs-preview-template.yml
-    secrets: inherit
+    secrets:
+      AWS_DOCS_PR_PREVIEW_KEY_ID: ${{ secrets.AWS_DOCS_PR_PREVIEW_KEY_ID }}
+      AWS_DOCS_PR_PREVIEW_SECRET_ACCESS_KEY: ${{ secrets.AWS_DOCS_PR_PREVIEW_SECRET_ACCESS_KEY }}
     needs:
       - update-initial-status
     with:

@@ -12,6 +12,17 @@ on:
       COMMIT_SHA:
         type: string
         required: true
+    secrets:
+      AWS_DOCS_PR_PREVIEW_KEY_ID:
+        required: true
+      AWS_DOCS_PR_PREVIEW_SECRET_ACCESS_KEY:
+        required: true
+
+# Serialize runs per PR so an older, slower build can't overwrite a newer
+# upload; different PRs still build concurrently.
+concurrency:
+  group: docs-preview-${{ inputs.PR_NUMBER }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -68,9 +79,16 @@ jobs:
         # No explicit --cache-control, matching mattermost/docs's existing
         # preview workflow (shallwefootball/s3-upload-action doesn't set one
         # either).
+        env:
+          PR_NUMBER: ${{ inputs.PR_NUMBER }}
+          BUCKET_NAME: ${{ vars.DOCS_PREVIEW_BUCKET_NAME }}
         run: |
+          if ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "PR_NUMBER must be a positive integer, got: $PR_NUMBER" >&2
+            exit 1
+          fi
           aws s3 sync docs/site/build/ \
-            s3://${{ vars.DOCS_PREVIEW_BUCKET_NAME }}/mattermost/pr-${{ inputs.PR_NUMBER }}/ \
+            "s3://${BUCKET_NAME}/mattermost/pr-${PR_NUMBER}/" \
             --delete \
             --no-progress
 
