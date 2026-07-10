@@ -1,0 +1,86 @@
+name: docs-preview-template
+
+on:
+  workflow_call:
+    inputs:
+      PR_NUMBER:
+        type: string
+        required: true
+      TRIGGERING_ACTOR:
+        type: string
+        required: true
+      COMMIT_SHA:
+        type: string
+        required: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  preview:
+    name: Build and deploy preview
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ inputs.COMMIT_SHA }}
+          submodules: true
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version-file: docs/site/.nvmrc
+          cache: npm
+          cache-dependency-path: docs/site/package-lock.json
+
+      - name: Install npm dependencies
+        working-directory: docs/site
+        run: npm ci
+
+      - name: Typecheck
+        working-directory: docs/site
+        run: npm run typecheck
+
+      - name: Build OpenAPI spec
+        run: make -C api build
+
+      - name: Build Docusaurus site (preview)
+        working-directory: docs/site
+        env:
+          BASE_URL: /mattermost/pr-${{ inputs.PR_NUMBER }}/
+        run: npm run build
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_DOCS_PR_PREVIEW_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_DOCS_PR_PREVIEW_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Upload preview to S3
+        # Repo-scoped prefix (mattermost/) — this bucket is shared
+        # with mattermost/docs previews during the migration transition, and
+        # PR numbers are per-repo, not global.
+        #
+        # No explicit --cache-control, matching mattermost/docs's existing
+        # preview workflow (shallwefootball/s3-upload-action doesn't set one
+        # either).
+        run: |
+          aws s3 sync docs/site/build/ \
+            s3://${{ vars.DOCS_PREVIEW_BUCKET_NAME }}/mattermost/pr-${{ inputs.PR_NUMBER }}/ \
+            --delete \
+            --no-progress
+
+      - name: Post preview URL comment
+        uses: peter-evans/create-or-update-comment@7dfe4b0aa0c4bbd06d172692ff8a9e18381d6979 # v3.0.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ inputs.PR_NUMBER }}
+          body: |
+            Newest code from ${{ inputs.TRIGGERING_ACTOR }} and commit ${{ inputs.COMMIT_SHA }} has docs preview
+            ready:
+
+            **[Open preview](http://${{ vars.DOCS_PREVIEW_BUCKET_NAME }}.s3-website-us-east-1.amazonaws.com/mattermost/pr-${{ inputs.PR_NUMBER }}/)**

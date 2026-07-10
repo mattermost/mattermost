@@ -1,0 +1,38 @@
+name: docs-preview-cleanup
+
+on:
+  pull_request_target:
+    types: [closed]
+    paths:
+      - 'docs/**'
+      - 'api/**'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  cleanup:
+    name: Delete preview from S3
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_DOCS_PR_PREVIEW_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_DOCS_PR_PREVIEW_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Delete preview prefix from S3
+        run: |
+          aws s3 rm \
+            s3://${{ vars.DOCS_PREVIEW_BUCKET_NAME }}/mattermost/pr-${{ github.event.number }}/ \
+            --recursive
+
+      - name: Comment on closed PR
+        uses: peter-evans/create-or-update-comment@7dfe4b0aa0c4bbd06d172692ff8a9e18381d6979 # v3.0.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.number }}
+          body: |
+            Docs preview for PR #${{ github.event.number }} has been removed from S3.

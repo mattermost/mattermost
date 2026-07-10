@@ -41,7 +41,7 @@ const config: Config = {
   },
 
   url: 'https://docs.mattermost.com',
-  baseUrl: '/',
+  baseUrl: process.env.BASE_URL ?? '/',
   trailingSlash: false,
 
   organizationName: 'mattermost',
