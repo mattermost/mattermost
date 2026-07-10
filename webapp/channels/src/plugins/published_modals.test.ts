@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PublishedModalId} from '@mattermost/types/webapp_globals';
+import type {PublishedModalId} from '@mattermost/shared/types/global';
 
 import {ActionTypes, ModalIdentifiers} from 'utils/constants';
 
-import {openPublishedModal} from './published_modals';
+import {canOpenPublishedModal, openPublishedModal} from './published_modals';
 
 describe('openPublishedModal', () => {
     test('returns a MODAL_OPEN action carrying the id, props, and a component', () => {
@@ -37,5 +37,23 @@ describe('openPublishedModal', () => {
             expect(action.modalId).toBe(expected[id]);
             expect(typeof action.dialogType).toBe('function');
         }
+    });
+});
+
+describe('canOpenPublishedModal', () => {
+    test('is true for every published modal id', () => {
+        const ids: PublishedModalId[] = ['user_settings', 'invitation', 'team_settings', 'team_members', 'leave_team'];
+
+        for (const id of ids) {
+            expect(canOpenPublishedModal(id)).toBe(true);
+        }
+    });
+
+    test('is false for ids the running web app does not publish', () => {
+        expect(canOpenPublishedModal('not_a_real_modal')).toBe(false);
+        expect(canOpenPublishedModal('')).toBe(false);
+
+        // A core modal id that exists but is intentionally not in the plugin allowlist.
+        expect(canOpenPublishedModal(ModalIdentifiers.CHANNEL_INVITE)).toBe(false);
     });
 });

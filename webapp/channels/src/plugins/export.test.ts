@@ -71,6 +71,17 @@ describe('window.WebappUtils.modals.openModalById', () => {
     });
 });
 
+describe('window.WebappUtils.modals.canOpenModalId', () => {
+    test('is true for an allowlisted modal id', () => {
+        expect((window as any).WebappUtils.modals.canOpenModalId('team_settings')).toBe(true);
+    });
+
+    test('is false for an id the web app does not publish', () => {
+        expect((window as any).WebappUtils.modals.canOpenModalId('channel_invite')).toBe(false);
+        expect((window as any).WebappUtils.modals.canOpenModalId('not_a_real_modal')).toBe(false);
+    });
+});
+
 describe('window.WebappUtils.openUserSettings', () => {
     test('opens the user settings modal', () => {
         const action = (window as any).WebappUtils.openUserSettings({isContentProductSettings: false});

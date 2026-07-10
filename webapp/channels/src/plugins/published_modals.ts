@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import type {PublishedModalId, PublishedModalProps} from '@mattermost/types/webapp_globals';
+import type {PublishedModalId, PublishedModalIdCandidate, PublishedModalProps} from '@mattermost/shared/types/global';
 
 import {openModal} from 'actions/views/modals';
 
@@ -49,4 +49,12 @@ type AssertPublishedModalContract = ContractHonored<PublishedModalProps>;
 export function openPublishedModal<K extends PublishedModalId>(modalId: K, dialogProps?: PublishedModalProps[K]) {
     // TS can't correlate the indexed component with its props here, so cast the lookup.
     return openModal({modalId, dialogType: publishedModals[modalId] as React.ComponentType<any>, dialogProps});
+}
+
+const publishedModalIds = new Set<string>(Object.keys(publishedModals));
+
+// Feature detection for plugins: is this modal id actually published by the running
+// web app? Narrows to PublishedModalId so a checked id can be passed to openPublishedModal.
+export function canOpenPublishedModal(modalId: PublishedModalIdCandidate): modalId is PublishedModalId {
+    return publishedModalIds.has(modalId);
 }

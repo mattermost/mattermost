@@ -3,7 +3,7 @@
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 
-import type {PublishedModalId, PublishedModalProps} from '@mattermost/types/webapp_globals';
+import type {PublishedModalId, PublishedModalIdCandidate, PublishedModalProps, PublishedModalUtils} from '@mattermost/shared/types/global';
 
 import {favoriteChannel, unfavoriteChannel} from 'mattermost-redux/actions/channels';
 import {isFavoriteChannel} from 'mattermost-redux/selectors/entities/channels';
@@ -39,7 +39,7 @@ import {useWebSocket, useWebSocketClient, WebSocketContext} from 'utils/use_webs
 import {imageURLForUser} from 'utils/utils';
 
 import {openInteractiveDialog} from './interactive_dialog'; // This import has intentional side effects. Do not remove without research.
-import {openPublishedModal} from './published_modals';
+import {canOpenPublishedModal, openPublishedModal} from './published_modals';
 import {loadSharedDependency} from './shared_dependencies';
 import Textbox from './textbox';
 
@@ -66,10 +66,9 @@ interface WindowWithLibraries {
     openInteractiveDialog: typeof openInteractiveDialog;
     useNotifyAdmin: typeof useNotifyAdmin;
     WebappUtils: {
-        modals: {
+        modals: PublishedModalUtils & {
             openModal: typeof openModal;
             ModalIdentifiers: typeof ModalIdentifiers;
-            openModalById: <K extends PublishedModalId>(modalId: K, dialogProps?: PublishedModalProps[K]) => void;
         };
         notificationSounds: {
             ring: typeof NotificationSounds.ring;
@@ -163,6 +162,7 @@ window.WebappUtils = {
         openModal,
         ModalIdentifiers,
         openModalById: <K extends PublishedModalId>(modalId: K, dialogProps?: PublishedModalProps[K]) => openPublishedModal(modalId, dialogProps),
+        canOpenModalId: (modalId: PublishedModalIdCandidate) => canOpenPublishedModal(modalId),
     },
     notificationSounds: {ring: NotificationSounds.ring, stopRing: NotificationSounds.stopRing},
     sendDesktopNotificationToMe: notifyMe,
