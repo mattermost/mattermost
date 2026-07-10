@@ -80,7 +80,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           issue-number: ${{ inputs.PR_NUMBER }}
           body: |
-            Newest code from ${{ inputs.TRIGGERING_ACTOR }} and commit ${{ inputs.COMMIT_SHA }} has docs preview
-            ready:
+            Newest code from ${{ inputs.TRIGGERING_ACTOR }} and commit ${{ inputs.COMMIT_SHA }} has docs preview environment ready:
 
-            **[Open preview](http://${{ vars.DOCS_PREVIEW_BUCKET_NAME }}.s3-website-us-east-1.amazonaws.com/mattermost/pr-${{ inputs.PR_NUMBER }}/)**
+            **[Open preview environment](http://${{ vars.DOCS_PREVIEW_BUCKET_NAME }}.s3-website-us-east-1.amazonaws.com/mattermost/pr-${{ inputs.PR_NUMBER }}/)**
