@@ -29,7 +29,8 @@ Options
 
 ::
 
-  -h, --help   help for list
+  -h, --help       help for list
+  -i, --show-ids   Show channel IDs
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

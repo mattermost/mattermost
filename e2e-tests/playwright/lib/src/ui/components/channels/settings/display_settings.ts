@@ -42,8 +42,8 @@ export default class DisplaySettings {
 
     readonly title;
     public id = '#displaySettings';
-    readonly expandedSection;
     public expandedSectionId = '.section-max';
+    readonly expandedSection;
 
     readonly themeEditButton;
     readonly clockDisplayEditButton;
@@ -64,7 +64,7 @@ export default class DisplaySettings {
         this.container = container;
 
         this.title = container.getByRole('heading', {name: 'Display Settings', exact: true});
-        this.expandedSection = container.locator(this.expandedSectionId);
+        this.expandedSection = container.locator('section');
 
         // Edit buttons for each setting section - IDs are {section}Edit pattern from webapp
         this.themeEditButton = container.locator('#themeEdit');
@@ -93,8 +93,10 @@ export default class DisplaySettings {
     }
 
     async verifySectionIsExpanded(section: DisplaySettingsSection) {
-        await expect(this.container.locator('.section-min', {hasText: sectionTitles[section]})).not.toBeVisible();
+        await expect(
+            this.container.getByTestId('section-min').filter({hasText: sectionTitles[section]}),
+        ).not.toBeVisible();
 
-        await expect(this.container.locator('.section-max', {hasText: sectionTitles[section]})).toBeVisible();
+        await expect(this.container.locator('section', {hasText: sectionTitles[section]})).toBeVisible();
     }
 }

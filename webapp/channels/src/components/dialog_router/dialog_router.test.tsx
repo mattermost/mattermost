@@ -78,4 +78,67 @@ describe('components/dialog_router/DialogRouter', () => {
             consoleSpy.mockRestore();
         });
     });
+
+    describe('Props rendering', () => {
+        // DialogRouter is a pure passthrough — isolation between concurrent dialogs
+        // is handled by the Redux dialogs map (each instance receives only its own
+        // data via its triggerId ownProp). The component itself re-renders normally
+        // whenever its props change.
+
+        test('passes props to the adapter on initial render', () => {
+            const propsA = {
+                ...baseProps,
+                url: 'http://dialog-a.example.com',
+                title: 'Dialog A',
+                callbackId: 'callback-a',
+            };
+
+            const {getByTestId} = render(<DialogRouter {...propsA}/>);
+
+            expect(getByTestId('adapter-url')).toHaveTextContent('http://dialog-a.example.com');
+            expect(getByTestId('adapter-title')).toHaveTextContent('Dialog A');
+            expect(getByTestId('adapter-callback-id')).toHaveTextContent('callback-a');
+        });
+
+        test('re-renders with updated props when parent provides new data', () => {
+            const propsA = {
+                ...baseProps,
+                url: 'http://dialog-a.example.com',
+                title: 'Dialog A',
+                callbackId: 'callback-a',
+            };
+
+            const {getByTestId, rerender} = render(<DialogRouter {...propsA}/>);
+
+            expect(getByTestId('adapter-url')).toHaveTextContent('http://dialog-a.example.com');
+
+            const propsB = {
+                ...baseProps,
+                url: 'http://dialog-b.example.com',
+                title: 'Dialog B',
+                callbackId: 'callback-b',
+            };
+
+            rerender(<DialogRouter {...propsB}/>);
+
+            expect(getByTestId('adapter-url')).toHaveTextContent('http://dialog-b.example.com');
+            expect(getByTestId('adapter-title')).toHaveTextContent('Dialog B');
+            expect(getByTestId('adapter-callback-id')).toHaveTextContent('callback-b');
+        });
+
+        test('renders null and calls console.error when hasUrl is false', () => {
+            const propsNoUrl = {
+                ...baseProps,
+                hasUrl: false as const,
+                url: undefined,
+            };
+
+            const {container} = render(<DialogRouter {...propsNoUrl}/>);
+
+            expect(container.firstChild).toBeNull();
+            expect(console.error).toHaveBeenCalledWith(
+                'Interactive dialog missing URL - this is a configuration error',
+            );
+        });
+    });
 });

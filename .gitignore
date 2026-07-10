@@ -179,3 +179,17 @@ docker-compose.override.yaml
 server/prev-report.xml
 server/prev-gotestsum.json
 server/shard-*.txt
+
+# Docusaurus docs site (docs/)
+docs/site/build/
+docs/site/.docusaurus/
+docs/site/node_modules/
+docs/api/reference/
+docs/pdf/build/
+docs/pdf/node_modules/
+docs/site/openapi/
+
+# OpenAPI make build artifacts
+api/v4/html/static/mattermost-openapi-v4.yaml
+api/v4/html/index.html
+api/node_modules/

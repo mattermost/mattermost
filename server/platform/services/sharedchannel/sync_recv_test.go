@@ -28,7 +28,6 @@ func TestProcessSyncMessage(t *testing.T) {
 	makeConfig := func() *model.Config {
 		cfg := &model.Config{}
 		cfg.SetDefaults()
-		cfg.FeatureFlags.EnableSharedChannelsMemberSync = false
 		return cfg
 	}
 

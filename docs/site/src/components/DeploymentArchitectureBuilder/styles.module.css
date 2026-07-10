@@ -1,0 +1,860 @@
+/* Deployment Architecture builder.
+ * Brand alignment: denim headers, marigold accents on boxes, white cards.
+ * Layout: controls → summary → diagram (stacked rows) → bill of materials. */
+
+.builder {
+  margin: 1.5rem 0 2rem;
+  border: 1px solid var(--mm-border-subtle, rgba(30, 50, 92, 0.18));
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--mm-color-white);
+  box-shadow: 0 4px 18px -14px rgba(30, 50, 92, 0.4);
+}
+
+[data-theme='dark'] .builder {
+  background: var(--mm-denim-700, #121E37);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* ============================ Controls ============================ */
+
+.controls {
+  display: grid;
+  grid-template-columns: minmax(200px, 0.9fr) minmax(220px, 1fr) minmax(280px, 1.3fr) minmax(180px, 0.9fr);
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: var(--mm-color-denim, #1E325C);
+  color: var(--mm-color-white);
+  align-items: end;
+}
+
+@media (max-width: 1100px) {
+  .controls { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 720px) {
+  .controls { grid-template-columns: 1fr; }
+}
+
+.controlGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.controlLabel {
+  font-family: var(--mm-font-sans);
+  font-weight: 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: var(--mm-color-white);
+  color: var(--mm-text-primary);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
+  padding: 0.55rem 2.25rem 0.55rem 0.7rem;
+  font-size: 0.9rem;
+  font-family: var(--mm-font-sans);
+  cursor: pointer;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E325C' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.55rem center;
+  background-size: 1rem 1rem;
+}
+
+.segmented {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  background: rgba(255, 255, 255, 0.07);
+  padding: 0.2rem;
+  border-radius: 4px;
+}
+
+.segment {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: var(--mm-font-sans);
+  color: rgba(255, 255, 255, 0.78);
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background 120ms ease, color 120ms ease;
+  white-space: nowrap;
+}
+
+.segment:hover {
+  color: var(--mm-color-white);
+}
+
+.segmentActive {
+  background: var(--mm-color-marigold, #FFBC1F);
+  color: var(--mm-color-black, #1B1D22) !important;
+}
+
+.segmentInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+/* Optional services checkboxes */
+.checkboxes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.92);
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 1rem;
+  height: 1rem;
+  border: 1.5px solid rgba(255, 255, 255, 0.55);
+  border-radius: 3px;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.checkbox input[type="checkbox"]:hover {
+  border-color: var(--mm-color-marigold, #FFBC1F);
+}
+
+.checkbox input[type="checkbox"]:checked {
+  background: var(--mm-color-marigold, #FFBC1F);
+  border-color: var(--mm-color-marigold, #FFBC1F);
+}
+
+.checkbox input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 0;
+  width: 4px;
+  height: 8px;
+  border: solid var(--mm-color-black, #1B1D22);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* ============================ Summary ============================ */
+
+.summary {
+  padding: 0.85rem 1.25rem;
+  background: var(--mm-denim-50, rgba(30, 50, 92, 0.05));
+  border-bottom: 1px solid var(--mm-border-subtle, rgba(30, 50, 92, 0.12));
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--mm-text-primary);
+}
+
+[data-theme='dark'] .summary {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--mm-color-white);
+}
+
+.summary strong {
+  color: var(--mm-color-denim, #1E325C);
+}
+
+[data-theme='dark'] .summary strong {
+  color: var(--mm-color-marigold, #FFBC1F);
+}
+
+/* ============================ Diagram ============================ */
+
+/* Diagram laid out as a 3-column grid:
+ *   col 1  (1fr, justify-end):   left-side components — RTCD when Calls is on
+ *   col 2  (auto):                center spine — clients, ALB, Mattermost, data tier
+ *   col 3  (1fr, justify-start):  right-side components — Push Proxy / HPNS
+ *
+ * The center column auto-sizes to Mattermost's box width, so the ALB sits
+ * directly above Mattermost regardless of whether RTCD/Push are present.
+ * Side columns fill remaining space and align toward the spine. */
+.diagram {
+  display: grid;
+  /* 1fr | auto | 1fr — equal side columns guarantee Mattermost is dead-centred
+   * regardless of what's in the side columns (RTCD on/off, Push narrow/wide). */
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  row-gap: 0.85rem;          /* generous vertical rhythm */
+  column-gap: 1rem;          /* visible breathing room around Mattermost-adjacent arrows */
+  padding: 1.5rem 1.25rem 1rem;
+}
+
+/* Center column — every spine element (clients, ALB, flows, Mattermost) lives here */
+.gridCenter {
+  grid-column: 2;
+  justify-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Left column — RTCD lives here when Calls is enabled */
+.gridLeft {
+  grid-column: 1;
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Right column — Push Proxy / HPNS lives here */
+.gridRight {
+  grid-column: 3;
+  justify-self: start;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Full-width rows — data tier spans the whole diagram */
+.gridFull {
+  grid-column: 1 / -1;
+  justify-self: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Side group: box + horizontal connector together (used in left/right columns).
+ * Generous gap so the arrow has equal breathing room from its anchor box
+ * and from Mattermost (matched to .diagram column-gap). */
+.sideGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Direct-flow pill sits in col 1, aligned to the right edge */
+.directFlowCell {
+  align-self: center;
+}
+
+/* Legacy class kept for the few places using it (none active) */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  width: 100%;
+  position: relative;
+}
+
+.rowData {
+  margin-top: 0.2rem;
+  align-items: flex-start;
+}
+
+/* App cluster — 3 columns aligned horizontally with arrow connectors:
+ * [Push column]  ←  [Mattermost]  →  [RTCD column]
+ * Stretches center-aligned; columns stack vertically inside (e.g., Push has
+ * APNs/FCM below it). Collapses to vertical at narrow viewports. */
+.appCluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin: 0.3rem 0 0.6rem;
+  width: 100%;
+}
+
+.appCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+/* Horizontal flow connector between columns — bordered pill with arrow + port */
+.hFlow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.18rem 0.55rem;
+  font-family: var(--mm-font-mono, monospace);
+  font-size: 0.68rem;
+  font-weight: 600;
+  background: var(--mm-denim-50, rgba(30, 50, 92, 0.05));
+  border-bottom: 2px solid var(--mm-color-marigold, #FFBC1F);
+  border-radius: 2px;
+  white-space: nowrap;
+  align-self: center;
+}
+
+[data-theme='dark'] .hFlow {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.hArrow {
+  color: var(--mm-color-marigold, #FFBC1F);
+  font-weight: 700;
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.hFlowText {
+  color: var(--mm-color-denim, #1E325C);
+  font-weight: 600;
+}
+
+[data-theme='dark'] .hFlowText {
+  color: var(--mm-color-white);
+}
+
+.hFlowPorts {
+  margin-left: 0.45rem;
+  font-weight: 500;
+  color: var(--mm-text-secondary);
+  opacity: 0.85;
+}
+
+[data-theme='dark'] .hFlowPorts {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* Each data tier component gets its own arrow + port indicator above it */
+.dataItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.miniFlow {
+  font-family: var(--mm-font-mono, monospace);
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--mm-color-denim, #1E325C);
+  background: var(--mm-denim-50, rgba(30, 50, 92, 0.05));
+  border-left: 2px solid var(--mm-color-marigold, #FFBC1F);
+  padding: 0.15rem 0.45rem;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+
+[data-theme='dark'] .miniFlow {
+  color: var(--mm-color-white);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.miniArrow {
+  color: var(--mm-color-marigold, #FFBC1F);
+  font-weight: 700;
+  margin-right: 0.15rem;
+}
+
+/* Flow label between rows — shows protocol + port */
+.flow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.15rem 0;
+  font-size: 0.7rem;
+  font-family: var(--mm-font-mono, monospace);
+  color: var(--mm-text-secondary, var(--mm-text-primary));
+  background: var(--mm-denim-50, rgba(30, 50, 92, 0.05));
+  padding: 0.18rem 0.55rem;
+  border-radius: 2px;
+  border-left: 2px solid var(--mm-color-marigold, #FFBC1F);
+}
+
+[data-theme='dark'] .flow {
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.flowArrow {
+  color: var(--mm-color-marigold, #FFBC1F);
+  font-weight: 700;
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.flowText {
+  font-weight: 600;
+  color: var(--mm-color-denim, #1E325C);
+}
+
+[data-theme='dark'] .flowText {
+  color: var(--mm-color-white);
+}
+
+.flowPorts {
+  margin-left: 0.5rem;
+  font-weight: 500;
+  color: var(--mm-text-secondary);
+  opacity: 0.85;
+}
+
+[data-theme='dark'] .flowPorts {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* Client tier — wrapped in a labeled container "Clients" */
+.clientsBox {
+  position: relative;
+  display: inline-block;
+  padding: 1.1rem 1rem 0.7rem;
+  border: 1.5px dashed var(--mm-border-subtle, rgba(30, 50, 92, 0.35));
+  border-radius: 6px;
+  background: transparent;
+}
+
+[data-theme='dark'] .clientsBox {
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.clientsLabel {
+  position: absolute;
+  top: -0.55rem;
+  left: 0.85rem;
+  padding: 0.05rem 0.45rem;
+  font-family: var(--mm-font-sans);
+  font-weight: 800;
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--mm-color-denim, #1E325C);
+  background: var(--mm-color-white);
+}
+
+[data-theme='dark'] .clientsLabel {
+  color: var(--mm-color-white);
+  background: var(--mm-denim-700, #121E37);
+}
+
+.clientsRow {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: center;
+  flex-wrap: nowrap;
+}
+
+.client {
+  flex: 0 0 auto;
+  min-width: 12rem;
+  max-width: 16rem;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--mm-border-subtle, rgba(30, 50, 92, 0.2));
+  border-radius: 4px;
+  background: var(--mm-color-white);
+  color: var(--mm-text-primary);
+  text-align: center;
+}
+
+[data-theme='dark'] .client {
+  color: var(--mm-color-white);
+  background: var(--mm-denim-800, #0C1424);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.clientLabel {
+  font-family: var(--mm-font-sans);
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--mm-color-denim, #1E325C);
+}
+
+[data-theme='dark'] .clientLabel {
+  color: var(--mm-color-white);
+}
+
+.clientSub {
+  font-size: 0.7rem;
+  margin-top: 0.15rem;
+  color: var(--mm-text-secondary, var(--mm-text-primary));
+  opacity: 0.85;
+}
+
+/* Legacy class kept for backward compat — used by old .rowClients references */
+.rowClients {
+  gap: 0.6rem;
+}
+
+.box {
+  flex: 0 0 auto;
+  min-width: 9rem;
+  max-width: 14rem;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid var(--mm-border-subtle, rgba(30, 50, 92, 0.18));
+  border-radius: 4px;
+  background: var(--mm-color-white);
+  color: var(--mm-text-primary);
+  text-align: center;
+  position: relative;
+}
+
+[data-theme='dark'] .box {
+  background: var(--mm-denim-800, #0C1424);
+  color: var(--mm-color-white);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.boxLabel {
+  font-family: var(--mm-font-sans);
+  font-weight: 700;
+  font-size: 0.85rem;
+  line-height: 1.2;
+  color: var(--mm-color-denim, #1E325C);
+}
+
+[data-theme='dark'] .boxLabel {
+  color: var(--mm-color-white);
+}
+
+.qty {
+  display: inline-block;
+  margin-left: 0.3rem;
+  padding: 0.05rem 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--mm-color-black);
+  background: var(--mm-color-marigold, #FFBC1F);
+  border-radius: 2px;
+}
+
+.boxSub {
+  margin-top: 0.2rem;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--mm-text-secondary, var(--mm-text-primary));
+  opacity: 0.85;
+}
+
+/* Per-role left-edge accents.
+ * App-row boxes (App / Calls / Push) all share min-height so they align
+ * horizontally in the grid row even when their subtitles wrap differently. */
+.boxLb      { border-left: 3px solid var(--mm-color-marigold, #FFBC1F); min-width: 16rem; }
+.boxApp     { border-left: 3px solid var(--mm-color-denim, #1E325C); min-width: 16rem; min-height: 4rem; }
+.boxDb      { border-left: 3px solid #1d6f42; min-width: 11rem; }       /* postgres green */
+.boxRedis   { border-left: 3px solid #d4322c; min-width: 11rem; }       /* redis red */
+.boxSearch  { border-left: 3px solid #5a3aa6; min-width: 11rem; }       /* opensearch purple */
+.boxStorage { border-left: 3px solid #4a5568; min-width: 11rem; }       /* neutral */
+.boxCalls   { border-left: 3px solid #007a5a; min-width: 12rem; min-height: 4rem; }       /* calls teal-green */
+.boxPush    { border-left: 3px solid #3a6ea5; min-width: 12rem; min-height: 4rem; }       /* push blue (self-hosted) */
+
+/* HPNS managed-by-Mattermost variant — dotted border + secondary background */
+.boxPushManaged {
+  border: 1.5px dashed var(--mm-color-marigold, #FFBC1F);
+  background: rgba(255, 188, 31, 0.06);
+  min-width: 18rem;
+  min-height: 4rem;
+}
+
+[data-theme='dark'] .boxPushManaged {
+  background: rgba(255, 188, 31, 0.1);
+}
+
+.managedBadge {
+  display: inline-block;
+  margin-top: 0.2rem;
+  padding: 0.08rem 0.45rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: var(--mm-color-marigold, #FFBC1F);
+  color: var(--mm-color-black, #1B1D22);
+  border-radius: 2px;
+}
+
+/* Flows-row container — sits between the client tier and the LB tier.
+ * When Calls is enabled, the direct client→RTCD flow renders on the LEFT
+ * (matching RTCD's column position below), and the main HTTPS+WSS path
+ * renders to its right. */
+.flowsRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin: 0.15rem 0;
+}
+
+.flowDirect {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.18rem 0.55rem;
+  background: rgba(0, 122, 90, 0.08);
+  border-left: 2px solid #007a5a;
+  border-radius: 2px;
+  font-family: var(--mm-font-mono, monospace);
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--mm-color-denim, #1E325C);
+  white-space: nowrap;
+}
+
+[data-theme='dark'] .flowDirect {
+  background: rgba(0, 122, 90, 0.18);
+  color: var(--mm-color-white);
+}
+
+/* RTCD column wrapper — relative anchor for the absolutely-positioned DIRECT pill */
+.rtcdWrap {
+  position: relative;
+}
+
+/* Floating DIRECT pill: sits above the RTCD box without claiming a grid row */
+.flowDirectAbove {
+  position: absolute;
+  bottom: calc(100% + 0.35rem);
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.18rem 0.55rem;
+  background: rgba(0, 122, 90, 0.08);
+  border-left: 2px solid #007a5a;
+  border-radius: 2px;
+  font-family: var(--mm-font-mono, monospace);
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--mm-color-denim, #1E325C);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+[data-theme='dark'] .flowDirectAbove {
+  background: rgba(0, 122, 90, 0.22);
+  color: var(--mm-color-white);
+}
+
+.directBadge {
+  display: inline-block;
+  padding: 0.05rem 0.35rem;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: #007a5a;
+  color: var(--mm-color-white);
+  border-radius: 2px;
+}
+
+.flowArrowDiag {
+  color: #007a5a;
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.directText {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Legacy inline-in-RTCD callout (no longer used after layout swap) */
+.calloutDirect {
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.55rem;
+  background: rgba(0, 122, 90, 0.08);
+  border-left: 2px solid #007a5a;
+  border-radius: 2px;
+  font-size: 0.7rem;
+  line-height: 1.45;
+  text-align: left;
+  color: var(--mm-text-primary);
+}
+
+[data-theme='dark'] .calloutDirect {
+  background: rgba(0, 122, 90, 0.18);
+  color: var(--mm-color-white);
+}
+
+.calloutDirect code {
+  font-family: var(--mm-font-mono, monospace);
+  font-size: 0.66rem;
+  background: rgba(255, 255, 255, 0.6);
+  padding: 0.05rem 0.3rem;
+  border-radius: 2px;
+}
+
+[data-theme='dark'] .calloutDirect code {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--mm-color-white);
+}
+
+.calloutBadge {
+  display: inline-block;
+  margin-right: 0.35rem;
+  padding: 0.05rem 0.35rem;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: #007a5a;
+  color: var(--mm-color-white);
+  border-radius: 2px;
+}
+
+/* External services (APNs / FCM) — small, secondary visual treatment */
+.external {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.45rem 0.95rem;
+  border: 1px dotted var(--mm-border-subtle, rgba(30, 50, 92, 0.3));
+  border-radius: 4px;
+  background: transparent;
+  text-align: center;
+  min-width: 12rem;
+}
+
+[data-theme='dark'] .external {
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.externalLabel {
+  font-family: var(--mm-font-sans);
+  font-weight: 700;
+  font-size: 0.78rem;
+  color: var(--mm-text-secondary, var(--mm-text-primary));
+  letter-spacing: 0.04em;
+}
+
+.externalSub {
+  font-size: 0.66rem;
+  margin-top: 0.1rem;
+  color: var(--mm-text-secondary, var(--mm-text-primary));
+  opacity: 0.75;
+}
+
+/* ============================ Bill of materials ============================ */
+
+.bomHeading {
+  margin: 1.25rem 1.25rem 0.6rem;
+  font-family: var(--mm-font-sans);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--mm-color-denim, #1E325C);
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.bomHeading::before {
+  content: '';
+  display: inline-block;
+  width: 0.85rem;
+  height: 0.85rem;
+  background: var(--mm-color-marigold, #FFBC1F);
+}
+
+[data-theme='dark'] .bomHeading {
+  color: var(--mm-color-white);
+}
+
+.bomTableWrap {
+  overflow-x: auto;
+  padding: 0 1.25rem;
+}
+
+.bomTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  min-width: 720px;
+}
+
+.bomTable th,
+.bomTable td {
+  text-align: left;
+  padding: 0.55rem 0.75rem;
+  border-bottom: 1px solid var(--mm-border-subtle, rgba(30, 50, 92, 0.1));
+  vertical-align: top;
+}
+
+.bomTable th {
+  font-family: var(--mm-font-sans);
+  font-weight: 700;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--mm-text-secondary, var(--mm-text-primary));
+  border-bottom: 2px solid var(--mm-color-denim, #1E325C);
+  background: var(--mm-denim-50, rgba(30, 50, 92, 0.04));
+}
+
+[data-theme='dark'] .bomTable th {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--mm-color-white);
+}
+
+.cellComponent { font-weight: 600; width: 18%; min-width: 9rem; }
+.cellQty       { width: 12%; min-width: 5rem; color: var(--mm-text-secondary); }
+.cellSpec      { width: 30%; font-family: var(--mm-font-mono, monospace); font-size: 0.8rem; }
+.cellNotes     { width: 40%; color: var(--mm-text-secondary, var(--mm-text-primary)); opacity: 0.95; }
+
+.caveat {
+  margin: 0.9rem 1.25rem 1.25rem;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--mm-text-secondary, var(--mm-text-primary));
+  opacity: 0.85;
+}
+
+/* Network flows table — intro paragraph + direction pills */
+.flowsIntro {
+  margin: 0.4rem 1.25rem 0.75rem;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--mm-text-secondary, var(--mm-text-primary));
+}
+
+.directionPill {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 2px;
+  color: var(--mm-color-white);
+  white-space: nowrap;
+}
+
+.dir_inbound  { background: #3a6ea5; }
+.dir_internal { background: #4a5568; }
+.dir_egress   { background: #b45309; }
+
+@media (max-width: 720px) {
+  .bomTable { min-width: 0; }
+  .cellSpec, .cellNotes { font-size: 0.78rem; }
+}

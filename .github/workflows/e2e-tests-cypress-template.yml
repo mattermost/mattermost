@@ -151,12 +151,12 @@ jobs:
           persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
+      - name: ci/restore-npm-cache
+        uses: ./.github/actions/restore-e2e-npm-cache
       - name: ci/setup-node
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: "e2e-tests/cypress/package-lock.json"
 
       - name: ci/generate-test-cycle
         id: generate-cycle
@@ -216,12 +216,12 @@ jobs:
           persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
+      - name: ci/restore-npm-cache
+        uses: ./.github/actions/restore-e2e-npm-cache
       - name: ci/setup-node
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: "e2e-tests/cypress/package-lock.json"
       - name: ci/npm-cache-verify
         # Heal any partial/dangling entries left in the restored ~/.npm cache
         # before running `npm ci`. Avoids the intermittent EEXIST/ENOENT
@@ -321,12 +321,12 @@ jobs:
           persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
+      - name: ci/restore-npm-cache
+        uses: ./.github/actions/restore-e2e-npm-cache
       - name: ci/setup-node
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: "e2e-tests/cypress/package-lock.json"
       - name: ci/run-failed-specs
         env:
           SPEC_FILES: ${{ needs.calculate-results.outputs.failed_specs }}
@@ -370,12 +370,12 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
+      - name: ci/restore-npm-cache
+        uses: ./.github/actions/restore-e2e-npm-cache
       - name: ci/setup-node
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: "e2e-tests/cypress/package-lock.json"
 
       # PATH A: run-failed-tests was skipped (no failures to retest)
       - name: ci/download-results-path-a

@@ -1,0 +1,186 @@
+---
+title: "Connect GitHub to Mattermost"
+---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<PlanAvailability slug="all-commercial" />
+
+Minimize distractions and reduce context switching between your GitHub code repositories and your communication platform by integrating GitHub with Mattermost. Help your teams stay focused and productive with real-time updates on commits, pull requests, issues, and more directly from Mattermost channels.
+
+![An example of the GitHub integration for Mattermost.](/images/github_mattermost.png)
+
+## Deploy
+
+A Mattermost system admin must perform the following steps to deploy the GitHub integration.
+
+### Install the integration
+
+1.  In Mattermost, from the Product menu <img src="/img/ui/products_E82F.svg" alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" />, select **App Marketplace**.
+2.  Search for or scroll to GitHub, and select **Install**.
+
+### Set up the integration
+
+You can configure the GitHub integration using either the built-in setup wizard (recommended) or by following the manual configuration steps.
+
+<Tabs>
+<TabItem value="setup-wizard-recommended" label="Setup wizard (recommended)">
+
+The recommended way to configure the GitHub integration is using the built-in setup wizard. The wizard guides you through each step of the configuration process, including creating the OAuth app and webhook in GitHub.
+
+1.  In any Mattermost channel, run the `/github setup` slash command.
+2.  Follow the interactive prompts to complete the setup.
+
+The wizard walks you through:
+
+- Creating and configuring an OAuth app in GitHub
+- Setting up the webhook connection between GitHub and Mattermost
+- Announcing the integration to your team
+
+You can also run individual setup steps at any time using the following subcommands:
+
+- `/github setup oauth`: Configure the OAuth2 application in GitHub.
+- `/github setup webhook`: Create a webhook from GitHub to Mattermost.
+- `/github setup announce`: Announce the integration availability to designated channels.
+
+</TabItem>
+<TabItem value="manual-configuration" label="Manual configuration">
+
+If you prefer to configure the integration manually instead of using the setup wizard, follow the steps below.
+
+**Register an OAuth app in GitHub**
+
+1.  Go to [https://github.com/settings/applications/new](https://github.com/settings/applications/new) to register an OAuth app with GitHub.
+2.  Set the following values:
+
+> - **Application name**: `Mattermost GitHub Plugin - <YOUR COMPANY NAME>`
+> - **Homepage URL**: `https://github.com/mattermost/mattermost-plugin-github`
+> - **Authorization callback URL**: `https://YOUR-MATTERMOST-URL.COM/plugins/github/oauth/complete`, replacing `https://YOUR-MATTERMOST-URL.COM` with your Mattermost URL. This value must match the Mattermost server URL you use to log in.
+
+3.  Save your changes.
+4.  Select **Generate a new client secret**, and enter your GitHub password to continue.
+5.  Copy the **Client ID** and **Client Secret** in the resulting screen.
+6.  In Mattermost, go to **System Console \> Plugins \> GitHub**, and regenerate both a **Webhook Secret** and **At Rest Encryption Key** by selecting **Regenerate** next to each field. You'll need a copy of the **Webhook Secret** value to create a webhook in GitHub.
+
+<Note>
+
+We recommend making a copy of your webhook secret and encryption key, as it will only be visible to you once.
+
+</Note>
+
+**Create a webhook in GitHub**
+
+Create a webhook in GitHub for each GitHub organization you want to set up.
+
+1.  In GitHub, go to the **Settings** page where you want to send notifications from, then select **Webhooks** in the sidebar.
+2.  Select **Add Webhook**.
+3.  Set the following values:
+
+> - **Payload URL**: `https://YOUR-MATTERMOST-URL.COM/plugins/github/webhook`. Replace `https://YOUR-MATTERMOST-URL.COM` with your Mattermost URL.
+> - **Content Type**: `application/json`
+> - **Secret**: The **Webhook Secret** value you copied earlier.
+
+4.  Under **Which events would you like to trigger this webhook?**, select **Let me select individual events**.
+5.  Select the following events:
+
+> - Branch or Tag creation
+> - Branch or Tag deletion
+> - Discussions
+> - Discussion comments
+> - Issue comments
+> - Issues
+> - Pull requests
+> - Pull request review
+> - Pull request review comments
+> - Pushes
+> - Releases
+> - Stars
+> - Workflows
+
+6.  Select **Add Webhook** to save your changes.
+
+**Configure the integration in Mattermost**
+
+1.  Confirm whether your Mattermost deployment has a `github` user account. If it exists, that account posts GitHub messages in channels by default, and the messages won't include a BOT tag. You can change this account behavior to include a BOT tag by using one of the following methods:
+
+> - Convert the user account to a bot using [mmctl user convert](/administration-guide/manage/mmctl-command-line-tool#mmctl-user-convert).
+> - Change the existing `github` username to something else. A new bot account called `github` is created the Mattermost server is restarted when the [enable bot account creation](/administration-guide/configure/integrations-configuration-settings#enable-bot-account-creation) configuration setting is enabled.
+
+2.  In Mattermost, go to **System Console \> Plugins \> GitHub** and configure the following settings, then select **Save**:
+
+> - Enter the **GitHub OAuth Client ID** and **GitHub OAuth Client Secret** obtained during registration.
+> - (Optional) **GitHub Organization**: Lock the integration to GitHub organizations by specifying a comma seperated list of your GitHub organizations.
+> - (GitHub Enterprise Only): Set **Enterprise Base URL** and **Enterprise Upload URL** values to your GitHub Enterprise URLs, e.g. `https://github.example.com`. These values are often the same.
+> - (Mattermost desktop app only) **Display Notification Counters in Left Sidebar**: Display or hide GitHub notification counters in the Mattermost sidebar.
+> - (Optional) **Enable Private Repositories**: Enable the ability to work with private repositories. Affected users are notified once private repositories are enabled, and must reconnect their GitHub accounts to gain access to private repositories.
+> - (Optional) **Connect to private Repositories by default**: Connect to private GitHub repositories by default, when private repositories are enabled.
+> - (Optional) **Enable Code Previews**: Expand permalinks to GitHub files with previews. You can can enable public repositories, public and private repositories, or disable this option.
+> - (Optional) **Enable Webhook Event Logging**: Log webhook events when log level set to DEBUG by enabling the option.
+> - (Optional) **Show Author in commit notification**: Show commit author instead of committer in GitHub push event notifications.
+
+</TabItem>
+</Tabs>
+
+
+## Upgrade
+
+We recommend updating this integration as new versions are released. Generally, updates are seamless and don't interrupt the user experience in Mattermost. Visit the [Releases page](https://github.com/mattermost/mattermost-plugin-github/releases) for the latest release, available releases, and compatibiilty considerations.
+
+## Enable
+
+Once you setup the integration, notify your teams that they can [connect their GitHub accounts to Mattermost](#connect-a-github-account-to-mattermost).
+
+## Use
+
+Users who want to use GitHub interconnectivity must connect their GitHub account to Mattermost.
+
+Once connected, you'll receive direct messages from the GitHub bot in Mattermost when someone mentions you, requests a review, comments on, modifies one of your pull requests/issues (includes adding labels or reopening the issue), or assigns you to an issue on GitHub.
+
+### Connect a GitHub account to Mattermost
+
+1.  In Mattermost, run the `/github connect` slash command in any Mattermost channel to link your Mattermost account with your GitHub account.
+2.  Once connected, run the `/github help` slash command to see what you can do.
+
+### Get started
+
+Here are some common slash commands you can get started with:
+
+Run the `/github subscriptions add` slash command to subscribe a Mattermost channel to receive notifications for new pull requests, issues, branch creation, and more in a GitHub repository.
+
+For example, to post notifications for issues, issue comments, and pull requests matching the label **Help Wanted** from the `mattermost/mattermost-server` GitHub repository, use: `/github subscriptions add mattermost/mattermost-server --features issues,pulls,issue_comments,label:"Help Wanted"`. The following flags are supported:
+
+- `--features`: A comma-delimited list of one or more of: issues, pulls, pulls_merged, pulls_created, pushes, creates, deletes, issue_creations, issue_comments, pull_reviews, releases, workflow_success, workflow_failure, discussions, discussion_comments, label:"labelname". Defaults to `pulls,issues,creates,deletes`.
+- `--exclude-org-member`: The events triggered by organization members that won't be delivered. It will be locked to the organization configured and only works for users whose membership is public. Organization members and collaborators are not the same.
+- `--include-only-org-members`: events triggered only by organization members will be delivered. It will be locked to the organization provided in the plugin configuration and it will only work for users whose membership is public. Note that organization members and collaborators are not the same.
+- `--render-style`: Notifications are delivered in the specified style (for example, the body of a pull request will not be displayed). Supported values are `collapsed`, `skip-body`, or `default` (which is the same as omitting the flag).
+- `--exclude`: A comma-separated list of the repositories to exclude from getting the subscription notifications like `mattermost/mattermost-server`. Only supported for subscriptions to an organization.
+
+Run the `/github todo` slash command to get a message with items to do in GitHub, including a list of unread messages and pull requests awaiting your review.
+
+Run the `/github settings` slash command to update your settings for notifications and daily reminders.
+
+Run the `/github mute` slash command to manage muted GitHub users. You won't receive notifications for comments in your pull requests and issues from muted users.
+
+Run the `/github default-repo` slash command to set a default repository for the current channel. This repository will be auto-filled in the Create GitHub Issue modal for convenience.
+
+## Frequently asked questions
+
+### How do I connect a repository instead of an organization?
+
+Set up your GitHub webhook from the repository instead of the organization. Notifications and subscriptions will then be sent only for repositories you create webhooks for. The reminder and `/github todo` searches the whole organization, but only show items assigned to you.
+
+### How do I send notifications when a certain label is applied?
+
+If you want to send notifications to a Mattermost channel when **Severity/Critical** label is applied to any issue in the `mattermost/mattermost-plugin-github` repository, run the following slash command to subscribe to these notifications: `/github subscriptions add mattermost/mattermost-plugin-github issues,label:"Severity/Critical"`
+
+### How does the integration save user data for each connected GitHub user?
+
+GitHub user tokens are AES-encrypted with an **At Rest Encryption Key** generated in Mattermost. Once encrypted, the tokens are saved in the `PluginKeyValueStore` table in your Mattermost database.
+
+## Get help
+
+Mattermost customers can open a [Mattermost support case](https://support.mattermost.com/hc/en-us/requests/new). To report a bug, please open a GitHub issue against the [Mattermost GitHub plugin repository](https://github.com/mattermost/mattermost-plugin-github).
+
+For questions, feedback, and assistance, join our pubic [Integrations and Apps channel](https://community.mattermost.com/core/channels/integrations) on the [Mattermost Community Server](https://community.mattermost.com/) for assistance.
+
+Mattermost Team Edition and Free customers can visit the Mattermost [peer-to-peer troubleshooting forum](https://forum.mattermost.com/c/trouble-shoot/16) to access the global Mattermost Community for assistance.

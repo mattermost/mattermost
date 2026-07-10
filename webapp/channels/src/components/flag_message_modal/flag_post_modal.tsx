@@ -250,7 +250,7 @@ export default function FlagPostModal({postId, onExited}: Props) {
                 {requestError &&
                     <div className='FlagPostModal__request-error'>
                         <i className='icon icon-alert-outline'/>
-                        <span>{requestError}</span>
+                        <span data-testid='flag-post-request-error-text'>{requestError}</span>
                     </div>
                 }
             </div>

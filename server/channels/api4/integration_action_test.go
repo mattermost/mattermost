@@ -592,8 +592,10 @@ func TestSubmitDialog(t *testing.T) {
 
 		assert.Equal(t, request.URL, "")
 		assert.Equal(t, request.UserId, submit.UserId)
-		assert.Equal(t, request.ChannelId, submit.ChannelId)
-		assert.Equal(t, request.TeamId, submit.TeamId)
+		assert.Equal(t, request.ChannelId, th.BasicChannel.Id)
+		// The handler overwrites the client-supplied TeamId with channel.TeamId,
+		// so the forwarded value is always the channel's authoritative team.
+		assert.Equal(t, th.BasicTeam.Id, request.TeamId)
 		assert.Equal(t, request.CallbackId, submit.CallbackId)
 		assert.Equal(t, request.State, submit.State)
 		val, ok := request.Submission["somename"].(string)
@@ -621,13 +623,100 @@ func TestSubmitDialog(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 	assert.Nil(t, submitResp)
 
+	// The handler derives the team from channel.TeamId (server-loaded), not from
+	// the client-supplied TeamId. A bogus client TeamId is ignored — the request
+	// succeeds because BasicUser is a member of BasicTeam where BasicChannel lives.
 	submit.URL = ts.URL
 	submit.ChannelId = th.BasicChannel.Id
 	submit.TeamId = model.NewId()
-	submitResp, resp, err = client.SubmitInteractiveDialog(context.Background(), submit)
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
-	assert.Nil(t, submitResp)
+	submitResp, _, err = client.SubmitInteractiveDialog(context.Background(), submit)
+	require.NoError(t, err)
+	assert.NotNil(t, submitResp)
+
+	t.Run("outgoing payload carries channel's real TeamId even when client sent bogus TeamId", func(t *testing.T) {
+		// The handler overwrites submit.TeamId with channel.TeamId before calling
+		// SubmitInteractiveDialog. This test captures the SubmitDialogRequest body
+		// forwarded to the integration and asserts that the TeamId reflects the
+		// channel's real team, not the bogus value supplied by the client.
+		var capturedTeamId string
+		captureServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			var forwarded model.SubmitDialogRequest
+			err := json.NewDecoder(r.Body).Decode(&forwarded)
+			require.NoError(t, err)
+			capturedTeamId = forwarded.TeamId
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer captureServer.Close()
+
+		bogusSubmit := model.SubmitDialogRequest{
+			URL:        captureServer.URL,
+			CallbackId: "callbackid",
+			State:      "somestate",
+			UserId:     th.BasicUser.Id,
+			ChannelId:  th.BasicChannel.Id,
+			TeamId:     model.NewId(), // bogus — handler must ignore this
+			Submission: map[string]any{"somename": "somevalue"},
+		}
+
+		submitResp, _, err := client.SubmitInteractiveDialog(context.Background(), bogusSubmit)
+		require.NoError(t, err)
+		assert.NotNil(t, submitResp)
+		assert.Equal(t, th.BasicTeam.Id, capturedTeamId,
+			"forwarded TeamId must be channel's real team, not the bogus client-supplied value")
+	})
+
+	t.Run("user lacking PermissionViewTeam on the channel's real team gets 403", func(t *testing.T) {
+		// Removing view_team from the team-user role means BasicUser loses the
+		// permission on BasicTeam. The handler checks PermissionViewTeam using the
+		// server-loaded channel.TeamId, so the request must be rejected with 403.
+		th.RemovePermissionFromRole(t, model.PermissionViewTeam.Id, model.TeamUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionViewTeam.Id, model.TeamUserRoleId)
+
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		noViewTeamSubmit := model.SubmitDialogRequest{
+			URL:        ts.URL,
+			CallbackId: "callbackid",
+			State:      "somestate",
+			UserId:     th.BasicUser.Id,
+			ChannelId:  th.BasicChannel.Id,
+			TeamId:     th.BasicTeam.Id,
+			Submission: map[string]any{"somename": "somevalue"},
+		}
+
+		submitResp, resp, err := client.SubmitInteractiveDialog(context.Background(), noViewTeamSubmit)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		assert.Nil(t, submitResp)
+	})
+
+	t.Run("empty TeamId succeeds — regression test for DM/GM channels not returning 403", func(t *testing.T) {
+		user1 := th.CreateUser(t)
+		dmChannel, _, err := client.CreateDirectChannel(context.Background(), th.BasicUser.Id, user1.Id)
+		require.NoError(t, err)
+
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		dmSubmit := model.SubmitDialogRequest{
+			URL:        ts.URL,
+			CallbackId: "callbackid",
+			State:      "somestate",
+			UserId:     th.BasicUser.Id,
+			ChannelId:  dmChannel.Id,
+			TeamId:     "",
+			Submission: map[string]any{"somename": "somevalue"},
+		}
+
+		submitResp, _, err := client.SubmitInteractiveDialog(context.Background(), dmSubmit)
+		require.NoError(t, err)
+		assert.NotNil(t, submitResp)
+	})
 }
 
 func TestLookupDialog(t *testing.T) {
@@ -750,9 +839,19 @@ func TestLookupDialog(t *testing.T) {
 		assert.Nil(t, lookupResp)
 	})
 
-	t.Run("should fail on invalid team ID", func(t *testing.T) {
+	// The handler derives the team from channel.TeamId (server-loaded), not from
+	// the client-supplied TeamId. A bogus client TeamId is ignored — the request
+	// succeeds because BasicUser is a member of BasicTeam where BasicChannel lives.
+	t.Run("client-supplied invalid team ID is ignored — succeeds via server-loaded channel.TeamId", func(t *testing.T) {
+		var capturedTeamId string
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			var forwarded model.SubmitDialogRequest
+			err := json.NewDecoder(r.Body).Decode(&forwarded)
+			require.NoError(t, err)
+			capturedTeamId = forwarded.TeamId
+			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("{}"))
 		}))
 		defer ts.Close()
 
@@ -762,7 +861,38 @@ func TestLookupDialog(t *testing.T) {
 			State:      "somestate",
 			UserId:     th.BasicUser.Id,
 			ChannelId:  th.BasicChannel.Id,
-			TeamId:     model.NewId(),
+			TeamId:     model.NewId(), // bogus — handler must ignore this
+			Submission: map[string]any{"query": "test"},
+		}
+
+		lookupResp, _, err := client.LookupInteractiveDialog(context.Background(), lookup)
+		require.NoError(t, err)
+		assert.NotNil(t, lookupResp)
+		assert.Equal(t, th.BasicTeam.Id, capturedTeamId,
+			"forwarded TeamId must be channel's real team, not the bogus client-supplied value")
+	})
+
+	t.Run("user lacking PermissionViewTeam on the channel's real team gets 403", func(t *testing.T) {
+		// Removing view_team from the team-user role means BasicUser loses the
+		// permission on BasicTeam. The handler checks PermissionViewTeam using the
+		// server-loaded channel.TeamId, so the request must be rejected with 403.
+		th.RemovePermissionFromRole(t, model.PermissionViewTeam.Id, model.TeamUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionViewTeam.Id, model.TeamUserRoleId)
+
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("{}"))
+		}))
+		defer ts.Close()
+
+		lookup := model.SubmitDialogRequest{
+			URL:        ts.URL,
+			CallbackId: "callbackid",
+			State:      "somestate",
+			UserId:     th.BasicUser.Id,
+			ChannelId:  th.BasicChannel.Id,
+			TeamId:     th.BasicTeam.Id,
 			Submission: map[string]any{"query": "test"},
 		}
 
@@ -814,6 +944,30 @@ func TestLookupDialog(t *testing.T) {
 		require.NoError(t, err)
 		assert.NotNil(t, lookupResp)
 		assert.Empty(t, lookupResp.Items)
+	})
+
+	t.Run("empty TeamId succeeds — regression test for DM/GM channels not returning 403", func(t *testing.T) {
+		user1 := th.CreateUser(t)
+		dmChannel, _, err := client.CreateDirectChannel(context.Background(), th.BasicUser.Id, user1.Id)
+		require.NoError(t, err)
+
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("{}"))
+		}))
+		defer ts.Close()
+
+		lookup := model.SubmitDialogRequest{
+			URL:        ts.URL,
+			ChannelId:  dmChannel.Id,
+			TeamId:     "",
+			Submission: map[string]any{"query": "test"},
+		}
+
+		lookupResp, _, err := client.LookupInteractiveDialog(context.Background(), lookup)
+		require.NoError(t, err)
+		assert.NotNil(t, lookupResp)
 	})
 }
 
@@ -1144,5 +1298,195 @@ func TestDoPostActionCookieChannelAuthorization(t *testing.T) {
 		resp, err := th.Client.DoPostActionWithCookie(context.Background(), privateMmPost.Id, privateMmActionID, "", legitMmCookie, nil, model.PostActionIntegrationFormatMmBlock)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+}
+
+func TestExecuteDialogAction(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	const route = "/actions/dialogs/execute"
+
+	t.Run("happy path — 200 OK with trigger_id", func(t *testing.T) {
+		var received model.PostActionIntegrationRequest
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			err := json.NewDecoder(r.Body).Decode(&received)
+			require.NoError(t, err)
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		body, err := json.Marshal(model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: th.BasicChannel.Id,
+			TeamId:    th.BasicTeam.Id,
+			Context:   map[string]string{"k": "v"},
+		})
+		require.NoError(t, err)
+
+		resp, err := client.DoAPIPost(context.Background(), route, string(body))
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var apiResp model.ExecuteDialogActionResponse
+		jsonErr := json.NewDecoder(resp.Body).Decode(&apiResp)
+		require.NoError(t, jsonErr)
+		assert.NotEmpty(t, apiResp.TriggerId)
+
+		assert.Equal(t, "dialog_action", received.Type)
+	})
+
+	t.Run("empty TeamId succeeds — regression test for DM/GM channels not returning 403", func(t *testing.T) {
+		user1 := th.CreateUser(t)
+		dmChannel, _, err := client.CreateDirectChannel(context.Background(), th.BasicUser.Id, user1.Id)
+		require.NoError(t, err)
+
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		body, err := json.Marshal(model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: dmChannel.Id,
+			TeamId:    "",
+		})
+		require.NoError(t, err)
+
+		resp, err := client.DoAPIPost(context.Background(), route, string(body))
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("user without channel read permission gets 403", func(t *testing.T) {
+		privateChannel := th.CreatePrivateChannel(t)
+
+		// BasicUser2 is not a member of the private channel
+		otherClient := th.CreateClient()
+		th.LoginBasic2WithClient(t, otherClient)
+
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		body, err := json.Marshal(model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: privateChannel.Id,
+			TeamId:    th.BasicTeam.Id,
+		})
+		require.NoError(t, err)
+
+		resp, err := otherClient.DoAPIPost(context.Background(), route, string(body))
+		require.Error(t, err)
+		CheckForbiddenStatus(t, model.BuildResponse(resp))
+	})
+
+	t.Run("empty URL returns 400", func(t *testing.T) {
+		body, err := json.Marshal(model.ExecuteDialogActionRequest{
+			URL:       "",
+			ChannelId: th.BasicChannel.Id,
+			TeamId:    th.BasicTeam.Id,
+		})
+		require.NoError(t, err)
+
+		resp, err := client.DoAPIPost(context.Background(), route, string(body))
+		require.Error(t, err)
+		CheckBadRequestStatus(t, model.BuildResponse(resp))
+	})
+
+	t.Run("invalid URL returns 400", func(t *testing.T) {
+		body, err := json.Marshal(model.ExecuteDialogActionRequest{
+			URL:       "not-a-valid-url",
+			ChannelId: th.BasicChannel.Id,
+			TeamId:    th.BasicTeam.Id,
+		})
+		require.NoError(t, err)
+
+		resp, err := client.DoAPIPost(context.Background(), route, string(body))
+		require.Error(t, err)
+		CheckBadRequestStatus(t, model.BuildResponse(resp))
+	})
+
+	t.Run("client-supplied invalid team ID is ignored — succeeds via server-loaded channel.TeamId", func(t *testing.T) {
+		// The handler overwrites request.TeamId with channel.TeamId before calling
+		// ExecuteDialogAction. This test captures the PostActionIntegrationRequest
+		// forwarded to the integration and asserts that TeamId reflects the channel's
+		// real team, not the bogus value supplied by the client.
+		var capturedReq model.PostActionIntegrationRequest
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			err := json.NewDecoder(r.Body).Decode(&capturedReq)
+			require.NoError(t, err)
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		// A bogus client-supplied TeamId must be ignored: the handler derives the
+		// team from the server-loaded channel, so the request succeeds rather than
+		// 403-ing on the bogus team or 500-ing on a team lookup of a non-existent id.
+		body, err := json.Marshal(model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: th.BasicChannel.Id,
+			TeamId:    model.NewId(), // bogus — handler must ignore this
+		})
+		require.NoError(t, err)
+
+		resp, err := client.DoAPIPost(context.Background(), route, string(body))
+		require.NoError(t, err)
+		CheckOKStatus(t, model.BuildResponse(resp))
+		assert.Equal(t, th.BasicTeam.Id, capturedReq.TeamId,
+			"forwarded TeamId must be channel's real team, not the bogus client-supplied value")
+	})
+
+	t.Run("user lacking PermissionViewTeam on the channel's real team gets 403", func(t *testing.T) {
+		// Removing view_team from the team-user role means BasicUser loses the
+		// permission on BasicTeam. The handler checks PermissionViewTeam using the
+		// server-loaded channel.TeamId, so the request must be rejected with 403.
+		th.RemovePermissionFromRole(t, model.PermissionViewTeam.Id, model.TeamUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionViewTeam.Id, model.TeamUserRoleId)
+
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		body, err := json.Marshal(model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: th.BasicChannel.Id,
+			TeamId:    th.BasicTeam.Id,
+		})
+		require.NoError(t, err)
+
+		resp, err := client.DoAPIPost(context.Background(), route, string(body))
+		require.Error(t, err)
+		CheckForbiddenStatus(t, model.BuildResponse(resp))
+	})
+
+	t.Run("integration returns 500 — DoActionRequest non-200 path returns error", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+		}))
+		defer ts.Close()
+
+		body, err := json.Marshal(model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: th.BasicChannel.Id,
+			TeamId:    th.BasicTeam.Id,
+		})
+		require.NoError(t, err)
+
+		resp, err := client.DoAPIPost(context.Background(), route, string(body))
+		require.Error(t, err)
+		require.NotNil(t, resp)
+		// DoActionRequest returns a 400 AppError on non-200 upstream responses;
+		// the handler propagates it unchanged.
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 }

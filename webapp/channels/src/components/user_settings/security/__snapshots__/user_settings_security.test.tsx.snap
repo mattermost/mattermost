@@ -53,6 +53,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
       <div
         class="section-min"
+        data-testid="section-min"
       >
         <div
           class="section-min__header"
@@ -107,6 +108,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
       <div
         class="section-min"
+        data-testid="section-min"
       >
         <div
           class="section-min__header"
@@ -222,6 +224,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
       <div
         class="section-min"
+        data-testid="section-min"
       >
         <div
           class="section-min__header"
@@ -276,6 +279,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
       <div
         class="section-min"
+        data-testid="section-min"
       >
         <div
           class="section-min__header"
@@ -391,6 +395,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
       <div
         class="section-min"
+        data-testid="section-min"
       >
         <div
           class="section-min__header"
@@ -445,6 +450,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
       <div
         class="section-min"
+        data-testid="section-min"
       >
         <div
           class="section-min__header"
@@ -560,6 +566,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
       <div
         class="section-min"
+        data-testid="section-min"
       >
         <div
           class="section-min__header"
@@ -614,6 +621,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
       <div
         class="section-min"
+        data-testid="section-min"
       >
         <div
           class="section-min__header"
@@ -729,6 +737,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
       <div
         class="section-min"
+        data-testid="section-min"
       >
         <div
           class="section-min__header"
@@ -778,6 +787,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       />
       <div
         class="section-min"
+        data-testid="section-min"
       >
         <div
           class="section-min__header"

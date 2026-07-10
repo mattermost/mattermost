@@ -15,7 +15,11 @@ const PermissionCheckbox = ({value = '', id = ''}: Props): JSX.Element => {
     let icon = null;
     let extraClass = '';
     if (value === 'checked') {
-        icon = <CheckboxCheckedIcon/>;
+        icon = (
+            <span data-testid='permissionCheckbox-checked'>
+                <CheckboxCheckedIcon/>
+            </span>
+        );
         extraClass = 'checked';
     } else if (value === 'intermediate') {
         icon = <CheckboxPartialIcon/>;

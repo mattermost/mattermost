@@ -108,6 +108,7 @@ exports[`components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx in
               >
                 <div
                   class="loading-screen"
+                  data-testid="loading-screen"
                   style="position: relative;"
                 >
                   <div

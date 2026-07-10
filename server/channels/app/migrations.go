@@ -5,8 +5,10 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"reflect"
 
@@ -33,6 +35,8 @@ const (
 	contentFlaggingMigrationVersion                = "v5"
 	managedCategorySetupDoneKey                    = "managed_category_setup_done"
 	managedCategoryMigrationVersion                = "v2"
+	boardsPropertySetupDoneKey                     = "boards_property_setup_done"
+	boardsPropertyMigrationVersion                 = "v2"
 	cpaDisplayNameBackfillKey                      = "cpa_display_name_backfill_done"
 
 	contentFlaggingPropertyNameFlaggedPostId       = "flagged_post_id"
@@ -48,9 +52,6 @@ const (
 	contentFlaggingPropertyManageByContentFlagging = "content_flagging_managed"
 
 	contentFlaggingPropertySubTypeTimestamp = "timestamp"
-
-	boardsPropertySetupDoneKey     = "boards_property_setup_done"
-	boardsPropertyMigrationVersion = "v1"
 )
 
 // This function migrates the default built in roles from code/config to the database.
@@ -798,6 +799,16 @@ func (s *Server) doSetupBoardsProperties() error {
 		existingPropertiesMap[property.Name] = property
 	}
 
+	// Default colours seeded by name. Used both when creating the Status field
+	// from scratch and when upgrading an existing v1 install (where we layer
+	// these colours onto the already-persisted options without rewriting their
+	// IDs — see mergeBoardsStatusColors below).
+	statusColorByName := map[string]string{
+		model.BoardsStatusOptionTodo:       model.BoardsStatusColorTodo,
+		model.BoardsStatusOptionInProgress: model.BoardsStatusColorInProgress,
+		model.BoardsStatusOptionComplete:   model.BoardsStatusColorComplete,
+	}
+
 	expectedPropertiesMap := map[string]*model.PropertyField{
 		model.BoardsPropertyFieldAssignee: {
 			GroupID:         group.ID,
@@ -818,9 +829,9 @@ func (s *Server) doSetupBoardsProperties() error {
 			PermissionField: model.NewPointer(model.PermissionLevelNone),
 			Attrs: map[string]any{
 				"options": []map[string]string{
-					{"name": model.BoardsStatusOptionTodo},
-					{"name": model.BoardsStatusOptionInProgress},
-					{"name": model.BoardsStatusOptionComplete},
+					{"name": model.BoardsStatusOptionTodo, "color": model.BoardsStatusColorTodo},
+					{"name": model.BoardsStatusOptionInProgress, "color": model.BoardsStatusColorInProgress},
+					{"name": model.BoardsStatusOptionComplete, "color": model.BoardsStatusColorComplete},
 				},
 			},
 		},
@@ -833,9 +844,20 @@ func (s *Server) doSetupBoardsProperties() error {
 		if _, exists := existingPropertiesMap[name]; exists {
 			property := existingPropertiesMap[name]
 			property.Type = expectedProperty.Type
-			property.Attrs = expectedProperty.Attrs
 			property.Protected = expectedProperty.Protected
 			property.PermissionField = expectedProperty.PermissionField
+
+			if name == model.BoardsPropertyFieldStatus {
+				// Status options already exist (with server-generated IDs from the v1
+				// seed). NewPropertyOptionsFromFieldAttrs regenerates IDs for any
+				// options missing one, so a wholesale attrs replacement would orphan
+				// every reference. Layer colours onto the existing options by name
+				// and preserve their IDs.
+				property.Attrs = mergeBoardsStatusColors(property.Attrs, statusColorByName)
+			} else {
+				property.Attrs = expectedProperty.Attrs
+			}
+
 			propertiesToUpdate = append(propertiesToUpdate, property)
 		} else {
 			propertiesToCreate = append(propertiesToCreate, expectedProperty)
@@ -871,6 +893,49 @@ func (s *Server) doSetupBoardsProperties() error {
 	}
 
 	return nil
+}
+
+// mergeBoardsStatusColors layers a name→color map onto the existing options
+// stored in `attrs`, preserving every existing option's ID. Used during the
+// v1 → v2 boards migration so previously-seeded Status options gain colours
+// without having their server-generated IDs regenerated (which would orphan
+// any card references). Options whose name isn't in `colorByName` are left
+// untouched; admins who renamed seeded options stay in control.
+func mergeBoardsStatusColors(attrs model.StringInterface, colorByName map[string]string) model.StringInterface {
+	if attrs == nil {
+		return attrs
+	}
+	rawOptions, ok := attrs["options"]
+	if !ok {
+		return attrs
+	}
+
+	// attrs is model.StringInterface (map[string]any), so after JSON
+	// deserialisation rawOptions is []any of map[string]any. Round-trip
+	// to []map[string]any so the loop below can index each option by
+	// key without an outer .(map[string]any) assertion per element.
+	encoded, err := json.Marshal(rawOptions)
+	if err != nil {
+		mlog.Warn("Skipping boards Status colour merge: failed to marshal existing options", mlog.Err(err))
+		return attrs
+	}
+	var options []map[string]any
+	if err := json.Unmarshal(encoded, &options); err != nil {
+		mlog.Warn("Skipping boards Status colour merge: failed to unmarshal existing options", mlog.Err(err))
+		return attrs
+	}
+
+	for i, opt := range options {
+		name, _ := opt["name"].(string)
+		if color, found := colorByName[name]; found {
+			options[i]["color"] = color
+		}
+	}
+
+	out := make(model.StringInterface, len(attrs))
+	maps.Copy(out, attrs)
+	out["options"] = options
+	return out
 }
 
 // seedSessionAttributeFields idempotently seeds the built-in session attribute property fields.

@@ -56,6 +56,11 @@ export type Props = WrappedComponentProps & {
     showLoader?: boolean;
 
     /*
+    * Keeps the dimension placeholder mounted without rendering image content
+    */
+    renderPlaceholderOnly?: boolean;
+
+    /*
     * A callback that is called as soon as the image component has a height value
     */
     onImageLoaded?: ({height, width}: {height: number; width: number}) => void;
@@ -187,7 +192,9 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
     };
 
     renderImageLoaderIfNeeded = () => {
-        if (!this.state.loaded && this.props.showLoader && !this.state.error) {
+        const renderPlaceholderOnly = this.props.renderPlaceholderOnly ?? false;
+
+        if (!renderPlaceholderOnly && !this.state.loaded && this.props.showLoader && !this.state.error) {
             return (
                 <div style={{position: 'absolute', top: '50%', transform: 'translate(-50%, -50%)', left: '50%'}}>
                     <LoadingImagePreview
@@ -219,6 +226,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         Reflect.deleteProperty(props, 'hideUtilities');
         Reflect.deleteProperty(props, 'getFilePublicLink');
         Reflect.deleteProperty(props, 'isFileRejected');
+        Reflect.deleteProperty(props, 'renderPlaceholderOnly');
         Reflect.deleteProperty(props, 'intl');
         Reflect.deleteProperty(props, 'style');
 
@@ -407,6 +415,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             dimensions,
             fileInfo,
         } = this.props;
+        const renderPlaceholderOnly = this.props.renderPlaceholderOnly ?? false;
 
         let ariaLabelImage = this.props.intl.formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'});
         if (fileInfo) {
@@ -415,13 +424,15 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
 
         let fallback;
 
-        if (this.dimensionsAvailable(dimensions) && !this.state.loaded) {
+        if (this.dimensionsAvailable(dimensions) && (!this.state.loaded || renderPlaceholderOnly)) {
             const ratio = (dimensions?.height ?? 0) > MAX_IMAGE_HEIGHT ? MAX_IMAGE_HEIGHT / (dimensions?.height ?? 1) : 1;
             const height = (dimensions?.height ?? 0) * ratio;
             const width = (dimensions?.width ?? 0) * ratio;
 
-            // Don't show mini preview (blurred thumbnail) if the file is rejected
-            const miniPreview = this.props.isFileRejected ? null : getFileMiniPreviewUrl(fileInfo);
+            // Placeholder-only mode reserves layout without rendering image-derived content;
+            // rejected files should also avoid preview content.
+            const shouldShowMiniPreview = !renderPlaceholderOnly && !this.props.isFileRejected;
+            const miniPreview = shouldShowMiniPreview ? getFileMiniPreviewUrl(fileInfo) : null;
 
             if (miniPreview) {
                 fallback = (
@@ -456,17 +467,19 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             }
         }
 
-        const shouldShowImg = !this.dimensionsAvailable(dimensions) || this.state.loaded;
+        const shouldShowImg = !renderPlaceholderOnly && (!this.dimensionsAvailable(dimensions) || this.state.loaded);
 
         return (
             <>
                 {fallback}
-                <div
-                    className='file-preview__button'
-                    style={{display: shouldShowImg ? 'inline-block' : 'none'}}
-                >
-                    {this.renderImageWithContainerIfNeeded()}
-                </div>
+                {!renderPlaceholderOnly && (
+                    <div
+                        className='file-preview__button'
+                        style={{display: shouldShowImg ? 'inline-block' : 'none'}}
+                    >
+                        {this.renderImageWithContainerIfNeeded()}
+                    </div>
+                )}
             </>
         );
     };

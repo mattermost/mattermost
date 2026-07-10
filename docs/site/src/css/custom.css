@@ -1,0 +1,577 @@
+/*
+ * Mattermost docs theme overrides on top of Infima.
+ * Tokens live in tokens.css. This file maps tokens to Infima vars and
+ * adds the brand surface treatments (navbar density, code blocks,
+ * sidebar, footer) so the site reads as part of the Mattermost product
+ * family, not a default Docusaurus install.
+ */
+
+/* === Map brand tokens onto Infima === */
+
+:root {
+  --ifm-color-primary:           var(--mm-denim-500);
+  --ifm-color-primary-dark:      var(--mm-denim-600);
+  --ifm-color-primary-darker:    var(--mm-denim-700);
+  --ifm-color-primary-darkest:   var(--mm-denim-800);
+  --ifm-color-primary-light:     var(--mm-denim-400);
+  --ifm-color-primary-lighter:   var(--mm-denim-300);
+  --ifm-color-primary-lightest:  var(--mm-denim-200);
+
+  --ifm-font-family-base:      var(--mm-font-sans);
+  --ifm-font-family-monospace: var(--mm-font-mono);
+  --ifm-heading-font-family:   var(--mm-font-heading);
+  --ifm-heading-font-weight:   900;
+  --ifm-h1-font-size:          2.6rem;
+  --ifm-h2-font-size:          1.85rem;
+  --ifm-h3-font-size:          1.35rem;
+  --ifm-line-height-base:      1.65;
+  --ifm-spacing-vertical:      1.2rem;
+
+  --ifm-code-font-size:    90%;
+  --docusaurus-highlighted-code-line-bg: rgba(30, 50, 92, 0.1);
+
+  --ifm-background-color:         var(--mm-bg-page);
+  --ifm-background-surface-color: var(--mm-bg-surface);
+  --ifm-navbar-background-color:  var(--mm-color-denim);
+  --ifm-navbar-link-color:        rgba(255, 255, 255, 0.85);
+  --ifm-navbar-link-hover-color:  var(--mm-color-white);
+  --ifm-navbar-height:            4rem;
+  --ifm-footer-background-color:  var(--mm-color-denim);
+  --ifm-footer-color:             var(--mm-color-white);
+  --ifm-footer-link-color:        rgba(255,255,255,0.78);
+  --ifm-footer-link-hover-color:  var(--mm-color-marigold);
+  --ifm-footer-title-color:       var(--mm-color-white);
+
+  --ifm-link-color:           var(--mm-link);
+  --ifm-link-hover-color:     var(--mm-link-hover);
+  --ifm-link-hover-decoration: underline;
+
+  --ifm-toc-border-color:    var(--mm-border-subtle);
+  --ifm-hr-border-color:     var(--mm-border-subtle);
+
+  /* Sidebar */
+  --ifm-menu-color:                  var(--mm-denim-700);
+  --ifm-menu-color-active:           var(--mm-color-denim);
+  --ifm-menu-color-background-active: var(--mm-denim-50);
+  --ifm-menu-color-background-hover: var(--mm-denim-50);
+  --ifm-menu-link-padding-vertical:   0.45rem;
+  --ifm-menu-link-padding-horizontal: 0.85rem;
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary:          var(--mm-color-sky);
+  --ifm-color-primary-dark:     var(--mm-denim-300);
+  --ifm-color-primary-darker:   var(--mm-denim-400);
+  --ifm-color-primary-darkest:  var(--mm-denim-500);
+  --ifm-color-primary-light:    var(--mm-denim-100);
+  --ifm-color-primary-lighter:  var(--mm-denim-50);
+  --ifm-color-primary-lightest: var(--mm-color-white);
+
+  --ifm-background-color:         var(--mm-bg-page);
+  --ifm-background-surface-color: var(--mm-bg-surface);
+  --docusaurus-highlighted-code-line-bg: rgba(255, 188, 31, 0.18);
+
+  --ifm-navbar-background-color: var(--mm-denim-800);
+  --ifm-navbar-link-color:       rgba(255,255,255,0.85);
+  --ifm-navbar-link-hover-color: var(--mm-color-white);
+
+  --ifm-menu-color:                   rgba(255,255,255,0.78);
+  --ifm-menu-color-active:            var(--mm-color-white);
+  --ifm-menu-color-background-active: var(--mm-denim-700);
+  --ifm-menu-color-background-hover:  var(--mm-denim-700);
+}
+
+/* === Type rhythm === */
+
+html {
+  font-feature-settings: "ss01", "cv11";  /* Inter alt forms */
+}
+
+body {
+  font-family: var(--mm-font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Headlines target Trade Gothic Next Heavy proportions: tighter set
+ * than Archivo Black's default. We tune letter-spacing per size and
+ * apply a mild horizontal squeeze via font-stretch where the platform
+ * supports it (no-op on Archivo Black, which is fixed-width). */
+h1, h2, h3, h4 {
+  font-family: var(--mm-font-heading);
+  letter-spacing: -0.015em;
+  line-height: 1.12;
+  font-stretch: 92%;            /* ignored by static fonts; helps with variable Saira if loaded */
+}
+
+h1 { letter-spacing: -0.025em; }
+h2 { letter-spacing: -0.018em; }
+h3 { letter-spacing: -0.012em; }
+
+/* Section heading rhythm — a small marigold rule sits above each h2.
+ * Scoped via the `mm-section` class (auto-applied below) so it doesn't
+ * collide with OpenAPI plugin internal h2s (endpoint URL header,
+ * Request/Response panels, tab headings, etc.) which use their own
+ * layout and get squashed by our padding-top.
+ *
+ * The auto-apply trick: any h2 inside a doc page that ISN'T a
+ * descendant of an `.openapi-*` container gets the rule. */
+.markdown h2:not([class*="openapi"]):not([class*="openapi"] *) {
+  position: relative;
+  margin-top: 3rem;
+  padding-top: 1.4rem;
+}
+.markdown h2:not([class*="openapi"]):not([class*="openapi"] *)::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3rem;
+  height: 2px;
+  background: var(--mm-color-marigold);
+}
+
+/* Belt-and-braces: explicitly null the rule on every OpenAPI plugin
+ * heading we know the plugin emits. */
+.markdown .openapi__method-endpoint-path,
+.markdown .openapi-tabs__heading,
+.markdown .openapi-tabs__response-header,
+.markdown [class*="openapi"] h2 {
+  position: static !important;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+.markdown .openapi__method-endpoint-path::before,
+.markdown .openapi-tabs__heading::before,
+.markdown .openapi-tabs__response-header::before,
+.markdown [class*="openapi"] h2::before {
+  display: none !important;
+}
+
+/* === Navbar — solid denim with white text === */
+
+.navbar {
+  background-color: var(--mm-color-denim);
+  border-bottom: 2px solid var(--mm-color-marigold);
+  box-shadow: 0 2px 12px -8px rgba(0, 0, 0, 0.35);
+}
+
+.navbar__inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 clamp(1rem, 2.5vw, 1.75rem);
+}
+
+.navbar__brand {
+  margin-right: 1.5rem;
+}
+.navbar__logo {
+  height: 1.85rem;
+  margin-right: 0;
+}
+
+.navbar__item {
+  font-size: 0.9rem;
+}
+
+.navbar__link {
+  /* Body font (Inter) for legibility at small sizes — Archivo Black 900 is
+   * designed for display headlines, not 12-14px nav. Brand identity is
+   * preserved via uppercase + letter-spacing. */
+  font-family: var(--mm-font-sans);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.875rem;
+  padding: 0 0.85rem;
+  position: relative;
+}
+
+.navbar__link {
+  color: rgba(255, 255, 255, 0.92);
+}
+.navbar__link:hover {
+  color: var(--mm-color-white);
+  text-decoration: none;
+}
+.navbar__link--active,
+.navbar__link[aria-current="page"] {
+  color: var(--mm-color-white);
+}
+.navbar__link--active::after,
+.navbar__link[aria-current="page"]::after {
+  content: '';
+  position: absolute;
+  left: 0.85rem;
+  right: 0.85rem;
+  bottom: -1.2rem;
+  height: 3px;
+  background: var(--mm-color-marigold);
+}
+
+/* GitHub link → render as outlined ghost on a denim navbar. */
+.navbar__items--right .navbar__link[href*="github.com"] {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: var(--mm-color-white);
+  border-radius: 3px;
+  padding: 0.4rem 0.9rem;
+  letter-spacing: 0.06em;
+}
+.navbar__items--right .navbar__link[href*="github.com"]:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--mm-color-white);
+}
+
+/* Color-mode toggle on a denim navbar — white icon, subtle hover. */
+.navbar .clean-btn {
+  color: rgba(255, 255, 255, 0.78);
+}
+.navbar .clean-btn:hover {
+  color: var(--mm-color-white);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* === Sidebar === */
+
+.theme-doc-sidebar-container {
+  border-right: 1px solid var(--mm-border-subtle) !important;
+}
+[data-theme='dark'] .theme-doc-sidebar-container {
+  border-right-color: var(--mm-denim-700) !important;
+}
+
+.menu {
+  padding: 1.25rem 0.75rem !important;
+  font-size: 0.9rem;
+}
+
+.menu__list-item-collapsible,
+.menu__link {
+  border-radius: 3px;
+}
+
+.menu__link--sublist-caret::after {
+  opacity: 0.6;
+}
+
+.menu__caret {
+  background: transparent !important;
+}
+
+.menu__list-item--collapsed .menu__list-item-collapsible {
+  border-radius: 3px;
+}
+
+/* Categories at any depth — including OpenAPI tag groups in the API
+ * sidebar (users → Users, audit logs → Audit Logs) — render in Trade
+ * Gothic Heavy with title case. (`::first-letter` doesn't apply to
+ * the menu link's flex layout, so we use text-transform: capitalize
+ * which capitalizes the first letter of every word.) */
+.menu .menu__list-item-collapsible > .menu__link,
+.menu > .menu__list > .menu__list-item > .menu__link {
+  font-family: var(--mm-font-heading);
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  text-transform: capitalize;
+  font-size: 0.82rem;
+  color: var(--mm-text-secondary);
+  padding-top: 0.55rem;
+  padding-bottom: 0.4rem;
+}
+
+/* Endpoint leaves keep their natural case (e.g. "Login to Mattermost server"). */
+.menu .menu__link.api-method {
+  font-family: var(--mm-font-sans);
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: 0.85rem;
+  color: var(--mm-text-primary);
+}
+
+/* === Code === */
+
+code {
+  background-color: var(--mm-denim-50);
+  border: 1px solid var(--mm-border-subtle);
+  border-radius: 3px;
+  padding: 0.1em 0.35em;
+  font-size: 0.88em;
+}
+[data-theme='dark'] code {
+  background-color: var(--mm-denim-800);
+  border-color: var(--mm-denim-700);
+}
+
+.theme-code-block {
+  border: 1px solid var(--mm-border-subtle);
+  border-radius: 4px;
+  box-shadow: none !important;
+}
+
+[data-theme='dark'] .theme-code-block {
+  border-color: var(--mm-denim-700);
+}
+
+.theme-code-block .prism-code {
+  font-size: 0.85rem;
+  background: var(--mm-denim-50) !important;
+}
+[data-theme='dark'] .theme-code-block .prism-code {
+  background: var(--mm-denim-800) !important;
+}
+
+/* Copy button — denim border, marigold on hover */
+.clean-btn[class*="copyButton"] {
+  border: 1px solid var(--mm-border-subtle) !important;
+  border-radius: 3px !important;
+}
+.clean-btn[class*="copyButton"]:hover {
+  background: var(--mm-color-marigold) !important;
+  color: var(--mm-color-black) !important;
+  border-color: var(--mm-color-marigold) !important;
+}
+
+/* === Tables === */
+
+table {
+  display: table;
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+}
+table thead {
+  background: var(--mm-color-denim);
+}
+table thead th {
+  color: var(--mm-color-white);
+  font-family: var(--mm-font-heading);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  padding: 0.85rem 1rem;
+  text-align: left;
+  border: none;
+}
+table tbody td {
+  border-color: var(--mm-border-subtle);
+  padding: 0.7rem 1rem;
+}
+table tbody tr:nth-child(even) {
+  background: var(--mm-denim-50);
+}
+[data-theme='dark'] table tbody tr:nth-child(even) {
+  background: var(--mm-denim-800);
+}
+
+/* === Blockquote === */
+
+blockquote {
+  border-left: 4px solid var(--mm-color-marigold);
+  background: var(--mm-bg-subtle);
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+  border-radius: 0 4px 4px 0;
+  color: var(--mm-text-primary);
+}
+
+/* === Footer === */
+
+.footer {
+  background-color: var(--ifm-footer-background-color);
+  background-image:
+    linear-gradient(0deg, rgba(12, 20, 36, 0.55), rgba(12, 20, 36, 0.55)),
+    url('/img/patterns/hex-camo-denim.svg');
+  background-size: cover, 108px 125px;
+  background-repeat: no-repeat, repeat;
+  color: var(--ifm-footer-color);
+  padding: 3.5rem 1rem 2.5rem;
+}
+.footer__title {
+  color: var(--ifm-footer-title-color);
+  font-family: var(--mm-font-heading);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  margin-bottom: 1rem;
+}
+.footer__copyright {
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(255,255,255,0.18);
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.7);
+}
+
+/* === Doc page chrome === */
+
+/* Docusaurus's default `.theme-doc-markdown` is fluid; we don't constrain
+ * it. The OpenAPI plugin's 2-column layout (request panel on the right)
+ * needs the full width of the article column. Long-form prose pages get
+ * comfortable measure via the article container's natural max-width. */
+.theme-doc-markdown {
+  font-size: 1rem;
+}
+
+.theme-doc-markdown h1:first-child {
+  margin-top: 0.5rem;
+  font-size: 2.4rem;
+  letter-spacing: -0.025em;
+}
+
+/* Widen the docs main container so the sidebar isn't pushed to the edge
+ * with a huge gap before the content. Default Infima container is too
+ * conservative for API pages with right panels. */
+.docMainContainer_TBSr,
+[class*='docMainContainer'] {
+  max-width: none !important;
+  /* Sits in an outer flex row alongside the left sidebar; without
+   * min-width: 0 its default `min-width: auto` lets wide content (long
+   * code block lines, etc.) force it — and the whole row — wider than
+   * the viewport instead of scrolling within its own content. */
+  min-width: 0;
+}
+.docMainContainer_TBSr > .container,
+[class*='docMainContainer'] > .container {
+  max-width: 1600px;
+  padding-left: clamp(1rem, 2vw, 2rem);
+  padding-right: clamp(1rem, 2vw, 2rem);
+}
+
+/* Without max-width, the doc content flex column no longer has an upper
+ * bound to shrink against, so a wide code block (long lines, e.g. inline
+ * YAML comments) inflates its own intrinsic min-content size and drags the
+ * whole row — including the TOC column — wider than the viewport, instead
+ * of just scrolling horizontally within the code block itself. `min-width:
+ * 0` restores the standard flexbox shrink behavior so `overflow-x: auto` on
+ * code blocks can do its job. */
+.docMainContainer_TBSr > .container > .row > [class*='col'],
+[class*='docMainContainer'] > .container > .row > [class*='col'] {
+  min-width: 0;
+}
+
+/* TOC right column (per-page) */
+.table-of-contents {
+  border-left: 1px solid var(--mm-border-subtle);
+  padding: 0.4rem 0 0.4rem 1rem;
+  font-size: 0.82rem;
+}
+.table-of-contents__link--active,
+.table-of-contents__link:hover {
+  color: var(--mm-color-denim);
+  font-weight: 600;
+}
+
+/* === Marigold CTA pill (used in MDX content) === */
+
+.mm-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--mm-color-marigold);
+  color: var(--mm-color-black);
+  font-family: var(--mm-font-heading);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: 3px;
+  text-decoration: none;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.mm-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px -8px rgba(0, 0, 0, 0.25);
+  color: var(--mm-color-black);
+  text-decoration: none;
+}
+
+/* Tables: scroll horizontally within themselves instead of overflowing the
+ * viewport. Applied unconditionally (not just under the mobile breakpoint
+ * below) since a wide table can force the same horizontal-overflow problem
+ * at any viewport width — e.g. at higher browser zoom levels, where the
+ * effective layout width shrinks but the media query doesn't re-trigger. */
+.markdown table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* === Mobile / responsive === */
+
+@media (max-width: 996px) {
+
+  /* Tighter heading scale on small screens. */
+  .markdown h1 { font-size: 1.85rem; line-height: 1.15; }
+  .markdown h2 { font-size: 1.4rem; }
+  .markdown h3 { font-size: 1.15rem; }
+}
+
+@media (max-width: 768px) {
+  /* Navbar: tighter logo + items. */
+  .navbar__inner { padding: 0 0.75rem; }
+  .navbar__logo { height: 1.5rem; }
+  .navbar__link { padding: 0 0.5rem; font-size: 0.72rem; }
+
+  /* OpenAPI right-panel (Authorization, Request, Response) — stacks
+   * below the content on phones instead of squeezing in a 2nd column. */
+  .openapi-right-panel__container {
+    width: 100% !important;
+    margin-top: 1.5rem;
+  }
+  .openapi-left-panel__container {
+    width: 100% !important;
+  }
+
+  /* Footer: looser stacking, less padding. */
+  .footer { padding: 2.5rem 1rem 1.75rem; }
+
+  /* Code blocks: smaller font for phones so lines don't break too eagerly. */
+  .theme-code-block .prism-code { font-size: 0.78rem; }
+}
+
+@media (max-width: 480px) {
+  /* Hide the marigold accent on the navbar at very narrow widths
+   * where the gradient distracts from the compact nav. */
+  .navbar::after { display: none; }
+
+  /* Hero: even tighter on small phones. */
+  .markdown h1 { font-size: 1.6rem; }
+}
+
+/* === Section divider used between Hero and content === */
+
+.mm-section-rule {
+  height: 0;
+  border: none;
+  border-top: 2px solid var(--mm-color-marigold);
+  width: 3rem;
+  margin: 2.5rem 0 1.5rem;
+}
+
+/* (Marigold strip is now the navbar's own border-bottom.) */
+
+/* === Pages with a Hero hide breadcrumbs + prev/next pagination ===
+ * Hero is already a strong page-opener; the breadcrumbs ("Home >
+ * Product Overview > Overview") read as redundant clutter. */
+
+.theme-doc-markdown:has(.mm-hero) ~ nav.pagination-nav,
+nav.pagination-nav:has(+ .theme-doc-markdown .mm-hero) {
+  display: none;
+}
+
+article:has(.mm-hero) > .theme-doc-breadcrumbs,
+article:has(.mm-hero) > nav[aria-label*="readcrumb"],
+.theme-doc-markdown:has(.mm-hero) > div:first-child:has(nav[aria-label*="readcrumb"]),
+nav[aria-label*="readcrumb"]:has(~ .theme-doc-markdown .mm-hero) {
+  display: none;
+}
+
+/* Pages with a Hero: drop the article's top-padding so the hero band
+ * sits flush under the navbar. Hero and body content both fill the
+ * article column naturally (no width override needed). */
+.theme-doc-markdown:has(.mm-hero) {
+  padding-top: 0;
+}

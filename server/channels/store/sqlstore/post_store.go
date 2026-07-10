@@ -200,14 +200,14 @@ func (s *SqlPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*m
 		}
 
 		if currentChannelCount, ok := channelNewPosts[post.ChannelId]; !ok {
-			if post.IsJoinLeaveMessage() {
+			if post.ExcludesFromChannelMessageCount() {
 				channelNewPosts[post.ChannelId] = 0
 			} else {
 				channelNewPosts[post.ChannelId] = 1
 			}
 			maxDateNewPosts[post.ChannelId] = post.CreateAt
 		} else {
-			if !post.IsJoinLeaveMessage() {
+			if !post.ExcludesFromChannelMessageCount() {
 				channelNewPosts[post.ChannelId] = currentChannelCount + 1
 			}
 			if post.CreateAt > maxDateNewPosts[post.ChannelId] {
@@ -217,14 +217,14 @@ func (s *SqlPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*m
 
 		if post.RootId == "" {
 			if currentChannelCount, ok := channelNewRootPosts[post.ChannelId]; !ok {
-				if post.IsJoinLeaveMessage() {
+				if post.ExcludesFromChannelMessageCount() {
 					channelNewRootPosts[post.ChannelId] = 0
 				} else {
 					channelNewRootPosts[post.ChannelId] = 1
 				}
 				maxDateNewRootPosts[post.ChannelId] = post.CreateAt
 			} else {
-				if !post.IsJoinLeaveMessage() {
+				if !post.ExcludesFromChannelMessageCount() {
 					channelNewRootPosts[post.ChannelId] = currentChannelCount + 1
 				}
 				if post.CreateAt > maxDateNewRootPosts[post.ChannelId] {
@@ -1737,6 +1737,14 @@ func (s *SqlPostStore) getPostsAround(rctx request.CTX, before bool, options mod
 		sq.Eq{"p.ChannelId": options.ChannelId},
 	}
 
+	// Skip burn-on-read posts already expired for the user so pagination can page
+	// past a run of them instead of returning a window that filters to empty and
+	// looks like the end of the channel (MM-67500). Only applied when the feature
+	// is enabled, so there is no query overhead otherwise.
+	if options.ExcludeExpiredBurnOnReadPosts {
+		conditions = append(conditions, burnOnReadVisibleCondition("p", options.UserId))
+	}
+
 	if !options.IncludeDeleted {
 		replyCountSubQuery = replyCountSubQuery.Where(sq.Expr("Posts.DeleteAt = 0"))
 		conditions = append(conditions, sq.Eq{"p.DeleteAt": int(0)})
@@ -1841,6 +1849,73 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 	if err := s.GetMaster().GetBuilder(&postId, query); err != nil {
 		if err != sql.ErrNoRows {
 			return "", errors.Wrapf(err, "failed to get Post id with channelId=%s", channelId)
+		}
+	}
+
+	return postId, nil
+}
+
+// burnOnReadVisibleCondition returns a SQL condition that excludes burn-on-read
+// posts whose read receipt has already expired for the given user. Posts that are
+// not burn-on-read, are authored by the user, or have no expired receipt (no
+// receipt at all, which renders as a placeholder, or a receipt that is still
+// valid) are kept. Applying this in the query itself lets channel reads page past
+// an arbitrarily long run of expired burn-on-read posts in a single round trip,
+// instead of returning a window full of posts that are later filtered out.
+//
+// The Type check is intentionally first so that, for the overwhelmingly common
+// non-burn-on-read posts, the optimizer short-circuits and never evaluates the
+// ReadReceipts subquery. When userID is empty the condition is a no-op.
+func burnOnReadVisibleCondition(alias, userID string) sq.Sqlizer {
+	if userID == "" {
+		return sq.Eq{}
+	}
+	return sq.Expr(
+		"("+alias+".Type != ? OR "+alias+".UserId = ? OR NOT EXISTS ("+
+			"SELECT 1 FROM ReadReceipts rr "+
+			"WHERE rr.PostId = "+alias+".Id AND rr.UserId = ? AND rr.ExpireAt < ?"+
+			"))",
+		model.PostTypeBurnOnRead, userID, userID, model.GetMillis(),
+	)
+}
+
+// GetVisiblePostIdAroundTime finds the nearest post before or after the given
+// timestamp that is visible to the user, skipping over burn-on-read posts whose
+// read receipt has already expired for that user. Because the filtering happens
+// in a single query, any number of consecutive expired posts are skipped in one
+// round trip, so pagination cursors never point at a post the user can't see.
+func (s *SqlPostStore) GetVisiblePostIdAroundTime(channelId string, time int64, before bool, collapsedThreads bool, userId string) (string, error) {
+	var direction sq.Sqlizer
+	var sort string
+	if before {
+		direction = sq.Lt{"Posts.CreateAt": time}
+		sort = "DESC"
+	} else {
+		direction = sq.Gt{"Posts.CreateAt": time}
+		sort = "ASC"
+	}
+
+	conditions := sq.And{
+		direction,
+		sq.Eq{"Posts.ChannelId": channelId},
+		sq.Eq{"Posts.DeleteAt": int(0)},
+		burnOnReadVisibleCondition("Posts", userId),
+	}
+	if collapsedThreads {
+		conditions = append(conditions, sq.Eq{"Posts.RootId": ""})
+	}
+
+	query := s.getQueryBuilder().
+		Select("Posts.Id").
+		From("Posts").
+		Where(conditions).
+		OrderBy("Posts.CreateAt " + sort).
+		Limit(1)
+
+	var postId string
+	if err := s.GetMaster().GetBuilder(&postId, query); err != nil {
+		if err != sql.ErrNoRows {
+			return "", errors.Wrapf(err, "failed to get visible Post id with channelId=%s", channelId)
 		}
 	}
 
@@ -2217,6 +2292,12 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		// It also adds complexity as we would only need that index for CJK deployments.
 		baseQuery = s.buildCJKSearchClause(baseQuery, searchType, terms, excludedTerms, params.OrTerms)
 	} else {
+		// Preserve internal hyphens (e.g. "t-shirt") as compound-word searches,
+		// while neutralizing malformed hyphen usage that would otherwise be
+		// passed to to_tsquery.
+		terms = neutralizeNonWordHyphens(terms)
+		excludedTerms = neutralizeNonWordHyphens(excludedTerms)
+
 		// Parse text for wildcards
 		terms = wildCardRegex.ReplaceAllLiteralString(terms, ":* ")
 		excludedTerms = wildCardRegex.ReplaceAllLiteralString(excludedTerms, ":* ")

@@ -1,0 +1,2000 @@
+---
+title: "Audit Log JSON Schema"
+---
+<PlanAvailability slug="entry-ent" />
+
+The audit log JSON schema functions as a standardized blueprint or schematic that consistently defines how a single event should appear when being written to the audit log, including: field names, data types, objects, and structure.
+
+An outline of the JSON audit logging schema is provided below. See the [JSON data model](#json-data-model) for additional details.
+
+``` json
+{
+    "timestamp": "",       // Event time
+    "status": "",          // Success or failure of the audited event or activity
+    "event_name": "",      // Logged event name
+    "error": {             // Error if status = fail
+        "status_code": 0,
+        "description": ""
+    },
+    "actor": {             // The user performing the action
+        "user_id": ""           // Unique identifier of the event user
+        "session_id": ""        // Unique session identifier of the event user
+        "client": ""            // User agent of the client/platform in use by the event user
+        "ip_address": ""        // IPv4/IPv6 IP address of the event user
+    },
+    "event": {             // Event-specific data
+        "parameters": {}        // Map containing parameters of the audited event or activity
+        "prior_state": {}       // Pre-event state of the object
+        "resulting_state": {}   // Post-event state of the object
+        "object_type": ""       // Object targeted by the event or activity
+    },
+    "meta": {
+        "api_path": "",                    // API endpoint interacted with for event or activity
+        "cluster_id": ""                   // Unique identifier of the cluster in use by the event user
+        "non_channel_member_access": false // true if user accessed channel content without being a member (v11.5.0+)
+    }
+}
+```
+
+## Audit log record examples
+
+### Update user preferences
+
+``` json
+{
+    "timestamp": "2022-08-17 20:37:52.846 +01:00",
+    "event_name": "updatePreferences",
+    "status": "success",
+    "actor": {
+        "user_id": "aw8ehkwaziytzry1qqxi9tsqwh",
+        "session_id": "kth3jyadc3b1p84kbz6y3o75na",
+        "client": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6 Safari/605.1.15",
+        "ip_address": "192.168.0.169"
+    },
+    "event": {
+        "parameters": {},
+        "prior_state": {},
+        "resulting_state": {},
+        "object_type": ""
+    },
+    "meta": {
+        "api_path": "/api/v4/users/aw8ehkwaziytzry1qqxi9tsqwh/preferences",
+        "cluster_id": "8dxdbfx6fpdwtki1z6n8whtkho"
+    },
+    "error": {}
+}
+```
+
+### Create post
+
+``` json
+{
+    "timestamp": "2025-04-30 16:17:44.207 Z",
+    "event_name": "createPost",
+    "status": "success",
+    "actor": {
+        "user_id": "i764hi6h5bbz8p1955ed4ahj6y",
+        "session_id": "t7894ft76igtpb788nkkej1yoy",
+        "client": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+        "ip_address": "172.19.0.8"
+    },
+    "event": {
+        "parameters": {
+            "post": {
+                "channel_id": "pfis7ycuy78o7m3zebajmxqeuo",
+                "user_id": "i764hi6h5bbz8p1955ed4ahj6y",
+                "message": "Sample post content"
+            }
+        },
+        "prior_state": {},
+        "resulting_state": {
+            "channel_id": "pfis7ycuy78o7m3zebajmxqeuo",
+            "create_at": 1746029864145,
+            "id": "xpw97hf6kfncirzhqisb5sym7e",
+            "user_id": "i764hi6h5bbz8p1955ed4ahj6y"
+        },
+        "object_type": "post"
+    },
+    "meta": {
+        "api_path": "/api/v4/posts",
+        "cluster_id": "i5twhjm3ainatcifiy3oksshae"
+    },
+    "error": {}
+}
+```
+
+### System configuration change
+
+``` json
+{
+    "timestamp": "2025-04-30 16:18:30.803 Z",
+    "event_name": "patchConfig",
+    "status": "success",
+    "actor": {
+        "user_id": "i764hi6h5bbz8p1955ed4ahj6y",
+        "session_id": "t7894ft76igtpb788nkkej1yoy",
+        "client": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+        "ip_address": "172.19.0.8"
+    },
+    "event": {
+        "parameters": {},
+        "prior_state": {
+            "config_diffs": [
+                {
+                    "actual_val": false,
+                    "base_val": true,
+                    "path": "MetricsSettings.EnableClientMetrics"
+                }
+            ]
+        },
+        "resulting_state": {},
+        "object_type": "config"
+    },
+    "meta": {
+        "api_path": "/api/v4/config/patch",
+        "cluster_id": "i5twhjm3ainatcifiy3oksshae"
+    },
+    "error": {}
+}
+```
+
+## Audit event types
+
+The following tables list the comprehensive audit event types (`event_name` values) that are captured in Mattermost audit logs:
+
+### User Management Events
+
+<table style={{width: '88%'}}>
+<colgroup>
+<col style={{width: '31%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>attachDeviceId</code></td>
+<td>Attaching device IDs to user sessions</td>
+</tr>
+<tr>
+<td><code>createUser</code></td>
+<td>Creating new user accounts</td>
+</tr>
+<tr>
+<td><code>createUserAccessToken</code></td>
+<td>Creating user access tokens</td>
+</tr>
+<tr>
+<td><code>deleteUser</code></td>
+<td>Deleting user accounts</td>
+</tr>
+<tr>
+<td><code>demoteUserToGuest</code></td>
+<td>Demoting users to guest status</td>
+</tr>
+<tr>
+<td><code>disableUserAccessToken</code></td>
+<td>Disabling user access tokens</td>
+</tr>
+<tr>
+<td><code>enableUserAccessToken</code></td>
+<td>Enabling user access tokens</td>
+</tr>
+<tr>
+<td><code>followThreadByUser</code></td>
+<td>Following message threads by user</td>
+</tr>
+<tr>
+<td><code>getUserAudits</code></td>
+<td>Retrieving user audit logs</td>
+</tr>
+<tr>
+<td><code>login</code></td>
+<td>User login events</td>
+</tr>
+<tr>
+<td><code>logout</code></td>
+<td>User logout events</td>
+</tr>
+<tr>
+<td><code>migrateAuthToLdap</code></td>
+<td>Migrating user authentication to LDAP</td>
+</tr>
+<tr>
+<td><code>migrateAuthToSaml</code></td>
+<td>Migrating user authentication to SAML</td>
+</tr>
+<tr>
+<td><code>patchUser</code></td>
+<td>Updating user properties</td>
+</tr>
+<tr>
+<td><code>promoteGuestToUser</code></td>
+<td>Promoting guest users to regular users</td>
+</tr>
+<tr>
+<td><code>resetPassword</code></td>
+<td>Resetting user passwords</td>
+</tr>
+<tr>
+<td><code>resetPasswordFailedAttempts</code></td>
+<td>Resetting password failed attempt counters</td>
+</tr>
+<tr>
+<td><code>revokeUserAccessToken</code></td>
+<td>Revoking user access tokens</td>
+</tr>
+<tr>
+<td><code>sendPasswordReset</code></td>
+<td>Sending password reset emails</td>
+</tr>
+<tr>
+<td><code>sendVerificationEmail</code></td>
+<td>Sending email verification messages</td>
+</tr>
+<tr>
+<td><code>setDefaultProfileImage</code></td>
+<td>Setting default profile images</td>
+</tr>
+<tr>
+<td><code>setProfileImage</code></td>
+<td>Setting custom profile images</td>
+</tr>
+<tr>
+<td><code>setUnreadThreadByPostId</code></td>
+<td>Setting unread thread status by post ID</td>
+</tr>
+<tr>
+<td><code>switchAccountType</code></td>
+<td>Switching account types</td>
+</tr>
+<tr>
+<td><code>unfollowThreadByUser</code></td>
+<td>Unfollowing message threads by user</td>
+</tr>
+<tr>
+<td><code>updatePassword</code></td>
+<td>Updating user passwords</td>
+</tr>
+<tr>
+<td><code>updateReadStateAllThreadsByUser</code></td>
+<td>Updating read state for all threads by user</td>
+</tr>
+<tr>
+<td><code>updateReadStateThreadByUser</code></td>
+<td>Updating read state for specific threads by user</td>
+</tr>
+<tr>
+<td><code>updateUser</code></td>
+<td>Updating user account information</td>
+</tr>
+<tr>
+<td><code>updateUserActive</code></td>
+<td>Updating user active/inactive status</td>
+</tr>
+<tr>
+<td><code>updateUserAuth</code></td>
+<td>Updating user authentication settings</td>
+</tr>
+<tr>
+<td><code>updateUserMfa</code></td>
+<td>Updating user multi-factor authentication</td>
+</tr>
+<tr>
+<td><code>updateUserRoles</code></td>
+<td>Updating user roles and permissions</td>
+</tr>
+<tr>
+<td><code>verifyUserEmail</code></td>
+<td>Verifying user email addresses</td>
+</tr>
+<tr>
+<td><code>verifyUserEmailWithoutToken</code></td>
+<td>Verifying user email without token</td>
+</tr>
+</tbody>
+</table>
+
+### Channel Management Events
+
+<table style={{width: '88%'}}>
+<colgroup>
+<col style={{width: '30%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>addChannelMember</code></td>
+<td>Adding members to channels</td>
+</tr>
+<tr>
+<td><code>convertGroupMessageToChannel</code></td>
+<td>Converting group messages to channels</td>
+</tr>
+<tr>
+<td><code>createChannel</code></td>
+<td>Creating new channels</td>
+</tr>
+<tr>
+<td><code>createChannelBookmark</code></td>
+<td>Creating channel bookmarks</td>
+</tr>
+<tr>
+<td><code>createDirectChannel</code></td>
+<td>Creating direct message channels</td>
+</tr>
+<tr>
+<td><code>createGroupChannel</code></td>
+<td>Creating group message channels</td>
+</tr>
+<tr>
+<td><code>deleteChannel</code></td>
+<td>Deleting channels</td>
+</tr>
+<tr>
+<td><code>deleteChannelBookmark</code></td>
+<td>Deleting channel bookmarks</td>
+</tr>
+<tr>
+<td><code>moveChannel</code></td>
+<td>Moving channels between teams</td>
+</tr>
+<tr>
+<td><code>patchChannel</code></td>
+<td>Updating channel properties</td>
+</tr>
+<tr>
+<td><code>patchChannelModerations</code></td>
+<td>Updating channel moderation settings</td>
+</tr>
+<tr>
+<td><code>removeChannelMember</code></td>
+<td>Removing members from channels</td>
+</tr>
+<tr>
+<td><code>restoreChannel</code></td>
+<td>Restoring deleted channels</td>
+</tr>
+<tr>
+<td><code>updateChannel</code></td>
+<td>Updating channel information</td>
+</tr>
+<tr>
+<td><code>updateChannelBookmark</code></td>
+<td>Updating channel bookmarks</td>
+</tr>
+<tr>
+<td><code>updateChannelBookmarkSortOrder</code></td>
+<td>Updating channel bookmark sort order</td>
+</tr>
+<tr>
+<td><code>updateChannelMemberNotifyProps</code></td>
+<td>Updating channel member notification properties</td>
+</tr>
+<tr>
+<td><code>updateChannelMemberRoles</code></td>
+<td>Updating channel member roles</td>
+</tr>
+<tr>
+<td><code>updateChannelMemberSchemeRoles</code></td>
+<td>Updating channel member scheme roles</td>
+</tr>
+<tr>
+<td><code>updateChannelPrivacy</code></td>
+<td>Updating channel privacy settings</td>
+</tr>
+<tr>
+<td><code>updateChannelScheme</code></td>
+<td>Updating channel permission schemes</td>
+</tr>
+</tbody>
+</table>
+
+### Team Management Events
+
+<table style={{width: '85%'}}>
+<colgroup>
+<col style={{width: '28%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>addTeamMember</code></td>
+<td>Adding members to teams</td>
+</tr>
+<tr>
+<td><code>addTeamMembers</code></td>
+<td>Adding multiple members to teams</td>
+</tr>
+<tr>
+<td><code>addUserToTeamFromInvite</code></td>
+<td>Adding users to teams from invitations</td>
+</tr>
+<tr>
+<td><code>createTeam</code></td>
+<td>Creating new teams</td>
+</tr>
+<tr>
+<td><code>deleteTeam</code></td>
+<td>Deleting teams</td>
+</tr>
+<tr>
+<td><code>importTeam</code></td>
+<td>Importing team data</td>
+</tr>
+<tr>
+<td><code>invalidateAllEmailInvites</code></td>
+<td>Invalidating all email invitations</td>
+</tr>
+<tr>
+<td><code>inviteGuestsToChannels</code></td>
+<td>Inviting guests to channels</td>
+</tr>
+<tr>
+<td><code>inviteUsersToTeam</code></td>
+<td>Inviting users to teams</td>
+</tr>
+<tr>
+<td><code>patchTeam</code></td>
+<td>Updating team properties</td>
+</tr>
+<tr>
+<td><code>regenerateTeamInviteId</code></td>
+<td>Regenerating team invitation IDs</td>
+</tr>
+<tr>
+<td><code>removeTeamIcon</code></td>
+<td>Removing team icons</td>
+</tr>
+<tr>
+<td><code>removeTeamMember</code></td>
+<td>Removing members from teams</td>
+</tr>
+<tr>
+<td><code>restoreTeam</code></td>
+<td>Restoring deleted teams</td>
+</tr>
+<tr>
+<td><code>setTeamIcon</code></td>
+<td>Setting team icons</td>
+</tr>
+<tr>
+<td><code>updateTeam</code></td>
+<td>Updating team information</td>
+</tr>
+<tr>
+<td><code>updateTeamMemberRoles</code></td>
+<td>Updating team member roles</td>
+</tr>
+<tr>
+<td><code>updateTeamMemberSchemeRoles</code></td>
+<td>Updating team member scheme roles</td>
+</tr>
+<tr>
+<td><code>updateTeamPrivacy</code></td>
+<td>Updating team privacy settings</td>
+</tr>
+<tr>
+<td><code>updateTeamScheme</code></td>
+<td>Updating team permission schemes</td>
+</tr>
+</tbody>
+</table>
+
+### Posts & Content Events
+
+<table style={{width: '83%'}}>
+<colgroup>
+<col style={{width: '26%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>createPost</code></td>
+<td>Creating new posts</td>
+</tr>
+<tr>
+<td><code>createSchedulePost</code></td>
+<td>Creating scheduled posts</td>
+</tr>
+<tr>
+<td><code>deletePost</code></td>
+<td>Deleting posts</td>
+</tr>
+<tr>
+<td><code>deleteScheduledPost</code></td>
+<td>Deleting scheduled posts</td>
+</tr>
+<tr>
+<td><code>moveThread</code></td>
+<td>Moving message threads</td>
+</tr>
+<tr>
+<td><code>patchPost</code></td>
+<td>Updating post properties</td>
+</tr>
+<tr>
+<td><code>restorePostVersion</code></td>
+<td>Restoring previous post versions</td>
+</tr>
+<tr>
+<td><code>saveIsPinnedPost</code></td>
+<td>Saving pinned post status</td>
+</tr>
+<tr>
+<td><code>searchPosts</code></td>
+<td>Searching through posts</td>
+</tr>
+<tr>
+<td><code>updatePost</code></td>
+<td>Updating post content</td>
+</tr>
+<tr>
+<td><code>updateScheduledPost</code></td>
+<td>Updating scheduled posts</td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+From Mattermost v11.5.0, audit log entries for posts and content access events include a `non_channel_member_access` field in the `meta` object. When a user accesses posts or content in a channel they are not a member of, this field is set to `true`. Admins can use this indicator to identify and review unauthorized or unexpected content access in their audit logs.
+
+</Note>
+
+### Authentication and Security Events
+
+<table style={{width: '86%'}}>
+<colgroup>
+<col style={{width: '29%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>addLdapPrivateCertificate</code></td>
+<td>Adding LDAP private certificates</td>
+</tr>
+<tr>
+<td><code>addLdapPublicCertificate</code></td>
+<td>Adding LDAP public certificates</td>
+</tr>
+<tr>
+<td><code>addSamlIdpCertificate</code></td>
+<td>Adding SAML IDP certificates</td>
+</tr>
+<tr>
+<td><code>addSamlPrivateCertificate</code></td>
+<td>Adding SAML private certificates</td>
+</tr>
+<tr>
+<td><code>addSamlPublicCertificate</code></td>
+<td>Adding SAML public certificates</td>
+</tr>
+<tr>
+<td><code>completeSaml</code></td>
+<td>Completing SAML authentication</td>
+</tr>
+<tr>
+<td><code>extendSessionExpiry</code></td>
+<td>Extending session expiry times</td>
+</tr>
+<tr>
+<td><code>idMigrateLdap</code></td>
+<td>Migrating IDs to LDAP</td>
+</tr>
+<tr>
+<td><code>linkLdapGroup</code></td>
+<td>Linking LDAP groups</td>
+</tr>
+<tr>
+<td><code>removeLdapPrivateCertificate</code></td>
+<td>Removing LDAP private certificates</td>
+</tr>
+<tr>
+<td><code>removeLdapPublicCertificate</code></td>
+<td>Removing LDAP public certificates</td>
+</tr>
+<tr>
+<td><code>removeSamlIdpCertificate</code></td>
+<td>Removing SAML IDP certificates</td>
+</tr>
+<tr>
+<td><code>removeSamlPrivateCertificate</code></td>
+<td>Removing SAML private certificates</td>
+</tr>
+<tr>
+<td><code>removeSamlPublicCertificate</code></td>
+<td>Removing SAML public certificates</td>
+</tr>
+<tr>
+<td><code>revokeAllSessionsAllUsers</code></td>
+<td>Revoking all sessions for all users</td>
+</tr>
+<tr>
+<td><code>revokeAllSessionsForUser</code></td>
+<td>Revoking all sessions for specific user</td>
+</tr>
+<tr>
+<td><code>revokeSession</code></td>
+<td>Revoking individual sessions</td>
+</tr>
+<tr>
+<td><code>syncLdap</code></td>
+<td>Synchronizing LDAP data</td>
+</tr>
+<tr>
+<td><code>unlinkLdapGroup</code></td>
+<td>Unlinking LDAP groups</td>
+</tr>
+</tbody>
+</table>
+
+### System Administration Events
+
+<table style={{width: '84%'}}>
+<colgroup>
+<col style={{width: '27%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>clearServerBusy</code></td>
+<td>Clearing server busy status</td>
+</tr>
+<tr>
+<td><code>completeOnboarding</code></td>
+<td>Completing system onboarding</td>
+</tr>
+<tr>
+<td><code>configReload</code></td>
+<td>Reloading system configuration</td>
+</tr>
+<tr>
+<td><code>databaseRecycle</code></td>
+<td>Recycling database connections</td>
+</tr>
+<tr>
+<td><code>downloadLogs</code></td>
+<td>Downloading system logs</td>
+</tr>
+<tr>
+<td><code>getAppliedSchemaMigrations</code></td>
+<td>Getting applied schema migrations</td>
+</tr>
+<tr>
+<td><code>getAudits</code></td>
+<td>Retrieving audit logs</td>
+</tr>
+<tr>
+<td><code>getConfig</code></td>
+<td>Getting system configuration</td>
+</tr>
+<tr>
+<td><code>getLogs</code></td>
+<td>Getting system logs</td>
+</tr>
+<tr>
+<td><code>getOnboarding</code></td>
+<td>Getting onboarding status</td>
+</tr>
+<tr>
+<td><code>invalidateCaches</code></td>
+<td>Invalidating system caches</td>
+</tr>
+<tr>
+<td><code>migrateConfig</code></td>
+<td>Migrating configuration</td>
+</tr>
+<tr>
+<td><code>patchConfig</code></td>
+<td>Updating configuration properties</td>
+</tr>
+<tr>
+<td><code>queryLogs</code></td>
+<td>Querying system logs</td>
+</tr>
+<tr>
+<td><code>restartServer</code></td>
+<td>Restarting server</td>
+</tr>
+<tr>
+<td><code>setServerBusy</code></td>
+<td>Setting server busy status</td>
+</tr>
+<tr>
+<td><code>updateConfig</code></td>
+<td>Updating system configuration</td>
+</tr>
+<tr>
+<td><code>updateViewedProductNotices</code></td>
+<td>Updating viewed product notices</td>
+</tr>
+<tr>
+<td><code>upgradeToEnterprise</code></td>
+<td>Upgrading to Enterprise edition</td>
+</tr>
+</tbody>
+</table>
+
+### File Management Events
+
+<table style={{width: '83%'}}>
+<colgroup>
+<col style={{width: '26%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>createUpload</code></td>
+<td>Creating file uploads</td>
+</tr>
+<tr>
+<td><code>getFile</code></td>
+<td>Retrieving files</td>
+</tr>
+<tr>
+<td><code>getFileLink</code></td>
+<td>Getting file links</td>
+</tr>
+<tr>
+<td><code>uploadData</code></td>
+<td>Uploading data</td>
+</tr>
+<tr>
+<td><code>uploadFileMultipart</code></td>
+<td>Uploading multipart files</td>
+</tr>
+<tr>
+<td><code>uploadFileMultipartLegacy</code></td>
+<td>Uploading legacy multipart files</td>
+</tr>
+<tr>
+<td><code>uploadFileSimple</code></td>
+<td>Uploading simple files</td>
+</tr>
+</tbody>
+</table>
+
+### OAuth Applications Events
+
+<table style={{width: '83%'}}>
+<colgroup>
+<col style={{width: '26%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>authorizeOAuthApp</code></td>
+<td>Authorizing OAuth applications</td>
+</tr>
+<tr>
+<td><code>authorizeOAuthPage</code></td>
+<td>OAuth authorization page access</td>
+</tr>
+<tr>
+<td><code>completeOAuth</code></td>
+<td>Completing OAuth flow</td>
+</tr>
+<tr>
+<td><code>createOAuthApp</code></td>
+<td>Creating OAuth applications</td>
+</tr>
+<tr>
+<td><code>deauthorizeOAuthApp</code></td>
+<td>Deauthorizing OAuth applications</td>
+</tr>
+<tr>
+<td><code>deleteOAuthApp</code></td>
+<td>Deleting OAuth applications</td>
+</tr>
+<tr>
+<td><code>getAccessToken</code></td>
+<td>Getting OAuth access tokens</td>
+</tr>
+<tr>
+<td><code>loginWithOAuth</code></td>
+<td>Login with OAuth</td>
+</tr>
+<tr>
+<td><code>mobileLoginWithOAuth</code></td>
+<td>Mobile login with OAuth</td>
+</tr>
+<tr>
+<td><code>regenerateOAuthAppSecret</code></td>
+<td>Regenerating OAuth app secrets</td>
+</tr>
+<tr>
+<td><code>signupWithOAuth</code></td>
+<td>Signup with OAuth</td>
+</tr>
+<tr>
+<td><code>updateOAuthApp</code></td>
+<td>Updating OAuth applications</td>
+</tr>
+</tbody>
+</table>
+
+### Webhooks Events
+
+<table style={{width: '83%'}}>
+<colgroup>
+<col style={{width: '26%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>createIncomingHook</code></td>
+<td>Creating incoming webhooks</td>
+</tr>
+<tr>
+<td><code>createOutgoingHook</code></td>
+<td>Creating outgoing webhooks</td>
+</tr>
+<tr>
+<td><code>deleteIncomingHook</code></td>
+<td>Deleting incoming webhooks</td>
+</tr>
+<tr>
+<td><code>deleteOutgoingHook</code></td>
+<td>Deleting outgoing webhooks</td>
+</tr>
+<tr>
+<td><code>getIncomingHook</code></td>
+<td>Getting incoming webhooks</td>
+</tr>
+<tr>
+<td><code>getOutgoingHook</code></td>
+<td>Getting outgoing webhooks</td>
+</tr>
+<tr>
+<td><code>regenOutgoingHookToken</code></td>
+<td>Regenerating outgoing webhook tokens</td>
+</tr>
+<tr>
+<td><code>updateIncomingHook</code></td>
+<td>Updating incoming webhooks</td>
+</tr>
+<tr>
+<td><code>updateOutgoingHook</code></td>
+<td>Updating outgoing webhooks</td>
+</tr>
+</tbody>
+</table>
+
+### Slash Commands Events
+
+<table style={{width: '83%'}}>
+<colgroup>
+<col style={{width: '26%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>createCommand</code></td>
+<td>Creating slash commands</td>
+</tr>
+<tr>
+<td><code>deleteCommand</code></td>
+<td>Deleting slash commands</td>
+</tr>
+<tr>
+<td><code>executeCommand</code></td>
+<td>Executing slash commands</td>
+</tr>
+<tr>
+<td><code>moveCommand</code></td>
+<td>Moving slash commands</td>
+</tr>
+<tr>
+<td><code>regenCommandToken</code></td>
+<td>Regenerating command tokens</td>
+</tr>
+<tr>
+<td><code>updateCommand</code></td>
+<td>Updating slash commands</td>
+</tr>
+</tbody>
+</table>
+
+### Plugins Events
+
+<table style={{width: '92%'}}>
+<colgroup>
+<col style={{width: '35%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>disablePlugin</code></td>
+<td>Disabling plugins</td>
+</tr>
+<tr>
+<td><code>enablePlugin</code></td>
+<td>Enabling plugins</td>
+</tr>
+<tr>
+<td><code>getFirstAdminVisitMarketplaceStatus</code></td>
+<td>Getting first admin visit marketplace status</td>
+</tr>
+<tr>
+<td><code>installMarketplacePlugin</code></td>
+<td>Installing marketplace plugins</td>
+</tr>
+<tr>
+<td><code>installPluginFromURL</code></td>
+<td>Installing plugins from URL</td>
+</tr>
+<tr>
+<td><code>removePlugin</code></td>
+<td>Removing plugins</td>
+</tr>
+<tr>
+<td><code>setFirstAdminVisitMarketplaceStatus</code></td>
+<td>Setting first admin visit marketplace status</td>
+</tr>
+<tr>
+<td><code>uploadPlugin</code></td>
+<td>Uploading plugins</td>
+</tr>
+</tbody>
+</table>
+
+### Groups & LDAP Events
+
+<table style={{width: '83%'}}>
+<colgroup>
+<col style={{width: '26%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>addGroupMembers</code></td>
+<td>Adding members to groups</td>
+</tr>
+<tr>
+<td><code>addUserToGroupSyncables</code></td>
+<td>Adding users to group syncables</td>
+</tr>
+<tr>
+<td><code>createGroup</code></td>
+<td>Creating new groups</td>
+</tr>
+<tr>
+<td><code>deleteGroup</code></td>
+<td>Deleting groups</td>
+</tr>
+<tr>
+<td><code>deleteGroupMembers</code></td>
+<td>Removing members from groups</td>
+</tr>
+<tr>
+<td><code>linkGroupSyncable</code></td>
+<td>Linking group syncables to teams/channels</td>
+</tr>
+<tr>
+<td><code>patchGroup</code></td>
+<td>Updating group properties</td>
+</tr>
+<tr>
+<td><code>patchGroupSyncable</code></td>
+<td>Updating group syncable properties</td>
+</tr>
+<tr>
+<td><code>restoreGroup</code></td>
+<td>Restoring deleted groups</td>
+</tr>
+<tr>
+<td><code>unlinkGroupSyncable</code></td>
+<td>Unlinking group syncables from teams/channels</td>
+</tr>
+</tbody>
+</table>
+
+### Remote Clusters Events
+
+<table style={{width: '88%'}}>
+<colgroup>
+<col style={{width: '30%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>createRemoteCluster</code></td>
+<td>Creating remote cluster connections</td>
+</tr>
+<tr>
+<td><code>deleteRemoteCluster</code></td>
+<td>Deleting remote cluster connections</td>
+</tr>
+<tr>
+<td><code>generateRemoteClusterInvite</code></td>
+<td>Generating invites for remote clusters</td>
+</tr>
+<tr>
+<td><code>inviteRemoteClusterToChannel</code></td>
+<td>Inviting remote clusters to channels</td>
+</tr>
+<tr>
+<td><code>patchRemoteCluster</code></td>
+<td>Updating remote cluster properties</td>
+</tr>
+<tr>
+<td><code>remoteClusterAcceptInvite</code></td>
+<td>Accepting remote cluster invites</td>
+</tr>
+<tr>
+<td><code>remoteClusterAcceptMessage</code></td>
+<td>Accepting messages from remote clusters</td>
+</tr>
+<tr>
+<td><code>remoteUploadProfileImage</code></td>
+<td>Uploading profile images from remote clusters</td>
+</tr>
+<tr>
+<td><code>uninviteRemoteClusterToChannel</code></td>
+<td>Removing remote cluster invites from channels</td>
+</tr>
+<tr>
+<td><code>uploadRemoteData</code></td>
+<td>Uploading data from remote clusters</td>
+</tr>
+</tbody>
+</table>
+
+### Data Retention Events
+
+<table style={{width: '83%'}}>
+<colgroup>
+<col style={{width: '26%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>addChannelsToPolicy</code></td>
+<td>Adding channels to data retention policies</td>
+</tr>
+<tr>
+<td><code>addTeamsToPolicy</code></td>
+<td>Adding teams to data retention policies</td>
+</tr>
+<tr>
+<td><code>createPolicy</code></td>
+<td>Creating data retention policies</td>
+</tr>
+<tr>
+<td><code>deletePolicy</code></td>
+<td>Deleting data retention policies</td>
+</tr>
+<tr>
+<td><code>patchPolicy</code></td>
+<td>Updating data retention policies</td>
+</tr>
+<tr>
+<td><code>removeChannelsFromPolicy</code></td>
+<td>Removing channels from data retention policies</td>
+</tr>
+<tr>
+<td><code>removeTeamsFromPolicy</code></td>
+<td>Removing teams from data retention policies</td>
+</tr>
+</tbody>
+</table>
+
+### Jobs Events
+
+<table style={{width: '83%'}}>
+<colgroup>
+<col style={{width: '26%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cancelJob</code></td>
+<td>Canceling background jobs</td>
+</tr>
+<tr>
+<td><code>createJob</code></td>
+<td>Creating new background jobs</td>
+</tr>
+<tr>
+<td><code>jobServer</code></td>
+<td>Job server operations</td>
+</tr>
+<tr>
+<td><code>updateJobStatus</code></td>
+<td>Updating job status/progress</td>
+</tr>
+</tbody>
+</table>
+
+### Licensing Events
+
+<table style={{width: '83%'}}>
+<colgroup>
+<col style={{width: '26%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>addLicense</code></td>
+<td>Adding enterprise licenses</td>
+</tr>
+<tr>
+<td><code>localAddLicense</code></td>
+<td>Local license addition (cluster mode)</td>
+</tr>
+<tr>
+<td><code>localRemoveLicense</code></td>
+<td>Local license removal (cluster mode)</td>
+</tr>
+<tr>
+<td><code>removeLicense</code></td>
+<td>Removing enterprise licenses</td>
+</tr>
+<tr>
+<td><code>requestTrialLicense</code></td>
+<td>Requesting trial licenses</td>
+</tr>
+</tbody>
+</table>
+
+### Bot Management Events
+
+<table style={{width: '83%'}}>
+<colgroup>
+<col style={{width: '26%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>assignBot</code></td>
+<td>Assigning bots to users</td>
+</tr>
+<tr>
+<td><code>convertBotToUser</code></td>
+<td>Converting bot accounts to user accounts</td>
+</tr>
+<tr>
+<td><code>convertUserToBot</code></td>
+<td>Converting user accounts to bot accounts</td>
+</tr>
+<tr>
+<td><code>createBot</code></td>
+<td>Creating new bot accounts</td>
+</tr>
+<tr>
+<td><code>patchBot</code></td>
+<td>Updating bot account properties</td>
+</tr>
+<tr>
+<td><code>updateBotActive</code></td>
+<td>Updating bot account active/inactive status</td>
+</tr>
+</tbody>
+</table>
+
+### Custom Emojis Events
+
+<table style={{width: '83%'}}>
+<colgroup>
+<col style={{width: '26%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>createEmoji</code></td>
+<td>Creating custom emojis</td>
+</tr>
+<tr>
+<td><code>deleteEmoji</code></td>
+<td>Deleting custom emojis</td>
+</tr>
+</tbody>
+</table>
+
+### Branding Events
+
+<table style={{width: '83%'}}>
+<colgroup>
+<col style={{width: '26%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>deleteBrandImage</code></td>
+<td>Deleting brand images</td>
+</tr>
+<tr>
+<td><code>uploadBrandImage</code></td>
+<td>Uploading brand images</td>
+</tr>
+</tbody>
+</table>
+
+### Search Events
+
+<table style={{width: '83%'}}>
+<colgroup>
+<col style={{width: '26%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>purgeBleveIndexes</code></td>
+<td>Purging Bleve search indexes</td>
+</tr>
+<tr>
+<td><code>purgeElasticsearchIndexes</code></td>
+<td>Purging Elasticsearch search indexes</td>
+</tr>
+</tbody>
+</table>
+
+### Roles and Schemes Events
+
+<table style={{width: '83%'}}>
+<colgroup>
+<col style={{width: '26%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>createScheme</code></td>
+<td>Creating permission schemes</td>
+</tr>
+<tr>
+<td><code>deleteScheme</code></td>
+<td>Deleting permission schemes</td>
+</tr>
+<tr>
+<td><code>patchRole</code></td>
+<td>Updating role permissions</td>
+</tr>
+<tr>
+<td><code>patchScheme</code></td>
+<td>Updating permission schemes</td>
+</tr>
+</tbody>
+</table>
+
+### Preferences Events
+
+<table style={{width: '83%'}}>
+<colgroup>
+<col style={{width: '26%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>deletePreferences</code></td>
+<td>Deleting user preferences</td>
+</tr>
+<tr>
+<td><code>updatePreferences</code></td>
+<td>Updating user preferences</td>
+</tr>
+</tbody>
+</table>
+
+### Channel Categories Events
+
+<table style={{width: '90%'}}>
+<colgroup>
+<col style={{width: '26%'}} />
+<col style={{width: '6%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th colspan="3"><strong>Event Name</strong> | <strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td colspan="3"><code>createCategoryForTeamForUser</code> | Creating channel categories for users</td>
+</tr>
+<tr>
+<td colspan="2"><code>deleteCategoryForTeamForUser</code></td>
+<td>Deleting channel categories for users</td>
+</tr>
+<tr>
+<td colspan="2"><code>updateCategoriesForTeamForUser</code></td>
+<td>Updating multiple channel categories for users</td>
+</tr>
+<tr>
+<td colspan="2"><code>updateCategoryForTeamForUser</code></td>
+<td>Updating single channel category for users</td>
+</tr>
+<tr>
+<td colspan="2"><code>updateCategoryOrderForTeamForUser</code></td>
+<td>Updating channel category order for users</td>
+</tr>
+</tbody>
+</table>
+
+### Export and Import Events
+
+<table style={{width: '83%'}}>
+<colgroup>
+<col style={{width: '26%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>bulkExport</code></td>
+<td>Bulk data export operations</td>
+</tr>
+<tr>
+<td><code>bulkImport</code></td>
+<td>Bulk data import operations</td>
+</tr>
+<tr>
+<td><code>deleteExport</code></td>
+<td>Deleting export files</td>
+</tr>
+<tr>
+<td><code>deleteImport</code></td>
+<td>Deleting import files</td>
+</tr>
+<tr>
+<td><code>generatePresignURLExport</code></td>
+<td>Generating presigned URLs for exports</td>
+</tr>
+<tr>
+<td><code>scheduleExport</code></td>
+<td>Scheduling export operations</td>
+</tr>
+<tr>
+<td><code>slackImport</code></td>
+<td>Slack data import operations</td>
+</tr>
+</tbody>
+</table>
+
+### Access Control Events
+
+<table style={{width: '83%'}}>
+<colgroup>
+<col style={{width: '26%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>applyIPFilters</code></td>
+<td>Applying IP filtering rules</td>
+</tr>
+<tr>
+<td><code>assignAccessPolicy</code></td>
+<td>Assigning access policies to users/teams</td>
+</tr>
+<tr>
+<td><code>createAccessControlPolicy</code></td>
+<td>Creating new access control policies</td>
+</tr>
+<tr>
+<td><code>deleteAccessControlPolicy</code></td>
+<td>Deleting access control policies</td>
+</tr>
+<tr>
+<td><code>unassignAccessPolicy</code></td>
+<td>Unassigning access policies from users/teams</td>
+</tr>
+<tr>
+<td><code>updateActiveStatus</code></td>
+<td>Updating active status of access control policies</td>
+</tr>
+</tbody>
+</table>
+
+### User Attributes Events
+
+<table style={{width: '83%'}}>
+<colgroup>
+<col style={{width: '26%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>createCPAField</code></td>
+<td>Creating custom profile attribute fields</td>
+</tr>
+<tr>
+<td><code>deleteCPAField</code></td>
+<td>Deleting custom profile attribute fields</td>
+</tr>
+<tr>
+<td><code>patchCPAField</code></td>
+<td>Updating custom profile attribute fields</td>
+</tr>
+<tr>
+<td><code>patchCPAValues</code></td>
+<td>Updating custom profile attribute values</td>
+</tr>
+</tbody>
+</table>
+
+### Outgoing OAuth Connections Events
+
+<table style={{width: '98%'}}>
+<colgroup>
+<col style={{width: '40%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>createOutgoingOauthConnection</code></td>
+<td>Creating outgoing OAuth connections</td>
+</tr>
+<tr>
+<td><code>deleteOutgoingOAuthConnection</code></td>
+<td>Deleting outgoing OAuth connections</td>
+</tr>
+<tr>
+<td><code>updateOutgoingOAuthConnection</code></td>
+<td>Updating outgoing OAuth connections</td>
+</tr>
+<tr>
+<td><code>validateOutgoingOAuthConnectionCredentials</code></td>
+<td>Validating outgoing OAuth connection credentials</td>
+</tr>
+</tbody>
+</table>
+
+### Terms of Service Events
+
+<table style={{width: '83%'}}>
+<colgroup>
+<col style={{width: '26%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>createTermsOfService</code></td>
+<td>Creating terms of service</td>
+</tr>
+<tr>
+<td><code>saveUserTermsOfService</code></td>
+<td>Saving user acceptance of terms of service</td>
+</tr>
+</tbody>
+</table>
+
+### Compliance and Audit Events
+
+<table style={{width: '83%'}}>
+<colgroup>
+<col style={{width: '26%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>addAuditLogCertificate</code></td>
+<td>Adding audit log certificates</td>
+</tr>
+<tr>
+<td><code>createComplianceReport</code></td>
+<td>Creating compliance reports</td>
+</tr>
+<tr>
+<td><code>downloadComplianceReport</code></td>
+<td>Downloading compliance reports</td>
+</tr>
+<tr>
+<td><code>getComplianceReport</code></td>
+<td>Getting compliance reports</td>
+</tr>
+<tr>
+<td><code>getComplianceReports</code></td>
+<td>Getting multiple compliance reports</td>
+</tr>
+<tr>
+<td><code>removeAuditLogCertificate</code></td>
+<td>Removing audit log certificates</td>
+</tr>
+</tbody>
+</table>
+
+### Local Operations Events
+
+<table style={{width: '86%'}}>
+<colgroup>
+<col style={{width: '29%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>localCheckIntegrity</code></td>
+<td>Local integrity checks</td>
+</tr>
+<tr>
+<td><code>localCreateChannel</code></td>
+<td>Local channel creation</td>
+</tr>
+<tr>
+<td><code>localCreateCommand</code></td>
+<td>Local command creation</td>
+</tr>
+<tr>
+<td><code>localCreateIncomingHook</code></td>
+<td>Local incoming webhook creation</td>
+</tr>
+<tr>
+<td><code>localCreateTeam</code></td>
+<td>Local team creation</td>
+</tr>
+<tr>
+<td><code>localDeleteChannel</code></td>
+<td>Local channel deletion</td>
+</tr>
+<tr>
+<td><code>localDeletePost</code></td>
+<td>Local post deletion</td>
+</tr>
+<tr>
+<td><code>localDeleteTeam</code></td>
+<td>Local team deletion</td>
+</tr>
+<tr>
+<td><code>localDeleteUser</code></td>
+<td>Local user deletion</td>
+</tr>
+<tr>
+<td><code>localGetClientConfig</code></td>
+<td>Local client configuration retrieval</td>
+</tr>
+<tr>
+<td><code>localGetConfig</code></td>
+<td>Local configuration retrieval</td>
+</tr>
+<tr>
+<td><code>localInviteUsersToTeam</code></td>
+<td>Local user invitation to teams</td>
+</tr>
+<tr>
+<td><code>localMoveChannel</code></td>
+<td>Local channel moving</td>
+</tr>
+<tr>
+<td><code>localPatchChannel</code></td>
+<td>Local channel patching</td>
+</tr>
+<tr>
+<td><code>localPatchConfig</code></td>
+<td>Local configuration patching</td>
+</tr>
+<tr>
+<td><code>localPermanentDeleteAllUsers</code></td>
+<td>Local permanent deletion of all users</td>
+</tr>
+<tr>
+<td><code>localRemoveChannelMember</code></td>
+<td>Local channel member removal</td>
+</tr>
+<tr>
+<td><code>localRestoreChannel</code></td>
+<td>Local channel restoration</td>
+</tr>
+<tr>
+<td><code>localUpdateChannelPrivacy</code></td>
+<td>Local channel privacy update</td>
+</tr>
+<tr>
+<td><code>localUpdateConfig</code></td>
+<td>Local configuration update</td>
+</tr>
+</tbody>
+</table>
+
+### AI Recap Events
+
+Recap events include a `channel_id` in the event parameters, indicating which channel's content was accessed during the recap operation. Use this field when reviewing audit logs for compliance or access monitoring.
+
+<table style={{width: '75%'}}>
+<colgroup>
+<col style={{width: '18%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>createRecap</code></td>
+<td>Creating channel recaps</td>
+</tr>
+<tr>
+<td><code>deleteRecap</code></td>
+<td>Deleting channel recaps</td>
+</tr>
+<tr>
+<td><code>getRecap</code></td>
+<td>Retrieving channel recaps</td>
+</tr>
+<tr>
+<td><code>getRecaps</code></td>
+<td>Retrieving multiple channel recaps</td>
+</tr>
+<tr>
+<td><code>markRecapAsRead</code></td>
+<td>Marking channel recaps as read</td>
+</tr>
+<tr>
+<td><code>regenerateRecap</code></td>
+<td>Regenerating channel recaps</td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+This comprehensive list includes all audit events captured by Mattermost across all major system operations. Additional events may be logged depending on your Mattermost version, enabled features, and configuration settings. Enterprise and Enterprise Advanced features may generate additional audit events.
+
+</Note>
+
+## JSON data model
+
+<table style={{width: '99%'}}>
+<colgroup>
+<col style={{width: '6%'}} />
+<col style={{width: '15%'}} />
+<col style={{width: '67%'}} />
+<col style={{width: '9%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><strong>Name</strong></td>
+<td><strong>Type</strong></td>
+<td><strong>Description</strong></td>
+<td></td>
+</tr>
+<tr>
+<td>timestamp</td>
+<td>int64</td>
+<td colspan="2"><dl><dt>Date/time when event or activity has taken place. |</dt><dd><div class="line-block"></div></dd></dl><p>Mattermost currently supports three log formats: plain, JSON, and | <a href="https://go2docs.graylog.org/current/getting_in_log_data/gelf.html">GELF</a>. | | - Plain log format uses <a href="https://www.rfc-editor.org/rfc/rfc3339">RFC3339</a> by default. | See the <a href="mm-ref:administration-guide%2Fmanage%2Flogging%3Aplain%20log%20format%20configuration%20options">plain log format configuration</a> documentation for supported options. | - JSON log format uses <a href="https://www.rfc-editor.org/rfc/rfc3339">RFC3339</a> by default. | See the <a href="mm-ref:administration-guide%2Fmanage%2Flogging%3Ajson%20log%20format%20configuration%20options">JSON log format configuration</a> documentation for supported options. | | - GELF log format uses <a href="https://www.unixtimestamp.com/">unixtime</a>. | See the <a href="mm-ref:administration-guide%2Fmanage%2Flogging%3Agelf%20log%20format%20configuration%20options">GELF log format configuration</a> documentation for supported options. |</p></td>
+</tr>
+<tr>
+<td>event_name</td>
+<td>string</td>
+<td>Unique name and identifier of the event type taking place. See the <a href="#audit-event-types">audit event types</a> section for a comprehensive list of all supported event names.</td>
+<td></td>
+</tr>
+<tr>
+<td>status</td>
+<td>string</td>
+<td>Success or failure of the audited event.</td>
+<td></td>
+</tr>
+<tr>
+<td>event</td>
+<td><a href="#eventdata">EventData</a></td>
+<td>Event parameters and object states.</td>
+<td></td>
+</tr>
+<tr>
+<td>actor</td>
+<td><a href="#eventactor">EventActor</a></td>
+<td>User involved with the event.</td>
+<td></td>
+</tr>
+<tr>
+<td>meta</td>
+<td><a href="#eventmeta">EventMeta</a></td>
+<td>Related event metadata.</td>
+<td></td>
+</tr>
+<tr>
+<td>error</td>
+<td><a href="#eventerror">EventError</a></td>
+<td>The resulting error if the status is in a failed state.</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+
+### EventData
+
+<table style={{width: '87%'}}>
+<colgroup>
+<col style={{width: '16%'}} />
+<col style={{width: '13%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><strong>Field name</strong></td>
+<td><strong>Data type</strong></td>
+<td><strong>Description</strong></td>
+</tr>
+<tr>
+<td>parameters</td>
+<td>map</td>
+<td>Payload and parameters being processed as part of the request.</td>
+</tr>
+<tr>
+<td>prior_state</td>
+<td>map</td>
+<td>Prior state of the entity being modified. <code>null</code> if there was no prior state.</td>
+</tr>
+<tr>
+<td>resulting_state</td>
+<td>map</td>
+<td>Resulting entity after creating or modifying it.</td>
+</tr>
+<tr>
+<td>object_type</td>
+<td>string</td>
+<td>String representation of the entity type (e.g. post)</td>
+</tr>
+</tbody>
+</table>
+
+### EventActor
+
+<table style={{width: '87%'}}>
+<colgroup>
+<col style={{width: '16%'}} />
+<col style={{width: '13%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><strong>Field name</strong></td>
+<td><strong>Data type</strong></td>
+<td><strong>Description</strong></td>
+</tr>
+<tr>
+<td>user_id</td>
+<td>string</td>
+<td>Unique identifier of the event actor.</td>
+</tr>
+<tr>
+<td>session_id</td>
+<td>string</td>
+<td>Unique session identifier of the event actor.</td>
+</tr>
+<tr>
+<td>client</td>
+<td>string</td>
+<td>User agent of the client/platform in use by the event actor.</td>
+</tr>
+<tr>
+<td>ip_address</td>
+<td>string</td>
+<td>IPv4/IPv6 IP address of the event actor.</td>
+</tr>
+</tbody>
+</table>
+
+### EventMeta
+
+<table style={{width: '94%'}}>
+<colgroup>
+<col style={{width: '24%'}} />
+<col style={{width: '13%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><strong>Field name</strong></td>
+<td><strong>Data type</strong></td>
+<td><strong>Description</strong></td>
+</tr>
+<tr>
+<td>api_path</td>
+<td>string</td>
+<td>The REST endpoint which caused the event.</td>
+</tr>
+<tr>
+<td>cluster_id</td>
+<td>integer</td>
+<td>Cluster identifier.</td>
+</tr>
+<tr>
+<td>non_channel_member_access</td>
+<td>boolean</td>
+<td>(Optional) Available from v11.5.0. Set to <code>true</code> when a user | accesses posts or content in a channel they are not a member of.</td>
+</tr>
+</tbody>
+</table>
+
+### EventError
+
+<table style={{width: '87%'}}>
+<colgroup>
+<col style={{width: '16%'}} />
+<col style={{width: '13%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><strong>Field name</strong></td>
+<td><strong>Data type</strong></td>
+<td><strong>Description</strong></td>
+</tr>
+<tr>
+<td>description</td>
+<td>string</td>
+<td>(Optional) Error description.</td>
+</tr>
+<tr>
+<td>status_code</td>
+<td>integer</td>
+<td>(Optional) Error status code.</td>
+</tr>
+</tbody>
+</table>

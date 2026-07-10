@@ -728,6 +728,12 @@ func doesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps m
 		return model.NotificationReasonChannelMuted
 	}
 
+	// Use HasSilentNotification instead of IsNotificationSuppressed so push metrics get
+	// NotificationReasonSilent distinct from NotificationReasonSystemMessage.
+	if post.HasSilentNotification() && !post.HasForceNotification() {
+		return model.NotificationReasonSilent
+	}
+
 	if post.IsSystemMessage() {
 		return model.NotificationReasonSystemMessage
 	}

@@ -1,0 +1,156 @@
+---
+title: "Backing storage benchmarks"
+---
+Understanding the performance characteristics of your backing storage is critical for optimizing your Mattermost deployment. These benchmarks offer insights into the relative performance of each storage option, helping you make informed decisions based on your use case and infrastructure needs.
+
+This page provides detailed write and read benchmark results for supported storage options including [local file system (EBS, gp3)](#local), [network file system (EFS)](#efs), and [object storage (S3)](#s3).
+
+## Write operations
+
+<table style={{width: '73%'}}>
+<colgroup>
+<col style={{width: '10%'}} />
+<col style={{width: '20%'}} />
+<col style={{width: '20%'}} />
+<col style={{width: '22%'}} />
+</colgroup>
+<thead>
+<tr>
+<th>File Size</th>
+<th>Local (EBS)</th>
+<th>EFS</th>
+<th>S3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>100KB</td>
+<td>0.57 ms (±0.26 ms, p50: 0.63 ms)</td>
+<td>34.47 ms (±6.33 ms, p50: 32.57 ms)</td>
+<td>181.59 ms (±39.05 ms, p50: 174.83 ms)</td>
+</tr>
+<tr>
+<td>1MB</td>
+<td>2.08 ms (±0.92 ms, p50: 2.28 ms)</td>
+<td>57.43 ms (±7.32 ms, p50: 58.16 ms)</td>
+<td>277.13 ms (±49.95 ms, p50: 279.36 ms)</td>
+</tr>
+<tr>
+<td>10MB</td>
+<td>18.15 ms (±5.31 ms, p50: 18.23 ms)</td>
+<td>180.58 ms (±97.95 ms, p50: 150.35 ms)</td>
+<td>469.29 ms (±166.32 ms, p50: 462.12 ms)</td>
+</tr>
+<tr>
+<td>100MB</td>
+<td>585.14 ms (±274.38 ms, p50: 795.78 ms)</td>
+<td>390.87 ms (±166.32 ms, p50: 339.20 ms)</td>
+<td>1.09 s (±0.04 s, p50: 1.09 s)</td>
+</tr>
+<tr>
+<td>1GB</td>
+<td>7.42 s (±2.13 s, p50: 7.99 s)</td>
+<td>3.05 s (±1.09 s, p50: 2.93 s)</td>
+<td>10.65 s (±0.82 s, p50: 10.44 s)</td>
+</tr>
+<tr>
+<td>10GB</td>
+<td>70.66 s (±7.05 s, p50: 80.50 s)</td>
+<td>26.54 s (±2.47 s, p50: 26.86 s)</td>
+<td>109.05 s (±12.47 s, p50: 105.13 s)</td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+**Write Performance**: Local EBS storage is fastest for small files (100KB - 10MB), while EFS performs better for larger files (100MB - 10GB). S3 is consistently the slowest for writes across all file sizes.
+
+</Note>
+
+## Read operations
+
+<table style={{width: '74%'}}>
+<colgroup>
+<col style={{width: '10%'}} />
+<col style={{width: '20%'}} />
+<col style={{width: '20%'}} />
+<col style={{width: '22%'}} />
+</colgroup>
+<thead>
+<tr>
+<th>File Size</th>
+<th>Local (EBS)</th>
+<th>EFS</th>
+<th>S3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>100KB</td>
+<td>0.05 ms (±0.02 ms, p50: 0.04 ms)</td>
+<td>0.66 ms (±0.17 ms, p50: 0.60 ms)</td>
+<td>28.55 ms (±4.12 ms, p50: 27.63 ms)</td>
+</tr>
+<tr>
+<td>1MB</td>
+<td>0.18 ms (±0.06 ms, p50: 0.18 ms)</td>
+<td>0.82 ms (±0.19 ms, p50: 0.72 ms)</td>
+<td>27.03 ms (±4.28 ms, p50: 27.54 ms)</td>
+</tr>
+<tr>
+<td>10MB</td>
+<td>1.27 ms (±0.27 ms, p50: 1.16 ms)</td>
+<td>7.83 ms (±18.12 ms, p50: 1.68 ms)</td>
+<td>108.24 ms (±0.56 ms, p50: 108.18 ms)</td>
+</tr>
+<tr>
+<td>100MB</td>
+<td>16.50 ms (±0.95 ms, p50: 16.16 ms)</td>
+<td>73.53 ms (±182.32 ms, p50: 16.91 ms)</td>
+<td>1.05 s (±0.00 s, p50: 1.05 s)</td>
+</tr>
+<tr>
+<td>1GB</td>
+<td>167.89 ms (±2.19 ms, p50: 167.72 ms)</td>
+<td>773.41 ms (±1768.89 ms p50: 168.17 ms)</td>
+<td>10.49 s (±0.02 s, p50: 10.49 s)</td>
+</tr>
+<tr>
+<td>10GB</td>
+<td>1.57 s (±0.03 s, p50: 1.56 s)</td>
+<td>1.56 s (±0.02 s, p50: 1.55 s)</td>
+<td>150.66 s (±33.47 s, p50: 146.51 s)</td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+- **Read Performance**: Local and EFS have comparable read performance for very large files (10GB), but local storage outperforms for smaller files. S3 read performance is significantly slower, especially for large files (150.66s versus ~1.56s for 10GB files).
+- **Consistency**: Local storage shows the most consistent performance (lower standard deviations) for small files, while EFS shows more consistent performance for large files. S3 generally has higher variability across all metrics.
+- **Median vs Average**: The median (p50) values generally align with the averages, but in some cases (particularly EFS read operations), the median reveals that outliers significantly affect the average. For example, EFS read performance for 100MB and 1GB files shows much better median values than averages.
+
+</Note>
+
+![Read and Write Performance](/images/read-write-storage-performance.png)
+
+## Testing notes
+
+- For S3 tests, [Amazon S3 exported upload part size](/administration-guide/configure/environment-configuration-settings#amazon-s3-upload-part-size) was set to the default value (100MB).
+- Local EBS storage is the stock gp3 (3000 IOPS) provided by EC2 instances.
+- Both EBS and EFS solutions tested are considered `local` storage options from the application's perspective, where the [file storage system](/administration-guide/configure/environment-configuration-settings#file-storage-system) is set to `local` in both cases. EFS is essentially AWS's managed NFS, which enables it to serve as a potential alternative to S3 by allowing multiple Mattermost nodes in a high-availability (HA) deployment to share a common file system. In such HA scenarios, the standard local file storage (e.g., an EBS volume attached to a single instance) [is not suitable, as it can't be shared across multiple nodes](/administration-guide/scale/high-availability-cluster-based-deployment#file-storage-configuration). EFS is a good alternative in this case, but EFS is not a block storage solution like EBS.
+
+## Supported storage options
+
+### Local
+
+The local file system of the Mattermost server. If running in a cloud environment like AWS, this often utilizes Elastic Block Storage (EBS), which provides block-level storage attached directly to the instances. This setup typically offers high performance with low latency since the storage is local to the server. This option is often the fastest for small files due to low latency.
+
+### EFS
+
+Amazon Elastic File System, a managed file storage solution that supports shared access across multiple instances. EFS supports shared access across multiple instances but adds network overhead, which can impact performance compared to local storage options. EFS is generally slower than local storage but can be beneficial for certain use cases requiring shared access.
+
+### S3
+
+Amazon Simple Storage Service, an object storage solution that provides high durability and scalability. While S3 is great for storing large amounts of data reliably, it introduces higher latency and slower performance due to network-based access and its nature as object storage rather than block or file storage.

@@ -1,0 +1,34 @@
+---
+title: Air-Gapped Operations
+sidebar_position: 5
+description: Deploy and operate Mattermost in network-isolated enclaves — air-gapped, sovereign-cloud, and tactical-edge environments.
+---
+
+<EditionAvailability tiers="enterprise,enterprise-advanced" />
+<DeploymentAvailability modes="self-hosted,air-gapped,tactical-edge,cloud-government" />
+
+# Air-Gapped Operations
+
+This section is for operators deploying Mattermost in **network-isolated enclaves** — environments with no egress to public networks, no DNS to public resolvers, no upstream package mirrors, and no telemetry. Typical contexts: DoD SIPRNet / JWICS, IL4 / IL5 enclaves, sovereign-cloud (AWS GovCloud, Azure Government), and forward-deployed tactical edges with DDIL (Disconnected, Intermittent, Limited bandwidth) connectivity.
+
+Mattermost runs fully in air-gapped mode. The procedure differs from a connected install in five ways: package mirroring, offline license activation, disabling phone-home features, push-notification mediation, and audit-log export topology. Each is documented below.
+
+:::note Persona scope
+This sub-tree is the canonical home for the **Air-Gapped Operator** persona (see `docs/_redesign/personas.md` §4 in the repo). Companion pages for **Security Architects** live under Security & Compliance; compliance machinery for **Compliance Officers** lives under Administration Guide → Comply.
+:::
+
+## In this section
+
+- [Quick-Start Runbook](/deployment-guide/air-gapped-operations/quick-start-runbook) — 12-step procedure to stand up a working air-gapped Mattermost cluster from scratch.
+- [Mirror Package Repositories](/deployment-guide/air-gapped-operations/mirror-package-repositories) — internal Linux package + container registry topology and trust setup.
+- [Offline License Activation](/deployment-guide/air-gapped-operations/offline-license-activation) — activate Enterprise / Enterprise Advanced licenses without phoning home to `mattermost.com`.
+- [Disable Phone-Home Features](/deployment-guide/air-gapped-operations/disable-phone-home-features) — inventory of every outbound network call Mattermost makes and how to disable it in air-gapped mode.
+
+## Roadmap (Phase 2)
+
+Phase 2 of the IA redesign (see `docs/_redesign/proposed-ia.md` §6 in the repo) adds four more pages:
+
+- Push Notifications without Direct APNs / FCM Egress
+- Air-Gapped Upgrade Procedure
+- Audit Log Export to Air-Gapped SIEM
+- Tactical Edge / DDIL Operations

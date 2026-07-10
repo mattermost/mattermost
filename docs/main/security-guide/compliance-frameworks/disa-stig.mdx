@@ -1,0 +1,137 @@
+---
+title: "DISA STIG"
+sidebar_label: "DISA STIG"
+description: Mattermost's posture against the DISA Security Technical Implementation Guide (STIG) and Security Requirements Guide (SRG) hardening framework.
+---
+
+<AttestationStatus
+  framework="DISA STIG"
+  status="roadmap"
+  asOf="2026-05-11"
+  detailsHref="https://mattermost.com/trust/"
+/>
+
+<EditionAvailability tiers="enterprise,enterprise-advanced" />
+<DeploymentAvailability modes="self-hosted,cloud-government,air-gapped" />
+
+# DISA STIG
+
+This page documents Mattermost's posture against the DISA Security Technical Implementation Guides (STIG) and the underlying Security Requirements Guides (SRG) — the hardening framework DoD and federal civilian customers use to validate that a product is configured to known-secure defaults.
+
+:::important Status
+Current status is **Roadmap** — see the `<AttestationStatus>` badge above. Mattermost does not publish a dedicated Mattermost STIG today. The applicable framework for Mattermost configuration is the **Application Server SRG** and **Application Security and Development SRG**, with operating system hardening covered by the OS-specific STIG (RHEL 9, Ubuntu 22.04 LTS, Windows Server, etc.).
+
+This page documents the gap honestly: which SRG requirements are met by Mattermost's default and recommended configuration today, which require explicit customer configuration, and what's not addressed.
+:::
+
+## Applicable STIGs and SRGs for a Mattermost deployment
+
+A Mattermost deployment crosses multiple STIG/SRG boundaries. The customer's authorization package typically references all of:
+
+| Layer | Document | Source |
+|---|---|---|
+| Operating system | RHEL 9 STIG / Ubuntu 22.04 LTS STIG / Windows Server STIG | [DISA STIG library](https://public.cyber.mil/stigs/downloads/) |
+| Database | PostgreSQL 13+ STIG | [DISA STIG library](https://public.cyber.mil/stigs/downloads/) |
+| Reverse proxy | NGINX is covered by the Web Server SRG (no NGINX-specific STIG) | DISA SRG library |
+| Application server | Application Server SRG | DISA SRG library |
+| Application | Application Security and Development SRG | DISA SRG library |
+| Container runtime (if used) | Container Image SRG, Kubernetes STIG | DISA STIG library |
+
+Mattermost's contribution is the configuration at the application + application-server tiers. OS, database, and proxy layers are customer-hardened per their respective STIGs.
+
+## Application Security and Development SRG mapping
+
+The Application Security and Development SRG defines ~280 requirements. The summary below groups them by control family and identifies Mattermost's coverage. Full per-requirement mapping is a roadmap item.
+
+### Access Control (AC) — Application Security and Development SRG
+
+| Requirement category | Mattermost configuration |
+|---|---|
+| SRG-APP-000033 — Application authentication | SAML 2.0, OIDC, AD/LDAP; PIV/CAC via IdP. See [Onboard Users](../../administration-guide/onboard/sso-saml). |
+| SRG-APP-000038 — Application access enforcement | RBAC (System / Team / Channel) + ABAC (Enterprise Advanced). See [Manage Permissions](../../administration-guide/manage/admin/user-management). |
+| SRG-APP-000068 — Account lockout after unsuccessful login attempts | `ServiceSettings.MaximumLoginAttempts` config setting. |
+| SRG-APP-000133 — Session timeout | `ServiceSettings.SessionLengthWebInHours` config setting. |
+| SRG-APP-000148 — Multi-factor authentication enforcement | Enforced via the IdP. |
+| SRG-APP-000164 — Account inactivity disabling | Customer-managed via the IdP. |
+
+### Audit and Accountability (AU)
+
+| Requirement category | Mattermost configuration |
+|---|---|
+| SRG-APP-000091 — Audit record generation | JSON audit log emitted by default. See [Comply](../../administration-guide/comply/compliance-export). |
+| SRG-APP-000095 — Audit record content (who, what, when, where, source) | Audit log schema includes timestamp, user, action, resource, source IP, session ID. See Audit Log Reference (Phase 2). |
+| SRG-APP-000099 — Audit record review and analysis | Customer-managed SIEM integration. |
+| SRG-APP-000118 — Audit log capacity and overflow handling | Customer-managed at the SIEM tier; Mattermost emits to local files or remote endpoints. |
+| SRG-APP-000119 — Audit log integrity protection | Customer-managed at the SIEM tier; Mattermost does not sign audit entries at emission today. |
+
+### Identification and Authentication (IA)
+
+| Requirement category | Mattermost configuration |
+|---|---|
+| SRG-APP-000148 — User identity assurance | SAML federation to a STIG-compliant IdP. |
+| SRG-APP-000164 — Account management | Provisioning via SCIM (Enterprise Advanced) + IdP-driven onboarding. |
+| SRG-APP-000172 — Cryptographic identity protection | FIPS 140-3 validated module — deploy using the FIPS-compliant container image. See [FIPS / STIG container builds](../../deployment-guide/server/containers/fips-stig). |
+| SRG-APP-000516 — Replay-resistant authentication | SAML with signed assertions + short-lived session tokens. |
+
+### System and Communications Protection (SC)
+
+| Requirement category | Mattermost configuration |
+|---|---|
+| SRG-APP-000014 — Cryptographic protection of transmitted information | TLS 1.2+ enforced. See [Transport Encryption](../../deployment-guide/transport-encryption). |
+| SRG-APP-000142 — Network access by default deny | NGINX-level configuration + System Console IP filtering (Cloud). |
+| SRG-APP-000231 — Protection of information at rest | Database-tier + file-storage-tier encryption. See [Encryption Options](../../deployment-guide/encryption-options). |
+| SRG-APP-000439 — Mobile device protection | EMM/MAM integration (Intune, etc.). See [Mobile Security](../mobile-security). |
+
+### Configuration Management (CM)
+
+| Requirement category | Mattermost configuration |
+|---|---|
+| SRG-APP-000033 — Configuration baseline | `config.json` version-controlled by customer + Mattermost Operator CRDs for Kubernetes. |
+| SRG-APP-000516 — Removal of unsupported components | Disable unused plugins, integrations, and features. See [Disable Phone-Home Features](../../deployment-guide/air-gapped-operations/disable-phone-home-features). |
+
+### System and Information Integrity (SI)
+
+| Requirement category | Mattermost configuration |
+|---|---|
+| SRG-APP-000274 — Software integrity verification | Mattermost releases are PGP-signed; verify before install. |
+| SRG-APP-000345 — Boundary protection (image proxy) | Image proxy disabled in air-gapped mode. See [Disable Phone-Home Features](../../deployment-guide/air-gapped-operations/disable-phone-home-features). |
+| SRG-APP-000456 — Flaw remediation cadence | Mattermost ESR cadence and security advisory feed — see [Release Policy](../../product-overview/release-policy). |
+
+## Roadmap items
+
+The following are not yet supported in product or documentation:
+
+- **Mattermost-specific STIG checklist** — a `.ckl`-format STIG checklist file mapping each SRG requirement to a Mattermost-specific finding. Roadmap.
+- **Pre-hardened reference deployment** — an Ansible / Terraform module that applies the STIG-aligned configuration as a single deployable unit. Roadmap.
+- **Audit log signing at emission** — cryptographic signing of audit log entries inside Mattermost (currently relies on the SIEM tier for tamper-evidence). Roadmap.
+- **Automated SCAP scanning support** — emitting machine-readable configuration state for SCAP scanner ingestion. Not on roadmap.
+
+## Hardening checklist (interim)
+
+While the full STIG checklist is on the roadmap, customers can begin hardening today by:
+
+1. **Apply OS STIG** for the host OS (RHEL 9 / Ubuntu 22.04 / Windows Server).
+2. **Apply PostgreSQL STIG** for the database tier.
+3. **Apply Web Server SRG** to the NGINX reverse proxy.
+4. **Apply Mattermost configuration** from the [Required configuration summary on the FedRAMP Moderate page](./fedramp-moderate#required-configuration) — this satisfies the majority of Application Security and Development SRG requirements applicable to Mattermost.
+5. **Deploy using the FIPS-compliant container image** — see [FIPS / STIG container builds](../../deployment-guide/server/containers/fips-stig).
+6. **Disable phone-home features** — see [Disable Phone-Home Features](../../deployment-guide/air-gapped-operations/disable-phone-home-features).
+7. **Configure audit log export** to a STIG-compliant SIEM.
+8. **Configure IdP-side** policies for MFA, PIV/CAC, session lifetime, account lockout.
+
+## Customer responsibility
+
+DISA STIG compliance is **deployment-specific and customer-led**. Mattermost provides:
+
+- Default configurations aligned with SRG requirements where Mattermost owns the control.
+- This mapping document for the controls Mattermost contributes to.
+- Validated configuration guidance for the [FedRAMP Moderate](./fedramp-moderate) and [DoD IL4 / IL5](./dod-il-4-5) baselines that share many SRG requirements.
+
+Customers are responsible for OS-tier, database-tier, proxy-tier, and CAP-tier hardening, plus the assessment + authorization process.
+
+## References
+
+- [DISA STIG library](https://public.cyber.mil/stigs/downloads/) — canonical source.
+- [Application Security and Development SRG](https://public.cyber.mil/stigs/srg-stig-tools/) — the primary applicable SRG.
+- [DoD IL4 / IL5](./dod-il-4-5) — companion compliance page; STIG and IL4/IL5 are typically pursued together.
+- [FedRAMP Moderate](./fedramp-moderate) — the underlying NIST 800-53 baseline that backs both IL and STIG requirements.

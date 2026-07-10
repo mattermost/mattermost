@@ -1,0 +1,2139 @@
+---
+title: "Site configuration settings"
+---
+<PlanAvailability slug="all-commercial" />
+
+Review and manage the following site configuration options in the System Console by selecting the **Product** <img src="/img/ui/products_E82F.svg" alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> menu, selecting **System Console**, and then selecting **Site Configuration**:
+
+- [Customization](#customization)
+- [Localization](#localization)
+- [Auto-translation](#auto-translation)
+- [Users and Teams](#users-and-teams)
+- [Notifications](#notifications)
+- [System-wide notifications](#system-wide-notifications)
+- [Emoji](#emoji)
+- [Posts](#posts)
+- [File Sharing and Downloads](#file-sharing-and-downloads)
+- [Public Links](#public-links)
+- [Notices](#notices)
+- [Connected Workspaces](#connected-workspaces)
+
+<Tip>
+
+System admins managing a self-hosted Mattermost deployment can edit the `config.json` file as described in the following tables. Each configuration value below includes a JSON path to access the value programmatically in the `config.json` file using a JSON-aware tool. For example, the `SiteName` value is under `TeamSettings`.
+
+- If using a tool such as [jq](https://stedolan.github.io/jq/), you'd enter: `cat config/config.json | jq '.TeamSettings.SiteName'`
+- When working with the `config.json` file manually, look for an object such as `TeamSettings`, then within that object, find the key `SiteName`.
+
+</Tip>
+
+------------------------------------------------------------------------------------------------------------------------
+
+## Customization
+
+Access the following configuration settings in the System Console by going to **Site Configuration \> Customization**.
+
+### Site name
+
+<table>
+<colgroup>
+<col style={{width: '49%'}} />
+<col style={{width: '50%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Name of the site shown in login screens and user interface.</p><p>String input. Maximum 30 characters. Default is <code>Mattermost</code></p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>SiteName</code></li><li>Environment variable: <code>MM_TEAMSETTINGS_SITENAME</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Site description
+
+<table>
+<colgroup>
+<col style={{width: '54%'}} />
+<col style={{width: '45%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Text displayed above the login form. When not specified, the phrase "Log in" is displayed.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>CustomDescriptionText</code></li><li>Environment variable: <code>MM_TEAMSETTINGS_CUSTOMDESCRIPTIONTEXT</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Enable custom branding
+
+<table>
+<colgroup>
+<col style={{width: '49%'}} />
+<col style={{width: '50%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Enables the display of a custom image and text on the login page</li><li><strong>false</strong>: <strong>(Default)</strong> Custom branding is disabled</li></ul><p>See also the <a href="#custom-brand-image">custom brand image</a> and <a href="#custom-brand-text">custom brand text</a> configuration settings for more branding options.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>EnableCustomBrand</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_TEAMSETTINGS_ENABLECUSTOMBRAND</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Custom brand image
+
+<table>
+<colgroup>
+<col style={{width: '74%'}} />
+<col style={{width: '25%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>A JPG image for display on the login page. The image <strong>must</strong> be uploaded through the System Console. There is no <code>config.json</code> setting. The file should be <strong>smaller than 2 MB</strong>.</p><p><a href="#enable-custom-branding">Enable custom branding</a> must be set to <strong>true</strong> to display the image.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Custom brand text
+
+<table>
+<colgroup>
+<col style={{width: '100%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>Text that will be shown below the <strong>Custom brand image</strong> on the login page. | - System Config path: <strong>Site Configuration &gt; Customization</strong> | You can format this text using the same <a href="mm-doc:%2Fend-user-guide%2Fcollaborate%2Fformat-messages">Markdown formatting</a> | - <code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>CustomBrandText</code> as in Mattermost messages. | - Environment variable: <code>MM_TEAMSETTINGS_CUSTOMBRANDTEXT</code> | | | String input. Maximum 500 characters. <a href="#enable-custom-branding">Enable custom branding</a> | | must be set to <strong>true</strong> to display the text. | |</td>
+</tr>
+</tbody>
+</table>
+
+### Enable Ask Community link
+
+<table>
+<colgroup>
+<col style={{width: '70%'}} />
+<col style={{width: '30%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><blockquote><ul><li><strong>true</strong>: <strong>(Default)</strong> A link to the <a href="https://mattermost.com/community/">Mattermost Community</a> appears as <strong>Ask the community</strong> under the <strong>Help</strong> menu in the channel header.</li><li><strong>false</strong>: The link does not appear.</li></ul><p>The link does not display on mobile apps.</p></blockquote></td>
+<td><blockquote><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>SupportSettings</code> &gt; <code>EnableAskCommunityLink</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_SUPPORTSETTINGS_ENABLEASKCOMMUNITYLINK</code></li></ul></blockquote></td>
+</tr>
+</tbody>
+</table>
+
+### Help link
+
+<table>
+<colgroup>
+<col style={{width: '70%'}} />
+<col style={{width: '29%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>This field sets the URL for the Help link on the login and sign up pages, as well as the <strong>Help Resources</strong> link under the <strong>Help</strong> menu in the channel header.</p><p>String input. Default is <code>https://about.mattermost.com/default-help/</code>.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>SupportSettings</code> &gt; <code>HelpLink</code></li><li>Environment variable: <code>MM_SUPPORTSETTINGS_HELPLINK</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+If this value is empty, the Help link is hidden on the login and sign up pages. However, the **Help Resources** link remains available under the **Help** menu.
+
+</Note>
+
+### Terms of Use link
+
+<table>
+<colgroup>
+<col style={{width: '85%'}} />
+<col style={{width: '14%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>This field sets the URL for the Terms of Use of a self-hosted site. A link to the terms appears at the bottom of the sign-up and login pages.</p><p>The default URL links to a <a href="https://mattermost.com/terms-of-use/">Terms of Use</a> page hosted on <code>mattermost.com</code>. This includes the Mattermost Acceptable Use Policy explaining the terms under which Mattermost software is provided to end users. If you change the default link to add your own terms, the new terms <strong>must include a link</strong> to the default terms so end users are aware of the Mattermost Acceptable Use Policy.</p><p>String input. Default is <code>https://about.mattermost.com/default-terms/</code>.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>SupportSettings</code> &gt; <code>TermsOfServiceLink</code></li><li>Environment variable: <code>MM_SUPPORTSETTINGS_TERMSOFSERVICELINK</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+\- Customers with a Mattermost subscription may replace or override the Acceptable Use Policy with their own acceptable use or conduct policies, based on contractual terms with Mattermost, so long as your own terms either incorporate the Acceptable Use Policy or include equivalent terms. If you change the default link to add your own terms for using the service you provide, your new terms must include a [link to the default terms](https://mattermost.com/terms-of-use/#acceptable-use-policy) so end users are aware of the Mattermost Acceptable Use Policy for Mattermost software. - This setting is applicable to self-hosted deployments only and doesn't change the **Terms of Use** link in the **About Mattermost** window.
+
+</Note>
+
+### Privacy Policy link
+
+<table>
+<colgroup>
+<col style={{width: '72%'}} />
+<col style={{width: '27%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>This field sets the URL for the Privacy Policy of a self-hosted site. A link to the policy appears at the bottom of the sign-up and login pages. If this field is empty, the link does not appear.</p><p>String input. Default is <code>https://about.mattermost.com/default-privacy-policy/</code>.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>SupportSettings</code> &gt; <code>PrivacyPolicyLink</code></li><li>Environment variable: <code>MM_SUPPORTSETTINGS_PRIVACYPOLICYLINK</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+\- This setting is applicable to self-hosted deployments only and doesn't change the **Privacy Policy** link in the **About Mattermost** window.
+
+</Note>
+
+### About link
+
+<table>
+<colgroup>
+<col style={{width: '77%'}} />
+<col style={{width: '22%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>This field sets the URL for a page containing general information about a self-hosted site. A link to the About page appears at the bottom of the sign-up and login pages. If this field is empty the link does not appear.</p><p>String input. Default is <code>https://about.mattermost.com/default-about/</code>.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>SupportSettings</code> &gt; <code>AboutLink</code></li><li>Environment variable: <code>MM_SUPPORTSETTINGS_ABOUTLINK</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+This setting is applicable to self-hosted deployments only.
+
+</Note>
+
+### Forgot Password custom link
+
+<table>
+<colgroup>
+<col style={{width: '50%'}} />
+<col style={{width: '50%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>When the <strong>Forgot Password</strong> link is enabled on the Mattermost login page, users are taken to a custom URL to recover or change their password.</p><p>Leave this field blank to use Mattermost's Password Reset workflow.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Forgot password custom link</strong></li><li><code>config.json</code> setting: <code>SupportSettings</code> &gt; <code>ForgetPasswordLink</code></li><li>Environment variable: <code>MM_SUPPORTSETTINGS_FORGETPASSWORDLINK</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+This configuration setting applies to all Mattermost clients, including web, desktop app, and mobile app. You can control whether the **Forgot Password** link is visible or hidden in clients by going to **Authentication \> Password \> Enable Forgot Password Link**. See the [configuration](/administration-guide/configure/authentication-configuration-settings#enable-forgot-password-link) documentation for details.
+
+</Note>
+
+### Report a Problem
+
+With self-hosted deployments, you can specify how the **Report a Problem** option behaves in the Mattermost app via the **Help** menu:
+
+- **Default link**: Uses the default Mattermost URL to report a problem. Customers with a Mattermost subscription are directed to the [Mattermost Support Portal](https://support.mattermost.com/hc/en-us/requests/new). Community deployments are directed to [create a new issue on the Mattermost GitHub repository](https://github.com/mattermost/mattermost/issues/new).
+- **Email address**: Enables you to [enter an email address](/administration-guide/configure/site-configuration-settings#report-a-problem-email-address) that users will be prompted to send a message to when they choose **Report a Problem** in Mattermost.
+- **Custom link**: Enables you to [enter a URL](/administration-guide/configure/site-configuration-settings#report-a-problem-link) that users will be directed to when they choose **Report a Problem** in Mattermost.
+- **Hide link**: Removes the **Report a Problem** option from Mattermost.
+
+### Report a Problem link
+
+<table>
+<colgroup>
+<col style={{width: '57%'}} />
+<col style={{width: '42%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>This field sets the URL for the <strong>Report a Problem</strong> link in the channel header <strong>Help</strong> menu. If this field is empty the link does not appear.</p><p>String input. Default is <code>https://mattermost.com/pl/report-a-bug</code>.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>SupportSettings</code> &gt; <code>ReportAProblemLink</code></li><li>Environment variable: <code>MM_SUPPORTSETTINGS_REPORTAPROBLEMLINK</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+This setting is applicable to self-hosted deployments only.
+
+</Note>
+
+### Report a Problem email address
+
+<table>
+<colgroup>
+<col style={{width: '57%'}} />
+<col style={{width: '42%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>This field sets the email address for the <strong>Report a Problem</strong> link in the channel header <strong>Help</strong> menu.</p><p>String input. Cannot be left blank.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>SupportSettings</code> &gt; <code>ReportAProblemMail</code></li><li>Environment variable: <code>MM_SUPPORTSETTINGS_REPORTAPROBLMEMAIL</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+This setting is applicable to self-hosted deployments only.
+
+</Note>
+
+### Allow mobile app log downloads
+
+<table>
+<colgroup>
+<col style={{width: '50%'}} />
+<col style={{width: '49%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Enable users to download mobile app logs for troubleshooting. When the <strong>Report a Problem</strong> link is shown, mobile logs can be downloaded as part of the reporting flow.</p><ul><li><strong>true</strong> (<strong>Default</strong>): Users can download mobile app logs.</li><li><strong>false</strong> Users can't download mobile app logs.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>SupportSettings</code> &gt; <code>AllowDownloadLogs</code></li><li>Environment variable: <code>MM_SUPPORTSETTINGS_ALLOWDOWNLOADLOGS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+This setting is applicable to self-hosted deployments only.
+
+</Note>
+
+### Mattermost apps download page link
+
+<table>
+<colgroup>
+<col style={{width: '63%'}} />
+<col style={{width: '36%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>This field sets the URL for the Download Apps link in the <strong>Product</strong> menu. If this field is empty, the link does not appear.</p><p>If you have an Enterprise App Store, set the link to the appropriate download page for your Mattermost apps.</p><p>String input. Default is <code>https://mattermost.com/pl/download-apps</code>.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>NativeAppSettings</code> &gt; <code>AppDownloadLink</code></li><li>Environment variable: <code>MM_NATIVEAPPSETTINGS_APPDOWNLOADLINK</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+This setting is applicable to self-hosted deployments only.
+
+</Note>
+
+### Android app download link
+
+<table>
+<colgroup>
+<col style={{width: '74%'}} />
+<col style={{width: '25%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>This field sets the URL to download the Mattermost Android app. Users who access the Mattermost site on a mobile browser will be prompted to download the app through this link. If this field is empty, the prompt does not appear.</p><p>If you have an Enterprise App Store, link to your Android app.</p><p>String input. Default is <code>https://mattermost.com/pl/android-app/</code>.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>NativeAppSettings</code> &gt; <code>AndroidAppDownloadLink</code></li><li>Environment variable: <code>MM_NATIVEAPPSETTINGS_ANDROIDAPPDOWNLOADLINK</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+This setting is applicable to self-hosted deployments only.
+
+</Note>
+
+### iOS app download link
+
+<table>
+<colgroup>
+<col style={{width: '74%'}} />
+<col style={{width: '25%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>This field sets the URL to download the Mattermost iOS app. Users who access the site on a mobile browser will be prompted to download the app through this link. If this field is empty, the prompt does not appear.</p><p>If you use an Enterprise App Store, link to your iOS app.</p><p>String input. Default is <code>https://mattermost.com/pl/ios-app/</code>.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>NativeAppSettings</code> &gt; <code>IosAppDownloadLink</code></li><li>Environment variable: <code>MM_NATIVEAPPSETTINGS_IOSAPPDOWNLOADLINK</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+This setting is applicable to self-hosted deployments only.
+
+</Note>
+
+### Enable desktop app landing page
+
+<table>
+<colgroup>
+<col style={{width: '42%'}} />
+<col style={{width: '57%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Prompts users to use the desktop app.</li><li><strong>false</strong>: Doesn't prompt users to use the desktop app.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableDesktopLandingPage</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLEDESKTOPLANDINGPAGE</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Minimum desktop app version
+
+<table>
+<colgroup>
+<col style={{width: '100%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>Specify the minimum version of the Mattermost Desktop App required to connect to this server | - System Config path: <strong>Site Configuration &gt; Customization</strong> | (e.g., <code>5.10.0</code>). Users connecting with a Desktop App version below this minimum are shown | - <code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>MinimumDesktopAppVersion</code> | an update required screen and cannot use the application until they update. | - Environment variable: <code>MM_SERVICESETTINGS_MINIMUMDESKTOPAPPVERSION</code> | | | The update screen includes a download link configured via the | | <a href="mm-ref:configure%2Fsite-configuration-settings%3Amattermost%20apps%20%20%20%7C%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7C%0A%7C%20download%20page%20link">Mattermost apps download page link</a> setting. | | | Must be a valid semantic version (e.g., <code>5.0.0</code>). Leave blank to allow all Desktop App | | versions to connect. | | | | String input. Default is empty (no minimum enforced). | |</td>
+</tr>
+</tbody>
+</table>
+
+### App custom URL schemes
+
+This setting isn't available in the System Console and can only be set in `config.json`.
+
+Define valid custom URL schemes for redirect links provided by custom-built mobile Mattermost apps. This ensures users are redirected to the custom-built mobile app and not Mattermost's mobile client.
+
+When configured, after OAuth or SAML user authentication is complete, custom URL schemes sent by mobile clients are validated to ensure they don't include default schemes such as `http` or `https`. Mobile users are then redirected back to the mobile app using the custom scheme URL provided by the mobile client. We recommend that you update your mobile client values as well with valid custom URL schemes.
+
+<table>
+<colgroup>
+<col style={{width: '100%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>"NativeAppSettings.AppCustomURLSchemes"</code> with an array of strings as input separated by spaces.</td>
+</tr>
+<tr>
+<td><p>For example:</p><ul><li><code>MM_NativeAppSettings_AppCustomURLSchemes = mmauth:// mmauthbeta://</code></li><li>Via mmctl: <code>mmctl config set NativeAppSettings.AppCustomURLSchemes "mmauth://" "mmauthbeta://"</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Mobile external browser
+
+<table>
+<colgroup>
+<col style={{width: '53%'}} />
+<col style={{width: '46%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>From Mattermost v10.2 and Mobile v2.2.1, this setting configures the mobile app to use an external mobile browser to perform SSO authentication.</p><ul><li><strong>true</strong>: The mobile app uses the default internal mobile browser to perform SSO authentication.</li><li><strong>false</strong>: <strong>(Default)</strong> The mobile app uses an external mobile browser to perform SSO authentication.</li></ul></td>
+<td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>NativeAppSettings.MobileExternalBrowser</code></li><li>Environment variable: <code>MM_NATIVEAPPSETTINGS_MOBILEEXTERNALBROWSER</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+- This setting is applicable to self-hosted deployments only.
+- We recommend enabling this configuration setting when there are issues with the mobile app SSO redirect flow.
+
+</Note>
+
+------------------------------------------------------------------------------------------------------------------------
+
+## Localization
+
+Access the following configuration settings in the System Console by going to **Site Configuration \> Localization**. Changes to configuration settings in this section require a server restart before taking effect.
+
+### Default server language
+
+<table>
+<colgroup>
+<col style={{width: '50%'}} />
+<col style={{width: '50%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The default language for system messages and logs.</p><p>Options: <code>"bg"</code>, <code>"de"</code>, <code>"en"</code>, <code>"en-AU"</code>, <code>"es"</code>, <code>"fa"</code>, <code>"fr"</code>, <code>"hu"</code>, <code>"it"</code>, <code>"ja"</code>, <code>"ko"</code>, <code>"nl"</code>, <code>"pl"</code>, <code>"pt-br"</code>, <code>"ro"</code>, <code>"ru"</code>, <code>"sv"</code>, <code>"tr"</code>, <code>"uk"</code>, <code>"vi"</code>, <code>"zh-Hans"</code>, and <code>"zh-Hant"</code>.</p><p>Default is <code>"en"</code>.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Localization</strong></li><li><code>config.json</code> setting: <code>LocalizationSettings</code> &gt; <code>DefaultServerLocale</code></li><li>Environment variable: <code>MM_LOCALIZATIONSETTINGS_DEFAULTSERVERLOCALE</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+Changing this configuration setting changes the default server language for users who haven't set a language preference via **Settings**. Mattermost applies the user's language preference when specified.
+
+</Note>
+
+### Default client language
+
+<table>
+<colgroup>
+<col style={{width: '50%'}} />
+<col style={{width: '50%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The default language for new users and pages where the user isn't logged in.</p><p>Options: <code>"bg"</code>, <code>"de"</code>, <code>"en"</code>, <code>"en-AU"</code>, <code>"es"</code>, <code>"fa"</code>, <code>"fr"</code>, <code>"hu"</code>, <code>"it"</code>, <code>"ja"</code>, <code>"ko"</code>, <code>"nl"</code>, <code>"pl"</code>, <code>"pt-br"</code>, <code>"ro"</code>, <code>"ru"</code>, <code>"sv"</code>, <code>"tr"</code>, <code>"uk"</code>, <code>"vi"</code>, <code>"zh-Hans"</code>, and <code>"zh-Hant"</code>.</p><p>Default is <code>"en"</code>.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Localization</strong></li><li><code>config.json</code> setting: <code>LocalizationSettings</code> &gt; <code>DefaultClientLocale</code></li><li>Environment variable: <code>MM_LOCALIZATIONSETTINGS_DEFAULTCLIENTLOCALE</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+Changing this configuration setting changes the default client language for users who haven't set a language preference via **Settings**. Mattermost applies the user's language preference when specified.
+
+</Note>
+
+### Available languages
+
+<table>
+<colgroup>
+<col style={{width: '51%'}} />
+<col style={{width: '48%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Sets the list of languages users see under <strong>Settings &gt; Display &gt; Language</strong>. If this field is left blank, users see all supported languages. Newly supported languages are added automatically. If this field is not blank, it must contain the <strong>Default client language</strong>, in addition to any other languages. For example, to limit the language choices to US English and Español (es), the string would be <code>"en,es"</code>.</p><p>Options: <code>"bg"</code>, <code>"de"</code>, <code>"en"</code>, <code>"en-AU"</code>, <code>"es"</code>, <code>"fa"</code>, <code>"fr"</code>, <code>"hu"</code>, <code>"it"</code>, <code>"ja"</code>, <code>"ko"</code>, <code>"nl"</code>, <code>"pl"</code>, <code>"pt-br"</code>, <code>"ro"</code>, <code>"ru"</code>, <code>"sv"</code>, <code>"tr"</code>, <code>"uk"</code>, <code>"vi"</code>, <code>"zh-Hans"</code>, and <code>"zh-Hant"</code>.</p><p>Default is <code>"en"</code>.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Localization</strong></li><li><code>config.json</code> setting: <code>LocalizationSettings</code> &gt; <code>AvailableLocales</code></li><li>Environment variable: <code>MM_LOCALIZATIONSETTINGS_AVAILABLELOCALES</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Enable experimental locales
+
+Enable work in progress languages in Mattermost to review translations and identify translation gaps.
+
+<table>
+<colgroup>
+<col style={{width: '36%'}} />
+<col style={{width: '63%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Work in progress languages are available in Mattermost in addition to officially supported languages.</li><li><strong>false</strong>: <strong>(Default)</strong> Only officially supported languages are available in Mattermost.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Localization</strong></li><li><code>config.json</code> setting: <code>LocalizationSettings</code> &gt; <code>EnableExperimentalLocales</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_LOCALIZATIONETTINGS_ENABLEEXPERIMENTALLOCALES</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+- Cloud system admins can request this configuration setting to be enabled for their instance by contacting their Mattermost Account Manager.
+- Work in progress languages may be incomplete. Strings missing translations display in US English.
+- Currently, only web and desktop app product strings are impacted by this configuration setting. Server and mobile product strings aren't impacted by this setting.
+- See the [language](/end-user-guide/preferences/manage-your-display-options#language) documentation for details on selecting a language preference in Mattermost.
+
+</Note>
+
+------------------------------------------------------------------------------------------------------------------------
+
+## Auto-translation
+
+<PlanAvailability slug="ent-adv" />
+
+Access the following configuration settings in the System Console by going to **Site Configuration \> Localization**. These settings configure automatic translation of channel messages. See the [Auto-translation setup guide](/administration-guide/manage/admin/autotranslation) for deployment details.
+
+### Enable auto-translation
+
+<table>
+<colgroup>
+<col style={{width: '42%'}} />
+<col style={{width: '57%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Enable or disable automatic translation of channel messages.</p><ul><li><strong>true</strong>: Autotranslation is available and can be enabled per channel.</li><li><strong>false</strong>: <strong>(Default)</strong> Autotranslation is disabled.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Localization</strong></li><li><code>config.json</code> setting: <code>AutoTranslationSettings</code> &gt; <code>Enable</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_AUTOTRANSLATIONSETTINGS_ENABLE</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Translation provider
+
+<table>
+<colgroup>
+<col style={{width: '42%'}} />
+<col style={{width: '57%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The translation provider to use for autotranslation.</p><ul><li><code>libretranslate</code>: Use a self-hosted LibreTranslate server for translations.</li><li><code>agents</code>: Use the Mattermost Agents plugin with an LLM backend for translations.</li></ul><p>Default is <code>""</code> (no provider selected).</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Localization</strong></li><li><code>config.json</code> setting: <code>AutoTranslationSettings</code> &gt; <code>Provider</code></li><li>Environment variable: <code>MM_AUTOTRANSLATIONSETTINGS_PROVIDER</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### LibreTranslate URL
+
+<table>
+<colgroup>
+<col style={{width: '42%'}} />
+<col style={{width: '57%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The URL of the LibreTranslate server used for translations. The Mattermost server must be able to reach this URL.</p><p>String value.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Localization</strong></li><li><code>config.json</code> setting: <code>AutoTranslationSettings</code> &gt; <code>LibreTranslate</code> &gt; <code>URL</code></li><li>Environment variable: <code>MM_AUTOTRANSLATIONSETTINGS_LIBRETRANSLATE_URL</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### LibreTranslate API key
+
+<table>
+<colgroup>
+<col style={{width: '42%'}} />
+<col style={{width: '57%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The API key for authenticated access to the LibreTranslate server. Leave blank if the LibreTranslate server doesn't require authentication.</p><p>String value.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Localization</strong></li><li><code>config.json</code> setting: <code>AutoTranslationSettings</code> &gt; <code>LibreTranslate</code> &gt; <code>APIKey</code></li><li>Environment variable: <code>MM_AUTOTRANSLATIONSETTINGS_LIBRETRANSLATE_APIKEY</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Agents LLM service ID
+
+<table>
+<colgroup>
+<col style={{width: '42%'}} />
+<col style={{width: '57%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The service ID of the LLM configured in the Mattermost Agents plugin to use for translations. Configure LLM services in the Agents plugin settings.</p><p>String value.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Localization</strong></li><li><code>config.json</code> setting: <code>AutoTranslationSettings</code> &gt; <code>Agents</code> &gt; <code>LLMServiceID</code></li><li>Environment variable: <code>MM_AUTOTRANSLATIONSETTINGS_AGENTS_LLMSERVICEID</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Languages allowed
+
+<table>
+<colgroup>
+<col style={{width: '42%'}} />
+<col style={{width: '57%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The languages that all messages in autotranslation-enabled channels are translated into. Every message is translated into each language in this list, regardless of who is in the channel. Specify languages as an array of language codes.</p><p>Default is <code>["en"]</code>.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Localization</strong></li><li><code>config.json</code> setting: <code>AutoTranslationSettings</code> &gt; <code>TargetLanguages</code></li><li>Environment variable: <code>MM_AUTOTRANSLATIONSETTINGS_TARGETLANGUAGES</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Translation timeout
+
+<table>
+<colgroup>
+<col style={{width: '42%'}} />
+<col style={{width: '57%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The maximum time in milliseconds to wait for a translation to complete. If a translation exceeds this timeout, it is skipped.</p><p>Numerical value. Default is <strong>5000</strong> (5 seconds).</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Localization</strong></li><li><code>config.json</code> setting: <code>AutoTranslationSettings</code> &gt; <code>TimeoutMs</code> &gt; <code>5000</code></li><li>Environment variable: <code>MM_AUTOTRANSLATIONSETTINGS_TIMEOUTMS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Restrict autotranslation in direct and group messages
+
+<table>
+<colgroup>
+<col style={{width: '40%'}} />
+<col style={{width: '59%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Restrict autotranslation from being enabled in direct and group messages.</p><ul><li><strong>true</strong>: Autotranslation can't be enabled in direct or group messages.</li><li><strong>false</strong>: <strong>(Default)</strong> Autotranslation can be enabled in direct and group messages.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Localization</strong></li><li><code>config.json</code> setting: <code>AutoTranslationSettings</code> &gt; <code>RestrictDMAndGM</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_AUTOTRANSLATIONSETTINGS_RESTRICTDMANDGM</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Translation workers
+
+<table>
+<colgroup>
+<col style={{width: '42%'}} />
+<col style={{width: '57%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The number of concurrent translation workers per node. Higher values increase translation throughput but use more resources. This setting is not available in the System Console and can only be set via <code>mmctl</code>, <code>config.json</code>, or environment variable.</p><p>Numerical value. Default is <strong>6</strong>.</p></td>
+<td><ul><li><code>config.json</code> setting: <code>AutoTranslationSettings</code> &gt; <code>Workers</code> &gt; <code>6</code></li><li>Environment variable: <code>MM_AUTOTRANSLATIONSETTINGS_WORKERS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+------------------------------------------------------------------------------------------------------------------------
+
+## Users and teams
+
+Access the following configuration settings in the System Console by going to **Site Configuration \> Users and Teams**.
+
+### Max users per team
+
+<table>
+<colgroup>
+<col style={{width: '100%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>The <strong>Max users per team</strong> is the maximum total number of users per team, | - System Config path: <strong>Site Configuration &gt; Users and Teams</strong> | including activated and deactivated users. | - <code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>MaxUsersPerTeam</code> &gt; <code>50</code> | | - Environment variable: <code>MM_TEAMSETTINGS_MAXUSERSPERTEAM</code> | In Mattermost, a team of people should be a small organization with a | | specific goal. In the physical world, a team could sit around a single | | table. The default maximum (50) should be enough for most teams, but | | with appropriate <a href="https://docs.mattermost.com/install/             |                                                                             |software-hardware-requirements.html">hardware</a>, this limit can be increased to | | thousands of users. | | | | <a href="mm-doc:%2Fend-user-guide%2Fcollaborate%2Fcollaborate-within-channels">Channels</a> | are another way of organizing communications within teams on various topics. | | | | Numerical input. Default is <strong>50</strong> self-hosted deployments, and <strong>10000</strong> | | for Cloud deployments. | |</td>
+</tr>
+</tbody>
+</table>
+
+### Max channels per team
+
+<table>
+<colgroup>
+<col style={{width: '51%'}} />
+<col style={{width: '48%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The maximum number of channels per team, including both active and archived channels.</p><p>Numerical input. Default is <strong>2000</strong> for self-hosted deployments, and <strong>10000</strong> for Cloud deployments.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Users and Teams</strong></li><li><code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>MaxChannelsPerTeam</code> &gt; <code>2000</code></li><li>Environment variable: <code>MM_TEAMSETTINGS_MAXCHANNELSPERTEAM</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Enable join/leave messages by default
+
+<table>
+<colgroup>
+<col style={{width: '48%'}} />
+<col style={{width: '51%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Specify the default configuration of system messages displayed when users join or leave channels.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> Join/Leave messages are displayed.</li><li><strong>false</strong>: Join/Leave messages are hidden.</li></ul><p>Users can override this default by going to <strong>Settings &gt; Advanced &gt; Enable Join/Leave Messages</strong>.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Users and Teams</strong></li><li><code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>EnableJoinLeaveMessageByDefault</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_TEAMSETTINGS_ENABLEJOINLEAVEMESSAGEBYDEFAULT</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Enable users to open direct message channels with
+
+<table>
+<colgroup>
+<col style={{width: '100%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><dl><dt>This setting determines whether a user can open a direct message channel with anyone on the Mattermost server or only to members of the same team. This setting only affects the options presented in the user interface. It does not affect permissions on the backend server. | - System Config path: <strong>Site Configuration &gt; Users and Teams</strong> |</dt><dd><div class="line-block">- <code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>RestrictDirectMessage</code>|</div></dd><dt>- <strong>Any user on the Mattermost server</strong>: <strong>(Default)</strong> Users can send a direct message to any user through the <strong>Direct Messages &gt; More</strong> menu. <code>config.json</code> setting: <code>"any"</code> | - Environment variable: <code>MM_TEAMSETTINGS_RESTRICTDIRECTMESSAGE</code> |</dt><dd><div class="line-block">                                                                       |</div></dd></dl><ul><li><strong>Any member of the team</strong>: The <strong>Direct Messages &gt; More</strong> menu only allows direct messages to users on the same team. Pressing <a href="mm-kbd:">Ctrl</a> <a href="mm-kbd:">K</a> on Windows or Linux, or <a href="mm-kbd:">⌘</a> <a href="mm-kbd:">K</a> on Mac, only lists other users on the team currently being viewed. A user who is a member of multiple teams can only send direct messages to the team that is being viewed. However, the user can receive messages from other teams, regardless of the team currently being viewed. <code>config.json</code> setting: <code>"team"</code> |</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Teammate name display
+
+<table>
+<colgroup>
+<col style={{width: '100%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This setting determines how names appear in posts and under the <strong>Direct Messages</strong> list. | - System Config path: <strong>Site Configuration &gt; Users and Teams</strong> | Users can change this setting in their interface under <strong>Settings &gt; Display &gt; | - ``config.json`` setting: ``TeamSettings`` &gt; ``TeammateNameDisplay`` &gt; ``username`` | Teammate Name Display</strong>, unless this setting is locked by a system admin | - Environment variable: <code>MM_TEAMSETTINGS_TEAMMATENAMEDISPLAY</code> | via the <strong>Lock teammate name display for all users</strong> configuration setting. | | | | - <strong>Show username</strong>: <strong>(Default for self-hosted deployments)</strong> Displays usernames. | | <code>config.json</code> option: <code>"username"</code>. | | - <strong>Show nickname if one exists...</strong>: Displays the user's nickname. If the user doesn't have a | | nickname, their full name is displayed. If the user doesn't have a full name, their username | | is displayed. <code>config.json</code> option: <code>"nickname_full_name"</code>. | | - <strong>Show first and last name</strong>: <strong>(Default for Cloud deployments)</strong> Displays user's full name. | | If the user doesn't have a full name, their username is displayed. Recommended when using | | <a href="mm-doc:%2Fadministration-guide%2Fonboard%2Fsso-saml">SAML</a> or | <a href="mm-doc:%2Fadministration-guide%2Fonboard%2Fad-ldap">LDAP</a> if first name and last name | attributes are configured. <code>config.json</code> option: <code>"full_name"</code>. | |</td>
+</tr>
+</tbody>
+</table>
+
+### Lock teammate name display for all users
+
+<PlanAvailability slug="ent-plus" />
+
+<table>
+<colgroup>
+<col style={{width: '56%'}} />
+<col style={{width: '44%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>This setting controls whether users can change settings under <strong>Settings &gt; Display &gt; Teammate Name Display</strong>.</p><ul><li><strong>true</strong>: Users <strong>cannot</strong> change the Teammate Name Display.</li><li><strong>false</strong>: <strong>(Default)</strong> Users can change the Teammate Name Display setting.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Users and Teams</strong></li><li><code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>LockTeammateNameDisplay</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_TEAMSETTINGS_LOCKTEAMMATENAMEDISPLAY</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Allow users to view archived channels
+
+<table>
+<colgroup>
+<col style={{width: '54%'}} />
+<col style={{width: '45%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Allows users to access the content of archived channels of which they were a member.</li><li><strong>false</strong>: Users are unable to access content in archived channels.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Users and Teams</strong></li><li><code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>ExperimentalViewArchivedChannels</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_TEAMSETTINGS_EXPERIMENTALVIEWARCHIVEDCHANNELS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+\- From Mattermost v11, this configuration setting is always enabled and no longer configurable. Users can always access archived channels where they are members. - Cloud admins can't modify this configuration setting.
+
+</Note>
+
+### Show email address
+
+<table>
+<colgroup>
+<col style={{width: '53%'}} />
+<col style={{width: '46%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> All users can see the email addresses of every other user.</li><li><strong>false</strong>: Hides email addresses in the client user interface, except from system admins and the System Roles with read/write access to Compliance, Billing, or User Management (users/teams/channels/groups etc).</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Users and teams</strong></li><li><code>config.json</code> setting: <code>PrivacySettings</code> &gt; <code>ShowEmailAddress</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_PRIVACYSETTINGS_SHOWEMAILADDRESS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Show full name
+
+<table>
+<colgroup>
+<col style={{width: '59%'}} />
+<col style={{width: '40%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Full names are visible to all users in the client user interface.</li><li><strong>false</strong>: Hides full names from all users, except system admins. Username is shown in place of the full name.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Users and Teams</strong></li><li><code>config.json</code> setting: <code>PrivacySettings</code> &gt; <code>ShowFullName</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_PRIVACYSETTINGS_SHOWFULLNAME</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Enable anonymous team and channel URLs
+
+<PlanAvailability slug="ent-adv" />
+
+<table>
+<colgroup>
+<col style={{width: '59%'}} />
+<col style={{width: '40%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>From Mattermost v11.6.0, when enabled, team and channel URLs are anonymized, meaning the URL no longer contains the team or channel name. This prevents team and channel names from being identified through web addresses.</p><p>When this setting is enabled, the team and channel creation workflows no longer include a step for users to define a URL; teams and channels are created with an automatically generated anonymous URL. This applies only to newly created teams and channels; existing teams and channels are not affected.</p><ul><li><strong>true</strong>: Team and channel URLs are anonymized.</li><li><strong>false</strong>: Team and channel URLs include the team or channel name.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Users and Teams</strong></li><li><code>config.json</code> setting: <code>PrivacySettings</code> &gt; <code>UseAnonymousURLs</code></li><li>Environment variable: <code>MM_PRIVACYSETTINGS_USEANONYMOUSURLS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Enable custom user statuses
+
+<table>
+<colgroup>
+<col style={{width: '53%'}} />
+<col style={{width: '46%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Users can set status messages and emojis that are visible to all users.</li><li><strong>false</strong>: Users cannot set custom statuses.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Users and Teams</strong></li><li><code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>EnableCustomUserStatuses</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_TEAMSETTINGS_ENABLECUSTOMUSERSTATUSES</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Enable last active time
+
+<table>
+<colgroup>
+<col style={{width: '53%'}} />
+<col style={{width: '46%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Users can see when deactivated users were last active on a user's profile and in direct message channel headers.</li><li><strong>false</strong>: Users can't see when deactivated users were last online.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Users and Teams</strong></li><li><code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>EnableLastActiveTime</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_TEAMSETTINGS_ENABLELASTACTIVETIME</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Enable custom user groups
+
+<table>
+<colgroup>
+<col style={{width: '54%'}} />
+<col style={{width: '45%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Users with appropriate permissions can create custom user groups, and users can @mention custom user groups in Mattermost conversations.</li><li><strong>false</strong>: Custom user groups cannot be created.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Users and Teams</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableCustomGroups</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLECUSTOMGROUPS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### User statistics update time
+
+<table>
+<colgroup>
+<col style={{width: '50%'}} />
+<col style={{width: '49%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Set the server time for updating the user post statistics, including each user's total message count, and the timestamp of each user's most recently sent message.</p><p>Must be a 24-hour time stamp in the form <code>HH:MM</code> based on the local time of the server. Default is <strong>00:00</strong>.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Users and Teams</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>RefreshPostStatsRunTime</code> &gt; <code>00:00</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_REFRESHPOSTSTATSRUNTIME</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+------------------------------------------------------------------------------------------------------------------------
+
+## Notifications
+
+Access the following configuration settings in the System Console by going to **Site Configuration \> Notifications**.
+
+### Show @channel, @all, or @here confirmation dialog
+
+<table>
+<colgroup>
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Requires users to confirm when posting @channel, @all, @here, or group mentions in channels with more than 5 members.</li><li><strong>false</strong>: No confirmation is required.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Notifications</strong></li><li><code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>EnableConfirmNotificationsToChannel</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_TEAMSETTINGS_ENABLECONFIRMNOTIFICATIONSTOCHANNEL</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Enable email notifications
+
+<table>
+<colgroup>
+<col style={{width: '66%'}} />
+<col style={{width: '33%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Enables automatic email notifications for posts.</li><li><strong>false</strong>: Disables notifications. A developer may choose this option to speed development by skipping email setup (see also the <strong>Enable preview mode banner</strong> setting).</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Notifications</strong></li><li><code>config.json</code> setting: <code>EmailSettings</code> &gt; <code>SendEmailNotifications</code> &gt; <code>ture</code></li><li>Environment variable: <code>MM_EMAILSETTINGS_SENDEMAILNOTIFICATIONS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+\- Cloud admins can't modify this configuration setting. - If this setting is **false**, and the SMTP server is set up, account-related emails (such as authentication messages) will be sent regardless of this setting. - Email invitations and account deactivation emails aren't affected by this setting. - If you don't plan on [configuring Mattermost for email](/administration-guide/configure/smtp-email), disabling this configuration setting in larger deployments may improve server performance in the following areas, particularly in high-traffic environments where performance is a key concern:
+
+- **Reduced Server Load**: Generating and sending emails requires processing power and resources. By disabling email notifications, you reduce the load on the server, which can be reallocated to other tasks.
+- **Decreased I/O Operations**: Sending emails involves input/output (I/O) operations, such as writing to logs and databases, and handling communication with the email server. Reducing these I/O operations can improve overall system efficiency.
+- **Lowered Network Traffic**: Each email sent contributes to network traffic. Disabling email notifications decreases the amount of data being transmitted, which can lead to better performance, especially in environments with limited bandwidth.
+- **Faster Response Times**: With fewer background tasks (like sending emails) to handle, the application can potentially respond to user requests more quickly, improving perceived performance.
+- **Resource Allocation**: Resources like CPU cycles, memory, and network bandwidth that would have been used for sending emails can be used elsewhere, possibly improving the performance of other critical components of the system.
+- However, disabling email notifications can negatively impact user experience, communication efficiency, and overall productivity. It's important to balance performance improvements with the needs of your organization and users.
+
+</Note>
+
+### Enable preview mode banner
+
+<table>
+<colgroup>
+<col style={{width: '66%'}} />
+<col style={{width: '33%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> When <strong>Send email notifications</strong> is <strong>false</strong>, users see the Preview Mode banner. This banner alerts users that email notifications are disabled.</li><li><strong>false</strong>: Preview Mode banner does not appear.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Notifications</strong></li><li><code>config.json</code> setting: <code>EmailSettings</code> &gt; <code>EnablePreviewModeBanner</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_EMAILSETTINGS_ENABLEPREVIEWMODEBANNER</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+Cloud admins can't modify this configuration setting.
+
+</Note>
+
+### Enable email batching
+
+<table>
+<colgroup>
+<col style={{width: '49%'}} />
+<col style={{width: '50%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Multiple email notifications for mentions and direct messages over a given time period are batched into a single email.</li><li><strong>false</strong>: <strong>(Default)</strong> Email notifications are sent for each mention or direct message.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Notifications</strong></li><li><code>config.json</code> setting: <code>EmailSettings</code> &gt; <code>EnableEmailBatching</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_EMAILSETTINGS_ENABLEEMAILBATCHING</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+- Cloud admins can't modify this configuration setting.
+- The [Site Url](/administration-guide/configure/environment-configuration-settings#site-url) and [SMTP Email Server](/administration-guide/configure/environment-configuration-settings#smtp-server) must be configured to allow email batching.
+- Regardless of how this setting is configured, users can [disable email-based notifications altogether](/end-user-guide/preferences/manage-your-notifications#email-notifications).
+- When email batching is enabled, users can [customize how often to receive batched notifications](/end-user-guide/preferences/manage-your-notifications#email-notifications). The default frequency is 15 minutes.
+- Email batching in [High Availability Mode](/administration-guide/configure/environment-configuration-settings#enable-high-availability-mode) is planned, but not yet supported.
+
+</Note>
+
+### Email notification contents
+
+<PlanAvailability slug="ent-plus" />
+
+<table>
+<colgroup>
+<col style={{width: '77%'}} />
+<col style={{width: '22%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>Send full message contents</strong>: <strong>(Default)</strong> Email notifications include the full message contents, along with the name of the sender and the channel. <code>config.json</code> setting: <code>"full"</code></li><li><strong>Send generic description with only sender name</strong>: Only the name of the sender and team name are included in email notifications. Use this option if Mattermost contains confidential information and policy dictates it cannot be stored in email. <code>config.json</code> setting: <code>"generic"</code></li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Notifications</strong></li><li><code>config.json</code> setting: <code>EmailSettings</code> &gt; <code>EmailNotificationContentsType</code></li><li>Environment variable: <code>MM_EMAILSETTINGS_EMAILNOTIFICATIONCONTENTSTYPE</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Notification display name
+
+<table>
+<colgroup>
+<col style={{width: '60%'}} />
+<col style={{width: '39%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Display name for email notifications sent from the Mattermost system.</p><p>String input. No default setting. This field is required when changing settings in the System Console.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Notifications</strong></li><li><code>config.json</code> setting: <code>EmailSettings</code> &gt; <code>FeedbackName</code></li><li>Environment variable: <code>MM_EMAILSETTINGS_FEEDBACKNAME</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Notification from address
+
+<table>
+<colgroup>
+<col style={{width: '63%'}} />
+<col style={{width: '36%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Email address for notification emails from the Mattermost system. This address should be monitored by a system admin.</p><p>String input. Default is <code>test@example.com</code>. This field is required when changing settings in the System Console.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Notifications</strong></li><li><code>config.json</code> setting: <code>EmailSettings</code> &gt; <code>FeedbackEmail</code></li><li>Environment variable: <code>MM_EMAILSETTINGS_FEEDBACKEMAIL</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+Cloud admins can't modify this configuration setting.
+
+</Note>
+
+### Support email address
+
+<table>
+<colgroup>
+<col style={{width: '80%'}} />
+<col style={{width: '19%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Sets a user support (or feedback) email address that is displayed on email notifications and during the Getting Started tutorial. This address should be monitored by a system admin. If no value is set, email notifications will not contain a way for users to request assistance.</p><p>String input. Default is <code>feedback@mattermost.com</code>. This field is required when changing settings in the System Console.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Notifications</strong></li><li><code>config.json</code> setting: <code>SupportSettings</code> &gt; <code>SupportEmail</code></li><li>Environment variable: <code>MM_SUPPORTSETTINGS_SUPPORTEMAIL</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Notification reply-to address
+
+<table>
+<colgroup>
+<col style={{width: '69%'}} />
+<col style={{width: '30%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Email address used in the reply-to header when sending notification emails from the Mattermost system. This address should be monitored by a system admin.</p><p>String input. Default is <code>test@example.com</code>.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Notifications</strong></li><li><code>config.json</code> setting: <code>EmailSettings</code> &gt; <code>ReplyToAddress</code></li><li>Environment variable: <code>MM_EMAILSETTINGS_REPLYTOADDRESS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Notification footer mailing address
+
+<table>
+<colgroup>
+<col style={{width: '65%'}} />
+<col style={{width: '34%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Optional setting to include the organization's name and mailing address in the footer of email notifications. If not set, nothing will appear.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Notifications</strong></li><li><code>config.json</code> setting: <code>EmailSettings</code> &gt; <code>FeedbackOrganization</code></li><li>Environment variable: <code>MM_EMAILSETTINGS_FEEDBACKORGANIZATION</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Push notification contents
+
+<table>
+<colgroup>
+<col style={{width: '57%'}} />
+<col style={{width: '42%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><p><strong>Generic description with only sender name</strong>: Push notifications include the sender's name, but not the channel name or message contents. <code>config.json</code> setting: <code>"generic_no_channel"</code></p></li><li><p><strong>Generic description with sender and channel names</strong>: <strong>(Default)</strong> Push notifications include the name of the sender and channel, but not the message contents. <code>config.json</code> setting: <code>"generic"</code></p></li><li><p><strong>Full message content sent in the notification payload</strong>: Includes the message contents in the push notification payload, which may be sent through <a href="https://developer.apple.com/documentation/usernotifications">Apple's Push Notification service</a> or <a href="https://firebase.google.com/docs/cloud-messaging">Google's Firebase Cloud Messaging</a> . We <strong>highly recommended</strong> this option only be used with an <code>https</code> protocol to encrypt the connection and protect confidential information. <code>config.json</code> setting: <code>"full"</code></p></li><li><p><strong>Full message content fetched from the server on receipt</strong> (<em>Available in Mattermost Enterprise</em>): The notification payload contains no message content. Instead it contains a unique message ID used to fetch message content from the Mattermost server when a push notification is received via a <a href="https://developer.apple.com/documentation/usernotifications/modifying-content-in-newly-delivered-notifications">notification service app extension</a> on iOS or <a href="https://developer.android.com/develop/ui/views/notifications/expanded">an expandable notification pattern</a> on Android.</p><p>If the server cannot be reached, a generic push notification is displayed without message content or sender name. For customers who wrap the Mattermost mobile application in a secure container, the container must fetch the message contents using the unique message ID when push notifications are received.</p><p>If the container is unable to execute the fetch, the push notification contents cannot be received by the customer's mobile application without passing the message contents through Apple's or Google's notification service. <code>config.json</code> setting: <code>"id_loaded"</code></p></li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Notifications</strong></li><li><code>config.json</code> setting: <code>EmailSettings</code> &gt; <code>PushNotificationContents</code></li><li>Environment variable: <code>MM_EMAILSETTINGS_PUSHNOTIFICATIONCONTENTS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Enable notification monitoring
+
+<table>
+<colgroup>
+<col style={{width: '32%'}} />
+<col style={{width: '67%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Enable or disable notification metrics data collection.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> Mattermost notification data collection is enabled for client-side web and desktop app users.</li><li><strong>false</strong>: Mattermost notification data collection is disabled.</li></ul></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Performance Monitoring</strong></li><li><code>config.json</code> setting: <code>MetricsSettings</code> &gt; <code>EnableNotificationMetrics</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_METRICSSETTINGS_ENABLENOTIFICATIONMETRICS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+See the [performance monitoring](/administration-guide/scale/deploy-prometheus-grafana-for-performance-monitoring#getting-started) documentation to learn more about Mattermost Notification Health metrics.
+
+</Note>
+
+------------------------------------------------------------------------------------------------------------------------
+
+## System-wide notifications
+
+<PlanAvailability slug="all-commercial" />
+
+Access the following configuration settings in the System Console by going to **Site Configuration \> System-wide notifications**.
+
+### Enable system-wide notifications
+
+<table style={{width: '99%'}}>
+<colgroup>
+<col style={{width: '42%'}} />
+<col style={{width: '20%'}} />
+<col style={{width: '36%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Enable system-wide notifications to display at the top of the Mattermost interface for all users across all teams.</li><li><strong>false</strong>: <strong>(Default)</strong> Disable system-wide notifications.</li></ul></td>
+<td colspan="2"><ul><li>System Config path: <strong>Site Configuration &gt; System-wide notifications</strong></li><li><code>config.json</code> setting: <code>AnnouncementSettings</code> &gt; <code>SystemWideNotifications</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_ANNOUNCEMENTSETTINGS_SYSTEMWIDENOTIFICATIONS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Banner text
+
+<table style={{width: '99%'}}>
+<colgroup>
+<col style={{width: '42%'}} />
+<col style={{width: '24%'}} />
+<col style={{width: '31%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The text of the system-wide notification, when enabled.</p><p>String input.</p></td>
+<td colspan="2"><ul><li>System Config path: <strong>Site Configuration &gt; System-wide notifications</strong></li><li><code>config.json</code> setting: <code>AnnouncementSettings</code> &gt; <code>BannerText</code></li><li>Environment variable: <code>MM_ANNOUNCEMENTSETTINGS_BANNERTEXT</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Banner color
+
+<table>
+<colgroup>
+<col style={{width: '38%'}} />
+<col style={{width: '61%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The background color of system-wide notifications.</p><p>String input of a CSS color value.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; System-wide notifications</strong></li><li><code>config.json</code> setting: <code>AnnouncementSettings</code> &gt; <code>BannerColor</code> &gt; <code>"#f2a93b"</code></li><li>Environment variable: <code>MM_ANNOUNCEMENTSETTINGS_BANNERCOLOR</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Banner text color
+
+<table>
+<colgroup>
+<col style={{width: '37%'}} />
+<col style={{width: '62%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The color of the text in system-wide notifications.</p><p>String input of a CSS color value.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; System-wide notifications</strong></li><li><code>config.json</code> setting: <code>AnnouncementSettings</code> &gt; <code>BannerTextColor</code> &gt; <code>"#333333"</code></li><li>Environment variable: <code>MM_ANNOUNCEMENTSETTINGS_BANNERTEXTCOLOR</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Allow banner dismissal
+
+<table>
+<colgroup>
+<col style={{width: '45%'}} />
+<col style={{width: '54%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Users can dismiss the system-wide notification. It will re-appear the next time the user logs in, and when the text is updated by an admin, or when an admin disables system-wide notifications and reenables them.</li><li><strong>false</strong>: Users cannot dismiss the banner.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; System-wide notifications</strong></li><li><code>config.json</code> setting: <code>AnnouncementSettings</code> &gt; <code>AllowBannerDismissal</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_ANNOUNCEMENTSETTINGS_ALLOWBANNERDISMISSAL</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+------------------------------------------------------------------------------------------------------------------------
+
+## Emoji
+
+Access the following configuration settings in the System Console by going to **Site Configuration \> Emoji**.
+
+### Enable emoji picker
+
+<table>
+<colgroup>
+<col style={{width: '55%'}} />
+<col style={{width: '44%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Enables an emoji picker when composing messages and for message reactions.</li><li><strong>false</strong>: Disables the emoji picker in message composition and reactions.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Emoji</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableEmojiPicker</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLEEMOJIPICKER</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Enable custom emoji
+
+<table>
+<colgroup>
+<col style={{width: '48%'}} />
+<col style={{width: '51%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Allows users to add up to 6000 emojis through a <strong>Custom Emoji</strong> option in the emoji picker. Emojis can be GIF, PNG, or JPG files up to 512 KB in size.</li><li><strong>false</strong>: Disables custom emojis.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Emoji</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableCustomEmoji</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLECUSTOMEMOJI</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+While Mattermost supports up to 6000 custom emojis, an increase in custom emojis can slow your server's performance.
+
+</Note>
+
+------------------------------------------------------------------------------------------------------------------------
+
+## Posts
+
+Access the following configuration settings in the System Console by going to **Site Configuration \> Posts**.
+
+### Automatically follow threads
+
+<table>
+<colgroup>
+<col style={{width: '54%'}} />
+<col style={{width: '45%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Enables automatic following for all threads that a user starts, or in which the user participates or is mentioned. A <strong>Threads</strong> table in the database tracks threads and thread participants. A <strong>ThreadMembership</strong> table tracks followed threads for each user and whether the thread is read or unread.</li><li><strong>false</strong>: Disables automatic following of threads.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>ThreadAutoFollow</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_THREADAUTOFOLLOW</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+\- This setting is applicable to self-hosted deployments only. - This setting **must** be enabled for [threaded discussions](/end-user-guide/collaborate/organize-conversations) to function. - Enabling this setting does not automatically follow threads based on previous user actions. For example, threads a user participated in prior to enabling this setting won't be automatically followed, unless the user adds a new comment or is mentioned in the thread.
+
+</Note>
+
+### Threaded discussions
+
+<Important>
+
+Customers upgrading from a legacy Mattermost release prior to v7.0 must review the [administrator's guide to enabling threaded discussions](https://support.mattermost.com/hc/en-us/articles/6880701948564-Administrator-s-guide-to-enabling-Collapsed-Reply-Threads) (formerly known as Collapsed Reply Threads) prior to enabling this functionality.
+
+</Important>
+
+<table>
+<colgroup>
+<col style={{width: '100%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><dl><dt>- <strong>Always On</strong>: <strong>(Default)</strong> Enables <a href="mm-doc:%2Fend-user-guide%2Fcollaborate%2Forganize-conversations">threaded discussions | - System Config path: **Site Configuration &gt; Posts** |</a> | - <code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>CollapsedThreads</code></dt><dd><p>on the server and for all users. This is the recommended configuration for optimal user experience | - Environment variable: <code>MM_SERVICESETTINGS_COLLAPSEDTHREADS</code> | and to ensure consistency in how users read and respond to threaded conversations. | | <code>config.json</code> setting: <code>"always_on"</code> | |</p></dd></dl><ul><li><strong>Default On</strong>: Enables threaded discussions on the server and for all users. | |</li><li><strong>Default Off</strong>: Enables threaded discussions on the server but <strong>not</strong> for users. | |</li><li><strong>Disabled</strong>: Users cannot enable threaded discussions. <code>config.json</code> setting: <code>"disabled"</code> | |</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Message priority
+
+<Tip>
+
+[Mattermost Enterprise or Professional](https://mattermost.com/pricing) customers can additionally request message acknowledgements to track that specific, time-sensitive messages have been seen and actioned. See the [message priority](/end-user-guide/collaborate/message-priority) documentation to learn more.
+
+</Tip>
+
+<table>
+<colgroup>
+<col style={{width: '48%'}} />
+<col style={{width: '51%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Enables message priority for all users which enables them to set a visual indiciator for important or urgent root messages.</li><li><strong>false</strong>: Disables the ability to set message priority and request acknowledgements.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>PostPriority</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_POSTPRIORITY</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+Disabling this configuration setting in larger deployments may improve server performance in the following areas, particularly in environments where performance and responsiveness are critical:
+
+- Simplified Processing: When post priority is enabled, the system has to manage and prioritize posts based on their designated priority levels. This adds additional processing overhead as the system must evaluate and sort posts accordingly. By disabling this feature, all posts are treated equally, which simplifies the processing logic and reduces the computational load.
+- Reduced Latency: With post priority enabled, there might be delays introduced while the system determines the priority of each post and processes them in the correct order. Disabling post priority can lead to more consistent and potentially quicker handling of posts because the system processes them on a first-come, first-served basis.
+- Lower Resource Utilization: Managing post priorities can consume additional system resources such as CPU and memory. Disabling this feature can free up these resources, allowing the system to allocate them to other tasks, thereby improving overall performance.
+- Improved Scalability: In a high-traffic environment, the complexity of managing post priorities can become more pronounced. Disabling this feature simplifies the system's operations, making it easier to scale as the number of users and posts increases.
+
+</Note>
+
+### Persistent notifications
+
+<table>
+<colgroup>
+<col style={{width: '43%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Users can trigger repeating notifications to mentioned recipients of urgent messages.</li><li><strong>false</strong>: Disables the ability to send repeating notifications.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>AllowPersistentNotifications</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ALLOWPERSISTENTNOTIFICATIONS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Maximum number of recipients for persistent notifications
+
+<table>
+<colgroup>
+<col style={{width: '39%'}} />
+<col style={{width: '60%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The maximum number of recipients users may send persistent notifications to.</p><p>Numerical input. Default is <strong>5</strong>.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>PersistentNotificationMaxRecipients</code> &gt; <code>5</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_PERSISTENTNOTIFICATIONMAXRECIPIENTS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Frequency of persistent notifications
+
+<table>
+<colgroup>
+<col style={{width: '38%'}} />
+<col style={{width: '61%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The number of minutes between repeated notifications for urgent messages sent with persistent notifications.</p><p>Numerical input. Default is <strong>5</strong>. Minimum is <strong>2</strong>.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>PersistentNotificationIntervalMinutes</code> &gt; <code>5</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_PERSISTENTNOTIFICATIONINTERVALMINUTES</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Total number of persistent notifications per post
+
+<table>
+<colgroup>
+<col style={{width: '39%'}} />
+<col style={{width: '60%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The maximum number of times users may receive persistent notifications.</p><p>Numerical input. Default is <strong>6</strong>.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>PersistentNotificationMaxCount</code> &gt; <code>6</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_PERSISTENTNOTIFICATIONMAXCOUNT</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Enable burn-on-read messages
+
+<PlanAvailability slug="entry-adv" />
+
+[Burn-on-read messages](/end-user-guide/collaborate/send-messages#send-burn-on-read-messages) have irreversible behavior:
+
+- Once a recipient reveals a burn-on-read message, it can't be hidden again.
+- Once a burn-on-read message expires or is burned, it is permanently deleted and can't be recovered.
+- Recipients can't reply to, edit, or thread burn-on-read messages.
+
+<table>
+<colgroup>
+<col style={{width: '56%'}} />
+<col style={{width: '43%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Enable or disable burn-on-read messages.</p><ul><li><strong>false</strong>: <strong>(Default)</strong> The option to send a burn-on-read message isn't available.</li><li><strong>true</strong>: Users can send burn-on-read messages in channels, direct messages, and group messages.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableBurnOnRead</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLEBURNONREAD</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+Disabling this feature prevents users from sending new burn-on-read messages. Once disabled, users can interact with existing burn-on-read messages.
+
+</Note>
+
+### Burn-on-read duration
+
+<PlanAvailability slug="entry-adv" />
+
+<table>
+<colgroup>
+<col style={{width: '56%'}} />
+<col style={{width: '43%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Sets the countdown duration for burn-on-read messages once they are revealed. After a recipient reveals a burn-on-read message, the message is deleted for that user after the specified duration. This setting applies to all burn-on-read messages.</p><p>Numerical input in seconds. Default is <strong>600</strong> seconds (10 minutes).</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>BurnOnReadDurationSeconds</code> &gt; <code>600</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_BURNONREADDURATIONSECONDS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Maximum time to live for burn-on-read messages
+
+<PlanAvailability slug="entry-adv" />
+
+<table>
+<colgroup>
+<col style={{width: '56%'}} />
+<col style={{width: '43%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Sets the maximum duration that burn-on-read messages can exist after they are sent. The message is deleted after the specified duration, even if it hasn't been revealed by all recipients.</p><p>Numerical input in seconds. Default is <strong>604800</strong> seconds (7 days).</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>BurnOnReadMaximumTimeToLiveSeconds</code> &gt; <code>604800</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_BURNONREADMAXIMUMTIMETOLIVESECONDS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Enable website link previews
+
+<Important>
+
+The server must be connected to the internet to generate previews. This connection can be established through a [firewall or outbound proxy](/deployment-guide/server/preparations#outbound-proxy-configuration) if necessary.
+
+</Important>
+
+<table>
+<colgroup>
+<col style={{width: '73%'}} />
+<col style={{width: '26%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: The server generates a preview of the first website, image, or YouTube video linked in a message. Users can disable website previews, but not image or YouTube previews, under <strong>Settings &gt; Display &gt; Website Link Previews</strong>.</li><li><strong>false</strong>: <strong>(Default)</strong> All previews are disabled and the server does not request metadata for any links contained in messages.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableLinkPreviews</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLELINKPREVIEWS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+Disabling this configuration setting in larger deployments may improve server performance in the following areas:
+
+- Reduced Network Requests: When link previews are enabled, the system needs to fetch metadata (such as title, description, or image) from the linked webpage. This requires additional network requests, which can slow down the system.
+- Lower Server Load: Creating link previews involves parsing the content of the linked pages. If many users are sharing links, the server will have to perform numerous network requests and process a lot of additional data, increasing the load on the server.
+- Less Data Processing: Every link shared needs to be processed to extract the necessary preview information. This processing consumes CPU and memory resources, which can otherwise be reserved for other tasks.
+- Decreased Client-Side Rendering Time: On the client side, rendering link previews (adding text, images, and layouts) takes time and resources. Disabling link previews means that clients do not need to render these elements, leading to faster message display.
+- Saved Bandwidth: Link previews often include images and other data from the linked content. By disabling them, you save the bandwidth that would be used to download these additional resources.
+- However, disabling link previews can negatively impact user experience, communication efficiency, and overall productivity. It's important to balance performance improvements with the needs of your organization and users.
+
+</Note>
+
+### Disable link previews for specific domains
+
+<table>
+<colgroup>
+<col style={{width: '57%'}} />
+<col style={{width: '42%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Use this setting to disable previews of links for specific domains.</p><p>String input of a comma-separated list of domains, for example: <code>"mattermost.com, images.example.com"</code></p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>RestrictLinkPreviews</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_RESTRICTLINKPREVIEWS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Enable message link previews
+
+<table>
+<colgroup>
+<col style={{width: '100%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> <a href="mm-doc:%2Fend-user-guide%2Fcollaborate%2Fshare-links">Share links to Mattermost messages</a> | - System Config path: <strong>Site Configuration &gt; Posts</strong> will generate a preview for any users that have access to the original message. | - <code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnablePermalinkPreviews</code> &gt; <code>true</code> |</li><li><strong>false</strong>: Share links do not generate a preview. | - Environment variable: <code>MM_SERVICESETTINGS_ENABLEPERMALINKPREVIEWS</code> |</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+Disabling this configuration setting in larger deployments may improve server performance in the following areas, particularly in environments with high message throughput or limited resources:
+
+- Reduced Server Load: When permalink previews are enabled, the server has to generate preview summaries for each shared link. This generates additional requests to fetch metadata and may involve parsing web pages, which increases the processing load on the server.
+- Less Data Transfer: Permalink previews include additional metadata such as images, titles, and descriptions. Disabling previews reduces the amount of data that needs to be transferred, which can decrease bandwidth usage and improve message load times, particularly for channels with a high volume of links.
+- Faster Message Rendering: On the client-side, rendering messages with multimedia previews takes more time compared to plain text messages. Disabling previews can reduce rendering complexity and improve client performance, especially on devices with limited resources.
+- Network Latency: Fetching metadata for link previews may introduce network latency, as the server must reach out to external resources. Disabling this can eliminate these delays, ensuring faster message processing and display.
+- Simplified Message Handling: In the absence of previews, messages are simpler and less resource-intensive to store, retrieve, and display. This can contribute to overall improved system responsiveness and efficiency.
+- However, disabling permalink previews can negatively impact user experience, communication efficiency, and overall productivity. It's important to balance performance improvements with the needs of your organization and users.
+
+</Note>
+
+### Enable SVGs
+
+<table>
+<colgroup>
+<col style={{width: '50%'}} />
+<col style={{width: '49%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Enables previews of SVG files attached to messages.</li><li><strong>false</strong>: <strong>(Default)</strong> Disables previews of SVG files.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableSVGs</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLESVGS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Warning>
+
+Enabling SVGs is not recommended in environments where not all users are trusted.
+
+</Warning>
+
+### Enable LaTeX code block rendering
+
+<table>
+<colgroup>
+<col style={{width: '100%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Enables rendering of <a href="mm-ref:end-user-guide%2Fcollaborate%2Fformat-messages%3Amath%20formulas">LaTeX in code blocks</a>. | - System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><dl><dt><strong>false</strong>: <strong>(Default)</strong> Disables rendering in blocks. Instead, LaTeX code is highlighted. | - <code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableLatex</code> &gt; <code>false</code>|</dt><dd><div class="line-block">- Environment variable: <code>MM_SERVICESETTINGS_ENABLELATEX</code> |</div></dd></dl></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Warning>
+
+Enabling LaTeX rendering is not recommended in environments where not all users are trusted.
+
+</Warning>
+
+### Enable inline LaTeX rendering
+
+<table>
+<colgroup>
+<col style={{width: '100%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Enables rendering of | - System Config path: <strong>Site Configuration &gt; Posts</strong> | <a href="mm-ref:end-user-guide%2Fcollaborate%2Fformat-messages%3Amath%20formulas">LaTeX in message text</a>. | - <code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableInlineLatex</code> &gt; <code>false</code></li><li><strong>false</strong>: <strong>(Default)</strong> Disables inline rendering of LaTeX. Instead, LaTeX in message text is highlighted. | - Environment variable: <code>MM_SERVICESETTINGS_ENABLEINLINELATEX</code> | LaTeX can also be rendered in a code block, if that feature is enabled. See <strong>Enable LaTeX code block rendering</strong>. | |</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Warning>
+
+Enabling LaTeX rendering isn't recommended in environments where not all users are trusted.
+
+</Warning>
+
+### Custom URL schemes
+
+<table>
+<colgroup>
+<col style={{width: '71%'}} />
+<col style={{width: '28%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>A list of URL schemes that will automatically create a link in message text, for example: <code>["git", "smtp"]</code>. These schemes always create links: <code>http</code>, <code>https</code>, <code>ftp</code>, <code>tel</code>, and <code>mailto</code>.</p><p><code>config.json</code> setting: an array of strings</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><code>config.json</code> setting: <code>DisplaySettings</code> &gt; <code>CustomURLSchemes</code> &gt; <code>[]</code></li><li>Environment variable: <code>MM_DISPLAYSETTINGS_CUSTOMURLSCHEMES</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Maximum Markdown nodes
+
+<table>
+<colgroup>
+<col style={{width: '43%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The maximum number of Markdown elements (such as emojis, links, or table cells), that can be included in a single piece of text in a message.</p><p>Numerical input. Default is <strong>0</strong> which applies a Mattermost-specified limit.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><code>config.json</code> setting: <code>DisplaySettings</code> &gt; <code>MaxMarkdownNodes</code> &gt; <code>0</code></li><li>Environment variable: <code>MM_DISPLAYSETTINGS_MAXMARKDOWNNODES</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+This limit applies to all Mattermost clients, including web, desktop app, and mobile app.
+
+</Note>
+
+### Google API key
+
+<table>
+<colgroup>
+<col style={{width: '77%'}} />
+<col style={{width: '22%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>If a key is provided in this setting, Mattermost displays titles of embedded YouTube videos and detects if a video is no longer available. Setting a key should also prevent Google from throttling access to embedded videos that receive a high number of views.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>GoogleDeveloperKey</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_GOOGLEDEVELOPERKEY</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+- This setting is applicable to self-hosted deployments only.
+- This key is used in client-side Javascript, and must have the YouTube Data API added as a service.
+
+</Note>
+
+### Enable server syncing of message drafts
+
+<table>
+<colgroup>
+<col style={{width: '37%'}} />
+<col style={{width: '62%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Enable or disable the ability to synchronize draft messages across all supported Mattermost clients.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> Message drafts are saved on the server and may be accessed from different clients. Users may still disable server synchronization of draft messages by going to <strong>Settings &gt; Advanced Settings</strong>.</li><li><strong>false</strong>: Draft messages are stored locally on each device.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>AllowSyncedDrafts</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+While drafts can be very useful for maintaining work continuity, especially in collaborative environments, disabling draft synchronization across devices can lead to noticeable performance improvements by reducing the computational and data management overhead as follows:
+
+- Reduced Data Synchronization: When drafts are enabled and synchronized across devices, the system needs to handle those data synchronization operations which can consume significant bandwidth and computing resources. Disabling draft syncing reduces the load on servers and networks.
+- Lower Storage Usage: Storing drafts requires additional database operations and storage space. Each draft is an extra piece of data that needs to be saved, managed, and retrieved. Without drafts, the system has fewer records to keep, which can streamline database operations.
+- Decreased Client Processing: On the client side, draft management involves monitoring changes, saving drafts periodically, and handling conflict resolution if multiple drafts are edited from different devices. Disabling drafts reduces these client-side processes, thus freeing up memory and CPU resources.
+- Simplified Architecture: Maintaining synced drafts often requires complex backend logic to ensure consistency and avoid data conflicts. Simplifying this architecture by removing draft syncing can lead to more efficient and faster backend operations.
+- Improved User Experience: Users may experience faster load times and reduced latency without the overhead of draft syncing. This can be particularly noticeable in environments with limited or variable internet connectivity.
+- However, disabling draft synchronization can negatively impact user experience, communication efficiency, and overall productivity. It's important to balance performance improvements with the needs of your organization and users.
+
+</Note>
+
+### Unique emoji reaction limit
+
+<table>
+<colgroup>
+<col style={{width: '35%'}} />
+<col style={{width: '64%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Limit the number of unique emoji reactions on each message. Increasing this limit can lead to poor client performance.</p><p>Numerical input. Default is <strong>50</strong>. Maximum is 500.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>UniqueEmojiReactionLimitPerPost</code> &gt; <code>50</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_UNIQUEEMOJIREACTIONLIMITPERPOST</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+------------------------------------------------------------------------------------------------------------------------
+
+## Content flagging
+
+<PlanAvailability slug="entry-adv" />
+
+Access the following configuration settings in the System Console by going to **Site Configuration \> Content Flagging**.
+
+### Enable content flagging
+
+<table>
+<colgroup>
+<col style={{width: '35%'}} />
+<col style={{width: '64%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Enables the Content Flagging feature.</li><li><strong>false</strong>: <strong>(Default)</strong> Disables the feature.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Content Flagging</strong></li><li><code>config.json</code> setting: <code>ContentFlaggingSettings</code> &gt; <code>EnableContentFlagging</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_CONTENTFLAGGINGSETTINGS_ENABLECONTENTFLAGGING</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Notification settings
+
+<table>
+<colgroup>
+<col style={{width: '33%'}} />
+<col style={{width: '66%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Default notification recipients for each event:</p><ul><li>Events: flagged, assigned, removed, dismissed</li><li>Recipients: reviewers, author, reporter</li></ul><p>Default mappings include:</p><ul><li>flagged = reviewers</li><li>assigned = reviewers</li><li>removed = reviewers, author, reporter</li><li>dismissed = reviewers, reporter</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Content Flagging</strong></li><li><code>config.json</code> setting: <code>ContentFlaggingSettings</code> &gt; <code>NotificationSettings</code> &gt; <code>EventTargetMapping</code></li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Additional settings
+
+<table>
+<colgroup>
+<col style={{width: '35%'}} />
+<col style={{width: '64%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Specify the reasons for flagging.</p><p>Default reasons include:</p><ul><li>Inappropriate content</li><li>Sensitive data</li><li>Security concern</li><li>Harassment or abuse</li><li>Spam or phishing</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Content Flagging</strong></li><li><code>config.json</code> setting: <code>ContentFlaggingSettings</code> &gt; <code>AdditionalSettings</code> &gt; <code>Reasons</code></li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Require reporters to add comment
+
+<table>
+<colgroup>
+<col style={{width: '36%'}} />
+<col style={{width: '63%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Reporters must add a comment when flagging.</li><li><strong>false</strong>: Reporters aren't required to add a comment.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Content Flagging</strong></li><li><code>config.json</code> setting: <code>ContentFlaggingSettings</code> &gt; <code>AdditionalSettings</code> &gt; <code>ReporterCommentRequired</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_CONTENTFLAGGINGSETTINGS_ADDITIONALSETTINGS_REPORTERCOMMENTREQUIRED</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Require reviewers to add comment
+
+<table>
+<colgroup>
+<col style={{width: '36%'}} />
+<col style={{width: '63%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Reviewers must add a comment when reviewing flagged content.</li><li><strong>false</strong>: Reviewers aren't required to add a comment.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Content Flagging</strong></li><li><code>config.json</code> setting: <code>ContentFlaggingSettings</code> &gt; <code>AdditionalSettings</code> &gt; <code>ReviewerCommentRequired</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_CONTENTFLAGGINGSETTINGS_ADDITIONALSETTINGS_REVIEWERCOMMENTREQUIRED</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Hide message from channel while it is being reviewed
+
+<table>
+<colgroup>
+<col style={{width: '37%'}} />
+<col style={{width: '62%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Hide flagged content from the channel while under review.</li><li><strong>false</strong>: Keep flagged content visible while under review.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Content Flagging</strong></li><li><code>config.json</code> setting: <code>ContentFlaggingSettings</code> &gt; <code>AdditionalSettings</code> &gt; <code>HideFlaggedContent</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_CONTENTFLAGGINGSETTINGS_ADDITIONALSETTINGS_HIDEFLAGGEDCONTENT</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Same reviewers for all teams
+
+<table>
+<colgroup>
+<col style={{width: '32%'}} />
+<col style={{width: '67%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Use the same set of reviewers across all teams.</li><li><strong>false</strong>: Reviewers can be managed per team.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Content Flagging</strong></li><li><code>config.json</code> setting: <code>ContentFlaggingSettings</code> &gt; <code>ReviewerSettings</code> &gt; <code>CommonReviewers</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_CONTENTFLAGGINGSETTINGS_REVIEWERSETTINGS_COMMONREVIEWERS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### System administrators as reviewers
+
+<table>
+<colgroup>
+<col style={{width: '31%'}} />
+<col style={{width: '68%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Include system administrators as reviewers.</li><li><strong>false</strong>: <strong>(Default)</strong> System administrators are not included by default.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Content Flagging</strong></li><li><code>config.json</code> setting: <code>ContentFlaggingSettings</code> &gt; <code>ReviewerSettings</code> &gt; <code>SystemAdminsAsReviewers</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_CONTENTFLAGGINGSETTINGS_REVIEWERSETTINGS_SYSTEMADMINSASREVIEWERS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Team administrators as reviewers
+
+<PlanAvailability slug="entry-ent" />
+
+<table>
+<colgroup>
+<col style={{width: '32%'}} />
+<col style={{width: '68%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Include team administrators as reviewers for their respective teams.</li><li><strong>false</strong>: Team administrators aren't included as reviewers.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Content Flagging</strong></li><li><code>config.json</code> setting: <code>ContentFlaggingSettings</code> &gt; <code>ReviewerSettings</code> &gt; <code>TeamAdminsAsReviewers</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_CONTENTFLAGGINGSETTINGS_REVIEWERSETTINGS_TEAMADMINSASREVIEWERS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+------------------------------------------------------------------------------------------------------------------------
+
+## File sharing and downloads
+
+Access the following configuration settings in the System Console by going to **Site Configuration \> File Sharing and Downloads**.
+
+### Allow file sharing
+
+<table>
+<colgroup>
+<col style={{width: '64%'}} />
+<col style={{width: '35%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Allows users to attach files to messages.</li><li><strong>false</strong>: Prevents users from attaching files (including images) to a message. This affects users on all clients and devices, including mobile apps.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; File Sharing and Downloads</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>EnableFileAttachments</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_FILESETTINGS_ENABLEFILEATTACHMENTS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Allow file uploads on mobile
+
+<table>
+<colgroup>
+<col style={{width: '53%'}} />
+<col style={{width: '46%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Allows users to attach files to messages from mobile apps.</li><li><strong>false</strong>: Prevents users from attaching files (including images) to messages from mobile apps.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; File Sharing and Downloads</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>EnableMobileUpload</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_FILESETTINGS_ENABLEMOBILEUPLOAD</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Allow file downloads on mobile
+
+<table>
+<colgroup>
+<col style={{width: '56%'}} />
+<col style={{width: '43%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Enables file downloads on mobile apps.</li><li><strong>false</strong>: Disables file downloads on mobile apps. Users can still download files from a mobile web browser.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; File sharing and downloads</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>EnableMobileDownload</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_FILESETTINGS_ENABLEMOBILEDOWNLOAD</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Enable secure file preview on mobile
+
+<PlanAvailability slug="ent-adv" />
+
+This setting improves an organization's mobile security posture by restricting file access while still allowing essential file viewing capabilities.
+
+<table>
+<colgroup>
+<col style={{width: '100%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Prevents file downloads, previews, and sharing for most file types, | - System Config path: <strong>Site Configuration &gt; File sharing and downloads</strong> | even when the | - <code>config.json</code> setting: <code>FileSettings</code> &gt; <code>MobileEnableSecureFilePreview</code> &gt; <code>false</code> | <a href="mm-ref:administration-guide%2Fconfigure%2Fsite-configuration-settings%3Aallow%20file%20downloads%20on%20mobile">Allow file downloads on mobile</a> | - Environment variable: <code>MM_FILESETTINGS_MOBILEENABLESECUREFILEPREVIEW</code> configuration setting is enabled. Allows in-app previews for PDFs, | | videos, and images only. Files are stored temporarily in the app's cache and cannot be exported or shared. | |</li><li><strong>false</strong>: <strong>(Default)</strong> Secure file preview mode is disabled. | |</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Allow PDF link navigation on mobile
+
+<PlanAvailability slug="ent-adv" />
+
+<table>
+<colgroup>
+<col style={{width: '44%'}} />
+<col style={{width: '55%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Enables tapping links inside PDFs when Secure File Preview Mode is active. Links will open in the device browser or supported app.</li><li><strong>false</strong>: Disables link navigation in PDFs when Secure File Preview Mode is active.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; File sharing and downloads</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>MobileAllowPdfLinkNavigation</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_FILESETTINGS_MOBILEALLOWPDFLINKNAVIGATION</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+This setting has no effect when the [Secure file preview on mobile](/administration-guide/configure/site-configuration-settings#enable-secure-file-preview-on-mobile) configuration setting is disabled.
+
+</Note>
+
+------------------------------------------------------------------------------------------------------------------------
+
+## Public Links
+
+With self-hosted deployments, you can access the following configuration settings in the System Console by going to **Site Configuration \> Public Links**.
+
+### Enable public file links
+
+<table>
+<colgroup>
+<col style={{width: '100%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Allows users to create <a href="mm-doc:%2Fend-user-guide%2Fcollaborate%2Fshare-files-in-messages">public links</a> to files attached to Mattermost messages. | - System Config path: <strong>Site Configuration &gt; Public Links</strong></li><li><dl><dt><strong>false</strong>: <strong>(Default)</strong> Prevents users from creating public links to files and disables all previously created links. | - <code>config.json</code> setting: <code>FileSettings</code> &gt; <code>EnablePublicLink</code> &gt; <code>false</code> |</dt><dd><div class="line-block">- Environment variable: <code>MM_FILESETTINGS_ENABLEPUBLICLINK</code> |</div></dd></dl></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+When set to **false**, anyone who tries to visit a previously created public link will receive an error message. If the setting is returned to **true**, previously created links will be accessible, unless the **Public link salt** has been regenerated.
+
+</Note>
+
+### Public link salt
+
+<table>
+<colgroup>
+<col style={{width: '80%'}} />
+<col style={{width: '19%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>32-character salt added to the URL of public file links. Changing this setting will <strong>invalidate</strong> all previously generated links. The salt is randomly generated when Mattermost is installed, and can be regenerated by selecting <strong>Regenerate</strong> in the System Console.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Public Links</strong></li><li><code>config.json</code> setting: <code>FileSettings</code> &gt; <code>PublicLinkSalt</code></li><li>Environment variable: <code>MM_FILESETTINGS_PUBLICLINKSALT</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+------------------------------------------------------------------------------------------------------------------------
+
+## Notices
+
+Access the following configuration settings in the System Console by going to **Site Configuration \> Notices**.
+
+### Enable admin notices
+
+<table>
+<colgroup>
+<col style={{width: '100%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> System admins will receive <a href="mm-doc:%2Fadministration-guide%2Fmanage%2Fin-product-notices">in-product notices</a> about server upgrades and administration features. | - System Config path: <strong>Site Configuration &gt; Notices</strong> - | - <code>config.json</code> setting: <code>AnnouncementSettings</code> &gt; <code>AdminNoticesEnabled</code> &gt; <code>true</code> |</li><li><strong>false</strong>: System admins will not receive specific notices. Admins will still receive notices for all users (see <strong>Enable end user notices</strong>) | - Environment variable: <code>MM_ANNOUNCEMENTSETTINGS_ADMINNOTICESENABLED</code> |</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Enable end user notices
+
+<table>
+<colgroup>
+<col style={{width: '100%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> All users receive <a href="mm-doc:%2Fadministration-guide%2Fmanage%2Fin-product-notices">in-product notices</a> about client upgrades and end user features. | - System Config path: <strong>Site Configuration &gt; Notices</strong></li><li><dl><dt><strong>false</strong>: Users will not receive in-product notices. | - <code>config.json</code> setting: <code>AnnouncementSettings</code> &gt; <code>UserNoticesEnabled</code> &gt; <code>true</code> |</dt><dd><div class="line-block">- Environment variable: <code>MM_ANNOUNCEMENTSETTINGS_USERNOTICESENABLED</code> |</div></dd></dl></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+## Connected workspaces
+
+<PlanAvailability slug="entry-ent" />
+
+The following settings aren't available in the System Console and can only be set in `config.json`.
+
+When connected workspaces are enabled, system admins can [create and manage connected workspaces](/administration-guide/onboard/connected-workspaces) in the System Console by going to **Site Configuration \> Connected Workspaces**.
+
+### Enable connected workspaces
+
+Enable the ability to establish secure connections between Mattermost instances, and invite secured connections to shared channels where users can participate as they would in any public and private channel.
+
+Connected workspaces requires Mattermost Enterprise servers running v10.2 or later.
+
+By default, both configuration settings are disabled and must be enabled in order to share channels with secure connections. Enabling connected workspace functionality requires a server restart.
+
+This feature's two `config.json` settings include:
+
+- `ConnectedWorkspacesSettings.EnableRemoteClusterService: false` with options `true` and `false`.
+- `ConnectedWorkspacesSettings.EnableSharedChannels: false` with options `true` and `false`.
+
+<Note>
+
+- Neither setting is available in the System Console and can only be set in `config.json` under `ConnectedWorkspacesSettings`.
+- System admins for Cloud deployments can submit a request to have these required configuration settings enabled for their Cloud deployment instance.
+- Following an upgrade to Mattermost v10.2 or later, existing configuration values for shared channels, including `EnableSharedChannels` and `EnableRemoteClusterService` are automatically converted to connected workspace configuration settings in the `config.json` file. The [deprecated shared channels experimental settings](/administration-guide/configure/deprecated-configuration-settings#shared-channels-settings) remain in the `config.json` file to support backwards compatibility.
+
+</Note>
+
+### Disable shared channel status sync
+
+Disable member status and availability synchronization between connected workspaces.
+
+<table>
+<colgroup>
+<col style={{width: '52%'}} />
+<col style={{width: '47%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Channel as well as member status and availability isn't synchronized.</li><li><strong>false</strong>: <strong>(Default)</strong> Channel as well as channel member status and availability is synchronized at regular intervals.</li></ul></td>
+<td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>ConnectedWorkspacesSettings</code> &gt; <code>DisableSharedChannelsStatusSync</code> &gt; <code>false</code></li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+Enabling these features can increase the load on your Mattermost server’s CPU, memory, and database due to frequent updates, database queries, and API communication. Excessive sync frequency and retries can overwhelm system resources, potentially causing performance degradation or instability. Monitor your system carefully when enabling these features.
+
+</Note>
+
+### Default maximum posts per sync
+
+<table>
+<colgroup>
+<col style={{width: '43%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Define the default maximum number of mesages to synchronize at a time.</p><p>Default is <strong>50</strong>.</p></td>
+<td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>ConnectedWorkspacesSettings</code> &gt; <code>DefaultMaxPostsPerSync</code> &gt; <code>50</code></li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Sync users on connection open
+
+Automatically synchronize users when a new connection between workspaces is established. This ensures that remote users are immediately discoverable for direct and group messages without requiring them to post in a shared channel first.
+
+<table>
+<colgroup>
+<col style={{width: '53%'}} />
+<col style={{width: '46%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Users are automatically synchronized when a new connection is established.</li><li><strong>false</strong>: Users are not automatically synchronized when a new connection is established.</li></ul></td>
+<td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>ConnectedWorkspacesSettings</code> &gt; <code>SyncUsersOnConnectionOpen</code> &gt; <code>true</code></li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+Enabling these features can increase the load on your Mattermost server’s CPU, memory, and database due to frequent updates, database queries, and API communication. Excessive sync frequency and retries can overwhelm system resources, potentially causing performance degradation or instability. Monitor your system carefully when enabling these features.
+
+</Note>
+
+### Global user sync batch size
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The number of users to sync in each batch when performing global user synchronization between connected workspaces.</p><p>Default is <strong>100</strong>.</p></td>
+<td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>ConnectedWorkspacesSettings</code> &gt; <code>GlobalUserSyncBatchSize</code> &gt; <code>100</code></li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+Enabling these features can increase the load on your Mattermost server’s CPU, memory, and database due to frequent updates, database queries, and API communication. Excessive sync frequency and retries can overwhelm system resources, potentially causing performance degradation or instability. Monitor your system carefully when enabling these features.
+
+</Note>
+
+### Member sync batch size
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The number of channel members to sync in each batch when synchronizing channel membership between connected workspaces.</p><p>Default is <strong>100</strong>.</p></td>
+<td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>ConnectedWorkspacesSettings</code> &gt; <code>MemberSyncBatchSize</code> &gt; <code>100</code></li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+Enabling these features can increase the load on your Mattermost server’s CPU, memory, and database due to frequent updates, database queries, and API communication. Excessive sync frequency and retries can overwhelm system resources, potentially causing performance degradation or instability. Monitor your system carefully when enabling these features.
+
+</Note>
+
+------------------------------------------------------------------------------------------------------------------------
+
+## config.json-only settings
+
+The following self-hosted deployment settings are only configurable in the `config.json` file and are not available in the System Console.
+
+### Cross-team search
+
+<table>
+<colgroup>
+<col style={{width: '38%'}} />
+<col style={{width: '61%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Disable the ability to search across all teams or a specific team.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> Cross-team search is enabled. Searches can be performed against all channels the user is a member of across all teams, a specific team, or the current team.</li><li><strong>false</strong>: Cross-team search is disabled. Searches are performed on all channels the user is member of within the current team only.</li></ul></td>
+<td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>ServiceSettings.EnableCrossTeamSearch</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLECROSSTEAMSEARCH</code></li></ul></td>
+</tr>
+</tbody>
+</table>
