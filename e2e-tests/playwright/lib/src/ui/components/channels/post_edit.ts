@@ -28,7 +28,7 @@ export default class ChannelsPostEdit {
 
         this.attachmentButton = container.locator('#fileUploadButton');
         this.emojiButton = container.getByLabel('select an emoji');
-        this.sendMessageButton = container.locator('.save');
+        this.sendMessageButton = container.getByRole('button', {name: 'Save'});
         this.deleteConfirmationDialog = new DeletePostConfirmationDialog(container.page().locator('#deletePostModal'));
         this.restorePostConfirmationDialog = new RestorePostConfirmationDialog(
             container.page().locator('#restorePostModal'),
@@ -64,12 +64,12 @@ export default class ChannelsPostEdit {
     }
 
     async removeFile(fileName: string) {
-        const files = await this.container.locator('.file-preview').all();
+        const files = await this.container.getByTestId('file-preview-item').all();
 
         for (let i = 0; i < files.length; i++) {
             const textContent = await files[i].textContent();
             if (textContent?.includes(fileName)) {
-                const removeButton = files[i].locator('.icon-close');
+                const removeButton = files[i].getByTestId('file-preview-remove');
                 await removeButton.click();
                 break;
             }

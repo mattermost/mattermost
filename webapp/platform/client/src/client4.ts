@@ -112,13 +112,8 @@ import type {
 import type {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics, PostInfo} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
-import type {
-    NameMappedPropertyFields,
-    PropertyField,
-    UserPropertyField,
-    UserPropertyFieldPatch,
-    PropertyValue,
-} from '@mattermost/types/properties';
+import type {NameMappedPropertyFields, PropertyField, PropertyValue} from '@mattermost/types/properties';
+import type {UserPropertyField, UserPropertyFieldPatch} from '@mattermost/types/properties_user';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Recap, CreateRecapRequest} from '@mattermost/types/recaps';
 import type {RemoteCluster, RemoteClusterAcceptInvite, RemoteClusterPatch, RemoteClusterWithPassword} from '@mattermost/types/remote_clusters';
@@ -1321,6 +1316,20 @@ export default class Client4 {
         return this.doFetch<StatusOK>(
             `${this.getUsersRoute()}/tokens/revoke`,
             {method: 'post', body: JSON.stringify({token_id: tokenId})},
+        );
+    };
+
+    getNonCompliantUserAccessTokenCount = () => {
+        return this.doFetch<{count: number}>(
+            `${this.getUsersRoute()}/tokens/non_compliant/count`,
+            {method: 'get'},
+        );
+    };
+
+    revokeNonCompliantUserAccessTokens = () => {
+        return this.doFetch<{count: number}>(
+            `${this.getUsersRoute()}/tokens/non_compliant/revoke`,
+            {method: 'post'},
         );
     };
 
@@ -2629,6 +2638,13 @@ export default class Client4 {
         );
     };
 
+    getFileInfo = (fileId: string) => {
+        return this.doFetch<FileInfo>(
+            `${this.getFileRoute(fileId)}/info`,
+            {method: 'get'},
+        );
+    };
+
     getFlaggedPosts = (userId: string, channelId = '', teamId = '', page = 0, perPage = PER_PAGE_DEFAULT) => {
         return this.doFetch<PostList>(
             `${this.getUserRoute(userId)}/posts/flagged${buildQueryString({channel_id: channelId, team_id: teamId, page, per_page: perPage})}`,
@@ -3265,6 +3281,13 @@ export default class Client4 {
         return this.doFetch<SubmitDialogResponse>(
             `${this.getBaseRoute()}/actions/dialogs/submit`,
             {method: 'post', body: JSON.stringify(data)},
+        );
+    };
+
+    executeDialogAction = (url: string, context?: Record<string, string>, channelId?: string, teamId?: string) => {
+        return this.doFetch<PostActionResponse>(
+            `${this.getBaseRoute()}/actions/dialogs/execute`,
+            {method: 'post', body: JSON.stringify({url, context, channel_id: channelId, team_id: teamId})},
         );
     };
 

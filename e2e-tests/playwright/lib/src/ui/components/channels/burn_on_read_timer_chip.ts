@@ -11,8 +11,8 @@ export default class BurnOnReadTimerChip {
 
     constructor(container: Locator) {
         this.container = container;
-        this.flameIcon = container.locator('.BurnOnReadTimerChip__icon');
-        this.timerText = container.locator('.BurnOnReadTimerChip__time');
+        this.flameIcon = container.locator('svg');
+        this.timerText = container.locator('span');
     }
 
     async toBeVisible() {

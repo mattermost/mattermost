@@ -1,0 +1,1875 @@
+---
+title: "Plugins configuration settings"
+---
+<PlanAvailability slug="all-commercial" />
+
+Review and manage the following plugin configuration options in the System Console by selecting the **Product** <img src="/img/ui/products_E82F.svg" alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> menu, selecting **System Console**, and then selecting **Plugins**:
+
+- [Plugin management](#plugin-management)
+- [Calls](#calls)
+- [AI Agents](#ai-agents)
+- [GitLab](#gitlab)
+- [GitHub](#github)
+- [Jira](#jira)
+- [Legal Hold](#legal-hold)
+- [Microsoft Calendar Integration](#microsoft-calendar-integration)
+- [MS Teams](#ms-teams)
+- [Performance metrics](#performance-metrics)
+- [Collaborative playbooks](#collaborative-playbooks)
+- [User satisfaction surveys](#user-satisfaction-surveys)
+- [ServiceNow](#servicenow)
+- [Zoom](#zoom)
+- [config.json-only settings](#configjson-only-settings)
+
+<Tip>
+
+System admins managing a self-hosted Mattermost deployment can edit the `config.json` file as described in the following tables. Each configuration value below includes a JSON path to access the value programmatically in the `config.json` file using a JSON-aware tool. For example, the `Enable` value is under `PluginSettings`.
+
+- If using a tool such as [jq](https://stedolan.github.io/jq/), you'd enter: `cat config/config.json | jq '.PluginSettings.Enable'`
+- When working with the `config.json` file manually, look for an object such as `PluginSettings`, then within that object, find the key `Enable`.
+
+</Tip>
+
+------------------------------------------------------------------------------------------------------------------------
+
+## Plugin management
+
+Access the following configuration settings in the System Console by going to **Plugins \> Plugin Management**.
+
+### Enable plugins
+
+<table>
+<colgroup>
+<col style={{width: '75%'}} />
+<col style={{width: '24%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Enables plugins on your Mattermost server. See the <a href="https://developers.mattermost.com/integrate/plugins/using-and-managing-plugins/">Use plugins with Mattermost</a> documentation for details.</li><li><strong>false</strong>: Disables plugins on your Mattermost server.</li></ul></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Plugin Management</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Enable</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_PLUGINSETTINGS_ENABLE</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+Disabling this configuration setting in larger deployments may improve server performance in the following areas:
+
+- Resource Consumption: Plugins consume system resources such as CPU, memory, and disk. Disabling them frees up these resources, allowing the core Mattermost application to run more efficiently.
+- Reduced Complexity: Each plugin can add additional logic and processing requirements. By reducing the number of active plugins, you lower the complexity and potential points of failure in the system.
+- Faster Load Times: Disabling plugins can lead to faster server startup and lower latency during user interactions, as there are fewer components for the system to initialize and manage.
+- Stability: Some plugins may have bugs or performance issues that can affect the overall performance and stability of the Mattermost instance. Disabling problematic or under-utilized plugins can enhance the stability of the system.
+- Maintenance and Updates: Managing fewer plugins reduces the overhead associated with maintaining and updating them, which can contribute to smoother operation and less downtime
+- However, plugins are often essential for integrating Mattermost with other services and workflows. It's important to balance performance improvements with the needs of your organization and users.
+
+</Note>
+
+### Require plugin signature
+
+<table>
+<colgroup>
+<col style={{width: '67%'}} />
+<col style={{width: '32%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Enables plugin signature validation for managed and unmanaged plugins.</li><li><strong>false</strong>: Disables plugin signature validation for managed and unmanaged plugins.</li></ul></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Plugin Management</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>RequirePluginSignature</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_PLUGINSETTINGS_REQUIREPLUGINSIGNATURE</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+\- This setting is applicable to self-hosted deployments only. - From Mattermost server v10.11, pre-packaged plugins require signature validation on startup. Distributions that bundle custom pre-packaged plugins must configure custom public keys via `PluginSettings.SignaturePublicKeyFiles` to validate their signatures. - **Mattermost server v10.10 and earlier**: Pre-packaged plugins are not subject to signature validation. - Plugins installed through the Marketplace are always subject to signature validation at the time of download. - Enabling this configuration will result in [plugin file uploads](#upload-plugin) being disabled in the System Console.
+
+</Note>
+
+### Automatic prepackaged plugins
+
+<table>
+<colgroup>
+<col style={{width: '65%'}} />
+<col style={{width: '34%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Mattermost automatically installs and upgrades any enabled pre-packaged plugins. If a newer version is installed, no changes are made.</li><li><strong>false</strong>: Mattermost does not automatically install or upgrade pre-packaged plugins. Pre-packaged plugins may be installed manually from the Marketplace, even when offline.</li></ul></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Plugin Management</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>AutomaticPrepackagedPlugins</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_PLUGINSETTINGS_AUTOMATICPREPACKAGEDPLUGINS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+**Prepackaged Plugin Installation Behavior**: When system administrators drop plugin files (with their `.sig` signature files) into the `prepackaged_plugins` directory, the plugins won't install automatically. Prepackaging makes the plugin available for "offline" installation. The plugin will automatically install only when a system admin pre-configures the `config.json` with that plugin enabled.
+
+</Note>
+
+### Upload Plugin
+
+<table>
+<colgroup>
+<col style={{width: '61%'}} />
+<col style={{width: '38%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Enables you to upload plugins from the local computer to the Mattermost server.</li><li><strong>false</strong>: <strong>(Default)</strong> Disables uploading of plugins from the local computer to the Mattermost server.</li></ul></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Plugin Management</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>EnableUploads</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_PLUGINSETTINGS_ENABLEUPLOADS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+\- This setting is applicable to self-hosted deployments only. - When plugin uploads are enabled, the error `Received invlaid response from the server` when uploading a plugin file typically indicates that the [MaxFileSize](/administration-guide/configure/environment-configuration-settings#maximum-file-size) configuration setting isn't large enough to support the plugin file upload. Additional proxy setting updateds may also be required. - The ability to upload plugin files is disabled when the [Require plugin signature](#require-plugin-signature) configuration setting is enabled.
+
+</Note>
+
+### Enable Marketplace
+
+<table>
+<colgroup>
+<col style={{width: '56%'}} />
+<col style={{width: '43%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Enables the plugin Marketplace on your Mattermost server for all system admins.</li><li><strong>false</strong>: Disables the plugin Marketplace on your Mattermost server for all system admins.</li></ul></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Plugin Management</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>EnableMarketplace</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_PLUGINSETTINGS_ENABLEMARKETPLACE</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Enable remote Marketplace
+
+<table>
+<colgroup>
+<col style={{width: '61%'}} />
+<col style={{width: '38%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Mattermost attempts to connect to the endpoint set in <strong>Marketplace URL</strong>. If the connection fails, an error is displayed, and the Marketplace only shows pre-packaged and installed plugins.</li><li><strong>false</strong>: Mattermost does not attempt to connect to a remote Marketplace. The Marketplace shows only pre-packaged and installed plugins. Use this setting if your Mattermost server cannot connect to the Internet.</li></ul></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Plugin Management</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>EnableRemoteMarketplace</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_PLUGINSETTINGS_ENABLEREMOTEMARKETPLACE</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+\- From Mattermost v9.1, set this configuration setting value to `true` to access a configured remote marketplace URL. - For Mattermost v9.0, the `MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE` feature flag must be set to `false`, and this configuration setting must be set to `true` to access a configured remote marketplace URL. - Each Mattermost host must have network access to the endpoint set in MarketplaceURL.
+
+</Note>
+
+### Marketplace URL
+
+<table>
+<colgroup>
+<col style={{width: '50%'}} />
+<col style={{width: '49%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>This setting stores the URL for the remote Markeplace.</p><p>String input. Default is <strong>https://api.integrations.mattermost.com</strong></p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Plugin Management</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>MarketplaceURL</code></li><li>Environment variable: <code>MM_PLUGINSETTINGS_MARKETPLACEURL</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Installed plugin state
+
+<table>
+<colgroup>
+<col style={{width: '75%'}} />
+<col style={{width: '24%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>This setting is a list of installed plugins and their status as enabled or disabled.</p><p>The <code>config.json</code> setting is an object. The object keys are plugin IDs, e.g. <code>com.mattermost.apps</code>. Each key maps to an object that contains an <code>Enable</code> key that can be set as <code>true</code> or <code>false</code>.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Plugin Management</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>PluginStates</code></li><li>Environment variable: <code>MM_PLUGINSETTINGS_PLUGINSTATES</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Plugin settings
+
+<table>
+<colgroup>
+<col style={{width: '73%'}} />
+<col style={{width: '26%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>This setting contains plugin-specific data.</p><p>The <code>config.json</code> setting is an object. The object keys are plugin IDs, e.g. <code>com.mattermost.apps</code>. Each key maps to an object that contains plugin-specific data.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Plugin Management</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Plugins</code></li><li>Environment variable: <code>MM_PLUGINSETTINGS_PLUGINS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+------------------------------------------------------------------------------------------------------------------------
+
+## Calls
+
+Access the following configuration settings in the System Console by going to **Plugins \> Calls**.
+
+### Enable plugin
+
+<table>
+<colgroup>
+<col style={{width: '43%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: (Default) Enables the Calls plugin on your Mattermost workspace.</li><li><strong>false</strong>: Disables the Calls plugin on your Mattermost workspace.</li></ul></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>PluginStates</code> &gt; <code>com.mattermost.calls</code> &gt; <code>Enable</code></li><li>Environment variable: <code>MM_PLUGINSETTINGS_PLUGINSTATES_COM_MATTERMOST_CALLS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### RTC server address (UDP)
+
+<table>
+<colgroup>
+<col style={{width: '53%'}} />
+<col style={{width: '46%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>This setting controls the IP address the RTC server listens for UDP connections. All calls UDP traffic will be served through this IP.</p><p>Changing this setting requires a plugin restart to take effect. If left unset (default value) the service will listen on all the available interfaces.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> <code>Plugins</code> &gt; <code>com.mattermost.calls</code> &gt; <code>udpserveraddress</code></li><li>Environment variable: <code>MM_CALLS_UDP_SERVER_ADDRESS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+This setting is applicable to self-hosted deployments only, and only when not running calls through the standalone `rtcd` service.
+
+</Note>
+
+### RTC server address (TCP)
+
+<table>
+<colgroup>
+<col style={{width: '52%'}} />
+<col style={{width: '47%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>This setting controls the IP address the RTC server listens for TCP connections. All calls TCP traffic will be served through this IP.</p><p>Changing this setting requires a plugin restart to take effect. If left unset (default value) the service will listen on all the available interfaces.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Plugins</code> &gt; <code>com.mattermost.calls</code> &gt; <code>tcpserveraddress</code></li><li>Environment variable: <code>MM_CALLS_TCP_SERVER_ADDRESS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+This setting is available starting in plugin version 0.17, and is only applicable for self-hosted deployments when not running calls through the standalone `rtcd` service.
+
+</Note>
+
+### RTC server port (UDP)
+
+<table>
+<colgroup>
+<col style={{width: '50%'}} />
+<col style={{width: '49%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>This setting controls the UDP port listened on by the RTC server. All calls UDP traffic will be served through this port.</p><p>Changing this setting requires a plugin restart to take effect.</p><p>Default is <strong>8443</strong>.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Plugins</code> &gt; <code>com.mattermost.calls</code> &gt; <code>udpserverport</code></li><li>Environment variable: <code>MM_CALLS_UDP_SERVER_PORT</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+This setting is only applicable for self-hosted deployments when not running calls through the standalone `rtcd` service.
+
+</Note>
+
+### RTC server port (TCP)
+
+<table>
+<colgroup>
+<col style={{width: '53%'}} />
+<col style={{width: '46%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>This setting controls the TCP port listened on by the RTC server. All calls TCP traffic will be served through this port.</p><p>Changing this setting requires a plugin restart to take effect.</p><p>Default is <strong>8443</strong>.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Plugins</code> &gt; <code>com.mattermost.calls</code> &gt; <code>tcpserverport</code></li><li>Environment variable: <code>MM_CALLS_TCP_SERVER_PORT</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+This setting is available starting in plugin version 0.17, and is only applicable for self-hosted deplyoments when not running calls through the standalone `rtcd` service.
+
+</Note>
+
+### Enable on specific channels
+
+*Admins can't configure this setting from Mattermost v7.7; it's hidden and always enabled for self-hosted deployments*
+
+<table>
+<colgroup>
+<col style={{width: '54%'}} />
+<col style={{width: '45%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Channel admins can enable or disable calls on specific channels. Participants in DMs/GMs can also enable or disable calls.</li><li><strong>false</strong>: Only system admins can enable or disable calls on specific channels.</li></ul></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Plugins</code> &gt; <code>com.mattermost.calls</code> &gt; <code>allowenablecalls</code></li><li>Environment variable: <code>MM_CALLS_ALLOW_ENABLE_CALLS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Test mode
+
+*This setting was called Enable on all channels until Mattermost v7.7. It was renamed to defaultenabled in code and Test Mode in-product and is only applicable to self-hosted deployments.*
+
+<table>
+<colgroup>
+<col style={{width: '50%'}} />
+<col style={{width: '49%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>false</strong>: Test mode is enabled and only system admins can start calls in channels.</li><li><strong>true</strong>: Live mode is enabled and all team members can start calls in channels.</li></ul></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Plugins</code> &gt; <code>com.mattermost.calls</code> &gt; <code>defaultenabled</code></li><li>Environment variable: <code>MM_CALLS_DEFAULT_ENABLED</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+Use this setting as a system admin to confirm calls work as expected. When **false**, users attempting to start calls are prompted to contact a system admin, and system admins are prompted to confirm that calls are working as expected before switching to live mode.
+
+</Note>
+
+### ICE host override
+
+<table>
+<colgroup>
+<col style={{width: '59%'}} />
+<col style={{width: '40%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>This setting can be used to override the host addresses that get advertised to clients when connecting to calls. The accepted formats are the following:</p><ul><li>A single IP address (e.g. <code>10.0.0.1</code>).</li><li>A single hostname or FQDN (e.g. <code>calls.myserver.tld</code>).</li><li>(starting in v0.17.0) A comma separated list of externalAddr/internalAddr mappings (e.g. <code>10.0.0.1/172.0.0.1,10.0.0.2/172.0.0.2</code>).</li></ul><p>This is an optional field. Changing this setting requires a plugin restart to take effect.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Plugins</code> &gt; <code>com.mattermost.calls</code> &gt; <code>icehostoverride</code></li><li>Environment variable: <code>MM_CALLS_ICE_HOST_OVERRIDE</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+\- This setting is only applicable for self-hosted deployments when not running calls through the standalone `rtcd` service. - Depending on the network infrastructure (e.g. instance behind a NAT device) it may be necessary to set this field to the client facing external IP for clients to connect. When empty or unset, the RTC service will attempt to find the instance's public IP through STUN. - A hostname (e.g. domain name) can be specified in this setting, but an IP address will be passed to clients. This means that a DNS resolution happens on the Mattermost instance which could result in a different IP address from the one the clients would see, causing connectivity to fail. When in doubt, we recommend using an IP address directly or confirming that the resolution on the host side reflects the one on the client.
+
+</Note>
+
+### ICE host port override
+
+<table>
+<colgroup>
+<col style={{width: '57%'}} />
+<col style={{width: '42%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>This setting can be used to override the port used in the ICE host candidates that get advertised to clients when connecting to calls.</p><p>This can be useful in case there are additional network components (e.g. NLBs) in front of the RTC server that may route the calls traffic through a different port. Changing this setting requires a plugin restart to take effect.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Plugins</code> &gt; <code>com.mattermost.calls</code> &gt; <code>icehostportoverride</code></li><li>Environment variable: <code>MM_CALLS_ICE_HOST_PORT_OVERRIDE</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+\- This setting is applicable only to self-hosted deployments. - This value will apply to both UDP and TCP host candidates.
+
+</Note>
+
+### RTCD service URL
+
+<PlanAvailability slug="ent-plus" />
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The URL to a running <a href="https://github.com/mattermost/rtcd">rtcd</a> service instance that will host the calls.</p><p>When set (non empty) all the calls will be handled by this external service.</p><p>This is an optional field. Changing this setting requires a plugin restart to take effect.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Plugins</code> &gt; <code>com.mattermost.calls</code> &gt; <code>rtcdserviceurl</code></li><li>Environment variable: <code>MM_CALLS_RTCD_SERVICE_URL</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+\- This setting is applicable only to self-hosted deployments. - The environment variable `MM_CALLS_RTCD_URL` is deprecated in favor of `MM_CALLS_RTCD_SERVICE_URL`. - The client will self-register the first time it connects to the service and store the authentication key in the database. If no client ID is explicitly provided, the diagnostic ID of the Mattermost installation will be used. - The service URL supports credentials in the form `http://clientID:authKey@hostname`. Alternatively these can be passed through environment overrides to the Mattermost server, namely `MM_CALLS_RTCD_CLIENT_ID` and `MM_CALLS_RTCD_AUTH_KEY` - The client will self-register the first time it connects to the service and store the authentication key in the database. If no client ID is explicitly provided, the diagnostic ID of the Mattermost installation will be used. - The service URL supports credentials in the form `http://clientID:authKey@hostname`. Alternatively these can be passed through environment overrides to the Mattermost server, namely `MM_CALLS_RTCD_CLIENT_ID` and `MM_CALLS_RTCD_AUTH_KEY`
+
+</Note>
+
+### Max call participants
+
+<table>
+<colgroup>
+<col style={{width: '40%'}} />
+<col style={{width: '59%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>This setting limits the number of participants that can join a single call.</p><p>Default is <strong>0</strong> (no limit).</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Plugins</code> &gt; <code>com.mattermost.calls</code> &gt; <code>maxcallparticipants</code></li><li>Environment variable: <code>MM_CALLS_MAX_CALL_PARTICIPANTS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+\- This setting is applicable only to self-hosted deployments. - The environment variable `MM_CALLS_MAX_PARTICIPANTS` is deprecated in favor of `MM_CALLS_MAX_CALL_PARTICIPANTS`. - This setting is optional, but the recommended maximum number of participants is **50**. Call participant limits greatly depends on instance resources. See the [Calls deployment guide](/administration-guide/configure/calls-deployment-guide) documentation for details.
+
+</Note>
+
+### ICE servers configurations
+
+<table>
+<colgroup>
+<col style={{width: '65%'}} />
+<col style={{width: '34%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>This setting stores a list of ICE servers (STUN/TURN) in JSON format to be used by the service.</p><p>This is an optional field. Changing this setting may require a plugin restart to take effect.</p><p>Default is <code>[&#123;"urls": ["stun:stun.global.calls.mattermost.com:3478"]&#125;]</code></p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Plugins</code> &gt; <code>com.mattermost.calls</code> &gt; <code>iceserversconfigs</code></li><li>Environment variable: <code>MM_CALLS_ICE_SERVERS_CONFIGS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+\- This setting is applicable only to self-hosted deployments. - The configurations above, containing STUN and TURN servers, are sent to the clients and used to generate local candidates. - If hosting calls through the plugin (i.e. not using the [RTCD service](/administration-guide/configure/calls-deployment-guide)) any configured STUN server may also be used to find the instance's public IP when none is provided through the [ICE Host Override](/administration-guide/configure/plugins-configuration-settings#ice-host-override) option.
+
+</Note>
+
+**Example**
+
+> ``` json
+> [
+>  &#123;
+>     "urls":[
+>        "stun:stun.global.calls.mattermost.com:3478"
+>     ]
+>  &#125;,
+>  &#123;
+>     "urls":[
+>        "turn:turn.example.com:3478"
+>     ],
+>     "username":"webrtc",
+>     "credentials":"turnpassword"
+>  &#125;
+> ]
+> ```
+
+**Example (Using generated TURN credentials)**
+
+> ``` json
+> [&#123;
+>     "urls": ["turn:turn.example.com:443"]
+> &#125;]
+> ```
+
+<Note>
+
+To get TURN generated credentials to work you must provide a secret through the *TURN static auth secret* setting below.
+
+</Note>
+
+### TURN static auth secret
+
+<table>
+<colgroup>
+<col style={{width: '37%'}} />
+<col style={{width: '62%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>A static secret used to generate short-lived credentials for TURN servers.</p><p>This is an optional field.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Plugins</code> &gt; <code>com.mattermost.calls</code> &gt; <code>turnstaticauthsecret</code></li><li>Environment variable: <code>MM_CALLS_TURN_STATIC_AUTH_SECRET</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+This setting is applicable only to self-hosted deployments.
+
+</Note>
+
+### TURN credentials expiration
+
+<table>
+<colgroup>
+<col style={{width: '38%'}} />
+<col style={{width: '61%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The expiration, in minutes, of the short-lived credentials generated for TURN servers.</p><p>Default is <strong>1440</strong> (one day).</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Plugins</code> &gt; <code>com.mattermost.calls</code> &gt; <code>turncredentialsexpirationminutes</code></li><li>Environment variable: <code>MM_CALLS_TURN_CREDENTIALS_EXPIRATION_MINUTES</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+This setting is applicable only to self-hosted deployments.
+
+</Note>
+
+### Server side TURN
+
+<table>
+<colgroup>
+<col style={{width: '45%'}} />
+<col style={{width: '54%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: The RTC server will use the configured TURN candidates for server-initiated connections.</li><li><strong>false</strong>: TURN will be used only on the client-side.</li></ul><p>Changing this setting requires a plugin restart to take effect.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Plugins</code> &gt; <code>com.mattermost.calls</code> &gt; <code>serversideturn</code></li><li>Environment variable: <code>MM_CALLS_SERVER_SIDE_TURN</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+This setting is applicable only to self-hosted deployments.
+
+</Note>
+
+### Allow screen sharing
+
+<table>
+<colgroup>
+<col style={{width: '36%'}} />
+<col style={{width: '63%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Call participants will be allowed to share their screen.</li><li><strong>false</strong>: Call participants won't be allowed to share their screen.</li></ul><p>Changing this setting requires a plugin restart to take effect.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Plugins</code> &gt; <code>com.mattermost.calls</code> &gt; <code>allowscreensharing</code></li><li>Environment variable: <code>MM_CALLS_ALLOW_SCREEN_SHARING</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+This setting is applicable only to self-hosted deployments.
+
+</Note>
+
+### Enable simulcast for screen sharing (Experimental)
+
+<table>
+<colgroup>
+<col style={{width: '49%'}} />
+<col style={{width: '50%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Enables simulcast for screen sharing. This can help to improve screen sharing quality.</li><li><strong>false</strong>: Disables simulcast for screen sharing.</li></ul></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Plugins</code> &gt; <code>com.mattermost.calls</code> &gt; <code>enablesimulcast</code></li><li>Environment variable: <code>MM_CALLS_ENABLE_SIMULCAST</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+- This experimental setting is applicable only to self-hosted deployments.
+- This functionality requires Calls plugin version \>= v0.16.0 and `rtcd` version \>= v0.10.0 (when in use).
+- Avoid enabling both this experimental configuration setting and the [Enable AV1](#enable-av1-experimental) experimental configuration setting at the same time.
+
+</Note>
+
+### Enable call recordings
+
+<PlanAvailability slug="ent-plus" />
+
+<table>
+<colgroup>
+<col style={{width: '54%'}} />
+<col style={{width: '45%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Allows call hosts to record meeting video and audio.</li><li><strong>false</strong>: <strong>(Default)</strong> Call recording functionality is not available to hosts.</li></ul><p>Recordings include the entire call window view along with participants' audio track and any shared screen video. Recordings are stored in Mattermost.</p><p>Changing this setting requires a plugin restart to take effect.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Plugins</code> &gt; <code>com.mattermost.calls</code> &gt; <code>enablerecordings</code></li><li>Environment variable: <code>MM_CALLS_ENABLE_RECORDINGS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+This setting is applicable only to self-hosted deployments.
+
+</Note>
+
+### Job service URL
+
+<PlanAvailability slug="ent-plus" />
+
+<table>
+<colgroup>
+<col style={{width: '54%'}} />
+<col style={{width: '45%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The URL to a running job service where all the processing related to recordings happens. The recorded files produced are stored in Mattermost.</p><p>This is a required field. Changing this setting requires a plugin restart to take effect.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Plugins</code> &gt; <code>com.mattermost.calls</code> &gt; <code>jobserviceurl</code></li><li>Environment variable: <code>MM_CALLS_JOB_SERVICE_URL</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+- This setting is applicable only to self-hosted deployments.
+- The client will self-register the first time it connects to the service and store the authentication key in the database. If no client ID is explicitly provided, the diagnostic ID of the Mattermost installation will be used.
+- The service URL supports credentials in the form `http://clientID:authKey@hostname`. Alternatively these can be passed through environment overrides to the Mattermost server, namely `MM_CALLS_JOB_SERVICE_CLIENT_ID` and `MM_CALLS_JOB_SERVICE_AUTH_KEY`.
+- As of Calls v0.25 it's possible to override the site URL used by jobs to connect by setting the `MM_CALLS_RECORDER_SITE_URL` or `MM_CALLS_TRANSCRIBER_SITE_URL` environment variables respectively. This can be helpful to avoid the jobs from connecting through the public Site URL configured in Mattermost and thus potentially bypass the public network.
+
+</Note>
+
+### Maximum call recording duration
+
+<PlanAvailability slug="ent-plus" />
+
+<table>
+<colgroup>
+<col style={{width: '52%'}} />
+<col style={{width: '47%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The maximum duration of a call recording in minutes.</p><p>The default is <strong>60</strong>. The maximum is <strong>180</strong>. This is a required value.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Plugins</code> &gt; <code>com.mattermost.calls</code> &gt; <code>maxrecordingduration</code></li><li>Environment variable: <code>MM_CALLS_MAX_RECORDING_DURATION</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+This setting is applicable only to self-hosted deployments.
+
+</Note>
+
+### Call recording quality
+
+<PlanAvailability slug="ent-plus" />
+
+<table>
+<colgroup>
+<col style={{width: '43%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The audio and video quality of call recordings. Available options are: <em>Low</em>, <em>Medium</em> and <em>High</em>.</p><p>The default is <strong>Medium</strong>. This is a required value.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Plugins</code> &gt; <code>com.mattermost.calls</code> &gt; <code>recordingquality</code></li><li>Environment variable: <code>MM_CALLS_RECORDING_QUALITY</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+\- This setting is applicable only to self-hosted deployments. - The quality setting will affect the performance of the job service and the file size of recordings. Refer to the [Calls deployment guide](/administration-guide/configure/calls-deployment-guide) documentation for more information.
+
+</Note>
+
+### Enable call transcriptions
+
+<PlanAvailability slug="ent-plus" />
+
+<table>
+<colgroup>
+<col style={{width: '67%'}} />
+<col style={{width: '32%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Enables automatic transcriptions of calls.</li><li><strong>false</strong>: <strong>(Default)</strong> Call transcriptions functionality is disabled.</li></ul><p>Transcriptions are generated from the call participants' audio tracks and the resulting files are attached to the call thread when the recording ends. Captions will be optionally rendered on top of the recording file video player.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Plugins</code> &gt; <code>com.mattermost.calls</code> &gt; <code>enabletranscriptions</code></li><li>Environment variable: <code>MM_CALLS_ENABLE_TRANSCRIPTIONS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+\- This setting is applicable only to self-hosted deployments. - The ability to enable call transcriptions in Mattermost calls is currently in [Beta](/administration-guide/manage/feature-labels#beta). - This server-side configuration setting is available from plugin version 0.22. - Call transcriptions require [call recordings](/administration-guide/configure/plugins-configuration-settings#enable-call-recordings) to be enabled.
+
+</Note>
+
+### Transcriber model size
+
+<PlanAvailability slug="ent-plus" />
+
+<table>
+<colgroup>
+<col style={{width: '69%'}} />
+<col style={{width: '30%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The speech-to-text model size to use. Heavier models will produce more accurate results at the expense of processing time and resources usage. Available options are: <em>Tiny</em>, <em>Base</em> and <em>Small</em>.</p><p>The default is <strong>Base</strong>. This is a required value.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Plugins</code> &gt; <code>com.mattermost.calls</code> &gt; <code>transcribermodelsize</code></li><li>Environment variable: <code>MM_CALLS_TRANSCRIBER_MODEL_SIZE</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+\- This setting is applicable only to self-hosted deployments. - This setting is available starting in plugin version 0.22. The model size setting will affect the performance of the job service. Refer to the [Calls deployment guide](/administration-guide/configure/calls-deployment-guide) documentation for more information.
+
+</Note>
+
+### Call transcriber threads
+
+<PlanAvailability slug="ent-plus" />
+
+<table>
+<colgroup>
+<col style={{width: '67%'}} />
+<col style={{width: '32%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The number of threads used by the post-call transcriber. This must be in the range [1, numCPUs].</p><p>The default is 2. This is a required value.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Plugins</code> &gt; <code>com.mattermost.calls</code> &gt; <code>transcribernumthread</code></li><li>Environment variable: <code>MM_CALLS_TRANSCRIBER_NUM_THREADS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+\- This setting is applicable only to self-hosted deployments. - The call transcriber threads setting will affect the performance of the job service. Refer to the [Calls deployment guide](/administration-guide/configure/calls-deployment-guide) documentation for more information. This setting is available starting in plugin version 0.26.2.
+
+</Note>
+
+### Enable live captions
+
+<PlanAvailability slug="ent-plus" />
+
+<table>
+<colgroup>
+<col style={{width: '39%'}} />
+<col style={{width: '60%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Enables live captioning of calls.</li><li><strong>false</strong>: <strong>(Default)</strong> Live captions functionality is disabled.</li></ul><p>Live captions are generated from the call participants' audio tracks and the resulting captions can be optionally displayed on the call clients by selecting the <strong>[cc]</strong> option.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Plugins</code> &gt; <code>com.mattermost.calls</code> &gt; <code>enablelivecaptions</code></li><li>Environment variable: <code>MM_CALLS_ENABLE_LIVE_CAPTIONS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+\- The ability to enable live call captions in Mattermost calls is currently in [Beta](/administration-guide/manage/feature-labels#beta). - This server-side configuration setting is available starting in plugin version 0.26.2. - Live captions require [call recordings](/administration-guide/configure/plugins-configuration-settings#enable-call-recordings) and [call transcriptions](/administration-guide/configure/plugins-configuration-settings#enable-call-transcriptions) to be enabled.
+
+</Note>
+
+### Live captions: Model size
+
+<PlanAvailability slug="ent-plus" />
+
+<table>
+<colgroup>
+<col style={{width: '72%'}} />
+<col style={{width: '27%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The speech-to-text model size to use for live captions. While heavier models can produce more accurate results, live captioning requires the transcriber to process up to ten seconds of audio within two seconds. Therefore a maximum of size <code>base</code> is recommended. Available options are: <em>Tiny</em>, <em>Base</em> and <em>Small</em>.</p><p>The default is <strong>Tiny</strong>. This is a required value.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Plugins</code> &gt; <code>com.mattermost.calls</code> &gt; <code>livecaptionsmodelsize</code></li><li>Environment variable: <code>MM_CALLS_LIVE_CAPTIONS_MODEL_SIZE</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+\- This setting is applicable only to self-hosted deployments. - This setting is available starting in plugin version 0.26.2. The model size setting will affect the performance of the job service. Refer to the [performance and scalability recommendations](https://github.com/mattermost/calls-offloader/blob/master/docs/performance.md) documentation for more information.
+
+</Note>
+
+### Live captions: Number of transcribers used per call
+
+<PlanAvailability slug="ent-plus" />
+
+<table>
+<colgroup>
+<col style={{width: '71%'}} />
+<col style={{width: '28%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The number of separate live captions transcribers for each call. Each transcribes one audio stream at a time. The product of LiveCaptionsNumTranscribers * LiveCaptionsNumThreadsPerTranscriber must be in the range [1, numCPUs].</p><p>The default is 1. This is a required value.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Plugins</code> &gt; <code>com.mattermost.calls</code> &gt; <code>livecaptionsnumtranscribers</code></li><li>Environment variable: <code>MM_CALLS_LIVE_CAPTIONS_NUM_TRANSCRIBERS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+\- This setting is applicable only to self-hosted deployments. - This setting is available starting in plugin version 0.26.2. The live captions number of transcribers setting will affect the performance of the job service. Refer to the [performance and scalability recommendations](https://github.com/mattermost/calls-offloader/blob/master/docs/performance.md) documentation for more information.
+
+</Note>
+
+### Live captions: Number of threads per transcriber
+
+<PlanAvailability slug="ent-plus" />
+
+<table>
+<colgroup>
+<col style={{width: '70%'}} />
+<col style={{width: '29%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The number of threads per live-captions transcriber. The product of <code>LiveCaptionsNumTranscribers</code> * <code>LiveCaptionsNumThreadsPerTranscriber</code> must be in the range [1, numCPUs].</p><p>The default is 2. This is a required value.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Plugins</code> &gt; <code>com.mattermost.calls</code> &gt; <code>livecaptionsnumthreadspertranscriber</code></li><li>Environment variable: <code>MM_CALLS_LIVE_CAPTIONS_NUM_THREADS_PER_TRANSCRIBER</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+\- This setting is applicable only to self-hosted deployments. - This setting is available starting in plugin version 0.26.2. The live captions number of threads per transcriber setting will affect the performance of the job service. Refer to the [performance and scalability recommendations](https://github.com/mattermost/calls-offloader/blob/master/docs/performance.md) documentation for more information
+
+</Note>
+
+### Live captions language
+
+<PlanAvailability slug="ent-plus" />
+
+<table>
+<colgroup>
+<col style={{width: '50%'}} />
+<col style={{width: '49%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The language passed to the live captions transcriber. Should be a 2-letter ISO 639 Set 1 language code, e.g. 'en'.</p><p>If blank, the lange will be set to 'en' (English) as default.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Plugins</code> &gt; <code>com.mattermost.calls</code> &gt; <code>livecaptionslanguage</code></li><li>Environment variable: <code>MM_CALLS_LIVE_CAPTIONS_LANGUAGE</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+This setting is applicable only to self-hosted deployments.
+
+</Note>
+
+### (Experimental) Enable IPv6
+
+<table>
+<colgroup>
+<col style={{width: '57%'}} />
+<col style={{width: '42%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: The RTC service will work in dual-stack mode, listening for IPv6 connections and generating candidates in addition to IPv4 ones.</li><li><strong>false</strong>: <strong>(Default)</strong> The RTC service will only listen for IPv4 connections.</li></ul><p>Changing this setting requires a plugin restart to take effect.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Plugins</code> &gt; <code>com.mattermost.calls</code> &gt; <code>enableipv6</code></li><li>Environment variable: <code>MM_CALLS_ENABLE_IPV6</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+\- This setting is applicable only to self-hosted deployments. - This setting is available starting in plugin version 0.17, and is only applicable when not running calls through the standalone `rtcd` service.
+
+</Note>
+
+### Enable call ringing
+
+<table>
+<colgroup>
+<col style={{width: '40%'}} />
+<col style={{width: '59%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Ringing functionality is enabled. Direct and group message participants receive a desktop app alert and a ringing notification when a call starts.</li><li><strong>false</strong>: <strong>(Default</strong>) Ringing functionality is disabled.</li></ul></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Plugins</code> &gt; <code>com.mattermost.calls</code> &gt; <code>enableringing</code></li><li>Environment variable: <code>MM_CALLS_ENABLE_RINGING</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+The ability to enable call ringing in Mattermost calls is in [Beta](/administration-guide/manage/feature-labels#beta).
+
+</Note>
+
+### Enable AV1 (Experimental)
+
+<table>
+<colgroup>
+<col style={{width: '40%'}} />
+<col style={{width: '59%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Enables the ability to use the AV1 codec to encode screen sharing tracks. Can result in improved screen sharing quality via clients that support AV1 encoding.</li><li><strong>false</strong>: <strong>(Default</strong>) AV1 codec is disabled for screen sharing tracks.</li></ul></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Plugins</code> &gt; <code>com.mattermost.calls</code> &gt; <code>enableAV1</code></li><li>Environment variable: <code>MM_CALLS_ENABLE_AV1</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+Avoid enabling both this experimental configuration setting and the [Enable simulcast for screen sharing](#enable-simulcast-for-screen-sharing-experimental) experimental configuration setting at the same time.
+
+</Note>
+
+### Enable DC signaling (Experimental)
+
+<table>
+<colgroup>
+<col style={{width: '39%'}} />
+<col style={{width: '60%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Clients will use WebRTC data channels for signaling of media tracks (i.e., voice, screen). This can result in a more efficient and less race-prone process, especially in case of poor network connections.</li><li><strong>false</strong>: <strong>(Default</strong>) Clients will use WebSockets for signaling media tracks.</li></ul></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Calls</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>Plugins</code> &gt; <code>com.mattermost.calls</code> &gt; <code>enabledcsignaling</code></li><li>Environment variable: <code>MM_CALLS_ENABLE_DC_SIGNALING</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+- Version v0.18.0 or higher of the [RTCD service](/administration-guide/configure/calls-deployment-guide) is required for this functionality to work when hosting calls through the dedicated WebRTC service.
+- Use caution when enabling this experimental configuration setting since it determines how the system handles part of the setup for WebRTC-based calls. Enabling this configuration setting may make the call setup a bit faster or more reliable in certain situations.
+
+</Note>
+
+------------------------------------------------------------------------------------------------------------------------
+
+## AI Agents
+
+<Note>
+
+Mattermost Agents is formerly known as Mattermost Copilot.
+
+</Note>
+
+Access the following Mattermost Agents configuration settings in the System Console by going to **Plugins \> Agents**.
+
+### Enable plugin
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Enables the Agents plugin on your Mattermost workspace.</li><li><strong>false</strong>: <strong>(Default)</strong> Disables the Agents plugin.</li></ul></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Display name
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The bot's display name in Mattermost used to distinguish the bot from other bots in the system.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents &gt; Add an AI Bot</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Agent username
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The bot's username that can be used to @mention the bot in a channel.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents &gt; Add an AI Bot</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Agent avatar
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Upload an image to use as the agent's avatar in Mattermost.</p><p>Image upload interface.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents &gt; Add an AI Bot</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Service
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Select the LLM service provider to use for AI assistance.</p><p>Available options: <strong>OpenAI</strong>, <strong>OpenAI Compatible</strong>, <strong>Azure</strong>, <strong>Anthropic</strong>, and <strong>Ask Sage</strong>.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents &gt; Add an AI Bot</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Username
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The username used to authenticate with the <strong>Ask Sage</strong> LLM service.</p><p>String input required.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents &gt; Add an AI Bot</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Password
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The password used to authenticate with the <strong>Ask Sage</strong> LLM service.</p><p>String input required. This value is encrypted when stored.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents &gt; Add an AI Bot</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### API URL
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The endpoint that Mattermost will use to communicate with the LLM's API. Required for <strong>OpenAI Compatible</strong> and <strong>Azure</strong> LLM services.</p><p>String input (URL format).</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents &gt; Add an AI Bot</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### API key
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The key used to authenticate requests to the LLM's API. Required for <strong>OpenAI</strong>, <strong>OpenAI Compatible</strong>, and <strong>Anthropic</strong> LLM services.</p><p>String input. This value is encrypted when stored.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents &gt; Add an AI Bot</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Organization ID
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Ensures that requests are billed and processed under the correct organization, where applicable. Supported for <strong>OpenAI</strong>, <strong>OpenAI Compatible</strong>, and <strong>Azure</strong> LLM services.</p><p>String input.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents &gt; Add an AI Bot</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Send user ID
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Includes unique user identifiers in API requests to the LLM for analytics, personalization, and auditing purposes.</li><li><strong>false</strong>: <strong>(Default)</strong> Does not include user identifiers.</li></ul><p>Review LLM data privacy policies before enabling this setting.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents &gt; Add an AI Bot</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+We recommend reviewing LLM data privacy policies to confirm whether transmitting user information is acceptable and secure within your organization's regulatory framework. Do not enable when you need to conform to strict privacy regulations (e.g., GDPR) that limit sharing user-identifiable data with external services.
+
+</Note>
+
+### Default model
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The specific LLM that will be used to process queries if no other model is explicitly selected. Supported for all LLM services.</p><p>String input (model name).</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents &gt; Add an AI Bot</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Input token limit
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The maximum number of tokens (chunks of text, including words, punctuation, or special characters) that the selected LLM can process in a single prompt or request.</p><p>Numerical value. Directly impacts the size of user queries that can be handled.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents &gt; Add an AI Bot</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Output token limit
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The maximum number of tokens (chunks of text, including words, punctuation, or special characters) that the LLM can generate in its response to a query.</p><p>Numerical value. Must be greater than 0 for <strong>Anthropic</strong> LLM services.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents &gt; Add an AI Bot</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Streaming timeout
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Determines how long the system will wait for a response from the LLM when using streaming (real-time) output mode. Supported for <strong>OpenAI</strong>, <strong>OpenAI Compatible</strong>, and <strong>Azure</strong> LLM services.</p><p>Numerical value (in seconds). If the LLM takes longer than the configured timeout, the connection is terminated.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents &gt; Add an AI Bot</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+Streaming allows LLMs to display the response gradually as it's being generated, creating a smoother and more interactive experience for users.
+
+</Note>
+
+### Custom instructions
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Preset specific contextual or behavioral guidance for the LLM. Helps tailor the model's responses to align with your organization's needs, tone, or expectations. Supported for all LLM services.</p><p>Text input. Instructions that the model will implicitly follow for every interaction, providing consistency and adaptability.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents &gt; Add an AI Bot</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+Custom instructions can include behavioral guidance, tone preferences, contextual functions, and organizational preferences. This ensures responses adhere to your organization's language and tone guidelines and aligns the model's behavior with specific roles or purposes.
+
+</Note>
+
+### Enable vision
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Enables the LLM to process and generate responses that incorporate image-related input or output. Supported for <strong>OpenAI</strong>, <strong>OpenAI Compatible</strong>, <strong>Azure</strong>, and <strong>Anthropic</strong> LLM services.</li><li><strong>false</strong>: <strong>(Default)</strong> Disables vision capabilities.</li></ul></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents &gt; Add an AI Bot</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+This feature is in [Beta](/administration-guide/manage/feature-labels#beta). When enabled, the LLM can interact with prompts that include image-related input, such as image analysis, visual-related assistance, and visual outputs, where supported.
+
+</Note>
+
+### Enable tools
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Enables the LLM to leverage additional tools or plugins to enhance its capabilities. Supported for <strong>OpenAI</strong>, <strong>OpenAI Compatible</strong>, <strong>Azure</strong>, and <strong>Anthropic</strong> LLM services.</li><li><strong>false</strong>: <strong>(Default)</strong> Disables tool capabilities.</li></ul></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents &gt; Add an AI Bot</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+When enabled, advanced features beyond basic query processing allow the LLM to perform specialized tasks like retrieving data, integrating with external APIs, or performing computations, where supported.
+
+</Note>
+
+### Channel access
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Determines whether the bot can consume the contents of a given channel and provide answers only from content available in the channel. Supported for all LLM services.</p><p>Available options: <strong>Allow for all channels</strong>, <strong>Allow for selected channels</strong>, <strong>Block selected channels</strong>, and <strong>Block all channels</strong>.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents &gt; Add an AI Bot</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### User access
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Determines whether users who chat with this bot can get private assistance about content across all channels the user has access to. Supported for all LLM services.</p><p>Available options: <strong>Allow for all users</strong>, <strong>Allow for selected users</strong>, and <strong>Block selected users</strong>.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents &gt; Add an AI Bot</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Default agent
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>Select the default bot to use for AI functions when multiple agents are configured. Based on defined agents.</td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents &gt; AI Functions</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Allowed upstream hostnames
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Comma-separated list of hostnames that LLMs are allowed to contact when using tools. Supports wildcards like <code>*.mydomain.com</code>.</p><p>Example: <code>mattermost.atlassian.net</code> to allow JIRA tool use.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents &gt; AI Functions</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Enable LLM trace
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Enables tracing of LLM requests and outputs full conversation data to the logs. Supported for all LLM services.</li><li><strong>false</strong>: <strong>(Default)</strong> Disables LLM request tracing.</li></ul></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents &gt; Debug</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+Use this setting for debugging purposes only. When enabled, it may log sensitive conversation data.
+
+</Note>
+
+### Enable embedding search
+
+<PlanAvailability slug="ent-plus" />
+
+<table>
+<colgroup>
+<col style={{width: '42%'}} />
+<col style={{width: '57%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>Composite</strong>: Enables experimental embedding search capabilities for semantic search across Mattermost content using pgvector and OpenAI-compatible endpoints.</li><li><strong>Disabled</strong>: <strong>(Default)</strong> Disables embedding search capabilities.</li></ul></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents &gt; Embedding Search</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+Embedding search requires an Enterprise license and is available as an [experimental](/administration-guide/manage/feature-labels#experimental) feature. You must also enable the `pgvector` extension in your PostgreSQL database. Performance may vary with large datasets.
+
+</Note>
+
+### Embedding provider type
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>Select the provider for generating embeddings for semantic search. Available options: <strong>OpenAI</strong> and <strong>OpenAI Compatible</strong>.</td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents &gt; Embedding Search</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### API Key
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The API key used to authenticate requests to the embedding provider's API. Required for <strong>OpenAI Compatible</strong> embedding providers.</p><p>String input. This value is encrypted when stored.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents &gt; Embedding Search</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Model
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The specific embedding model to use for generating vector representations of content. Must be compatible with the selected embedding provider.</p><p>String input (model name).</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents &gt; Embedding Search</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### API URL
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The endpoint URL for the <strong>OpenAI-compatible</strong> embedding API.</p><p>Required string input (URL format).</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents &gt; Embedding Search</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Dimensions
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The dimensionality of the embedding vectors, which must match the chosen embedding model. Common values include 1536 for OpenAI text-embedding-ada-002 and 3072 for text-embedding-3-large.</p><p>Numerical input. Common values are 768, 1024, or 1536, depending on the model.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents &gt; Embedding Search</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Chunking strategy
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The method used to split content into smaller chunks for embedding generation. Available options: <strong>Sentences</strong>, <strong>Paragraphs</strong>, <strong>Fixed Size</strong>.</p><p>Choose based on your content type and search requirements.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents &gt; Embedding Search</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Chunk size
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The maximum size of each content chunk in characters. Recommended range is 512-1024 characters. The optimal value varies by chunking strategy.</p><p>Numerical input.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents &gt; Embedding Search</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Chunk overlap
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The number of tokens that consecutive chunks share for better context continuity. Recommended range is 20-50 characters for <strong>Fixed Size</strong> chunking.</p><p>Numerical input.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents &gt; Embedding Search</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Minimum chunk size ratio
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The minimum ratio for chunk size validation to ensure sentence and paragraph chunks meet size requirements. Used to filter out chunks that are too small releative to the configured chunk size.</p><p>Numerical input (decimal ratio).</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents &gt; Embedding Search</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Reindex all posts
+
+<table>
+<colgroup>
+<col style={{width: '41%'}} />
+<col style={{width: '58%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Select <strong>Reindex Posts</strong> to trigger a complete reindexing of all posts for embedding search. Use this control to rebuild the search index when changing embeddingproviders, models, or chunking configurations.</p><p>Monitor indexing progress during the reindexing process.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Agents &gt; Embedding Search</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+------------------------------------------------------------------------------------------------------------------------
+
+## GitLab
+
+See the [Connect GitLab to Mattermost](/integrations-guide/gitlab) product documentation for details.
+
+------------------------------------------------------------------------------------------------------------------------
+
+## GitHub
+
+See the [Connect GitHub to Mattermost](/integrations-guide/github) product documentation for details.
+
+------------------------------------------------------------------------------------------------------------------------
+
+## Jira
+
+See the [Connect Jira to Mattermost](/integrations-guide/jira) product documentation for available [Mattermost configuration options](/integrations-guide/jira#mattermost-configuration).
+
+------------------------------------------------------------------------------------------------------------------------
+
+## Legal hold
+
+<PlanAvailability slug="ent-plus" />
+
+See the [Legal holds](/administration-guide/comply/legal-hold) product documentation for details.
+
+------------------------------------------------------------------------------------------------------------------------
+
+## Microsoft Calendar Integration
+
+See the [Connect Microsoft Calendar Integration to Mattermost](/integrations-guide/microsoft-calendar) product documentation for available [Mattermost configuration options](/integrations-guide/microsoft-calendar#enable-and-configure-the-microsoft-calendar-integration-in-mattermost).
+
+------------------------------------------------------------------------------------------------------------------------
+
+## Microsoft Teams Meetings
+
+See the [Connect Microsoft Teams Meetings to Mattermost](/integrations-guide/microsoft-teams-meetings) product documentation for available [Mattermost configuration options](/integrations-guide/microsoft-teams-meetings#enable-and-configure-the-microsoft-teams-meetings-integration-in-mattermost).
+
+------------------------------------------------------------------------------------------------------------------------
+
+## MS Teams
+
+Mattermost for Microsoft Teams enables you to break through siloes in a mixed Mattermost and Teams environment by forwarding real-time chat notifications from Teams to Mattermost.
+
+<Tip>
+
+Download our [Mattermost for Microsoft Teams datasheet](https://mattermost.com/mattermost-for-microsoft-teams-datasheet/) to learn how Mattermost helps your organization get more from your Microsoft tools.
+
+</Tip>
+
+Access the following configuration settings in the System Console by going to **Plugins \> MS Teams**.
+
+### Enable plugin
+
+<table>
+<colgroup>
+<col style={{width: '57%'}} />
+<col style={{width: '42%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Enable the Mattermost for Microsoft Teams plugin for all Mattermost teams.</p><ul><li><strong>true</strong>: Enables MS Teams plugin on your Mattermost workspace.</li><li><strong>false</strong>: <strong>(Default)</strong> Disables the MS Teams plugin.</li></ul></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; MS Teams</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+Use the [Enabled Teams](#enabled-teams) configuration option to specify which Mattermost teams synchronize direct and group messages with Microsoft Teams chats.
+
+</Note>
+
+### Tenant ID
+
+<table>
+<colgroup>
+<col style={{width: '58%'}} />
+<col style={{width: '41%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>Specify the Microsoft Teams Tenant ID from the Azure portal.</td>
+<td><ul><li>System Config path: <strong>Plugins &gt; MS Teams</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Client ID
+
+<table>
+<colgroup>
+<col style={{width: '58%'}} />
+<col style={{width: '41%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>Specify the Microsoft Teams Client ID of your registered OAuth app in the Azure portal.</td>
+<td><ul><li>System Config path: <strong>Plugins &gt; MS Teams</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Client secret
+
+<table>
+<colgroup>
+<col style={{width: '58%'}} />
+<col style={{width: '41%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Specify the client secret of your registered OAuth app in Azure portal.</p><p>Alpha-numeric value.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; MS Teams</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### At rest encryption key
+
+<table>
+<colgroup>
+<col style={{width: '58%'}} />
+<col style={{width: '41%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Regenerate a new encryption secret. This encryption secret will be used to encrypt and decrypt the OAuth token.</p><p>Alpha-numeric value.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; MS Teams</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+Select **Regenerate** to generate a new key.
+
+</Note>
+
+### Webhook secret
+
+<table>
+<colgroup>
+<col style={{width: '58%'}} />
+<col style={{width: '41%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>Generate the webhook secret that Microsoft Teams will use to send messages to Mattermost.</td>
+<td><ul><li>System Config path: <strong>Plugins &gt; MS Teams</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+Select **Regenerate** to generate a new key.
+
+</Note>
+
+### Use the evaluation API pay model
+
+<table>
+<colgroup>
+<col style={{width: '58%'}} />
+<col style={{width: '41%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Enable this only for testing purposes. You need the pay model to be able to support enough message notifications to work in a real world scenario.</p><ul><li><strong>true</strong>: Enables the evaluation API pay model.</li><li><strong>false</strong>: <strong>(Default)</strong> Disables the evaluation API pay model.</li></ul></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; MS Teams</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Sync notifications
+
+<table>
+<colgroup>
+<col style={{width: '57%'}} />
+<col style={{width: '42%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Notify connected users in Mattermost on receipt of a chat or group chat from Microsoft Teams.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> Sync notifications of chat messages for any connected user that enables the feature.</li><li><strong>false</strong>: Do not sync notifications.</li></ul></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; MS Teams</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Maximum size of attachments to support complete one time download
+
+<table>
+<colgroup>
+<col style={{width: '54%'}} />
+<col style={{width: '45%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Specify the maximum file size, in mebibytes (MiB), of attachments that can be loaded into memory. Attachment files larger than this value will be streamed from Microsoft Teams to Mattermost.</p><p>Numerical value. Default is <strong>20</strong> MiB.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; MS Teams</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Buffer size for streaming files
+
+<table>
+<colgroup>
+<col style={{width: '54%'}} />
+<col style={{width: '45%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Specify the buffer size, in mebibytes (MiB), for streaming attachment files from Microsoft Teams to Mattermost.</p><p>Numerical value. Default is <strong>20</strong> MiB.</p></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; MS Teams</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+------------------------------------------------------------------------------------------------------------------------
+
+## Performance metrics
+
+<PlanAvailability slug="entry-ent" />
+
+See the [Monitor performance metrics](/administration-guide/scale/collect-performance-metrics) product documentation for available [Mattermost configuration options](/administration-guide/scale/collect-performance-metrics#mattermost-configuration).
+
+------------------------------------------------------------------------------------------------------------------------
+
+## Collaborative playbooks
+
+Use collaborative playbooks in Mattermost to provide structure, monitoring and automation for repeatable, team-based processes integrated with the Mattermost platform.
+
+Access the following configuration settings in the System Console by going to **Plugins \> Collaborative playbooks**.
+
+### Enable plugin
+
+<table>
+<colgroup>
+<col style={{width: '61%'}} />
+<col style={{width: '38%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Enables collaborative Playbooks on your Mattermost workspace.</li><li><strong>false</strong>: Disables collaborative Playbooks on your Mattermost workspace.</li></ul></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Collaborative playbooks</strong></li><li><code>config.json</code> setting:</li><li>Environment variable:</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Enabled teams
+
+<table>
+<colgroup>
+<col style={{width: '60%'}} />
+<col style={{width: '40%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>Enable collaborative playbooks for all Mattermost teams, or for only selected teams.</td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Collaborative playbooks</strong></li><li><code>config.json</code> setting:</li><li>Environment variable:</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Enable experimental features
+
+<table>
+<colgroup>
+<col style={{width: '60%'}} />
+<col style={{width: '40%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Enables experimental playbooks features on your Mattermost workspace.</li><li><strong>false</strong>: Disables experimental playbooks features on your Mattermost workspace.</li></ul></td>
+<td><ul><li>System Config path: <strong>Plugins &gt; Collaborative playbooks</strong></li><li><code>config.json</code> setting:</li><li>Environment variable:</li></ul></td>
+</tr>
+</tbody>
+</table>
+
+------------------------------------------------------------------------------------------------------------------------
+
+## ServiceNow
+
+See the [Connect ServiceNow to Mattermost](/integrations-guide/servicenow) product documentation for available [Mattermost configuration options](/integrations-guide/servicenow#mattermost-configuration).
+
+------------------------------------------------------------------------------------------------------------------------
+
+## Zoom
+
+See the [Connect Zoom to Mattermost](/integrations-guide/zoom) product documentation for available [Mattermost configuration options](/integrations-guide/zoom#mattermost-configuration).
+
+------------------------------------------------------------------------------------------------------------------------
+
+## config.json-only settings
+
+The following self-hosted deployment settings are only configurable in the `config.json` file and are not available in the System Console.
+
+### Signature public key files
+
+This setting isn't available in the System Console and can only be set in `config.json`.
+
+In addition to the Mattermost plugin signing key built into the server, each public key specified here is trusted to validate plugin signatures.
+
+<Important>
+
+From Mattermost v10.11, pre-packaged plugins require signature validation on startup. Distributions that bundle custom pre-packaged plugins **must** configure this setting with their custom public keys to ensure proper validation of their signed plugins. Use `PluginSettings.SignaturePublicKeyFiles` to define custom plugin signing keys.
+
+When bundling custom plugins:
+
+- Drop both the plugin files and their corresponding `.sig` signature files into the `prepackaged_plugins` directory.
+- Add your custom public key using this configuration setting to validate the signatures.
+
+</Important>
+
+<table>
+<colgroup>
+<col style={{width: '100%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>"SignaturePublicKeyFiles": &#123;&#125;</code> with string array input consisting of contents that are relative or absolute paths to signature files.</td>
+</tr>
+</tbody>
+</table>
+
+### Chimera OAuth proxy URL
+
+This setting isn't available in the System Console and can only be set in `config.json`.
+
+Specify the [Chimera](https://github.com/mattermost/chimera) URL used by Mattermost plugins to connect with pre-created OAuth applications.
+
+<table>
+<colgroup>
+<col style={{width: '100%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>"ChimeraOAuthProxyUrl": &#123;&#125;</code> with string input.</td>
+</tr>
+</tbody>
+</table>

@@ -1075,13 +1075,17 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                 if (section.component) {
                     const CustomComponent = section.component;
                     sections.push((
-                        <CustomComponent
-                            settingsList={settingsList}
+                        <div
                             key={section.key}
-                            sectionTitle={section.title}
-                            sectionDescription={section.description}
-                            {...section.componentProps}
-                        />
+                            data-testid={section.key}
+                        >
+                            <CustomComponent
+                                settingsList={settingsList}
+                                sectionTitle={section.title}
+                                sectionDescription={section.description}
+                                {...section.componentProps}
+                            />
+                        </div>
                     ));
                     return;
                 }
@@ -1137,6 +1141,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                             title={section.title}
                             description={section.description}
                             licenseSku={section.license_sku}
+                            data-testid={section.key}
                         >
                             {header}
                             {settingsList}

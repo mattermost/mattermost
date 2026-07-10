@@ -1,0 +1,64 @@
+---
+title: Offline License Activation
+sidebar_position: 3
+description: Activate Mattermost Enterprise or Enterprise Advanced licenses inside an enclave without phoning home.
+---
+
+<EditionAvailability tiers="enterprise,enterprise-advanced" />
+<DeploymentAvailability modes="self-hosted,air-gapped,cloud-government" />
+
+# Offline License Activation
+
+In a connected install, Mattermost activates Enterprise licenses by contacting `customers.mattermost.com` and validating the license signature against Mattermost's signing key. In an air-gapped enclave, that callback is impossible.
+
+Offline activation produces a **license file** that is signed by Mattermost's customer-success team and validated locally by the Mattermost server using a pre-installed public key. No network access is required at activation time.
+
+## Procedure
+
+1. **Open a license request with Mattermost Customer Success** through your standard support channel. Provide:
+   - The Mattermost server version you'll install (e.g., `v10.5.0`).
+   - The expected user count (must match your purchased seat count).
+   - Your enclave's clock authority (so the license `IssuedAt` is sensible relative to your NTP source).
+   - Whether the deployment requires the **FIPS-compliant container image** (see [FIPS / STIG container builds](../server/containers/fips-stig)).
+2. **Receive a signed `mattermost.license` file** out-of-band (typically encrypted email, customer portal download, or shipped on physical media for sovereign-cloud deployments).
+3. **Transfer the license across the air gap** using your approved transfer mechanism. Verify the file SHA-256 hash on both sides.
+4. **Install the license** on the running Mattermost server:
+   ```
+   mmctl license upload /path/to/mattermost.license
+   ```
+   Or via the System Console: **System Console → Edition and License → Upload Mattermost License File**.
+5. **Verify activation**:
+   ```
+   mmctl license status
+   ```
+   The output should list the licensee, expiration, and active feature set.
+
+## License lifecycle in air-gapped mode
+
+| Event | Connected install | Air-gapped install |
+|---|---|---|
+| Initial activation | Online callback to `customers.mattermost.com` | Local validation of pre-signed `.license` file |
+| Renewal | Automatic prompt 60 days before expiry | Manual: customer-success issues new file; operator re-uploads |
+| Automated utilization reporting | Daily POST to `customers.mattermost.com` | **Disabled** — Mattermost does not contact `customers.mattermost.com` from inside the enclave. Reporting is done manually at renewal. |
+
+:::important Automated license utilization reporting must be disabled
+The `EnableLicenseReporting` server setting must be set to `false` in `config.json`. Otherwise, Mattermost attempts (and silently fails) a daily POST to `customers.mattermost.com`. The failure does not affect functionality, but it pollutes egress logs and triggers boundary alerts. See [Disable Phone-Home Features](./disable-phone-home-features).
+:::
+
+## License signature verification
+
+Mattermost server ships with the public key used to verify license signatures embedded in the binary. There is no need to import or trust an additional key.
+
+If license validation fails after upload, the server logs an explicit error message. Common causes:
+
+- **Clock skew**: enclave clock is more than 5 minutes off from the license `IssuedAt`. Fix your NTP source.
+- **Version mismatch**: the license was issued for a different Mattermost major version than the one installed. Re-request from customer success.
+- **Tampering**: SHA-256 hash of the license file changed during air-gap transfer. Re-transfer.
+
+## Renewal cadence
+
+Mattermost Enterprise licenses are typically 12-month terms. In air-gapped mode, plan for license renewal **60 days before expiry** to allow time for customer-success issuance + air-gap transfer. Expired licenses degrade Mattermost to free-tier features; they do not lock the server.
+
+## Reference
+
+This page is a stub — Phase 2 will add a worked example for sovereign-cloud (GovCloud) deployments where the license file is delivered via the customer portal rather than out-of-band. Tracked in `docs/_redesign/proposed-ia.md` §6 in the repo.

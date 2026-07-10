@@ -23,7 +23,7 @@ import {
     hasOverlappingPermissionRules,
 } from '@mattermost/types/access_control';
 import type {Channel} from '@mattermost/types/channels';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
 import {isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
@@ -587,7 +587,7 @@ function ChannelSettingsPermissionsPolicyTab({
             key: '__new__',
             name: '',
             role: ACCESS_CONTROL_CHANNEL_ROLE_USER,
-            actions: [ACCESS_CONTROL_ACTION_UPLOAD_FILE],
+            actions: [],
             expression: '',
         } : rules.find((r) => r.key === editingKey);
 

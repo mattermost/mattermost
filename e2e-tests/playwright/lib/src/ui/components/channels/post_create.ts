@@ -20,6 +20,8 @@ export default class ChannelsPostCreate {
     readonly scheduleMessageButton;
     readonly priorityButton;
     readonly suggestionList;
+    readonly suggestionOptions;
+    readonly selectedSuggestion;
     readonly filePreview;
 
     // Burn-on-Read elements
@@ -41,12 +43,14 @@ export default class ChannelsPostCreate {
         this.scheduleMessageButton = container.getByLabel('Schedule message');
         this.priorityButton = container.getByLabel('Message priority');
         this.suggestionList = container.getByRole('listbox', {name: 'Suggestions'});
-        this.filePreview = container.locator('.file-preview__container');
+        this.suggestionOptions = this.suggestionList.getByRole('option');
+        this.selectedSuggestion = this.suggestionList.getByTestId('suggestion-selected');
+        this.filePreview = container.getByTestId('file-preview-container');
 
         // Burn-on-Read elements
         // Use a flexible locator that matches the aria-label pattern
         this.burnOnReadButton = container.getByRole('button', {name: /Burn-on-read/i});
-        this.burnOnReadLabel = container.locator('.BurnOnReadLabel');
+        this.burnOnReadLabel = container.getByTestId('burn-on-read-label');
     }
 
     async toBeVisible() {
@@ -162,6 +166,27 @@ export default class ChannelsPostCreate {
         await suggestion.click();
     }
 
+    /**
+     * Types the given keystrokes to trigger the autocomplete suggestion list,
+     * optionally moves the highlight down with ArrowDown, then completes the
+     * highlighted suggestion by pressing Tab.
+     * @param keystrokes - Partial text that triggers autocomplete (e.g. "@jo", ":tomato")
+     * @param options.arrowDown - Number of ArrowDown presses before selecting
+     */
+    async selectFromAutocompleteWithTab(keystrokes: string, {arrowDown = 0}: {arrowDown?: number} = {}) {
+        await this.input.waitFor();
+        await expect(this.input).toBeVisible();
+
+        await this.input.fill(keystrokes);
+        await expect(this.suggestionList).toBeVisible();
+
+        for (let i = 0; i < arrowDown; i++) {
+            await this.input.press('ArrowDown');
+        }
+
+        await this.input.press('Tab');
+    }
+
     async openEmojiPicker() {
         await expect(this.emojiButton).toBeVisible();
         await this.emojiButton.click();
@@ -170,8 +195,8 @@ export default class ChannelsPostCreate {
     async waitUntilFilePreviewContains(files: string[], timeout = duration.ten_sec) {
         await waitUntil(
             async () => {
-                const previews = this.filePreview.locator('.file-preview');
-                const details = this.filePreview.locator('.post-image__details');
+                const previews = this.filePreview.getByTestId('file-preview-item');
+                const details = this.filePreview.getByTestId('post-image-details');
 
                 const [previewsCount, detailsCount] = await Promise.all([previews.count(), details.count()]);
 

@@ -1,0 +1,392 @@
+---
+title: "RTCD Setup and Configuration"
+---
+<PlanAvailability slug="ent-plus" />
+
+This guide provides detailed instructions for setting up, configuring, and validating a Mattermost Calls deployment using the dedicated RTCD service.
+
+## Prerequisites
+
+Before deploying RTCD, ensure you have:
+
+- A Mattermost Enterprise license
+- A server or VM with sufficient CPU and network capacity (see the [Performance baselines](calls-metrics-monitoring.mdx#performance-baselines) section for sizing guidance)
+
+## Network Requirements
+
+The following network connectivity is required:
+
+<style>
+  table.network-requirements &#123;
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.95em;
+  &#125;
+  table.network-requirements th, table.network-requirements td &#123;
+    border: 1px solid #888;
+    padding: 6px 8px;
+    vertical-align: top;
+  &#125;
+  /* Dark mode border color */
+  body:not([data-custom-theme="light"]) table.network-requirements th, 
+  body:not([data-custom-theme="light"]) table.network-requirements td &#123;
+    border-color: #666;
+  &#125;
+  table.network-requirements th &#123;
+    background: #f2f2f2;
+    font-weight: bold;
+    text-align: left;
+  &#125;
+  /* Dark mode support for table headers */
+  body:not([data-custom-theme="light"]) table.network-requirements th &#123;
+    background: #444;
+    color: #fff;
+  &#125;
+</style>
+
+<table class="network-requirements">
+<thead>
+<tr>
+<th>Service</th>
+<th>Ports</th>
+<th>Protocols</th>
+<th>Source</th>
+<th>Target</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>API (Calls plugin)</td>
+<td>80,443</td>
+<td>TCP (incoming)</td>
+<td>Mattermost clients (web/desktop/mobile)</td>
+<td>Mattermost instance (Calls plugin)</td>
+<td>To allow for HTTP and WebSocket connectivity from clients to Calls plugin. This API is exposed on the same connection as Mattermost, so there's likely no need to change anything.</td>
+</tr>
+<tr>
+<td>RTC (Calls plugin or <code>rtcd</code>)</td>
+<td>8443</td>
+<td>UDP (incoming)</td>
+<td>Mattermost clients (Web/Desktop/Mobile) and calls-offloader</td>
+<td>Mattermost instance or <code>rtcd</code> service</td>
+<td>To allow clients to establish connections that transport calls related media (e.g. audio, video). This should be open on any network component (e.g. NAT, firewalls) in between the instance running the plugin (or <code>rtcd</code>) and the clients joining calls so that UDP traffic is correctly routed both ways (from/to clients).</td>
+</tr>
+<tr>
+<td>RTC (Calls plugin or <code>rtcd</code>)</td>
+<td>8443</td>
+<td>TCP (incoming)</td>
+<td>Mattermost clients (Web/Desktop/Mobile) and calls-offloader</td>
+<td>Mattermost instance or <code>rtcd</code> service</td>
+<td>To allow clients to establish connections that transport calls related media (e.g. audio, video). This should be open on any network component (e.g. NAT, firewalls) in between the instance running the plugin (or <code>rtcd</code>) and the clients joining calls so that TCP traffic is correctly routed both ways (from/to clients). This can be used as a backup channel in case clients are unable to connect using UDP. It requires <code>rtcd</code> version >= v0.11 and Calls version >= v0.17.</td>
+</tr>
+<tr>
+<td>API (<code>rtcd</code>)</td>
+<td>8045</td>
+<td>TCP (incoming)</td>
+<td>Mattermost instance(s) (Calls plugin)</td>
+<td><code>rtcd</code> service</td>
+<td>To allow for HTTP/WebSocket connectivity from Calls plugin to <code>rtcd</code> service. Can be exposed internally as the service only needs to be reachable by the instance(s) running the Mattermost server.</td>
+</tr>
+<tr>
+<td>STUN (Calls plugin or <code>rtcd</code>)</td>
+<td>3478</td>
+<td>UDP (outgoing)</td>
+<td>Mattermost Instance(s) (Calls plugin) or <code>rtcd</code> service</td>
+<td>Configured STUN servers</td>
+<td>(Optional) To allow for either Calls plugin or <code>rtcd</code> service to discover their instance public IP. Only needed if configuring STUN/TURN servers. This requirement does not apply when manually setting an IP or hostname through the <a href="https://docs.mattermost.com/configure/plugins-configuration-settings.html#ice-host-override">ICE Host Override</a> config option.</td>
+</tr>
+</tbody>
+</table>
+
+## Installation and Deployment
+
+There are multiple ways to deploy RTCD, depending on your environment. We recommend the following order based on production readiness and operational control:
+
+### Bare Metal or VM Deployment (Recommended)
+
+This is the recommended deployment method for non-Kubernetes production environments, as it provides the best performance and operational control. For Kubernetes deployments, see the [Calls Deployment on Kubernetes](calls-kubernetes.mdx) guide.
+
+<Tip>
+
+Looking for an automated setup? Check out these community-maintained [Calls Installation Scripts](https://github.com/bgardner8008/calls-install-scripts) for quick provisioning of the RTCD service on Ubuntu/Debian systems.
+
+</Tip>
+
+1. **Download and install the RTCD binary**:
+
+   Download the latest release from the [RTCD GitHub repository](https://github.com/mattermost/rtcd/releases):
+
+   ```bash
+   # Create the RTCD directory structure
+   sudo mkdir -p /opt/rtcd
+
+   # Download the latest RTCD binary (adjust URL for your architecture)
+   # For Linux x86_64:
+   wget https://github.com/mattermost/rtcd/releases/latest/download/rtcd-linux-amd64
+   
+   # Make the binary executable and move it to the installation directory
+   chmod +x rtcd-linux-amd64
+   sudo mv rtcd-linux-amd64 /opt/rtcd/rtcd
+   ```
+
+   ```{note}
+   Replace `rtcd-linux-amd64` with the appropriate binary for your system architecture (e.g., `rtcd-linux-arm64` for ARM64 systems). The binary should be placed at `/opt/rtcd/rtcd` as this is the expected location referenced in systemd service files and other documentation.
+   ```
+
+2. **Create a configuration file** (`/opt/rtcd/rtcd.toml`):
+
+   Mattermost recommends using the official [config.sample.toml](https://github.com/mattermost/rtcd/blob/master/config/config.sample.toml) as a starting point. Download this file and use it as your base configuration.
+
+3. Create a dedicated user for the RTCD service:
+
+   ```bash
+   sudo useradd --system --no-create-home --shell /bin/false mattermost
+   ```
+
+4. Create the data directory and set ownership:
+
+   ```bash
+   sudo mkdir -p /opt/rtcd/data/db
+   sudo chown -R mattermost:mattermost /opt/rtcd
+   ```
+
+5. Create a systemd service file (`/etc/systemd/system/rtcd.service`):
+
+   ```ini
+   [Unit]
+   Description=Mattermost RTCD Server
+   After=network.target
+
+   [Service]
+   Type=simple
+   User=mattermost
+   Group=mattermost
+   ExecStart=/opt/rtcd/rtcd --config /opt/rtcd/rtcd.toml
+   Restart=always
+   RestartSec=10
+   LimitNOFILE=65536
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+6. Enable and start the service:
+
+   ```bash
+   sudo systemctl daemon-reload
+   sudo systemctl enable rtcd
+   sudo systemctl start rtcd
+   ```
+
+7. Check the service status:
+
+   ```bash
+   sudo systemctl status rtcd
+   ```
+
+### Docker Deployment
+
+Docker deployment is suitable for development, testing, or containerized production environments:
+
+1. Run the RTCD container with basic configuration:
+
+   ```bash
+   docker run -d --name rtcd \
+     -e "RTCD_LOGGER_ENABLEFILE=true" \
+     -p 8443:8443/udp \
+     -p 8443:8443/tcp \
+     -p 8045:8045/tcp \
+     mattermost/rtcd:latest
+   ```
+
+   ```{note}
+   If you optionally use the `RTCD_API_SECURITY_ALLOWSELFREGISTRATION` setting, please note that it defaults to `false`. If enabled, it allows anyone who can connect to the service on the API port (8045) to successfully initiate calls. Understand the security implications of this setting before enabling it.
+   ```
+
+2. For debugging purposes, you can enable more detailed logging:
+
+   ```bash
+   docker run -d --name rtcd \
+     -e "RTCD_LOGGER_ENABLEFILE=true" \
+     -e "RTCD_LOGGER_CONSOLELEVEL=DEBUG" \
+     -p 8443:8443/udp \
+     -p 8443:8443/tcp \
+     -p 8045:8045/tcp \
+     mattermost/rtcd:latest
+   ```
+
+   To view the logs:
+
+   ```bash
+   docker logs -f rtcd
+   ```
+
+You can also use a mounted configuration file instead of environment variables:
+
+```bash
+docker run -d --name rtcd \
+  -p 8045:8045 \
+  -p 8443:8443/udp \
+  -p 8443:8443/tcp \
+  -v /path/to/config.toml:/rtcd/config/config.toml \
+  mattermost/rtcd:latest
+```
+
+For a complete sample configuration file, see the [RTCD config.sample.toml](https://github.com/mattermost/rtcd/blob/master/config/config.sample.toml) in the official repository.
+
+### Kubernetes Deployment
+
+For detailed information on deploying RTCD in Kubernetes environments, including Helm chart configurations, resource requirements, and scaling considerations, see the [Calls Deployment on Kubernetes](calls-kubernetes.mdx) guide.
+
+## Configuration
+
+### RTCD Configuration File
+
+The RTCD service uses a TOML configuration file. Mattermost recommends using the official [config.sample.toml](https://github.com/mattermost/rtcd/blob/master/config/config.sample.toml) as your base configuration file.
+
+<Note>
+
+A notable setting to be aware of is `ice_host_override` under the `[rtc]` section. You may need to configure this setting explicitly, particularly when RTCD is deployed behind NAT, in complex network topologies, or when automatic address discovery via STUN is unreliable. Setting `ice_host_override` directly to your server's public IP address or hostname is the preferred approach.
+
+</Note>
+
+### TURN Configuration
+
+For clients behind strict firewalls, you may need to configure TURN servers. In the RTCD configuration file, reference your TURN servers as follows:
+
+```toml
+[rtc]
+# TURN server configuration
+   ice_servers = [
+     { urls = ["turn:turn.example.com:3478"], username = "turnuser", credential = "turnpassword" }
+   ]
+
+```
+
+We recommend using [coturn](https://github.com/coturn/coturn) for your TURN server implementation. 
+
+### System Tuning
+
+For high-volume deployments, tune your Linux system:
+
+1. Add the following to `/etc/sysctl.conf`:
+
+   ```bash
+   # Increase UDP buffer sizes
+   net.core.rmem_max = 16777216
+   net.core.wmem_max = 16777216
+   net.core.optmem_max = 16777216
+   ```
+
+2. Apply the settings:
+
+   ```bash
+   sudo sysctl -p
+   ```
+
+## Validation and Testing
+
+After deploying RTCD, validate the installation:
+
+1. **Check service status and version**:
+
+   ```bash
+   curl http://YOUR_RTCD_SERVER:8045/version
+   # Should return a JSON object with service information
+   # Example: {"build_hash":"abc123","build_date":"2023-01-15T12:00:00Z","build_version":"0.11.0","goVersion":"go1.20.4"}
+   ```
+
+2. **Test UDP connectivity**:
+
+   Before testing, ensure the RTCD service is stopped, as it binds to the same port.
+   
+   ```bash
+   sudo systemctl stop rtcd
+   ```
+
+   On the RTCD server:
+   
+   ```bash
+   sudo ncat -u -l -k -p 8443 -c '/bin/cat'
+   ```
+
+   On a client machine:
+   
+   ```bash
+  sudo nmap -sU -p 8443 RTCD_SERVER_IP
+   ```
+      
+   If UDP connectivity is working, `nmap` reports as `open`.
+
+   Restart RTCD after the test:
+
+   ```bash
+   sudo systemctl start rtcd
+   ```
+
+3. **Test TCP connectivity** (if enabled):
+
+   Run this check from a client machine:
+
+   ```bash
+   nmap -p 8443 RTCD_SERVER_IP
+   ```
+
+   If TCP fallback is enabled and reachable, `nmap` reports as `open`.
+
+4. **Monitor metrics**:
+
+   Refer to [Calls Metrics and Monitoring](calls-metrics-monitoring.mdx) for setting up Calls metrics and monitoring.
+
+## Horizontal Scaling
+
+To scale RTCD horizontally:
+
+1. **Deploy multiple RTCD instances**:
+   
+   Deploy multiple RTCD servers, each with their own unique IP address.
+
+2. **Configure DNS record**:
+   
+   Set up a DNS record that points to multiple RTCD IP addresses:
+   
+   ```bash
+   rtcd.example.com.    IN A    10.0.0.1
+   rtcd.example.com.    IN A    10.0.0.2
+   rtcd.example.com.    IN A    10.0.0.3
+   ```
+
+3. **Configure health checks**:
+   
+   Set up health checks to automatically remove unhealthy RTCD instances from DNS.
+
+4. **Configure Mattermost**:
+   
+   In the Mattermost System Console, set the **RTCD Service URL** to your DNS name (e.g., `rtcd.example.com`).
+
+When a call starts, the Mattermost server examines the available RTCD servers (via the configured DNS record) and starts the call on the RTCD server with the lowest CPU usage. All participants in the call will connect to that RTCD server; a single call cannot be shared across multiple servers.
+
+## Integration with Mattermost
+
+Once RTCD is properly set up and validated, configure Mattermost to use it:
+
+1. Go to **System Console > Plugins > Calls**
+
+2. Set the **RTCD Service URL** to your RTCD service address (either a single server or DNS load-balanced hostname). Ensure you provide any generated credentials formulated in the URI (e.g., `http://clientID:authKey@rtcd.local`).
+
+3. Save the configuration
+
+4. Test by creating a new call in any Mattermost channel
+
+5. Verify that the call is being routed through RTCD by checking the RTCD logs and metrics
+
+## Other Calls Documentation
+
+- [Calls Deployment Guide](calls-deployment-guide.mdx): Overview of deployment options and architecture
+- [Calls Offloader Setup and Configuration](calls-offloader-setup.mdx): Setup guide for call recording and transcription
+- [Calls Metrics and Monitoring](calls-metrics-monitoring.mdx): Guide to monitoring Calls performance using metrics and observability
+- [Calls Deployment on Kubernetes](calls-kubernetes.mdx): Detailed guide for deploying Calls in Kubernetes environments
+- [Calls Logging](calls-logging.mdx): Detailed guidance for collecting Calls logs and client diagnostics
+
+For detailed Mattermost Calls configuration options, see the [Calls Plugin Configuration Settings](/administration-guide/configure/plugins-configuration-settings#calls) documentation.

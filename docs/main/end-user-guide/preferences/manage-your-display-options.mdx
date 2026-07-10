@@ -1,0 +1,337 @@
+---
+title: "Manage your display options"
+---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<PlanAvailability slug="all-commercial" />
+
+You can customize Mattermost display options based on your preferences.
+
+- Using Mattermost in a web browser or the desktop app, select the gear icon <img src="/img/ui/settings-outline_F08BB.svg" alt="Use the Settings icon to customize your Mattermost user experience." className="theme-icon" /> next to your profile picture, then go to **Display**.
+- On the Mattermost mobile app, tap your profile picture, and then tap **Settings \> Display**.
+
+## Theme
+
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
+
+Select **Theme** to apply a different look and feel to Mattermost.
+
+Select **Theme Colors** to select one of 5 standard themes designed by the Mattermost team. Or, select **Custom Theme** to customize a standard theme even further.
+
+See the [customize your theme](/end-user-guide/preferences/customize-your-theme) documentation for more information.
+
+</TabItem>
+<TabItem value="mobile" label="Mobile">
+
+Tap **Theme** to select one of 5 standard Mattermost themes.
+
+<Note>
+
+You can define a custom theme using Mattermost in a web browser or the desktop app. See the [customize your theme](/end-user-guide/preferences/customize-your-theme) documentation for more information.
+
+</Note>
+
+</TabItem>
+</Tabs>
+
+
+## Threaded discussions
+
+Threaded discussions offers an enhanced experience for users communicating in threads and replying to messages. Threaded discussions are generally available in Mattermost Cloud and from self-hosted Mattermost v7.0, and are enabled by default for all new Mattermost deployments.
+
+Depending on how your system admin has [configured threaded discussions](/administration-guide/configure/site-configuration-settings#threaded-discussions) for your [workspace](/end-user-guide/end-user-guide-index), it may already be enabled for you, or you may be able to enable this feature for your account. See our [organize conversations using threaded discussions](/end-user-guide/collaborate/organize-conversations) documentation to learn more about working with threaded discussions.
+
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
+
+Select **Threaded discussions \> Edit** to manage this option.
+
+</TabItem>
+<TabItem value="mobile" label="Mobile">
+
+Tap **Threaded discussions** to manage this option.
+
+</TabItem>
+</Tabs>
+
+
+## Clock display
+
+You can customize how time is displayed in Mattermost.
+
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
+
+Select **Clock Display \> Edit** to display time in Mattermost using a 12-hour or 24-hour convention.
+
+</TabItem>
+<TabItem value="mobile" label="Mobile">
+
+Tap **Clock Display** to display time in Mattermost using a 12-hour or 24-hour convention.
+
+</TabItem>
+</Tabs>
+
+
+## Teammate name display
+
+You can customize how names are displayed in Mattermost unless your system admin has [disabled your ability to do so](/administration-guide/configure/site-configuration-settings#lock-teammate-name-display-for-all-users).
+
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
+
+Select **Teammate Name Display \> Edit** to control how names are displayed in Mattermost. Options include: username, nickname (if it exists), or first and last name.
+
+</TabItem>
+<TabItem value="mobile" label="Mobile">
+
+This option isn't something you can set using the mobile app.
+
+</TabItem>
+</Tabs>
+
+
+## Show online availability on profile images
+
+You can show or hide [availability](/end-user-guide/preferences/set-your-status-availability#set-your-availability) on profile pictures in Mattermost.
+
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
+
+Select **Show online availability on profile images \> Edit** to show or hide availability in Mattermost.
+
+</TabItem>
+<TabItem value="mobile" label="Mobile">
+
+This option isn't something you can set using the mobile app.
+
+</TabItem>
+</Tabs>
+
+
+## Share last active time
+
+By default, Mattermost shows when you were last online in your profile and in direct message channel headers, unless your system admin has [disabled this option](/administration-guide/configure/site-configuration-settings#enable-last-active-time).
+
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
+
+Select **Share last active time \> Edit** to show or hide when you were last online in Mattermost.
+
+</TabItem>
+<TabItem value="mobile" label="Mobile">
+
+This option isn't something you can set using the mobile app.
+
+</TabItem>
+</Tabs>
+
+
+## Timezone
+
+You can customize the timezone used for timestamps in Mattermost and in email notifications.
+
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
+
+Select **Timezone \> Edit** to select your timezone.
+
+From Mattermost v10.10, you can also select **Automatic** to set your timezone automatically based on your computer's timezone settings. This option is enabled by default.
+
+</TabItem>
+<TabItem value="mobile" label="Mobile">
+
+Tap **Timezone** to set your timezone automatically based on your mobile device preference.
+
+</TabItem>
+</Tabs>
+
+
+## Website link previews
+
+You can control whether website link previews in Mattermost show a preview of the website content directly below the message.
+
+<Note>
+
+Your system admin must [enable this feature](/administration-guide/configure/site-configuration-settings#enable-message-link-previews). It's disabled by default. Once enabled, only the first web link in a message creates a preview of the website.
+
+</Note>
+
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
+
+Select **Website Link Previews \> Edit** to show or hide website previews in messages.
+
+</TabItem>
+<TabItem value="mobile" label="Mobile">
+
+This option isn't something you can set using the mobile app.
+
+</TabItem>
+</Tabs>
+
+
+## Default appearance of image previews
+
+When messages in Mattermost include images, you can control whether an image preview displays directly below the message for image attachments, image link previews, and [in-line images](/end-user-guide/collaborate/format-messages#in-line-images) over 100px in height.
+
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
+
+Select **Default Appearance of Image Previews \> Edit** to expand or collapse all image links and image attachments.
+
+<Tip>
+
+This setting can also be controlled using the [slash commands](/integrations-guide/run-slash-commands) `/expand` and `/collapse`.
+
+</Tip>
+
+</TabItem>
+<TabItem value="mobile" label="Mobile">
+
+This option isn't something you can set using the mobile app.
+
+</TabItem>
+</Tabs>
+
+
+## Message display
+
+You can control how messages in a channel are displayed.
+
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
+
+Select **Message Display \> Edit** to display standard or compact messages.
+
+<Tip>
+
+**Compact** mode fits more messages on the screen by decreasing the spacing around posts, collapsing link previews, and hiding thumbnails so that only file names are shown. Some formatting types, such as block quotes and headings, are also reduced in size.
+
+When you select **Compact**, usernames are colorized by default, and username colors are consistent for all users. Disable the **Colorize usernames** option to display all usernames in a single color instead.
+
+</Tip>
+
+</TabItem>
+<TabItem value="mobile" label="Mobile">
+
+This option isn't something you can set using the mobile app.
+
+</TabItem>
+</Tabs>
+
+
+## Click to open threads
+
+By default, Mattermost opens reply threads in the right pane when you select any part of a message. You can change this default behavior.
+
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
+
+Select **Click to open threads \> Edit** to disable the default behavior of opening reply threads in the right pane automatically. You'll need to select the replies count to open a reply thread.
+
+</TabItem>
+<TabItem value="mobile" label="Mobile">
+
+This option isn't something you can set using the mobile app.
+
+</TabItem>
+</Tabs>
+
+
+## Channel display
+
+You can control the width of the center channel area in Mattermost.
+
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
+
+Select **Channel Display \> Edit** to specify the center channel as fixed width and centered, or full width.
+
+</TabItem>
+<TabItem value="mobile" label="Mobile">
+
+This option isn't something you can set using the mobile app.
+
+</TabItem>
+</Tabs>
+
+
+## Quick reactions on messages
+
+By default, you can hover over messages to react using recently-used emojis. You can hide your recently-used emojis instead if preferred.
+
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
+
+Select **Quick reactions on messages \> Edit** to hide your recently-used emojis.
+
+</TabItem>
+<TabItem value="mobile" label="Mobile">
+
+This option isn't something you can set using the mobile app.
+
+</TabItem>
+</Tabs>
+
+
+## Render emoticons as emojis
+
+From Mattermost v10.10, you can choose whether to automatically convert text emoticons to emoji characters in your messages. This feature is enabled by default, so that text-based emoticons like `:)` or `:D` are displayed as their corresponding emoji images. Disable this auto-rendering if you prefer to keep emoticons as text.
+
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
+
+Select **Render emoticons as emojis \> Edit** to disable automatic conversion of emoticons to emojis in your messages.
+
+</TabItem>
+<TabItem value="mobile" label="Mobile">
+
+This option isn't available in the mobile app.
+
+</TabItem>
+</Tabs>
+
+
+## Language
+
+You can control what language Mattermost displays in. Options include:
+
+- Deutsch - German
+- English (U.S.)
+- English Australian
+- Español - Spanish
+- Français - French
+- Italiano - Italian
+- Magyar - Hungarian
+- Nederlands - Dutch
+- Polski - Polish
+- Português (Brasil) - Portuguese
+- Română - Romanian
+- Svenska - Swedish
+- Tiếng Việt - Vietnamese
+- Türkçe - Turkish
+- български - Bulgarian
+- Pусский - Russian
+- Yкраїнська - Ukrainian
+- فارسی - Persian
+- 한국어 - Korean
+- 中文 (简体) - Simplified Chinese
+- 中文 (繁體) - Traditional Chinese
+- 日本語 - Japanese
+
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
+
+Select **Language \> Edit** to set the display language in Mattermost.
+
+</TabItem>
+<TabItem value="mobile" label="Mobile">
+
+This option isn't something you can set using the mobile app. However, when you change the display language using a web browser or the desktop app, that language selection is also applied to the mobile app.
+
+</TabItem>
+</Tabs>
+

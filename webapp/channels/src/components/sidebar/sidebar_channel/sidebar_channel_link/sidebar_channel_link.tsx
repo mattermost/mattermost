@@ -311,6 +311,7 @@ export class SidebarChannelLink extends React.PureComponent<Props, State> {
                 to={link}
                 onClick={this.handleChannelClick}
                 tabIndex={0}
+                data-testid={this.props.isUnread ? 'sidebar-unread-channel' : undefined}
             >
                 {content}
                 {channelsTutorialTip}

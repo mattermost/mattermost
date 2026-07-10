@@ -1,0 +1,107 @@
+---
+title: "Archive and unarchive channels"
+---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<PlanAvailability slug="all-commercial" />
+
+## Archive a channel
+
+Delete [public channels](/end-user-guide/collaborate/channel-types#public-channels) and [private channels](/end-user-guide/collaborate/channel-types#private-channels) when they're no longer needed by archiving them. Archiving channels removes them from the channel sidebar and marks them as read-only. Anyone can archive a public or private channel they're a member of, unless your system admin has [disabled](/administration-guide/onboard/advanced-permissions) your ability to do so.
+
+<Tip>
+
+You can continue to access archived channels, unless your system admin has [disabled](/administration-guide/configure/site-configuration-settings#allow-users-to-view-archived-channels) your ability to do so.
+
+</Tip>
+
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
+
+To archive a channel, select the channel name at the top of the center pane to access the drop-down menu, then select **Archive Channel**.
+
+</TabItem>
+<TabItem value="mobile" label="Mobile">
+
+To archive a channel:
+
+1.  Tap the channel you want to delete.
+
+![Select a channel that you want to edit.](/images/mobile-select-a-channel.jpg)
+
+2.  Tap the **More** <img src="/img/ui/dots-vertical_F01D9.svg" alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> icon located in the top right corner of the app.
+
+![Tap on More options to access available options for the channel.](/images/mobile-select-more-options-for-a-channel.jpg)
+
+3.  Tap **View info**.
+
+![Tap on View info to see the basic channel info.](/images/mobile-select-view-info-for-a-channel.jpg)
+
+4.  Tap **Archive Channel**.
+
+![Tap on Archive channel to archive the current channel.](/images/mobile-edit-channel.jpg)
+
+5.  Tap **Yes** to confirm.
+
+![Tap on Yes to confirm your choice.](/images/mobile-confirm-archive-a-channel.jpg)
+
+</TabItem>
+</Tabs>
+
+
+<Note>
+
+- When a Mattermost user is deactivated in the system, your [direct message channel](/end-user-guide/collaborate/channel-types#direct-message-channels) with that user are archived and marked as read-only. An **Archived** icon <img src="/img/ui/archive-outline_F120E.svg" alt="Archived channels are identified with a File Box icon." className="theme-icon" /> displays next to archived channels. From Mattermost v11.5, archived private channels display a distinct **Archive Lock** icon to differentiate them from other archived channels.
+- [Group message channels](/end-user-guide/collaborate/channel-types#group-message-channels) can't be archived, but they can be closed to hide them from the channel sidebar.
+- The default **Town Square** channel can't be archived.
+- System admins can archive channels without needing to be a channel member by using the System Console.
+- Because a copy of the channel exists on the server, you can't reuse the URL of an archived channel when [creating a new channel](/end-user-guide/collaborate/create-channels).
+
+</Note>
+
+## Unarchive a channel
+
+System admins and Team admins can restore archived channels. When a channel is unarchived, channel membership and all its content is restored, unless messages and files have been deleted based on a [data retention policy](/administration-guide/configure/compliance-configuration-settings#data-retention-policies).
+
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
+
+Search for the channel if required. Then, open the channel, select the channel name at the top of the center pane to access the drop-down menu and select **Unarchive Channel**.
+
+![Unarchive a channel.](/images/unarchive-channel.png)
+
+</TabItem>
+<TabItem value="mobile" label="Mobile">
+
+To unarchive a channel:
+
+1.  Tap the channel you want to unarchive.
+
+![Select a channel that you want to edit.](/images/mobile-select-a-channel.jpg)
+
+2.  Tap the **More** <img src="/img/ui/dots-vertical_F01D9.svg" alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> icon located in the top right corner of the app.
+
+![Tap on More options to access available options for the channel.](/images/mobile-select-more-options-for-a-channel.jpg)
+
+3.  Tap **View info**.
+
+![Tap on View info to see the basic channel info.](/images/mobile-select-view-info-for-a-channel.jpg)
+
+4.  Tap **Unarchive Channel**.
+
+![Tap on Unarchive channel to unarchive the current channel.](/images/mobile-unarchive-a-channel.jpg)
+
+5.  Tap **Yes** to confirm.
+
+![Tap on Yes to confirm your choice.](/images/mobile-confirm-unarchive-a-channel.jpg)
+
+</TabItem>
+</Tabs>
+
+
+<Tip>
+
+Alternatively, system admins can unarchive channels [via the mmctl](/administration-guide/manage/mmctl-command-line-tool#mmctl-channel-unarchive), and Team admins can unarchive channels [via the API](https://api.mattermost.com/#operation/RestoreChannel).
+
+</Tip>

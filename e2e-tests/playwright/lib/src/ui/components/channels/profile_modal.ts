@@ -27,8 +27,8 @@ export default class ProfileModal {
         this.securityTab = new SecurityTab(container.getByRole('tabpanel', {name: 'Security'}));
 
         this.closeButton = container.getByRole('button', {name: 'Close'});
-        this.saveButton = container.locator('button:has-text("Save")');
-        this.cancelButton = container.locator('button:has-text("Cancel")');
+        this.saveButton = container.getByRole('button', {name: 'Save'});
+        this.cancelButton = container.getByRole('button', {name: 'Cancel'});
     }
 
     async toBeVisible() {
