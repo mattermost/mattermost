@@ -8,6 +8,7 @@ import (
 	context "context"
 
 	minio "github.com/minio/minio-go/v7"
+
 	mock "github.com/stretchr/testify/mock"
 )
 
