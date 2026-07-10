@@ -31,7 +31,6 @@ This runbook brings a Mattermost cluster online inside a network-isolated enclav
 8. **Activate the license.** Apply the offline license file produced by the Customer Account team — see [Offline License Activation](./offline-license-activation).
 9. **Mediate push notifications.** Apple APNs and Google FCM are reachable only from internet-connected networks. Deploy a mediated push proxy at your enclave boundary; see *Push Notifications without Direct APNs / FCM Egress* (Phase 2).
 10. **Configure NTP.** Mattermost relies on accurate clocks for token validation, audit-log timestamps, and rate-limiting. Point hosts at the enclave's internal NTP source.
-11. **Configure FIPS at install time** if required for the enclave (DoD IL4 / IL5, FedRAMP Moderate). FIPS cannot be enabled post-deploy. See [Configure FIPS at Install Time](/deployment-guide/server/configure-fips-at-install-time).
 12. **Verify and run smoke tests.** Confirm the cluster passes the [post-install verification checklist](../server/server-deployment-planning.mdx). Run a manual smoke: log in as system admin, create a team, send a message, install one bundled plugin, trigger an audit-log export.
 
 ## Validation

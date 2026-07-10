@@ -70,7 +70,7 @@ The Application Security and Development SRG defines ~280 requirements. The summ
 |---|---|
 | SRG-APP-000148 — User identity assurance | SAML federation to a STIG-compliant IdP. |
 | SRG-APP-000164 — Account management | Provisioning via SCIM (Enterprise Advanced) + IdP-driven onboarding. |
-| SRG-APP-000172 — Cryptographic identity protection | FIPS 140-3 validated module — see [Configure FIPS at Install Time](../../deployment-guide/server/configure-fips-at-install-time). |
+| SRG-APP-000172 — Cryptographic identity protection | FIPS 140-3 validated module — deploy using the FIPS-compliant container image. See [FIPS / STIG container builds](../../deployment-guide/server/containers/fips-stig). |
 | SRG-APP-000516 — Replay-resistant authentication | SAML with signed assertions + short-lived session tokens. |
 
 ### System and Communications Protection (SC)
@@ -114,7 +114,7 @@ While the full STIG checklist is on the roadmap, customers can begin hardening t
 2. **Apply PostgreSQL STIG** for the database tier.
 3. **Apply Web Server SRG** to the NGINX reverse proxy.
 4. **Apply Mattermost configuration** from the [Required configuration summary on the FedRAMP Moderate page](./fedramp-moderate#required-configuration) — this satisfies the majority of Application Security and Development SRG requirements applicable to Mattermost.
-5. **Enable FIPS mode at install time** — see [Configure FIPS at Install Time](../../deployment-guide/server/configure-fips-at-install-time).
+5. **Deploy using the FIPS-compliant container image** — see [FIPS / STIG container builds](../../deployment-guide/server/containers/fips-stig).
 6. **Disable phone-home features** — see [Disable Phone-Home Features](../../deployment-guide/air-gapped-operations/disable-phone-home-features).
 7. **Configure audit log export** to a STIG-compliant SIEM.
 8. **Configure IdP-side** policies for MFA, PIV/CAC, session lifetime, account lockout.

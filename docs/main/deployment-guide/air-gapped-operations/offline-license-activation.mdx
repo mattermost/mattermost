@@ -19,7 +19,7 @@ Offline activation produces a **license file** that is signed by Mattermost's cu
    - The Mattermost server version you'll install (e.g., `v10.5.0`).
    - The expected user count (must match your purchased seat count).
    - Your enclave's clock authority (so the license `IssuedAt` is sensible relative to your NTP source).
-   - Whether the deployment requires **FIPS mode** at activation (see [Configure FIPS at Install Time](../server/configure-fips-at-install-time)).
+   - Whether the deployment requires the **FIPS-compliant container image** (see [FIPS / STIG container builds](../server/containers/fips-stig)).
 2. **Receive a signed `mattermost.license` file** out-of-band (typically encrypted email, customer portal download, or shipped on physical media for sovereign-cloud deployments).
 3. **Transfer the license across the air gap** using your approved transfer mechanism. Verify the file SHA-256 hash on both sides.
 4. **Install the license** on the running Mattermost server:
