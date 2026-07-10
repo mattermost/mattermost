@@ -1750,7 +1750,7 @@ func (s *Server) initJobs() {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeNotifyExpiringAccessTokens,
-		notify_expiring_access_tokens.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())).NotifyPersonalAccessTokensExpiring),
+		notify_expiring_access_tokens.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())).NotifyExpiringAccessTokens),
 		notify_expiring_access_tokens.MakeScheduler(s.Jobs),
 	)
 

@@ -1,12 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// Package notify_expiring_access_tokens warns the owners of personal access tokens (PATs)
-// approaching expiry. "PAT" here refers to the same entity as model.UserAccessToken
-// elsewhere in the codebase — the model, store, and most app-layer methods use the
-// UserAccessToken name, while this job and its app-layer counterpart
-// (app.NotifyPersonalAccessTokensExpiring) use the PAT/PersonalAccessToken name
-// that matches the config setting and user-facing terminology.
+// Package notify_expiring_access_tokens warns the owners of model.UserAccessToken
+// ("Personal Access Token" in config and to users, e.g.
+// ServiceSettings.MaximumPersonalAccessTokenLifetimeDays) as their tokens approach
+// expiry.
 package notify_expiring_access_tokens
 
 import (

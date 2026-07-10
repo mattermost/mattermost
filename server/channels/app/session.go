@@ -709,11 +709,11 @@ const (
 	revokeNonCompliantMaxBatches = 1000
 )
 
-// maxPersonalAccessTokenExpiry returns the latest ExpiresAt a token may carry to
+// maxUserAccessTokenExpiry returns the latest ExpiresAt a token may carry to
 // comply with the current ServiceSettings.MaximumPersonalAccessTokenLifetimeDays
 // policy, along with whether a policy is in effect. When no maximum is
 // configured (0), no policy applies and every token is compliant.
-func (a *App) maxPersonalAccessTokenExpiry() (maxExpiresAt int64, enabled bool) {
+func (a *App) maxUserAccessTokenExpiry() (maxExpiresAt int64, enabled bool) {
 	cfg := a.Config().ServiceSettings
 
 	maxDays := int64(0)
@@ -733,7 +733,7 @@ func (a *App) maxPersonalAccessTokenExpiry() (maxExpiresAt int64, enabled bool) 
 // lets an admin preview the blast radius before revoking. When no policy is in
 // effect it returns 0 — nothing is non-compliant.
 func (a *App) CountNonCompliantUserAccessTokens() (int64, *model.AppError) {
-	maxExpiresAt, enabled := a.maxPersonalAccessTokenExpiry()
+	maxExpiresAt, enabled := a.maxUserAccessTokenExpiry()
 	if !enabled {
 		return 0, nil
 	}
@@ -755,7 +755,7 @@ func (a *App) CountNonCompliantUserAccessTokens() (int64, *model.AppError) {
 // caller reaching this path likely has a stale view of the config. Auditing is
 // the caller's responsibility, matching RevokeUserAccessToken.
 func (a *App) RevokeNonCompliantUserAccessTokens(rctx request.CTX) (int64, *model.AppError) {
-	maxExpiresAt, enabled := a.maxPersonalAccessTokenExpiry()
+	maxExpiresAt, enabled := a.maxUserAccessTokenExpiry()
 	if !enabled {
 		return 0, model.NewAppError("RevokeNonCompliantUserAccessTokens", "app.user_access_token.revoke_non_compliant.no_policy.app_error", nil, "", http.StatusBadRequest)
 	}
