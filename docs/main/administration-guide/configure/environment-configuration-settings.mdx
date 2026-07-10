@@ -969,10 +969,6 @@ Example
 ```
 
 </TabItem>
-</Tabs>
-
->
-<Tabs>
 <TabItem value="mysql-group-replication" label="MySQL Group Replication">
 
 Add the configuration highlighted below to your `SqlSettings.ReplicaLagSettings` array. You only need to add this once because replication statistics for all nodes are shared across all server instances that are members of the MySQL replication group. Be sure to change the `DataSource` to point to a single node in the group.
@@ -996,10 +992,6 @@ Example
 ```
 
 </TabItem>
-</Tabs>
-
->
-<Tabs>
 <TabItem value="postgresql-replication-slots" label="PostgreSQL replication slots">
 
 1.  Add the configuration highlighted below to your `SqlSettings.ReplicaLagSettings` array. This query should run against the **primary** node in your cluster, to do this change the `DataSource` to match the [SqlSettings.DataSource](#data-source) setting you have configured.
