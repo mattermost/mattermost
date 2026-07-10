@@ -434,7 +434,7 @@ mocks: store-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks sea
 layers: store-layers pluginapi
 
 .PHONY: generated
-generated: mocks layers
+generated: mocks layers gen-serialized migrations-extract build-templates mmctl-docs modules-tidy ## Regenerate every committed generated asset checked by the check-generated CI job.
 
 .PHONY: check-prereqs-enterprise
 check-prereqs-enterprise: setup-go-work ## Checks prerequisite software status for enterprise.
