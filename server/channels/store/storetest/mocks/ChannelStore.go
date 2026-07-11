@@ -2162,29 +2162,29 @@ func (_m *ChannelStore) GetSidebarCategoryOrder(userID string, teamID string) ([
 	return r0, r1
 }
 
-// GetSpaceBackingChannel provides a mock function with given fields: id
-func (_m *ChannelStore) GetSpaceBackingChannel(id string) (*model.Channel, error) {
-	ret := _m.Called(id)
+// GetChannelOfType provides a mock function with given fields: rctx, id, channelType
+func (_m *ChannelStore) GetChannelOfType(rctx request.CTX, id string, channelType model.ChannelType) (*model.Channel, error) {
+	ret := _m.Called(rctx, id, channelType)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetSpaceBackingChannel")
+		panic("no return value specified for GetChannelOfType")
 	}
 
 	var r0 *model.Channel
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (*model.Channel, error)); ok {
-		return rf(id)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, model.ChannelType) (*model.Channel, error)); ok {
+		return rf(rctx, id, channelType)
 	}
-	if rf, ok := ret.Get(0).(func(string) *model.Channel); ok {
-		r0 = rf(id)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, model.ChannelType) *model.Channel); ok {
+		r0 = rf(rctx, id, channelType)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Channel)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(id)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, model.ChannelType) error); ok {
+		r1 = rf(rctx, id, channelType)
 	} else {
 		r1 = ret.Error(1)
 	}

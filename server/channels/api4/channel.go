@@ -29,7 +29,7 @@ func rejectBoardChannelByID(c *Context, channelId string) bool {
 }
 
 func rejectSpaceChannelByID(c *Context, channelId string) bool {
-	if _, err := c.App.GetSpaceBackingChannel(c.AppContext, channelId); err == nil {
+	if _, err := c.App.GetChannelOfType(c.AppContext, channelId, model.ChannelTypeSpace); err == nil {
 		c.Err = model.NewAppError("", "api.channel.space_channel.app_error", nil, "", http.StatusBadRequest)
 		return true
 	}
@@ -2933,10 +2933,6 @@ func channelMemberCountsByGroup(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
-		return
-	}
-
 	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
 		c.SetPermissionError(model.PermissionReadChannel)
 		return
@@ -3254,10 +3250,6 @@ func canEditChannelBanner(c *Context, originalChannel *model.Channel) {
 func getChannelAccessControlAttributes(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireChannelId()
 	if c.Err != nil {
-		return
-	}
-
-	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
 		return
 	}
 

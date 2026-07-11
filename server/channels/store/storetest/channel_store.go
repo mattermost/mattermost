@@ -9600,7 +9600,7 @@ func testGetTeamChannelsWithUnreadAndMentions(t *testing.T, rctx request.CTX, ss
 
 // testChannelStoreSpaceExclusion verifies the ChannelTypeSpace ("S") backing-channel contract:
 //   - opaque to the generic by-id reads (Get/GetMany); docs/spaces code resolves it only through
-//     the dedicated GetSpaceBackingChannel;
+//     GetChannelOfType with the space type;
 //   - resolvable in the per-user authorization membership map (GetAllChannelMembersForUser) so a
 //     space member is authorized for the backing channel;
 //   - excluded from aggregate/analytics and client-facing member listings so it never leaks into
@@ -9617,12 +9617,12 @@ func testChannelStoreSpaceExclusion(t *testing.T, rctx request.CTX, ss store.Sto
 	require.NoError(t, err)
 
 	// Space backing channels are opaque to the generic by-id reads and resolve only through
-	// the dedicated GetSpaceBackingChannel path.
+	// GetChannelOfType with the space type.
 	_, err = ss.Channel().Get(space.Id, false)
 	var nfErr *store.ErrNotFound
 	require.True(t, errors.As(err, &nfErr), "Get must exclude space channels")
 
-	got, err := ss.Channel().GetSpaceBackingChannel(space.Id)
+	got, err := ss.Channel().GetChannelOfType(rctx, space.Id, model.ChannelTypeSpace)
 	require.NoError(t, err)
 	require.Equal(t, model.ChannelTypeSpace, got.Type)
 

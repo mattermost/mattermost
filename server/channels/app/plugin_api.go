@@ -514,17 +514,20 @@ func (api *PluginAPI) GetChannel(channelID string) (*model.Channel, *model.AppEr
 	return api.app.GetChannel(api.ctx, channelID)
 }
 
-// GetSpaceBackingChannel resolves a space ("S") backing channel by ID. Generic GetChannel
-// excludes space channels; docs/spaces plugins that manage them use this dedicated resolver.
-func (api *PluginAPI) GetSpaceBackingChannel(channelID string) (*model.Channel, *model.AppError) {
-	return api.app.GetSpaceBackingChannel(api.ctx, channelID)
+// GetChannelOfType resolves a channel by ID, requiring it to be of the given type. Generic
+// GetChannel excludes opaque backing channel types (e.g. space); plugins that manage such a
+// channel resolve it by its exact type here.
+func (api *PluginAPI) GetChannelOfType(channelID string, channelType model.ChannelType) (*model.Channel, *model.AppError) {
+	return api.app.GetChannelOfType(api.ctx, channelID, channelType)
 }
 
-// resolveSpaceChannel is called when GetChannel returns 404. It tries GetSpaceBackingChannel
-// and returns the space channel on success, spaceErr on a non-404 failure, or the original
-// notFoundErr when both lookups return 404 (the ID simply does not exist).
+// resolveSpaceChannel is called when GetChannel returns 404. It tries the space backing channel
+// and returns it on success, spaceErr on a non-404 failure, or the original notFoundErr when
+// both lookups return 404 (the ID simply does not exist).
 func (api *PluginAPI) resolveSpaceChannel(channelID string, notFoundErr *model.AppError) (*model.Channel, *model.AppError) {
-	spaceChannel, spaceErr := api.app.GetSpaceBackingChannel(api.ctx, channelID)
+	// Plugins commonly create a space and immediately resolve it (add a member, delete, restore),
+	// so read from master to avoid a read-after-write miss against a lagging replica.
+	spaceChannel, spaceErr := api.app.GetChannelOfType(RequestContextWithMaster(api.ctx), channelID, model.ChannelTypeSpace)
 	if spaceErr != nil {
 		if spaceErr.StatusCode != http.StatusNotFound {
 			return nil, spaceErr
@@ -726,6 +729,17 @@ func (api *PluginAPI) PatchChannelMembersNotifications(members []*model.ChannelM
 }
 
 func (api *PluginAPI) DeleteChannelMember(channelID, userID string) *model.AppError {
+	if _, err := api.app.GetChannel(api.ctx, channelID); err != nil {
+		if err.StatusCode != http.StatusNotFound {
+			return err
+		}
+		// Space backing channels resolve outside LeaveChannel's generic GetChannel; remove directly.
+		channel, spaceErr := api.resolveSpaceChannel(channelID, err)
+		if spaceErr != nil {
+			return spaceErr
+		}
+		return api.app.RemoveUserFromChannel(api.ctx, userID, userID, channel)
+	}
 	return api.app.LeaveChannel(api.ctx, channelID, userID)
 }
 

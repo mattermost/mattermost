@@ -2901,11 +2901,11 @@ func (s *RetryLayerChannelStore) GetSidebarCategoryOrder(userID string, teamID s
 
 }
 
-func (s *RetryLayerChannelStore) GetSpaceBackingChannel(id string) (*model.Channel, error) {
+func (s *RetryLayerChannelStore) GetChannelOfType(rctx request.CTX, id string, channelType model.ChannelType) (*model.Channel, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetSpaceBackingChannel(id)
+		result, err := s.ChannelStore.GetChannelOfType(rctx, id, channelType)
 		if err == nil {
 			return result, nil
 		}

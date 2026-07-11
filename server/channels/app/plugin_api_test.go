@@ -3829,6 +3829,59 @@ func TestPluginAPICreateSpaceAndAddMember(t *testing.T) {
 	require.Nil(t, appErr)
 	require.Equal(t, created.Id, member.ChannelId)
 	require.Equal(t, th.BasicUser.Id, member.UserId)
+
+	// AddUserToChannel resolves the space backing channel through the same 404 fallback.
+	added, appErr := api.AddUserToChannel(created.Id, th.BasicUser2.Id, th.BasicUser.Id)
+	require.Nil(t, appErr)
+	require.Equal(t, created.Id, added.ChannelId)
+	require.Equal(t, th.BasicUser2.Id, added.UserId)
+
+	// DeleteChannelMember resolves the space backing channel and removes the member.
+	appErr = api.DeleteChannelMember(created.Id, th.BasicUser2.Id)
+	require.Nil(t, appErr)
+
+	_, appErr = api.GetChannelMember(created.Id, th.BasicUser2.Id)
+	require.NotNil(t, appErr)
+	require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+}
+
+func TestPluginAPIUpdateSpaceBackingChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	th.ConfigStore.SetReadOnlyFF(false)
+	t.Cleanup(func() {
+		th.ConfigStore.SetReadOnlyFF(true)
+	})
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableDocs = true })
+	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableDocs = false })
+
+	api := th.SetupPluginAPI()
+
+	space := &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		DisplayName: "Space",
+		Name:        "space-" + model.NewId(),
+		Type:        model.ChannelTypeSpace,
+		CreatorId:   th.BasicUser.Id,
+	}
+	created, appErr := api.CreateChannel(space)
+	require.Nil(t, appErr)
+
+	// Reproduces the docs plugin's rename/metadata sync: fetch the backing channel, edit its
+	// user-visible fields, and Update it. UpdateChannel must resolve the space through the
+	// dedicated path instead of 404ing on the space-excluding generic Get.
+	created.DisplayName = "Renamed Space"
+	created.Header = "New header"
+	updated, appErr := api.UpdateChannel(created)
+	require.Nil(t, appErr)
+	require.Equal(t, "Renamed Space", updated.DisplayName)
+	require.Equal(t, "New header", updated.Header)
+
+	got, appErr := api.GetChannelOfType(created.Id, model.ChannelTypeSpace)
+	require.Nil(t, appErr)
+	require.Equal(t, "Renamed Space", got.DisplayName)
+	require.Equal(t, "New header", got.Header)
 }
 
 func TestPluginAPISpaceLifecycleSkipsChatSideEffects(t *testing.T) {
@@ -3894,7 +3947,7 @@ func TestPluginAPIDeleteAndRestoreChannelAllowSpace(t *testing.T) {
 	require.Nil(t, appErr)
 }
 
-func TestPluginAPIGetSpaceBackingChannel(t *testing.T) {
+func TestPluginAPIGetChannelOfType(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
@@ -3909,13 +3962,24 @@ func TestPluginAPIGetSpaceBackingChannel(t *testing.T) {
 	space, nErr := th.App.Srv().Store().Channel().Save(th.Context, space, -1)
 	require.NoError(t, nErr)
 
-	got, appErr := api.GetSpaceBackingChannel(space.Id)
+	// Resolves an opaque backing channel type (space) that generic GetChannel excludes.
+	got, appErr := api.GetChannelOfType(space.Id, model.ChannelTypeSpace)
 	require.Nil(t, appErr)
 	require.Equal(t, space.Id, got.Id)
 	require.Equal(t, model.ChannelTypeSpace, got.Type)
 
+	// Also resolves a non-opaque type by ID + type.
+	got, appErr = api.GetChannelOfType(th.BasicChannel.Id, model.ChannelTypeOpen)
+	require.Nil(t, appErr)
+	require.Equal(t, th.BasicChannel.Id, got.Id)
+
+	// A type mismatch (space ID asked for as an open channel) returns not-found.
+	_, appErr = api.GetChannelOfType(space.Id, model.ChannelTypeOpen)
+	require.NotNil(t, appErr)
+	require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+
 	// A regular channel ID is not a space, so this returns not-found.
-	_, appErr = api.GetSpaceBackingChannel(th.BasicChannel.Id)
+	_, appErr = api.GetChannelOfType(th.BasicChannel.Id, model.ChannelTypeSpace)
 	require.NotNil(t, appErr)
 	require.Equal(t, http.StatusNotFound, appErr.StatusCode)
 }

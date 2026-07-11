@@ -827,8 +827,8 @@ func TestPermanentDeleteTeamRemovesSpaceChannels(t *testing.T) {
 	})
 	require.NoError(t, nErr)
 
-	// Sanity: the space backing channel resolves through the dedicated path before deletion.
-	_, appErr := th.App.GetSpaceBackingChannel(th.Context, space.Id)
+	// Sanity: the space backing channel resolves through the typed getter before deletion.
+	_, appErr := th.App.GetChannelOfType(th.Context, space.Id, model.ChannelTypeSpace)
 	require.Nil(t, appErr)
 
 	appErr = th.App.PermanentDeleteTeam(th.Context, team)

@@ -3136,29 +3136,29 @@ func (_m *API) GetSession(sessionID string) (*model.Session, *model.AppError) {
 	return r0, r1
 }
 
-// GetSpaceBackingChannel provides a mock function with given fields: channelId
-func (_m *API) GetSpaceBackingChannel(channelId string) (*model.Channel, *model.AppError) {
-	ret := _m.Called(channelId)
+// GetChannelOfType provides a mock function with given fields: channelId, channelType
+func (_m *API) GetChannelOfType(channelId string, channelType model.ChannelType) (*model.Channel, *model.AppError) {
+	ret := _m.Called(channelId, channelType)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetSpaceBackingChannel")
+		panic("no return value specified for GetChannelOfType")
 	}
 
 	var r0 *model.Channel
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) (*model.Channel, *model.AppError)); ok {
-		return rf(channelId)
+	if rf, ok := ret.Get(0).(func(string, model.ChannelType) (*model.Channel, *model.AppError)); ok {
+		return rf(channelId, channelType)
 	}
-	if rf, ok := ret.Get(0).(func(string) *model.Channel); ok {
-		r0 = rf(channelId)
+	if rf, ok := ret.Get(0).(func(string, model.ChannelType) *model.Channel); ok {
+		r0 = rf(channelId, channelType)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Channel)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
-		r1 = rf(channelId)
+	if rf, ok := ret.Get(1).(func(string, model.ChannelType) *model.AppError); ok {
+		r1 = rf(channelId, channelType)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

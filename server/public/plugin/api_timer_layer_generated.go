@@ -504,10 +504,10 @@ func (api *apiTimerLayer) RestoreChannel(channelId string) *model.AppError {
 	return _returnsA
 }
 
-func (api *apiTimerLayer) GetSpaceBackingChannel(channelId string) (*model.Channel, *model.AppError) {
+func (api *apiTimerLayer) GetChannelOfType(channelId string, channelType model.ChannelType) (*model.Channel, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetSpaceBackingChannel(channelId)
-	api.recordTime(startTime, "GetSpaceBackingChannel", _returnsB == nil)
+	_returnsA, _returnsB := api.apiImpl.GetChannelOfType(channelId, channelType)
+	api.recordTime(startTime, "GetChannelOfType", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 

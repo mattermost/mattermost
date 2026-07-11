@@ -749,7 +749,15 @@ func (a *App) GetGroupChannel(rctx request.CTX, userIDs []string) (*model.Channe
 
 // UpdateChannel updates a given channel by its Id. It also publishes the CHANNEL_UPDATED event.
 func (a *App) UpdateChannel(rctx request.CTX, channel *model.Channel) (*model.Channel, *model.AppError) {
-	oldChannel, getErr := a.Srv().Store().Channel().Get(channel.Id, true)
+	// Space backing channels are excluded from the generic Get; resolve them through the
+	// dedicated path so docs/spaces metadata updates (rename, header) can reach the store.
+	var oldChannel *model.Channel
+	var getErr error
+	if channel.IsSpace() {
+		oldChannel, getErr = a.Srv().Store().Channel().GetChannelOfType(rctx, channel.Id, model.ChannelTypeSpace)
+	} else {
+		oldChannel, getErr = a.Srv().Store().Channel().Get(channel.Id, true)
+	}
 	if getErr != nil {
 		errCtx := map[string]any{"channel_id": channel.Id}
 		var nfErr *store.ErrNotFound
@@ -761,32 +769,36 @@ func (a *App) UpdateChannel(rctx request.CTX, channel *model.Channel) (*model.Ch
 		}
 	}
 
-	enforced, appErr := a.ChannelAccessControlled(rctx, channel.Id)
-	if appErr != nil {
-		return nil, appErr
-	}
-	if enforced {
-		if channel.Type != model.ChannelTypePrivate && channel.Type != model.ChannelTypeOpen {
-			return nil, model.NewAppError("UpdateChannel", "api.channel.update_channel.not_allowed.app_error", nil, "", http.StatusForbidden)
+	// Space backing channels are internal: skip ABAC enforcement and the plugin
+	// ChannelWillBeUpdated hook, matching the other space lifecycle paths.
+	if !channel.IsSpace() {
+		enforced, appErr := a.ChannelAccessControlled(rctx, channel.Id)
+		if appErr != nil {
+			return nil, appErr
+		}
+		if enforced {
+			if channel.Type != model.ChannelTypePrivate && channel.Type != model.ChannelTypeOpen {
+				return nil, model.NewAppError("UpdateChannel", "api.channel.update_channel.not_allowed.app_error", nil, "", http.StatusForbidden)
+			}
+
+			// Block public ↔ private conversion while an ABAC policy is attached.
+			// Public-channel and private-channel ABAC have asymmetric semantics
+			// (advisory recommend/auto-add vs hard-gate with member removal); a
+			// silent type flip would change what the existing policy actually
+			// does to members. The admin must remove the policy first and
+			// re-apply it after the conversion if they still want it.
+			if oldChannel.Type != channel.Type {
+				return nil, model.NewAppError("UpdateChannel",
+					"api.channel.update_channel.policy_enforced_type_conversion.app_error",
+					nil, "channel has an active ABAC policy; remove the policy before converting between public and private", http.StatusBadRequest)
+			}
 		}
 
-		// Block public ↔ private conversion while an ABAC policy is attached.
-		// Public-channel and private-channel ABAC have asymmetric semantics
-		// (advisory recommend/auto-add vs hard-gate with member removal); a
-		// silent type flip would change what the existing policy actually
-		// does to members. The admin must remove the policy first and
-		// re-apply it after the conversion if they still want it.
-		if oldChannel.Type != channel.Type {
-			return nil, model.NewAppError("UpdateChannel",
-				"api.channel.update_channel.policy_enforced_type_conversion.app_error",
-				nil, "channel has an active ABAC policy; remove the policy before converting between public and private", http.StatusBadRequest)
+		var channelErr *model.AppError
+		channel, channelErr = a.runGuardedChannelWillBeUpdated(rctx, channel, oldChannel)
+		if channelErr != nil {
+			return nil, channelErr
 		}
-	}
-
-	var channelErr *model.AppError
-	channel, channelErr = a.runGuardedChannelWillBeUpdated(rctx, channel, oldChannel)
-	if channelErr != nil {
-		return nil, channelErr
 	}
 
 	_, err := a.Srv().Store().Channel().Update(rctx, channel)
@@ -807,6 +819,11 @@ func (a *App) UpdateChannel(rctx request.CTX, channel *model.Channel) (*model.Ch
 	}
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
+
+	// Space backing channels are internal: skip the channel_updated broadcast.
+	if channel.IsSpace() {
+		return channel, nil
+	}
 
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelUpdated, "", channel.Id, "", nil, "")
 	channelJSON, jsonErr := json.Marshal(channel)
@@ -2232,18 +2249,18 @@ func (a *App) GetBoardChannel(rctx request.CTX, channelID string) (*model.Channe
 	return channel, nil
 }
 
-// GetSpaceBackingChannel resolves a space ("S") backing channel by ID. Generic channel access
-// goes through GetChannel, which excludes space channels; docs/spaces code that legitimately
-// needs the backing channel object uses this dedicated path.
-func (a *App) GetSpaceBackingChannel(rctx request.CTX, channelID string) (*model.Channel, *model.AppError) {
-	channel, err := a.Srv().Store().Channel().GetSpaceBackingChannel(channelID)
+// GetChannelOfType resolves a channel by ID, requiring it to be of the given type. Generic
+// channel access goes through GetChannel, which excludes opaque backing channel types (e.g.
+// space); callers that legitimately need such a channel ask for it by its exact type here.
+func (a *App) GetChannelOfType(rctx request.CTX, channelID string, channelType model.ChannelType) (*model.Channel, *model.AppError) {
+	channel, err := a.Srv().Store().Channel().GetChannelOfType(rctx, channelID, channelType)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetSpaceBackingChannel", "app.channel.get.existing.app_error", map[string]any{"channel_id": channelID}, "", http.StatusNotFound).Wrap(err)
+			return nil, model.NewAppError("GetChannelOfType", "app.channel.get.existing.app_error", map[string]any{"channel_id": channelID}, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetSpaceBackingChannel", "app.channel.get.find.app_error", map[string]any{"channel_id": channelID}, "", http.StatusInternalServerError).Wrap(err)
+			return nil, model.NewAppError("GetChannelOfType", "app.channel.get.find.app_error", map[string]any{"channel_id": channelID}, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 	return channel, nil
@@ -3041,6 +3058,11 @@ func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 	a.Srv().Store().AutoTranslation().InvalidateUserAutoTranslation(userIDToRemove, channel.Id)
 	a.Srv().Store().AutoTranslation().InvalidateUserLocaleCache(userIDToRemove)
 
+	// Space backing channels are internal: skip the user_removed chat events and plugin hook.
+	if channel.IsSpace() {
+		return nil
+	}
+
 	var actorUser *model.User
 	if removerUserId != "" {
 		actorUser, _ = a.GetUser(removerUserId)
@@ -3080,6 +3102,11 @@ func (a *App) RemoveUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 
 	if err = a.removeUserFromChannel(rctx, userIDToRemove, removerUserId, channel); err != nil {
 		return err
+	}
+
+	// Space backing channels are internal: skip the leave/remove system post.
+	if channel.IsSpace() {
+		return nil
 	}
 
 	var user *model.User

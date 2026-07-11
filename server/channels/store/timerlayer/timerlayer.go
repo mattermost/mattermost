@@ -2423,10 +2423,10 @@ func (s *TimerLayerChannelStore) GetSidebarCategoryOrder(userID string, teamID s
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetSpaceBackingChannel(id string) (*model.Channel, error) {
+func (s *TimerLayerChannelStore) GetChannelOfType(rctx request.CTX, id string, channelType model.ChannelType) (*model.Channel, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.GetSpaceBackingChannel(id)
+	result, err := s.ChannelStore.GetChannelOfType(rctx, id, channelType)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -2434,7 +2434,7 @@ func (s *TimerLayerChannelStore) GetSpaceBackingChannel(id string) (*model.Chann
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetSpaceBackingChannel", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetChannelOfType", success, elapsed)
 	}
 	return result, err
 }

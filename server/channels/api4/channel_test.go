@@ -8106,13 +8106,13 @@ func TestChannelEndpointsExcludeSpaces(t *testing.T) {
 
 		_, resp, err := client.GetChannelMemberCountsByGroup(ctx, space.Id, false, "")
 		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("getChannelAccessControlAttributes rejects a space", func(t *testing.T) {
 		r, err := client.DoAPIGet(ctx, "/channels/"+space.Id+"/access_control/attributes", "")
 		require.Error(t, err)
-		require.Equal(t, http.StatusBadRequest, r.StatusCode)
+		require.Equal(t, http.StatusForbidden, r.StatusCode)
 	})
 
 	// convertGroupMessageToChannel has no explicit space guard; the permission check fires
@@ -8123,7 +8123,7 @@ func TestChannelEndpointsExcludeSpaces(t *testing.T) {
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 	})
 
-	// --- rejectSpaceChannelByID's swallowed GetChannel error still lets the endpoint's own
+	// --- rejectSpaceChannelByID's swallowed GetChannelOfType error still lets the endpoint's own
 	// --- not-found/permission handling surface normally for a nonexistent channel id ---
 
 	t.Run("updateChannelMemberRoles on a nonexistent channel behaves as before", func(t *testing.T) {

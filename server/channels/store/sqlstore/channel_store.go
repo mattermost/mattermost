@@ -1018,22 +1018,22 @@ func (s SqlChannelStore) GetBoardChannel(id string) (*model.Channel, error) {
 	return &ch, nil
 }
 
-// GetSpaceBackingChannel fetches a channel of type S ("space") by ID. Use this in docs/spaces
-// code that legitimately needs the backing channel object; all generic channel endpoints use
-// Get(), which excludes space channels.
-func (s SqlChannelStore) GetSpaceBackingChannel(id string) (*model.Channel, error) {
+// GetChannelOfType fetches a channel by ID, requiring it to be of the given type. Unlike Get(),
+// it resolves opaque backing channel types (e.g. space) that Get() excludes; callers that need
+// such a channel ask for it by its exact type.
+func (s SqlChannelStore) GetChannelOfType(rctx request.CTX, id string, channelType model.ChannelType) (*model.Channel, error) {
 	ch := model.Channel{}
 	query := s.tableSelectQuery.Where(sq.And{
 		sq.Eq{"Id": id},
-		sq.Eq{"Type": model.ChannelTypeSpace},
+		sq.Eq{"Type": channelType},
 	})
 
-	err := s.GetReplica().GetBuilder(&ch, query)
+	err := s.DBXFromContext(rctx.Context()).GetBuilder(&ch, query)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Channel", id)
 		}
-		return nil, errors.Wrapf(err, "failed to find space channel with id = %s", id)
+		return nil, errors.Wrapf(err, "failed to find channel with id = %s and type = %s", id, channelType)
 	}
 
 	return &ch, nil

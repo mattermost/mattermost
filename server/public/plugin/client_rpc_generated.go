@@ -4222,31 +4222,32 @@ func (s *apiRPCServer) RestoreChannel(args *Z_RestoreChannelArgs, returns *Z_Res
 	return nil
 }
 
-type Z_GetSpaceBackingChannelArgs struct {
+type Z_GetChannelOfTypeArgs struct {
 	A string
+	B model.ChannelType
 }
 
-type Z_GetSpaceBackingChannelReturns struct {
+type Z_GetChannelOfTypeReturns struct {
 	A *model.Channel
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetSpaceBackingChannel(channelId string) (*model.Channel, *model.AppError) {
-	_args := &Z_GetSpaceBackingChannelArgs{channelId}
-	_returns := &Z_GetSpaceBackingChannelReturns{}
-	if err := g.client.Call("Plugin.GetSpaceBackingChannel", _args, _returns); err != nil {
-		log.Printf("RPC call to GetSpaceBackingChannel API failed: %s", err.Error())
+func (g *apiRPCClient) GetChannelOfType(channelId string, channelType model.ChannelType) (*model.Channel, *model.AppError) {
+	_args := &Z_GetChannelOfTypeArgs{channelId, channelType}
+	_returns := &Z_GetChannelOfTypeReturns{}
+	if err := g.client.Call("Plugin.GetChannelOfType", _args, _returns); err != nil {
+		log.Printf("RPC call to GetChannelOfType API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
 
-func (s *apiRPCServer) GetSpaceBackingChannel(args *Z_GetSpaceBackingChannelArgs, returns *Z_GetSpaceBackingChannelReturns) error {
+func (s *apiRPCServer) GetChannelOfType(args *Z_GetChannelOfTypeArgs, returns *Z_GetChannelOfTypeReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetSpaceBackingChannel(channelId string) (*model.Channel, *model.AppError)
+		GetChannelOfType(channelId string, channelType model.ChannelType) (*model.Channel, *model.AppError)
 	}); ok {
-		returns.A, returns.B = hook.GetSpaceBackingChannel(args.A)
+		returns.A, returns.B = hook.GetChannelOfType(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API GetSpaceBackingChannel called but not implemented."))
+		return encodableError(fmt.Errorf("API GetChannelOfType called but not implemented."))
 	}
 	return nil
 }
