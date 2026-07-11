@@ -7,8 +7,10 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -231,6 +233,52 @@ func TestIncomingWebhook(t *testing.T) {
 		resp, err2 = http.Post(apiHookURL, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", channel.Name)))
 		require.NoError(t, err2)
 		assert.True(t, resp.StatusCode == http.StatusForbidden)
+	})
+
+	t.Run("IncomingWebhooksTriggerOutgoingWebhooks", func(t *testing.T) {
+		enableIncomingWebhooks := *th.App.Config().ServiceSettings.EnableIncomingWebhooks
+		incomingWebhooksTriggerOutgoingWebhooks := *th.App.Config().ServiceSettings.IncomingWebhooksTriggerOutgoingWebhooks
+		allowedUntrustedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
+		defer func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ServiceSettings.EnableIncomingWebhooks = enableIncomingWebhooks
+				*cfg.ServiceSettings.IncomingWebhooksTriggerOutgoingWebhooks = incomingWebhooksTriggerOutgoingWebhooks
+				*cfg.ServiceSettings.AllowedUntrustedInternalConnections = allowedUntrustedInternalConnections
+			})
+		}()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableIncomingWebhooks = true
+			*cfg.ServiceSettings.IncomingWebhooksTriggerOutgoingWebhooks = true
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1,localhost"
+		})
+
+		called := make(chan bool, 1)
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			called <- true
+		}))
+		defer ts.Close()
+
+		_, appErr := th.App.CreateOutgoingWebhook(&model.OutgoingWebhook{
+			ChannelId:    th.BasicChannel.Id,
+			CreatorId:    th.BasicUser.Id,
+			TeamId:       th.BasicTeam.Id,
+			CallbackURLs: []string{ts.URL},
+			ContentType:  "application/json",
+		})
+		require.Nil(t, appErr)
+
+		text := `this is a \"test\"
+	that contains a newline and a tab`
+		resp, err := http.Post(url, "application/json", strings.NewReader("{\"text\":\""+text+"\"}"))
+		require.Nil(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		select {
+		case <-called:
+		case <-time.After(2 * time.Second):
+			require.Fail(t, "Webhook has not been called")
+		}
 	})
 
 	t.Run("DisableWebhooks", func(t *testing.T) {

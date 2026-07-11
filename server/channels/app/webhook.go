@@ -495,6 +495,11 @@ func (a *App) CreateWebhookPost(rctx request.CTX, userID string, channel *model.
 		return nil, err
 	}
 
+	triggerWebhooks := false
+	if a.Config().ServiceSettings.IncomingWebhooksTriggerOutgoingWebhooks != nil {
+		triggerWebhooks = *a.Config().ServiceSettings.IncomingWebhooksTriggerOutgoingWebhooks
+	}
+
 	var returnPost *model.Post
 	for i, split := range splits {
 		flags := model.CreatePostFlags{
