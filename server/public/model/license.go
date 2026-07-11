@@ -16,8 +16,14 @@ const (
 
 	ExpiredLicenseError = "api.license.add_license.expired.app_error"
 	InvalidLicenseError = "api.license.add_license.invalid.app_error"
-	LicenseGracePeriod  = DayInMilliseconds * 10 //10 days
-	LicenseRenewalLink  = "https://mattermost.com/renew/"
+	// WrongEnvironmentProductionLicenseError is returned when a production license is
+	// uploaded to a server running in a test or development service environment.
+	WrongEnvironmentProductionLicenseError = "api.license.add_license.wrong_environment_production.app_error"
+	// WrongEnvironmentTestLicenseError is returned when a test or development license is
+	// uploaded to a server running in a production service environment.
+	WrongEnvironmentTestLicenseError = "api.license.add_license.wrong_environment_test.app_error"
+	LicenseGracePeriod               = DayInMilliseconds * 10 //10 days
+	LicenseRenewalLink               = "https://mattermost.com/renew/"
 
 	LicenseShortSkuE10                = "E10"
 	LicenseShortSkuE20                = "E20"

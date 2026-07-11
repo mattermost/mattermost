@@ -244,9 +244,10 @@ export default class SystemProperties {
     /**
      * Resolves the warning AlertBanner whose title text matches `title`.
      * Banners stack below the table; one per unique error type.
+     * Each banner has data-testid set to its validation warning id (e.g. 'user_properties.validation.name_required').
      */
     validationBannerByTitle(title: string | RegExp): Locator {
-        return this.container.locator('.AlertBanner').filter({hasText: title});
+        return this.container.getByTestId(/^user_properties\.validation/).filter({hasText: title});
     }
 
     validationMessage(text: string | RegExp): Locator {
@@ -260,17 +261,17 @@ export default class SystemProperties {
      * render numbered chips + an add-value input instead of the react-select.
      */
     lastRankValues(): Locator {
-        return this.container.locator('.user-property-rank-values').last();
+        return this.container.getByTestId('user-property-rank-values').last();
     }
 
     /**
      * Add-value input inside the ranked-values cell (auto-assigns next rank).
-     * Located by class, not placeholder: the placeholder ('Add values… (required)')
+     * Located by testid, not placeholder: the placeholder ('Add values… (required)')
      * only renders in the empty state and disappears once a value is added, so
      * placeholder-based lookups break when adding more than one value.
      */
     rankAddInput(): Locator {
-        return this.lastRankValues().locator('.user-property-rank-values__add-input');
+        return this.lastRankValues().getByTestId('user-property-rank-values__add-input');
     }
 
     async addRankValueToLast(value: string) {
@@ -285,31 +286,31 @@ export default class SystemProperties {
         }
     }
 
-    /** All ranked chip buttons, in DOM order (ascending rank, left→right). */
+    /** All ranked chip spans, in DOM order (ascending rank, left→right). */
     rankChips(): Locator {
-        return this.container.locator('.user-property-rank-values__chip');
+        return this.container.getByTestId('user-property-rank-values__chip');
     }
 
     /**
-     * A single ranked chip button by its option label. Unlike the test-id
+     * A single ranked chip span by its option label. Unlike the test-id
      * locator, this works for both newly-added options (no server id yet) and
      * API-created options (real id). Exact text avoids matching "Secret"
      * inside "TopSecret".
      */
     rankChip(name: string): Locator {
         return this.container
-            .locator('.user-property-rank-values__chip')
+            .getByTestId('user-property-rank-values__chip')
             .filter({has: this.page.getByText(name, {exact: true})});
     }
 
     /** The numbered badge inside a chip; its text is the rank integer. */
     rankBadge(name: string): Locator {
-        return this.rankChip(name).locator('.rank-badge');
+        return this.rankChip(name).getByTestId('rank-badge');
     }
 
     /** Ordered chip labels as displayed (trimmed of the badge text). */
     async rankChipLabels(): Promise<string[]> {
-        return this.rankChips().locator('.user-property-rank-values__chip-label').allInnerTexts();
+        return this.rankChips().getByTestId('user-property-rank-values__chip-label').allInnerTexts();
     }
 
     // Per-chip popover (rendered at page level via portal).
@@ -357,7 +358,7 @@ export default class SystemProperties {
     }
 
     rankedModalRows(): Locator {
-        return this.rankedModal().locator('.ranked-schema-modal__row');
+        return this.rankedModal().getByTestId('rankedSchemaRow');
     }
 
     rankedModalSaveButton(): Locator {

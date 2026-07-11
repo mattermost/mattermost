@@ -336,6 +336,31 @@ func (es *Service) SendUserAccessTokenAddedEmail(email, locale, siteURL string) 
 	return nil
 }
 
+func (es *Service) SendUserAccessTokenRotatedEmail(email, locale, siteURL string) error {
+	T := i18n.GetUserTranslations(locale)
+
+	subject := T("api.templates.user_access_token_rotated_subject",
+		map[string]any{"SiteName": es.config().TeamSettings.SiteName})
+
+	data := es.NewEmailTemplateData(locale)
+	data.Props["SiteURL"] = siteURL
+	data.Props["Title"] = T("api.templates.user_access_token_rotated_body.title")
+	data.Props["Info"] = T("api.templates.user_access_token_rotated_body.info",
+		map[string]any{"SiteName": es.config().TeamSettings.SiteName, "SiteURL": siteURL})
+	data.Props["Warning"] = T("api.templates.email_warning")
+
+	body, err := es.templatesContainer.RenderToString("password_change_body", data)
+	if err != nil {
+		return err
+	}
+
+	if err := es.sendMail(email, subject, body, "UserAccessTokenRotatedEmail"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (es *Service) SendPasswordResetEmail(email string, token *model.Token, locale, siteURL string) (bool, error) {
 	T := i18n.GetUserTranslations(locale)
 

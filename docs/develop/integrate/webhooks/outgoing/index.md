@@ -33,7 +33,7 @@ If you leave the channel field blank, the webhook will respond to trigger words 
 
 7. On the next page, copy the **Token** value. This will be used in a later step.
 
-    ![Dialog box showing `Setup Successful` message and `Token` in the description message](/integrate/faq/images/outgoing_webhooks_token.png)
+    ![Dialog box showing `Setup Successful` message and `Token` in the description message](../../faq/images/outgoing_webhooks_token.png)
 
 ## Use an outgoing webhook
 

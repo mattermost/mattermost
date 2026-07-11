@@ -193,6 +193,7 @@ const ManageTeamsModal = ({locale, onExited, user, actions}: Props) => {
             dialogClassName='a11y__modal manage-teams modal--overflow-visible'
             role='none'
             aria-labelledby='manageTeamsModalLabel'
+            id='manageTeamsModal'
         >
             <Modal.Header closeButton={true}>
                 <Modal.Title

@@ -685,6 +685,7 @@ export const ValidationBanners = ({warnings}: ValidationBannersProps) => {
             {presentTypes.map((id) => (
                 <AlertBanner
                     key={id}
+                    id={id}
                     mode='warning'
                     title={<FormattedMessage {...nameBannerTitles[id]}/>}
                     message={

@@ -4,9 +4,11 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match d
 <div>
   <div
     class="AdminUserCard"
+    data-testid="adminUserCard"
   >
     <div
       class="AdminUserCard__header"
+      data-testid="adminUserCard-header"
     >
       <button
         aria-expanded="false"
@@ -16,6 +18,7 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match d
       >
         <span
           class="profile-icon "
+          data-testid="profile-icon"
         >
           <img
             alt="user profile image"
@@ -27,6 +30,7 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match d
       </button>
       <div
         class="AdminUserCard__user-info"
+        data-testid="adminUserCard-userInfo"
       >
         <span>
           Jim
@@ -38,21 +42,25 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match d
         </span>
         <span
           class="AdminUserCard__user-nickname"
+          data-testid="adminUserCard-userNickname"
         >
           Big Tuna
         </span>
       </div>
       <div
         class="AdminUserCard__user-id"
+        data-testid="adminUserCard-userId"
       >
         User ID: 1234
       </div>
     </div>
     <div
       class="AdminUserCard__body"
+      data-testid="adminUserCard-body"
     />
     <div
       class="AdminUserCard__footer"
+      data-testid="adminUserCard-footer"
     />
   </div>
 </div>
@@ -62,9 +70,11 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
 <div>
   <div
     class="AdminUserCard"
+    data-testid="adminUserCard"
   >
     <div
       class="AdminUserCard__header"
+      data-testid="adminUserCard-header"
     >
       <button
         aria-expanded="false"
@@ -74,6 +84,7 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
       >
         <span
           class="profile-icon "
+          data-testid="profile-icon"
         >
           <img
             alt="user profile image"
@@ -85,27 +96,32 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
       </button>
       <div
         class="AdminUserCard__user-info"
+        data-testid="adminUserCard-userInfo"
       >
         <span>
            
         </span>
         <span
           class="AdminUserCard__user-nickname"
+          data-testid="adminUserCard-userNickname"
         >
           Big Tuna
         </span>
       </div>
       <div
         class="AdminUserCard__user-id"
+        data-testid="adminUserCard-userId"
       >
         User ID: 1234
       </div>
     </div>
     <div
       class="AdminUserCard__body"
+      data-testid="adminUserCard-body"
     />
     <div
       class="AdminUserCard__footer"
+      data-testid="adminUserCard-footer"
     />
   </div>
 </div>
@@ -115,9 +131,11 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
 <div>
   <div
     class="AdminUserCard"
+    data-testid="adminUserCard"
   >
     <div
       class="AdminUserCard__header"
+      data-testid="adminUserCard-header"
     >
       <button
         aria-expanded="false"
@@ -127,6 +145,7 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
       >
         <span
           class="profile-icon "
+          data-testid="profile-icon"
         >
           <img
             alt="user profile image"
@@ -138,25 +157,30 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
       </button>
       <div
         class="AdminUserCard__user-info"
+        data-testid="adminUserCard-userInfo"
       >
         <span>
            
         </span>
         <span
           class="AdminUserCard__user-nickname"
+          data-testid="adminUserCard-userNickname"
         />
       </div>
       <div
         class="AdminUserCard__user-id"
+        data-testid="adminUserCard-userId"
       >
         User ID: 1234
       </div>
     </div>
     <div
       class="AdminUserCard__body"
+      data-testid="adminUserCard-body"
     />
     <div
       class="AdminUserCard__footer"
+      data-testid="adminUserCard-footer"
     />
   </div>
 </div>
@@ -166,9 +190,11 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
 <div>
   <div
     class="AdminUserCard"
+    data-testid="adminUserCard"
   >
     <div
       class="AdminUserCard__header"
+      data-testid="adminUserCard-header"
     >
       <button
         aria-expanded="false"
@@ -178,6 +204,7 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
       >
         <span
           class="profile-icon "
+          data-testid="profile-icon"
         >
           <img
             alt="user profile image"
@@ -189,6 +216,7 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
       </button>
       <div
         class="AdminUserCard__user-info"
+        data-testid="adminUserCard-userInfo"
       >
         <span>
           Jim
@@ -197,19 +225,23 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
         </span>
         <span
           class="AdminUserCard__user-nickname"
+          data-testid="adminUserCard-userNickname"
         />
       </div>
       <div
         class="AdminUserCard__user-id"
+        data-testid="adminUserCard-userId"
       >
         User ID: 1234
       </div>
     </div>
     <div
       class="AdminUserCard__body"
+      data-testid="adminUserCard-body"
     />
     <div
       class="AdminUserCard__footer"
+      data-testid="adminUserCard-footer"
     />
   </div>
 </div>

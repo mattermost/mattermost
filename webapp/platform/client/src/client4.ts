@@ -1347,6 +1347,17 @@ export default class Client4 {
         );
     };
 
+    rotateUserAccessToken = (tokenId: string, expiresAt?: number) => {
+        const body: {token_id: string; expires_at?: number} = {token_id: tokenId};
+        if (expiresAt !== undefined) {
+            body.expires_at = expiresAt;
+        }
+        return this.doFetch<UserAccessToken>(
+            `${this.getUsersRoute()}/tokens/rotate`,
+            {method: 'post', body: JSON.stringify(body)},
+        );
+    };
+
     // Limits Routes
 
     getServerLimits = () => {
@@ -2638,6 +2649,13 @@ export default class Client4 {
         );
     };
 
+    getFileInfo = (fileId: string) => {
+        return this.doFetch<FileInfo>(
+            `${this.getFileRoute(fileId)}/info`,
+            {method: 'get'},
+        );
+    };
+
     getFlaggedPosts = (userId: string, channelId = '', teamId = '', page = 0, perPage = PER_PAGE_DEFAULT) => {
         return this.doFetch<PostList>(
             `${this.getUserRoute(userId)}/posts/flagged${buildQueryString({channel_id: channelId, team_id: teamId, page, per_page: perPage})}`,
@@ -3274,6 +3292,13 @@ export default class Client4 {
         return this.doFetch<SubmitDialogResponse>(
             `${this.getBaseRoute()}/actions/dialogs/submit`,
             {method: 'post', body: JSON.stringify(data)},
+        );
+    };
+
+    executeDialogAction = (url: string, context?: Record<string, string>, channelId?: string, teamId?: string) => {
+        return this.doFetch<PostActionResponse>(
+            `${this.getBaseRoute()}/actions/dialogs/execute`,
+            {method: 'post', body: JSON.stringify({url, context, channel_id: channelId, team_id: teamId})},
         );
     };
 

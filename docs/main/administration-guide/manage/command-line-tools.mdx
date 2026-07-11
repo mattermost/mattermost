@@ -1,6 +1,9 @@
 ---
 title: "Command line tools"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 In self-managed deployments, a `mattermost` command is available for configuring the system from the directory where the Mattermost server is installed. For an overview of the Mattermost command line interface (CLI), [read this article](https://medium.com/@santosjs/plugging-in-to-the-mattermost-cli-8cdcef2bd1f6) from Santos.
@@ -34,9 +37,8 @@ These `mattermost` commands include the following functionality:
 
 ## Use the CLI
 
-<div class="tab">
-
-Via Mattermost
+<Tabs>
+<TabItem value="via-mattermost" label="Via Mattermost">
 
 To run the CLI commands, you must be in the Mattermost root directory. On a default installation of Mattermost, the root directory is `/opt/mattermost`. If you followed our standard [installation process](/deployment-guide/deployment-guide-index), you must run the commands as the user `mattermost`. The name of the executable is `mattermost`, and it can be found in the `/opt/mattermost/bin` directory.
 
@@ -59,11 +61,8 @@ sudo -u mattermost bin/mattermost version
 
 </Note>
 
-</div>
-
-<div class="tab">
-
-Via GitLab Omnibus
+</TabItem>
+<TabItem value="via-gitlab-omnibus" label="Via GitLab Omnibus">
 
 On GitLab Omnibus, you must be in the following directory when you run CLI commands: `/opt/gitlab/embedded/service/mattermost`. Also, you must run the commands as the user *mattermost* and specify the location of the configuration file. The executable is `/opt/gitlab/embedded/bin/mattermost`.
 
@@ -80,11 +79,8 @@ The example commands on this documentation page are for a default installation o
 
 </Note>
 
-</div>
-
-<div class="tab">
-
-Via Docker Install
+</TabItem>
+<TabItem value="via-docker-install" label="Via Docker Install">
 
 On Docker install, the `/mattermost/bin` directory was added to `PATH`, so you can use the CLI directly with the `docker exec` command. Note that the container name may be `mattermostdocker_app_1` if you installed Mattermost with `docker-compose.yml`.
 
@@ -94,15 +90,14 @@ For example, to get the Mattermost version on a Docker Install:
 docker exec -it <your-mattermost-container-name> mattermost version
 ```
 
-</div>
-
-<div class="tab">
-
-Via Docker Preview
+</TabItem>
+<TabItem value="via-docker-preview" label="Via Docker Preview">
 
 The Docker Install tab details and command references below also apply to the [Mattermost docker preview image](https://github.com/mattermost/mattermost-docker-preview).
 
-</div>
+</TabItem>
+</Tabs>
+
 
 <Note>
 

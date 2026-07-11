@@ -2681,6 +2681,14 @@
     "translation": "This license only supports {{.Users}} users, when your system has {{.Count}} unique users. Unique users are counted distinctly by email address. You can see total user count under Site Reports -> View Statistics."
   },
   {
+    "id": "api.license.add_license.wrong_environment_production.app_error",
+    "translation": "This is a production license, but this server is running in a test or development environment. Production licenses can only be used on production servers."
+  },
+  {
+    "id": "api.license.add_license.wrong_environment_test.app_error",
+    "translation": "This is a test or development license, but this server is running in a production environment. Test or development licenses can only be used on test or development servers."
+  },
+  {
     "id": "api.license.client.old_format.app_error",
     "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
   },
@@ -2987,6 +2995,14 @@
   {
     "id": "api.post.create_post.root_id.app_error",
     "translation": "Invalid RootId parameter."
+  },
+  {
+    "id": "api.post.create_post.silent_notification.app_error",
+    "translation": "Only bot, webhook, OAuth app, and plugin posts can be delivered silently."
+  },
+  {
+    "id": "api.post.create_post.silent_persistent_notification.app_error",
+    "translation": "Silent posts cannot use persistent notifications."
   },
   {
     "id": "api.post.create_webhook_post.creating.app_error",
@@ -4419,6 +4435,18 @@
     "translation": "Personal access token added to your account"
   },
   {
+    "id": "api.templates.user_access_token_rotated_body.info",
+    "translation": "A personal access token on your account at {{ .SiteURL }} was regenerated. The previous token secret is no longer valid."
+  },
+  {
+    "id": "api.templates.user_access_token_rotated_body.title",
+    "translation": "Personal access token regenerated"
+  },
+  {
+    "id": "api.templates.user_access_token_rotated_subject",
+    "translation": "[{{ .SiteName }}] Personal access token regenerated"
+  },
+  {
     "id": "api.templates.user_access_token_subject",
     "translation": "[{{ .SiteName }}] Personal access token added to your account"
   },
@@ -5049,6 +5077,10 @@
   {
     "id": "api.user.reset_password_failed_attempts.permissions.app_error",
     "translation": "You do not have permission to update this resource."
+  },
+  {
+    "id": "api.user.rotate_user_access_token.disabled_token.app_error",
+    "translation": "Cannot regenerate a disabled access token."
   },
   {
     "id": "api.user.saml.not_available.app_error",
@@ -7621,6 +7653,18 @@
     "translation": "Unable to send notification post."
   },
   {
+    "id": "app.notify_expiring_access_tokens.dm",
+    "translation": "Your personal access token \"{{.Description}}\" will expire in {{.Days}} days or less. Open **Profile > Security** to regenerate it before it stops working."
+  },
+  {
+    "id": "app.notify_expiring_access_tokens.dm_final",
+    "translation": "Your personal access token \"{{.Description}}\" will expire within 24 hours. Open **Profile > Security** to regenerate it before it stops working."
+  },
+  {
+    "id": "app.notify_expiring_access_tokens.unnamed_token",
+    "translation": "(no description)"
+  },
+  {
     "id": "app.oauth.delete_app.app_error",
     "translation": "An error occurred while deleting the OAuth2 App."
   },
@@ -9055,6 +9099,18 @@
     "translation": "Encountered an error decoding JSON response from interactive dialog submission."
   },
   {
+    "id": "app.submit_interactive_dialog.file_not_owned",
+    "translation": "File {{.FileId}} does not belong to the submitting user."
+  },
+  {
+    "id": "app.submit_interactive_dialog.get_file_info_error",
+    "translation": "Unable to validate submitted file IDs."
+  },
+  {
+    "id": "app.submit_interactive_dialog.invalid_file_id",
+    "translation": "File {{.FileId}} is invalid or inaccessible."
+  },
+  {
     "id": "app.submit_interactive_dialog.invalid_response",
     "translation": "Encountered an invalid response from interactive dialog submission."
   },
@@ -9065,6 +9121,14 @@
   {
     "id": "app.submit_interactive_dialog.read_body_error",
     "translation": "Encountered an error reading response body from interactive dialog submission."
+  },
+  {
+    "id": "app.submit_interactive_dialog.too_many_file_ids",
+    "translation": "Too many file IDs submitted. Maximum allowed is {{.Max}}."
+  },
+  {
+    "id": "app.submit_interactive_dialog.too_many_submission_ids",
+    "translation": "Too many ID-shaped values in the submission. Maximum allowed is {{.Max}}."
   },
   {
     "id": "app.system.complete_onboarding_request.app_error",
@@ -9671,6 +9735,10 @@
     "translation": "The personal access token has expired."
   },
   {
+    "id": "app.user_access_token.expired_deleted_notification",
+    "translation": "Your personal access token \"{{.Description}}\" has expired and been removed. Open **Profile → Security** to create a new token."
+  },
+  {
     "id": "app.user_access_token.expires_at_in_past.app_error",
     "translation": "The provided expires_at is in the past."
   },
@@ -9691,6 +9759,10 @@
     "translation": "Unable to get the personal access tokens by user."
   },
   {
+    "id": "app.user_access_token.get_expiring.app_error",
+    "translation": "Unable to retrieve expiring personal access tokens."
+  },
+  {
     "id": "app.user_access_token.invalid_or_missing",
     "translation": "Invalid or missing token."
   },
@@ -9701,6 +9773,10 @@
   {
     "id": "app.user_access_token.revoke_non_compliant.partial.app_error",
     "translation": "The batch limit was reached before all non-compliant tokens could be revoked. Run the operation again to continue."
+  },
+  {
+    "id": "app.user_access_token.rotate.app_error",
+    "translation": "Unable to regenerate the access token."
   },
   {
     "id": "app.user_access_token.save.app_error",
@@ -11481,6 +11557,22 @@
   {
     "id": "model.command_hook.user_id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.command_response.is_valid.attachment.app_error",
+    "translation": "Invalid attachment."
+  },
+  {
+    "id": "model.command_response.is_valid.goto_location.app_error",
+    "translation": "Invalid goto location."
+  },
+  {
+    "id": "model.command_response.is_valid.icon_url.app_error",
+    "translation": "Invalid icon url."
+  },
+  {
+    "id": "model.command_response.is_valid.response_type.app_error",
+    "translation": "Invalid response type."
   },
   {
     "id": "model.compliance.is_valid.create_at.app_error",

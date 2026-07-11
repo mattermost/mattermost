@@ -64,6 +64,7 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
     >
       <div
         class="loading-screen"
+        data-testid="loading-screen"
         style="position: relative;"
       >
         <div

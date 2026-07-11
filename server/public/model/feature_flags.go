@@ -36,26 +36,16 @@ type FeatureFlags struct {
 
 	MoveThreadsEnabled bool
 
-	StreamlinedMarketplace bool
-
 	CloudDedicatedExportUI bool
-
-	WebSocketEventScope bool
 
 	NotificationMonitoring bool
 
-	ExperimentalAuditSettingsSystemConsoleUI bool
-
 	CustomProfileAttributes bool
 
-	AttributeBasedAccessControl bool
-
 	// Mask non-held attribute values in the policy editor for delegated admins.
-	// Requires AttributeBasedAccessControl.
 	AttributeValueMasking bool
 
 	// Enable permission policies (file upload/download ABAC policies).
-	// Requires AttributeBasedAccessControl to also be enabled.
 	//
 	// This is the umbrella flag: when off, both ChannelPermissionPolicies
 	// and PolicySimulation are also off regardless of their individual
@@ -138,11 +128,12 @@ type FeatureFlags struct {
 	// rank, and the admin console hides the rank type option.
 	PropertyFieldRank bool
 
-	// Requires AttributeBasedAccessControl to also be enabled.
 	TeamMembershipAccessControl bool
 
 	// Enable the new mm_blocks Interactive Messages framework
 	MmBlocksEnabled bool
+
+	ChannelBookmarks bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -156,13 +147,9 @@ func (f *FeatureFlags) SetDefaults() {
 	f.OnboardingTourTips = true
 	f.EnableExportDirectDownload = false
 	f.MoveThreadsEnabled = false
-	f.StreamlinedMarketplace = true
 	f.CloudDedicatedExportUI = false
-	f.WebSocketEventScope = true
 	f.NotificationMonitoring = true
-	f.ExperimentalAuditSettingsSystemConsoleUI = true
 	f.CustomProfileAttributes = true
-	f.AttributeBasedAccessControl = true
 	f.AttributeValueMasking = true
 	f.PermissionPolicies = true
 	f.TeamMembershipAccessControl = false
@@ -203,6 +190,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PropertyFieldRank = true
 
 	f.MmBlocksEnabled = true
+
+	f.ChannelBookmarks = true
 }
 
 // IsChannelPermissionPoliciesEnabled reports whether channel-scope

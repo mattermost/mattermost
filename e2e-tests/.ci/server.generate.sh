@@ -232,6 +232,7 @@ $(if mme2e_is_token_in_list "cypress" "$ENABLED_DOCKER_SERVICES"; then
     echo '
   cypress:
     image: "cypress/browsers:node-24.14.0-chrome-145.0.7632.116-1-ff-148.0-edge-145.0.3800.70-1"
+    platform: linux/amd64
     entrypoint: ["/bin/bash", "-c"]
     command: ["until [ -f /var/run/mm_terminate ]; do sleep 5; done"]
     env_file:
@@ -254,16 +255,20 @@ $(if mme2e_is_token_in_list "cypress" "$ENABLED_DOCKER_SERVICES"; then
       # avoid too many progress messages
       # https://github.com/cypress-io/cypress/issues/1243
       CI: "1"
+      # Use /tmp for Cypress cache and config so any UID can write without permission issues
+      CYPRESS_CACHE_FOLDER: /tmp/cypress-cache
+      XDG_CONFIG_HOME: /tmp/xdg-config
       # Ensure we are independent from the global node environment
-      PATH: /cypress/node_modules/.bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      PATH: /e2e-tests/cypress/node_modules/.bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     ulimits:
       nofile:
         soft: 8096
         hard: 1048576
-    working_dir: /cypress
+    working_dir: /e2e-tests/cypress
     network_mode: host
     volumes:
-      - "../../e2e-tests/cypress/:/cypress"'
+      - "../../e2e-tests/cypress/:/e2e-tests/cypress"
+      - "../../webapp/platform/eslint-plugin/:/webapp/platform/eslint-plugin"'
   fi)
 
 $(if mme2e_is_token_in_list "webhook-interactions" "$ENABLED_DOCKER_SERVICES"; then

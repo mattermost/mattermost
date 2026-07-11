@@ -11,17 +11,17 @@ This process generally involves preparing your environment, exporting data from 
 
 Additionally, please consider that Slack's data control policies or export capabilities may change at any time, or they may charge fees to customers for exporting data stored in Slack. Support for negotiating export of customer IP from Slack Enterprise can be requested by contacting a [Mattermost Expert](https://mattermost.com/contact-sales/).
 
-1.  [Preparations](#preparations):
+1.  [Preparations](#1-preparations):
     - Answer key scoping questions.
     - Gather environment and export details.
     - Validate Mattermost server capacity and configuration.
     - Back up your Mattermost environment before importing.
-2.  [Export Slack data](#export-slack-data):
+2.  [Export Slack data](#2-export-slack-data):
     - Generate an export from Slack.
-3.  [Transform the export for Mattermost](#transform-the-export-for-mattermost):
+3.  [Transform the export for Mattermost](#3-transform-the-export-for-mattermost):
     - Validate the Slack export using `mmetl check slack`.
     - Use the `mmetl` tool to parse and transform Slack exports.
-4.  [Import into Mattermost](#import-data-into-mattermost):
+4.  [Import into Mattermost](#4-import-data-into-mattermost):
     - Upload and process transformed archives with `mmctl`.
 5.  Validate and test:
     - Confirm channel and user data imported correctly.

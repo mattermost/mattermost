@@ -32,7 +32,7 @@ import Constants from 'utils/constants';
 import ChannelList from './channel_list';
 
 import CELEditor from '../editors/cel_editor/editor';
-import {hasUsableAttributes, isSimpleExpression, MASKED_VALUE_TOKEN_LITERAL} from '../editors/shared';
+import {hasUsableAttributes, isSimpleExpression, toCELEditorAttributes, MASKED_VALUE_TOKEN_LITERAL} from '../editors/shared';
 import TableEditor from '../editors/table_editor/table_editor';
 import PolicyConfirmationModal from '../modals/confirmation/confirmation_modal';
 
@@ -550,20 +550,7 @@ function PolicyDetails({
                                     onValidate={() => {}}
                                     disabled={noUsableAttributes}
                                     hasMaskedRows={hasMaskedRows}
-                                    userAttributes={autocompleteResult.
-                                        filter((attr) => {
-                                            if (accessControlSettings.EnableUserManagedAttributes) {
-                                                return true;
-                                            }
-                                            const isSynced = attr.attrs?.ldap || attr.attrs?.saml;
-                                            const isAdminManaged = attr.attrs?.managed === 'admin';
-                                            const isProtected = attr.attrs?.protected;
-                                            return isSynced || isAdminManaged || isProtected;
-                                        }).
-                                        map((attr) => ({
-                                            attribute: attr.name,
-                                            values: [],
-                                        }))}
+                                    userAttributes={toCELEditorAttributes(autocompleteResult, accessControlSettings.EnableUserManagedAttributes)}
                                 />
                             ) : (
                                 <TableEditor

@@ -19,11 +19,11 @@ export default class DraftsPage {
     constructor(page: Page) {
         this.page = page;
 
-        this.draftsHeader = page.locator('.Drafts__header');
+        this.draftsHeader = page.getByTestId('drafts-header');
         this.tab = page.getByRole('tab', {name: 'Drafts'});
-        this.badge = this.tab.locator('span.MuiBadge-badge');
+        this.badge = this.tab.getByTestId('drafts-tab-counter-badge');
 
-        this.noDrafts = page.locator('.no-results__wrapper');
+        this.noDrafts = page.getByTestId('no-results-wrapper');
 
         this.scheduleMessageModal = new components.ScheduleMessageModal(
             page.getByRole('dialog', {name: 'Schedule message'}),
@@ -42,7 +42,7 @@ export default class DraftsPage {
 
     async getBadgeCountOnTab() {
         await expect(this.tab).toBeVisible();
-        const badge = this.tab.locator('span.MuiBadge-badge');
+        const badge = this.tab.getByTestId('drafts-tab-counter-badge');
         await expect(badge).toBeVisible();
         return badge.textContent();
     }

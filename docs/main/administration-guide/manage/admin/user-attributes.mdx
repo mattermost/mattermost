@@ -1,6 +1,9 @@
 ---
 title: "User attributes"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="ent-plus" />
 
 From Mattermost v10.8, ensure your teams always have the critical information they need to collaborate effectively by defining and managing organization-specific user profile attributes as system attributes that you can synchronize with your AD/LDAP or SAML identity provider.
@@ -13,11 +16,10 @@ From Mattermost v11, you have enhanced control over these user attributes throug
 
 ## Before you begin
 
-If you plan to synchronize system properties with your AD/LDAP or SAML identity provider, ensure AD/LDAP or SAML synchronization is already enabled and configured. See the [AD/LDAP groups](/administration-guide/onboard/ad-ldap-groups-synchronization) product documentation or [SAML 2.0](/administration-guide/configure/authentication-configuration-settings#saml-2-0) configuration settings documentation for details.
+If you plan to synchronize system properties with your AD/LDAP or SAML identity provider, ensure AD/LDAP or SAML synchronization is already enabled and configured. See the [AD/LDAP groups](/administration-guide/onboard/ad-ldap-groups-synchronization) product documentation or [SAML 2.0](/administration-guide/configure/authentication-configuration-settings#saml-20) configuration settings documentation for details.
 
-<div class="tab">
-
-Mattermost v11 or later
+<Tabs>
+<TabItem value="mattermost-v11-or-later" label="Mattermost v11 or later">
 
 From Mattermost v11, user attributes have enhanced admin controls with a security-first approach. All attributes are admin-managed by default, providing better security and governance. System administrators can explicitly enable user editing for specific attributes through the System Console interface.
 
@@ -30,11 +32,8 @@ This configuration setting isn't managed using the System Console, and is disabl
 
 Additionally, from mobile app v2.31.0, user attributes are fully supported on mobile devices. Mobile users can both view and manage profile attributes (if allowed by admin settings) directly from the mobile app. Mobile attribute support requires the same server-side configuration, and no additional mobile-specific setup is required.
 
-</div>
-
-<div class="tab">
-
-Mattermost v10.11 or later
+</TabItem>
+<TabItem value="mattermost-v10-11-or-later" label="Mattermost v10.11 or later">
 
 From Mattermost v10.11, user-managed attributes are excluded from ABAC rules for security reasons. If your organization uses ABAC (which requires Enterprise Edition Advanced), a system admin can explicitly enable user-managed attributes for ABAC by setting `EnableUserManagedAttributes` in `config.json` or via an environment variable as noted below. This configuration setting isn't managed using the System Console, and is disabled by default to ensure that access control policies remain secure and can't be circumvented by users modifying their own profile attributes.
 
@@ -43,23 +42,19 @@ From Mattermost v10.11, user-managed attributes are excluded from ABAC rules for
 
 Additionally, from mobile app v2.31.0, user attributes are fully supported on mobile devices. Mobile users can both view and manage profile attributes directly from the mobile app. Mobile attribute support requires the same server-side configuration, and no additional mobile-specific setup is required.
 
-</div>
-
-<div class="tab">
-
-Mattermost v10.9 or later
+</TabItem>
+<TabItem value="mattermost-v10-9-or-later" label="Mattermost v10.9 or later">
 
 From Mattermost Enterprise v10.9, the ability to create and manage system properties as a Mattermost system admin requires no manual setup.
 
-</div>
-
-<div class="tab">
-
-Mattermost v10.8
+</TabItem>
+<TabItem value="mattermost-v10-8" label="Mattermost v10.8">
 
 You'll need Mattermost Enterprise v10.8 or later, and be a Mattermost system admin to enable the system properties feature flag, `MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES` to create and manage system properties. See the Mattermost developer documentation for details on [enabling feature flags in a self-hosted deployment](https://developers.mattermost.com/contribute/more-info/server/feature-flags/#self-hosted-and-local-development). Mattermost Cloud customers can request this feature flag be enabled by contacting their Mattermost Account Manager or by [creating a support ticket](https://support.mattermost.com/hc/en-us/requests/new?ticket_form_id=11184911962004) request.
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Admin-managed vs user-editable attributes
 

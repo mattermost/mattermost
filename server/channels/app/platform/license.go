@@ -132,7 +132,7 @@ func (ps *PlatformService) LoadLicense() {
 func (ps *PlatformService) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError) {
 	licenseStr, err := utils.LicenseValidator.ValidateLicense(licenseBytes)
 	if err != nil {
-		return nil, model.NewAppError("addLicense", model.InvalidLicenseError, nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, utils.NewLicenseValidationAppError("addLicense", err)
 	}
 
 	var license model.License
