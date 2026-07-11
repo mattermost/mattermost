@@ -28,9 +28,12 @@ func rejectBoardChannelByID(c *Context, channelId string) bool {
 	return false
 }
 
+// rejectSpaceChannelByID returns true and sets c.Err if the channel ID belongs
+// to a space channel. Space channels must use the spaces API, not /channels.
+// Use this on write endpoints to give a clear error instead of a 404.
 func rejectSpaceChannelByID(c *Context, channelId string) bool {
 	if _, err := c.App.GetChannelOfType(c.AppContext, channelId, model.ChannelTypeSpace); err == nil {
-		c.Err = model.NewAppError("", "api.channel.space_channel.app_error", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("", "api.channel.space_channel.app_error", nil, "space channels cannot be accessed via /channels endpoints", http.StatusBadRequest)
 		return true
 	}
 	return false
@@ -584,7 +587,6 @@ func restoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-
 	teamId := channel.TeamId
 
 	auditRec := c.MakeAuditRecord(model.AuditEventRestoreChannel, model.AuditStatusFail)

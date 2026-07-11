@@ -2515,7 +2515,9 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(rctx request.CTX, userId st
 		LeftJoin("Schemes ChannelScheme ON Channels.SchemeId = ChannelScheme.Id").
 		LeftJoin("Teams ON Channels.TeamId = Teams.Id").
 		LeftJoin("Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id").
-		Where(sq.Eq{"ChannelMembers.UserId": userId})
+		Where(sq.Eq{"ChannelMembers.UserId": userId}).
+		// Space backing channels are internal and must not surface in a user's channel-role map.
+		Where(sq.NotEq{"Channels.Type": nonMessageBackingChannelTypes})
 	if !includeDeleted {
 		query = query.Where(sq.Eq{"Channels.DeleteAt": 0})
 	}

@@ -751,10 +751,12 @@ func (a *App) GetGroupChannel(rctx request.CTX, userIDs []string) (*model.Channe
 func (a *App) UpdateChannel(rctx request.CTX, channel *model.Channel) (*model.Channel, *model.AppError) {
 	// Space backing channels are excluded from the generic Get; resolve them through the
 	// dedicated path so docs/spaces metadata updates (rename, header) can reach the store.
+	// Read from master: spaces are uncached, so an update right after create would otherwise
+	// miss against a lagging replica.
 	var oldChannel *model.Channel
 	var getErr error
 	if channel.IsSpace() {
-		oldChannel, getErr = a.Srv().Store().Channel().GetChannelOfType(rctx, channel.Id, model.ChannelTypeSpace)
+		oldChannel, getErr = a.Srv().Store().Channel().GetChannelOfType(RequestContextWithMaster(rctx), channel.Id, model.ChannelTypeSpace)
 	} else {
 		oldChannel, getErr = a.Srv().Store().Channel().Get(channel.Id, true)
 	}

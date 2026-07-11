@@ -518,7 +518,9 @@ func (api *PluginAPI) GetChannel(channelID string) (*model.Channel, *model.AppEr
 // GetChannel excludes opaque backing channel types (e.g. space); plugins that manage such a
 // channel resolve it by its exact type here.
 func (api *PluginAPI) GetChannelOfType(channelID string, channelType model.ChannelType) (*model.Channel, *model.AppError) {
-	return api.app.GetChannelOfType(api.ctx, channelID, channelType)
+	// Plugins commonly create a backing channel and resolve it immediately; read from master to
+	// avoid a read-after-write miss against a lagging replica (these types are also uncached).
+	return api.app.GetChannelOfType(RequestContextWithMaster(api.ctx), channelID, channelType)
 }
 
 // resolveSpaceChannel is called when GetChannel returns 404. It tries the space backing channel
