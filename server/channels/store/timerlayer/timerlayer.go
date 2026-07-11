@@ -1799,6 +1799,22 @@ func (s *TimerLayerChannelStore) GetChannelMembersTimezones(channelID string) ([
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) GetChannelOfType(rctx request.CTX, id string, channelType model.ChannelType) (*model.Channel, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.GetChannelOfType(rctx, id, channelType)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetChannelOfType", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) GetChannelUnread(channelID string, userID string) (*model.ChannelUnread, error) {
 	start := time.Now()
 
@@ -2419,22 +2435,6 @@ func (s *TimerLayerChannelStore) GetSidebarCategoryOrder(userID string, teamID s
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetSidebarCategoryOrder", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerChannelStore) GetChannelOfType(rctx request.CTX, id string, channelType model.ChannelType) (*model.Channel, error) {
-	start := time.Now()
-
-	result, err := s.ChannelStore.GetChannelOfType(rctx, id, channelType)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetChannelOfType", success, elapsed)
 	}
 	return result, err
 }

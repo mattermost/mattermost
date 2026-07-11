@@ -978,6 +978,36 @@ func (_m *ChannelStore) GetChannelMembersTimezones(channelID string) ([]model.St
 	return r0, r1
 }
 
+// GetChannelOfType provides a mock function with given fields: rctx, id, channelType
+func (_m *ChannelStore) GetChannelOfType(rctx request.CTX, id string, channelType model.ChannelType) (*model.Channel, error) {
+	ret := _m.Called(rctx, id, channelType)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetChannelOfType")
+	}
+
+	var r0 *model.Channel
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string, model.ChannelType) (*model.Channel, error)); ok {
+		return rf(rctx, id, channelType)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, model.ChannelType) *model.Channel); ok {
+		r0 = rf(rctx, id, channelType)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Channel)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, model.ChannelType) error); ok {
+		r1 = rf(rctx, id, channelType)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetChannelUnread provides a mock function with given fields: channelID, userID
 func (_m *ChannelStore) GetChannelUnread(channelID string, userID string) (*model.ChannelUnread, error) {
 	ret := _m.Called(channelID, userID)
@@ -2155,36 +2185,6 @@ func (_m *ChannelStore) GetSidebarCategoryOrder(userID string, teamID string) ([
 
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(userID, teamID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetChannelOfType provides a mock function with given fields: rctx, id, channelType
-func (_m *ChannelStore) GetChannelOfType(rctx request.CTX, id string, channelType model.ChannelType) (*model.Channel, error) {
-	ret := _m.Called(rctx, id, channelType)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetChannelOfType")
-	}
-
-	var r0 *model.Channel
-	var r1 error
-	if rf, ok := ret.Get(0).(func(request.CTX, string, model.ChannelType) (*model.Channel, error)); ok {
-		return rf(rctx, id, channelType)
-	}
-	if rf, ok := ret.Get(0).(func(request.CTX, string, model.ChannelType) *model.Channel); ok {
-		r0 = rf(rctx, id, channelType)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Channel)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(request.CTX, string, model.ChannelType) error); ok {
-		r1 = rf(rctx, id, channelType)
 	} else {
 		r1 = ret.Error(1)
 	}
