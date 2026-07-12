@@ -170,18 +170,19 @@ func (c *SearchChannelStore) SaveMember(rctx request.CTX, cm *model.ChannelMembe
 }
 
 func (c *SearchChannelStore) RemoveMember(rctx request.CTX, channelID, userIdToRemove string) error {
-	if err := c.ChannelStore.RemoveMember(rctx, channelID, userIdToRemove); err != nil {
-		return err
+	err := c.ChannelStore.RemoveMember(rctx, channelID, userIdToRemove)
+	if err == nil {
+		c.rootStore.indexUserFromID(rctx, userIdToRemove)
 	}
-	c.rootStore.indexUserFromID(rctx, userIdToRemove)
 
-	// Re-indexing is best-effort; a channel excluded from the generic Get (e.g. space
-	// backing channels) must not turn a successful removal into an error.
-	if channel, err := c.ChannelStore.Get(channelID, true); err == nil {
+	// Space backing channels are excluded from the generic Get; that miss must
+	// not mask a successful removal, so the re-index Get uses its own error.
+	channel, getErr := c.ChannelStore.Get(channelID, true)
+	if getErr == nil {
 		c.indexChannel(rctx, channel)
 	}
 
-	return nil
+	return err
 }
 
 func (c *SearchChannelStore) RemoveMembers(rctx request.CTX, channelID string, userIds []string) error {
