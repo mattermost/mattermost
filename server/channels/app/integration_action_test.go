@@ -1636,6 +1636,74 @@ func TestDoActionRequest(t *testing.T) {
 		resp.Body.Close()
 	})
 
+	t.Run("should preserve 429 status code from plugin", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusTooManyRequests)
+			_, _ = w.Write([]byte("Rate limited"))
+		}))
+		defer ts.Close()
+
+		requestBody := []byte(`{"test": "data"}`)
+		resp, err := th.App.DoActionRequest(th.Context, ts.URL, requestBody)
+		require.NotNil(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, http.StatusTooManyRequests, resp.StatusCode)
+		assert.Equal(t, http.StatusTooManyRequests, err.StatusCode)
+		assert.Contains(t, err.Error(), "status=429")
+		resp.Body.Close()
+	})
+
+	t.Run("should preserve 503 status code from plugin", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			_, _ = w.Write([]byte("Service unavailable"))
+		}))
+		defer ts.Close()
+
+		requestBody := []byte(`{"test": "data"}`)
+		resp, err := th.App.DoActionRequest(th.Context, ts.URL, requestBody)
+		require.NotNil(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
+		assert.Equal(t, http.StatusServiceUnavailable, err.StatusCode)
+		assert.Contains(t, err.Error(), "status=503")
+		resp.Body.Close()
+	})
+
+	t.Run("should map other 5xx status codes to 502 Bad Gateway", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = w.Write([]byte("Internal error"))
+		}))
+		defer ts.Close()
+
+		requestBody := []byte(`{"test": "data"}`)
+		resp, err := th.App.DoActionRequest(th.Context, ts.URL, requestBody)
+		require.NotNil(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+		assert.Equal(t, http.StatusBadGateway, err.StatusCode)
+		assert.Contains(t, err.Error(), "status=500")
+		resp.Body.Close()
+	})
+
+	t.Run("should sanitize other 4xx status codes to 400", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusNotFound)
+			_, _ = w.Write([]byte("Not found"))
+		}))
+		defer ts.Close()
+
+		requestBody := []byte(`{"test": "data"}`)
+		resp, err := th.App.DoActionRequest(th.Context, ts.URL, requestBody)
+		require.NotNil(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+		assert.Contains(t, err.Error(), "status=404")
+		resp.Body.Close()
+	})
+
 	t.Run("should handle invalid URL", func(t *testing.T) {
 		requestBody := []byte(`{"test": "data"}`)
 		resp, err := th.App.DoActionRequest(th.Context, "invalid-url", requestBody)
@@ -3994,7 +4062,7 @@ func TestExecuteDialogAction(t *testing.T) {
 
 		_, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
 		require.NotNil(t, appErr)
-		// DoActionRequest maps non-200 upstream responses to a 400 AppError.
-		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		// DoActionRequest maps upstream 5xx (other than 429/503) to 502 Bad Gateway.
+		assert.Equal(t, http.StatusBadGateway, appErr.StatusCode)
 	})
 }

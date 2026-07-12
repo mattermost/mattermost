@@ -162,7 +162,19 @@ func (a *App) DoActionRequest(rctx request.CTX, rawURL string, body []byte) (*ht
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return resp, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, fmt.Sprintf("status=%v", resp.StatusCode), http.StatusBadRequest)
+		// Preserve 429 and 503 because they carry retry semantics (RFC 6585,
+		// RFC 7231) that downstream HTTP clients legitimately need. Map other
+		// 5xx responses to 502 Bad Gateway since the failure is upstream of
+		// MM. Sanitize all other non-200 responses to 400 so plugin-specific
+		// 4xx codes do not leak misleading semantics to MM API clients.
+		status := http.StatusBadRequest
+		switch {
+		case resp.StatusCode == http.StatusTooManyRequests, resp.StatusCode == http.StatusServiceUnavailable:
+			status = resp.StatusCode
+		case resp.StatusCode >= 500:
+			status = http.StatusBadGateway
+		}
+		return resp, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, fmt.Sprintf("status=%v", resp.StatusCode), status)
 	}
 
 	return resp, nil

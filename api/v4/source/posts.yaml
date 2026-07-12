@@ -1000,6 +1000,28 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "429":
+          description: The upstream integration rate-limited the request. The
+            original status code is preserved so clients can honor retry
+            semantics.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "502":
+          description: The upstream integration returned a 5xx (other than 503).
+            Surfaced as Bad Gateway because the failure is upstream of Mattermost.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "503":
+          description: The upstream integration is unavailable. The original
+            status code is preserved so clients can honor retry semantics.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
   "/api/v4/posts/ids":
     post:
       tags:

@@ -1,7 +1,10 @@
+.PHONY: dist
 dist: | check-style test package
 
+.PHONY: build-linux
 build-linux: build-linux-amd64 build-linux-arm64
 
+.PHONY: build-linux-amd64
 build-linux-amd64: setup-go-work
 	@echo Build Linux amd64
 ifeq ($(BUILDER_GOOS_GOARCH),"linux_amd64")
@@ -20,6 +23,7 @@ ifeq ($(FIPS_ENABLED),true)
 	$(GO) tool nm $(GOBIN)/$(MMCTL_BIN_NAME) | grep -qE "func_go_openssl_OpenSSL_version|_mkcgo_OpenSSL_version" || (echo "ERROR: FIPS mmctl binary missing OpenSSL integration" && exit 1)
 endif
 
+.PHONY: build-linux-arm64
 build-linux-arm64: setup-go-work
 ifeq ($(FIPS_ENABLED),true)
 	@echo Skipping Build Linux arm64 for FIPS
@@ -33,6 +37,7 @@ else
 endif
 endif
 
+.PHONY: build-osx
 build-osx: setup-go-work
 	@echo Build OSX amd64
 ifeq ($(BUILDER_GOOS_GOARCH),"darwin_amd64")
@@ -49,8 +54,10 @@ else
 	env GOOS=darwin GOARCH=arm64 $(GO) build -o $(GOBIN)/darwin_arm64 $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./...
 endif
 
+.PHONY: build-freebsd
 build-freebsd: build-freebsd-amd64 build-freebsd-arm64
 
+.PHONY: build-freebsd-amd64
 build-freebsd-amd64: setup-go-work
 	@echo Build FreeBSD amd64
 ifeq ($(BUILDER_GOOS_GOARCH),"freebsd_amd64")
@@ -60,6 +67,7 @@ else
 	env GOOS=freebsd GOARCH=amd64 $(GO) build -o $(GOBIN)/freebsd_amd64 $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./...
 endif
 
+.PHONY: build-freebsd-arm64
 build-freebsd-arm64: setup-go-work
 	@echo Build FreeBSD arm64
 ifeq ($(BUILDER_GOOS_GOARCH),"freebsd_arm64")
@@ -69,6 +77,7 @@ else
 	env GOOS=freebsd GOARCH=arm64 $(GO) build -o $(GOBIN)/freebsd_arm64 $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./...
 endif
 
+.PHONY: build-windows
 build-windows: setup-go-work
 	@echo Build Windows amd64
 ifeq ($(BUILDER_GOOS_GOARCH),"windows_amd64")
@@ -78,6 +87,7 @@ else
 	env GOOS=windows GOARCH=amd64 $(GO) build -o $(GOBIN)/windows_amd64 $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./...
 endif
 
+.PHONY: build-cmd-linux
 build-cmd-linux: setup-go-work
 	@echo Build CMD Linux amd64
 ifeq ($(BUILDER_GOOS_GOARCH),"linux_amd64")
@@ -107,6 +117,7 @@ else
 endif
 endif
 
+.PHONY: build-cmd-osx
 build-cmd-osx: setup-go-work
 	@echo Build CMD OSX amd64
 ifeq ($(BUILDER_GOOS_GOARCH),"darwin_amd64")
@@ -123,6 +134,7 @@ else
 	env GOOS=darwin GOARCH=arm64 $(GO) build -o $(GOBIN)/darwin_arm64 $(GOFLAGS) -trimpath -tags '$(BUILD_TAGS) production' -ldflags '$(LDFLAGS)' ./cmd/...
 endif
 
+.PHONY: build-cmd-freebsd
 build-cmd-freebsd: setup-go-work
 	@echo Build CMD FreeBSD amd64
 ifeq ($(BUILDER_GOOS_GOARCH),"freebsd_amd64")
@@ -139,6 +151,7 @@ else
 	env GOOS=freebsd GOARCH=arm64 $(GO) build -o $(GOBIN)/freebsd_arm64 $(GOFLAGS) -trimpath -tags production -ldflags '$(LDFLAGS)' ./cmd/...
 endif
 
+.PHONY: build-cmd-windows
 build-cmd-windows: setup-go-work
 	@echo Build CMD Windows amd64
 ifeq ($(BUILDER_GOOS_GOARCH),"windows_amd64")
@@ -149,16 +162,20 @@ else
 endif
 
 # Only build linux by default. Other platforms can be built by specifying the platform.
+.PHONY: build
 build: setup-go-work build-client build-linux
 
 # Only build linux by default. Other platforms can be built by specifying the platform.
+.PHONY: build-cmd
 build-cmd: setup-go-work build-client build-cmd-linux
 
+.PHONY: build-client
 build-client:
 	@echo Building mattermost web app
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) dist
 
+.PHONY: package-prep
 package-prep: setup-go-work
 	@ echo Packaging mattermost
 	@# Remove any old files
@@ -202,6 +219,7 @@ endif
 		cp bin/manifest.txt $(DIST_PATH); \
 	fi
 
+.PHONY: fetch-prepackaged-plugins
 fetch-prepackaged-plugins:
 	@# Import Mattermost plugin public key, ignoring errors. In FIPS mode, GPG fails to start
 	@# the gpg-agent, but still imports the key. If it really fails, it will fail validation later.
@@ -215,6 +233,7 @@ fetch-prepackaged-plugins:
 	done
 	@echo "Done"
 
+.PHONY: package-general
 package-general:
 	@# Create needed directories
 	mkdir -p $(DIST_PATH_GENERIC)/bin
@@ -227,6 +246,7 @@ else
 	cp $(GOBIN)/$(CURRENT_PACKAGE_ARCH)/$(MM_BIN_NAME) $(GOBIN)/$(CURRENT_PACKAGE_ARCH)/$(MMCTL_BIN_NAME) $(DIST_PATH_GENERIC)/bin # from cross-compiled bin dir
 endif
 
+.PHONY: package-plugins
 package-plugins: fetch-prepackaged-plugins
 	@# Create needed directories
 	mkdir -p $(DIST_PATH_GENERIC)/prepackaged_plugins
@@ -243,6 +263,7 @@ package-plugins: fetch-prepackaged-plugins
 		fi; \
 	done
 
+.PHONY: package-osx-amd64
 package-osx-amd64: package-prep
 	DIST_PATH_GENERIC=$(DIST_PATH_OSX_AMD64) CURRENT_PACKAGE_ARCH=darwin_amd64 MM_BIN_NAME=mattermost MMCTL_BIN_NAME=mmctl $(MAKE) package-general
 	@# Package
@@ -250,6 +271,7 @@ package-osx-amd64: package-prep
 	@# Cleanup
 	rm -rf $(DIST_ROOT)/darwin_amd64
 
+.PHONY: package-osx-arm64
 package-osx-arm64: package-prep
 	DIST_PATH_GENERIC=$(DIST_PATH_OSX_ARM64) CURRENT_PACKAGE_ARCH=darwin_arm64 MM_BIN_NAME=mattermost MMCTL_BIN_NAME=mmctl $(MAKE) package-general
 	@# Package
@@ -257,8 +279,10 @@ package-osx-arm64: package-prep
 	@# Cleanup
 	rm -rf $(DIST_ROOT)/darwin_arm64
 
+.PHONY: package-osx
 package-osx: package-osx-amd64 package-osx-arm64
 
+.PHONY: package-freebsd-amd64
 package-freebsd-amd64: package-prep
 	DIST_PATH_GENERIC=$(DIST_PATH_FREEBSD_AMD64) CURRENT_PACKAGE_ARCH=freebsd_amd64 MM_BIN_NAME=mattermost MMCTL_BIN_NAME=mmctl $(MAKE) package-general
 	@# Package
@@ -266,6 +290,7 @@ package-freebsd-amd64: package-prep
 	@# Cleanup
 	rm -rf $(DIST_ROOT)/freebsd_amd64
 
+.PHONY: package-freebsd-arm64
 package-freebsd-arm64: package-prep
 	DIST_PATH_GENERIC=$(DIST_PATH_FREEBSD_ARM64) CURRENT_PACKAGE_ARCH=freebsd_arm64 MM_BIN_NAME=mattermost MMCTL_BIN_NAME=mmctl $(MAKE) package-general
 	@# Package
@@ -273,8 +298,10 @@ package-freebsd-arm64: package-prep
 	@# Cleanup
 	rm -rf $(DIST_ROOT)/freebsd_arm64
 
+.PHONY: package-freebsd
 package-freebsd: package-freebsd-amd64 package-freebsd-arm64
 
+.PHONY: package-linux-amd64
 package-linux-amd64: package-prep
 	DIST_PATH_GENERIC=$(DIST_PATH_LIN_AMD64) PLUGIN_ARCH=linux-amd64 $(MAKE) package-plugins
 	DIST_PATH_GENERIC=$(DIST_PATH_LIN_AMD64) CURRENT_PACKAGE_ARCH=linux_amd64 MM_BIN_NAME=mattermost MMCTL_BIN_NAME=mmctl $(MAKE) package-general
@@ -283,6 +310,7 @@ package-linux-amd64: package-prep
 	@# Cleanup
 	rm -rf $(DIST_ROOT)/linux_amd64
 
+.PHONY: package-linux-arm64
 package-linux-arm64: package-prep
 ifeq ($(FIPS_ENABLED),true)
 	@echo Skipping package linux arm64 for FIPS
@@ -294,8 +322,10 @@ else
 	rm -rf $(DIST_ROOT)/linux_arm64
 endif
 
+.PHONY: package-linux
 package-linux: package-linux-amd64 package-linux-arm64
 
+.PHONY: package-windows
 package-windows: package-prep
 	DIST_PATH_GENERIC=$(DIST_PATH_WIN) CURRENT_PACKAGE_ARCH=windows_amd64 MM_BIN_NAME=mattermost.exe MMCTL_BIN_NAME=mmctl.exe $(MAKE) package-general
 	@# Package
@@ -304,6 +334,7 @@ package-windows: package-prep
 	rm -rf $(DIST_ROOT)/windows
 
 # Only package linux by default. Other platforms can be packaged by specifying the platform.
+.PHONY: package
 package: package-linux
 	rm -rf tmpprepackaged
 	rm -rf $(DIST_PATH)
