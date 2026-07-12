@@ -18,10 +18,10 @@ test('MM-T5603 adds a file bookmark to the channel bookmarks bar', {tag: '@chann
     // # Open the Bookmarks Bar submenu and choose "Attach a file", selecting a file
     const channelMenu = await channelsPage.openChannelMenu();
     await channelMenu.openBookmarksSubmenu();
-    page.once('filechooser', (fileChooser) => {
-        fileChooser.setFiles(path.resolve('asset/mattermost-icon_128x128.png'));
-    });
+    const fileChooserPromise = page.waitForEvent('filechooser');
     await channelMenu.addBookmarkFile.click();
+    const fileChooser = await fileChooserPromise;
+    await fileChooser.setFiles(path.resolve('asset/mattermost-icon_128x128.png'));
 
     // # Confirm the file bookmark
     await channelsPage.bookmarkCreateModal.toBeVisible();

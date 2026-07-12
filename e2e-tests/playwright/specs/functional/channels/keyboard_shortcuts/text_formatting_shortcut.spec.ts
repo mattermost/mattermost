@@ -47,5 +47,5 @@ test('MM-T3405 formats text as bold and italic with keyboard shortcuts', {tag: '
     // * Verify the posted message renders as italic without literal markdown characters
     const italicPost = await channelsPage.getLastPost();
     await expect(italicPost.container.locator('em')).toHaveText('italic text');
-    await italicPost.toNotContainText('*italic');
+    await italicPost.toNotContainText('*');
 });
