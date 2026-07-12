@@ -30,7 +30,7 @@ export default class UserGroupsModal {
      * Locates a group row by its display name.
      */
     getGroup(displayName: string): Locator {
-        return this.container.getByText(displayName);
+        return this.container.getByRole('button', {name: `${displayName} group`, exact: true});
     }
 
     async openGroup(displayName: string) {
