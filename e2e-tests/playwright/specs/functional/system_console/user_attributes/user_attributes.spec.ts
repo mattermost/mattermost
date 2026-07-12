@@ -98,23 +98,27 @@ test.describe('System Console - User Attributes Management', () => {
      * @objective Verify that navigating to the User Attributes page shows the empty state
      * with the Add attribute button and a disabled Save button.
      */
-    test('navigates to user attributes page and displays empty state', {tag: '@user_attributes'}, async ({pw}) => {
-        const {systemConsolePage} = await setupTest(pw);
-        const sp = systemConsolePage.systemProperties;
+    test(
+        'MM-T5745 navigates to user attributes page and displays empty state',
+        {tag: '@user_attributes'},
+        async ({pw}) => {
+            const {systemConsolePage} = await setupTest(pw);
+            const sp = systemConsolePage.systemProperties;
 
-        // # Navigate to User Attributes via sidebar
-        await systemConsolePage.sidebar.systemAttributes.userAttributes.click();
+            // # Navigate to User Attributes via sidebar
+            await systemConsolePage.sidebar.systemAttributes.userAttributes.click();
 
-        // * Verify the page loaded
-        await sp.toBeVisible();
+            // * Verify the page loaded
+            await sp.toBeVisible();
 
-        // * Verify the "Add attribute" link button is visible
-        await expect(sp.addAttributeButton).toBeVisible();
+            // * Verify the "Add attribute" link button is visible
+            await expect(sp.addAttributeButton).toBeVisible();
 
-        // * Verify Save button is present but disabled (no changes)
-        await expect(sp.saveButton).toBeVisible();
-        await expect(sp.saveButton).toBeDisabled();
-    });
+            // * Verify Save button is present but disabled (no changes)
+            await expect(sp.saveButton).toBeVisible();
+            await expect(sp.saveButton).toBeDisabled();
+        },
+    );
 
     /**
      * @objective Verify that attributes created via API are displayed in the table

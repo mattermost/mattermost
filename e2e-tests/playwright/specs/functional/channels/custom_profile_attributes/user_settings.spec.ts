@@ -242,7 +242,7 @@ test('MM-T5769 Clearing Custom Profile Attributes @custom_profile_attributes', a
  * 2. Admin has created custom profile attributes
  * 3. Test user has Department value set to "Engineering"
  */
-test('MM-T5770 Cancelling Changes to Custom Profile Attributes @custom_profile_attributes', async ({pw}) => {
+test('MM-T5749 MM-T5770 Cancelling Changes to Custom Profile Attributes @custom_profile_attributes', async ({pw}) => {
     // 1. Login as the test user
     const {channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto();
