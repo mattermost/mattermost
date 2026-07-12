@@ -22,6 +22,7 @@ test('MM-T5584 views and unarchives a custom group', {tag: '@channels'}, async (
     const {channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
+    const groupModal = channelsPage.getViewUserGroupModal(group.display_name);
 
     // # Open the User Groups modal from the product menu
     await channelsPage.globalHeader.openUserGroups();
@@ -29,15 +30,15 @@ test('MM-T5584 views and unarchives a custom group', {tag: '@channels'}, async (
 
     // # Open the group and archive it
     await channelsPage.userGroupsModal.openGroup(group.display_name);
-    await channelsPage.viewUserGroupModal.archive();
+    await groupModal.archive();
 
     // # Filter the list to archived groups and open the archived group
     await channelsPage.userGroupsModal.filterArchived();
     await channelsPage.userGroupsModal.openGroup(group.display_name);
 
     // # Restore the group
-    await channelsPage.viewUserGroupModal.restore();
+    await groupModal.restore();
 
     // * Verify the group is restored (member management is available again)
-    await expect(channelsPage.viewUserGroupModal.addPeopleButton).toBeVisible();
+    await expect(groupModal.addPeopleButton).toBeVisible();
 });

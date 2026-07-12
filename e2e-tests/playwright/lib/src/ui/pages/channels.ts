@@ -53,7 +53,6 @@ export default class ChannelsPage {
     readonly channelBookmarksBar;
     readonly bookmarkCreateModal;
     readonly userGroupsModal;
-    readonly viewUserGroupModal;
     readonly leaveTeamModal;
     readonly archivedChannelMessage;
 
@@ -114,7 +113,6 @@ export default class ChannelsPage {
             page.getByRole('dialog', {name: 'Add a bookmark'}),
         );
         this.userGroupsModal = new components.UserGroupsModal(page.locator('#userGroupsModal'));
-        this.viewUserGroupModal = new components.ViewUserGroupModal(page.locator('.view-user-groups-modal'));
         this.leaveTeamModal = new components.LeaveTeamModal(page.getByRole('dialog', {name: 'Leave the team?'}));
 
         // Menus
@@ -177,6 +175,10 @@ export default class ChannelsPage {
 
     getAddPeopleToChannelModal() {
         return new components.AddPeopleToChannelModal(this.page.getByRole('dialog', {name: /Add people to/}));
+    }
+
+    getViewUserGroupModal(groupDisplayName: string) {
+        return new components.ViewUserGroupModal(this.page.getByRole('dialog', {name: groupDisplayName, exact: true}));
     }
 
     async getMembersInvitedModal(teamDisplayName: string) {
