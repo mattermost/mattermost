@@ -35,9 +35,10 @@ test('MM-T2365 disables center channel scrolling while the emoji picker is open'
     const after = await post.container.boundingBox();
 
     // * Verify the post did not move (the channel did not scroll while the picker was open)
-    expect(before).not.toBeNull();
-    expect(after).not.toBeNull();
-    expect(Math.abs((after?.y ?? 0) - (before?.y ?? 0))).toBeLessThan(5);
+    if (!before || !after) {
+        throw new Error('Expected the post to have a bounding box while the emoji picker is open');
+    }
+    expect(Math.abs(after.y - before.y)).toBeLessThan(5);
 
     // # Close the emoji picker and press PageUp again
     await page.keyboard.press('Escape');
@@ -47,6 +48,8 @@ test('MM-T2365 disables center channel scrolling while the emoji picker is open'
 
     // * Verify scrolling works again once the picker is closed (control: the post now moves)
     const afterClose = await post.container.boundingBox();
-    expect(afterClose).not.toBeNull();
-    expect(Math.abs((afterClose?.y ?? 0) - (before?.y ?? 0))).toBeGreaterThan(5);
+    if (!afterClose) {
+        throw new Error('Expected the post to have a bounding box after the emoji picker is closed');
+    }
+    expect(Math.abs(afterClose.y - before.y)).toBeGreaterThan(5);
 });
