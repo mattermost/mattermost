@@ -175,8 +175,9 @@ func (c *SearchChannelStore) RemoveMember(rctx request.CTX, channelID, userIdToR
 		c.rootStore.indexUserFromID(rctx, userIdToRemove)
 	}
 
-	// Space backing channels are excluded from the generic Get; that miss must
-	// not mask a successful removal, so the re-index Get uses its own error.
+	// return the removal result, not the re-index Get's — that Get returns
+	// not-found for space backing channels (excluded from the generic Get)
+	// and must not mask a successful removal.
 	channel, getErr := c.ChannelStore.Get(channelID, true)
 	if getErr == nil {
 		c.indexChannel(rctx, channel)

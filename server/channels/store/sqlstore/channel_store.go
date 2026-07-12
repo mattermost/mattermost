@@ -43,9 +43,9 @@ var messageChannelTypes = []model.ChannelType{
 	model.ChannelTypeGroup,
 }
 
-// nonMessageBackingChannelTypes is the deny-list applied to queries that don't already filter
-// through the messageChannelTypes allow-list (e.g. because they also need board channels'
-// membership rows). Adding a new type here excludes it from every query that references this var.
+// nonMessageBackingChannelTypes is the deny-list applied to queries that cannot filter through
+// the messageChannelTypes allow-list. Adding a space type here excludes it from every query that
+// references this var.
 var nonMessageBackingChannelTypes = []model.ChannelType{
 	model.ChannelTypeSpace,
 }
@@ -793,10 +793,7 @@ func (s SqlChannelStore) saveChannelT(transaction *sqlxTxWrapper, channel *model
 		return nil, err // we just pass through the error as-is for now.
 	}
 
-	// Space channels are exempted from the per-team channel limit, like Direct/Group.
-	// Board channels are NOT exempted here (pre-existing behavior): board creation is
-	// still blocked once a team is at its Open/Private channel cap, even though the
-	// count query below never counts board rows toward that cap.
+	// Space channels are exempt from the per-team channel limit.
 	if channel.Type != model.ChannelTypeDirect && channel.Type != model.ChannelTypeGroup && channel.Type != model.ChannelTypeSpace && maxChannelsPerTeam >= 0 {
 		var count int64
 		if err := transaction.Get(&count, "SELECT COUNT(0) FROM Channels WHERE TeamId = ? AND DeleteAt = 0 AND (Type = ? OR Type = ?)", channel.TeamId, model.ChannelTypeOpen, model.ChannelTypePrivate); err != nil {
