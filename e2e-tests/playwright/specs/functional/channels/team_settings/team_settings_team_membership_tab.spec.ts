@@ -565,7 +565,7 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         await teamSettings.close();
     });
 
-    test('MM-69100_20 Sync footer shows "Never synced" in Team Membership tab when a policy exists', async ({pw}) => {
+    test('MM-69100_38 Sync footer shows "Never synced" in Team Membership tab when a policy exists', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient, team} = await pw.initSetup();
         await enableTeamMembershipABACConfig(adminClient);
@@ -593,7 +593,7 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         await teamSettings.close();
     });
 
-    test('MM-69100_21 Clicking "Sync now" in Team Membership tab enqueues a team sync job', async ({pw}) => {
+    test('MM-69100_39 Clicking "Sync now" in Team Membership tab enqueues a team sync job', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient, team} = await pw.initSetup();
         await enableTeamMembershipABACConfig(adminClient);
