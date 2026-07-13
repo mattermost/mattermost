@@ -9,19 +9,14 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
 )
 
-// auditCPAValueChange emits one audit record for a CPA value change attempt.
+// auditCPAValueChange emits one audit record for a successful CPA value change.
 // It is the ValueAuditSink registered on PropertyValueAuditHook for the CPA
 // group. Logged at the content audit level (data change).
 func (a *App) auditCPAValueChange(rctx request.CTX, e properties.ValueAuditEvent) {
 	callerID, _ := CallerIDFromRequestContext(rctx)
 	scope := model.PropertyRequestOptionsFromContext(rctx.Context()).ActingAsScope
 
-	status := model.AuditStatusFail
-	if e.Success() {
-		status = model.AuditStatusSuccess
-	}
-
-	rec := a.MakeAuditRecord(rctx, model.AuditEventCPAValueChange, status)
+	rec := a.MakeAuditRecord(rctx, model.AuditEventCPAValueChange, model.AuditStatusSuccess)
 	rec.AddMeta("caller_id", callerID)
 	rec.AddMeta("acting_as_scope", scope)
 	rec.AddMeta("group", model.AccessControlPropertyGroupName)
@@ -34,10 +29,6 @@ func (a *App) auditCPAValueChange(rctx request.CTX, e properties.ValueAuditEvent
 	if e.ValueID != "" {
 		rec.AddMeta("value_id", e.ValueID)
 	}
-	if e.Err != nil {
-		rec.AddMeta("error", e.Err.Error())
-	}
-
 	switch e.Action {
 	case properties.ValueAuditActionDeleteForTarget, properties.ValueAuditActionDeleteForField:
 		// Bulk deletes have no per-value payload.

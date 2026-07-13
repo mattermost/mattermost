@@ -4,17 +4,13 @@
 package properties
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-var errDenied = errors.New("access denied")
 
 type recordingSink struct {
 	calls []struct {
@@ -56,21 +52,11 @@ func TestPropertyValueAuditHook_PostCreate(t *testing.T) {
 		rec := &recordingSink{}
 		hook := newRegisteredAuditHook(managed, rec.sink())
 		v := newValue()
-		require.NoError(t, hook.PostCreatePropertyValue(th.Context, v, nil))
+		require.NoError(t, hook.PostCreatePropertyValue(th.Context, v))
 		require.Len(t, rec.calls, 1)
 		assert.Equal(t, ValueAuditActionCreate, rec.calls[0].event.Action)
-		assert.True(t, rec.calls[0].event.Success())
 		assert.Nil(t, rec.calls[0].event.Prev)
 		assert.Equal(t, v, rec.calls[0].event.Current)
-	})
-
-	t.Run("audits a failed create", func(t *testing.T) {
-		rec := &recordingSink{}
-		hook := newRegisteredAuditHook(managed, rec.sink())
-		require.NoError(t, hook.PostCreatePropertyValue(th.Context, newValue(), errDenied))
-		require.Len(t, rec.calls, 1)
-		assert.False(t, rec.calls[0].event.Success())
-		assert.Equal(t, errDenied, rec.calls[0].event.Err)
 	})
 
 	t.Run("audits each value in a batch and ignores unregistered groups", func(t *testing.T) {
@@ -78,7 +64,7 @@ func TestPropertyValueAuditHook_PostCreate(t *testing.T) {
 		hook := newRegisteredAuditHook(managed, rec.sink())
 		other := newValue()
 		other.GroupID = "other"
-		require.NoError(t, hook.PostCreatePropertyValues(th.Context, []*model.PropertyValue{newValue(), other, newValue()}, nil))
+		require.NoError(t, hook.PostCreatePropertyValues(th.Context, []*model.PropertyValue{newValue(), other, newValue()}))
 		require.Len(t, rec.calls, 2)
 	})
 }
@@ -96,7 +82,7 @@ func TestPropertyValueAuditHook_PostUpdate(t *testing.T) {
 		hook := newRegisteredAuditHook(managed, rec.sink())
 		next := newValue()
 		next.Value = []byte(`"changed"`)
-		require.NoError(t, hook.PostUpdatePropertyValue(th.Context, next, nil))
+		require.NoError(t, hook.PostUpdatePropertyValue(th.Context, next))
 		require.Len(t, rec.calls, 1)
 		assert.Equal(t, ValueAuditActionUpdate, rec.calls[0].event.Action)
 	})
@@ -104,19 +90,9 @@ func TestPropertyValueAuditHook_PostUpdate(t *testing.T) {
 	t.Run("audits an unchanged value", func(t *testing.T) {
 		rec := &recordingSink{}
 		hook := newRegisteredAuditHook(managed, rec.sink())
-		require.NoError(t, hook.PostUpdatePropertyValue(th.Context, newValue(), nil))
+		require.NoError(t, hook.PostUpdatePropertyValue(th.Context, newValue()))
 		require.Len(t, rec.calls, 1)
 		assert.Equal(t, ValueAuditActionUpdate, rec.calls[0].event.Action)
-	})
-
-	t.Run("audits a failed update that intended a change", func(t *testing.T) {
-		rec := &recordingSink{}
-		hook := newRegisteredAuditHook(managed, rec.sink())
-		next := newValue()
-		next.Value = []byte(`"changed"`)
-		require.NoError(t, hook.PostUpdatePropertyValue(th.Context, next, errDenied))
-		require.Len(t, rec.calls, 1)
-		assert.False(t, rec.calls[0].event.Success())
 	})
 
 	t.Run("audits each value in a batch", func(t *testing.T) {
@@ -125,7 +101,7 @@ func TestPropertyValueAuditHook_PostUpdate(t *testing.T) {
 		changed := newValue()
 		changed.Value = []byte(`"changed"`)
 		values := []*model.PropertyValue{newValue(), changed}
-		require.NoError(t, hook.PostUpdatePropertyValues(th.Context, values, nil))
+		require.NoError(t, hook.PostUpdatePropertyValues(th.Context, values))
 		require.Len(t, rec.calls, 2)
 		assert.Equal(t, ValueAuditActionUpdate, rec.calls[0].event.Action)
 		assert.Equal(t, ValueAuditActionUpdate, rec.calls[1].event.Action)
@@ -143,17 +119,16 @@ func TestPropertyValueAuditHook_PostUpsert(t *testing.T) {
 	t.Run("audits a new value", func(t *testing.T) {
 		rec := &recordingSink{}
 		hook := newRegisteredAuditHook(managed, rec.sink())
-		require.NoError(t, hook.PostUpsertPropertyValue(th.Context, newValue(), nil))
+		require.NoError(t, hook.PostUpsertPropertyValue(th.Context, newValue()))
 		require.Len(t, rec.calls, 1)
 		assert.Equal(t, ValueAuditActionUpsert, rec.calls[0].event.Action)
 		assert.Equal(t, "f1", rec.calls[0].event.FieldID)
-		assert.True(t, rec.calls[0].event.Success())
 	})
 
 	t.Run("audits an unchanged value", func(t *testing.T) {
 		rec := &recordingSink{}
 		hook := newRegisteredAuditHook(managed, rec.sink())
-		require.NoError(t, hook.PostUpsertPropertyValue(th.Context, newValue(), nil))
+		require.NoError(t, hook.PostUpsertPropertyValue(th.Context, newValue()))
 		require.Len(t, rec.calls, 1)
 		assert.Equal(t, ValueAuditActionUpsert, rec.calls[0].event.Action)
 	})
@@ -163,7 +138,7 @@ func TestPropertyValueAuditHook_PostUpsert(t *testing.T) {
 		hook := newRegisteredAuditHook(managed, rec.sink())
 		next := newValue()
 		next.Value = []byte(`"changed"`)
-		require.NoError(t, hook.PostUpsertPropertyValue(th.Context, next, nil))
+		require.NoError(t, hook.PostUpsertPropertyValue(th.Context, next))
 		require.Len(t, rec.calls, 1)
 	})
 
@@ -172,28 +147,8 @@ func TestPropertyValueAuditHook_PostUpsert(t *testing.T) {
 		hook := newRegisteredAuditHook(managed, rec.sink())
 		v := newValue()
 		v.GroupID = "other"
-		require.NoError(t, hook.PostUpsertPropertyValue(th.Context, v, nil))
+		require.NoError(t, hook.PostUpsertPropertyValue(th.Context, v))
 		assert.Empty(t, rec.calls)
-	})
-
-	t.Run("audits a failed write", func(t *testing.T) {
-		rec := &recordingSink{}
-		hook := newRegisteredAuditHook(managed, rec.sink())
-		next := newValue()
-		next.Value = []byte(`"changed"`)
-		require.NoError(t, hook.PostUpsertPropertyValue(th.Context, next, errDenied))
-		require.Len(t, rec.calls, 1)
-		assert.False(t, rec.calls[0].event.Success())
-		assert.Equal(t, next, rec.calls[0].event.Current)
-		assert.Equal(t, errDenied, rec.calls[0].event.Err)
-	})
-
-	t.Run("audits a failed write with an unchanged value", func(t *testing.T) {
-		rec := &recordingSink{}
-		hook := newRegisteredAuditHook(managed, rec.sink())
-		require.NoError(t, hook.PostUpsertPropertyValue(th.Context, newValue(), errDenied))
-		require.Len(t, rec.calls, 1)
-		assert.False(t, rec.calls[0].event.Success())
 	})
 }
 
@@ -203,32 +158,20 @@ func TestPropertyValueAuditHook_PostDelete(t *testing.T) {
 	rec := &recordingSink{}
 	hook := newRegisteredAuditHook(managed, rec.sink())
 
-	require.NoError(t, hook.PostDeletePropertyValue(th.Context, managed, "v1", &model.PropertyValue{GroupID: managed, TargetType: "user", TargetID: "u1", FieldID: "f1"}, nil))
-	require.NoError(t, hook.PostDeletePropertyValuesForTarget(th.Context, managed, "user", "u1", nil))
-	require.NoError(t, hook.PostDeletePropertyValuesForField(th.Context, managed, "f1", nil))
-
-	// A failed delete of an existing value is a legitimate failure → audited.
-	require.NoError(t, hook.PostDeletePropertyValue(th.Context, managed, "v2", &model.PropertyValue{GroupID: managed, TargetType: "user", TargetID: "u2", FieldID: "f1"}, errDenied))
-
-	// A failed delete without a snapshot is still audited by its identifiers.
-	require.NoError(t, hook.PostDeletePropertyValue(th.Context, managed, "missing", nil, store.NewErrNotFound("PropertyValue", "missing")))
+	require.NoError(t, hook.PostDeletePropertyValue(th.Context, managed, "v1", &model.PropertyValue{GroupID: managed, TargetType: "user", TargetID: "u1", FieldID: "f1"}))
+	require.NoError(t, hook.PostDeletePropertyValuesForTarget(th.Context, managed, "user", "u1"))
+	require.NoError(t, hook.PostDeletePropertyValuesForField(th.Context, managed, "f1"))
 
 	// Unregistered group is ignored on every delete variant.
-	require.NoError(t, hook.PostDeletePropertyValue(th.Context, "other", "v3", &model.PropertyValue{GroupID: "other"}, nil))
-	require.NoError(t, hook.PostDeletePropertyValuesForTarget(th.Context, "other", "user", "u1", nil))
-	require.NoError(t, hook.PostDeletePropertyValuesForField(th.Context, "other", "f1", nil))
+	require.NoError(t, hook.PostDeletePropertyValue(th.Context, "other", "v3", &model.PropertyValue{GroupID: "other"}))
+	require.NoError(t, hook.PostDeletePropertyValuesForTarget(th.Context, "other", "user", "u1"))
+	require.NoError(t, hook.PostDeletePropertyValuesForField(th.Context, "other", "f1"))
 
-	require.Len(t, rec.calls, 5)
+	require.Len(t, rec.calls, 3)
 	assert.Equal(t, ValueAuditActionDelete, rec.calls[0].event.Action)
 	assert.Equal(t, "v1", rec.calls[0].event.ValueID)
-	assert.True(t, rec.calls[0].event.Success())
 	assert.Equal(t, ValueAuditActionDeleteForTarget, rec.calls[1].event.Action)
 	assert.Equal(t, ValueAuditActionDeleteForField, rec.calls[2].event.Action)
-	assert.Equal(t, ValueAuditActionDelete, rec.calls[3].event.Action)
-	assert.False(t, rec.calls[3].event.Success())
-	assert.Equal(t, ValueAuditActionDelete, rec.calls[4].event.Action)
-	assert.Equal(t, "missing", rec.calls[4].event.ValueID)
-	assert.False(t, rec.calls[4].event.Success())
 }
 
 func TestPropertyValueAuditHook_PostDeleteSparseSnapshot(t *testing.T) {
@@ -238,19 +181,10 @@ func TestPropertyValueAuditHook_PostDeleteSparseSnapshot(t *testing.T) {
 	hook := newRegisteredAuditHook(managed, rec.sink())
 
 	t.Run("audits a successful delete without a snapshot", func(t *testing.T) {
-		require.NoError(t, hook.PostDeletePropertyValue(th.Context, managed, "value-id", nil, nil))
+		require.NoError(t, hook.PostDeletePropertyValue(th.Context, managed, "value-id", nil))
 		require.Len(t, rec.calls, 1)
 		assert.Equal(t, ValueAuditActionDelete, rec.calls[0].event.Action)
 		assert.Equal(t, "value-id", rec.calls[0].event.ValueID)
-		assert.True(t, rec.calls[0].event.Success())
-	})
-
-	rec.calls = nil
-	t.Run("audits a failed delete without a snapshot", func(t *testing.T) {
-		require.NoError(t, hook.PostDeletePropertyValue(th.Context, managed, "value-id", nil, errDenied))
-		require.Len(t, rec.calls, 1)
-		assert.Equal(t, "value-id", rec.calls[0].event.ValueID)
-		assert.False(t, rec.calls[0].event.Success())
 	})
 }
 

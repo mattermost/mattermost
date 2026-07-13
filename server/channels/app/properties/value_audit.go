@@ -20,7 +20,7 @@ const (
 	ValueAuditActionDeleteForField  = "delete_for_field"
 )
 
-// ValueAuditEvent describes one property value change attempt passed to a
+// ValueAuditEvent describes one successful property value change passed to a
 // group's ValueAuditSink. Prev and Current are nil for bulk-delete actions
 // (delete_for_target, delete_for_field). Each group decides which fields to
 // include in its audit record.
@@ -32,15 +32,9 @@ type ValueAuditEvent struct {
 	ValueID    string
 	Prev       *model.PropertyValue
 	Current    *model.PropertyValue
-	Err        error
 }
 
-// Success reports whether the write attempt succeeded.
-func (e ValueAuditEvent) Success() bool {
-	return e.Err == nil
-}
-
-// ValueAuditSink emits one audit record for a property value change attempt.
+// ValueAuditSink emits one audit record for a successful property value change.
 // Each property group registers its own sink so the properties package stays
 // independent of the audit subsystem.
 type ValueAuditSink func(rctx request.CTX, e ValueAuditEvent)
@@ -81,9 +75,8 @@ func (h *PropertyValueAuditHook) emit(rctx request.CTX, groupID string, e ValueA
 	sink(rctx, e)
 }
 
-// auditWrite emits an audit record for an attempted write under the given
-// action, recording success/failure from opErr.
-func (h *PropertyValueAuditHook) auditWrite(rctx request.CTX, action string, value *model.PropertyValue, opErr error) {
+// auditWrite emits an audit record for a successful write.
+func (h *PropertyValueAuditHook) auditWrite(rctx request.CTX, action string, value *model.PropertyValue) {
 	if value == nil {
 		return
 	}
@@ -93,13 +86,12 @@ func (h *PropertyValueAuditHook) auditWrite(rctx request.CTX, action string, val
 		TargetID:   value.TargetID,
 		FieldID:    value.FieldID,
 		Current:    value,
-		Err:        opErr,
 	})
 }
 
 // auditCreate emits a create audit record. A create always introduces a new
 // value (a conflicting create fails), so there is no no-op to suppress.
-func (h *PropertyValueAuditHook) auditCreate(rctx request.CTX, value *model.PropertyValue, opErr error) {
+func (h *PropertyValueAuditHook) auditCreate(rctx request.CTX, value *model.PropertyValue) {
 	if value == nil {
 		return
 	}
@@ -109,51 +101,49 @@ func (h *PropertyValueAuditHook) auditCreate(rctx request.CTX, value *model.Prop
 		TargetID:   value.TargetID,
 		FieldID:    value.FieldID,
 		Current:    value,
-		Err:        opErr,
 	})
 }
 
-func (h *PropertyValueAuditHook) PostCreatePropertyValue(rctx request.CTX, value *model.PropertyValue, opErr error) error {
-	h.auditCreate(rctx, value, opErr)
+func (h *PropertyValueAuditHook) PostCreatePropertyValue(rctx request.CTX, value *model.PropertyValue) error {
+	h.auditCreate(rctx, value)
 	return nil
 }
 
-func (h *PropertyValueAuditHook) PostCreatePropertyValues(rctx request.CTX, values []*model.PropertyValue, opErr error) error {
+func (h *PropertyValueAuditHook) PostCreatePropertyValues(rctx request.CTX, values []*model.PropertyValue) error {
 	for _, v := range values {
-		h.auditCreate(rctx, v, opErr)
+		h.auditCreate(rctx, v)
 	}
 	return nil
 }
 
-func (h *PropertyValueAuditHook) PostUpdatePropertyValue(rctx request.CTX, value *model.PropertyValue, opErr error) error {
-	h.auditWrite(rctx, ValueAuditActionUpdate, value, opErr)
+func (h *PropertyValueAuditHook) PostUpdatePropertyValue(rctx request.CTX, value *model.PropertyValue) error {
+	h.auditWrite(rctx, ValueAuditActionUpdate, value)
 	return nil
 }
 
-func (h *PropertyValueAuditHook) PostUpdatePropertyValues(rctx request.CTX, values []*model.PropertyValue, opErr error) error {
+func (h *PropertyValueAuditHook) PostUpdatePropertyValues(rctx request.CTX, values []*model.PropertyValue) error {
 	for _, v := range values {
-		h.auditWrite(rctx, ValueAuditActionUpdate, v, opErr)
+		h.auditWrite(rctx, ValueAuditActionUpdate, v)
 	}
 	return nil
 }
 
-func (h *PropertyValueAuditHook) PostUpsertPropertyValue(rctx request.CTX, value *model.PropertyValue, opErr error) error {
-	h.auditWrite(rctx, ValueAuditActionUpsert, value, opErr)
+func (h *PropertyValueAuditHook) PostUpsertPropertyValue(rctx request.CTX, value *model.PropertyValue) error {
+	h.auditWrite(rctx, ValueAuditActionUpsert, value)
 	return nil
 }
 
-func (h *PropertyValueAuditHook) PostUpsertPropertyValues(rctx request.CTX, values []*model.PropertyValue, opErr error) error {
+func (h *PropertyValueAuditHook) PostUpsertPropertyValues(rctx request.CTX, values []*model.PropertyValue) error {
 	for _, v := range values {
-		h.auditWrite(rctx, ValueAuditActionUpsert, v, opErr)
+		h.auditWrite(rctx, ValueAuditActionUpsert, v)
 	}
 	return nil
 }
 
-func (h *PropertyValueAuditHook) PostDeletePropertyValue(rctx request.CTX, groupID, valueID string, deleted *model.PropertyValue, opErr error) error {
+func (h *PropertyValueAuditHook) PostDeletePropertyValue(rctx request.CTX, groupID, valueID string, deleted *model.PropertyValue) error {
 	event := ValueAuditEvent{
 		Action:  ValueAuditActionDelete,
 		ValueID: valueID,
-		Err:     opErr,
 	}
 	emitGroupID := groupID
 	if deleted != nil {
@@ -168,21 +158,19 @@ func (h *PropertyValueAuditHook) PostDeletePropertyValue(rctx request.CTX, group
 	return nil
 }
 
-func (h *PropertyValueAuditHook) PostDeletePropertyValuesForTarget(rctx request.CTX, groupID, targetType, targetID string, opErr error) error {
+func (h *PropertyValueAuditHook) PostDeletePropertyValuesForTarget(rctx request.CTX, groupID, targetType, targetID string) error {
 	h.emit(rctx, groupID, ValueAuditEvent{
 		Action:     ValueAuditActionDeleteForTarget,
 		TargetType: targetType,
 		TargetID:   targetID,
-		Err:        opErr,
 	})
 	return nil
 }
 
-func (h *PropertyValueAuditHook) PostDeletePropertyValuesForField(rctx request.CTX, groupID, fieldID string, opErr error) error {
+func (h *PropertyValueAuditHook) PostDeletePropertyValuesForField(rctx request.CTX, groupID, fieldID string) error {
 	h.emit(rctx, groupID, ValueAuditEvent{
 		Action:  ValueAuditActionDeleteForField,
 		FieldID: fieldID,
-		Err:     opErr,
 	})
 	return nil
 }
