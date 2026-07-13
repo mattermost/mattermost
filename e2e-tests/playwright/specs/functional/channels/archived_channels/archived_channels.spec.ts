@@ -10,7 +10,6 @@ test('MM-T1671 shows a read-only member list for an archived channel', {tag: '@c
     const {adminClient, adminUser, team, user} = await pw.initSetup();
     const channel = await adminClient.createPublicChannel(team.id, `Archive ${pw.random.id()}`);
     await adminClient.addToChannel(user.id, channel.id);
-    await adminClient.addToChannel(adminUser.id, channel.id);
 
     const {channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
