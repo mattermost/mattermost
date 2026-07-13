@@ -1,8 +1,14 @@
 ---
-title: "Prerequisites"
-sidebar_label: "Kubernetes prerequisites"
+title: "Deploy Mattermost with the Mattermost Operator"
+sidebar_label: "Mattermost Operator"
 ---
 You can use the Mattermost Kubernetes Operator to deploy Mattermost on Kubernetes using S3-compatible storage and a managed database service. While the operator supports a range of configurations, we strongly recommend using a cloud-native approach for production environments.
+
+<Tip>
+
+**Need a FIPS / STIG-compliant image?** Point the Operator manifest's `version`/image field at `mattermost/mattermost-enterprise-fips-edition` image and the rest of this procedure is unchanged. See [FIPS / STIG container builds](/deployment-guide/server/containers/fips-stig).
+
+</Tip>
 
 Before you begin, ensure you have the following:
 
@@ -11,15 +17,15 @@ Before you begin, ensure you have the following:
 - A fundamental understanding of Kubernetes concepts, such as deployments, pods, and applying manifests.
 - Sufficient Kubernetes resources allocated based on your expected user load. Consult the [scaling for Enterprise](/administration-guide/scale/scaling-for-enterprise#available-reference-architectures) documentation for resource requirements at different scales.
 
-# Installation steps
+## Installation steps
 
 The installation process involves setting up necessary operators and then deploying Mattermost itself.
 
-## Step 1: Install the NGINX Ingress Controller
+### Step 1: Install the NGINX Ingress Controller
 
 Follow the instructions in the [Kubernetes deployment documentation](https://kubernetes.github.io/ingress-nginx/deploy/) to install the NGINX ingress controller on your Kubernetes cluster. Mattermost recommends installing the Nginx Operator via helm, regardless of platform you are installing to.
 
-## Step 2: Install the Mattermost Operator
+### Step 2: Install the Mattermost Operator
 
 The Mattermost Kubernetes Operator can be installed using Helm.
 
@@ -55,7 +61,7 @@ The Mattermost Kubernetes Operator can be installed using Helm.
 > helm install mattermost-operator mattermost/mattermost-operator -n mattermost-operator -f config.yaml
 > ```
 
-## Step 3: Deploy Mattermost
+### Step 3: Deploy Mattermost
 
 <Note>
 
@@ -118,21 +124,21 @@ The Mattermost Kubernetes Operator can be installed using Helm.
 > type: Opaque
 > ```
 >
-> Example for AWS Aurora with PostgreSQL:
+> Example for AWS Aurora with PostgreSQL (`DB_CONNECTION_CHECK_URL`, `DB_CONNECTION_STRING`, and `MM_SQLSETTINGS_DATASOURCEREPLICAS` are the base64-encoded form of your Aurora connection URL, e.g. `postgres://user:password@host:5432/mattermost`):
 >
 > ``` yaml
 > apiVersion: v1
 > data:
->   DB_CONNECTION_CHECK_URL: cG9zdGdyZXM6Ly91c2VyOnN1cGVyX3NlY3JldF9wYXNzd29yZEBteS1kYXRhYmFzZS5jbHVzdGVyLWFiY2QudXMtZWFzdC0xLnJkcy5hbWF6b25hd3MuY29tOjU0MzIvbWF0dGVybW9zdD9jb25uZWN0X3RpbWVvdXQ9MTA=
->   DB_CONNECTION_STRING: cG9zdGdyZXM6Ly91c2VyOnN1cGVyX3NlY3JldF9wYXNzd29yZEBteS1kYXRhYmFzZS5jbHVzdGVyLWFiY2QudXMtZWFzdC0xLnJkcy5hbWF6b25hd3MuY29tOjU0MzIvbWF0dGVybW9zdD9jb25uZWN0X3RpbWVvdXQ9MTA=
->   MM_SQLSETTINGS_DATASOURCEREPLICAS: cG9zdGdyZXM6Ly91c2VyOnN1cGVyX3NlY3JldF9wYXNzd29yZEBteS1kYXRhYmFzZS5jbHVzdGVyLXJvLWFiY2QudXMtZWFzdC0xLnJkcy5hbWF6b25hd3MuY29tOjU0MzIvbWF0dGVybW9zdD9jb25uZWN0X3RpbWVvdXQ9MTA=
+>   DB_CONNECTION_CHECK_URL: cG9zdGdyZXM6Ly91c2Vy...  # base64-encoded connection URL
+>   DB_CONNECTION_STRING: cG9zdGdyZXM6Ly91c2Vy...     # base64-encoded connection URL
+>   MM_SQLSETTINGS_DATASOURCEREPLICAS: cG9zdGdyZXM6...  # base64-encoded replica URL
 > kind: Secret
 > metadata:
 >   name: my-postgres-connection
 > type: Opaque
 > ```
 
-## Step 4: Create the Filestore Secret
+### Step 4: Create the Filestore Secret
 
 Create a file named `mattermost-filestore-secret.yaml` to store the credentials for your object storage service (e.g., AWS S3 or any S3-compatible service). This secret must be created in the same namespace where you intend to install Mattermost. The file should contain the following YAML structure:
 
@@ -176,7 +182,7 @@ data:
 
 <Important>
 
-The `accesskey` and `secretkey` values must be **base64-encoded**. Do not enter the raw keys directly. Use a command-line tool or online encoder to generate the base64 strings.
+The `accesskey` and `secretkey` values must be **base64-encoded**. Do not enter the raw keys directly. Use a command-line tool to generate the base64 strings.
 
 **Example (AWS S3):**
 
@@ -193,7 +199,7 @@ data:
 
 </Important>
 
-## Step 5: Configure the Mattermost Installation Manifest
+### Step 5: Configure the Mattermost Installation Manifest
 
 1.  Modify the `mattermost-installation.yaml` file (created in step 2) to connect Mattermost to your external database and object storage. Refer to the supported fields for guidance on where to add these configurations within the YAML structure.
 2.  Connect to the database:
@@ -229,7 +235,7 @@ data:
 >     MM_FILESETTINGS_AMAZONS3SSE: true
 > ```
 
-# Review Mattermost Resource Status
+## Review Mattermost Resource Status
 
 After a Mattermost installation has been created with the Operator, you can review its status with the following:
 
@@ -265,8 +271,8 @@ This command can be used to review the Mattermost Operator or Mattermost server 
 
 </Note>
 
-# Frequently Asked Questions
+## Frequently Asked Questions
 
-## What is the Operator's version compatibility with Mattermost Server?
+### What is the Operator's version compatibility with Mattermost Server?
 
 While generally speaking, the Operator should be compatible with most, or all versions of Mattermost Server, we recommend always using the latest version of the Operator in conjunction with a [supported version](/product-overview/release-policy) of Mattermost Server.

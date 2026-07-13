@@ -6,10 +6,12 @@ import Inc1_common_esr_support_upgrade from './common-esr-support-upgrade.mdx';
 
 This documentation contains comprehensive changelog details for all legacy Mattermost releases including v9.x, v8.x, and v7.x versions that have reached their end of support lifecycle.
 
-```{Important}
+<Important>
+
 <Inc0_common_esr_support_upgrade />
-(release-v9-11-extended-support-release)=
-## Release v9.11 - [Extended Support Release](https://docs.mattermost.com/about/release-policy.html#release-types)
+
+</Important>
+## Release v9.11 - [Extended Support Release](https://docs.mattermost.com/about/release-policy.html#release-types) \{#release-v9-11-extended-support-release}
 
 - **9.11.18, released 2025-07-22**
   - Mattermost v9.11.18 contains low to high severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
@@ -110,7 +112,8 @@ This documentation contains comprehensive changelog details for all legacy Matte
  - Mattermost supports Elasticsearch v7.17+. However, we recommend upgrading your Elasticsearch v7 instance to v8.x. See the [Elasticsearch upgrade](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-upgrade.html) documentation for details.
  - When using Elasticsearch v8, ensure you set ``action.destructive_requires_name`` to ``false`` in ``elasticsearch.yml`` to allow for wildcard operations to work.
 
-```{Important}
+<Important>
+
 **AWS Elasticsearch**
 
 If you're using AWS Elasticsearch, you must:
@@ -119,15 +122,18 @@ If you're using AWS Elasticsearch, you must:
 3. Upgrade Mattermost server.
 4. Update the Mattermost `ElasticsearchSettings.Backend` configuration setting value from `elasticsearch` to `opensearch` manually or using [mmctl](https://docs.mattermost.com/manage/mmctl-command-line-tool.html#mmctl-config-set). This value cannot be changed using the System Console. See the Mattermost [Elasticsearch backend type](https://docs.mattermost.com/configure/environment-configuration-settings.html#elastic-backendtype) documentation for additional details.
 5. Restart the Mattermost server.
-```
+
+</Important>
 
 ### Compatibility
  - Updated minimum Edge and Chrome versions to 126+.
  - Added Ubuntu Noble support.
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v9.5, please read the other [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Improvements
 
@@ -216,8 +222,7 @@ New setting options were added to ``config.json``. Below is a list of the additi
 ### Contributors
  - [agarciamontoro](https://github.com/agarciamontoro), [agnivade](https://github.com/agnivade), [amyblais](https://github.com/amyblais), [andreabia](https://translate.mattermost.com/user/andreabia), [andrleite](https://github.com/andrleite), [angeloskyratzakos](https://github.com/angeloskyratzakos), [Aryakoste](https://github.com/Aryakoste), [asaadmahmood](https://github.com/asaadmahmood), [AshishDhama](https://github.com/AshishDhama), [ayusht2810](https://github.com/ayusht2810), [bbodenmiller](https://github.com/bbodenmiller), [BenCookie95](https://github.com/BenCookie95), [BrandonS09](https://github.com/BrandonS09), [calebroseland](https://github.com/calebroseland), [Camillarhi](https://github.com/Camillarhi), [catalintomai](https://github.com/catalintomai), [Celeo](https://github.com/Celeo), [chessmadridista](https://github.com/chessmadridista), [ckaznable](https://github.com/ckaznable), [cpoile](https://github.com/cpoile), [crspeller](https://github.com/crspeller), [ctlaltdieliet](https://translate.mattermost.com/user/ctlaltdieliet), [cwarnermm](https://github.com/cwarnermm), [danielsischy](https://github.com/danielsischy), [devinbinnie](https://github.com/devinbinnie), [Eleferen](https://translate.mattermost.com/user/Eleferen), [enahum](https://github.com/enahum), [enzowritescode](https://github.com/enzowritescode), [ewwollesen](https://github.com/ewwollesen), [fmartingr](https://github.com/fmartingr), [frankps](https://translate.mattermost.com/user/frankps), [gabrieljackson](https://github.com/gabrieljackson), [Gesare5](https://github.com/Gesare5), [grinapo](https://github.com/grinapo), [hanzei](https://github.com/hanzei), [harmeet01singh](https://github.com/harmeet01singh), [harshilsharma63](https://github.com/harshilsharma63), [hmhealey](https://github.com/hmhealey), [ifoukarakis](https://github.com/ifoukarakis), [imanmagomedov.said](https://translate.mattermost.com/user/imanmagomedov.said), [isacikgoz](https://github.com/isacikgoz), [jespino](https://github.com/jespino), [jprusch](https://github.com/jprusch), [JulienTant](https://github.com/JulienTant), [jwilander](https://github.com/jwilander), [kaakaa](https://translate.mattermost.com/user/kaakaa), [kalil0321](https://github.com/kalil0321), [KellieSue](https://github.com/KellieSue), [Kshitij-Katiyar](https://github.com/Kshitij-Katiyar), [larkox](https://github.com/larkox), [lieut-data](https://github.com/lieut-data), [M-ZubairAhmed](https://github.com/M-ZubairAhmed), [majo](https://translate.mattermost.com/user/majo), [marianunez](https://github.com/marianunez), [master7](https://translate.mattermost.com/user/master7), [matt-w99](https://github.com/matt-w99), [matthewbirtch](https://github.com/matthewbirtch), [matthew-w](https://translate.mattermost.com/user/matthew-w), [MeHow25](https://github.com/MeHow25), [mgdelacroix](https://github.com/mgdelacroix), [mickmister](https://github.com/mickmister), [milotype](https://translate.mattermost.com/user/milotype), [Mohamed-sobhi95](https://translate.mattermost.com/user/Mohamed-sobhi95), [mvitale1989](https://github.com/mvitale1989), [natalie-hub](https://github.com/natalie-hub), [nickmisasi](https://github.com/nickmisasi), [ningthoujamSwamikumar](https://github.com/ningthoujamSwamikumar), [Pawel1894](https://github.com/Pawel1894), [phoinixgrr](https://github.com/phoinixgrr), [poppfredslund](https://translate.mattermost.com/user/poppfredslund), [pvev](https://github.com/pvev), [raghavaggarwal2308](https://github.com/raghavaggarwal2308), [rahimrahman](https://github.com/rahimrahman), [Rajat-Dabade](https://github.com/Rajat-Dabade), [recontech404](https://github.com/recontech404), [rOt779kVceSgL](https://translate.mattermost.com/user/rOt779kVceSgL), [sadohert](https://github.com/sadohert), [saturninoabril](https://github.com/saturninoabril), [sbishel](https://github.com/sbishel), [shaon72](https://github.com/shaon72), [Sharuru](https://translate.mattermost.com/user/Sharuru), [shieldsjared](https://github.com/shieldsjared), [stafot](https://github.com/stafot), [streamer45](https://github.com/streamer45), [suraj-anthwal](https://github.com/suraj-anthwal), [svelle](https://github.com/svelle), [ThrRip](https://translate.mattermost.com/user/ThrRip), [tnir](https://github.com/tnir), [toninis](https://github.com/toninis), [varghesejose2020](https://github.com/varghesejose2020), [vhaska](https://translate.mattermost.com/user/vhaska), [wiersgallak](https://github.com/wiersgallak), [wiggin77](https://github.com/wiggin77), [yasserfaraazkhan](https://github.com/yasserfaraazkhan), [yomiadetutu1](https://github.com/yomiadetutu1), [ythosa](https://github.com/ythosa), [zenocode-org](https://translate.mattermost.com/user/zenocode-org), [ZubairImtiaz3](https://github.com/ZubairImtiaz3)
 
-(release-v9-10-feature-release)=
-## Release v9.10 - [Feature Release](https://docs.mattermost.com/upgrade/release-definitions.html#feature-release)
+## Release v9.10 - [Feature Release](https://docs.mattermost.com/upgrade/release-definitions.html#feature-release) \{#release-v9-10-feature-release}
 
 - **9.10.3, released 2024-09-26**
   - Mattermost v9.10.3 contains low to medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
@@ -235,9 +240,11 @@ New setting options were added to ``config.json``. Below is a list of the additi
 - **9.10.0, released 2024-07-16**
   - Original 9.10.0 release.
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v9.5, please read the other [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Improvements
 
@@ -299,8 +306,7 @@ New setting options were added to ``config.json``. Below is a list of the additi
 ### Contributors
  - [abhijit-singh](https://github.com/abhijit-singh), [aeomin](https://translate.mattermost.com/user/aeomin), [agarciamontoro](https://github.com/agarciamontoro), [agnivade](https://github.com/agnivade), [ahmadJT](https://github.com/ahmadJT), [amyblais](https://github.com/amyblais), [andrleite](https://github.com/andrleite), [apshada](https://github.com/apshada), [Aryakoste](https://github.com/Aryakoste), [asaadmahmood](https://github.com/asaadmahmood), [AshishDhama](https://github.com/AshishDhama), [BenCookie95](https://github.com/BenCookie95), [BillAnderson304](https://github.com/BillAnderson304), [Boruus](https://translate.mattermost.com/user/Boruus), [BrandonS09](https://github.com/BrandonS09), [bruno-keiko](https://github.com/bruno-keiko), [calebroseland](https://github.com/calebroseland), [Camillarhi](https://github.com/Camillarhi), [catalintomai](https://github.com/catalintomai), [chessmadridista](https://github.com/chessmadridista), [ckaznable](https://github.com/ckaznable), [coltoneshaw](https://github.com/coltoneshaw), [cpoile](https://github.com/cpoile), [crspeller](https://github.com/crspeller), [ctlaltdieliet](https://translate.mattermost.com/user/ctlaltdieliet), [cwarnermm](https://github.com/cwarnermm), [devinbinnie](https://github.com/devinbinnie), [DHaussermann](https://github.com/DHaussermann), [DSchalla](https://github.com/DSchalla), [Eleferen](https://translate.mattermost.com/user/Eleferen), [emdecr](https://github.com/emdecr), [enahum](https://github.com/enahum), [enzowritescode](https://github.com/enzowritescode), [esarafianou](https://github.com/esarafianou), [EyeCantCU](https://github.com/EyeCantCU), [ezekielchow](https://github.com/ezekielchow), [fmartingr](https://github.com/fmartingr), [frankps](https://translate.mattermost.com/user/frankps), [gabrieljackson](https://github.com/gabrieljackson), [Gesare5](https://github.com/Gesare5), [hanzei](https://github.com/hanzei), [harshilsharma63](https://github.com/harshilsharma63), [hmhealey](https://github.com/hmhealey), [homerCOD](https://translate.mattermost.com/user/homerCOD), [ifoukarakis](https://github.com/ifoukarakis), [isacikgoz](https://github.com/isacikgoz), [jasonblais](https://github.com/jasonblais), [jespino](https://github.com/jespino), [johnsonbrothers](https://github.com/johnsonbrothers), [jprusch](https://github.com/jprusch), [JtheBAB](https://github.com/JtheBAB), [JulienTant](https://github.com/JulienTant), [kaakaa](https://github.com/kaakaa), [kayazeren](https://github.com/kayazeren), [Kshitij-Katiyar](https://github.com/Kshitij-Katiyar), [larkox](https://github.com/larkox), [lieut-data](https://github.com/lieut-data), [lindalumitchell](https://github.com/lindalumitchell), [lynn915](https://github.com/lynn915), [M-ZubairAhmed](https://github.com/M-ZubairAhmed), [majo](https://translate.mattermost.com/user/majo), [marianunez](https://github.com/marianunez), [maruTA-bis5](https://translate.mattermost.com/user/maruTA-bis5), [master7](https://translate.mattermost.com/user/master7), [matt-w99](https://github.com/matt-w99), [matthew-w](https://translate.mattermost.com/user/matthew-w), [matthewbirtch](https://github.com/matthewbirtch), [MattSilvaa](https://github.com/MattSilvaa), [mgdelacroix](https://github.com/mgdelacroix), [mickmister](https://github.com/mickmister), [mojahani](https://translate.mattermost.com/user/mojahani), [mvitale1989](https://github.com/mvitale1989), [nbruneau71250](https://github.com/nbruneau71250), [nickmisasi](https://github.com/nickmisasi), [phoinixgrr](https://github.com/phoinixgrr), [pvev](https://github.com/pvev), [raghavaggarwal2308](https://github.com/raghavaggarwal2308), [Rajat-Dabade](https://github.com/Rajat-Dabade), [sadohert](https://github.com/sadohert), [saturninoabril](https://github.com/saturninoabril), [sbishel](https://github.com/sbishel), [sri-byte](https://github.com/sri-byte), [stafot](https://github.com/stafot), [streamer45](https://github.com/streamer45), [ThrRip](https://github.com/ThrRip), [tnir](https://github.com/tnir), [toninis](https://github.com/toninis), [varghesejose2020](https://github.com/varghesejose2020), [wiggin77](https://github.com/wiggin77), [willypuzzle](https://github.com/willypuzzle), [yasserfaraazkhan](https://github.com/yasserfaraazkhan), [yomiadetutu1](https://github.com/yomiadetutu1), [zenocode-org](https://github.com/zenocode-org)
 
-(release-v9-9-feature-release)=
-## Release v9.9 - [Feature Release](https://docs.mattermost.com/upgrade/release-definitions.html#feature-release)
+## Release v9.9 - [Feature Release](https://docs.mattermost.com/upgrade/release-definitions.html#feature-release) \{#release-v9-9-feature-release}
 
 - **9.9.3, released 2024-08-27**
   - Mattermost v9.9.3 contains low to medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
@@ -323,9 +329,11 @@ New setting options were added to ``config.json``. Below is a list of the additi
 ### Compatibility
  - Updated minimum macOS version to 12+ and minimum Safari version to 17+.
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v9.5, please read the other [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Improvements
 
@@ -419,8 +427,7 @@ New setting options were added to ``config.json``. Below is a list of the additi
 ### Contributors
  - [agarciamontoro](https://github.com/agarciamontoro), [agnivade](https://github.com/agnivade), [amyblais](https://github.com/amyblais), [andrleite](https://github.com/andrleite), [arush-vashishtha](https://github.com/arush-vashishtha), [asaadmahmood](https://github.com/asaadmahmood), [ayusht2810](https://github.com/ayusht2810), [azigler](https://github.com/azigler), [BenCookie95](https://github.com/BenCookie95), [bndn](https://translate.mattermost.com/user/bndn), [calebroseland](https://github.com/calebroseland), [coltoneshaw](https://github.com/coltoneshaw), [cpoile](https://github.com/cpoile), [crspeller](https://github.com/crspeller), [ctlaltdieliet](https://translate.mattermost.com/user/ctlaltdieliet), [cwarnermm](https://github.com/cwarnermm), [devinbinnie](https://github.com/devinbinnie), [DHaussermann](https://github.com/DHaussermann), [Eleferen](https://translate.mattermost.com/user/Eleferen), [emdecr](https://github.com/emdecr), [enahum](https://github.com/enahum), [enzowritescode](https://github.com/enzowritescode), [fasal26](https://github.com/fasal26), [fmartingr](https://github.com/fmartingr), [gabrieljackson](https://github.com/gabrieljackson), [grundleborg](https://github.com/grundleborg), [hanzei](https://github.com/hanzei), [harshilsharma63](https://github.com/harshilsharma63), [hmhealey](https://github.com/hmhealey), [ifoukarakis](https://github.com/ifoukarakis), [isacikgoz](https://github.com/isacikgoz), [jespino](https://github.com/jespino), [joakim.rivera](https://translate.mattermost.com/user/joakim.rivera), [johnsonbrothers](https://github.com/johnsonbrothers), [jprusch](https://github.com/jprusch), [JulienTant](https://github.com/JulienTant), [kaakaa](https://github.com/kaakaa), [Kshitij-Katiyar](https://github.com/Kshitij-Katiyar), [larkox](https://github.com/larkox), [lieut-data](https://github.com/lieut-data), [M-ZubairAhmed](https://github.com/M-ZubairAhmed), [majo](https://translate.mattermost.com/user/majo), [marianunez](https://github.com/marianunez), [marlenekoh](https://github.com/marlenekoh), [master7](https://translate.mattermost.com/user/master7), [matt-w99](https://github.com/matt-w99), [matthew-w](https://translate.mattermost.com/user/matthew-w), [matthewbirtch](https://github.com/matthewbirtch), [MeHow25](https://github.com/MeHow25), [mgdelacroix](https://github.com/mgdelacroix), [mickmister](https://github.com/mickmister), [mojahani](https://translate.mattermost.com/user/mojahani), [morgancz](https://github.com/morgancz), [mvitale1989](https://github.com/mvitale1989), [nickmisasi](https://github.com/nickmisasi), [nixusUM](https://github.com/nixusUM), [orimaimon](https://github.com/orimaimon), [phoinixgrr](https://github.com/phoinixgrr), [piotr-lasota](https://github.com/piotr-lasota), [pjenicot](https://translate.mattermost.com/user/pjenicot), [pmokeev](https://github.com/pmokeev), [rOt779kVceSgL](https://translate.mattermost.com/user/rOt779kVceSgL), [saturninoabril](https://github.com/saturninoabril), [sbishel](https://github.com/sbishel), [spirosoik](https://github.com/spirosoik), [sri-byte](https://github.com/sri-byte), [stafot](https://github.com/stafot), [streamer45](https://github.com/streamer45), [stylianosrigas](https://github.com/stylianosrigas), [svelle](https://github.com/svelle), [tarrow](https://github.com/tarrow), [ThrRip](https://github.com/ThrRip), [tnir](https://github.com/tnir), [toninis](https://github.com/toninis), [umrkhn](https://github.com/umrkhn), [varghesejose2020](https://github.com/varghesejose2020), [vish9812](https://github.com/vish9812), [wiggin77](https://github.com/wiggin77), [yasserfaraazkhan](https://github.com/yasserfaraazkhan), [yomiadetutu1](https://github.com/yomiadetutu1), [zsrv](https://github.com/zsrv)
 
-(release-v9-8-feature-release)=
-## Release v9.8 - Feature Release
+## Release v9.8 - Feature Release \{#release-v9-8-feature-release}
 
 - **9.8.3, released 2024-07-22**
   - Mattermost v9.8.3 contains low to medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
@@ -440,9 +447,11 @@ New setting options were added to ``config.json``. Below is a list of the additi
 ### Compatibility
  - Updated minimum required Edge and Chrome versions to 122+.
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v9.7, please read the other [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Improvements
 
@@ -541,8 +550,7 @@ New setting option were added to ``config.json``. Below is a list of the additio
 
 ----
 
-(release-v9-7-feature-release)=
-## Release v9.7 - [Feature Release](https://docs.mattermost.com/upgrade/release-definitions.html#feature-release)
+## Release v9.7 - [Feature Release](https://docs.mattermost.com/upgrade/release-definitions.html#feature-release) \{#release-v9-7-feature-release}
 
 - **9.7.6, released 2024-07-02**
   - Mattermost v9.7.6 contains low to high severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
@@ -570,9 +578,11 @@ New setting option were added to ``config.json``. Below is a list of the additio
 - **9.7.0, released 2024-04-16**
   - Original 9.7.0 release.
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v9.6, please read the other [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Improvements
 
@@ -647,8 +657,7 @@ A new setting option was added to ``config.json``. Below is a list of the additi
 
 ----
 
-(release-v9-6-feature-release)=
-## Release v9.6 - [Feature Release](https://docs.mattermost.com/upgrade/release-definitions.html#feature-release)
+## Release v9.6 - [Feature Release](https://docs.mattermost.com/upgrade/release-definitions.html#feature-release) \{#release-v9-6-feature-release}
 
 - **9.6.3, released 2024-06-03**
   - Mattermost v9.6.3 contains low to high severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
@@ -669,9 +678,11 @@ A new setting option was added to ``config.json``. Below is a list of the additi
 ### Compatibility
  - Updated minimum required Edge and Chrome versions to 120+.
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v9.5, please read the other [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Improvements
 
@@ -735,8 +746,7 @@ See [this walkthrough video](https://mattermost.com/video/changelog-v9-6/) on so
 
 ----
 
-(release-v9-5-extended-support-release)=
-## Release v9.5 - [Extended Support Release](https://docs.mattermost.com/upgrade/release-definitions.html#extended-support-release-esr)
+## Release v9.5 - [Extended Support Release](https://docs.mattermost.com/upgrade/release-definitions.html#extended-support-release-esr) \{#release-v9-5-extended-support-release}
 
 - **9.5.14, released 2025-05-09**
   - Upgraded logr dependency to v2.0.22 for multiple improvements and bug fixes.
@@ -804,9 +814,11 @@ See [this walkthrough video](https://mattermost.com/video/changelog-v9-6/) on so
 ### Important Upgrade Notes
  - We have stopped supporting MySQL v5.7 since it's at the end of life. We urge customers to upgrade their MySQL instance at their earliest convenience.
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v9.4, please read the other [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Improvements
 
@@ -904,8 +916,7 @@ See [this walkthrough video](https://www.youtube.com/watch?v=b1M2BGGF578&feature
 
 ----
 
-(release-v9-4-feature-release)=
-## Release v9.4 - [Feature Release](https://docs.mattermost.com/upgrade/release-definitions.html#feature-release)
+## Release v9.4 - [Feature Release](https://docs.mattermost.com/upgrade/release-definitions.html#feature-release) \{#release-v9-4-feature-release}
 
 - **9.4.5, released 2024-03-26**
   - Mattermost v9.4.5 contains low to medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
@@ -929,9 +940,11 @@ See [this walkthrough video](https://www.youtube.com/watch?v=b1M2BGGF578&feature
 ### Important Upgrade Notes
  - MySQL v5.7 is at end of life. We recommend all customers to upgrade to at least 8.x. For now, we are logging a warning. From Mattermost v9.5, which is the next Extended Support Release, we will stop supporting MySQL v5.7 altogether.
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v9.3, please read the other [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Compatibility
  - Updated the minimum required Edge version to v118+.
@@ -1001,8 +1014,7 @@ See [this walkthrough video](https://www.youtube.com/watch?v=bEMp4vYLi6c&feature
 
 ----
 
-(release-v9-3-feature-release)=
-## Release v9.3 - [Feature Release](https://docs.mattermost.com/upgrade/release-definitions.html#feature-release)
+## Release v9.3 - [Feature Release](https://docs.mattermost.com/upgrade/release-definitions.html#feature-release) \{#release-v9-3-feature-release}
 
 - **9.3.3, released 2024-03-06**
   - Mattermost v9.3.3 contains low to medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
@@ -1117,8 +1129,7 @@ See [this walkthrough video](https://www.youtube.com/watch?v=eXA8emM97Bo) on som
 
 ----
 
-(release-v9-2-feature-release)=
-## Release v9.2 - [Feature Release](https://docs.mattermost.com/upgrade/release-definitions.html#feature-release)
+## Release v9.2 - [Feature Release](https://docs.mattermost.com/upgrade/release-definitions.html#feature-release) \{#release-v9-2-feature-release}
 
 - **9.2.6, released 2024-02-14**
     - Mattermost v9.2.6 contains low to high severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
@@ -1147,9 +1158,11 @@ See [this walkthrough video](https://www.youtube.com/watch?v=eXA8emM97Bo) on som
 ### Important Upgrade Notes
  - Fixed data retention policies to run jobs when any custom retention policy is enabled even when the global retention policy is set to **keep-forever**. Before this fix, the enabled custom data retention policies wouldn’t run as long as the global data retention policy was set to **keep-forever** or was disabled. After the fix, the custom data retention policies will run automatically even when the global data retention policy is set to **keep-forever**. Once the server is upgraded, posts may unintentionally be deleted. Admins should make sure to disable all custom data retention policies before upgrading, and then re-enable them again after upgrading.
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v9.1, please read the other [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Compatibility
  - Updated minimum required Edge version to 116+.
@@ -1213,8 +1226,7 @@ See [this walkthrough video](https://www.youtube.com/watch?v=udC2OCTGooc&feature
 
 ----
 
-(release-v9-1-feature-release)=
-## Release v9.1 - [Feature Release](https://docs.mattermost.com/upgrade/release-definitions.html#feature-release)
+## Release v9.1 - [Feature Release](https://docs.mattermost.com/upgrade/release-definitions.html#feature-release) \{#release-v9-1-feature-release}
 
 - **9.1.5, released 2024-01-09**
   - Mattermost v9.1.5 contains medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
@@ -1245,9 +1257,11 @@ See [this walkthrough video](https://www.youtube.com/watch?v=udC2OCTGooc&feature
  - Improved performance on data retention ``DeleteOrphanedRows`` queries. See the [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html) for notes on a new migration that was added. Removed feature flag ``DataRetentionConcurrencyEnabled``. Data retention now runs without concurrency in order to avoid any performance degradation. Added a new configuration setting ``DataRetentionSettings.RetentionIdsBatchSize``, which allows admins to to configure how many batches of IDs will be fetched at a time when deleting orphaned reactions. The default value is 100.
  - Minimum supported Desktop App version is now v5.3. OAuth/SAML flows were modified to include ``desktop_login`` which makes earlier versions incompatible.
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v9.0, please read the other [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Compatibility
  - Updated Chromium minimum supported version to 116+.
@@ -1345,8 +1359,7 @@ Multiple setting options were added to ``config.json``. Below is a list of the a
 
 ----
 
-(release-v9-0-major-release)=
-## Release v9.0 - [Major Release](https://docs.mattermost.com/upgrade/release-definitions.html#major-release)
+## Release v9.0 - [Major Release](https://docs.mattermost.com/upgrade/release-definitions.html#major-release) \{#release-v9-0-major-release}
 
 - **9.0.5, released 2023-11-29**
   - Mattermost v9.0.5 contains medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
@@ -1377,9 +1390,11 @@ Multiple setting options were added to ``config.json``. Below is a list of the a
  - Mattermost Boards and various other plugins have transitioned to being fully community supported. See this [forum post](https://forum.mattermost.com/t/upcoming-product-changes-to-boards-and-various-plugins/16669) for more details.
  - The ``channel_viewed`` websocket event was changed to ``multiple_channels_viewed``, and is now only triggered for channels that actually have unread messages.
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v8.1, please read the other [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 
@@ -1466,11 +1481,13 @@ Multiple setting options were added to ``config.json``. Below is a list of the a
 ### Contributors
  - [abdulsmapara](https://github.com/abdulsmapara), [agarciamontoro](https://github.com/agarciamontoro), [agnivade](https://github.com/agnivade), [akaravashkin](https://github.com/akaravashkin), [amyblais](https://github.com/amyblais), [andrleite](https://github.com/andrleite), [angeloskyratzakos](https://github.com/angeloskyratzakos), [apollo13](https://github.com/apollo13), [aqurilla](https://github.com/aqurilla), [ayusht2810](https://github.com/ayusht2810), [azigler](https://github.com/azigler), [bbodenmiller](https://github.com/bbodenmiller), [BenCookie95](https://github.com/BenCookie95), [Benjamin-Loison](https://github.com/Benjamin-Loison), [calebroseland](https://github.com/calebroseland), [cdmwebs](https://github.com/cdmwebs), [chumano](https://github.com/chumano), [CI-YU](https://github.com/CI-YU), [Coelho](https://translate.mattermost.com/user/Coelho), [cpoile](https://github.com/cpoile), [crspeller](https://github.com/crspeller), [ctlaltdieliet](https://translate.mattermost.com/user/ctlaltdieliet), [cwarnermm](https://github.com/cwarnermm), [danielsischy](https://github.com/danielsischy), [deivisonrpg](https://github.com/deivisonrpg), [devinbinnie](https://github.com/devinbinnie), [djanda97](https://github.com/djanda97), [douglasstasiak](https://github.com/douglasstasiak), [Eleferen](https://translate.mattermost.com/user/Eleferen), [enahum](https://github.com/enahum), [esarafianou](https://github.com/esarafianou), [esethna](https://github.com/esethna), [gabrieljackson](https://github.com/gabrieljackson), [gary-sixgen](https://github.com/gary-sixgen), [Gobbit69](https://translate.mattermost.com/user/Gobbit69), [grubbins](https://github.com/grubbins), [guneshsji](https://github.com/guneshsji), [hannaparks](https://github.com/hannaparks), [hanzei](https://github.com/hanzei), [harshal2030](https://github.com/harshal2030), [harshilsharma63](https://github.com/harshilsharma63), [hmhealey](https://github.com/hmhealey), [hpkhanh1610](https://github.com/hpkhanh1610), [ifoukarakis](https://github.com/ifoukarakis), [isacikgoz](https://github.com/isacikgoz), [it33](https://github.com/it33), [ivakorin](https://github.com/ivakorin), [jasonblais](https://github.com/jasonblais), [jespino](https://github.com/jespino), [johndavidlugtu](https://github.com/johndavidlugtu), [johnsonbrothers](https://github.com/johnsonbrothers), [jprusch](https://github.com/jprusch), [JulienTant](https://github.com/JulienTant), [kaakaa](https://github.com/kaakaa), [kayazeren](https://github.com/kayazeren), [Kshitij-Katiyar](https://github.com/Kshitij-Katiyar), [kyeongsoosoo](https://github.com/kyeongsoosoo), [larkox](https://github.com/larkox), [lieut-data](https://github.com/lieut-data), [LimJiAn](https://github.com/LimJiAn), [lindalumitchell](https://github.com/lindalumitchell), [lindy65](https://github.com/lindy65), [lynn915](https://github.com/lynn915), [M-ZubairAhmed](https://github.com/M-ZubairAhmed), [mahmoudfarouq](https://github.com/mahmoudfarouq), [majo](https://translate.mattermost.com/user/majo), [manojmalik20](https://github.com/manojmalik20), [marianunez](https://github.com/marianunez), [maruTA-bis5](https://translate.mattermost.com/user/maruTA-bis5), [master7](https://translate.mattermost.com/user/master7), [matt-w99](https://github.com/matt-w99), [matthew-w](https://translate.mattermost.com/user/matthew-w), [matthewbirtch](https://github.com/matthewbirtch), [MatthewDorner](https://github.com/MatthewDorner), [mgdelacroix](https://github.com/mgdelacroix), [mickmister](https://github.com/mickmister), [milotype](https://translate.mattermost.com/user/milotype), [mvitale1989](https://github.com/mvitale1989), [nickmisasi](https://github.com/nickmisasi), [panoramix360](https://github.com/panoramix360), [Partizann](https://github.com/Partizann), [penghao_chn](https://translate.mattermost.com/user/penghao_chn), [phoinixgrr](https://github.com/phoinixgrr), [pjenicot](https://translate.mattermost.com/user/pjenicot), [pvev](https://github.com/pvev), [raghavaggarwal2308](https://github.com/raghavaggarwal2308), [RichardScottOZ](https://github.com/RichardScottOZ), [robinsdm](https://github.com/robinsdm), [saturninoabril](https://github.com/saturninoabril), [sbishel](https://github.com/sbishel), [Sharuru](https://github.com/Sharuru), [ShrootBuck](https://github.com/ShrootBuck), [sinansonmez](https://github.com/sinansonmez), [sri-byte](https://github.com/sri-byte), [stafot](https://github.com/stafot), [StreakInTheSky](https://github.com/StreakInTheSky), [streamer45](https://github.com/streamer45), [stylianosrigas](https://github.com/stylianosrigas), [svelle](https://github.com/svelle), [tasawar-hussain](https://github.com/tasawar-hussain), [TealWater](https://github.com/TealWater), [thinkGeist](https://github.com/thinkGeist), [ThrRip](https://translate.mattermost.com/user/ThrRip), [timmycheng](https://translate.mattermost.com/user/timmycheng), [toninis](https://github.com/toninis), [tschuyebuhl](https://github.com/tschuyebuhl), [wiggin77](https://github.com/wiggin77), [Willyfrog](https://github.com/Willyfrog), [y4aniv](https://translate.mattermost.com/user/y4aniv), [yash2189](https://github.com/yash2189), [yasserfaraazkhan](https://github.com/yasserfaraazkhan), [yomiadetutu1](https://github.com/yomiadetutu1), [ZubairImtiaz3](https://github.com/ZubairImtiaz3)
 
-(release-v8-1-extended-support-release)=
-## Release v8.1 - [Extended Support Release](https://docs.mattermost.com/upgrade/release-definitions.html#extended-support-release-esr)
+## Release v8.1 - [Extended Support Release](https://docs.mattermost.com/upgrade/release-definitions.html#extended-support-release-esr) \{#release-v8-1-extended-support-release}
 
-```{Important}
+<Important>
+
 <Inc1_common_esr_support_upgrade />
+
+</Important>
 - **8.1.13, released 2024-04-25**
   - Mattermost v8.1.13 contains low to medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
   - Mattermost v8.1.13 contains no database or functional changes.
@@ -1620,12 +1637,13 @@ Multiple setting options were added to ``config.json``. Below is a list of the a
 
 ----
 
-(release-v8-0-major-release)=
-## Release v8.0 - [Major Release](https://docs.mattermost.com/upgrade/release-definitions.html#major-release)
+## Release v8.0 - [Major Release](https://docs.mattermost.com/upgrade/release-definitions.html#major-release) \{#release-v8-0-major-release}
 
-```{Important}
+<Important>
+
 Support for Mattermost Server v8.0 [Major Release](https://docs.mattermost.com/about/release-policy.html#release-types) has come to the end of its life cycle on October 15, 2023. [Upgrading Mattermost Server](https://docs.mattermost.com/about/mattermost-server-releases.html#latest-releases) is required.
-```
+
+</Important>
 
 - **8.0.4, released 2023-10-06**
   - Mattermost v8.0.4 contains low to medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
@@ -1681,9 +1699,11 @@ Support for Mattermost Server v8.0 [Major Release](https://docs.mattermost.com/a
    - On a PostgreSQL 12.14 DB with 1731 rows in FileInfo and 11M posts, it took around 0.27s
    - On a MySQL 8.0.31 DB with 1405 rows in FileInfo and 11M posts, it took around 0.3s
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v7.10, please read the other [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 
@@ -1850,8 +1870,7 @@ Multiple setting options were added to ``config.json``. Below is a list of the a
 
   - The Mattermost v7.11 release has been canceled as we are working on architectural changes for the Mattermost platform. The next scheduled release is v8.0 this summer.
 
-(release-v7-10-feature-release)=
-## Release v7.10 - [Feature Release](https://docs.mattermost.com/upgrade/release-definitions.html#feature-release)
+## Release v7.10 - [Feature Release](https://docs.mattermost.com/upgrade/release-definitions.html#feature-release) \{#release-v7-10-feature-release}
 
 - **v7.10.5, released 2023-07-26**
   - Mattermost v7.10.5 contains medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
@@ -1887,9 +1906,11 @@ Mattermost v7.10.0 contains low to medium severity level security fixes. [Upgrad
 
  - In the next release, v7.11, the following repositories will be merged into one: ``mattermost-server``, ``mattermost-webapp``, ``focalboard`` and ``mattermost-plugin-playbooks``. Developers should read the updated [Developer Guide](https://developers.mattermost.com/contribute/developer-setup/) for details. **Playbooks and Boards will be core parts of the product that cannot be disabled**.
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v7.9, please read the other [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Improvements
 
@@ -1962,8 +1983,7 @@ Multiple setting options were added to ``config.json``. Below is a list of the a
 
 ----
 
-(release-v7-9-feature-release)=
-## Release v7.9 - [Feature Release](https://docs.mattermost.com/upgrade/release-definitions.html#feature-release)
+## Release v7.9 - [Feature Release](https://docs.mattermost.com/upgrade/release-definitions.html#feature-release) \{#release-v7-9-feature-release}
 
 - **v7.9.6, released 2023-07-12**
   - Mattermost v7.9.6 contains medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
@@ -2002,9 +2022,11 @@ Mattermost v7.9.0 contains a low severity level security fix. [Upgrading](https:
 - In PostgreSQL databases, the ``Posts`` table will be locked during index creation. To avoid locking this table, admins can create the index manually before performing the upgrade using the following non-blocking query: ``CREATE INDEX CONCURRENTLY idx_posts_original_id ON Posts(OriginalId);``. 
 - Admins managing PostgreSQL deployments containing fewer posts may prefer that the migration process creates the index, and accept that ``Posts`` table will remain locked until the migration is complete.
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v7.8, please read the other [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Compatibility
  - Updated Firefox minimum supported version to 102+.
@@ -2095,12 +2117,13 @@ If you upgrade from a release earlier than v7.8, please read the other [Importan
 
 ----
 
-(release-v7-8-extended-support-release)=
-## Release v7.8 - [Extended Support Release](https://docs.mattermost.com/upgrade/release-definitions.html#extended-support-release-esr)
+## Release v7.8 - [Extended Support Release](https://docs.mattermost.com/upgrade/release-definitions.html#extended-support-release-esr) \{#release-v7-8-extended-support-release}
 
-```{Important}
+<Important>
+
 Support for Mattermost Server v7.8 [Extended Support Release](https://docs.mattermost.com/about/release-policy.html#extended-support-releases) has come to the end of its life cycle on November 15, 2023. [Upgrading Mattermost Server](https://docs.mattermost.com/about/mattermost-server-releases.html#latest-releases) is required.
-```
+
+</Important>
 
 - **7.8.15 released 2023-11-13**
   - Mattermost v7.8.15 contains low to high severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
@@ -2183,9 +2206,11 @@ Mattermost v7.8.0 contains low to high severity level security fixes. [Upgrading
 
  - [Message Priority & Acknowledgement](https://docs.mattermost.com/configure/site-configuration-settings.html#message-priority) is now enabled by default for all instances. You may disable this feature in the System Console by going to **Posts > Message Priority** or via the config ``PostPriority`` setting.
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v7.5, please read the other [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 
@@ -2306,8 +2331,7 @@ If you upgrade from a release earlier than v7.5, please read the other [Importan
 
 ----
 
-(release-v7-7-feature-release)=
-## Release v7.7 - [Feature Release](https://docs.mattermost.com/upgrade/release-definitions.html#feature-release)
+## Release v7.7 - [Feature Release](https://docs.mattermost.com/upgrade/release-definitions.html#feature-release) \{#release-v7-7-feature-release}
 
 - **v7.7.4, released 2023-04-12**
   - Mattermost v7.7.4 contains medium level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
@@ -2336,9 +2360,11 @@ Mattermost v7.7.0 contains low severity level security fixes. [Upgrading](https:
  - Denormalized ``Threads`` table by adding the ``ThreadTeamId`` column. See details for schema changes in the [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html).
  - Starting with the Calls version shipping with v7.7, there's now a minimum version requirement when using the external RTCD service. This means that if Calls is configured to use the external service, customers need to upgrade RTCD first to at least version 0.8.0 or the plugin will fail to start.
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v7.5, please read the other [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Compatibility
  - Updated the minimum version of MacOS to 11+.
@@ -2529,9 +2555,11 @@ Mattermost v7.5.0 contains a medium severity level security fix. [Upgrading](htt
  - Adds a new schema migration to ensure ``ParentId`` column is dropped from the ``Posts`` table. Depending on the table size, if the column is not dropped before, a significant spike in database CPU usage is expected on MySQL databases. Writes to the table will be limited during the migration.
  - For ``PluginRegistry.registerCustomRoute``, when you register a custom route component, you must specify a CSS ``grid-area`` in order for it to be placed properly into the root layout (recommended: ``grid-area: center``).
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v7.4, please read the other [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Compatibility
  - Updated the minimum version of Chrome and Edge to v106+.
@@ -2648,8 +2676,7 @@ Multiple setting options were added to ``config.json``. Below is a list of the a
 
 ----
 
-(release-v7-4-feature-release)=
-## Release v7.4 - [Feature Release](https://docs.mattermost.com/upgrade/release-definitions.html#feature-release)
+## Release v7.4 - [Feature Release](https://docs.mattermost.com/upgrade/release-definitions.html#feature-release) \{#release-v7-4-feature-release}
 
 - **v7.4.1, released 2022-12-21**
   - Mattermost v7.4.1 contains low to medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
@@ -2751,9 +2778,11 @@ Mattermost v7.3.0 contains a medium severity level security fix. [Upgrading](htt
 ### Important Upgrade Notes
  - Boards is moving from a channel-based to a role-based permissions system. The migration will happen automatically, but your administrator should perform a backup prior to the upgrade. We removed workspaces, so if you were a member of many boards prior to migration, they will now all appear under the same sidebar. Please see [this document](https://docs.mattermost.com/welcome/whats-new-in-v72.html) for more details.
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v7.2, please read the other [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 
@@ -2884,9 +2913,11 @@ Several schema changes impose additional database constraints to make the data m
 - ``ALTER TABLE Teams MODIFY COLUMN Type ENUM("I", "O");`` took 0.04 seconds
 - ``ALTER TABLE UploadSessions MODIFY COLUMN Type ENUM("attachment", "import");`` took 0.03 seconds
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v7.1, please read the other [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 
@@ -2981,9 +3012,11 @@ Multiple setting options were added to ``config.json``. Below is a list of the a
 
 ## Release v7.1 - [Extended Support Release](https://docs.mattermost.com/upgrade/release-definitions.html#extended-support-release-esr)
 
-```{Important}
+<Important>
+
 Support for Mattermost Server v7.1 [Extended Support Release](https://docs.mattermost.com/about/release-policy.html#extended-support-releases) has come to the end of its life cycle on May 15, 2023. [Upgrading Mattermost Server](https://docs.mattermost.com/about/mattermost-server-releases.html#latest-releases) is required.
-```
+
+</Important>
 
 - **v7.1.9, released 2023-04-27**
   - Mattermost v7.1.9 contains a medium severity level security fix. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
@@ -3039,9 +3072,11 @@ Mattermost v7.1.0 contains low severity level security fixes. [Upgrading](https:
       - ``UPDATE reactions SET channelid = COALESCE((select channelid from posts where posts.id = reactions.postid), '') WHERE channelid='';`` 
       - ``CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_reactions_channel_id on reactions (channelid);`` 
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v7.0, please read the other [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 
@@ -3129,9 +3164,11 @@ Multiple setting options were added to ``config.json``. Below is a list of the a
 
 ## Release v7.0 - [Major Release](https://docs.mattermost.com/upgrade/release-definitions.html#major-release)
 
-```{Important}
+<Important>
+
 Support for Mattermost Server v7.0 [Major Release](https://docs.mattermost.com/about/release-policy.html#release-types) has come to the end of its life cycle on September 15, 2022. [Upgrading Mattermost Server](https://docs.mattermost.com/about/mattermost-server-releases.html#latest-releases) is required.
-```
+
+</Important>
 
 - **v7.0.2, released 2022-08-23**
   - Mattermost v7.0.2 contains a medium severity level security fix. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
@@ -3156,9 +3193,11 @@ Mattermost v7.0.0 contains medium severity level security fixes. [Upgrading](htt
  - The value of ``ServiceSettings.TrustedProxyIPHeader`` defaults to empty from now on. A previous bug prevented this from happening in certain conditions. Customers are requested to check for these values in their config and set them to nil if necessary. See more details [here](https://docs.mattermost.com/configure/configuration-settings.html#trusted-proxy-ip-header).
  - Upgrading the Microsoft Teams Calling plugin to v2.0.0 requires users to reconnect their accounts.
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v6.7, please read the other [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 
@@ -3255,8 +3294,7 @@ Multiple setting options were added to ``config.json``. Below is a list of the a
 
 ----
 
-(release-v6-7-feature-release)=
-## Release v6.7 - [Feature Release](https://docs.mattermost.com/upgrade/release-definitions.html#feature-release)
+## Release v6.7 - [Feature Release](https://docs.mattermost.com/upgrade/release-definitions.html#feature-release) \{#release-v6-7-feature-release}
 
 - **v6.7.2, released 2022-06-15**
   - Fixed an issue with Compliance Exports where the zip file creation failed when adding attachments to a post [MM-40179](https://mattermost.atlassian.net/browse/MM-40179).
@@ -3281,9 +3319,11 @@ Mattermost v6.7.0 contains low severity level security fixes. [Upgrading](https:
     - For MySQL: `CREATE INDEX idx_posts_create_at_id on Posts(CreateAt, Id) LOCK=NONE;`
     - For Postgres: `CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_posts_create_at_id on posts(createat, id);`
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v6.6, please read the other [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 
@@ -3406,9 +3446,11 @@ Mattermost v6.6.0 contains a low severity level security fix. [Upgrading](https:
 ### Important Upgrade Notes
  - The Apps Framework protocol for binding/form submissions has changed, by separating the single `call` into separate `submit`, `form`, `refresh` and `lookup` calls. If any users have created their own Apps, they have to be updated to the new system.
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v6.5, please read the other [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html).
- ```
+
+</Important>
 
 ### Highlights
 
@@ -3549,9 +3591,11 @@ Mattermost v6.5.0 contains low to medium severity level security fixes. [Upgradi
 ### Important Upgrade Notes
  - The ``mattermost version`` CLI command does not interact with the database anymore. Therefore the database version is not going to be printed. Also, the database migrations are not going to be applied with the version sub command. [A new db migrate sub command](https://docs.mattermost.com/manage/command-line-tools.html#mattermost-db-migrate) is added to enable administrators to trigger migrations.
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v6.4, please read the other [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 
@@ -3689,9 +3733,11 @@ Mattermost v6.4.0 contains low severity level security fixes. [Upgrading](https:
  - It has been commonly observed on MySQL 8+ systems to have an error ``Error 1267: Illegal mix of collations`` when upgrading due to changing the default collation. This is caused by the database and the tables having different collations. If you get this error, please change the collations to have the same value with, for example, ``ALTER DATABASE <db_name> COLLATE = '&lt;collation&gt;'``.
  - The new migration system requires the MySQL database user to have additional *EXECUTE*, *CREATE ROUTINE*, *ALTER ROUTINE* and *REFERENCES* privileges to run schema migrations.                   
 
-```{Important} 
+<Important>
+
 If you upgrade from a release earlier than v6.3, please read the other [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 
@@ -3927,9 +3973,11 @@ IMPORTANT: If you upgrade from a release earlier than v6.2, please read the othe
  -  Channel results in the channel autocomplete will include private channels. Customers using [Bleve](https://docs.mattermost.com/configure/bleve-search.html) or [Elasticsearch](https://docs.mattermost.com/scale/elasticsearch.html) for autocomplete will have to reindex their data to get the new results. Since this can take a long time, we suggest disabling autocomplete and running indexing in the background. When this is complete, re-enable autocomplete. Note that only channel members will see private channel names in autocomplete results.
  -  [Collapsed Reply Threads](https://docs.mattermost.com/messaging/organizing-conversations.html), available in beta, are known to have a negative impact on server performance. If you cannot easily scale up and tune your database, or if you are running the Mattermost application server and database server on the same machine, we recommended disabling [``ThreadAutoFollow``](https://docs.mattermost.com/configure/configuration-settings.html#automatically-follow-threads) and [``CollapsedThreads``](https://docs.mattermost.com/configure/configuration-settings.html#collapsed-reply-threads-beta) until Collapsed Reply Threads is promoted to general availability in Q2 2022. Learn more about these [performance considerations here](https://support.mattermost.com/hc/en-us/articles/4413183568276-What-to-expect-when-enabling-Collapsed-Reply-Threads-Beta).
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v6.1, please read the other [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 
@@ -4061,9 +4109,11 @@ Multiple setting options were added to ``config.json``. Below is a list of the a
    - For MySQL: ``create index idx_jobs_status_type on Jobs (Status,Type);``
  - [Collapsed Reply Threads](https://docs.mattermost.com/messaging/organizing-conversations.html), available in beta, are known to have a negative impact on server performance. If you cannot easily scale up and tune your database, or if you are running the Mattermost application server and database server on the same machine, we recommended disabling [``ThreadAutoFollow``](https://docs.mattermost.com/configure/configuration-settings.html#automatically-follow-threads) and [``CollapsedThreads``](https://docs.mattermost.com/configure/configuration-settings.html#collapsed-reply-threads-beta) until Collapsed Reply Threads is promoted to general availability in Q2 2022. Learn more about these [performance considerations here](https://support.mattermost.com/hc/en-us/articles/4413183568276-What-to-expect-when-enabling-Collapsed-Reply-Threads-Beta).
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v6.0, please read the other [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 
@@ -4195,8 +4245,7 @@ Multiple setting options were added to ``config.json``. Below is a list of the a
 
 ----
 
-(release-v6-0-feature-release)=
-## Release v6.0 - [Feature Release](https://docs.mattermost.com/upgrade/release-definitions.html)
+## Release v6.0 - [Feature Release](https://docs.mattermost.com/upgrade/release-definitions.html) \{#release-v6-0-feature-release}
 
 - **v6.0.4, released 2021-12-17**
   - Mattermost v6.0.4 contains medium level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
@@ -4274,9 +4323,11 @@ Multiple setting options were added to ``config.json``. Below is a list of the a
    - Converted the "Executables" field in the plugin manifest to a map.
  -  [Collapsed Reply Threads](https://docs.mattermost.com/messaging/organizing-conversations.html), available in beta, are known to have a negative impact on server performance. If you cannot easily scale up and tune your database, or if you are running the Mattermost application server and database server on the same machine, we recommended disabling [``ThreadAutoFollow``](https://docs.mattermost.com/configure/configuration-settings.html#automatically-follow-threads) and [``CollapsedThreads``](https://docs.mattermost.com/configure/configuration-settings.html#collapsed-reply-threads-beta) until Collapsed Reply Threads is promoted to general availability in Q2 2022. Learn more about these [performance considerations here](https://support.mattermost.com/hc/en-us/articles/4413183568276-What-to-expect-when-enabling-Collapsed-Reply-Threads-Beta).
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v5.39, please read the other [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 
@@ -4625,9 +4676,11 @@ Mattermost v5.38.0 contains low to medium level security fixes. [Upgrading](http
  - v5.38 adds fixes for some of the incorrect mention counts and unreads around threads and channels since the introduction of Collapsed Reply Threads (Beta). This fix is done through a SQL migration, and it may take several minutes to complete for large databases. The ``fixCRTChannelMembershipCounts`` fix takes 1 minute and 20 seconds for a database containing approximately 4 million channel memberships and about 130,000 channels. The ``fixCRTThreadCountsAndUnreads`` fix takes about 3 minutes and 30 seconds for a database containing 56367 threads, 124587 thread memberships, and 220801 channel memberships. These are on MySQL v5.6.51.
  - Focalboard v0.8.2 (released with Mattermost v5.38.0) requires Mattermost v5.37+ due to the new database connection system.
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v5.37, please read the other [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 
@@ -4821,9 +4874,11 @@ The following deprecations are planned for the Mattermost v6.0 release, which is
  - Support for Mattermost Server v5.31 [Extended Support Release](https://docs.mattermost.com/administration/extended-support-release.html) will come to the end of its life cycle on October 15, 2021. Upgrading to Mattermost Server v5.37 or later is required.
  - [Collapsed Reply Threads](https://docs.mattermost.com/messaging/organizing-conversations.html), available in beta, are known to have a negative impact on server performance. If you cannot easily scale up and tune your database, or if you are running the Mattermost application server and database server on the same machine, we recommended disabling [``ThreadAutoFollow``](https://docs.mattermost.com/configure/configuration-settings.html#automatically-follow-threads) and [``CollapsedThreads``](https://docs.mattermost.com/configure/configuration-settings.html#collapsed-reply-threads-beta) until Collapsed Reply Threads is promoted to general availability in Q2 2022. Learn more about these [performance considerations here](https://support.mattermost.com/hc/en-us/articles/4413183568276-What-to-expect-when-enabling-Collapsed-Reply-Threads-Beta).
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v5.36, please read the other [Important Upgrade Notes](https://docs.mattermost.com/administration/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 
@@ -4966,9 +5021,11 @@ Mattermost v5.36.0 contains a high level security fix. [Upgrading](https://docs.
 ### Important Upgrade Notes
  - Gossip clustering mode is now in General Availability and is no longer available as an option. All cluster traffic will always use the gossip protocol. The config setting ``UseExperimentalGossip`` has no effect and has only been kept for compatibility purposes. The setting to use gossip has been removed from the System Console. **Note:** For High Availability upgrades, all nodes in the cluster must use a single protocol. If an existing system is not currently using gossip, one node in a cluster can't be upgraded while other nodes in the cluster use an older version. Customers must either use gossip for their High Availability upgrade, or customers must shut down all nodes, perform the upgrade, and then bring all nodes back up.
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v5.35, please read the other [Important Upgrade Notes](https://docs.mattermost.com/administration/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 
@@ -5162,9 +5219,11 @@ Mattermost v5.35.0 contains low and medium level security fixes. [Upgrading](htt
 - The existing password generation logic used during the bulk user import process was comparatively weak. Hence it's advised for admins to immediately reset the passwords for all the users who were generated during the bulk import process and whose password has not been changed even once.
 - In the v5.38 release (August 16, 2021), we will deprecate "config watcher" (the mechanism that automatically reloads the ``config.json file``), in favor of an mmctl command that will need to be run to apply configuration changes after they are made. This change will improve configuration performance and robustness.
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v5.34, please read the other [Important Upgrade Notes](https://docs.mattermost.com/administration/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 
@@ -5415,9 +5474,11 @@ Mattermost v5.33.0 contains low-level security fixes. [Upgrading](https://docs.m
  - Deleting a reaction is now a soft delete in the ``Reactions`` table. A schema update is required and may take up to 15 seconds on first run with large data sets.
  - WebSocket handshakes done with an HTTP version lower than 1.1 will result in a warning, and the server will transparently upgrade the version to 1.1 to comply with the WebSocket RFC. This is done to work around incorrect Nginx (and other proxy) configs that do not set the ``proxy_http_version`` directive to 1.1. This facility will be removed in a future Mattermost version. It is strongly recommended to fix the proxy configuration to correctly use the WebSocket protocol.
  
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v5.32, please read the other [Important Upgrade Notes](https://docs.mattermost.com/administration/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 
@@ -5553,9 +5614,11 @@ Mattermost v5.32.0 contains low level security fixes. [Upgrading](https://docs.m
  - Breaking changes to the Golang client API were introduced: ``GetPostThread``, ``GetPostsForChannel``, ``GetPostsSince``, ``GetPostsAfter``, ``GetPostsBefore``, and ``GetPostsAroundLastUnread`` now require an additional collapsedThreads parameter to be passed. Any client making use of these functions will need to update them when upgrading its dependencies.
  - [A breaking change was introduced when upgrading the Go version to v1.15.5](https://go.dev/doc/go1.15) where user logins fail with AD/LDAP Sync when the certificate of the LDAP Server has no Subject Alternative Name (SAN) in it. Creating a new certificate on the AD/LDAP Server with the SAN inside fixes this.
  
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v5.31, please read the other [Important Upgrade Notes](https://docs.mattermost.com/administration/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 
@@ -5887,9 +5950,11 @@ Multiple setting options were added to ``config.json``. Below is a list of the a
 ### Compatibility
  - A new configuration setting ``ThreadAutoFollow`` has been added to support [Collapsed Reply Threads](https://docs.google.com/presentation/d/1QSrPws3N8AMSjVyOKp15FKT7O0fGMSx8YidjSDS4Wng/edit#slide=id.g2f0aecc189_0_245) releasing in beta in Q1 2021. This setting is enabled by default and may affect server performance. It is recommended to review our [documentation on hardware requirements](https://docs.mattermost.com/install/requirements.html#hardware-requirements) to ensure your servers are appropriately scaled for the size of your user base.
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v5.28, please read the other [Important Upgrade Notes](https://docs.mattermost.com/administration/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 
@@ -5987,9 +6052,11 @@ Multiple setting options were added to ``config.json``. Below is a list of the a
 ### Breaking Changes
  - Now when the service crashes, it will generate a coredump instead of just dumping the stack trace to the console. This allows us to preserve the full information of the crash to help with debugging it. For more information about coredumps, please see: https://man7.org/linux/man-pages/man5/core.5.html.  
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than v5.27, please read the other [Important Upgrade Notes](https://docs.mattermost.com/administration/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 
@@ -6222,9 +6289,11 @@ Mattermost v5.27.0 contains a low level security fix. [Upgrading](https://docs.m
  - In v5.26, Elasticsearch indexes needed to be recreated. Admins should re-index Elasticsearch using the **Purge index** and then **Index now** button so that all the changes will be included in the index. Systems may be left with a limited search during the indexing, so it should be done during a time when there is little to no activity because it may take several hours.
  - An ``EnableExperimentalGossipEncryption`` option was added under ``ClusterSettings``. If this is set to ``true``, and ``UseExperimentalGossip`` is also ``true``, all communication through the cluster using the gossip protocol will be encrypted. The encryption uses ``AES-256`` by default, and it is not kept configurable by design. However, if one wishes, they can set the value in Systems table manually for the ``ClusterEncryptionKey`` row. A key is a byte array converted to base64. It should be either 16, 24, or 32 bytes to select AES-128, AES-192, or AES-256. To update the key, one can execute ``UPDATE Systems SET Value='&lt;value&gt;' WHERE Name='ClusterEncryptionKey';`` in MySQL and ``UPDATE systems SET value='&lt;value&gt;' WHERE name='ClusterEncryptionKey'`` for PostgreSQL. For any change in this config setting to take effect, the whole cluster must be shutdown first. Then the config change made, and then restarted. In a cluster, all servers either will completely use encryption or not. There cannot be any partial usage.
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than 5.25, please read the other [Important Upgrade Notes](https://docs.mattermost.com/administration/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 
@@ -6416,9 +6485,11 @@ Mattermost v5.25.0 contains a low level security fix. [Upgrading](https://docs.m
 ### Breaking Changes
  - Some incorrect instructions regarding SAML setup with Active Directory ADFS for setting the “Relying party trust identifier” were corrected. Although the settings will continue to work, it is encouraged to [modify those settings](https://docs.mattermost.com/deployment/sso-saml-adfs-msws2016.html#add-a-relying-party-trust).
  
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than 5.24, please read the other [Important Upgrade Notes](https://docs.mattermost.com/administration/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Improvements
  - Added the ability for admins to request a 30-day E20 trial license directly in the System Console.
@@ -6508,9 +6579,11 @@ Mattermost v5.24.0 contains low level security fixes. [Upgrading](https://docs.m
  - Due to fixing performance issues related to emoji reactions, the performance of the upgrade has been affected in that the schema upgrade now takes more time in environments with lots of reactions in their database. These environments are recommended to perform the schema migration during low usage times and potentially in advance of the upgrade. Since this migration happens before the Mattermost Server is fully launched, non-High Availability installs will be unreachable during this time. Please see the [Important Upgrade Notes](https://docs.mattermost.com/administration/important-upgrade-notes.html) for full details.
  - On mobile apps, users will not be able to see LDAP group mentions (E20 feature) in the autocomplete dropdown. Users will still receive notifications if they are part of an LDAP group. However, the group mention keyword will not be highlighted.
  
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than 5.23, please read the other [Important Upgrade Notes](https://docs.mattermost.com/administration/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 
@@ -6752,9 +6825,11 @@ Mattermost v5.22.0 contains a low level security fix. [Upgrading](https://docs.m
  - The Channel Moderation Settings feature is supported on mobile app versions v1.30 and later. In earlier versions of the mobile app, users who attempt to post or react to posts without proper permissions will see an error.
  - Direct access to the ``Props`` field in the ``model.Post`` structure has been deprecated. The available ``GetProps()`` and ``SetProps()`` methods should now be used. Also, direct copy of the ``model.Post`` structure must be avoided in favor of the provided ``Clone()`` method.
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than 5.21, please read the other [Important Upgrade Notes](https://docs.mattermost.com/administration/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 
@@ -6930,9 +7005,11 @@ Mattermost v5.20.0 contains a low level security fix. [Upgrading](https://docs.m
  - Any [pre-packaged plugin](https://docs.mattermost.com/administration/plugins.html#pre-packaged-plugins) that is not enabled in the ``config.json`` will no longer install automatically, but can continue to be installed via the [plugin marketplace](https://docs.mattermost.com/administration/plugins.html#plugin-marketplace).
  - Boolean elements from interactive dialogs are no longer serialized as strings. While we try to avoid breaking changes, this change was necessary to allow both the web and mobile apps to work with the boolean elements introduced with v5.16.
  
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than 5.19, please read the other [Important Upgrade Notes](https://docs.mattermost.com/administration/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 
@@ -7074,9 +7151,11 @@ Mattermost v5.19.0 contains low to high level security fixes. [Upgrading](https:
 #### Breaking Changes
  - ``LockTeammateNameDisplay`` setting was moved to Enterprise Edition E20 as it was erroneously available in Team Edition and Enterprise Edition E10.
  
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than 5.18, please read the other [Important Upgrade Notes](https://docs.mattermost.com/administration/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Bug Fixes
  - Fixed an issue where email notifications were still sent in some cases while disabled in the user interface.
@@ -7148,9 +7227,11 @@ Mattermost v5.18.0 contains low to high level security fixes. [Upgrading](https:
  - Removed ``Team.InviteId`` from the related Websocket event and sanitized it on all team API endpoints for users without invite permissions.
  - Removed the ability to change the type of a channel using the ``PUT /channels/&#123;channel_id&#125;`` API endpoint. The new ``PUT /channels/&#123;channel_id&#125;/privacy`` endpoint should be used for that purpose.
  
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than 5.17, please read the other [Important Upgrade Notes](https://docs.mattermost.com/administration/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
  
@@ -7651,9 +7732,11 @@ Mattermost v5.14.0 contains a medium level security fix. [Upgrading](https://doc
  - Webhooks are now only displayed if the user is the creator of the webhook or a system administrator.
  - With the update from Google+ to Google People, system admins need to ensure the ``GoogleSettings.Scope`` config.json setting is set to ``profile email`` and ``UserAPIEndpoint`` setting should be set to ``https://people.googleapis.com/v1/people/me?personFields=names,emailAddresses,nicknames,metadata`` per [updated documentation](https://docs.mattermost.com/deployment/sso-google.html).
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than 5.13, please read the other [Important Upgrade Notes](https://docs.mattermost.com/administration/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 
@@ -7942,9 +8025,11 @@ Mattermost v5.12.0 contains low to medium level security fixes. [Upgrading](http
  - Image link and YouTube previews do not display unless **System Console > Enable Link Previews** is enabled. Please ensure that your Mattermost server is connected to the internet and has network access to the websites from which previews are expected to appear. [Learn more here](https://docs.mattermost.com/administration/config-settings.html#enable-link-previews).
  - ``ExperimentalEnablePostMetadata`` setting was removed. Post metadata, including post dimensions, is now stored in the database to correct scroll position and eliminate scroll jumps as content loads in a channel.
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than 5.11, please read the other [Important Upgrade Notes](https://docs.mattermost.com/administration/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 
@@ -8107,9 +8192,11 @@ Mattermost v5.11.0 contains low level security fixes. [Upgrading](https://docs.m
 
  - If your integration uses ``Update.Props == nil`` to clear ``Props``, this will no longer work in 5.11+. Instead, use ``Update.Props == &#123;&#125;`` to clear properties. This change was made because ``Update.Props == nil`` unintentionally cleared all ``Props``, such as the profile picture, instead of preserving them.
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than 5.10, please read the other [Important Upgrade Notes](https://docs.mattermost.com/administration/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Bug Fixes
  - Fixed an issue where plugin settings link didn't appear until refresh after uploading a plugin in the System Console.
@@ -8171,9 +8258,11 @@ Mattermost v5.10.0 contains medium to high level security fixes. [Upgrading](htt
 
  - ``SupportedTimezonesPath`` setting in config.json and changes to timezones in the UI based on the timezones.json file was removed. This was made to support [storing configurations in the database](https://docs.mattermost.com/administration/config-in-database.html#configuration-in-a-database).
 
-```{Important}
+<Important>
+
 If you upgrade from a release earlier than 5.9, please read the other [Important Upgrade Notes](https://docs.mattermost.com/administration/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
  
@@ -8334,9 +8423,11 @@ Mattermost v5.9.0 contains low to medium level security fixes. [Upgrading](https
  - If **DisableLegacyMfa** setting in ``config.json`` is set to ``true`` and multi-factor authentication is enabled, ensure your users have upgraded to mobile app version 1.17 or later. Otherwise, users who have MFA enabled may not be able to log in successfully. See [Important Upgrade Notes](https://docs.mattermost.com/administration/important-upgrade-notes.html) for more details.
  - The public IP of the Mattermost application server is considered a reserved IP for additional security hardening in the context of untrusted external requests such as Open Graph metadata, webhooks or slash commands. See [Important Upgrade Notes](https://docs.mattermost.com/administration/important-upgrade-notes.html) for more details.
 
-```{Important}
+<Important>
+
 If you upgrade from another release than 5.8, please read the [Important Upgrade Notes](https://docs.mattermost.com/administration/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Bug Fixes
 
@@ -8407,9 +8498,11 @@ Mattermost v5.8.0 contains low to high level security fixes. [Upgrading](https:/
 
 - The local image proxy has been added, and images displayed within the client are now affected by the ``AllowUntrustedInternalConnections`` setting. See [documentation](https://docs.mattermost.com/administration/image-proxy.html#local-image-proxy) for more details if you have trouble loading images.
 
-```{Important}
+<Important>
+
 If you upgrade from another release than 5.7, please read the [Important Upgrade Notes](https://docs.mattermost.com/administration/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 
@@ -8582,9 +8675,11 @@ Mattermost v5.7.0 contains low to medium level security fixes. [Upgrading](https
  - Removed support for IE11 Mobile View due to low usage and instability in order to invest that effort in maintaining a high quality experience on other more used browsers. End users on IE11 will thus have an increased minimum screen size.
  - If EnablePublicChannelsMaterialization setting in config.json is set to false, an offline migration prior to upgrade may be required to synchronize the materialized table for public channels to increase channel search performance in the channel switcher (CTRL/CMD+K), channel autocomplete (~) and elsewhere in the UI. See [Important Upgrade Notes](https://docs.mattermost.com/administration/important-upgrade-notes.html) for more details.
  
-```{Important}
+<Important>
+
 If you upgrade from another release than 5.5, please read the [Important Upgrade Notes](https://docs.mattermost.com/administration/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 
@@ -8807,9 +8902,11 @@ Release date: 2018-10-16
  - Mattermost mobile app version 1.13+ is required. File uploads will fail on earlier mobile app versions.
  - In certain upgrade scenarios the new Allow Team Administrators to edit others posts setting under General then Users and Teams may be set to True while the Mattermost default in 5.1 and earlier and with new 5.4+ installations is False.
 
-```{Important}
+<Important>
+
 If you upgrade from another release than 5.3, please read the [Important Upgrade Notes](https://docs.mattermost.com/administration/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 
@@ -8926,9 +9023,11 @@ Mattermost v5.3.0 contains a high level security fix. [Upgrading](https://docs.m
 
  - Those servers with Elasticsearch enabled will notice that hashtag search is case-sensitive.
 
-```{Important}
+<Important>
+
 If you upgrade from another release than 5.2, please read the [Important Upgrade Notes](https://docs.mattermost.com/administration/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 
@@ -9017,9 +9116,11 @@ Multiple setting options were added to `config.json`. Below is a list of the add
 
  - Those servers upgrading from v4.1 - v4.4 directly to v5.2 or later and have JIRA enabled will need to re-enable the JIRA plugin after an upgrade.
 
-```{Important}
+<Important>
+
 If you upgrade from another release than 5.1, please read the [Important Upgrade Notes](https://docs.mattermost.com/administration/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 
@@ -9149,9 +9250,11 @@ Multiple setting options were added to `config.json`. Below is a list of the add
 
  - ``mattermost export`` CLI command is renamed to ``mattermost export schedule``. Make sure to update your scripts if you use this command.
 
-```{Important}
+<Important>
+
 If you upgrade from another release than 5.0, please read the [Important Upgrade Notes](https://docs.mattermost.com/administration/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 
@@ -9258,9 +9361,11 @@ Multiple setting options were added to `config.json`. Below is a list of the add
 - A new `config.json` setting to disable the [permanent APIv4 delete team parameter](https://api.mattermost.com/#tag/teams%2Fpaths%2F~1teams~1%7Bteam_id%7D%2Fput) has been added. The setting is off by default for all new and existing installs, except those deployed on GitLab Omnibus. A System Administrator can enable the API v4 endpoint from the config.json file. [Ticket #9916](https://mattermost.atlassian.net/browse/MM-9916).
 - An unused `ExtraUpdateAt` field has been removed from the channel model. [Ticket #9739](https://mattermost.atlassian.net/browse/MM-9739).
 
-```{Important}
+<Important>
+
 If you upgrade from another release than 4.10, please read the [Important Upgrade Notes](https://docs.mattermost.com/administration/important-upgrade-notes.html).
-```
+
+</Important>
 
 ### Highlights
 

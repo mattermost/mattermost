@@ -1,15 +1,17 @@
 ---
 title: "Connect to multiple Mattermost workspaces"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 Using the Mattermost desktop or mobile app, you can connect to multiple Mattermost servers from a single interface, and manage system permissions.
 
 ## Add a server
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 The **Server** list is located in the top left corner of the window and displays all servers available. Drag to reorder the servers in the list. You can also navigate the server options using [keyboard shortcuts](/end-user-guide/collaborate/keyboard-shortcuts).
 
@@ -41,11 +43,8 @@ If you're using the desktop app prior to release v5.0, individual servers displa
 4.  \[Desktop only\] If your server requires an authentication secret, you'll be prompted to enter it when you connect. Enter the secret provided by your administrator and select **OK**.
 5.  Select **Add**.
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 Tap the **Servers** <img src="/img/ui/server-variant_E81F.svg" alt="Access server connection options using the Servers icon." className="theme-icon" /> icon located in the top left corner of the window to access all available servers and to add new servers.
 
@@ -65,13 +64,14 @@ Can't find your Mattermost server URL? Ask your company’s IT department or you
 
 5.  Tap **Done**.
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Edit a server
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 1.  Hover over a server and select the **Edit** icon.
 
@@ -81,11 +81,8 @@ Web/Desktop
 
 > \[Desktop only\] To update an authentication secret, connect to the server. If the secret has changed, you'll be prompted to enter the new one provided by your system admin.
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 1.  Swipe left on an existing server entry to reveal additional options. Tap **Edit**.
 
@@ -97,15 +94,16 @@ Mobile
 >
 > To view or update the authentication secret, expand the **Advanced Options** section. If a secret is currently configured, it will be pre-filled in the field.
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Remove a server
 
 Removing a server from your desktop app doesn't delete its data. You can add the server back any time.
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 1.  Hover over a server and select **Remove**.
 
@@ -113,11 +111,8 @@ Web/Desktop
 
 2.  Select **Remove** when prompted to confirm.
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 Tap the **Servers** <img src="/img/ui/server-variant_E81F.svg" alt="Access server connection options using the Servers icon." className="theme-icon" /> icon located in the top left corner of the window to access all available servers and to add new servers.
 
@@ -125,7 +120,9 @@ Swipe left on an existing server entry to reveal additional options. Tap **Remov
 
 <img src="../../images/swipe-left-to-remove.gif" width="400" alt="In the Mattermost mobile app, swipe left on an existing server connection entry to delete the connection." />
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Switch between workspaces
 

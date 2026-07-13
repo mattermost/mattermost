@@ -1,6 +1,5 @@
 ---
 title: "Experimental configuration settings"
-draft: true
 ---
 <PlanAvailability slug="all-commercial" />
 
@@ -108,7 +107,7 @@ Specify the maximum number of notifications batched into a single email.
 <Note>
 
 - We recommend increasing the buffer size from the default value if you see the following error in the Mattermost logs: `Email batching job's receiving buffer was full. Please increase the EmailBatchingBufferSize. Falling back to sending immediate mail.` Increasing this value will ensure emails are queued up, without impacting server performance.
-- Notifications will be sent instantly if the queue of emails exceeds the [email batching interval](#id1) configured.
+- Notifications will be sent instantly if the queue of emails exceeds the [email batching interval](#email-batching-interval) configured.
 
 </Note>
 
@@ -847,7 +846,7 @@ This setting determines how many audit records can be queued/buffered at any poi
 
 ### Certificate
 
-Cloud Enterprise customers can upload and manage a certificate for audit logging encryption on Syslog or TCP logging targets. The ability to upload a certificate is only available when the feature flag `ExperimentalAuditSettingsSystemConsoleUI` is enabled.
+Cloud Enterprise customers can upload and manage a certificate for audit logging encryption on Syslog or TCP logging targets.
 
 Upload the certificate PEM file in the System Console by going to **System Console \> Audit Log Settings \> Certificate** and selecting **File/Remove Certificate**. The certificate file can be stored in the filestore or stored locally on the filesystem.
 

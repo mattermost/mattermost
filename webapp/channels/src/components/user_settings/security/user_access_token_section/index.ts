@@ -14,6 +14,7 @@ import {
     revokeUserAccessToken,
     enableUserAccessToken,
     disableUserAccessToken,
+    rotateUserAccessToken,
 } from 'mattermost-redux/actions/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
@@ -36,6 +37,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             revokeUserAccessToken,
             enableUserAccessToken,
             disableUserAccessToken,
+            rotateUserAccessToken,
             clearUserAccessTokens,
         }, dispatch),
     };

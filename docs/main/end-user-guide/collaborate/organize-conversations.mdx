@@ -1,6 +1,9 @@
 ---
 title: "Organize conversations using threaded discussions"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 Threads are a key part of the messaging experience in Mattermost. They're used to organize conversations and enable users to discuss topics without adding noise to channels or direct messages.
@@ -28,9 +31,8 @@ You'll automatically follow every thread you participate or are mentioned in. Yo
 
 ![Follow threads to stay updated on replies to messages.](/images/crt-following-thread.png)
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 Toggle the thread’s **Follow** option, or select **Follow thread** from the **More Actions** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> icon.
 
@@ -42,11 +44,8 @@ Toggle the thread’s **Follow** option, or select **Follow thread** from the **
 
 </Tip>
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 Long-press on a message to access message options, then tap **Follow Thread**.
 
@@ -64,25 +63,23 @@ Follow messages with no replies from the **More Actions** <img src="/img/ui/dots
 
 </Tip>
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Unfollow threads
 
 If you’re no longer interested in a or message thread, unfollow it to stop receiving notifications. Viewing a thread without responding to it doesn’t automatically follow that thread.
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 Toggle the thread’s **Following** indicator, or select **Unfollow thread** from the **More Actions** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> icon to unfollow it.
 
 ![Unfollow threads from the More Actions icon.](/images/desktop-unfollow-message-thread.jpg)
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 Long-press on a message to access message options, then tap **Unfollow Thread**.
 
@@ -92,7 +89,9 @@ Alternatively, you can tap on the **Following** indicator below the message thre
 
 ![Toggle the Following indicator to stop following a thread.](/images/mobile-unfollow-a-message-thread-by-tapping-following.gif)
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## View all threads
 

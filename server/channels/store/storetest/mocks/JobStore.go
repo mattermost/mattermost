@@ -457,22 +457,24 @@ func (_m *JobStore) SaveOnce(job *model.Job) (*model.Job, error) {
 }
 
 // UpdateOptimistically provides a mock function with given fields: job, currentStatus
-func (_m *JobStore) UpdateOptimistically(job *model.Job, currentStatus string) (bool, error) {
+func (_m *JobStore) UpdateOptimistically(job *model.Job, currentStatus string) (*model.Job, error) {
 	ret := _m.Called(job, currentStatus)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateOptimistically")
 	}
 
-	var r0 bool
+	var r0 *model.Job
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*model.Job, string) (bool, error)); ok {
+	if rf, ok := ret.Get(0).(func(*model.Job, string) (*model.Job, error)); ok {
 		return rf(job, currentStatus)
 	}
-	if rf, ok := ret.Get(0).(func(*model.Job, string) bool); ok {
+	if rf, ok := ret.Get(0).(func(*model.Job, string) *model.Job); ok {
 		r0 = rf(job, currentStatus)
 	} else {
-		r0 = ret.Get(0).(bool)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Job)
+		}
 	}
 
 	if rf, ok := ret.Get(1).(func(*model.Job, string) error); ok {

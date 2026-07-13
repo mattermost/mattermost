@@ -200,14 +200,14 @@ func (s *SqlPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*m
 		}
 
 		if currentChannelCount, ok := channelNewPosts[post.ChannelId]; !ok {
-			if post.IsJoinLeaveMessage() {
+			if post.ExcludesFromChannelMessageCount() {
 				channelNewPosts[post.ChannelId] = 0
 			} else {
 				channelNewPosts[post.ChannelId] = 1
 			}
 			maxDateNewPosts[post.ChannelId] = post.CreateAt
 		} else {
-			if !post.IsJoinLeaveMessage() {
+			if !post.ExcludesFromChannelMessageCount() {
 				channelNewPosts[post.ChannelId] = currentChannelCount + 1
 			}
 			if post.CreateAt > maxDateNewPosts[post.ChannelId] {
@@ -217,14 +217,14 @@ func (s *SqlPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*m
 
 		if post.RootId == "" {
 			if currentChannelCount, ok := channelNewRootPosts[post.ChannelId]; !ok {
-				if post.IsJoinLeaveMessage() {
+				if post.ExcludesFromChannelMessageCount() {
 					channelNewRootPosts[post.ChannelId] = 0
 				} else {
 					channelNewRootPosts[post.ChannelId] = 1
 				}
 				maxDateNewRootPosts[post.ChannelId] = post.CreateAt
 			} else {
-				if !post.IsJoinLeaveMessage() {
+				if !post.ExcludesFromChannelMessageCount() {
 					channelNewRootPosts[post.ChannelId] = currentChannelCount + 1
 				}
 				if post.CreateAt > maxDateNewRootPosts[post.ChannelId] {
@@ -2292,6 +2292,12 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		// It also adds complexity as we would only need that index for CJK deployments.
 		baseQuery = s.buildCJKSearchClause(baseQuery, searchType, terms, excludedTerms, params.OrTerms)
 	} else {
+		// Preserve internal hyphens (e.g. "t-shirt") as compound-word searches,
+		// while neutralizing malformed hyphen usage that would otherwise be
+		// passed to to_tsquery.
+		terms = neutralizeNonWordHyphens(terms)
+		excludedTerms = neutralizeNonWordHyphens(excludedTerms)
+
 		// Parse text for wildcards
 		terms = wildCardRegex.ReplaceAllLiteralString(terms, ":* ")
 		excludedTerms = wildCardRegex.ReplaceAllLiteralString(excludedTerms, ":* ")

@@ -630,6 +630,15 @@ func (fs SqlFileInfoStore) Search(rctx request.CTX, paramsList []*model.SearchPa
 			excludedTerms = strings.Replace(excludedTerms, c, " ", -1)
 		}
 
+		// Unlike post message search, filenames commonly have a hyphenated
+		// name glued directly to an extension (e.g. "photo-2024.jpg"), which
+		// PostgreSQL's parser classifies as an opaque "host"-type token that
+		// to_tsquery can never match against a hyphen-preserving compound
+		// query. So, unlike post_store.go, hyphens are still replaced with
+		// spaces here rather than preserved.
+		terms = strings.Replace(terms, "-", " ", -1)
+		excludedTerms = strings.Replace(excludedTerms, "-", " ", -1)
+
 		if terms == "" && excludedTerms == "" {
 			// we've already confirmed that we have a channel or user to search for
 		} else {

@@ -1,10 +1,12 @@
 ---
 title: "Make calls"
-draft: true
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
-Using a web browser, the desktop app, or the mobile app, you can [join a call](#join-a-call) or [start a call](#start-a-call), [share your screen](#share-screen), raise your hand, [react using emojis](#react-using-emojis) during a call, [chat in a thread](#chat-in-a-call), and continue working in Mattermost during a call.
+Using a web browser, the desktop app, or the mobile app, you can [join a call](#join-a-call) or [start a call](#start-a-call), [share your screen](#share-your-screen), raise your hand, [react using emojis](#react-using-emojis) during a call, [chat in a thread](#chat-in-a-call), and continue working in Mattermost during a call.
 
 <Note>
 
@@ -35,9 +37,8 @@ From Mattermost v9.4:
 
 ## Start a call
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 To start a call, select **Start call** in the channel header. When you start a call, you become the call host by default. See the [host controls](#host-controls) section below for details on host controls available to ensure calls run smoothly.
 
@@ -49,11 +50,8 @@ To start a call, select **Start call** in the channel header. When you start a c
 
 </Tip>
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 To start a call, go the channel info menu. Then tap **Start Call**.
 
@@ -63,11 +61,13 @@ After starting the call, audio will come through the device's speaker or a Bluet
 
 On iOS, audio will automatically come through a connected device. You can override this behavior by tapping the **Speaker** button. Audio will then come through the speaker. However, you cannot manually select an output device on iOS at this time.
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Host controls
 
-From Mattermost v9.9, and Mattermost mobile v2.17, call host controls are available and include the ability to [transfer host duties](#transfer-host-duties), [remove call participants](#remove-call-participants), [stop a screen share](#stop-a-screen-share), [mute or unmute participants](#mute-or-nmute-participants), [lower raised hands](#lower-raised-hands), and [end the call for everyone](#end-the-call-for-everyone).
+From Mattermost v9.9, and Mattermost mobile v2.17, call host controls are available and include the ability to [transfer host duties](#transfer-host-duties), [remove call participants](#remove-call-participants), [stop a screen share](#stop-a-screen-share), [mute or unmute participants](#mute-participants), [lower raised hands](#lower-raised-hands), and [end the call for everyone](#end-the-call-for-everyone).
 
 Host controls are available to call hosts and admins in both the call widget by selecting the **More** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> icon next to a participant's name, and in the expanded the call window as hosts hover over a call participant in the list.
 
@@ -137,45 +137,41 @@ Audio sharing support varies by platform and browser:
 
 All call participants can use emojis to react during a call.
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 Expand the call window using the arrows in the top-right of the call widget. From there, select the emoji icon to access frequently-used emojis or select additional emojis from the emoji picker.
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 Expand the call window using the arrows in the top-right of the active call banner. From there, select **React**.
 
 ![Tap on React to use emojis reactions during a call.](/images/mobile-react-using-emojis-in-a-call.gif)
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Chat in a call
 
 A chat thread is created automatically for every new call.
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 Open the chat thread in the widget by selecting the **Gear** <img src="/img/ui/settings-outline_F08BB.svg" alt="Use the Settings icon to customize your Mattermost user experience." className="theme-icon" /> icon, then select **Show chat thread**. Alternatively, expand the call window using the arrows in the top-right of the call widget. From there, select the chat icon to access the chat thread.
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 Expand the call window using the arrows in the top-right of the active call banner. Then select **More \> Call Thread**.
 
 ![Tap on Call Thread to chat while being in a call.](/images/mobile-chat-in-a-call.gif)
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Record a call
 
@@ -191,20 +187,16 @@ When you stop recording, the recording file is posted in the call thread as an M
 
 To record a call:
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 1.  Select **Start call** in the header of the channel, group message, or direct message.
 2.  Select the pop-out icon.
 3.  In the call widget, select the **Record** button.
 4.  To stop recording, select the **Record** button again.
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 To start recording, use the `/call recording start` slash command. When you're finished recording, use the `/call recording stop` slash command.
 
@@ -218,7 +210,9 @@ Alternatively, expand the call window using the arrows in the top-right of the a
 
 ![Tap on Stop Recording to stop recording the call.](/images/mobile-stop-a-call-recording-using-call-banner.gif)
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Live captions during calls
 

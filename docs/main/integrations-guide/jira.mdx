@@ -46,7 +46,7 @@ A Mattermost system admin must perform the following steps in Mattermost.
 > >
 > > </div>
 > >
-> > - **Allow users to attach and create Jira issues in Mattermost**: Enable or disable the user's ability to attach and create Jira issues in Mattermost. When enabled, you must also [install this Jira integration in your Jira instance](#install-integration-as-Jira-app).
+> > - **Allow users to attach and create Jira issues in Mattermost**: Enable or disable the user's ability to attach and create Jira issues in Mattermost. When enabled, you must also [install this Jira integration in your Jira instance](#install-jira-integration-in-your-jira-instance).
 > > - **Mattermost Roles Allowed to Edit Jira Subscriptions**: Specify the Mattermost roles that can edit Jira subscriptions to control which Mattermost users can subscribe channels to Jira tickets.
 > > - **Jira Groups Allowed to Edit Jira Subscriptions**: (Applies to older Jira v2.4 or earlier deployments only) Specify the Jira groups allowed to edit Jira subscriptions as a comma-separated list of user group names. Leave blank to allow any Jira user the ability to create subscriptions. The user editing a subscription only needs to be a member of one of the listed groups.
 > > - **Default Subscription Security Level to Empty**: Enable or disable default subscription security level. When enabled, subscriptions only include issues that have a security level assigned when a security level has been included as a filter.
@@ -133,7 +133,7 @@ Any previously configured webhooks set up in Jira that point to specific channel
 
 ### Manage notifications
 
-Jira notifications are messages sent to a Mattermost channel when a particular event occurs in Jira. They can managed as [channel subscriptions](#manage-channel-subscriptions) in Mattermost, or managed as [webhooks](#configure-webhooks-in-Jira) in Jira. Notifications and metadata shown in a channel aren't protected by Jira permissions. Anyone in the channel can see what's posted to the channel. However, if users don't have the appropriate permission, they won't be able to see further details of the issue if they try to access it in Jira.
+Jira notifications are messages sent to a Mattermost channel when a particular event occurs in Jira. They can be managed as [channel subscriptions](#manage-channel-subscriptions-in-mattermost) in Mattermost, or managed as [webhooks](#configure-webhooks-in-jira) in Jira. Notifications and metadata shown in a channel aren't protected by Jira permissions. Anyone in the channel can see what's posted to the channel. However, if users don't have the appropriate permission, they won't be able to see further details of the issue if they try to access it in Jira.
 
 When any webhook event is received from Jira, and it matches a notification rule, it posts a notification to the channel. If there are no subscription matches, the webhook event is discarded.
 

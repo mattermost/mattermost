@@ -476,6 +476,9 @@ export type AppField = {
     multiselect?: boolean;
     lookup?: AppCall;
 
+    // File props
+    allow_multiple?: boolean;
+
     // Text props
     subtype?: string;
     min_length?: number;
@@ -492,6 +495,10 @@ export type AppField = {
 
     /** @deprecated Use datetime_config.time_interval instead. Kept for backward compatibility. */
     time_interval?: number;
+
+    // Action button props
+    action_button_url?: string;
+    action_button_context?: Record<string, string>;
 };
 
 /**
@@ -571,6 +578,10 @@ function isAppField(v: unknown): v is AppField {
         return false;
     }
 
+    if (field.allow_multiple !== undefined && typeof field.allow_multiple !== 'boolean') {
+        return false;
+    }
+
     if (field.lookup !== undefined && !isAppCall(field.lookup)) {
         return false;
     }
@@ -636,6 +647,20 @@ function isAppField(v: unknown): v is AppField {
 
     if (field.time_interval !== undefined && typeof field.time_interval !== 'number') {
         return false;
+    }
+
+    // Validate action button fields
+    if (field.action_button_url !== undefined && typeof field.action_button_url !== 'string') {
+        return false;
+    }
+
+    if (field.action_button_context !== undefined) {
+        if (typeof field.action_button_context !== 'object' || field.action_button_context === null) {
+            return false;
+        }
+        if (!Object.values(field.action_button_context).every((value) => typeof value === 'string')) {
+            return false;
+        }
     }
 
     return true;
