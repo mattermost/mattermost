@@ -6,7 +6,7 @@ import {defineMessages} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
-import type {Team} from '@mattermost/types/teams';
+import type {MemberInviteProfile, Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {debounce} from 'mattermost-redux/actions/helpers';
@@ -16,10 +16,12 @@ import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import {focusElement} from 'utils/a11y_utils';
 import {isMembershipPolicyEnforced} from 'utils/channel_utils';
+import {Constants} from 'utils/constants';
 
 import {InviteType} from './invite_as';
 import InviteView, {initializeInviteState} from './invite_view';
 import type {InviteState} from './invite_view';
+import {getEmailsToPreset, suggestMemberInviteProfile} from './member_profile_inputs';
 import NoPermissionsView from './no_permissions_view';
 import ResultView, {defaultResultState} from './result_view';
 import type {ResultState, InviteResults} from './result_view';
@@ -60,6 +62,7 @@ export type Props = {
             teamId: string,
             users: UserProfile[],
             emails: string[],
+            profiles?: Record<string, MemberInviteProfile>,
         ) => Promise<ActionResult<InviteResults>>;
         sendMembersInvitesToChannels: (
             teamId: string,
@@ -67,6 +70,7 @@ export type Props = {
             users: UserProfile[],
             emails: string[],
             message: string,
+            profiles?: Record<string, MemberInviteProfile>,
         ) => Promise<ActionResult<InviteResults>>;
     };
     currentTeam?: Team;
@@ -74,6 +78,7 @@ export type Props = {
     townSquareDisplayName: string;
     invitableChannels: Channel[];
     emailInvitationsEnabled: boolean;
+    lockProfileFieldsForEmailUsers: string;
     isAdmin: boolean;
     isCloud: boolean;
     canAddUsers: boolean;
@@ -202,6 +207,7 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
         }
         let invites: InviteResults = {notSent: [], sent: []};
         if (inviteAs === InviteType.MEMBER) {
+            const profiles = this.presetProfilesEnabled() ? this.state.invite.profiles : undefined;
             if (this.props.channelToInvite) {
                 // this call is to invite as member but to (a) channel(s) directly
                 const result = await this.props.actions.sendMembersInvitesToChannels(
@@ -210,10 +216,11 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
                     users,
                     emails,
                     this.state.invite.customMessage.open ? this.state.invite.customMessage.message : '',
+                    profiles,
                 );
                 invites = result.data!;
             } else {
-                const result = await this.props.actions.sendMembersInvites(this.props.currentTeam.id, users, emails);
+                const result = await this.props.actions.sendMembersInvites(this.props.currentTeam.id, users, emails, profiles);
                 invites = result.data!;
             }
         } else if (inviteAs === InviteType.GUEST) {
@@ -362,12 +369,42 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
         }
     };
 
+    presetProfilesEnabled = () => {
+        return this.props.emailInvitationsEnabled &&
+            this.props.lockProfileFieldsForEmailUsers !== Constants.LOCK_PROFILE_FIELDS.NONE;
+    };
+
     onChangeUsersEmails = (usersEmails: Array<UserProfile | string>) => {
+        this.setState((state: State) => {
+            let profiles = state.invite.profiles;
+            if (this.presetProfilesEnabled()) {
+                // Seed newly added emails with a profile suggested from the email local-part.
+                for (const email of getEmailsToPreset(usersEmails)) {
+                    if (!profiles[email.toLowerCase()]) {
+                        profiles = {...profiles, [email.toLowerCase()]: suggestMemberInviteProfile(email)};
+                    }
+                }
+            }
+            return {
+                ...state,
+                invite: {
+                    ...state.invite,
+                    usersEmails,
+                    profiles,
+                },
+            };
+        });
+    };
+
+    onProfileChange = (profile: MemberInviteProfile) => {
         this.setState((state: State) => ({
             ...state,
             invite: {
                 ...state.invite,
-                usersEmails,
+                profiles: {
+                    ...state.invite.profiles,
+                    [profile.email.toLowerCase()]: profile,
+                },
             },
         }));
     };
@@ -435,6 +472,8 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
                 channelToInvite={this.props.channelToInvite}
                 useGuestMagicLink={this.state.useGuestMagicLink}
                 toggleGuestMagicLink={this.toggleGuestMagicLink}
+                lockProfileFieldsForEmailUsers={this.props.lockProfileFieldsForEmailUsers}
+                onProfileChange={this.onProfileChange}
                 {...this.state.invite}
             />
         );

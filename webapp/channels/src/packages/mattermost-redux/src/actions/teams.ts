@@ -5,7 +5,7 @@ import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
 import type {ServerError} from '@mattermost/types/errors';
-import type {Team, TeamMembership, TeamMemberWithError, GetTeamMembersOpts, TeamsWithCount, TeamSearchOpts, NotPagedTeamSearchOpts, PagedTeamSearchOpts} from '@mattermost/types/teams';
+import type {Team, TeamMembership, TeamMemberWithError, GetTeamMembersOpts, TeamsWithCount, TeamSearchOpts, NotPagedTeamSearchOpts, PagedTeamSearchOpts, MemberInviteProfile} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {ChannelTypes, TeamTypes, UserTypes} from 'mattermost-redux/action_types';
@@ -578,12 +578,13 @@ export function sendEmailGuestInvitesToChannels(teamId: string, channelIds: stri
         ],
     });
 }
-export function sendEmailInvitesToTeamGracefully(teamId: string, emails: string[]) {
+export function sendEmailInvitesToTeamGracefully(teamId: string, emails: string[], profiles?: MemberInviteProfile[]) {
     return bindClientFunc({
         clientFunc: Client4.sendEmailInvitesToTeamGracefully,
         params: [
             teamId,
             emails,
+            profiles,
         ],
     });
 }
@@ -606,6 +607,7 @@ export function sendEmailInvitesToTeamAndChannelsGracefully(
     channelIds: string[],
     emails: string[],
     message: string,
+    profiles?: MemberInviteProfile[],
 ) {
     return bindClientFunc({
         clientFunc: Client4.sendEmailInvitesToTeamAndChannelsGracefully,
@@ -614,6 +616,7 @@ export function sendEmailInvitesToTeamAndChannelsGracefully(
             channelIds,
             emails,
             message,
+            profiles,
         ],
     });
 }

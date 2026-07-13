@@ -1,0 +1,29 @@
+.MemberProfileInputs {
+    &__help {
+        margin-bottom: 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
+    }
+
+    &__row {
+        margin-bottom: 12px;
+    }
+
+    &__email {
+        overflow: hidden;
+        margin-bottom: 4px;
+        font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__fields {
+        display: flex;
+        gap: 8px;
+
+        .Input_container {
+            flex: 1;
+            min-width: 0;
+        }
+    }
+}
