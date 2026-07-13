@@ -19,11 +19,19 @@ import ChannelNotificationPreferencesModal from './channels/channel_notification
 import ChannelSettingsModal from './channels/channel_settings/channel_settings_modal';
 import ChannelsSidebarLeft from './channels/sidebar_left';
 import ChannelsSidebarRight from './channels/sidebar_right';
+import AddPeopleToChannelModal from './channels/add_people_to_channel_modal';
+import ChannelBookmarksCreateModal from './channels/channel_bookmarks_create_modal';
+import LeaveTeamModal from './channels/leave_team_modal';
+import MarketplaceModal from './channels/marketplace_modal';
+import UserGroupsModal from './channels/user_groups_modal';
+import ViewUserGroupModal from './channels/view_user_group_modal';
 import DeletePostConfirmationDialog from './channels/delete_post_confirmation_dialog';
 import DeletePostModal from './channels/delete_post_modal';
 import DeleteScheduledPostModal from './channels/delete_scheduled_post_modal';
 import DirectChannelsModal from './channels/direct_channels_modal';
+import ChannelMenu from './channels/channel_menu';
 import DraftPost from './channels/draft_post';
+import EditChannelHeaderModal from './channels/edit_channel_header_modal';
 import EmojiGifPicker from './channels/emoji_gif_picker';
 import FindChannelsModal from './channels/find_channels_modal';
 import NewChannelModal from './channels/new_channel_modal';
@@ -96,11 +104,19 @@ const components = {
     ChannelSettingsModal,
     ChannelsSidebarLeft,
     ChannelsSidebarRight,
+    AddPeopleToChannelModal,
+    ChannelBookmarksCreateModal,
+    LeaveTeamModal,
+    MarketplaceModal,
+    UserGroupsModal,
+    ViewUserGroupModal,
     DeletePostConfirmationDialog,
     DeletePostModal,
     DeleteScheduledPostModal,
+    ChannelMenu,
     DirectChannelsModal,
     DraftPost,
+    EditChannelHeaderModal,
     EmojiGifPicker,
     FindChannelsModal,
     FlagPostConfirmationDialog,
@@ -177,10 +193,18 @@ export {
     ChannelSettingsModal,
     ChannelsSidebarLeft,
     ChannelsSidebarRight,
+    AddPeopleToChannelModal,
+    ChannelBookmarksCreateModal,
+    LeaveTeamModal,
+    MarketplaceModal,
+    UserGroupsModal,
+    ViewUserGroupModal,
     DeletePostConfirmationDialog,
     DeletePostModal,
     DeleteScheduledPostModal,
     DraftPost,
+    ChannelMenu,
+    EditChannelHeaderModal,
     EmojiGifPicker,
     FindChannelsModal,
     FlagPostConfirmationDialog,
