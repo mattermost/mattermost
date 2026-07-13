@@ -81,7 +81,7 @@ export default function MemberProfileInputs(props: Props) {
             type: 'error' as const,
             value: formatMessage({
                 id: 'invite_modal.preset_profile.username_invalid',
-                defaultMessage: "Usernames have to begin with a lowercase letter and be {min}-{max} characters long. You can use lowercase letters, numbers, periods, dashes, and underscores.",
+                defaultMessage: 'Usernames have to begin with a lowercase letter and be {min}-{max} characters long. You can use lowercase letters, numbers, periods, dashes, and underscores.',
             }, {min: Constants.MIN_USERNAME_LENGTH, max: Constants.MAX_USERNAME_LENGTH}),
         };
     };
