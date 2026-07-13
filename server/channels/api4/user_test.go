@@ -9861,6 +9861,178 @@ func TestSetProfileImageWithProviderAttributes(t *testing.T) {
 	})
 }
 
+func TestLockProfileFieldsForEmailUsers(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	setLock := func(value string) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.LockProfileFieldsForEmailUsers = value
+		})
+	}
+	setNames := func(firstName, lastName string) {
+		_, _, err := th.SystemAdminClient.PatchUser(context.Background(), th.BasicUser.Id, &model.UserPatch{
+			FirstName: &firstName,
+			LastName:  &lastName,
+		})
+		require.NoError(t, err)
+	}
+
+	t.Run("setting off, email user can change all fields", func(t *testing.T) {
+		setLock(model.TeamSettingsLockProfileFieldsNone)
+		setNames("First", "Last")
+
+		_, _, err := th.Client.PatchUser(context.Background(), th.BasicUser.Id, &model.UserPatch{
+			Username:  new("un_" + model.NewId()),
+			FirstName: new("NewFirst"),
+			LastName:  new("NewLast"),
+			Nickname:  new("NewNick"),
+			Position:  new("NewPosition"),
+		})
+		require.NoError(t, err)
+	})
+
+	t.Run("setting on without Enterprise license is inert", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+		setLock(model.TeamSettingsLockProfileFieldsAll)
+		setNames("First", "Last")
+
+		_, _, err := th.Client.PatchUser(context.Background(), th.BasicUser.Id, &model.UserPatch{
+			Username:  new("un_" + model.NewId()),
+			FirstName: new("NewFirst"),
+			Nickname:  new("NewNick"),
+		})
+		require.NoError(t, err)
+	})
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	t.Run("name_and_username locks username and non-empty names", func(t *testing.T) {
+		setLock(model.TeamSettingsLockProfileFieldsNameAndUsername)
+		setNames("First", "Last")
+
+		for name, patch := range map[string]*model.UserPatch{
+			"username":   {Username: new("un_" + model.NewId())},
+			"first name": {FirstName: new("Changed")},
+			"last name":  {LastName: new("Changed")},
+		} {
+			_, resp, err := th.Client.PatchUser(context.Background(), th.BasicUser.Id, patch)
+			require.Error(t, err, "expected %s change to be rejected", name)
+			checkHTTPStatus(t, resp, http.StatusConflict)
+			CheckErrorID(t, err, "api.user.patch_user.profile_field_locked.app_error")
+		}
+
+		// Nickname and position stay editable.
+		_, _, err := th.Client.PatchUser(context.Background(), th.BasicUser.Id, &model.UserPatch{
+			Nickname: new("NewNick"),
+			Position: new("NewPosition"),
+		})
+		require.NoError(t, err)
+	})
+
+	t.Run("full PUT with unchanged locked fields does not conflict", func(t *testing.T) {
+		setLock(model.TeamSettingsLockProfileFieldsNameAndUsername)
+		setNames("First", "Last")
+
+		user, appErr := th.App.GetUser(th.BasicUser.Id)
+		require.Nil(t, appErr)
+		user.Nickname = "UpdatedNick"
+		_, _, err := th.Client.UpdateUser(context.Background(), user)
+		require.NoError(t, err)
+
+		user.Username = "un_" + model.NewId()
+		_, resp, err := th.Client.UpdateUser(context.Background(), user)
+		require.Error(t, err)
+		checkHTTPStatus(t, resp, http.StatusConflict)
+		CheckErrorID(t, err, "api.user.update_user.profile_field_locked.app_error")
+	})
+
+	t.Run("empty names can be filled once", func(t *testing.T) {
+		setLock(model.TeamSettingsLockProfileFieldsNameAndUsername)
+		setNames("", "")
+
+		_, _, err := th.Client.PatchUser(context.Background(), th.BasicUser.Id, &model.UserPatch{
+			FirstName: new("FilledFirst"),
+			LastName:  new("FilledLast"),
+		})
+		require.NoError(t, err)
+
+		_, resp, err := th.Client.PatchUser(context.Background(), th.BasicUser.Id, &model.UserPatch{
+			FirstName: new("ChangedAgain"),
+		})
+		require.Error(t, err)
+		checkHTTPStatus(t, resp, http.StatusConflict)
+	})
+
+	t.Run("all additionally locks nickname, position and profile image", func(t *testing.T) {
+		setLock(model.TeamSettingsLockProfileFieldsAll)
+
+		for name, patch := range map[string]*model.UserPatch{
+			"nickname": {Nickname: new("Changed")},
+			"position": {Position: new("Changed")},
+		} {
+			_, resp, err := th.Client.PatchUser(context.Background(), th.BasicUser.Id, patch)
+			require.Error(t, err, "expected %s change to be rejected", name)
+			checkHTTPStatus(t, resp, http.StatusConflict)
+		}
+
+		data, err := testutils.ReadTestFile("test.png")
+		require.NoError(t, err)
+		resp, err := th.Client.SetProfileImage(context.Background(), th.BasicUser.Id, data)
+		require.Error(t, err)
+		checkHTTPStatus(t, resp, http.StatusConflict)
+		CheckErrorID(t, err, "api.user.upload_profile_user.profile_field_locked.app_error")
+
+		resp, err = th.Client.SetDefaultProfileImage(context.Background(), th.BasicUser.Id)
+		require.Error(t, err)
+		checkHTTPStatus(t, resp, http.StatusConflict)
+	})
+
+	t.Run("system admin is exempt", func(t *testing.T) {
+		setLock(model.TeamSettingsLockProfileFieldsAll)
+
+		// Editing another user.
+		_, _, err := th.SystemAdminClient.PatchUser(context.Background(), th.BasicUser.Id, &model.UserPatch{
+			Username:  new("un_" + model.NewId()),
+			FirstName: new("AdminSetFirst"),
+			LastName:  new("AdminSetLast"),
+			Nickname:  new("AdminSetNick"),
+		})
+		require.NoError(t, err)
+
+		// Editing their own profile.
+		_, _, err = th.SystemAdminClient.PatchUser(context.Background(), th.SystemAdminUser.Id, &model.UserPatch{
+			FirstName: new("AdminOwnFirst"),
+		})
+		require.NoError(t, err)
+
+		data, err := testutils.ReadTestFile("test.png")
+		require.NoError(t, err)
+		_, err = th.SystemAdminClient.SetProfileImage(context.Background(), th.BasicUser.Id, data)
+		require.NoError(t, err)
+
+		info := &model.FileInfo{Path: "users/" + th.BasicUser.Id + "/profile.png"}
+		require.NoError(t, th.cleanupTestFile(info))
+	})
+
+	t.Run("users with a login provider are not affected", func(t *testing.T) {
+		setLock(model.TeamSettingsLockProfileFieldsAll)
+
+		ldapUser := th.CreateUserWithAuth(t, model.UserAuthServiceLdap)
+		require.Empty(t, th.App.CheckLockedProfileFields(ldapUser, &model.UserPatch{
+			Username:  new("un_" + model.NewId()),
+			FirstName: new("Changed"),
+			Nickname:  new("Changed"),
+		}))
+		require.False(t, th.App.IsProfileImageLockedForUser(ldapUser))
+
+		// The provider check still wins for provider-managed users.
+		require.Equal(t, "username", th.App.CheckProviderAttributes(th.Context, ldapUser, &model.UserPatch{
+			Username: new("un_" + model.NewId()),
+		}))
+	})
+}
+
 func TestGetUsersWithInvalidEmails(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
