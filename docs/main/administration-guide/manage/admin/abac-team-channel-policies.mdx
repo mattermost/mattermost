@@ -30,9 +30,11 @@ With team-level channel membership policies, Team Admins can:
 2. Select **Team Settings**.
 3. Navigate to the **Membership Policies** tab. This tab is only visible when ABAC is enabled system-wide and you have Team Admin permissions.
 
-:::note
+<Note>
+
 System Admins also have access to the **Membership Policies** tab in Team Settings and see the same policies as Team Admins.
-:::
+
+</Note>
 
 ## Manage membership policies
 
@@ -55,9 +57,11 @@ Team Admins only see policies whose access rules their own user attributes satis
 5. Optionally, toggle **Auto-add members** per channel to control whether users matching the rules are automatically added to that channel.
 6. Select **Save** to apply the policy.
 
-:::important
+<Important>
+
 Self-exclusion prevention is enforced during save. If your defined rules would exclude your own user account, Mattermost will block the save and display an error. Adjust your rules to include your own attributes before saving.
-:::
+
+</Important>
 
 ### Edit a policy
 
@@ -82,9 +86,11 @@ Each channel assigned to a policy has an independent **Auto-add members** toggle
 
 Regardless of this setting, users who no longer satisfy the access rules are always removed during the next synchronization.
 
-:::note
+<Note>
+
 If a system-wide policy has auto-sync enabled for a channel, Team Admins cannot disable it for that channel. If a system-wide policy has auto-sync disabled, Team Admins can choose to enable it.
-:::
+
+</Note>
 
 ## Policy inheritance and combination
 
