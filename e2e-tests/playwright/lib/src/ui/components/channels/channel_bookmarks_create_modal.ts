@@ -27,7 +27,9 @@ export default class ChannelBookmarksCreateModal {
         this.cancelButton = container.getByRole('button', {name: 'Cancel'});
         this.emojiButton = container.getByRole('button', {name: 'select an emoji'});
         this.removeEmojiButton = container.getByText('Remove emoji');
-        this.invalidLinkMessage = container.getByText(/Could not find|may not be a valid link/i);
+        this.invalidLinkMessage = container.getByText(
+            /Could not find|may not be a valid link|Please enter a valid link|Could not parse/i,
+        );
         this.emojiSearchInput = container.page().getByPlaceholder('Search emojis');
     }
 
