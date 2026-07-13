@@ -44,8 +44,10 @@ var messageChannelTypes = []model.ChannelType{
 }
 
 // nonMessageBackingChannelTypes is the deny-list applied to queries that cannot filter through
-// the messageChannelTypes allow-list. Adding a space type here excludes it from every query that
-// references this var.
+// the messageChannelTypes allow-list. Adding a type here excludes it from every query that
+// references this var. It currently covers only space; board types are excluded on most surfaces
+// via the messageChannelTypes allow-list and are intentionally not added here, so they are not
+// excluded from these deny-list-only queries.
 var nonMessageBackingChannelTypes = []model.ChannelType{
 	model.ChannelTypeSpace,
 }
@@ -1583,7 +1585,9 @@ func (s SqlChannelStore) GetTeamChannels(teamId string) (model.ChannelList, erro
 
 // GetTeamSpaceChannels returns all space (S) channels for a team, including archived ones, so
 // team teardown can remove them. GetTeamChannels/GetAll exclude spaces, hence this dedicated
-// enumerator. Returns an empty list (not ErrNotFound) when the team has no spaces.
+// enumerator. Returns an empty list (not ErrNotFound) when the team has no spaces. It reads from
+// the primary because its callers (team teardown, member cleanup) act on the result destructively
+// and must not miss a just-created space due to replica lag.
 func (s SqlChannelStore) GetTeamSpaceChannels(teamId string) (model.ChannelList, error) {
 	data := model.ChannelList{}
 	query := s.tableSelectQuery.Where(sq.And{
@@ -1591,8 +1595,32 @@ func (s SqlChannelStore) GetTeamSpaceChannels(teamId string) (model.ChannelList,
 		sq.Eq{"Type": model.ChannelTypeSpace},
 	}).OrderBy("Id")
 
-	if err := s.GetReplica().SelectBuilder(&data, query); err != nil {
+	if err := s.GetMaster().SelectBuilder(&data, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to find space Channels with teamId=%s", teamId)
+	}
+
+	return data, nil
+}
+
+// GetTeamSpaceChannelsForUser returns the team's space (S) channels, including archived ones,
+// that the user is a member of. Space memberships are excluded from GetChannels and
+// GetChannelMembersForUser, hence this dedicated lookup. It reads from the primary because its
+// callers (team leave, guest eviction) act on the result destructively and must not miss a
+// just-created membership due to replica lag.
+func (s SqlChannelStore) GetTeamSpaceChannelsForUser(teamId string, userId string) (model.ChannelList, error) {
+	data := model.ChannelList{}
+	query := s.getQueryBuilder().
+		Select(channelSliceColumns(true, "Channels")...).
+		From("Channels").
+		InnerJoin("ChannelMembers ON (Channels.Id = ChannelMembers.ChannelId)").
+		Where(sq.And{
+			sq.Eq{"Channels.TeamId": teamId},
+			sq.Eq{"Channels.Type": model.ChannelTypeSpace},
+			sq.Eq{"ChannelMembers.UserId": userId},
+		}).OrderBy("Channels.Id")
+
+	if err := s.GetMaster().SelectBuilder(&data, query); err != nil {
+		return nil, errors.Wrapf(err, "failed to find space Channels with teamId=%s and userId=%s", teamId, userId)
 	}
 
 	return data, nil

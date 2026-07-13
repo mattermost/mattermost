@@ -155,6 +155,26 @@ func TestCreateChannel(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	t.Run("create space channel with replicas skips the wait", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		c := &model.Channel{
+			Id:          model.NewId(),
+			Name:        "name",
+			DisplayName: "displayname",
+			Type:        model.ChannelTypeSpace,
+		}
+		// The generic GetChannel the replica wait polls excludes space channels, so waiting
+		// would always time out; Create must return without consulting the config or polling.
+		api.On("CreateChannel", c).Return(c, nil).Once()
+
+		err := client.Channel.Create(c)
+		require.NoError(t, err)
+		api.AssertNotCalled(t, "GetChannel", c.Id)
+	})
+
 	t.Run("create channel and wait once", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)

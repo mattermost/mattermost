@@ -749,8 +749,9 @@ func (a *App) GetGroupChannel(rctx request.CTX, userIDs []string) (*model.Channe
 
 // UpdateChannel updates a given channel by its Id. It also publishes the CHANNEL_UPDATED event.
 func (a *App) UpdateChannel(rctx request.CTX, channel *model.Channel) (*model.Channel, *model.AppError) {
-	// Space backing channels are excluded from the generic Get; resolve them through the
-	// dedicated path so docs/spaces metadata updates (rename, header) can reach the store.
+	// The generic Get excludes spaces, so fetch a space by its exact type instead; otherwise
+	// UpdateChannel can't load the existing channel and a rename or header edit would fail with
+	// a not-found before it reaches the store.
 	// Read from master: spaces are uncached, so an update right after create would otherwise
 	// miss against a lagging replica.
 	var oldChannel *model.Channel
@@ -3039,18 +3040,26 @@ func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 		if err != nil {
 			return err
 		}
+		// GetChannelMembersForUser excludes space backing channels. A guest still in a space
+		// belongs to the team, so count space memberships before evicting them from the team.
 		if len(currentMembers) == 0 {
-			teamMember, err := a.GetTeamMember(rctx, channel.TeamId, userIDToRemove)
-			if err != nil {
-				return model.NewAppError("removeUserFromChannel", "api.team.remove_user_from_team.missing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			spaceChannels, sErr := a.Srv().Store().Channel().GetTeamSpaceChannelsForUser(channel.TeamId, userIDToRemove)
+			if sErr != nil {
+				return model.NewAppError("removeUserFromChannel", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(sErr)
 			}
+			if len(spaceChannels) == 0 {
+				teamMember, err := a.GetTeamMember(rctx, channel.TeamId, userIDToRemove)
+				if err != nil {
+					return model.NewAppError("removeUserFromChannel", "api.team.remove_user_from_team.missing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+				}
 
-			if err := a.ch.srv.teamService.RemoveTeamMember(rctx, teamMember); err != nil {
-				return model.NewAppError("removeUserFromChannel", "api.team.remove_user_from_team.missing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-			}
+				if err := a.ch.srv.teamService.RemoveTeamMember(rctx, teamMember); err != nil {
+					return model.NewAppError("removeUserFromChannel", "api.team.remove_user_from_team.missing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+				}
 
-			if err = a.postProcessTeamMemberLeave(rctx, teamMember, removerUserId); err != nil {
-				return err
+				if err = a.postProcessTeamMemberLeave(rctx, teamMember, removerUserId); err != nil {
+					return err
+				}
 			}
 		}
 	}

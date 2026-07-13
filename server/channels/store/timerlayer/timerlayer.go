@@ -2519,6 +2519,22 @@ func (s *TimerLayerChannelStore) GetTeamSpaceChannels(teamID string) (model.Chan
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) GetTeamSpaceChannelsForUser(teamID string, userID string) (model.ChannelList, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.GetTeamSpaceChannelsForUser(teamID, userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetTeamSpaceChannelsForUser", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) GroupSyncedChannelCount() (int64, error) {
 	start := time.Now()
 

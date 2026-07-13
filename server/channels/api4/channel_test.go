@@ -8109,22 +8109,26 @@ func TestChannelEndpointsExcludeSpaces(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
+	t.Run("channelMembersMinusGroupMembers rejects a space", func(t *testing.T) {
+		_, _, resp, err := th.SystemAdminClient.ChannelMembersMinusGroupMembers(ctx, space.Id, []string{model.NewId()}, 0, 100, "")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
 	t.Run("getChannelAccessControlAttributes rejects a space", func(t *testing.T) {
 		r, err := client.DoAPIGet(ctx, "/channels/"+space.Id+"/access_control/attributes", "")
 		require.Error(t, err)
 		require.Equal(t, http.StatusForbidden, r.StatusCode)
 	})
 
-	// convertGroupMessageToChannel has no explicit space guard; the permission check fires
-	// first (empty TeamID in the body → no create_private_channel permission → 403).
 	t.Run("convertGroupMessageToChannel rejects a space", func(t *testing.T) {
 		resp, err := client.DoAPIPost(ctx, "/channels/"+space.Id+"/convert_to_channel", "{}")
 		require.Error(t, err)
-		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 
-	// --- rejectSpaceChannelByID's swallowed GetChannelOfType error still lets the endpoint's own
-	// --- not-found/permission handling surface normally for a nonexistent channel id ---
+	// --- rejectSpaceChannelByID passes through a not-found result (a nonexistent id is definitely
+	// --- not a space), so the endpoint's own not-found/permission handling surfaces normally ---
 
 	t.Run("updateChannelMemberRoles on a nonexistent channel behaves as before", func(t *testing.T) {
 		resp, err := th.SystemAdminClient.UpdateChannelRoles(ctx, model.NewId(), th.BasicUser.Id, "channel_user")

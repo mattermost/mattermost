@@ -1085,6 +1085,44 @@ func TestLeaveLastChannel(t *testing.T) {
 	})
 }
 
+func TestLeaveLastChannelGuestStillInSpace(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	guest := th.CreateGuest(t)
+	th.LinkUserToTeam(t, guest, th.BasicTeam)
+
+	townSquare, appErr := th.App.GetChannelByName(th.Context, "town-square", th.BasicTeam.Id, false)
+	require.Nil(t, appErr)
+	th.AddUserToChannel(t, guest, townSquare)
+	th.AddUserToChannel(t, guest, th.BasicChannel)
+
+	// The guest also belongs to a space backing channel, which GetChannelMembersForUser excludes.
+	// Leaving every chat channel must not evict them from the team while a space membership remains.
+	space, nErr := th.App.Srv().Store().Channel().Save(th.Context, &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		DisplayName: "Space",
+		Name:        "space-" + model.NewId(),
+		Type:        model.ChannelTypeSpace,
+	}, -1)
+	require.NoError(t, nErr)
+	_, nErr = th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
+		ChannelId:   space.Id,
+		UserId:      guest.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		SchemeGuest: true,
+	})
+	require.NoError(t, nErr)
+
+	appErr = th.App.LeaveChannel(th.Context, townSquare.Id, guest.Id)
+	require.Nil(t, appErr)
+	appErr = th.App.LeaveChannel(th.Context, th.BasicChannel.Id, guest.Id)
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.GetTeamMember(th.Context, th.BasicTeam.Id, guest.Id)
+	assert.Nil(t, appErr, "guest still in a space should keep the team membership")
+}
+
 func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

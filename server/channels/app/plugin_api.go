@@ -476,27 +476,17 @@ func (api *PluginAPI) CreateChannel(channel *model.Channel) (*model.Channel, *mo
 }
 
 func (api *PluginAPI) DeleteChannel(channelID string) *model.AppError {
-	channel, err := api.app.GetChannel(api.ctx, channelID)
+	channel, err := api.getChannelWithSpaceFallback(channelID)
 	if err != nil {
-		if err.StatusCode != http.StatusNotFound {
-			return err
-		}
-		if channel, err = api.resolveSpaceChannel(channelID, err); err != nil {
-			return err
-		}
+		return err
 	}
 	return api.app.DeleteChannel(api.ctx, channel, "")
 }
 
 func (api *PluginAPI) RestoreChannel(channelID string) *model.AppError {
-	channel, err := api.app.GetChannel(api.ctx, channelID)
+	channel, err := api.getChannelWithSpaceFallback(channelID)
 	if err != nil {
-		if err.StatusCode != http.StatusNotFound {
-			return err
-		}
-		if channel, err = api.resolveSpaceChannel(channelID, err); err != nil {
-			return err
-		}
+		return err
 	}
 	_, err = api.app.RestoreChannel(api.ctx, channel, "")
 	return err
@@ -518,15 +508,31 @@ func (api *PluginAPI) GetChannel(channelID string) (*model.Channel, *model.AppEr
 // GetChannel excludes opaque backing channel types (e.g. space); plugins that manage such a
 // channel resolve it by its exact type here.
 func (api *PluginAPI) GetChannelOfType(channelID string, channelType model.ChannelType) (*model.Channel, *model.AppError) {
-	// Plugins commonly create a backing channel and resolve it immediately; read from master to
-	// avoid a read-after-write miss against a lagging replica (these types are also uncached).
-	return api.app.GetChannelOfType(RequestContextWithMaster(api.ctx), channelID, channelType)
+	ctx := api.ctx
+	// Opaque backing types (e.g. space) are uncached and created without waiting for replica
+	// replication, so a plugin resolving one immediately after creating it could miss it on a
+	// lagging replica; read those from master. Cached message-bearing types stay on the replica.
+	if channelType == model.ChannelTypeSpace {
+		ctx = RequestContextWithMaster(api.ctx)
+	}
+	return api.app.GetChannelOfType(ctx, channelID, channelType)
 }
 
-// resolveSpaceChannel is called when GetChannel returns 404. It tries the space backing channel
-// and returns it on success, spaceErr on a non-404 failure, or the original notFoundErr when
-// both lookups return 404 (the ID simply does not exist).
-func (api *PluginAPI) resolveSpaceChannel(channelID string, notFoundErr *model.AppError) (*model.Channel, *model.AppError) {
+// getChannelWithSpaceFallback resolves a channel by ID for the mutation methods. The generic
+// lookup excludes opaque space backing channels, so on 404 — and only on 404 — it retries the
+// same ID as a space backing channel, letting a plugin that holds its backing channel's ID
+// manage it through the standard API while reads stay opaque. The 404 retry resolves the space
+// from master (GetChannelOfType reads master for spaces), so the returned channel is already
+// lag-safe; callers that then perform a further read on it — e.g. AddChannelMember's membership
+// check — additionally re-derive a master context via channel.IsSpace().
+func (api *PluginAPI) getChannelWithSpaceFallback(channelID string) (*model.Channel, *model.AppError) {
+	channel, err := api.app.GetChannel(api.ctx, channelID)
+	if err == nil {
+		return channel, nil
+	}
+	if err.StatusCode != http.StatusNotFound {
+		return nil, err
+	}
 	// Plugins commonly create a space and immediately resolve it (add a member, delete, restore),
 	// so read from master to avoid a read-after-write miss against a lagging replica.
 	spaceChannel, spaceErr := api.app.GetChannelOfType(RequestContextWithMaster(api.ctx), channelID, model.ChannelTypeSpace)
@@ -534,7 +540,7 @@ func (api *PluginAPI) resolveSpaceChannel(channelID string, notFoundErr *model.A
 		if spaceErr.StatusCode != http.StatusNotFound {
 			return nil, spaceErr
 		}
-		return nil, notFoundErr
+		return nil, err // neither a regular channel nor a space
 	}
 	return spaceChannel, nil
 }
@@ -666,17 +672,16 @@ func (api *PluginAPI) SearchPostsInTeamForUser(teamID string, userID string, sea
 }
 
 func (api *PluginAPI) AddChannelMember(channelID, userID string) (*model.ChannelMember, *model.AppError) {
-	channel, err := api.GetChannel(channelID)
+	channel, err := api.getChannelWithSpaceFallback(channelID)
 	if err != nil {
-		if err.StatusCode != http.StatusNotFound {
-			return nil, err
-		}
-		if channel, err = api.resolveSpaceChannel(channelID, err); err != nil {
-			return nil, err
-		}
+		return nil, err
+	}
+	ctx := api.ctx
+	if channel.IsSpace() {
+		ctx = RequestContextWithMaster(api.ctx)
 	}
 
-	return api.app.AddChannelMember(api.ctx, userID, channel, ChannelMemberOpts{
+	return api.app.AddChannelMember(ctx, userID, channel, ChannelMemberOpts{
 		// For now, don't allow overriding these via the plugin API.
 		UserRequestorID: "",
 		PostRootID:      "",
@@ -684,17 +689,16 @@ func (api *PluginAPI) AddChannelMember(channelID, userID string) (*model.Channel
 }
 
 func (api *PluginAPI) AddUserToChannel(channelID, userID, asUserID string) (*model.ChannelMember, *model.AppError) {
-	channel, err := api.GetChannel(channelID)
+	channel, err := api.getChannelWithSpaceFallback(channelID)
 	if err != nil {
-		if err.StatusCode != http.StatusNotFound {
-			return nil, err
-		}
-		if channel, err = api.resolveSpaceChannel(channelID, err); err != nil {
-			return nil, err
-		}
+		return nil, err
+	}
+	ctx := api.ctx
+	if channel.IsSpace() {
+		ctx = RequestContextWithMaster(api.ctx)
 	}
 
-	return api.app.AddChannelMember(api.ctx, userID, channel, ChannelMemberOpts{
+	return api.app.AddChannelMember(ctx, userID, channel, ChannelMemberOpts{
 		UserRequestorID: asUserID,
 	})
 }
@@ -722,25 +726,45 @@ func (api *PluginAPI) UpdateChannelMemberRoles(channelID, userID, newRoles strin
 }
 
 func (api *PluginAPI) UpdateChannelMemberNotifications(channelID, userID string, notifications map[string]string) (*model.ChannelMember, *model.AppError) {
+	if appErr := api.rejectSpaceChannel(channelID); appErr != nil {
+		return nil, appErr
+	}
 	return api.app.UpdateChannelMemberNotifyProps(api.ctx, notifications, channelID, userID)
 }
 
 func (api *PluginAPI) PatchChannelMembersNotifications(members []*model.ChannelMemberIdentifier, notifications map[string]string) *model.AppError {
+	seen := make(map[string]bool, len(members))
+	for _, member := range members {
+		if seen[member.ChannelId] {
+			continue
+		}
+		seen[member.ChannelId] = true
+		if appErr := api.rejectSpaceChannel(member.ChannelId); appErr != nil {
+			return appErr
+		}
+	}
 	_, err := api.app.PatchChannelMembersNotifyProps(api.ctx, members, notifications)
 	return err
 }
 
+// rejectSpaceChannel returns a bad-request AppError when channelID is a space backing channel.
+// Notify-prop mutations carry chat semantics (they emit a channel_member_updated event) that do
+// not belong on an internal space backing channel, so they are rejected here.
+func (api *PluginAPI) rejectSpaceChannel(channelID string) *model.AppError {
+	if _, err := api.app.GetChannelOfType(RequestContextWithMaster(api.ctx), channelID, model.ChannelTypeSpace); err == nil {
+		return model.NewAppError("PluginAPI.rejectSpaceChannel", "plugin_api.channel.space_notify_props.app_error", nil, "", http.StatusBadRequest)
+	}
+	return nil
+}
+
 func (api *PluginAPI) DeleteChannelMember(channelID, userID string) *model.AppError {
-	if _, err := api.app.GetChannel(api.ctx, channelID); err != nil {
-		if err.StatusCode != http.StatusNotFound {
-			return err
-		}
+	channel, err := api.getChannelWithSpaceFallback(channelID)
+	if err != nil {
+		return err
+	}
+	if channel.IsSpace() {
 		// Space backing channels resolve outside LeaveChannel's generic GetChannel; remove directly.
-		channel, spaceErr := api.resolveSpaceChannel(channelID, err)
-		if spaceErr != nil {
-			return spaceErr
-		}
-		return api.app.RemoveUserFromChannel(api.ctx, userID, userID, channel)
+		return api.app.RemoveUserFromChannel(RequestContextWithMaster(api.ctx), userID, userID, channel)
 	}
 	return api.app.LeaveChannel(api.ctx, channelID, userID)
 }

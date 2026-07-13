@@ -102,6 +102,13 @@ func (c *ChannelService) Create(channel *model.Channel) error {
 
 	*channel = *createdChannel
 
+	// The replica wait polls the generic GetChannel, which excludes opaque backing channel
+	// types, so it could never observe a space channel. Space channels are also resolved via
+	// GetChannelOfType, which reads from the master DB, so there is no replica lag to wait out.
+	if channel.IsSpace() {
+		return nil
+	}
+
 	return c.waitForChannelCreation(channel.Id)
 }
 

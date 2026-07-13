@@ -31,9 +31,16 @@ func rejectBoardChannelByID(c *Context, channelId string) bool {
 // rejectSpaceChannelByID returns true and sets c.Err if the channel ID belongs
 // to a space channel. Space channels must use the spaces API, not /channels.
 // Use this on write endpoints to give a clear error instead of a 404.
+// It reads from the primary so a freshly created space cannot slip through on
+// replica lag, and fails closed by rejecting on any error other than not-found.
 func rejectSpaceChannelByID(c *Context, channelId string) bool {
-	if _, err := c.App.GetChannelOfType(c.AppContext, channelId, model.ChannelTypeSpace); err == nil {
+	_, err := c.App.GetChannelOfType(c.AppContext.With(app.RequestContextWithMaster), channelId, model.ChannelTypeSpace)
+	if err == nil {
 		c.Err = model.NewAppError("", "api.channel.space_channel.app_error", nil, "space channels cannot be accessed via /channels endpoints", http.StatusBadRequest)
+		return true
+	}
+	if err.StatusCode != http.StatusNotFound {
+		c.Err = err
 		return true
 	}
 	return false
@@ -2878,6 +2885,10 @@ func channelMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.
 		return
 	}
 
+	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
+		return
+	}
+
 	groupIDsParam := groupIDsQueryParamRegex.ReplaceAllString(c.Params.GroupIDs, "")
 
 	if len(groupIDsParam) < 26 {
@@ -3180,6 +3191,10 @@ func convertGroupMessageToChannel(c *Context, w http.ResponseWriter, r *http.Req
 	}
 
 	if rejectBoardChannelByID(c, c.Params.ChannelId) {
+		return
+	}
+
+	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
 		return
 	}
 

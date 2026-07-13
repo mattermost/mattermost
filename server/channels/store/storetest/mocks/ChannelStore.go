@@ -2360,6 +2360,36 @@ func (_m *ChannelStore) GetTeamSpaceChannels(teamID string) (model.ChannelList, 
 	return r0, r1
 }
 
+// GetTeamSpaceChannelsForUser provides a mock function with given fields: teamID, userID
+func (_m *ChannelStore) GetTeamSpaceChannelsForUser(teamID string, userID string) (model.ChannelList, error) {
+	ret := _m.Called(teamID, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTeamSpaceChannelsForUser")
+	}
+
+	var r0 model.ChannelList
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) (model.ChannelList, error)); ok {
+		return rf(teamID, userID)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) model.ChannelList); ok {
+		r0 = rf(teamID, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(model.ChannelList)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(teamID, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GroupSyncedChannelCount provides a mock function with no fields
 func (_m *ChannelStore) GroupSyncedChannelCount() (int64, error) {
 	ret := _m.Called()

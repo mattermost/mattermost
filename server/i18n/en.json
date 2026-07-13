@@ -13443,6 +13443,10 @@
     "translation": "Bot user cannot create bot user."
   },
   {
+    "id": "plugin_api.channel.space_notify_props.app_error",
+    "translation": "Notify props cannot be set on space channels."
+  },
+  {
     "id": "plugin_api.get_file_link.disabled.app_error",
     "translation": "Public links have been disabled."
   },

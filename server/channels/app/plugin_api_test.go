@@ -3830,6 +3830,14 @@ func TestPluginAPICreateSpaceAndAddMember(t *testing.T) {
 	require.Equal(t, created.Id, member.ChannelId)
 	require.Equal(t, th.BasicUser.Id, member.UserId)
 
+	// AddUserToChannel skips the sidebar default-category assignment for a space backing channel,
+	// so the space must not appear in the member's sidebar categories.
+	categories, appErr := th.App.GetSidebarCategories(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
+	require.Nil(t, appErr)
+	for _, category := range categories.Categories {
+		require.NotContains(t, category.Channels, created.Id, "space backing channel must not appear in the sidebar")
+	}
+
 	// AddUserToChannel resolves the space backing channel through the same 404 fallback.
 	added, appErr := api.AddUserToChannel(created.Id, th.BasicUser2.Id, th.BasicUser.Id)
 	require.Nil(t, appErr)
@@ -3843,6 +3851,48 @@ func TestPluginAPICreateSpaceAndAddMember(t *testing.T) {
 	_, appErr = api.GetChannelMember(created.Id, th.BasicUser2.Id)
 	require.NotNil(t, appErr)
 	require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+}
+
+func TestPluginAPIChannelMemberNotificationsRejectSpace(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+
+	space := &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		DisplayName: "Space",
+		Name:        "space-" + model.NewId(),
+		Type:        model.ChannelTypeSpace,
+	}
+	space, nErr := th.App.Srv().Store().Channel().Save(th.Context, space, -1)
+	require.NoError(t, nErr)
+	_, nErr = th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
+		ChannelId:   space.Id,
+		UserId:      th.BasicUser.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		SchemeUser:  true,
+	})
+	require.NoError(t, nErr)
+
+	notifications := map[string]string{model.MarkUnreadNotifyProp: model.ChannelMarkUnreadMention}
+
+	// Notify-prop mutations carry chat semantics (a channel_member_updated event) that do not
+	// belong on an internal space backing channel, so the plugin API rejects them like /channels.
+	_, appErr := api.UpdateChannelMemberNotifications(space.Id, th.BasicUser.Id, notifications)
+	require.NotNil(t, appErr)
+	require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+
+	appErr = api.PatchChannelMembersNotifications(
+		[]*model.ChannelMemberIdentifier{{ChannelId: space.Id, UserId: th.BasicUser.Id}},
+		notifications,
+	)
+	require.NotNil(t, appErr)
+	require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+
+	// A regular channel is unaffected.
+	_, appErr = api.UpdateChannelMemberNotifications(th.BasicChannel.Id, th.BasicUser.Id, notifications)
+	require.Nil(t, appErr)
 }
 
 func TestPluginAPIUpdateSpaceBackingChannel(t *testing.T) {
