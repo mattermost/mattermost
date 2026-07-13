@@ -215,6 +215,55 @@ describe('components/signup/Signup', () => {
         expect(mockHistoryPush).toHaveBeenCalledWith('/should_verify_email?email=jdoe%40mm.com&teamname=teamName');
     });
 
+    it('should prefill and lock the username when pre-set by the inviter', () => {
+        mockLocation.search = 'd=' + encodeURIComponent(JSON.stringify({
+            email: 'dave.roberts@gmail.com',
+            name: 'teamName',
+            username: 'dave.roberts',
+            first_name: 'Dave',
+            last_name: 'Roberts',
+        }));
+
+        renderWithContext(
+            <Signup/>,
+        );
+
+        const usernameInput = screen.getByLabelText('Choose a Username');
+        expect(usernameInput).toHaveValue('dave.roberts');
+        expect(usernameInput).toBeDisabled();
+        expect(screen.getByText('Your username was chosen by your admin.')).toBeInTheDocument();
+        expect(screen.getByTestId('signup-body-card-preset-name')).toHaveTextContent("You'll join as Dave Roberts.");
+    });
+
+    it('should show the pre-set name line with only a first name', () => {
+        mockLocation.search = 'd=' + encodeURIComponent(JSON.stringify({
+            email: 'dave.roberts@gmail.com',
+            first_name: 'Dave',
+        }));
+
+        renderWithContext(
+            <Signup/>,
+        );
+
+        expect(screen.getByLabelText('Choose a Username')).not.toBeDisabled();
+        expect(screen.getByTestId('signup-body-card-preset-name')).toHaveTextContent("You'll join as Dave.");
+    });
+
+    it('should keep the username editable without pre-set profile data', () => {
+        mockLocation.search = 'd=' + encodeURIComponent(JSON.stringify({
+            email: 'dave.roberts@gmail.com',
+            name: 'teamName',
+        }));
+
+        renderWithContext(
+            <Signup/>,
+        );
+
+        expect(screen.getByLabelText('Choose a Username')).not.toBeDisabled();
+        expect(screen.queryByTestId('signup-body-card-preset-name')).not.toBeInTheDocument();
+        expect(screen.getByText('You can use lowercase letters, numbers, periods, dashes, and underscores.')).toBeInTheDocument();
+    });
+
     it('should create user, log in and redirect to default team', async () => {
         mockDispatch = jest.fn().
             mockResolvedValueOnce({}). // removeGlobalItem
