@@ -17,6 +17,7 @@ Review and manage the following site configuration options in the System Console
 - [Public Links](#public-links)
 - [Notices](#notices)
 - [Connected Workspaces](#connected-workspaces)
+- [Classification Markings](#classification-markings)
 
 <Tip>
 
@@ -230,7 +231,7 @@ This configuration setting applies to all Mattermost clients, including web, des
 
 With self-hosted deployments, you can specify how the **Report a Problem** option behaves in the Mattermost app via the **Help** menu:
 
-- **Default link**: Uses the default Mattermost URL to report a problem. Customers with a Mattermost subscription are directed to the [Mattermost Support Portal](https://support.mattermost.com/hc/en-us/requests/new). Community deployments are directed to [create a new issue on the Mattermost GitHub repository](https://github.com/mattermost/mattermost/issues/new).
+- **Default**: Customers with a Mattermost license can open a support case by email with the Mattermost support team. Unlicensed Mattermost deployments are directed to the [troubleshooting forums](https://mattermost.com/pl/report_a_problem_unlicensed).
 - **Email address**: Enables you to [enter an email address](/administration-guide/configure/site-configuration-settings#report-a-problem-email-address) that users will be prompted to send a message to when they choose **Report a Problem** in Mattermost.
 - **Custom link**: Enables you to [enter a URL](/administration-guide/configure/site-configuration-settings#report-a-problem-link) that users will be directed to when they choose **Report a Problem** in Mattermost.
 - **Hide link**: Removes the **Report a Problem** option from Mattermost.
@@ -266,7 +267,7 @@ This setting is applicable to self-hosted deployments only.
 <tbody>
 <tr>
 <td><p>This field sets the email address for the <strong>Report a Problem</strong> link in the channel header <strong>Help</strong> menu.</p><p>String input. Cannot be left blank.</p></td>
-<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>SupportSettings</code> &gt; <code>ReportAProblemMail</code></li><li>Environment variable: <code>MM_SUPPORTSETTINGS_REPORTAPROBLMEMAIL</code></li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>SupportSettings</code> &gt; <code>ReportAProblemMail</code></li><li>Environment variable: <code>MM_SUPPORTSETTINGS_REPORTAPROBLEMMAIL</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -881,6 +882,23 @@ Access the following configuration settings in the System Console by going to **
 <tr>
 <td><p>Set the server time for updating the user post statistics, including each user's total message count, and the timestamp of each user's most recently sent message.</p><p>Must be a 24-hour time stamp in the form <code>HH:MM</code> based on the local time of the server. Default is <strong>00:00</strong>.</p></td>
 <td><ul><li>System Config path: <strong>Site Configuration &gt; Users and Teams</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>RefreshPostStatsRunTime</code> &gt; <code>00:00</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_REFRESHPOSTSTATSRUNTIME</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Channel category sorting
+
+From Mattermost v11.8, channel category sorting is enabled by default. When enabled, channel admins can choose a default sidebar category when creating or editing a channel. Channel admins can select an existing category, type a new category name, or clear the default category from channel settings. Members who join the channel see it under that category in their sidebar. When disabled, the default category selector is hidden.
+
+<table>
+<colgroup>
+<col style={{width: '54%'}} />
+<col style={{width: '45%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> When creating or editing supported channels, channel admins see a <strong>Default category (optional)</strong> field. They can select an existing category, enter a new category name, or clear the default category from channel settings. Members who join the channel see it under that category in their sidebar.</li><li><strong>false</strong>: The default category selector is hidden when creating or editing channels.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Users and Teams</strong></li><li><code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>EnableChannelCategorySorting</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_TEAMSETTINGS_ENABLECHANNELCATEGORYSORTING</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -2116,6 +2134,35 @@ Enabling these features can increase the load on your Mattermost server’s CPU,
 Enabling these features can increase the load on your Mattermost server’s CPU, memory, and database due to frequent updates, database queries, and API communication. Excessive sync frequency and retries can overwhelm system resources, potentially causing performance degradation or instability. Monitor your system carefully when enabling these features.
 
 </Note>
+
+------------------------------------------------------------------------------------------------------------------------
+
+## Classification Markings
+
+From Mattermost v11.8, system admins can configure classification markings in the System Console by going to **Site Configuration \> Classification Markings**.
+
+Classification markings define reusable classification levels that can be displayed as global or channel-level banners in the web and desktop apps. Each classification level includes a name, color, and rank order. You can select a preset, such as US DoD, NATO, UK GSCP, Canada, or Australia PSPF, or define custom classification levels.
+
+<Note>
+
+Classification markings are informational only and aren't tied to access control decisions at this time.
+
+</Note>
+
+Configure classification markings:
+
+1. Go to **System Console \> Site Configuration \> Classification Markings**.
+2. Enable **Enable classification markings**.
+3. Select a **Classification preset**, or create custom classification levels.
+4. Configure classification level names, colors, and rank order.
+5. Optionally enable the **Global Classification Banner** under **Global Classification Indicators**.
+6. Select the **Banner visibility**:
+
+  - **Top only**
+  - **Top and bottom**
+
+7. Select the **Global classification level** to display.
+8. Select **Save**.
 
 ------------------------------------------------------------------------------------------------------------------------
 
