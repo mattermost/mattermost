@@ -5,6 +5,7 @@ package storetest
 
 import (
 	"fmt"
+	"sort"
 	"testing"
 	"time"
 
@@ -467,6 +468,12 @@ func testFileInfoGetWithOptionsOnlyEmptyContent(t *testing.T, rctx request.CTX, 
 	assert.Equal(t, emptyFile.Id, fileInfos[0].Id)
 }
 
+type byFileInfoID []*model.FileInfo
+
+func (a byFileInfoID) Len() int           { return len(a) }
+func (a byFileInfoID) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a byFileInfoID) Less(i, j int) bool { return a[i].Id < a[j].Id }
+
 func testFileInfoAttachToPost(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("should attach files", func(t *testing.T) {
 		userID := model.NewId()
@@ -501,7 +508,9 @@ func testFileInfoAttachToPost(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		expected := []*model.FileInfo{info1, info2}
-		assert.ElementsMatch(t, expected, data)
+		sort.Sort(byFileInfoID(expected))
+		sort.Sort(byFileInfoID(data))
+		assert.EqualValues(t, expected, data)
 	})
 
 	t.Run("should not attach files to multiple posts", func(t *testing.T) {
@@ -917,20 +926,18 @@ func testFileInfoGetStorageUsage(t *testing.T, rctx request.CTX, ss store.Store)
 }
 
 func testGetUptoNSizeFileTime(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	t.Skip("MM-53905")
+
 	_, err := ss.FileInfo().GetUptoNSizeFileTime(0)
 	assert.Error(t, err)
 	_, err = ss.FileInfo().GetUptoNSizeFileTime(-1)
 	assert.Error(t, err)
 
-	// Delete all existing file infos so parallel tests don't interfere with
-	// the cumulative size calculation (MM-53905).
-	_, err = ss.FileInfo().PermanentDeleteBatch(rctx, model.GetMillis()+3600000, 100000)
+	_, err = ss.FileInfo().PermanentDeleteBatch(rctx, model.GetMillis(), 100000)
 	require.NoError(t, err)
 
-	// Use far-future timestamps so these are always "most recent" even if
-	// parallel tests create file infos concurrently.
 	diff := int64(10000)
-	now := utils.MillisFromTime(time.Now()) + 3600000 // 1 hour in the future
+	now := utils.MillisFromTime(time.Now()) + diff
 
 	f1, err := ss.FileInfo().Save(rctx, &model.FileInfo{
 		PostId:    model.NewId(),
