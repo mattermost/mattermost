@@ -2891,14 +2891,24 @@ func (a *App) applyPostsWillBeConsumedHook(rctx request.CTX, posts map[string]*m
 	postsSlice := make([]*model.Post, 0, len(posts))
 	rebuildPostsSlice := func() {
 		postsSlice = postsSlice[:0]
-		for _, post := range posts {
+		for postID, post := range posts {
+			if _, ok := metadataByPostID[postID]; !ok {
+				continue
+			}
 			postsSlice = append(postsSlice, post.ForPlugin())
 		}
 	}
 	for postID, post := range posts {
+		if post.Type == model.PostTypeBurnOnRead {
+			continue
+		}
 		metadataByPostID[postID] = post.Metadata
 	}
+	if len(metadataByPostID) == 0 {
+		return
+	}
 	rebuildPostsSlice()
+
 	applyReplacements := func(postReplacements []*model.Post) {
 		for _, postReplacement := range postReplacements {
 			if postReplacement == nil {
@@ -2930,42 +2940,9 @@ func (a *App) applyPostsWillBeConsumedHook(rctx request.CTX, posts map[string]*m
 }
 
 func (a *App) applyPostWillBeConsumedHook(rctx request.CTX, post **model.Post) {
-	if (*post).Type == model.PostTypeBurnOnRead {
-		return
-	}
-
-	env := a.GetPluginsEnvironment()
-	if env == nil || (!env.HasPluginImplementing(plugin.MessagesWillBeConsumedID) && !env.HasPluginImplementing(plugin.MessagesWillBeConsumedWithContextID)) {
-		return
-	}
-
-	metadata := (*post).Metadata
-	postsSlice := []*model.Post{(*post).ForPlugin()}
-	applyReplacement := func(replacements []*model.Post) {
-		if len(replacements) == 0 || replacements[0] == nil {
-			return
-		}
-		// if the plugin returned a post with a different id, ignore it.
-		if replacements[0].Id != (*post).Id {
-			return
-		}
-		*post = replacements[0]
-		(*post).Metadata = metadata
-		postsSlice = []*model.Post{(*post).ForPlugin()}
-	}
-
-	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-		rp := hooks.MessagesWillBeConsumed(postsSlice)
-		applyReplacement(rp)
-		return true
-	}, plugin.MessagesWillBeConsumedID)
-
-	pluginContext := pluginContext(rctx)
-	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-		rp := hooks.MessagesWillBeConsumedWithContext(pluginContext, postsSlice)
-		applyReplacement(rp)
-		return true
-	}, plugin.MessagesWillBeConsumedWithContextID)
+	posts := map[string]*model.Post{(*post).Id: *post}
+	a.applyPostsWillBeConsumedHook(rctx, posts)
+	*post = posts[(*post).Id]
 }
 
 func makePostLink(siteURL, teamName, postID string) string {

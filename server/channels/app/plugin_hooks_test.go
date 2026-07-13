@@ -1941,6 +1941,27 @@ func TestApplyPostWillBeConsumedHook(t *testing.T) {
 		th.App.applyPostWillBeConsumedHook(th.Context, &post)
 		assert.Equal(t, "message", post.Message)
 	})
+
+	t.Run("post list skips burn-on-read posts", func(t *testing.T) {
+		regularPostID := model.NewId()
+		burnOnReadPostID := model.NewId()
+		posts := map[string]*model.Post{
+			regularPostID: {
+				Id:      regularPostID,
+				Message: "message",
+			},
+			burnOnReadPostID: {
+				Id:      burnOnReadPostID,
+				Message: "burn-on-read message",
+				Type:    model.PostTypeBurnOnRead,
+			},
+		}
+
+		th.App.applyPostsWillBeConsumedHook(th.Context, posts)
+
+		assert.Equal(t, "mwbc_plugin:message", posts[regularPostID].Message)
+		assert.Equal(t, "burn-on-read message", posts[burnOnReadPostID].Message)
+	})
 }
 
 func TestApplyPostWillBeConsumedHookIgnoresReplacementWithDifferentID(t *testing.T) {
