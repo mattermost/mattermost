@@ -44,13 +44,14 @@ func makeTestJobServer(t *testing.T) (*jobs.JobServer, *storetest.Store) {
 		mockStore,
 		nil,
 		mlog.CreateConsoleTestLogger(t),
+		nil,
 	)
 
 	return jobServer, mockStore
 }
 
 func expectJobDataUpdate(mockStore *storetest.Store) {
-	mockStore.JobStore.On("UpdateOptimistically", mock.AnythingOfType("*model.Job"), model.JobStatusInProgress).Return(true, nil)
+	mockStore.JobStore.On("UpdateOptimistically", mock.AnythingOfType("*model.Job"), model.JobStatusInProgress).Return(nil, nil)
 }
 
 func expectWorkerJobCompletion(mockStore *storetest.Store, job *model.Job) {
