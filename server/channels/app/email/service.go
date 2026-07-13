@@ -144,10 +144,10 @@ type ServiceInterface interface {
 	SendUserAccessTokenRotatedEmail(email, locale, siteURL string) error
 	SendPasswordResetEmail(email string, token *model.Token, locale, siteURL string) (bool, error)
 	SendMfaChangeEmail(email string, activated bool, locale, siteURL string) error
-	SendInviteEmails(rctx request.CTX, team *model.Team, senderName string, senderUserId string, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, errorWhenNotSent bool, isSystemAdmin bool, isFirstAdmin bool) error
+	SendInviteEmails(rctx request.CTX, team *model.Team, senderName string, senderUserId string, invites []string, profiles map[string]*model.MemberInviteProfile, siteURL string, reminderData *model.TeamInviteReminderData, errorWhenNotSent bool, isSystemAdmin bool, isFirstAdmin bool) error
 	SendGuestInviteEmails(rctx request.CTX, team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, message string, errorWhenNotSent bool, isSystemAdmin bool, isFirstAdmin bool, isGuestMagicLink bool) error
 	SendMagicLinkEmailSelfService(rctx request.CTX, invite string, siteURL string) error
-	SendInviteEmailsToTeamAndChannels(rctx request.CTX, team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, message string, errorWhenNotSent bool, isSystemAdmin bool, isFirstAdmin bool) ([]*model.EmailInviteWithError, error)
+	SendInviteEmailsToTeamAndChannels(rctx request.CTX, team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, profiles map[string]*model.MemberInviteProfile, siteURL string, reminderData *model.TeamInviteReminderData, message string, errorWhenNotSent bool, isSystemAdmin bool, isFirstAdmin bool) ([]*model.EmailInviteWithError, error)
 	SendDeactivateAccountEmail(email string, locale, siteURL string) error
 	SendNotificationMail(to, subject, htmlBody string) error
 	SendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, messageID string, inReplyTo string, references string, category string) error

@@ -1706,6 +1706,23 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		emailList[i] = strings.ToLower(emailList[i])
 	}
 
+	if len(memberInvite.Profiles) > 0 {
+		if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
+			c.Err = model.NewAppError("Api4.inviteUsersToTeam", "api.team.invite_members.profiles_license.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+
+		for _, profile := range memberInvite.Profiles {
+			profile.Email = strings.ToLower(profile.Email)
+			profile.Username = strings.ToLower(profile.Username)
+		}
+
+		if appErr := memberInvite.IsValid(); appErr != nil {
+			c.Err = appErr
+			return
+		}
+	}
+
 	auditRec := c.MakeAuditRecord(model.AuditEventInviteUsersToTeam, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "member_invite", memberInvite)
@@ -1753,6 +1770,15 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		if len(memberInvite.ChannelIds) > 0 {
 			jobData["channelList"] = model.ArrayToJSON(memberInvite.ChannelIds)
+		}
+
+		if len(memberInvite.Profiles) > 0 {
+			profilesJSON, jsonErr := json.Marshal(memberInvite.Profiles)
+			if jsonErr != nil {
+				c.Err = model.NewAppError("Api4.inviteUsersToTeam", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+				return
+			}
+			jobData["profilesList"] = string(profilesJSON)
 		}
 
 		// we then manually schedule the job to send another invite after 48 hours

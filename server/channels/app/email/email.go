@@ -427,6 +427,7 @@ func (es *Service) SendInviteEmails(
 	senderName string,
 	senderUserId string,
 	invites []string,
+	profiles map[string]*model.MemberInviteProfile,
 	siteURL string,
 	reminderData *model.TeamInviteReminderData,
 	errorWhenNotSent bool,
@@ -463,15 +464,29 @@ func (es *Service) SendInviteEmails(
 			data.Props["InviteFooterInfo"] = i18n.T("api.templates.invite_body_footer.info")
 			data.Props["InviteFooterLearnMore"] = i18n.T("api.templates.invite_body_footer.learn_more")
 
-			token := model.NewToken(
-				TokenTypeTeamInvitation,
-				model.MapToJSON(map[string]string{"teamId": team.Id, "email": invite}),
-			)
+			tokenExtra := map[string]string{"teamId": team.Id, "email": invite}
 
 			tokenProps := make(map[string]string)
 			tokenProps["email"] = invite
 			tokenProps["display_name"] = team.DisplayName
 			tokenProps["name"] = team.Name
+
+			// The token extra is authoritative at signup; the link props are prefill only.
+			if profile := profiles[invite]; profile != nil {
+				for key, value := range map[string]string{
+					"username":   profile.Username,
+					"first_name": profile.FirstName,
+					"last_name":  profile.LastName,
+				} {
+					tokenExtra[key] = value
+					tokenProps[key] = value
+				}
+			}
+
+			token := model.NewToken(
+				TokenTypeTeamInvitation,
+				model.MapToJSON(tokenExtra),
+			)
 
 			title := i18n.T("api.templates.invite_body.title", map[string]any{"SenderName": senderName, "TeamDisplayName": team.DisplayName})
 			if reminderData != nil {
@@ -725,6 +740,7 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(
 	senderUserId string,
 	senderProfileImage []byte,
 	invites []string,
+	profiles map[string]*model.MemberInviteProfile,
 	siteURL string,
 	reminderData *model.TeamInviteReminderData,
 	message string,
@@ -800,20 +816,34 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(
 		}
 		data.Props["Message"] = message
 
-		token := model.NewToken(
-			TokenTypeTeamInvitation,
-			model.MapToJSON(map[string]string{
-				"teamId":   team.Id,
-				"email":    invite,
-				"channels": strings.Join(channelIDs, " "),
-				"senderId": senderUserId,
-			}),
-		)
+		tokenExtra := map[string]string{
+			"teamId":   team.Id,
+			"email":    invite,
+			"channels": strings.Join(channelIDs, " "),
+			"senderId": senderUserId,
+		}
 
 		tokenProps := make(map[string]string)
 		tokenProps["email"] = invite
 		tokenProps["display_name"] = team.DisplayName
 		tokenProps["name"] = team.Name
+
+		// The token extra is authoritative at signup; the link props are prefill only.
+		if profile := profiles[invite]; profile != nil {
+			for key, value := range map[string]string{
+				"username":   profile.Username,
+				"first_name": profile.FirstName,
+				"last_name":  profile.LastName,
+			} {
+				tokenExtra[key] = value
+				tokenProps[key] = value
+			}
+		}
+
+		token := model.NewToken(
+			TokenTypeTeamInvitation,
+			model.MapToJSON(tokenExtra),
+		)
 
 		if reminderData != nil {
 			reminder := i18n.T("api.templates.invite_body.title.reminder")

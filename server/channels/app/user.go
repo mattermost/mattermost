@@ -86,6 +86,17 @@ func (a *App) CreateUserWithToken(rctx request.CTX, user *model.User, token *mod
 	user.Email = tokenData["email"]
 	user.EmailVerified = true
 
+	// Profile fields pre-set by the inviter are authoritative over client-supplied values.
+	if username := tokenData["username"]; username != "" {
+		user.Username = strings.ToLower(username)
+	}
+	if firstName := tokenData["first_name"]; firstName != "" {
+		user.FirstName = firstName
+	}
+	if lastName := tokenData["last_name"]; lastName != "" {
+		user.LastName = lastName
+	}
+
 	var ruser *model.User
 	var err *model.AppError
 	if token.Type == model.TokenTypeTeamInvitation {

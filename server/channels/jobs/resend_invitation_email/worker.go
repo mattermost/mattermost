@@ -131,6 +131,16 @@ func (rseworker *ResendInvitationEmailWorker) cleanChannelsData(channelStringDat
 	return channels, nil
 }
 
+func (rseworker *ResendInvitationEmailWorker) cleanProfilesData(profileStringData string) ([]*model.MemberInviteProfile, error) {
+	profiles := []*model.MemberInviteProfile{}
+	err := json.Unmarshal([]byte(profileStringData), &profiles)
+	if err != nil {
+		return nil, err
+	}
+
+	return profiles, nil
+}
+
 func (rseworker *ResendInvitationEmailWorker) removeAlreadyJoined(teamID string, emailList []string) []string {
 	var notJoinedYet []string
 	for _, email := range emailList {
@@ -204,6 +214,17 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(logger mlog.LoggerIFa
 
 	if len(channelList) > 0 {
 		memberInvite.ChannelIds = channelList
+	}
+
+	if profileListData := job.Data["profilesList"]; profileListData != "" {
+		profiles, err := rseworker.cleanProfilesData(profileListData)
+		if err != nil {
+			appErr := model.NewAppError("worker: "+rseworker.name, "job_id: "+job.Id, nil, "", http.StatusInternalServerError).Wrap(err)
+			logger.Error("Worker: Failed to clean profiles string data", mlog.Err(appErr))
+			rseworker.setJobError(logger, job, appErr)
+		} else {
+			memberInvite.Profiles = profiles
+		}
 	}
 
 	_, appErr := rseworker.app.InviteNewUsersToTeamGracefully(rctx, &memberInvite, teamID, job.Data["senderID"], interval)

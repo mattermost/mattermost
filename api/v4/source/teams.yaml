@@ -1368,10 +1368,43 @@
         content:
           application/json:
             schema:
-              type: array
-              items:
-                type: string
-        description: List of user's email
+              oneOf:
+                - type: array
+                  items:
+                    type: string
+                - type: object
+                  properties:
+                    emails:
+                      type: array
+                      items:
+                        type: string
+                      description: List of user's email
+                    channelIds:
+                      type: array
+                      items:
+                        type: string
+                      description: List of channel IDs to invite the users to
+                    message:
+                      type: string
+                      description: Custom message included in the invitation email
+                    profiles:
+                      type: array
+                      description: |
+                        Profile fields to pre-set on the accounts created from these invitations. Each entry must reference an email present in `emails`. Only honored when the `graceful` query parameter is set. Requires an Enterprise license.
+
+                        __Minimum server version__: 11.11
+                      items:
+                        type: object
+                        properties:
+                          email:
+                            type: string
+                          username:
+                            type: string
+                          first_name:
+                            type: string
+                          last_name:
+                            type: string
+        description: List of user's email, or an object with emails and invitation options
         required: true
       responses:
         "200":

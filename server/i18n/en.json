@@ -3899,12 +3899,20 @@
     "translation": "No one to invite."
   },
   {
+    "id": "api.team.invite_members.profiles_license.app_error",
+    "translation": "Pre-setting profile fields on invitations requires an Enterprise license."
+  },
+  {
     "id": "api.team.invite_members.unable_to_send_email.app_error",
     "translation": "Error while sending the email"
   },
   {
     "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
     "translation": "SMTP is not configured in System Console"
+  },
+  {
+    "id": "api.team.invite_members.username_taken.app_error",
+    "translation": "The username {{.Username}} is already taken."
   },
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
@@ -12613,6 +12621,22 @@
   {
     "id": "model.member.is_valid.emails.app_error",
     "translation": "Email list is empty"
+  },
+  {
+    "id": "model.member.is_valid.profile_email.app_error",
+    "translation": "Profile email is not in the invited email list"
+  },
+  {
+    "id": "model.member.is_valid.profile_first_name.app_error",
+    "translation": "Invalid first name in invitation profile"
+  },
+  {
+    "id": "model.member.is_valid.profile_last_name.app_error",
+    "translation": "Invalid last name in invitation profile"
+  },
+  {
+    "id": "model.member.is_valid.profile_username.app_error",
+    "translation": "Invalid username in invitation profile"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
