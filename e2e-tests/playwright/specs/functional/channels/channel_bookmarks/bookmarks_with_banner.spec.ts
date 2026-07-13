@@ -15,28 +15,19 @@ test('MM-T5609 displays the bookmarks bar correctly with an announcement banner'
     await createLinkBookmark(userClient, channel.id, 'Mattermost Community', 'https://community.mattermost.com');
     const bannerText = `Announcement ${pw.random.id()}`;
 
-    try {
-        // # Enable an announcement banner above a channel with a bookmark
-        await adminClient.patchConfig({
-            AnnouncementSettings: {
-                EnableBanner: true,
-                BannerText: bannerText,
-            },
-        } as any);
+    // # Enable an announcement banner above a channel with a bookmark
+    await adminClient.patchConfig({
+        AnnouncementSettings: {
+            EnableBanner: true,
+            BannerText: bannerText,
+        },
+    } as any);
 
-        const {channelsPage, page} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
+    const {channelsPage, page} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
 
-        // * Verify both the announcement and bookmark display correctly
-        await expect(page.getByText(bannerText, {exact: true})).toBeVisible();
-        await channelsPage.channelBookmarksBar.toBeVisible();
-        await expect(channelsPage.channelBookmarksBar.getBookmark('Mattermost Community')).toBeVisible();
-    } finally {
-        await adminClient.patchConfig({
-            AnnouncementSettings: {
-                EnableBanner: false,
-                BannerText: '',
-            },
-        } as any);
-    }
+    // * Verify both the announcement and bookmark display correctly
+    await expect(page.getByText(bannerText, {exact: true})).toBeVisible();
+    await channelsPage.channelBookmarksBar.toBeVisible();
+    await expect(channelsPage.channelBookmarksBar.getBookmark('Mattermost Community')).toBeVisible();
 });

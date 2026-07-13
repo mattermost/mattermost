@@ -5,7 +5,6 @@ import {expect, test} from '@mattermost/playwright-lib';
 
 import {
     type CustomProfileAttribute,
-    deleteCustomProfileAttributes,
     setupCustomProfileAttributeFields,
     setupCustomProfileAttributeValues,
 } from './helpers';
@@ -30,40 +29,36 @@ test(
         }));
         const fields = await setupCustomProfileAttributeFields(adminClient, attributes);
 
-        try {
-            // # Open a profile popover containing ten populated attributes
-            await setupCustomProfileAttributeValues(userClient, attributes, fields);
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, 'town-square');
-            await channelsPage.postMessage(`Popover scroll ${suffix}`);
-            const post = await channelsPage.getLastPost();
-            const popover = await channelsPage.openProfilePopover(post);
+        // # Open a profile popover containing ten populated attributes
+        await setupCustomProfileAttributeValues(userClient, attributes, fields);
+        const {channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, 'town-square');
+        await channelsPage.postMessage(`Popover scroll ${suffix}`);
+        const post = await channelsPage.getLastPost();
+        const popover = await channelsPage.openProfilePopover(post);
 
-            // * Verify the popover is scrollable
-            expect(
-                await popover.container.evaluate((element: HTMLElement) => element.scrollHeight > element.clientHeight),
-            ).toBe(true);
-            const bottomBefore = await popover.bottomRow.boundingBox();
-            if (!bottomBefore) {
-                throw new Error('Expected the profile popover bottom row to have a bounding box');
-            }
-
-            // # Scroll to the bottom of the popover
-            await popover.container.evaluate((element: HTMLElement) => {
-                element.scrollTop = element.scrollHeight;
-            });
-            await expect
-                .poll(() => popover.container.evaluate((element: HTMLElement) => element.scrollTop))
-                .toBeGreaterThan(0);
-            // * Verify the bottom action row remains visible and fixed
-            await expect(popover.bottomRow).toBeVisible();
-            const bottomAfter = await popover.bottomRow.boundingBox();
-            if (!bottomAfter) {
-                throw new Error('Expected the profile popover bottom row to remain visible after scrolling');
-            }
-            expect(Math.abs(bottomAfter.y - bottomBefore.y)).toBeLessThan(2);
-        } finally {
-            await deleteCustomProfileAttributes(adminClient, fields);
+        // * Verify the popover is scrollable
+        expect(
+            await popover.container.evaluate((element: HTMLElement) => element.scrollHeight > element.clientHeight),
+        ).toBe(true);
+        const bottomBefore = await popover.bottomRow.boundingBox();
+        if (!bottomBefore) {
+            throw new Error('Expected the profile popover bottom row to have a bounding box');
         }
+
+        // # Scroll to the bottom of the popover
+        await popover.container.evaluate((element: HTMLElement) => {
+            element.scrollTop = element.scrollHeight;
+        });
+        await expect
+            .poll(() => popover.container.evaluate((element: HTMLElement) => element.scrollTop))
+            .toBeGreaterThan(0);
+        // * Verify the bottom action row remains visible and fixed
+        await expect(popover.bottomRow).toBeVisible();
+        const bottomAfter = await popover.bottomRow.boundingBox();
+        if (!bottomAfter) {
+            throw new Error('Expected the profile popover bottom row to remain visible after scrolling');
+        }
+        expect(Math.abs(bottomAfter.y - bottomBefore.y)).toBeLessThan(2);
     },
 );

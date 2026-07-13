@@ -5,7 +5,6 @@ import {expect, test} from '@mattermost/playwright-lib';
 
 import {
     type CustomProfileAttribute,
-    deleteCustomProfileAttributes,
     setupCustomProfileAttributeFields,
     setupCustomProfileAttributeValues,
 } from './helpers';
@@ -33,21 +32,17 @@ test(
         ];
         const fields = await setupCustomProfileAttributeFields(adminClient, attributes);
 
-        try {
-            await setupCustomProfileAttributeValues(userClient, attributes, fields);
-            // # Open profile settings containing the maximum-length attribute
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto();
-            await channelsPage.toBeVisible();
-            const profileModal = await channelsPage.openProfileModal();
-            // * Verify the full label/value exist and the value uses ellipsis styling
-            await expect(profileModal.sectionHeadings.getByText(displayName, {exact: true})).toBeVisible();
+        await setupCustomProfileAttributeValues(userClient, attributes, fields);
+        // # Open profile settings containing the maximum-length attribute
+        const {channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto();
+        await channelsPage.toBeVisible();
+        const profileModal = await channelsPage.openProfileModal();
+        // * Verify the full label/value exist and the value uses ellipsis styling
+        await expect(profileModal.sectionHeadings.getByText(displayName, {exact: true})).toBeVisible();
 
-            const displayedValue = profileModal.getAttributeValue(displayName, value);
-            await expect(displayedValue).toBeVisible();
-            await expect(displayedValue).toHaveCSS('text-overflow', 'ellipsis');
-        } finally {
-            await deleteCustomProfileAttributes(adminClient, fields);
-        }
+        const displayedValue = profileModal.getAttributeValue(displayName, value);
+        await expect(displayedValue).toBeVisible();
+        await expect(displayedValue).toHaveCSS('text-overflow', 'ellipsis');
     },
 );
