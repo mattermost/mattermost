@@ -101,6 +101,39 @@ test('MM-T600 updates the search date with the keyboard', {tag: '@search'}, asyn
     await expect(channelsPage.searchResultItems).toHaveCount(0);
 });
 
+/**
+ * @objective Verify that pressing Backspace after a completed date filter reopens the calendar day picker.
+ */
+test('MM-T3997 reopens the date picker when backspacing after a date filter', {tag: '@search'}, async ({pw}) => {
+    const {user, team} = await pw.initSetup();
+    const {channelsPage, page} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, 'town-square');
+    await channelsPage.toBeVisible();
+
+    // # Open search and type a "before:" date filter to open the day picker
+    await channelsPage.globalHeader.openSearch();
+    await channelsPage.searchBox.clearIfPossible();
+    await channelsPage.searchBox.searchInput.fill('before:');
+    await expect(channelsPage.searchBox.getDayPickerDay(15)).toBeVisible();
+
+    // # Select a day from the picker
+    await channelsPage.searchBox.getDayPickerDay(15).click();
+
+    // * Verify the date is added to the query and the picker closes
+    await expect(channelsPage.searchBox.searchInput).toHaveValue(/before:\d{4}-\d{2}-\d{2} /);
+    await expect(channelsPage.searchBox.getDayPickerDay(15)).not.toBeVisible();
+
+    // # Backspace into the completed date filter so the date becomes partial again
+    await channelsPage.searchBox.searchInput.click();
+    await page.keyboard.press('End');
+    await page.keyboard.press('Backspace');
+    await page.keyboard.press('Backspace');
+
+    // * Verify the search input now holds a partial date and the day picker reappears
+    await expect(channelsPage.searchBox.searchInput).toHaveValue(/before:\d{4}-\d{2}-1$/);
+    await expect(channelsPage.searchBox.getDayPickerDay(15)).toBeVisible();
+});
+
 function toDateFilter(timestamp: number): string {
     return new Date(timestamp).toISOString().slice(0, 10);
 }
