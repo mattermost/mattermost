@@ -789,8 +789,8 @@ func TestGetTeamsForPolicy(t *testing.T) {
 		// A user holding ONLY the read-only Data Retention Policy permission, who is not a
 		// member of the team and holds no team-scoped permissions on it, must not be able to
 		// read the team's secret invite_id or email via this endpoint (MM-69394).
-		th.AddPermissionToRole(t, model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemUserRoleId)
-		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemUserRoleId)
 
 		teams, resp, err := th.Client.GetTeamsForRetentionPolicy(context.Background(), validPolicyId, 0, 100)
 		require.NoError(t, err)
