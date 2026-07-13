@@ -1,0 +1,81 @@
+name: docs-preview-fork
+
+on:
+  workflow_dispatch:
+    inputs:
+      PR_NUMBER:
+        type: string
+        required: true
+        description: "PR number (fork PR to build preview for)"
+      TRIGGERING_ACTOR:
+        type: string
+        required: true
+        description: "GitHub login of the fork PR author"
+      COMMIT_SHA:
+        type: string
+        required: true
+        description: "Full commit SHA to build"
+
+permissions:
+  contents: read
+  statuses: write
+  pull-requests: write
+
+jobs:
+  update-initial-status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set pending commit status
+        uses: mattermost/actions/delivery/update-commit-status@fec7b836001c9380d4bfaf28d443945c103a098c
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ inputs.COMMIT_SHA }}
+          context: "docs-preview-fork / preview"
+          description: "Docs preview build for ${{ inputs.COMMIT_SHA }} is running"
+          status: pending
+
+  preview:
+    uses: ./.github/workflows/docs-preview-template.yml
+    secrets:
+      AWS_DOCS_PR_PREVIEW_KEY_ID: ${{ secrets.AWS_DOCS_PR_PREVIEW_KEY_ID }}
+      AWS_DOCS_PR_PREVIEW_SECRET_ACCESS_KEY: ${{ secrets.AWS_DOCS_PR_PREVIEW_SECRET_ACCESS_KEY }}
+    needs:
+      - update-initial-status
+    with:
+      PR_NUMBER: ${{ inputs.PR_NUMBER }}
+      TRIGGERING_ACTOR: ${{ inputs.TRIGGERING_ACTOR }}
+      COMMIT_SHA: ${{ inputs.COMMIT_SHA }}
+
+  update-failure-status:
+    runs-on: ubuntu-latest
+    if: failure() || cancelled()
+    needs:
+      - preview
+    steps:
+      - uses: mattermost/actions/delivery/update-commit-status@fec7b836001c9380d4bfaf28d443945c103a098c
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ inputs.COMMIT_SHA }}
+          context: "docs-preview-fork / preview"
+          description: "Docs preview build for ${{ inputs.COMMIT_SHA }} failed"
+          status: failure
+
+  update-success-status:
+    runs-on: ubuntu-latest
+    if: success()
+    needs:
+      - preview
+    steps:
+      - uses: mattermost/actions/delivery/update-commit-status@fec7b836001c9380d4bfaf28d443945c103a098c
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ inputs.COMMIT_SHA }}
+          context: "docs-preview-fork / preview"
+          description: "Docs preview build for ${{ inputs.COMMIT_SHA }} succeeded"
+          status: success

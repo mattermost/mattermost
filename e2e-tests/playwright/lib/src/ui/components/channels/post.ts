@@ -17,6 +17,7 @@ export default class ChannelsPost {
     readonly profileIcon;
     readonly emoticon;
     readonly messageText;
+    readonly editedIndicator;
 
     readonly removePostButton;
 
@@ -36,6 +37,7 @@ export default class ChannelsPost {
         this.profileIcon = container.getByTestId('profile-icon');
         this.emoticon = container.locator('.emoticon');
         this.messageText = container.locator('.post-message__text p');
+        this.editedIndicator = container.getByRole('button', {name: 'Edited'});
 
         this.removePostButton = container.getByTestId('post-remove-button');
 
@@ -87,6 +89,13 @@ export default class ChannelsPost {
         await this.postMenu.toBeVisible();
         await this.postMenu.replyButton.waitFor();
         await this.postMenu.replyButton.click();
+    }
+
+    /**
+     * Clicks the "Edited" indicator to open the post's edit history in the right sidebar.
+     */
+    async openEditHistory() {
+        await this.editedIndicator.click();
     }
 
     async reply() {
