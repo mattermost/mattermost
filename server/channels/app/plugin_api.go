@@ -749,10 +749,15 @@ func (api *PluginAPI) PatchChannelMembersNotifications(members []*model.ChannelM
 
 // rejectSpaceChannel returns a bad-request AppError when channelID is a space backing channel.
 // Notify-prop mutations carry chat semantics (they emit a channel_member_updated event) that do
-// not belong on an internal space backing channel, so they are rejected here.
+// not belong on an internal space backing channel, so they are rejected here. It fails closed by
+// propagating any error other than not-found, so a lookup failure cannot let a space through.
 func (api *PluginAPI) rejectSpaceChannel(channelID string) *model.AppError {
-	if _, err := api.app.GetChannelOfType(RequestContextWithMaster(api.ctx), channelID, model.ChannelTypeSpace); err == nil {
+	_, err := api.app.GetChannelOfType(RequestContextWithMaster(api.ctx), channelID, model.ChannelTypeSpace)
+	if err == nil {
 		return model.NewAppError("PluginAPI.rejectSpaceChannel", "plugin_api.channel.space_notify_props.app_error", nil, "", http.StatusBadRequest)
+	}
+	if err.StatusCode != http.StatusNotFound {
+		return err
 	}
 	return nil
 }

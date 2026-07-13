@@ -7828,7 +7828,8 @@ func addUserToSpaceChannel(t *testing.T, th *TestHelper, space *model.Channel, u
 
 // TestChannelEndpointsExcludeSpaces mirrors TestChannelEndpointsExcludeBoards for the space ("S")
 // backing-channel type: it 404s on every /channels endpoint and never leaks into any list, search,
-// or by-name surface, except where rejectSpaceChannelByID guards a member/view-mutation endpoint.
+// or by-name surface, except where rejectSpaceChannelByID guards a member-mutation endpoint or
+// view-state marking no-ops through the store-level type filter.
 func TestChannelEndpointsExcludeSpaces(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -8007,12 +8008,16 @@ func TestChannelEndpointsExcludeSpaces(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	})
 
-	// --- Generic member/view-state mutation endpoints reject spaces (managed by the spaces feature) ---
+	// --- Generic member/view-state mutation endpoints reject or no-op spaces (managed by the spaces feature) ---
 
-	t.Run("viewChannel rejects a space", func(t *testing.T) {
-		_, resp, err := client.ViewChannel(ctx, th.BasicUser.Id, &model.ChannelView{ChannelId: space.Id})
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+	t.Run("viewChannel silently no-ops a space", func(t *testing.T) {
+		// Spaces carry no chat read-state: GetChannelsWithUnreadsAndWithMentions filters
+		// them out, so viewing one succeeds without marking anything viewed — the same
+		// behavior as a nonexistent channel ID.
+		viewResp, resp, err := client.ViewChannel(ctx, th.BasicUser.Id, &model.ChannelView{ChannelId: space.Id})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotContains(t, viewResp.LastViewedAtTimes, space.Id)
 	})
 
 	t.Run("updateChannelMemberRoles rejects a space", func(t *testing.T) {

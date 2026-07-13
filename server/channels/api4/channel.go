@@ -2037,12 +2037,6 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if view.PrevChannelId != "" && rejectBoardChannelByID(c, view.PrevChannelId) {
 		return
 	}
-	if view.ChannelId != "" && rejectSpaceChannelByID(c, view.ChannelId) {
-		return
-	}
-	if view.PrevChannelId != "" && rejectSpaceChannelByID(c, view.PrevChannelId) {
-		return
-	}
 
 	times, err := c.App.ViewChannel(c.AppContext, &view, c.Params.UserId, c.AppContext.Session().Id, view.CollapsedThreadsSupported)
 	if err != nil {

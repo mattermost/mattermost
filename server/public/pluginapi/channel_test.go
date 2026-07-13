@@ -49,6 +49,32 @@ func TestRestoreChannel(t *testing.T) {
 	})
 }
 
+func TestGetChannelOfType(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		expected := &model.Channel{Id: "channelID", Type: model.ChannelTypeSpace}
+		api.On("GetChannelOfType", "channelID", model.ChannelTypeSpace).Return(expected, nil)
+
+		channel, err := client.Channel.GetChannelOfType("channelID", model.ChannelTypeSpace)
+		require.NoError(t, err)
+		require.Equal(t, expected, channel)
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		api.On("GetChannelOfType", "channelID", model.ChannelTypeSpace).Return(nil, newAppError())
+
+		_, err := client.Channel.GetChannelOfType("channelID", model.ChannelTypeSpace)
+		require.EqualError(t, err, "here: id, an error occurred")
+	})
+}
+
 func TestGetTeamChannelByName(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
