@@ -1,13 +1,15 @@
 ---
 title: "Create channels"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 Anyone can create public channels, private channels, direct messages, and group messages unless the system admin has [restricted permissions to do so using advanced permissions](/administration-guide/onboard/advanced-permissions). Enterprise system administrators can also configure channels as [read-only](/administration-guide/onboard/advanced-permissions#read-only-channels).
 
-<div class="tab" parse-titles="">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 ## Create a public or private channel
 
@@ -37,11 +39,8 @@ Web/Desktop
 
 </Tip>
 
-</div>
-
-<div class="tab" parse-titles="">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 ## Create a public or private channel
 
@@ -59,7 +58,9 @@ Tap <img src="/img/ui/plus_F0415.svg" alt="The Plus icon provides access to chan
 >
 > ![You can stat a group conversation by selecting up to 7 members.](/images/start-group-conversation.jpg)
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Automate with channel actions
 

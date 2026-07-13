@@ -1,6 +1,9 @@
 ---
 title: "Save and pin messages"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 You have two ways to mark a post to make it easy to find later:
@@ -10,9 +13,8 @@ You have two ways to mark a post to make it easy to find later:
 
 ## Save messages
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 Save messages for later follow up by selecting the **Save** <img src="/img/ui/bookmark-outline_F00C3.svg" alt="Save icon." className="theme-icon" /> icon next to a message.
 
@@ -24,11 +26,8 @@ Remove an item from your **Saved Posts** list by selecting the **Save** icon nex
 
 ![Remove saved messages by toggling the Save option.](/images/remove-from-saved-posts.png)
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 Long press a message, and then select **Save**.
 
@@ -46,15 +45,16 @@ Alternatively, you can also tap on the saved message in a channel and then tap t
 
 ![Tap and hold on a saved message in the channel to explore available options to unsave it.](/images/mobile-unsave-a-message-from-the-channel.gif)
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Pin messages
 
 All members of a channel can pin important or useful messages to that channel. The list of pinned messages is visible to all channel members. There is no limit to the number of pinned posts in a channel. From Mattermost v10.2, the **Pinned** <img src="/img/ui/pin-outline_F0931.svg" alt="Pin icon used to indicate when there are pinned messages in a given channel." /> icon is hidden when no messages are pinned.
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 1.  Hover over the message that you want to pin. The **More** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> icon link appears.
 2.  Select the **More** option, then select **Pin to channel**.
@@ -80,11 +80,8 @@ To unpin a message:
 
 ![You can unpin messages from a channel when they're no longer needed or become outdated.](/images/unpin-message-from-channel.png)
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 Long press a message, and then select **Pin to Channel**.
 
@@ -118,4 +115,6 @@ Alternatively, you can long press on a pinned message in the channel and then ta
 
 ![Tap and hold on a pinned message in the channel to explore available options to unpin it.](/images/mobile-unpin-a-message-from-the-channel.gif)
 
-</div>
+</TabItem>
+</Tabs>
+

@@ -143,6 +143,7 @@ type OwnProps = {
         revokeUserAccessToken: (tokenId: string) => Promise<ActionResult>;
         enableUserAccessToken: (tokenId: string) => Promise<ActionResult>;
         disableUserAccessToken: (tokenId: string) => Promise<ActionResult>;
+        rotateUserAccessToken: (tokenId: string, expiresAt?: number) => Promise<ActionResult<UserAccessToken>>;
         clearUserAccessTokens: () => void;
     };
 };
@@ -162,9 +163,12 @@ type State = {
     confirmButton?: React.ReactNode;
     confirmComplete?: (() => void) | null;
     confirmHideCancel?: boolean;
+    confirmDisabled?: boolean;
     expiryPreset: ExpiryPreset;
     customExpiryDate: string;
     tokenDescription: string;
+    regenerateExpiryPreset?: ExpiryPreset;
+    regenerateCustomExpiryDate?: string;
 };
 
 class UserAccessTokenSection extends React.PureComponent<Props, State> {
@@ -246,8 +250,10 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
         return maxLifetimeDays <= 0 || PRESET_DAYS[preset] <= maxLifetimeDays;
     };
 
-    resolveExpiresAt = (): number => {
-        const {expiryPreset, customExpiryDate} = this.state;
+    // Both the token-creation form and the regenerate-confirmation flow have their
+    // own expiry preset/custom-date state, so these accept the selection explicitly
+    // and default to the create form's state for the create call sites.
+    resolveExpiresAt = (expiryPreset: ExpiryPreset = this.state.expiryPreset, customExpiryDate: string = this.state.customExpiryDate): number => {
         if (expiryPreset === 'none') {
             return 0;
         }
@@ -257,15 +263,14 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
         return endOfLocalDayPlusDays(PRESET_DAYS[expiryPreset]);
     };
 
-    // Validates the current expiry selection and returns a localized error message,
-    // or null when the selection is valid. Used both to disable the Save button and
-    // surface the error inline (so the user sees it without clicking through the
-    // create-confirmation flow) and as the guard in handleCreateToken.
-    getExpiryValidationError = (): React.ReactNode | null => {
+    // Validates the given expiry selection and returns a localized error message,
+    // or null when the selection is valid. Used both to disable the Save/Regenerate
+    // button and surface the error inline (so the user sees it without clicking
+    // through the confirmation flow) and as the guard in handleCreateToken.
+    getExpiryValidationError = (expiryPreset: ExpiryPreset = this.state.expiryPreset, customExpiryDate: string = this.state.customExpiryDate): React.ReactNode | null => {
         const {maxLifetimeDays} = this.props;
         const enforceExpiry = maxLifetimeDays > 0;
-        const {expiryPreset} = this.state;
-        const expiresAt = this.resolveExpiresAt();
+        const expiresAt = this.resolveExpiresAt(expiryPreset, customExpiryDate);
 
         if (expiryPreset === 'custom' && expiresAt <= 0) {
             return mapServerErrorIdToMessage('expires_at_required');
@@ -283,6 +288,101 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
             }
         }
         return null;
+    };
+
+    // Shared expiry picker JSX used by both the create-token form and the
+    // regenerate-confirmation modal, parameterized on which preset/date state
+    // and change handlers to wire up.
+    renderExpiryPicker = (
+        idPrefix: string,
+        expiryPreset: ExpiryPreset,
+        customExpiryDate: string,
+        onPresetChange: (e: React.ChangeEvent<HTMLSelectElement>) => void,
+        onCustomDateChange: (e: React.ChangeEvent<HTMLInputElement>) => void,
+    ) => {
+        const {maxLifetimeDays} = this.props;
+        const enforceExpiry = maxLifetimeDays > 0;
+        const maxCustomIso = maxLifetimeDays > 0 ? isoPlusDays(maxLifetimeDays) : undefined;
+
+        return (
+            <div className='row pt-3'>
+                <label
+                    className='col-sm-auto control-label pr-3'
+                    htmlFor={`${idPrefix}Expiry`}
+                >
+                    <FormattedMessage
+                        id='user.settings.tokens.expiry'
+                        defaultMessage='Expires: '
+                    />
+                </label>
+                <div className='col-sm-auto'>
+                    <select
+                        id={`${idPrefix}Expiry`}
+                        className='form-control'
+                        value={expiryPreset}
+                        onChange={onPresetChange}
+                    >
+                        {!enforceExpiry && (
+                            <option value='none'>
+                                {this.props.intl.formatMessage({id: 'user.settings.tokens.expiry.none', defaultMessage: 'No expiry'})}
+                            </option>
+                        )}
+                        {this.isPresetAllowed('7d') && (
+                            <option value='7d'>
+                                {this.props.intl.formatMessage({id: 'user.settings.tokens.expiry.7d', defaultMessage: '7 days'})}
+                            </option>
+                        )}
+                        {this.isPresetAllowed('30d') && (
+                            <option value='30d'>
+                                {this.props.intl.formatMessage({id: 'user.settings.tokens.expiry.30d', defaultMessage: '30 days'})}
+                            </option>
+                        )}
+                        {this.isPresetAllowed('90d') && (
+                            <option value='90d'>
+                                {this.props.intl.formatMessage({id: 'user.settings.tokens.expiry.90d', defaultMessage: '90 days'})}
+                            </option>
+                        )}
+                        {this.isPresetAllowed('1y') && (
+                            <option value='1y'>
+                                {this.props.intl.formatMessage({id: 'user.settings.tokens.expiry.1y', defaultMessage: '1 year'})}
+                            </option>
+                        )}
+                        <option value='custom'>
+                            {this.props.intl.formatMessage({id: 'user.settings.tokens.expiry.custom', defaultMessage: 'Custom date…'})}
+                        </option>
+                    </select>
+                    {expiryPreset === 'custom' && (
+                        <input
+                            id={`${idPrefix}ExpiryCustom`}
+                            className='form-control mt-2'
+                            type='date'
+                            aria-label={this.props.intl.formatMessage({id: 'user.settings.tokens.expiry.customDate', defaultMessage: 'Custom expiry date'})}
+                            value={customExpiryDate}
+                            min={todayIso()}
+                            max={maxCustomIso}
+                            onChange={onCustomDateChange}
+                        />
+                    )}
+                    {maxLifetimeDays > 0 && (
+                        <div className='pt-2'>
+                            <FormattedMessage
+                                id='user.settings.tokens.maxLifetimeHint'
+                                defaultMessage='Tokens can be valid for up to {days, number} {days, plural, one {day} other {days}}.'
+                                values={{days: maxLifetimeDays}}
+                            />
+                        </div>
+                    )}
+                    {enforceExpiry && (
+                        <div className='pt-2'>
+                            <FormattedMessage
+                                id='user.settings.tokens.expiryEnforced'
+                                defaultMessage='Your administrator requires all personal access tokens to have an expiry date.'
+                            />
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
     };
 
     focusEditButton(): void {
@@ -432,6 +532,7 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
             confirmButton: null,
             confirmComplete: null,
             confirmHideCancel: false,
+            confirmDisabled: false,
         });
     };
 
@@ -538,6 +639,100 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
         if (error) {
             this.setState({serverError: error.message});
         }
+    };
+
+    handleRegenerateExpiryPresetChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const regenerateExpiryPreset = e.target.value as ExpiryPreset;
+        this.setState({
+            regenerateExpiryPreset,
+            confirmDisabled: Boolean(this.getExpiryValidationError(regenerateExpiryPreset, this.state.regenerateCustomExpiryDate)),
+        });
+    };
+
+    handleRegenerateCustomExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const regenerateCustomExpiryDate = e.target.value;
+        this.setState({
+            regenerateCustomExpiryDate,
+            confirmDisabled: Boolean(this.getExpiryValidationError(this.state.regenerateExpiryPreset, regenerateCustomExpiryDate)),
+        });
+    };
+
+    confirmRegenerateToken = (tokenId: string) => {
+        const token = this.props.userAccessTokens[tokenId];
+        const regenerateExpiryPreset = this.defaultExpiryPreset();
+        const regenerateCustomExpiryDate = this.defaultCustomExpiryDate();
+
+        this.setState({
+            showConfirmModal: true,
+            regenerateExpiryPreset,
+            regenerateCustomExpiryDate,
+            confirmDisabled: Boolean(this.getExpiryValidationError(regenerateExpiryPreset, regenerateCustomExpiryDate)),
+            confirmTitle: (
+                <FormattedMessage
+                    id='user.settings.tokens.confirmRegenerateTitle'
+                    defaultMessage='Regenerate Token?'
+                />
+            ),
+            confirmMessage: (state: State) => {
+                const preset = state.regenerateExpiryPreset!;
+                const customDate = state.regenerateCustomExpiryDate!;
+                const expiryError = this.getExpiryValidationError(preset, customDate);
+
+                return (
+                    <div>
+                        <div className='alert alert-danger'>
+                            <FormattedMessage
+                                id='user.settings.tokens.confirmRegenerate.description'
+                                defaultMessage={'The current secret for this token will stop working immediately. Any integrations using it will need to be updated with the new secret. You cannot undo this action.'}
+                            />
+                        </div>
+                        {this.renderExpiryPicker('regenerateToken', preset, customDate, this.handleRegenerateExpiryPresetChange, this.handleRegenerateCustomExpiryChange)}
+                        {expiryError && (
+                            <div className='has-error mt-2'>
+                                {expiryError}
+                            </div>
+                        )}
+                        <p className='pt-3'>
+                            <FormattedMessage
+                                id='user.settings.tokens.confirmRegenerate.confirmation'
+                                defaultMessage={'Are you sure you want to regenerate the <b>{description}</b> token?'}
+                                values={{
+                                    description: token.description,
+                                    b: (chunks) => <b>{chunks}</b>,
+                                }}
+                            />
+                        </p>
+                    </div>
+                );
+            },
+            confirmButton: (
+                <FormattedMessage
+                    id='user.settings.tokens.confirmRegenerateButton'
+                    defaultMessage='Yes, Regenerate'
+                />
+            ),
+            confirmComplete: () => {
+                const {maxLifetimeDays} = this.props;
+                const expiresAt = this.resolveExpiresAt(this.state.regenerateExpiryPreset, this.state.regenerateCustomExpiryDate);
+                const clampedExpiresAt = clampExpiresAtToMaxLifetime(expiresAt, maxLifetimeDays);
+                this.regenerateToken(tokenId, clampedExpiresAt > 0 ? clampedExpiresAt : undefined);
+            },
+        });
+    };
+
+    regenerateToken = async (tokenId: string, expiresAt?: number) => {
+        this.props.setRequireConfirm(true, this.confirmCopyToken);
+        this.setState({saving: true});
+
+        const {data, error} = await this.props.actions.rotateUserAccessToken(tokenId, expiresAt);
+
+        if (data) {
+            this.setState({tokenCreationState: TOKEN_CREATED, newToken: data, saving: false});
+        } else if (error) {
+            this.setState({serverError: error.message, saving: false});
+        }
+
+        this.handleCancelConfirm();
     };
 
     render() {
@@ -711,6 +906,24 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
                     {expiryRow}
                     <div>
                         {activeLink}
+                        {token.is_active && (
+                            <>
+                                {' - '}
+                                <a
+                                    id={token.id + '_regenerate'}
+                                    href='#'
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        this.confirmRegenerateToken(token.id);
+                                    }}
+                                >
+                                    <FormattedMessage
+                                        id='user.settings.tokens.regenerate'
+                                        defaultMessage='Regenerate'
+                                    />
+                                </a>
+                            </>
+                        )}
                         {' - '}
                         <a
                             id={token.id + '_delete'}
@@ -801,95 +1014,14 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
 
         let newTokenSection;
         if (this.state.tokenCreationState === TOKEN_CREATING) {
-            const {maxLifetimeDays} = this.props;
-            const enforceExpiry = maxLifetimeDays > 0;
             const {expiryPreset, customExpiryDate} = this.state;
-            const maxCustomIso = maxLifetimeDays > 0 ? isoPlusDays(maxLifetimeDays) : undefined;
 
             // Validate the expiry selection up front so the error surfaces inline and the
             // Save button is disabled, instead of only failing inside the confirm flow.
             const expiryError = this.getExpiryValidationError();
             const descriptionEmpty = this.state.tokenDescription.trim() === '';
 
-            const expirySection = (
-                <div className='row pt-3'>
-                    <label
-                        className='col-sm-auto control-label pr-3'
-                        htmlFor='newTokenExpiry'
-                    >
-                        <FormattedMessage
-                            id='user.settings.tokens.expiry'
-                            defaultMessage='Expires: '
-                        />
-                    </label>
-                    <div className='col-sm-auto'>
-                        <select
-                            id='newTokenExpiry'
-                            className='form-control'
-                            value={expiryPreset}
-                            onChange={this.handleExpiryPresetChange}
-                        >
-                            {!enforceExpiry && (
-                                <option value='none'>
-                                    {this.props.intl.formatMessage({id: 'user.settings.tokens.expiry.none', defaultMessage: 'No expiry'})}
-                                </option>
-                            )}
-                            {this.isPresetAllowed('7d') && (
-                                <option value='7d'>
-                                    {this.props.intl.formatMessage({id: 'user.settings.tokens.expiry.7d', defaultMessage: '7 days'})}
-                                </option>
-                            )}
-                            {this.isPresetAllowed('30d') && (
-                                <option value='30d'>
-                                    {this.props.intl.formatMessage({id: 'user.settings.tokens.expiry.30d', defaultMessage: '30 days'})}
-                                </option>
-                            )}
-                            {this.isPresetAllowed('90d') && (
-                                <option value='90d'>
-                                    {this.props.intl.formatMessage({id: 'user.settings.tokens.expiry.90d', defaultMessage: '90 days'})}
-                                </option>
-                            )}
-                            {this.isPresetAllowed('1y') && (
-                                <option value='1y'>
-                                    {this.props.intl.formatMessage({id: 'user.settings.tokens.expiry.1y', defaultMessage: '1 year'})}
-                                </option>
-                            )}
-                            <option value='custom'>
-                                {this.props.intl.formatMessage({id: 'user.settings.tokens.expiry.custom', defaultMessage: 'Custom date…'})}
-                            </option>
-                        </select>
-                        {expiryPreset === 'custom' && (
-                            <input
-                                id='newTokenExpiryCustom'
-                                className='form-control mt-2'
-                                type='date'
-                                aria-label={this.props.intl.formatMessage({id: 'user.settings.tokens.expiry.customDate', defaultMessage: 'Custom expiry date'})}
-                                value={customExpiryDate}
-                                min={todayIso()}
-                                max={maxCustomIso}
-                                onChange={this.handleCustomExpiryChange}
-                            />
-                        )}
-                        {maxLifetimeDays > 0 && (
-                            <div className='pt-2'>
-                                <FormattedMessage
-                                    id='user.settings.tokens.maxLifetimeHint'
-                                    defaultMessage='Tokens can be valid for up to {days, number} {days, plural, one {day} other {days}}.'
-                                    values={{days: maxLifetimeDays}}
-                                />
-                            </div>
-                        )}
-                        {enforceExpiry && (
-                            <div className='pt-2'>
-                                <FormattedMessage
-                                    id='user.settings.tokens.expiryEnforced'
-                                    defaultMessage='Your administrator requires all personal access tokens to have an expiry date.'
-                                />
-                            </div>
-                        )}
-                    </div>
-                </div>
-            );
+            const expirySection = this.renderExpiryPicker('newToken', expiryPreset, customExpiryDate, this.handleExpiryPresetChange, this.handleCustomExpiryChange);
 
             newTokenSection = (
                 <div className='setting-box__new-token'>
@@ -1061,6 +1193,7 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
                     onConfirm={this.state.confirmComplete || (() => null)}
                     onCancel={this.handleCancelConfirm}
                     hideCancel={this.state.confirmHideCancel}
+                    confirmDisabled={this.state.confirmDisabled}
                 />
             </div>
         );

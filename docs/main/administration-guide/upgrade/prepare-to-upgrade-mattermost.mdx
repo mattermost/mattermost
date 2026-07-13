@@ -53,7 +53,7 @@ We strongly recommend that you:
 
 <Important>
 
-Support for Mattermost Server v10.5 [Extended Support Release](/product-overview/mattermost-server-releases) has come to the end of its life cycle on November 15, 2025. Upgrading to Mattermost Server v10.11 Extended Support Release or later is required. Upgrading from the previous Extended Support Release to the latest Extended Support Release is supported. Review the [important upgrade notes](/important-upgrade-notes) for all intermediate versions in between to ensure you’re aware of the possible migrations that could affect your upgrade.
+Support for Mattermost Server v10.5 [Extended Support Release](/product-overview/mattermost-server-releases) has come to the end of its life cycle on November 15, 2025. Upgrading to Mattermost Server v10.11 Extended Support Release or later is required. Upgrading from the previous Extended Support Release to the latest Extended Support Release is supported. Review the [important upgrade notes](/administration-guide/upgrade/important-upgrade-notes) for all intermediate versions in between to ensure you’re aware of the possible migrations that could affect your upgrade.
 
 </Important>
 
@@ -73,7 +73,7 @@ Customers upgrading from a release older than Mattermost v5.35 should expect ext
 
 If you're upgrading from a version prior to Mattermost v5.0, you can't upgrade directly to v6.0. Instead, we strongly recommend approaching the upgrade in phases, starting with an upgrade to the latest ESR first, followed by the upgrade to v6.0. During the first phase of updates, you must also modify your service file to work with the binary changes introduced with the v5.0 release. Your execution directory should point to the Mattermost base directory (i.e. `/opt/mattermost`), and your binary should point to the `mattermost` binary (i.e. `/opt/mattermost/bin/mattermost`).
 
-Ensure you review the [important upgrade notes](/important-upgrade-notes) for all intermediate release versions in between to ensure you’re aware of the possible migrations that could affect your upgrade.
+Ensure you review the [important upgrade notes](/administration-guide/upgrade/important-upgrade-notes) for all intermediate release versions in between to ensure you’re aware of the possible migrations that could affect your upgrade.
 
 <Note>
 
@@ -113,11 +113,11 @@ UPDATE TableName SET ColumnName = regexp_replace(ColumnName, '\\u0000', '', 'g')
 
 In [high availability cluster-based](/administration-guide/scale/high-availability-cluster-based-deployment) environments, you should expect to schedule downtime for the upgrade to v6.0. Based on your database size and setup, the migration to v6.0 can take a significant amount of time, and may even lock the tables for posts which will prevent your users from posting or receiving messages until the migration is complete.
 
-Ensure you review the [high availability cluster-based deployment upgrade guide](/administration-guide/scale/high-availability-cluster-based-deployment#upgrade-guide), as well as the [important upgrade notes](/important-upgrade-notes) to make sure you're aware of any actions you need to take before or after upgrading from your particular version.
+Ensure you review the [high availability cluster-based deployment upgrade guide](/administration-guide/scale/high-availability-cluster-based-deployment#upgrade-guide), as well as the [important upgrade notes](/administration-guide/upgrade/important-upgrade-notes) to make sure you're aware of any actions you need to take before or after upgrading from your particular version.
 
 <Important>
 
-Running two different versions of Mattermost in your cluster should not be done outside of an upgrade scenario. Due to a fundamental change to the clustering code in v6.0, nodes from different versions cannot be run, as noted in the [important upgrade notes](/important-upgrade-notes) product documentation.
+Running two different versions of Mattermost in your cluster should not be done outside of an upgrade scenario. Due to a fundamental change to the clustering code in v6.0, nodes from different versions cannot be run, as noted in the [important upgrade notes](/administration-guide/upgrade/important-upgrade-notes) product documentation.
 
 The release of v6.0 also introduces database schema changes and longer migration times should be expected.
 

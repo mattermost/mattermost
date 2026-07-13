@@ -40,18 +40,12 @@ type FeatureFlags struct {
 
 	NotificationMonitoring bool
 
-	ExperimentalAuditSettingsSystemConsoleUI bool
-
 	CustomProfileAttributes bool
 
-	AttributeBasedAccessControl bool
-
 	// Mask non-held attribute values in the policy editor for delegated admins.
-	// Requires AttributeBasedAccessControl.
 	AttributeValueMasking bool
 
 	// Enable permission policies (file upload/download ABAC policies).
-	// Requires AttributeBasedAccessControl to also be enabled.
 	//
 	// This is the umbrella flag: when off, both ChannelPermissionPolicies
 	// and PolicySimulation are also off regardless of their individual
@@ -134,7 +128,6 @@ type FeatureFlags struct {
 	// rank, and the admin console hides the rank type option.
 	PropertyFieldRank bool
 
-	// Requires AttributeBasedAccessControl to also be enabled.
 	TeamMembershipAccessControl bool
 
 	// Enable the new mm_blocks Interactive Messages framework
@@ -156,9 +149,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.MoveThreadsEnabled = false
 	f.CloudDedicatedExportUI = false
 	f.NotificationMonitoring = true
-	f.ExperimentalAuditSettingsSystemConsoleUI = true
 	f.CustomProfileAttributes = true
-	f.AttributeBasedAccessControl = true
 	f.AttributeValueMasking = true
 	f.PermissionPolicies = true
 	f.TeamMembershipAccessControl = false

@@ -1,7 +1,9 @@
 ---
 title: "Format messages"
-draft: true
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 ## Use the messaging formatting toolbar
@@ -616,9 +618,8 @@ Multi-line text in a table cell isn't supported using HTML tags such as `<br />`
 
 ### Math Formulas
 
-<div class="tab">
-
-Using Inline LaTeX
+<Tabs>
+<TabItem value="using-inline-latex" label="Using Inline LaTeX">
 
 You can create formulas that display inline using LaTeX. Use the dollar sign ($) symbol at the beginning and end of each formula.
 
@@ -636,11 +637,8 @@ Renders as:
 
 ![An inline LaTeX math equation sample.](/images/latex-inline.png)
 
-</div>
-
-<div class="tab">
-
-Using LaTeX in Code Blocks
+</TabItem>
+<TabItem value="using-latex-in-code-blocks" label="Using LaTeX in Code Blocks">
 
 Create formulas as code blocks by using LaTeX in a `latex` [code blocks](#code-blocks).
 
@@ -660,6 +658,8 @@ Renders as:
 
 ![A LaTeX code block math equation sample.](/images/latex-codeblock.png)
 
-</div>
+</TabItem>
+</Tabs>
+
 
 <PlanAvailability slug="academy-message-formatting" />

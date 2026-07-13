@@ -8,6 +8,6 @@ runs:
       uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
       with:
         path: ~/.npm
-        key: node-cache-${{ runner.os }}-${{ runner.arch }}-npm-e2e-${{ hashFiles('e2e-tests/cypress/package-lock.json', 'e2e-tests/playwright/package-lock.json', 'api/package-lock.json') }}
+        key: e2e-npm-registry-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('e2e-tests/cypress/package-lock.json', 'e2e-tests/playwright/package-lock.json', 'api/package-lock.json') }}
         restore-keys: |
-          node-cache-${{ runner.os }}-${{ runner.arch }}-npm-e2e-
+          e2e-npm-registry-${{ runner.os }}-${{ runner.arch }}-

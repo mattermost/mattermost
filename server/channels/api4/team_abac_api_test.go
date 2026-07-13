@@ -17,10 +17,13 @@ import (
 )
 
 // enableTeamABAC turns on the license + config the team ABAC paths require and
-// injects a mock PDP, returning it for per-test stubbing.
+// injects a mock PDP, returning it for per-test stubbing. Feature flags are
+// read-only by default in tests, so unlock them first — otherwise the
+// TeamMembershipAccessControl toggle below is silently dropped.
 func enableTeamABAC(t *testing.T, th *TestHelper) *mocks.AccessControlServiceInterface {
 	t.Helper()
 	require.True(t, th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)))
+	th.ConfigStore.SetReadOnlyFF(false)
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
 		cfg.FeatureFlags.TeamMembershipAccessControl = true
@@ -83,7 +86,7 @@ func doUnassign(t *testing.T, client *model.Client4, policyID string, body assig
 }
 
 func TestAssignAccessPolicyTeamIds(t *testing.T) {
-	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true }).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	parent := &model.AccessControlPolicy{
 		ID:       model.NewId(),
@@ -143,7 +146,7 @@ func TestAssignAccessPolicyTeamIds(t *testing.T) {
 }
 
 func TestUnassignAccessPolicyTeamIds(t *testing.T) {
-	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true }).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	policyID := model.NewId()
 
@@ -177,7 +180,6 @@ func TestUnassignAccessPolicyTeamIds(t *testing.T) {
 
 func TestGetTeamAccessControlPolicy(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.AttributeBasedAccessControl = true
 		cfg.FeatureFlags.TeamMembershipAccessControl = true
 	}).InitBasic(t)
 
@@ -275,7 +277,6 @@ func TestGetTeamAccessControlPolicy(t *testing.T) {
 
 func TestGetUsersNotInTeamAbacMatchOnly(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.AttributeBasedAccessControl = true
 		cfg.FeatureFlags.TeamMembershipAccessControl = true
 	}).InitBasic(t)
 
@@ -328,7 +329,6 @@ func userIDs(users []*model.User) []string {
 // batch; qualifying users in the same batch are still added.
 func TestAddTeamMembersGracefulABACError(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.AttributeBasedAccessControl = true
 		cfg.FeatureFlags.TeamMembershipAccessControl = true
 	}).InitBasic(t)
 

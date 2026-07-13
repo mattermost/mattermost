@@ -1,6 +1,9 @@
 ---
 title: "Enterprise search"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="ent-plus" />
 
 Mattermost database search starts to show performance degradation at around 2 million posts, on a server with 32 GB RAM and 4 CPUs. If you anticipate your Mattermost server reaching more than 2.5 million posts, we recommend enabling [Elasticsearch](#elasticsearch) or [AWS OpenSearch Service](#aws-opensearch-service) for optimum search performance **before** reaching 3 million posts. Both tools are highly capable and can handle enterprise-scale workloads. The choice between them depends on the following factors:
@@ -25,27 +28,20 @@ The AWS OpenSearch Service is built on the open-source OpenSearch project, which
 
 Review the following support paths for enterprise search based on the version you're using:
 
-<div class="tab">
-
-Elasticsearch v8
+<Tabs>
+<TabItem value="elasticsearch-v8" label="Elasticsearch v8">
 
 [Elasticsearch v8](https://www.elastic.co/guide/en/elasticsearch/reference/current/elasticsearch-intro.html) is supported from Mattermost v9.11. While Mattermost supports Elasticsearch v7.17+, we recommend upgrading your Elasticsearch v7 instance to v8.x. See the [Elasticsearch upgrade](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-upgrade.html) documentation for upgrade details, and see the [Elasticsearch setup](/administration-guide/scale/elasticsearch-setup) documentation for details on configuring your Mattermost deployment to use Elasticsearch.
 
-</div>
-
-<div class="tab">
-
-AWS OpenSearch Service
+</TabItem>
+<TabItem value="aws-opensearch-service" label="AWS OpenSearch Service">
 
 AWS OpenSearch Service is the official path forward from Elasticsearch v7.10.x for AWS customers to provide a simple and cost-effective way to search, analyze, and visual data in real time. It's essentially a continuation of Elasticsearch v7.10.x but maintained as open source by AWS. It provides long-term support, active development, and compatibility with AWS clients, libraries, and managed services.
 
 See the **AWS Elasticsearch v7.10.x** tab on this page for details on upgrading to AWS OpenSearch, and see the [AWS OpenSearch setup](/administration-guide/scale/opensearch-setup) documentation for details on configuring your Mattermost deployment to use AWS OpenSearch.
 
-</div>
-
-<div class="tab">
-
-AWS Elasticsearch v7.10.x
+</TabItem>
+<TabItem value="aws-elasticsearch-v7-10-x" label="AWS Elasticsearch v7.10.x">
 
 If you're using Elasticsearch v7.10.x under AWS’s managed services, you can't use newer Elasticsearch clients like the v8 client without changing backend infrastructure. If you're using AWS Elasticsearch v7.10.x, you must [upgrade to AWS OpenSearch](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/version-migration.html) for future compatibility.
 
@@ -56,7 +52,9 @@ The migration path from Elasticsearch v7.10.x to OpenSearch has been designed to
 3.  Update the Mattermost `ElasticsearchSettings.Backend` configuration setting value from `elasticsearch` to `` `opensearch ``<code> manually or using \`mmctl \<mm-ref:administration-guide%2Fmanage%2Fmmctl-command-line-tool%3Ammctl%20config%20set\></code>\_\_. This value cannot be changed using the System Console. See the Mattermost search [backend type](/administration-guide/configure/environment-configuration-settings#backend-type) configuration setting documentation for additional details.
 4.  Restart the Mattermost server.
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Frequently asked questions (FAQ)
 

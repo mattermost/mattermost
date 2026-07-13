@@ -1,6 +1,9 @@
 ---
 title: "Workflow Automation"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 Mattermost Playbooks provides structure, monitoring and automation for repeatable, team-based processes integrated with the Mattermost platform. Playbooks are [configurable checklists](/end-user-guide/workflow-automation/work-with-tasks) for teams to achieve [specific and predictable outcomes](/end-user-guide/workflow-automation/metrics-and-goals), such as incident response, software release management, and logistical operations.
@@ -21,17 +24,13 @@ Playbooks comes pre-packaged, installed, and enabled with Mattermost server.
 
 ## Access
 
-<div class="tab">
-
-Web and Desktop
+<Tabs>
+<TabItem value="web-and-desktop" label="Web and Desktop">
 
 Access playbooks using a web browser or the desktop app by selecting the product menu located in the top-left corner of the Mattermost interface and then selecting **Playbooks**.
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 From Mattermost v11.0 and mobile app v2.34.0, mobile users can:
 
@@ -42,7 +41,9 @@ From Mattermost v11 and mobile app v2.32.0, mobile users can access playbooks fr
 
 From Mattermost v10.11 and mobile app v2.31.0, mobile users can access playbooks from the mobile app in read-only mode. [Playbooks slash commands](/end-user-guide/workflow-automation/interact-with-playbooks#slash-commands) are supported in the mobile app, but actions like starting runs or updating checklists aren't available through the mobile interface.
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Usage
 

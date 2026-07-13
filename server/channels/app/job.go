@@ -225,7 +225,7 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 		model.JobTypeCloud,
 		model.JobTypeExtractContent,
 		model.JobTypeCleanupExpiredAccessTokens,
-		model.JobTypePatExpiryNotify:
+		model.JobTypeNotifyExpiringAccessTokens:
 		return a.SessionHasPermissionTo(session, model.PermissionManageJobs), model.PermissionManageJobs
 	case model.JobTypeAccessControlSync:
 		// Allow system admins to create access control sync jobs
