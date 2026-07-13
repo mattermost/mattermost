@@ -1789,12 +1789,12 @@ func (a *App) PermanentDeleteFilesByPost(rctx request.CTX, postID string) *model
 
 func (a *App) RemoveFilesFromFileStore(rctx request.CTX, fileInfos []*model.FileInfo) {
 	for _, info := range fileInfos {
-		a.RemoveFileFromFileStore(rctx, info.Path)
+		_ = a.RemoveFileFromFileStore(rctx, info.Path)
 		if info.PreviewPath != "" {
-			a.RemoveFileFromFileStore(rctx, info.PreviewPath)
+			_ = a.RemoveFileFromFileStore(rctx, info.PreviewPath)
 		}
 		if info.ThumbnailPath != "" {
-			a.RemoveFileFromFileStore(rctx, info.ThumbnailPath)
+			_ = a.RemoveFileFromFileStore(rctx, info.ThumbnailPath)
 		}
 	}
 }
