@@ -672,6 +672,13 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if c.App.IsProfileImageLockedForUser(user) && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionEditOtherUsers) {
+		c.Err = model.NewAppError(
+			"uploadProfileImage", "api.user.upload_profile_user.profile_field_locked.app_error",
+			nil, "", http.StatusConflict)
+		return
+	}
+
 	imageData := imageArray[0]
 	if err := c.App.SetProfileImage(c.AppContext, c.Params.UserId, imageData); err != nil {
 		c.Err = err
@@ -710,6 +717,13 @@ func setDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	model.AddEventParameterAuditableToAuditRec(auditRec, "user", user)
+
+	if c.App.IsProfileImageLockedForUser(user) && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionEditOtherUsers) {
+		c.Err = model.NewAppError(
+			"setDefaultProfileImage", "api.user.upload_profile_user.profile_field_locked.app_error",
+			nil, "", http.StatusConflict)
+		return
+	}
 
 	if err := c.App.SetDefaultProfileImage(c.AppContext, user); err != nil {
 		c.Err = err
@@ -1523,6 +1537,15 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionEditOtherUsers) {
+		if lockedField := c.App.CheckLockedProfileFields(ouser, user.ToPatch()); lockedField != "" {
+			c.Err = model.NewAppError(
+				"updateUser", "api.user.update_user.profile_field_locked.app_error",
+				map[string]any{"Field": lockedField}, "", http.StatusConflict)
+			return
+		}
+	}
+
 	// If eMail update is attempted by the currently logged in user, check if correct password was provided
 	if user.Email != "" && ouser.Email != user.Email && c.AppContext.Session().UserId == c.Params.UserId {
 		err = c.App.DoubleCheckPassword(c.AppContext, ouser, user.Password)
@@ -1599,6 +1622,15 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 			"patchUser", "api.user.patch_user.login_provider_attribute_set.app_error",
 			map[string]any{"Field": conflictField}, "", http.StatusConflict)
 		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionEditOtherUsers) {
+		if lockedField := c.App.CheckLockedProfileFields(ouser, &patch); lockedField != "" {
+			c.Err = model.NewAppError(
+				"patchUser", "api.user.patch_user.profile_field_locked.app_error",
+				map[string]any{"Field": lockedField}, "", http.StatusConflict)
+			return
+		}
 	}
 
 	// If eMail update is attempted by the currently logged in user, check if correct password was provided

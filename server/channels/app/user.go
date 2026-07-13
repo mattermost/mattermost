@@ -1393,6 +1393,58 @@ func (a *App) CheckProviderAttributes(rctx request.CTX, user *model.User, patch 
 	return conflictField
 }
 
+// CheckLockedProfileFields returns the name of the first profile field in the patch that
+// conflicts with TeamSettings.LockProfileFieldsForEmailUsers, or "" when there is no conflict.
+// It only applies to email/password users on Enterprise-licensed servers; callers are expected
+// to exempt sessions with the edit_other_users permission.
+func (a *App) CheckLockedProfileFields(user *model.User, patch *model.UserPatch) string {
+	if !model.MinimumEnterpriseLicense(a.License()) || user.AuthService != "" {
+		return ""
+	}
+
+	setting := *a.Config().TeamSettings.LockProfileFieldsForEmailUsers
+	if setting != model.TeamSettingsLockProfileFieldsNameAndUsername && setting != model.TeamSettingsLockProfileFieldsAll {
+		return ""
+	}
+
+	tryingToChange := func(userValue *string, patchValue *string) bool {
+		return patchValue != nil && *patchValue != *userValue
+	}
+
+	if tryingToChange(&user.Username, patch.Username) {
+		return "username"
+	}
+
+	// Empty first/last names may be filled in once, so users who signed up without
+	// pre-provisioned names (e.g. via a team invite link) aren't stuck nameless.
+	if user.FirstName != "" && tryingToChange(&user.FirstName, patch.FirstName) {
+		return "first name"
+	}
+	if user.LastName != "" && tryingToChange(&user.LastName, patch.LastName) {
+		return "last name"
+	}
+
+	if setting == model.TeamSettingsLockProfileFieldsAll {
+		if tryingToChange(&user.Nickname, patch.Nickname) {
+			return "nickname"
+		}
+		if tryingToChange(&user.Position, patch.Position) {
+			return "position"
+		}
+	}
+
+	return ""
+}
+
+// IsProfileImageLockedForUser returns true when TeamSettings.LockProfileFieldsForEmailUsers
+// locks the profile picture of the given email/password user. Callers are expected to exempt
+// sessions with the edit_other_users permission.
+func (a *App) IsProfileImageLockedForUser(user *model.User) bool {
+	return model.MinimumEnterpriseLicense(a.License()) &&
+		user.AuthService == "" &&
+		*a.Config().TeamSettings.LockProfileFieldsForEmailUsers == model.TeamSettingsLockProfileFieldsAll
+}
+
 func (a *App) PatchUser(rctx request.CTX, userID string, patch *model.UserPatch, asAdmin bool) (*model.User, *model.AppError) {
 	user, err := a.GetUser(userID)
 	if err != nil {
