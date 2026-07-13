@@ -1,7 +1,9 @@
 ---
 title: "Environment configuration settings"
-draft: true
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 import Inc0_push_notification_server_configuration_settings from './push-notification-server-configuration-settings.mdx';
 import Inc1_rate_limiting_configuration_settings from './rate-limiting-configuration-settings.mdx';
 
@@ -23,7 +25,7 @@ Review and manage the following environmental configuration options in the Syste
 - [Performance monitoring](#performance-monitoring)
 - [Developer](#developer)
 - [Mobile security](#mobile-security)
-- [config.json-only settings](#config-json-only-settings)
+- [config.json-only settings](#configjson-only-settings)
 
 <Tip>
 
@@ -943,92 +945,87 @@ For an AWS High Availability RDS cluster deployment, point this configuration se
 
 1.  Configure the replica lag metric based on your database type. See the following tabs for details on configuring this for each database type.
 
-> <div class="tab">
->
-> AWS Aurora
->
-> Add the configuration highlighted below to your `SqlSettings.ReplicaLagSettings` array. You only need to add this once because replication statistics for AWS Aurora nodes are visible across all server instances that are members of the cluster. Be sure to change the `DataSource` to point to a single node in the group.
->
-> For more information on Aurora replication stats, see the [AWS Aurora documentaion](https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora_global_db_instance_status.html).
->
-> Example
+<Tabs>
+<TabItem value="aws-aurora" label="AWS Aurora">
+
+Add the configuration highlighted below to your `SqlSettings.ReplicaLagSettings` array. You only need to add this once because replication statistics for AWS Aurora nodes are visible across all server instances that are members of the cluster. Be sure to change the `DataSource` to point to a single node in the group.
+
+For more information on Aurora replication stats, see the [AWS Aurora documentaion](https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora_global_db_instance_status.html).
+
+Example
+
+``` json
+&#123;
+  "SqlSettings": &#123;
+      "ReplicaLagSettings": [
+        &#123;
+            "DataSource": "replica-1",
+            "QueryAbsoluteLag": "select server_id, highest_lsn_rcvd-durable_lsn as bindiff from aurora_global_db_instance_status() where server_id=<>",
+            "QueryTimeLag": "select server_id, visibility_lag_in_msec from aurora_global_db_instance_status() where server_id=<>"
+        &#125;
+      ]
+  &#125;
+&#125;
+```
+
+</TabItem>
+<TabItem value="mysql-group-replication" label="MySQL Group Replication">
+
+Add the configuration highlighted below to your `SqlSettings.ReplicaLagSettings` array. You only need to add this once because replication statistics for all nodes are shared across all server instances that are members of the MySQL replication group. Be sure to change the `DataSource` to point to a single node in the group.
+
+For more information on group replication stats, see the [MySQL documentation](https://dev.mysql.com/doc/refman/8.0/en/group-replication-replication-group-member-stats.html).
+
+Example
+
+``` json
+&#123;
+  "SqlSettings": &#123;
+      "ReplicaLagSettings": [
+        &#123;
+            "DataSource": "replica-1",
+            "QueryAbsoluteLag": "select member_id, count_transactions_remote_in_applier_queue FROM performance_schema.replication_group_member_stats where member_id=<>",
+            "QueryTimeLag": ""
+        &#125;
+      ]
+  &#125;
+&#125;
+```
+
+</TabItem>
+<TabItem value="postgresql-replication-slots" label="PostgreSQL replication slots">
+
+1.  Add the configuration highlighted below to your `SqlSettings.ReplicaLagSettings` array. This query should run against the **primary** node in your cluster, to do this change the `DataSource` to match the [SqlSettings.DataSource](#data-source) setting you have configured.
+
+For more information on pg_stat_replication, see the [PostgreSQL documentation](https://www.postgresql.org/docs/current/monitoring-stats.html#MONITORING-PG-STAT-REPLICATION-VIEW).
+
+> **Example:**
 >
 > ``` json
 > &#123;
 >   "SqlSettings": &#123;
 >       "ReplicaLagSettings": [
 >         &#123;
->             "DataSource": "replica-1",
->             "QueryAbsoluteLag": "select server_id, highest_lsn_rcvd-durable_lsn as bindiff from aurora_global_db_instance_status() where server_id=<>",
->             "QueryTimeLag": "select server_id, visibility_lag_in_msec from aurora_global_db_instance_status() where server_id=<>"
->         &#125;
->       ]
->   &#125;
-> &#125;
-> ```
->
-> </div>
->
-> <div class="tab">
->
-> MySQL Group Replication
->
-> Add the configuration highlighted below to your `SqlSettings.ReplicaLagSettings` array. You only need to add this once because replication statistics for all nodes are shared across all server instances that are members of the MySQL replication group. Be sure to change the `DataSource` to point to a single node in the group.
->
-> For more information on group replication stats, see the [MySQL documentation](https://dev.mysql.com/doc/refman/8.0/en/group-replication-replication-group-member-stats.html).
->
-> Example
->
-> ``` json
-> &#123;
->   "SqlSettings": &#123;
->       "ReplicaLagSettings": [
->         &#123;
->             "DataSource": "replica-1",
->             "QueryAbsoluteLag": "select member_id, count_transactions_remote_in_applier_queue FROM performance_schema.replication_group_member_stats where member_id=<>",
+>             "DataSource": "postgres://mmuser:password@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10.",
+>             "QueryAbsoluteLag": "select usename, pg_wal_lsn_diff(pg_current_wal_lsn(),replay_lsn) as metric from pg_stat_replication;",
 >             "QueryTimeLag": ""
 >         &#125;
 >       ]
 >   &#125;
 > &#125;
 > ```
+
+2.  Grant permissions to the database user for `pg_monitor`. This user should be the same user configured above in the `DataSource` string.
+
+> For more information on roles, see the [PostgreSQL documentation](https://www.postgresql.org/docs/10/default-roles.html).
 >
-> </div>
->
-> <div class="tab">
->
-> PostgreSQL replication slots
->
-> 1.  Add the configuration highlighted below to your `SqlSettings.ReplicaLagSettings` array. This query should run against the **primary** node in your cluster, to do this change the `DataSource` to match the [SqlSettings.DataSource](#data-source) setting you have configured.
->
-> For more information on pg_stat_replication, see the [PostgreSQL documentation](https://www.postgresql.org/docs/current/monitoring-stats.html#MONITORING-PG-STAT-REPLICATION-VIEW).
->
-> > **Example:**
-> >
-> > ``` json
-> > &#123;
-> >   "SqlSettings": &#123;
-> >       "ReplicaLagSettings": [
-> >         &#123;
-> >             "DataSource": "postgres://mmuser:password@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10.",
-> >             "QueryAbsoluteLag": "select usename, pg_wal_lsn_diff(pg_current_wal_lsn(),replay_lsn) as metric from pg_stat_replication;",
-> >             "QueryTimeLag": ""
-> >         &#125;
-> >       ]
-> >   &#125;
-> > &#125;
-> > ```
->
-> 2.  Grant permissions to the database user for `pg_monitor`. This user should be the same user configured above in the `DataSource` string.
->
-> > For more information on roles, see the [PostgreSQL documentation](https://www.postgresql.org/docs/10/default-roles.html).
-> >
-> > ``` sh
-> > sudo -u postgres psql
-> > postgres=# GRANT pg_monitor TO mmuser;
-> > ```
->
-> </div>
+> ``` sh
+> sudo -u postgres psql
+> postgres=# GRANT pg_monitor TO mmuser;
+> ```
+
+</TabItem>
+</Tabs>
+
 
 2.  Save the config and restart all Mattermost nodes.
 3.  Navigate to your Grafana instance monitoring Mattermost and open the [Mattermost Performance Monitoring v2](https://grafana.com/grafana/dashboards/15582-mattermost-performance-monitoring-v2/) dashboard.
@@ -3005,7 +3002,7 @@ Configure audit logging by going to **System Console \> Compliance \> Audit Logg
 
 <Note>
 
-When `FileEnabled` is set to **true**, then the [audit file name](#auditlog-filename) must be set.
+When `FileEnabled` is set to **true**, then the [audit file name](#audit-file-name) must be set.
 
 </Note>
 
@@ -3026,7 +3023,7 @@ When `FileEnabled` is set to **true**, then the [audit file name](#auditlog-file
 
 <Note>
 
-The file name must be set to [enable](#auditlog-fileenabled) audit logging.
+The file name must be set to [enable](#output-audit-logs-to-file) audit logging.
 
 </Note>
 

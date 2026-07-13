@@ -290,13 +290,11 @@ const DEPLOYMENT_GROUPS = {
         'server/kubernetes/deploy-k8s-oke',
       ]},
       {label: 'Install with Containers', landing: 'server/deploy-containers', items: [
-        'server/containers/install-docker',
         'server/containers/fips-stig',
       ]},
-      // Configure at install time — install-blocking decisions like FIPS,
-      // TLS, NGINX reverse proxy, image proxy, MySQL setup, pre-auth secrets.
+      // Configure at install time — install-blocking decisions like TLS,
+      // NGINX reverse proxy, image proxy, MySQL setup, pre-auth secrets.
       {label: 'Configure at install time', items: [
-        'server/configure-fips-at-install-time',
         'server/setup-nginx-proxy',
         'server/setup-tls',
         'server/pre-authentication-secrets',

@@ -1,13 +1,15 @@
 ---
 title: "Rename channels"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 Anyone can rename the channels they belong to, unless the system admin has [restricted the permissions to do so using advanced permissions](/administration-guide/onboard/advanced-permissions).
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 Select the channel name at the top of the center pane to access the drop-down menu, then select **Channel Settings**. You'll be prompted to provide two pieces of information:
 
@@ -18,11 +20,8 @@ If your system admin has enabled [channel category sorting](/administration-guid
 
 For example, a channel could be named `UX Design` and have a URL of `https://community.mattermost.com/core/channels/ux-design` (or an anonymous URL if enabled by your system admin).
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 1.  Tap the channel you want to rename.
 
@@ -50,4 +49,6 @@ Mobile
 >
 > ![Type the new channel name and click on Save to rename the channel.](/images/mobile-rename-channel-name-and-save.jpg)
 
-</div>
+</TabItem>
+</Tabs>
+

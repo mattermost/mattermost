@@ -1,6 +1,9 @@
 ---
 title: "Version Archive"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 import Inc0_common_esr_support_rst from './common-esr-support-rst.mdx';
 
 <Inc0_common_esr_support_rst />
@@ -13,9 +16,8 @@ Our package signing key has been moved away from Keybase. If you still reference
 
 </Note>
 
-<div class="tab">
-
-Mattermost Enterprise
+<Tabs>
+<TabItem value="mattermost-enterprise" label="Mattermost Enterprise">
 
 Mattermost Enterprise Edition v11.6.1 - [View Changelog](https://docs.mattermost.com/product-overview/mattermost-v11-changelog.html#release-v11-6-feature-release) - [Download](https://releases.mattermost.com/11.6.1/mattermost-11.6.1-linux-amd64.tar.gz?src=arc)  
 - `https://releases.mattermost.com/11.6.1/mattermost-11.6.1-linux-amd64.tar.gz`
@@ -594,11 +596,8 @@ Mattermost Enterprise Edition v2.1.0 - [View Changelog](https://docs.mattermost.
 - `https://releases.mattermost.com/2.1.0/mattermost-enterprise-2.1.0-linux-amd64.tar.gz`
 - SHA-256 Checksum: `9454c3daacae602025b03950590e3f1ecd540b85a4bb7ad73bdca212ba85cf7a`
 
-</div>
-
-<div class="tab">
-
-Mattermost Team Edition
+</TabItem>
+<TabItem value="mattermost-team-edition" label="Mattermost Team Edition">
 
 The open source Mattermost Team Edition is functionally identical to the commercial Mattermost Enterprise Edition in its free “team mode”, but there is no ability to unlock enterprise features. It deploys as single Linux binary with PostgreSQL or MySQL under an MIT license.
 
@@ -1213,4 +1212,6 @@ Mattermost Team Edition v0.6.0 - [View Changelog](https://docs.mattermost.com/ab
 - `https://releases.mattermost.com/0.6.0/mattermost-team-0.6.0-linux-amd64.tar.gz`
 - SHA-256 Checksum: `9eb364f7f963af32d4a9efe3bbb5abb2a21ca5d1a213b50ca461dab047a123b6`
 
-</div>
+</TabItem>
+</Tabs>
+

@@ -43,9 +43,9 @@ This structure is modeled on [Teleport's FedRAMP page](https://goteleport.com/do
 
 | Control | Implementation | Configuration |
 |---|---|---|
-| AC-2 (Account Management) | System Console → Users + SCIM provisioning | [Onboard Users](../../administration-guide/onboard/) |
-| AC-3 (Access Enforcement) | Role-based access control (System / Team / Channel) + Advanced Permissions | [Manage Permissions](../../administration-guide/manage/) |
-| AC-6 (Least Privilege) | Custom roles + ABAC (Enterprise Advanced) | [Manage Permissions](../../administration-guide/manage/) |
+| AC-2 (Account Management) | System Console → Users + SCIM provisioning | [Onboard Users](../../administration-guide/onboard/sso-saml) |
+| AC-3 (Access Enforcement) | Role-based access control (System / Team / Channel) + Advanced Permissions | [Manage Permissions](../../administration-guide/manage/admin/user-management) |
+| AC-6 (Least Privilege) | Custom roles + ABAC (Enterprise Advanced) | [Manage Permissions](../../administration-guide/manage/admin/user-management) |
 | AC-7 (Unsuccessful Login Attempts) | `ServiceSettings.MaximumLoginAttempts` + account lockout | System Console → Authentication |
 | AC-11 (Session Lock) | `ServiceSettings.SessionLengthWebInHours` + session expiration | System Console → Session Lengths |
 | AC-17 (Remote Access) | TLS enforcement + MFA | [Transport Encryption](../../deployment-guide/transport-encryption.mdx) |
@@ -54,7 +54,7 @@ This structure is modeled on [Teleport's FedRAMP page](https://goteleport.com/do
 
 | Control | Implementation | Configuration |
 |---|---|---|
-| AU-2 (Event Logging) | Audit log + JSON audit log schema | [Comply](../../administration-guide/comply/) |
+| AU-2 (Event Logging) | Audit log + JSON audit log schema | [Comply](../../administration-guide/comply/compliance-export) |
 | AU-3 (Content of Audit Records) | JSON audit log fields | Audit Log Reference (Phase 2) |
 | AU-6 (Audit Review, Analysis, and Reporting) | SIEM integration via audit log export | *Audit Log Export to Air-Gapped SIEM* (Phase 2) |
 | AU-9 (Protection of Audit Information) | Audit log immutability + offline export | Audit Log Reference (Phase 2) |
@@ -64,20 +64,20 @@ This structure is modeled on [Teleport's FedRAMP page](https://goteleport.com/do
 
 | Control | Implementation | Configuration |
 |---|---|---|
-| IA-2 (Identification and Authentication) | SAML 2.0, OIDC, AD/LDAP | [Onboard Users](../../administration-guide/onboard/) |
+| IA-2 (Identification and Authentication) | SAML 2.0, OIDC, AD/LDAP | [Onboard Users](../../administration-guide/onboard/sso-saml) |
 | IA-2(1) (MFA for Privileged Accounts) | MFA enforcement for system admins | System Console → MFA |
 | IA-2(2) (MFA for Non-Privileged Accounts) | MFA enforcement for all users | System Console → MFA |
 | IA-5 (Authenticator Management) | Password complexity policy + rotation | System Console → Password |
-| IA-8 (Identification and Authentication, Non-Organizational Users) | Guest accounts with separate permission model | [Guest Accounts](../../administration-guide/manage/) |
+| IA-8 (Identification and Authentication, Non-Organizational Users) | Guest accounts with separate permission model | [Guest Accounts](../../administration-guide/onboard/guest-accounts) |
 
 ### Configuration Management (CM)
 
 | Control | Implementation | Configuration |
 |---|---|---|
-| CM-2 (Baseline Configuration) | `config.json` version control + Operator CR | [Configure](../../administration-guide/configure/) |
-| CM-6 (Configuration Settings) | Hardening guide + STIG profile | [Hardening Guides](../../security-guide/) |
+| CM-2 (Baseline Configuration) | `config.json` version control + Operator CR | [Configure](../../administration-guide/configure/configuration-settings) |
+| CM-6 (Configuration Settings) | Hardening guide + STIG profile | [Hardening Guides](../../security-guide/security-guide-index) |
 | CM-7 (Least Functionality) | Per-feature enable/disable flags + plugin gating | [Disable Phone-Home Features](../../deployment-guide/air-gapped-operations/disable-phone-home-features) |
-| CM-8 (Information System Component Inventory) | `mmctl system info` + Support Packet | [Maintain](../../administration-guide/) |
+| CM-8 (Information System Component Inventory) | `mmctl system info` + Support Packet | [Maintain](../../administration-guide/manage/admin/server-maintenance) |
 
 ### System and Communications Protection (SC)
 
@@ -92,8 +92,8 @@ This structure is modeled on [Teleport's FedRAMP page](https://goteleport.com/do
 
 | Control | Implementation | Configuration |
 |---|---|---|
-| SI-2 (Flaw Remediation) | Security advisory feed + ESR cadence | [ESR Support Policy](../../product-overview/) |
-| SI-4 (Information System Monitoring) | Prometheus / Grafana / Loki integration | [Monitor & Operate](../../administration-guide/) |
+| SI-2 (Flaw Remediation) | Security advisory feed + ESR cadence | [ESR Support Policy](../../product-overview/release-policy) |
+| SI-4 (Information System Monitoring) | Prometheus / Grafana / Loki integration | [Monitor & Operate](../../administration-guide/scale/deploy-prometheus-grafana-for-performance-monitoring) |
 | SI-7 (Software, Firmware, and Information Integrity) | Signed releases + checksum verification | Release verification — Phase 2 |
 
 ### Other control families — Phase 2

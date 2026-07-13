@@ -1,6 +1,9 @@
 ---
 title: "Send messages"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 You can send messages in public and private channels as well as to other users in Mattermost. Depending on when you compose a message, you can send it immediately, [schedule it for later](/end-user-guide/collaborate/schedule-messages), or [set its priority](/end-user-guide/collaborate/message-priority).
@@ -13,9 +16,8 @@ From Mattermost v11.5, you can access help resources for message formatting by s
 
 </Note>
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 Enter a message in the text field, then select **Send** <img src="/img/ui/send_F048A.svg" alt="Select the Send icon to post your message." className="theme-icon" /> to send the message.
 
@@ -28,11 +30,8 @@ You can also use a keyboard to send messages:
 
 </Tip>
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 1.  Tap the text field at the bottom of the Mattermost app to type a message.
 
@@ -42,7 +41,9 @@ Mobile
 
 ![Tap on the send icon to send the message in the channel.](/images/mobile-sending-a-message.gif)
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Rewrite messages with AI
 
@@ -78,19 +79,15 @@ Messages that have been rewritten using AI are automatically marked as AI-genera
 
 From Mattermost v11.3, burn-on-read messages stay concealed until recipients reveal them. After revealing, the message is deleted for that recipient when the timer expires. Burn-on-read messages can't be replied to or edited. You can send burn-on-read messages unless your system admin has [disabled the ability to do so](/administration-guide/configure/site-configuration-settings#enable-burn-on-read-messages) in your Mattermost instance.
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 1.  Compose your message.
 2.  Select the **Burn-on-read** <img src="/img/ui/fire_F0238.svg" alt="Burn on Read icon." className="theme-icon" /> icon in the message toolbar.
 3.  Select **Send** <img src="/img/ui/send_F048A.svg" alt="Select the Send icon to post your message." className="theme-icon" />
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 From Mattermost mobile v2.38.0, you can send burn-on-read messages from the mobile app.
 
@@ -98,7 +95,9 @@ From Mattermost mobile v2.38.0, you can send burn-on-read messages from the mobi
 2.  Tap the **Burn-on-read** <img src="/img/ui/fire_F0238.svg" alt="Burn on Read icon." className="theme-icon" /> icon in the message toolbar.
 3.  Tap **Send** <img src="/img/ui/send_F048A.svg" alt="Select the Send icon to post your message." className="theme-icon" />
 
-</div>
+</TabItem>
+</Tabs>
+
 
 Recipients see a concealed placeholder with **Reveal**. After revealing, a timer shows when the message will be deleted.
 
@@ -110,19 +109,15 @@ From Mattermost v7.7, when composing new messages, it's easy to return to a mess
 
 By default, message drafts are synchronized on the Mattermost server and are accessible everywhere you access Mattermost, including a web browser or the desktop app. Limit drafts to your current Mattermost client only by going to **Settings \> Advanced \> Allow message drafts to sync with the server** to disable draft synchronization.
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 Draft messages are added to a **Drafts** view available at the top of the channel sidebar.
 
 <img src="../../images/Global-Drafts-Animated-GIF.gif" width="700" alt="Global drafts makes it easy for you to find all messages in progress." />
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 When composing a message, you can simply choose to complete it later. The partially composed message is kept in the text field and an **Edit** option <img src="/img/ui/pencil-outline_F0CB6.svg" alt="Edit icon." className="theme-icon" /> displays next to the channel name.
 
@@ -130,15 +125,16 @@ From Mattermost v10.5, you'll find local draft messages under **Drafts**. Drafts
 
 ![You can sync a daft message by exiting the channel mid-way while composing the message.](/images/mobile-draft-a-message.gif)
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Edit messages
 
 All users can edit their own sent messages, unless the system admin has [restricted the ability to do so](/administration-guide/onboard/advanced-permissions).
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 1.  Using Mattermost in a web browser or the desktop app, select the **More** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> icon next to a message that you've sent.
 
@@ -152,11 +148,8 @@ From Mattermost v10.5, using a web browser or the Mattermost Desktop app, you ca
 
 </Tip>
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 1.  Long press on the message that you want to edit and tap on **Edit**.
 
@@ -172,7 +165,9 @@ From Mattermost v10.11 and mobile app v2.31.0, when editing messages on mobile, 
 
 </Tip>
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ### Restore a previous version of an edited message
 
@@ -195,20 +190,16 @@ Restoring a previous version of the message is available in the Mattermost deskt
 
 ## Delete messages
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 All users can delete their own sent messages, unless the system admin has [restricted the ability to do so](/administration-guide/onboard/advanced-permissions).
 
 1.  Using Mattermost in a web browser or the desktop app, select the **More** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> icon next to a message that you want to delete.
 2.  Select **Delete** to delete your own messages. Select **Delete** again to confirm.
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 1.  Long Press on the message you want to delete and tap on **Delete**.
 
@@ -218,7 +209,9 @@ Mobile
 
 ![Confirm your choice to delete the message.](/images/mobile-confirm-delete-a-message.jpg)
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Do more with your messages
 

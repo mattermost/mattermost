@@ -1,6 +1,9 @@
 ---
 title: "Manage your mobile notifications"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 ## Enable notifications
@@ -41,9 +44,8 @@ You'll see mobile push notification messages on your device as follows:
 
 You can manage your mobile notifications in both the desktop app and the mobile app.
 
-<div class="tab">
-
-Desktop app
+<Tabs>
+<TabItem value="desktop-app" label="Desktop app">
 
 In the desktop app, manage your mobile notification preferences by selecting the **Settings** <img src="/img/ui/settings-outline_F08BB.svg" alt="Use the Settings icon to customize your Mattermost user experience." className="theme-icon" /> icon located in the top right corner of the screen, and select **Notifications \> Desktop and mobile notifications**.
 
@@ -52,11 +54,8 @@ By default, you receive mobile notifications for @mentions, direct messages, and
 - Want to receive fewer mobile notifications? Under **Trigger mobile notifications when I am**, select **Away or Offline** or **Offline**.
 - Want different desktop and mobile notifications? Select **Use different settings for my mobile devices**, and then select **All new messages**, or **Mentions, direct messages and group messages**.
 
-</div>
-
-<div class="tab">
-
-Mobile app
+</TabItem>
+<TabItem value="mobile-app" label="Mobile app">
 
 In the mobile app, tap your profile picture, then tap **Settings \> Notifications**.
 
@@ -65,7 +64,9 @@ In the mobile app, tap your profile picture, then tap **Settings \> Notification
 
 You can also [manage email notifications](/end-user-guide/preferences/manage-your-notifications#email-notifications) and [send automatic replies to direct messages](/end-user-guide/preferences/manage-your-thread-reply-notifications#send-automatic-replies-to-direct-messages) directly from your device.
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ### Incoming Call notifications
 

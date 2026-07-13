@@ -47,8 +47,8 @@ The Application Security and Development SRG defines ~280 requirements. The summ
 
 | Requirement category | Mattermost configuration |
 |---|---|
-| SRG-APP-000033 — Application authentication | SAML 2.0, OIDC, AD/LDAP; PIV/CAC via IdP. See [Onboard Users](../../administration-guide/onboard/). |
-| SRG-APP-000038 — Application access enforcement | RBAC (System / Team / Channel) + ABAC (Enterprise Advanced). See [Manage Permissions](../../administration-guide/manage/). |
+| SRG-APP-000033 — Application authentication | SAML 2.0, OIDC, AD/LDAP; PIV/CAC via IdP. See [Onboard Users](../../administration-guide/onboard/sso-saml). |
+| SRG-APP-000038 — Application access enforcement | RBAC (System / Team / Channel) + ABAC (Enterprise Advanced). See [Manage Permissions](../../administration-guide/manage/admin/user-management). |
 | SRG-APP-000068 — Account lockout after unsuccessful login attempts | `ServiceSettings.MaximumLoginAttempts` config setting. |
 | SRG-APP-000133 — Session timeout | `ServiceSettings.SessionLengthWebInHours` config setting. |
 | SRG-APP-000148 — Multi-factor authentication enforcement | Enforced via the IdP. |
@@ -58,7 +58,7 @@ The Application Security and Development SRG defines ~280 requirements. The summ
 
 | Requirement category | Mattermost configuration |
 |---|---|
-| SRG-APP-000091 — Audit record generation | JSON audit log emitted by default. See [Comply](../../administration-guide/comply/). |
+| SRG-APP-000091 — Audit record generation | JSON audit log emitted by default. See [Comply](../../administration-guide/comply/compliance-export). |
 | SRG-APP-000095 — Audit record content (who, what, when, where, source) | Audit log schema includes timestamp, user, action, resource, source IP, session ID. See Audit Log Reference (Phase 2). |
 | SRG-APP-000099 — Audit record review and analysis | Customer-managed SIEM integration. |
 | SRG-APP-000118 — Audit log capacity and overflow handling | Customer-managed at the SIEM tier; Mattermost emits to local files or remote endpoints. |
@@ -70,7 +70,7 @@ The Application Security and Development SRG defines ~280 requirements. The summ
 |---|---|
 | SRG-APP-000148 — User identity assurance | SAML federation to a STIG-compliant IdP. |
 | SRG-APP-000164 — Account management | Provisioning via SCIM (Enterprise Advanced) + IdP-driven onboarding. |
-| SRG-APP-000172 — Cryptographic identity protection | FIPS 140-3 validated module — see [Configure FIPS at Install Time](../../deployment-guide/server/configure-fips-at-install-time). |
+| SRG-APP-000172 — Cryptographic identity protection | FIPS 140-3 validated module — deploy using the FIPS-compliant container image. See [FIPS / STIG container builds](../../deployment-guide/server/containers/fips-stig). |
 | SRG-APP-000516 — Replay-resistant authentication | SAML with signed assertions + short-lived session tokens. |
 
 ### System and Communications Protection (SC)
@@ -114,7 +114,7 @@ While the full STIG checklist is on the roadmap, customers can begin hardening t
 2. **Apply PostgreSQL STIG** for the database tier.
 3. **Apply Web Server SRG** to the NGINX reverse proxy.
 4. **Apply Mattermost configuration** from the [Required configuration summary on the FedRAMP Moderate page](./fedramp-moderate#required-configuration) — this satisfies the majority of Application Security and Development SRG requirements applicable to Mattermost.
-5. **Enable FIPS mode at install time** — see [Configure FIPS at Install Time](../../deployment-guide/server/configure-fips-at-install-time).
+5. **Deploy using the FIPS-compliant container image** — see [FIPS / STIG container builds](../../deployment-guide/server/containers/fips-stig).
 6. **Disable phone-home features** — see [Disable Phone-Home Features](../../deployment-guide/air-gapped-operations/disable-phone-home-features).
 7. **Configure audit log export** to a STIG-compliant SIEM.
 8. **Configure IdP-side** policies for MFA, PIV/CAC, session lifetime, account lockout.

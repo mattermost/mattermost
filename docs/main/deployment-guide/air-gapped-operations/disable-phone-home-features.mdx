@@ -69,7 +69,7 @@ These settings disable **Mattermost-initiated** outbound calls. They do **not** 
 
 - **OS-level callbacks** (NTP, DNS, distribution-package updaters). Manage these via your OS hardening profile, not Mattermost configuration.
 - **User-initiated outbound calls** (link unfurling when a user pastes a public URL into a channel). Mattermost respects the enclave's network policy here — link unfurling will simply fail.
-- **Plugin-initiated outbound calls**. Each plugin has its own outbound behavior. Audit each plugin you install. The Mattermost Calls plugin in particular requires careful egress configuration; see [Calls Deployment](../) (top-level Deployment Guide → Calls Deployment section, expanded in Phase 2).
+- **Plugin-initiated outbound calls**. Each plugin has its own outbound behavior. Audit each plugin you install. The Mattermost Calls plugin in particular requires careful egress configuration; see [Calls Deployment](/administration-guide/configure/calls-deployment-guide).
 
 ### Verification
 
