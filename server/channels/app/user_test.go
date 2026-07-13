@@ -1241,6 +1241,68 @@ func TestCreateUserWithToken(t *testing.T) {
 		assert.Len(t, members, 2)
 	})
 
+	t.Run("token profile fields override client-supplied user data", func(t *testing.T) {
+		invitationEmail := strings.ToLower(model.NewId()) + "other-email@test.com"
+		presetUsername := "preset" + model.NewId()
+		// The client-supplied payload simulates a tampered signup request.
+		u := model.User{Email: invitationEmail, Username: "tampered" + model.NewId(), FirstName: "Tampered", LastName: "Values", Password: model.NewTestPassword(), AuthService: ""}
+		token := model.NewToken(
+			model.TokenTypeTeamInvitation,
+			model.MapToJSON(map[string]string{
+				"teamId":     th.BasicTeam.Id,
+				"email":      invitationEmail,
+				"username":   presetUsername,
+				"first_name": "Dave",
+				"last_name":  "Roberts",
+			}),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+		newUser, err := th.App.CreateUserWithToken(th.Context, &u, token)
+		require.Nil(t, err, "Should create the user. err=%v", err)
+		require.Equal(t, presetUsername, newUser.Username, "The username must be the pre-set one")
+		require.Equal(t, "Dave", newUser.FirstName, "The first name must be the pre-set one")
+		require.Equal(t, "Roberts", newUser.LastName, "The last name must be the pre-set one")
+	})
+
+	t.Run("token username is lowercased", func(t *testing.T) {
+		invitationEmail := strings.ToLower(model.NewId()) + "other-email@test.com"
+		presetUsername := "preset" + model.NewId()
+		u := model.User{Email: invitationEmail, Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
+		token := model.NewToken(
+			model.TokenTypeTeamInvitation,
+			model.MapToJSON(map[string]string{
+				"teamId":   th.BasicTeam.Id,
+				"email":    invitationEmail,
+				"username": strings.ToUpper(presetUsername),
+			}),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+		newUser, err := th.App.CreateUserWithToken(th.Context, &u, token)
+		require.Nil(t, err, "Should create the user. err=%v", err)
+		require.Equal(t, presetUsername, newUser.Username)
+	})
+
+	t.Run("token with taken username fails with username_exists", func(t *testing.T) {
+		invitationEmail := strings.ToLower(model.NewId()) + "other-email@test.com"
+		u := model.User{Email: invitationEmail, Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
+		token := model.NewToken(
+			model.TokenTypeTeamInvitation,
+			model.MapToJSON(map[string]string{
+				"teamId":   th.BasicTeam.Id,
+				"email":    invitationEmail,
+				"username": th.BasicUser.Username,
+			}),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+		defer func() {
+			appErr := th.App.DeleteToken(token)
+			require.Nil(t, appErr)
+		}()
+		_, err := th.App.CreateUserWithToken(th.Context, &u, token)
+		require.NotNil(t, err)
+		require.Equal(t, "app.user.save.username_exists.app_error", err.Id)
+	})
+
 	t.Run("valid guest request", func(t *testing.T) {
 		invitationEmail := strings.ToLower(model.NewId()) + "other-email@test.com"
 		token := model.NewToken(

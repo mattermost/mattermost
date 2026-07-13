@@ -4,6 +4,9 @@
 package email
 
 import (
+	"html"
+	"net/url"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -154,7 +157,7 @@ func TestSendInviteEmails(t *testing.T) {
 		err := mail.DeleteMailBox(emailTo)
 		require.NoError(t, err, "Failed to delete mailbox")
 
-		err = th.service.SendInviteEmails(th.Context, th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, false, false, false)
+		err = th.service.SendInviteEmails(th.Context, th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, nil, "http://testserver", nil, false, false, false)
 		require.NoError(t, err)
 
 		verifyMailbox(t)
@@ -172,10 +175,10 @@ func TestSendInviteEmails(t *testing.T) {
 			*cfg.EmailSettings.SMTPServerTimeout = originalTimeout
 		})
 
-		err := th.service.SendInviteEmails(th.Context, th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, true, false, false)
+		err := th.service.SendInviteEmails(th.Context, th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, nil, "http://testserver", nil, true, false, false)
 		require.Error(t, err)
 
-		err = th.service.SendInviteEmails(th.Context, th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, false, false, false)
+		err = th.service.SendInviteEmails(th.Context, th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, nil, "http://testserver", nil, false, false, false)
 		require.NoError(t, err)
 	})
 
@@ -288,6 +291,7 @@ func TestSendInviteEmails(t *testing.T) {
 			"test-user",
 			th.BasicUser.Id,
 			[]string{emailTo},
+			nil,
 			"http://testserver",
 			nil,
 			false,
@@ -310,6 +314,7 @@ func TestSendInviteEmails(t *testing.T) {
 			"test-user",
 			th.BasicUser.Id,
 			[]string{emailTo},
+			nil,
 			"http://testserver",
 			nil,
 			false,
@@ -332,6 +337,7 @@ func TestSendInviteEmails(t *testing.T) {
 			"test-user",
 			th.BasicUser.Id,
 			[]string{emailTo},
+			nil,
 			"http://testserver",
 			nil,
 			false,
@@ -343,6 +349,112 @@ func TestSendInviteEmails(t *testing.T) {
 		email := retrieveEmail(t)
 		require.Contains(t, email.Body.HTML, "&amp;sbr=fa")
 	})
+
+	t.Run("SendInviteEmails with profiles should put profile fields into token extra and link data", func(t *testing.T) {
+		err := mail.DeleteMailBox(emailTo)
+		require.NoError(t, err, "Failed to delete mailbox")
+
+		profiles := map[string]*model.MemberInviteProfile{
+			emailTo: {
+				Email:     emailTo,
+				Username:  "dave.roberts",
+				FirstName: "Dave",
+				LastName:  "Roberts",
+			},
+		}
+
+		err = th.service.SendInviteEmails(th.Context, th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, profiles, "http://testserver", nil, false, false, false)
+		require.NoError(t, err)
+
+		email := retrieveEmail(t)
+		token := findTokenFromEmail(t, th, email.Body.HTML)
+		tokenData := model.MapFromJSON(strings.NewReader(token.Extra))
+		require.Equal(t, emailTo, tokenData["email"])
+		require.Equal(t, "dave.roberts", tokenData["username"])
+		require.Equal(t, "Dave", tokenData["first_name"])
+		require.Equal(t, "Roberts", tokenData["last_name"])
+
+		linkData := findLinkDataFromEmail(t, email.Body.HTML)
+		require.Equal(t, "dave.roberts", linkData["username"])
+		require.Equal(t, "Dave", linkData["first_name"])
+		require.Equal(t, "Roberts", linkData["last_name"])
+	})
+
+	t.Run("SendInviteEmailsToTeamAndChannels with profiles should put profile fields into token extra and link data", func(t *testing.T) {
+		err := mail.DeleteMailBox(emailTo)
+		require.NoError(t, err, "Failed to delete mailbox")
+
+		profiles := map[string]*model.MemberInviteProfile{
+			emailTo: {
+				Email:     emailTo,
+				Username:  "sam.smith",
+				FirstName: "Sam",
+				LastName:  "Smith",
+			},
+		}
+
+		_, err = th.service.SendInviteEmailsToTeamAndChannels(th.Context, th.BasicTeam, []*model.Channel{th.BasicChannel}, "test-user", th.BasicUser.Id, nil, []string{emailTo}, profiles, "http://testserver", nil, "", false, false, false)
+		require.NoError(t, err)
+
+		email := retrieveEmail(t)
+		token := findTokenFromEmail(t, th, email.Body.HTML)
+		tokenData := model.MapFromJSON(strings.NewReader(token.Extra))
+		require.Equal(t, "sam.smith", tokenData["username"])
+		require.Equal(t, "Sam", tokenData["first_name"])
+		require.Equal(t, "Smith", tokenData["last_name"])
+
+		linkData := findLinkDataFromEmail(t, email.Body.HTML)
+		require.Equal(t, "sam.smith", linkData["username"])
+		require.Equal(t, "Sam", linkData["first_name"])
+		require.Equal(t, "Smith", linkData["last_name"])
+	})
+
+	t.Run("SendInviteEmails without profiles should not add profile fields to token extra or link data", func(t *testing.T) {
+		err := mail.DeleteMailBox(emailTo)
+		require.NoError(t, err, "Failed to delete mailbox")
+
+		err = th.service.SendInviteEmails(th.Context, th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, nil, "http://testserver", nil, false, false, false)
+		require.NoError(t, err)
+
+		email := retrieveEmail(t)
+		token := findTokenFromEmail(t, th, email.Body.HTML)
+		tokenData := model.MapFromJSON(strings.NewReader(token.Extra))
+		require.NotContains(t, tokenData, "username")
+		require.NotContains(t, tokenData, "first_name")
+		require.NotContains(t, tokenData, "last_name")
+
+		linkData := findLinkDataFromEmail(t, email.Body.HTML)
+		require.NotContains(t, linkData, "username")
+		require.NotContains(t, linkData, "first_name")
+		require.NotContains(t, linkData, "last_name")
+	})
+}
+
+// findSignupQueryFromEmail extracts the signup_user_complete query parameters from an invite email body.
+func findSignupQueryFromEmail(t *testing.T, emailHTML string) url.Values {
+	t.Helper()
+	re := regexp.MustCompile(`signup_user_complete/\?([^"]*)`)
+	matches := re.FindStringSubmatch(html.UnescapeString(emailHTML))
+	require.Len(t, matches, 2, "invite email should contain a signup link")
+	queryString, err := url.ParseQuery(matches[1])
+	require.NoError(t, err)
+	return queryString
+}
+
+// findTokenFromEmail loads the invitation token referenced by an invite email body.
+func findTokenFromEmail(t *testing.T, th *TestHelper, emailHTML string) *model.Token {
+	t.Helper()
+	queryString := findSignupQueryFromEmail(t, emailHTML)
+	token, err := th.service.store.Token().GetByToken(queryString.Get("t"))
+	require.NoError(t, err)
+	return token
+}
+
+// findLinkDataFromEmail parses the d prefill param of the signup link in an invite email body.
+func findLinkDataFromEmail(t *testing.T, emailHTML string) map[string]string {
+	t.Helper()
+	queryString := findSignupQueryFromEmail(t, emailHTML)
+	return model.MapFromJSON(strings.NewReader(queryString.Get("d")))
 }
 
 func TestSendCloudWelcomeEmail(t *testing.T) {

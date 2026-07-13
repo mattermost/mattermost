@@ -2049,6 +2049,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 			mock.AnythingOfType("string"),
 			mock.AnythingOfType("string"),
 			memberInvite.Emails,
+			mock.Anything,
 			"",
 			mock.Anything,
 			true,
@@ -2075,6 +2076,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 			mock.AnythingOfType("string"),
 			mock.AnythingOfType("string"),
 			memberInvite.Emails,
+			mock.Anything,
 			"",
 			mock.Anything,
 			true,
@@ -2104,6 +2106,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 			mock.AnythingOfType("string"),
 			mock.AnythingOfType("[]uint8"),
 			memberInvite.Emails,
+			mock.Anything,
 			"",
 			mock.Anything,
 			mock.AnythingOfType("string"),
@@ -2131,6 +2134,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 			mock.AnythingOfType("string"),
 			mock.AnythingOfType("string"),
 			[]string{"idontexist@mattermost.com"},
+			mock.Anything,
 			"",
 			mock.Anything,
 			true,
@@ -2144,6 +2148,59 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		require.Nil(t, err)
 		require.Len(t, res, 1)
 		require.Nil(t, res[0].Error)
+	})
+
+	t.Run("it passes the invite profiles keyed by email to the email service", func(t *testing.T) {
+		emailServiceMock := emailmocks.ServiceInterface{}
+		memberInvite := &model.MemberInvite{
+			Emails: []string{"idontexist@mattermost.com"},
+			Profiles: []*model.MemberInviteProfile{{
+				Email:     "idontexist@mattermost.com",
+				Username:  "un_" + model.NewId(),
+				FirstName: "Pre",
+				LastName:  "Set",
+			}},
+		}
+		emailServiceMock.On("SendInviteEmails",
+			mock.Anything,
+			mock.AnythingOfType("*model.Team"),
+			mock.AnythingOfType("string"),
+			mock.AnythingOfType("string"),
+			memberInvite.Emails,
+			map[string]*model.MemberInviteProfile{"idontexist@mattermost.com": memberInvite.Profiles[0]},
+			"",
+			mock.Anything,
+			true,
+			false,
+			false,
+		).Once().Return(nil)
+		emailServiceMock.On("Stop").Once().Return()
+		th.App.Srv().EmailService = &emailServiceMock
+
+		res, err := th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
+		require.Nil(t, err)
+		require.Len(t, res, 1)
+		require.Nil(t, res[0].Error)
+	})
+
+	t.Run("it fails the email gracefully when the pre-set username is taken", func(t *testing.T) {
+		emailServiceMock := emailmocks.ServiceInterface{}
+		memberInvite := &model.MemberInvite{
+			Emails: []string{"idontexist@mattermost.com"},
+			Profiles: []*model.MemberInviteProfile{{
+				Email:    "idontexist@mattermost.com",
+				Username: th.BasicUser2.Username,
+			}},
+		}
+		emailServiceMock.On("Stop").Once().Return()
+		th.App.Srv().EmailService = &emailServiceMock
+
+		res, err := th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
+		require.Nil(t, err)
+		require.Len(t, res, 1)
+		require.NotNil(t, res[0].Error)
+		require.Equal(t, "api.team.invite_members.username_taken.app_error", res[0].Error.Id)
+		emailServiceMock.AssertNotCalled(t, "SendInviteEmails")
 	})
 }
 

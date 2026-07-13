@@ -190,7 +190,6 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(logger mlog.LoggerIFa
 
 	teamID := job.Data["teamID"]
 	emailListData := job.Data["emailList"]
-	channelListData := job.Data["channelList"]
 
 	emailList, err := rseworker.cleanEmailData(emailListData)
 	if err != nil {
@@ -199,11 +198,14 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(logger mlog.LoggerIFa
 		rseworker.setJobError(logger, job, appErr)
 	}
 
-	channelList, err := rseworker.cleanChannelsData(channelListData)
-	if err != nil {
-		appErr := model.NewAppError("worker: "+rseworker.name, "job_id: "+job.Id, nil, "", http.StatusInternalServerError).Wrap(err)
-		logger.Error("Worker: Failed to clean channel string data", mlog.Err(appErr))
-		rseworker.setJobError(logger, job, appErr)
+	var channelList []string
+	if channelListData := job.Data["channelList"]; channelListData != "" {
+		channelList, err = rseworker.cleanChannelsData(channelListData)
+		if err != nil {
+			appErr := model.NewAppError("worker: "+rseworker.name, "job_id: "+job.Id, nil, "", http.StatusInternalServerError).Wrap(err)
+			logger.Error("Worker: Failed to clean channel string data", mlog.Err(appErr))
+			rseworker.setJobError(logger, job, appErr)
+		}
 	}
 
 	emailList = rseworker.removeAlreadyJoined(teamID, emailList)
