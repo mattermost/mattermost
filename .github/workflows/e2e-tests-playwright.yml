@@ -170,7 +170,7 @@ jobs:
             -f target_url="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           echo "Posted success for ${CONTEXT_NAME}"
 
-  playwright-full-v2:
+  playwright-full:
     needs:
       - generate-build-variables
     if: inputs.should_run != 'false'
@@ -179,7 +179,7 @@ jobs:
       statuses: write
       id-token: write
       pull-requests: write
-    uses: ./.github/workflows/e2e-tests-playwright-template-v2.yml
+    uses: ./.github/workflows/e2e-tests-playwright-template.yml
     with:
       workers: 15
       enabled_docker_services: "postgres inbucket"

@@ -1,23 +1,27 @@
 ---
-name: E2E Tests - Playwright Template (v2 - test system io dispatch)
+name: E2E Tests - Cypress Template (test system io dispatch)
 
-# Delegates Playwright spec dispatch + reporting to test system io.
+# Delegates Cypress spec dispatch + reporting to test system io.
 # Authenticates via GitHub Actions OIDC; calling job MUST grant
 # `id-token: write`.
 
 on:
   workflow_call:
     inputs:
+      test_type:
+        description: "Type of test run (smoke or full)"
+        type: string
+        required: true
       workers:
         description: "Number of parallel test system io dispatch workers"
         type: number
         required: false
-        default: 8
+        default: 40
       enabled_docker_services:
         description: "Space-separated list of docker services to enable"
         type: string
         required: false
-        default: "postgres inbucket"
+        default: "postgres inbucket minio openldap elasticsearch keycloak"
 
       commit_sha:
         type: string
@@ -69,18 +73,38 @@ on:
         type: string
         required: true
 
-      playwright_project:
-        description: "Playwright project name (passed to dispatch-begin metadata and dispatch-run --project=)."
+      cypress_stage:
+        description: "Comma-separated `// Stage:` tags; spec must share at least one. Empty disables filter."
         type: string
         required: false
-        default: chrome
-      playwright_retries:
-        description: "Playwright --retries=N (per-spec, in-process retry of flaky tests)"
-        type: number
+        default: "@prod"
+      cypress_include_group:
+        description: "Comma-separated `// Group:` tags; spec must share at least one. Empty disables filter."
+        type: string
         required: false
-        default: 1
+        default: ""
+      cypress_exclude_group:
+        description: "Comma-separated `// Group:` tags; spec dropped if it shares any."
+        type: string
+        required: false
+        default: "@te_only,@cloud_only,@high_availability"
+      cypress_skip_on:
+        description: "Comma-separated active-env tag(s); spec dropped if its `// Skip:` line shares any."
+        type: string
+        required: false
+        default: "@headless"
+      cypress_sort_first:
+        description: "Comma-separated `// Group:` tags; matching specs dispatch first."
+        type: string
+        required: false
+        default: "@compliance_export,@elasticsearch,@ldap_group,@ldap"
+      cypress_sort_last:
+        description: "Comma-separated `// Group:` tags; matching specs dispatch last."
+        type: string
+        required: false
+        default: "@saml,@keycloak,@plugin,@plugins_uninstall,@mfa,@license_removal"
       retest_on_fail:
-        description: "Re-dispatch failed dispatch units once (whole-spec retry, on top of Playwright --retries)"
+        description: "Re-dispatch failed dispatch units once (whole-spec retry, on top of cypress.config retries)"
         type: boolean
         required: false
         default: true
@@ -88,7 +112,17 @@ on:
     secrets:
       MM_LICENSE:
         required: false
+      AUTOMATION_DASHBOARD_URL:
+        required: false
+      AUTOMATION_DASHBOARD_TOKEN:
+        required: false
+      PUSH_NOTIFICATION_SERVER:
+        required: false
       REPORT_WEBHOOK_URL:
+        required: false
+      CWS_URL:
+        required: false
+      CWS_EXTRA_HTTP_HEADERS:
         required: false
 
 # Callers must grant: contents: read, statuses: write, id-token: write
@@ -134,6 +168,7 @@ jobs:
           # stays unchanged elsewhere — branch protection rules depend on it.
           NAME="${CONTEXT_NAME#e2e-test/}"
           NAME="${NAME//\//-}"
+          # gh_pr_number is optional; include it only when present.
           if [ -n "$PR_NUMBER" ]; then
             COMPOSITE_IDENTITY=$(jq -nc \
               --arg repo "${GITHUB_REPOSITORY}" \
@@ -169,7 +204,7 @@ jobs:
   prep-deps:
     name: prep-deps
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 10
     permissions:
       contents: read
     steps:
@@ -181,39 +216,21 @@ jobs:
           fetch-depth: 1
       - name: ci/setup-webapp-node-modules
         uses: ./.github/actions/webapp-setup
-      - name: ci/cache-playwright-deps
-        # Caches node_modules + the rolled-up @mattermost/playwright-lib dist
-        # so workers don't re-run rollup on every job.
-        id: cache-playwright
+      - name: ci/cache-cypress-deps
+        # node_modules + the cypress binary (downloaded to ~/.cache/Cypress by
+        # cypress's postinstall, not into node_modules). Both must be cached;
+        # otherwise workers see "cypress npm package installed but binary missing".
+        id: cache-cypress
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: |
-            e2e-tests/playwright/node_modules
-            e2e-tests/playwright/lib/dist
-            e2e-tests/playwright/lib/node_modules
-          key: e2e-playwright-deps-${{ runner.os }}-${{ hashFiles('e2e-tests/playwright/package-lock.json', 'e2e-tests/playwright/lib/src/**', 'e2e-tests/playwright/lib/package.json', 'e2e-tests/playwright/lib/rollup.config.js', 'e2e-tests/playwright/lib/tsconfig.json') }}
-      - name: ci/install-playwright-deps
-        # `npm ci` creates symlinks at node_modules/@mattermost/{client,types}
-        # → webapp/platform/{client,types}; targets must already be built.
-        # The postinstall then builds lib/dist via rollup. Skip browser
-        # download here — chromium is cached separately below.
-        if: steps.cache-playwright.outputs.cache-hit != 'true'
-        working-directory: e2e-tests/playwright
-        env:
-          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+            e2e-tests/cypress/node_modules
+            ~/.cache/Cypress
+          key: e2e-cypress-deps-${{ runner.os }}-${{ hashFiles('e2e-tests/cypress/package-lock.json') }}
+      - name: ci/install-cypress-deps
+        if: steps.cache-cypress.outputs.cache-hit != 'true'
+        working-directory: e2e-tests/cypress
         run: npm ci
-      - name: ci/cache-playwright-browsers
-        # Cache chromium binary (~150MB) keyed on the playwright lockfile so a
-        # version bump invalidates. Restored by workers; no docker image needed.
-        id: cache-pw-browsers
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-browsers-${{ runner.os }}-${{ hashFiles('e2e-tests/playwright/package-lock.json') }}
-      - name: ci/install-playwright-chromium
-        if: steps.cache-pw-browsers.outputs.cache-hit != 'true'
-        working-directory: e2e-tests/playwright
-        run: npx playwright install chromium
 
   # Register the Test System IO run AFTER prep-deps so workers reach
   # dispatch-run within Test System IO's inactivity window.
@@ -235,12 +252,17 @@ jobs:
         uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-begin@a2ea7f005484c28fedf51e16645f6d3bd683fd63 # 2026-05-16
         with:
           use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
-          framework: playwright
+          framework: cypress
           repo-dir: ${{ github.workspace }}
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
           total-reports-expected: ${{ inputs.workers }}
           retest-on-fail: ${{ inputs.retest_on_fail }}
-          playwright-project: ${{ inputs.playwright_project }}
+          cypress-stage: ${{ inputs.cypress_stage }}
+          cypress-include-group: ${{ inputs.cypress_include_group }}
+          cypress-exclude-group: ${{ inputs.cypress_exclude_group }}
+          cypress-skip-on: ${{ inputs.cypress_skip_on }}
+          cypress-sort-first: ${{ inputs.cypress_sort_first }}
+          cypress-sort-last: ${{ inputs.cypress_sort_last }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           commit-status-context: ${{ inputs.context_name }}
           image-tag: ${{ inputs.server_image_tag }}
@@ -263,10 +285,16 @@ jobs:
       SERVER: "${{ inputs.server }}"
       MM_LICENSE: "${{ secrets.MM_LICENSE }}"
       ENABLED_DOCKER_SERVICES: "${{ inputs.enabled_docker_services }}"
-      TEST: playwright
+      TEST: cypress
+      # The dispatch adapter invokes `npx cypress run` directly (no
+      # cross-env), so pin TZ here — several specs assume UTC.
+      TZ: Etc/UTC
       BRANCH: "${{ inputs.branch }}"
       BUILD_ID: "${{ inputs.build_id }}"
-      CI_BASE_URL: "full-test-${{ matrix.worker_index }}"
+      CI_BASE_URL: "${{ inputs.test_type }}-test-${{ matrix.worker_index }}"
+      CYPRESS_pushNotificationServer: "${{ secrets.PUSH_NOTIFICATION_SERVER }}"
+      CWS_URL: "${{ secrets.CWS_URL }}"
+      CWS_EXTRA_HTTP_HEADERS: "${{ secrets.CWS_EXTRA_HTTP_HEADERS }}"
     steps:
       - name: ci/checkout-actions
         # Sparse-checkout just .github/actions from the triggering ref (master)
@@ -289,20 +317,13 @@ jobs:
         uses: ./.github/actions/webapp-setup
         with:
           read-only: "true"
-      - name: ci/restore-playwright-deps
+      - name: ci/restore-cypress-deps
         uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: |
-            e2e-tests/playwright/node_modules
-            e2e-tests/playwright/lib/dist
-            e2e-tests/playwright/lib/node_modules
-          key: e2e-playwright-deps-${{ runner.os }}-${{ hashFiles('e2e-tests/playwright/package-lock.json', 'e2e-tests/playwright/lib/src/**', 'e2e-tests/playwright/lib/package.json', 'e2e-tests/playwright/lib/rollup.config.js', 'e2e-tests/playwright/lib/tsconfig.json') }}
-          fail-on-cache-miss: true
-      - name: ci/restore-playwright-browsers
-        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-browsers-${{ runner.os }}-${{ hashFiles('e2e-tests/playwright/package-lock.json') }}
+            e2e-tests/cypress/node_modules
+            ~/.cache/Cypress
+          key: e2e-cypress-deps-${{ runner.os }}-${{ hashFiles('e2e-tests/cypress/package-lock.json') }}
           fail-on-cache-miss: true
       - name: ci/cloud-init
         working-directory: e2e-tests
@@ -310,24 +331,16 @@ jobs:
       - name: ci/start-server
         working-directory: e2e-tests
         run: make start-server
-      # Run the `setup` project so per-spec dispatches can pass --no-deps
-      # and skip plugin-load + server-deployment checks. node_modules,
-      # lib/dist, and chromium are all restored from cache.
-      - name: ci/prepare-playwright
-        working-directory: e2e-tests/playwright
-        run: npx playwright test --project=setup
       - name: ci/dispatch-run
         uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-run@a2ea7f005484c28fedf51e16645f6d3bd683fd63 # 2026-05-16
         with:
           use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
-          framework: playwright
+          framework: cypress
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
           repo-dir: ${{ github.workspace }}
           artifacts-root: ${{ github.workspace }}/worker-artifacts
           github-token: ${{ secrets.GITHUB_TOKEN }}
           gh-job-name: dispatch-run-${{ matrix.worker_index }}
-          playwright-retries: ${{ inputs.playwright_retries }}
-          playwright-project: ${{ inputs.playwright_project }}
       - name: ci/cloud-teardown
         if: always()
         working-directory: e2e-tests
@@ -336,10 +349,11 @@ jobs:
         if: always()
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
-          name: playwright-full-${{ inputs.server_edition }}-debug-${{ matrix.worker_index }}
+          name: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-debug-${{ matrix.worker_index }}
           path: |
-            e2e-tests/playwright/logs/
-            e2e-tests/playwright/results/
+            e2e-tests/cypress/logs/
+            e2e-tests/cypress/results/
+            e2e-tests/cypress/tests/screenshots/
             worker-artifacts/
           retention-days: 5
           if-no-files-found: ignore
@@ -367,7 +381,7 @@ jobs:
         with:
           use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
-          framework: playwright
+          framework: cypress
           report-type: ${{ inputs.report_type }}
           image-tag: ${{ inputs.server_image_tag }}
           image-aliases: ${{ inputs.server_image_aliases }}

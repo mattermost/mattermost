@@ -21,16 +21,16 @@ All pipelines follow the **smoke-then-full** pattern: smoke tests run first, ful
 ├── e2e-tests-on-release.yml               # Release cut orchestrator
 ├── e2e-tests-cypress.yml                  # Shared wrapper: calls the cypress template
 ├── e2e-tests-playwright.yml               # Shared wrapper: calls the playwright template
-├── e2e-tests-cypress-template-v2.yml      # cypress + test-system-io dispatch
-└── e2e-tests-playwright-template-v2.yml   # playwright + test-system-io dispatch
+├── e2e-tests-cypress-template.yml         # cypress + test-system-io dispatch
+└── e2e-tests-playwright-template.yml      # playwright + test-system-io dispatch
 ```
 
 ### Call hierarchy
 
 ```
 e2e-tests-ci.yml ─────────────────┐
-e2e-tests-on-merge.yml ───────────┤──► e2e-tests-cypress.yml ────► e2e-tests-cypress-template-v2.yml
-e2e-tests-on-release.yml ─────────┘    e2e-tests-playwright.yml ─► e2e-tests-playwright-template-v2.yml
+e2e-tests-on-merge.yml ───────────┤──► e2e-tests-cypress.yml ────► e2e-tests-cypress-template.yml
+e2e-tests-on-release.yml ─────────┘    e2e-tests-playwright.yml ─► e2e-tests-playwright-template.yml
 ```
 
 ---
@@ -41,7 +41,7 @@ The template splits into five jobs — `prepare-run`, `prep-deps`, `dispatch-beg
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
-│  Template v2: e2e-tests-{cypress,playwright}-template-v2.yml              │
+│  Template: e2e-tests-{cypress,playwright}-template.yml                    │
 │                                                                            │
 │   ┌───────────────────┐                ┌──────────────────────────────┐   │
 │   │ prepare-run       │                │ prep-deps                    │   │
