@@ -802,7 +802,6 @@ const defaultServerConfig: AdminConfig = {
         CloudDedicatedExportUI: false,
         NotificationMonitoring: true,
         CustomProfileAttributes: true,
-        AttributeBasedAccessControl: true,
         AttributeValueMasking: false,
         PermissionPolicies: false,
         ChannelPermissionPolicies: false,

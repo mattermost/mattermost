@@ -18,10 +18,11 @@ func TestUserAccessTokenStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("UserAccessTokenDisableEnable", func(t *testing.T) { testUserAccessTokenDisableEnable(t, rctx, ss) })
 	t.Run("UserAccessTokenSearch", func(t *testing.T) { testUserAccessTokenSearch(t, rctx, ss) })
 	t.Run("UserAccessTokenPagination", func(t *testing.T) { testUserAccessTokenPagination(t, rctx, ss) })
+	t.Run("UserAccessTokenNonCompliant", func(t *testing.T) { testUserAccessTokenNonCompliant(t, rctx, ss) })
 	t.Run("UserAccessTokenExpiry", func(t *testing.T) { testUserAccessTokenExpiry(t, rctx, ss) })
+	t.Run("UserAccessTokenRotate", func(t *testing.T) { testUserAccessTokenRotate(t, rctx, ss) })
 	t.Run("UserAccessTokenGetExpiring", func(t *testing.T) { testUserAccessTokenGetExpiring(t, rctx, ss) })
 	t.Run("UserAccessTokenUpdateLastNotifiedAt", func(t *testing.T) { testUserAccessTokenUpdateLastNotifiedAt(t, rctx, ss) })
-	t.Run("UserAccessTokenNonCompliant", func(t *testing.T) { testUserAccessTokenNonCompliant(t, rctx, ss) })
 }
 
 func testUserAccessTokenSaveGetDelete(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -358,6 +359,42 @@ func testUserAccessTokenExpiry(t *testing.T, rctx request.CTX, ss store.Store) {
 	deleted, err = ss.UserAccessToken().DeleteByIds([]string{model.NewId()})
 	require.NoError(t, err)
 	require.Equal(t, int64(0), deleted)
+}
+
+func testUserAccessTokenRotate(t *testing.T, rctx request.CTX, ss store.Store) {
+	oldSecret := model.NewId()
+	uat := &model.UserAccessToken{
+		Token:       oldSecret,
+		UserId:      model.NewId(),
+		Description: "rotate-test",
+		ExpiresAt:   model.GetMillis() + 24*60*60*1000, // 1 day from now
+	}
+
+	session := &model.Session{UserId: uat.UserId, Token: uat.Token}
+	_, err := ss.Session().Save(rctx, session)
+	require.NoError(t, err)
+
+	_, nErr := ss.UserAccessToken().Save(uat)
+	require.NoError(t, nErr)
+
+	newSecret := model.NewId()
+	newExpiry := model.GetMillis() + 48*60*60*1000
+	nErr = ss.UserAccessToken().UpdateTokenRotate(uat.Id, newSecret, newExpiry)
+	require.NoError(t, nErr)
+
+	// Token row should reflect the new secret and expiry.
+	updated, nErr := ss.UserAccessToken().Get(uat.Id)
+	require.NoError(t, nErr)
+	require.Equal(t, newSecret, updated.Token, "token secret should be updated")
+	require.Equal(t, newExpiry, updated.ExpiresAt, "token expiry should be updated")
+	require.NotEqual(t, oldSecret, updated.Token, "old secret must be replaced")
+
+	// Session keyed to the old secret must be deleted.
+	_, err = ss.Session().Get(rctx, session.Token)
+	require.Error(t, err, "session for old secret should be deleted after rotate")
+
+	// Clean up.
+	_ = ss.UserAccessToken().Delete(uat.Id)
 }
 
 func testUserAccessTokenGetExpiring(t *testing.T, rctx request.CTX, ss store.Store) {

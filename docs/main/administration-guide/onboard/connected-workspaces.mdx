@@ -1,6 +1,9 @@
 ---
 title: "Connected workspaces"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="entry-ent" />
 
 Communicate across organizations, as well as external partners and vendors using Mattermost by synchronizing messages, emoji reactions, and file sharing in real-time through secured, connected Mattermost workspaces.
@@ -16,7 +19,7 @@ The process of connecting Mattermost workspaces involves the following 5 steps:
 1.  Ensure that all Mattermost Enterprise servers are running v10.2 or later.
 2.  [Enable the connected workspaces functionality](#enable-connected-workspaces) for each Mattermost Enterprise instance you want to connect.
 3.  System admins must [create a secure and trusted connection](#create-a-secure-connection) with other Mattermost Enterprise instances using the System Console or slash commands. This process involves creating a password-protected, encrypted invitation, creating a strong decryption password, then sending the invitation and password to the admin of a remote Mattermost instance. From Mattermost v11.0, remote cluster invitations use PBKDF2 key derivation for enhanced security.
-4.  When a remote system admin receives the invitation, they must [accept the invitation](#accept-a-secure-connection-invitation) using the System Console or slash commands.
+4.  When a remote system admin receives the invitation, they must [accept the invitation](#accept-a-connection-invitation) using the System Console or slash commands.
 5.  Once a trusted relationship is established between 2 Mattermost servers, system admins or users with the **Shared Channel Manager** role can [share specific public or private channels](#share-channels-with-secure-connections) with secure connections.
 
 <Note>
@@ -44,9 +47,8 @@ Following an upgrade to Mattermost v10.2 or later, existing configuration values
 
 ## Create a secure connection
 
-<div class="tab">
-
-System Console
+<Tabs>
+<TabItem value="system-console" label="System Console">
 
 Only system admins can create workspace connections using the System Console.
 
@@ -58,11 +60,8 @@ Only system admins can create workspace connections using the System Console.
 
 An invitation consisting of a password-protected AES 256-bit encrypted code blob is generated. From Mattermost v11.0, password protection uses PBKDF2 key derivation for enhanced security. The connection is labeled as **Connection Pending** until the remote system admin accepts the invitation.
 
-</div>
-
-<div class="tab">
-
-Slash Commands
+</TabItem>
+<TabItem value="slash-commands" label="Slash Commands">
 
 By default, only system admins can use slash commands to create workspace connections. You can delegate channel sharing capabilities using the built-in **Shared Channel Manager** [delegated administration role](/administration-guide/onboard/delegated-granular-administration). Alternatively, you can grant the ability to **Manage Shared Channels** to Mattermost users by modifying permissions of the [system scheme](/administration-guide/onboard/advanced-permissions#system-scheme) or [team override scheme](/administration-guide/onboard/advanced-permissions#team-override-scheme).
 
@@ -76,33 +75,32 @@ For example:
 
 This slash command creates an invitation consisting of a password-protected AES 256-bit encrypted code blob for a remote Mattermost entity known locally as `AcmeUS` with a password of `examplepassword`. From Mattermost v11.0, password protection uses PBKDF2 key derivation for enhanced security. Within Mattermost, this shared connection displays to the local system admin based on the `name` and `displayname` provided.
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ### Extend the invitation
 
 You must use a system, other than Mattermost, to share invitation codes and passwords. We strongly recommend sharing invitation codes separately from passwords to ensure that no one has all of the data necessary to take action if the message were compromised. Ensure the remote Mattermost instance can access your Mattermost workspace URL.
 
-<div class="tab">
-
-System Console
+<Tabs>
+<TabItem value="system-console" label="System Console">
 
 Once you've created a connection in the System Console, you're prompted to share the invitation code and password with the system admin of the remote Mattermost server you want to connect with. Copy both the invitation code and password to a safe location, then select **Done**.
 
-</div>
-
-<div class="tab">
-
-Slash Commands
+</TabItem>
+<TabItem value="slash-commands" label="Slash Commands">
 
 Copy the invitation code blob in the System message, then share the code blob and the decryption password to the remote Mattermost system admin you want to securely connect with.
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Accept a connection invitation
 
-<div class="tab">
-
-System Console
+<Tabs>
+<TabItem value="system-console" label="System Console">
 
 1.  Go to **Site Configuration \> Connected Workspaces**.
 2.  Under **Connected Workspaces**, select **Add a connection**, and then select **Accept an invitation**.
@@ -113,11 +111,8 @@ System Console
 
 The system admin who accepts the connection invitation is automatically added to all shared channels.
 
-</div>
-
-<div class="tab">
-
-Slash Commands
+</TabItem>
+<TabItem value="slash-commands" label="Slash Commands">
 
 Run the following slash command to accept a secure connection invitation from a remote Mattermost instance:
 
@@ -129,26 +124,24 @@ For example:
 
 This slash command accepts a secure connection invitation from `AcmeUS`.
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Share channels with secure connections
 
 Once a connection is established between two Mattermost servers, system admins or users with the **Shared Channel Manager** role can share channels across secured workspaces.
 
-<div class="tab">
-
-System Console
+<Tabs>
+<TabItem value="system-console" label="System Console">
 
 1.  Under **Shared Channels**, select **Add channels**.
 2.  Specify the channels you want to share between Mattermost servers.
 
 Shared channels and members of those shared channels display a shared <img src="/img/ui/circle-multiple-outline_F0695.svg" alt="Shared icon indicates channels and their members that are shared across connected Mattermost servers." /> icon to distinguish them from channels and channel members of the local server.
 
-</div>
-
-<div class="tab">
-
-Slash Commands
+</TabItem>
+<TabItem value="slash-commands" label="Slash Commands">
 
 Run the following slash command to specify the public or private channels to share:
 
@@ -166,11 +159,13 @@ To convert a read-only shared channel to a participation channel, remove the ori
 
 This slash command invites the shared connection to the current channel based on its `connectionID`.
 
-See [Reviewing Secure Connection Status](#review-secure-connection-status) to find the `connectionID` for a shared connection.
+See [Reviewing Secure Connection Status](#review-connection-status) to find the `connectionID` for a shared connection.
 
 </Tip>
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Direct message delivery
 
@@ -249,18 +244,14 @@ Deleting a connected server severs the trust relationship between the local Matt
 
 From Mattermost v10.10, removing a shared channel from a connected workspace removes the channel from all connected workspaces. The channel is deleted from both the local and remote Mattermost servers. Prior to Mattermost v10.10, removing a shared channel from a connected workspace stops synchronizing the channel with the remote Mattermost server; however, the channel continues to function for local users.
 
-<div class="tab">
-
-System Console
+<Tabs>
+<TabItem value="system-console" label="System Console">
 
 1.  Under **Connected Workspaces**, identify the connected workspace you want to remove.
 2.  Select the **More** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> icon to the right of the connected workspace, and then select **Delete**.
 
-</div>
-
-<div class="tab">
-
-Slash Commands
+</TabItem>
+<TabItem value="slash-commands" label="Slash Commands">
 
 Using slash commands, you can uninvite or delete a secure connection from your Mattermost instance.
 
@@ -280,21 +271,19 @@ For example:
 
 This slash command severs the trust relationship between the local Mattermost server and a remote Mattermost server based on its `connectionID` and removes the secure connection from all shared Mattermost channels.
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ### Review connection status
 
-<div class="tab">
-
-System Console
+<Tabs>
+<TabItem value="system-console" label="System Console">
 
 Under **Connected Workspaces**, you can review all connected workspaces and their current status as one of: **Connected**, **Offline**, or **Connection Pending**.
 
-</div>
-
-<div class="tab">
-
-Slash Commands
+</TabItem>
+<TabItem value="slash-commands" label="Slash Commands">
 
 Run the following slash command to review the current status of all secure connections established for your Mattermost instance:
 
@@ -310,7 +299,9 @@ Status details include:
 - Last ping timestamp (UTC)
 - Deleted
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ### Regenerate invitation codes for pending connections
 

@@ -1,8 +1,14 @@
 ---
-title: "Prerequisites"
-sidebar_label: "Kubernetes prerequisites"
+title: "Deploy Mattermost with the Mattermost Operator"
+sidebar_label: "Mattermost Operator"
 ---
 You can use the Mattermost Kubernetes Operator to deploy Mattermost on Kubernetes using S3-compatible storage and a managed database service. While the operator supports a range of configurations, we strongly recommend using a cloud-native approach for production environments.
+
+<Tip>
+
+**Need a FIPS / STIG-compliant image?** Point the Operator manifest's `version`/image field at `mattermost/mattermost-enterprise-fips-edition` image and the rest of this procedure is unchanged. See [FIPS / STIG container builds](/deployment-guide/server/containers/fips-stig).
+
+</Tip>
 
 Before you begin, ensure you have the following:
 
@@ -176,7 +182,7 @@ data:
 
 <Important>
 
-The `accesskey` and `secretkey` values must be **base64-encoded**. Do not enter the raw keys directly. Use a command-line tool or online encoder to generate the base64 strings.
+The `accesskey` and `secretkey` values must be **base64-encoded**. Do not enter the raw keys directly. Use a command-line tool to generate the base64 strings.
 
 **Example (AWS S3):**
 

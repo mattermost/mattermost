@@ -1,6 +1,5 @@
 ---
 title: "Experimental configuration settings"
-draft: true
 ---
 <PlanAvailability slug="all-commercial" />
 
@@ -108,7 +107,7 @@ Specify the maximum number of notifications batched into a single email.
 <Note>
 
 - We recommend increasing the buffer size from the default value if you see the following error in the Mattermost logs: `Email batching job's receiving buffer was full. Please increase the EmailBatchingBufferSize. Falling back to sending immediate mail.` Increasing this value will ensure emails are queued up, without impacting server performance.
-- Notifications will be sent instantly if the queue of emails exceeds the [email batching interval](#id1) configured.
+- Notifications will be sent instantly if the queue of emails exceeds the [email batching interval](#email-batching-interval) configured.
 
 </Note>
 

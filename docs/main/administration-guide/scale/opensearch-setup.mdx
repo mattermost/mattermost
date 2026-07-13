@@ -1,6 +1,9 @@
 ---
 title: "AWS OpenSearch server setup"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 import Inc0_common_configure_mattermost_for_enterprise_search from './common-configure-mattermost-for-enterprise-search.mdx';
 
 <PlanAvailability slug="ent-plus" />
@@ -15,9 +18,8 @@ From Mattermost v9.11, beta support is available for [AWS OpenSearch v1.x and v2
 
 We highly recommend that you set up an AWS OpenSearch server on a separate machine from the Mattermost server.
 
-<div class="tab" parse-titles="">
-
-On-Premises OpenSearch
+<Tabs>
+<TabItem value="on-premises-opensearch" label="On-Premises OpenSearch">
 
 1.  To install on-premise OpenSearch, provision a dedicated server (e.g. Ubuntu 22.04 LTS).
 2.  Install Java (OpenSearch requires Java 11+):
@@ -172,11 +174,8 @@ resource "null_resource" "install_icu_plugin" {
 }
 ```
 
-</div>
-
-<div class="tab" parse-titles="">
-
-AWS OpenSearch Console Setup
+</TabItem>
+<TabItem value="aws-opensearch-console-setup" label="AWS OpenSearch Console Setup">
 
 1.  To install AWS OpenSearch, open the **AWS Console \> OpenSearch Service**.
 2.  Create a domain, where:
@@ -306,7 +305,9 @@ Port 9200 is commonly used for local or on-premise OpenSearch. The AWS OpenSearc
 > &#125;
 > ```
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Configure Mattermost
 

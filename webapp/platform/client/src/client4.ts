@@ -1347,6 +1347,17 @@ export default class Client4 {
         );
     };
 
+    rotateUserAccessToken = (tokenId: string, expiresAt?: number) => {
+        const body: {token_id: string; expires_at?: number} = {token_id: tokenId};
+        if (expiresAt !== undefined) {
+            body.expires_at = expiresAt;
+        }
+        return this.doFetch<UserAccessToken>(
+            `${this.getUsersRoute()}/tokens/rotate`,
+            {method: 'post', body: JSON.stringify(body)},
+        );
+    };
+
     // Limits Routes
 
     getServerLimits = () => {

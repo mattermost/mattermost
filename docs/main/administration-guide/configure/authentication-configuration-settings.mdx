@@ -1,6 +1,5 @@
 ---
 title: "Authentication configuration settings"
-draft: true
 ---
 <PlanAvailability slug="all-commercial" />
 
@@ -17,9 +16,9 @@ Review and manage the following authentication configuration options in the Syst
 - [Email](#email)
 - [Password](#password)
 - [MFA](#mfa)
-- [AD/LDAP](#ad-ldap)
-- [SAML 2.0](#saml-2-0)
-- [OAuth 2.0](#oauth-2-0)
+- [AD/LDAP](#adldap)
+- [SAML 2.0](#saml-20)
+- [OAuth 2.0](#oauth-20)
 - [OpenID Connect](#openid-connect)
 - [Guest Access](#guest-access)
 
@@ -1505,7 +1504,7 @@ For Enterprise subscriptions, GitLab settings can be found under **OAuth 2.0**
 
 <Note>
 
-GitLab provides the [Application Secret Key](#gitlab-oauth-2-0-application-secret-key) along with the the ID.
+GitLab provides the [Application Secret Key](#gitlab-oauth-20-application-secret-key) along with the the ID.
 
 </Note>
 
@@ -1518,7 +1517,7 @@ GitLab provides the [Application Secret Key](#gitlab-oauth-2-0-application-secre
 </colgroup>
 <tbody>
 <tr>
-<td><p>This setting holds the OAuth Application Secret Key from GitLab. The key is generated at the same time as the <strong>Application ID</strong> (see <a href="#gitlab-oauth-2-0-application-id">GitLab OAuth 2.0 Application ID</a>).</p><p>Enter the key provided by GitLab in the Mattermost System Console field, <code>config.json</code> setting, or Environment variable.</p><p>String input.</p></td>
+<td><p>This setting holds the OAuth Application Secret Key from GitLab. The key is generated at the same time as the <strong>Application ID</strong> (see <a href="#gitlab-oauth-20-application-id">GitLab OAuth 2.0 Application ID</a>).</p><p>Enter the key provided by GitLab in the Mattermost System Console field, <code>config.json</code> setting, or Environment variable.</p><p>String input.</p></td>
 <td><ul><li>System Config path: <strong>Authentication &gt; OAuth 2.0 (or GitLab)</strong></li><li><code>config.json</code> setting: <code>GitLabSettings</code> &gt; <code>Secret</code></li><li>Environment variable: <code>MM_GITLABSETTINGS_SECRET</code></li></ul></td>
 </tr>
 </tbody>

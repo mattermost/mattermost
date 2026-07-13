@@ -12,7 +12,7 @@ This guide provides detailed instructions for setting up, configuring, and valid
 - [Validation and testing](#validation-and-testing)
 - [Integration with Mattermost](#integration-with-mattermost)
 - [Troubleshooting](#troubleshooting)
-- [Air-Gapped Deployments](#air-gapped-deployments)
+- [Air-Gapped Deployments](#air-gapped-installation-of-calls-offloader)
 
 ## Overview
 
@@ -371,7 +371,7 @@ tail -f /opt/calls-offloader/calls-offloader.log
 
 ### Performance Monitoring
 
-Monitor calls-offloader performance and resource usage to ensure optimal operation. See [Calls Metrics and Monitoring](calls-metrics-monitoring.mdx) for details on setting up metrics and observability.
+Monitor calls-offloader performance and resource usage to ensure optimal operation. See [Calls Metrics and Monitoring](/administration-guide/configure/calls-metrics-monitoring) for details on setting up metrics and observability.
 
 ## Air-Gapped Installation of `calls-offloader`
 
@@ -497,8 +497,8 @@ The `--image-registry` flag sets the registry prefix used when the offloader pul
 ## Other Calls Documentation
 
 - [Calls Deployment Guide](calls-deployment-guide.mdx): Overview of deployment options and architecture
-- [RTCD Setup and Configuration](calls-rtcd-setup.mdx): Comprehensive guide for setting up the dedicated RTCD service
-- [Calls Metrics and Monitoring](calls-metrics-monitoring.mdx): Guide to monitoring Calls performance using metrics and observability
+- [RTCD Setup and Configuration](/administration-guide/configure/calls-rtcd-setup): Comprehensive guide for setting up the dedicated RTCD service
+- [Calls Metrics and Monitoring](/administration-guide/configure/calls-metrics-monitoring): Guide to monitoring Calls performance using metrics and observability
 - [Calls Deployment on Kubernetes](calls-kubernetes.mdx): Detailed guide for deploying Calls in Kubernetes environments
 - [Calls Logging](calls-logging.mdx): Detailed guidance for collecting Calls logs and client diagnostics
 - [calls-offloader performance documentation](https://github.com/mattermost/calls-offloader/blob/master/docs/performance.md): Detailed performance tuning and monitoring recommendations
