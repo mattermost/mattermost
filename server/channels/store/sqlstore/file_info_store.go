@@ -281,6 +281,10 @@ func (fs SqlFileInfoStore) GetWithOptions(page, perPage int, opt *model.GetFileI
 		query = query.Where("FileInfo.DeleteAt = 0")
 	}
 
+	if opt.OnlyEmptyContent {
+		query = query.Where("(FileInfo.Content IS NULL OR FileInfo.Content = '')")
+	}
+
 	if opt.SortBy == "" {
 		opt.SortBy = model.FileinfoSortByCreated
 	}
