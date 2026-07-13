@@ -2816,25 +2816,6 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           </li>
                           <li
                             class="sidebar-section"
-                            data-testid="environment.export_storage"
-                          >
-                            <a
-                              class="sidebar-section-title"
-                              href="/admin_console/environment/export_storage"
-                              id="environment/export_storage"
-                            >
-                              <span
-                                class="sidebar-section-title__text"
-                              >
-                                Export Storage
-                              </span>
-                            </a>
-                            <ul
-                              class="nav nav__sub-menu subsections"
-                            />
-                          </li>
-                          <li
-                            class="sidebar-section"
                             data-testid="environment.image_proxy"
                           >
                             <a
@@ -4692,25 +4673,6 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                                 class="sidebar-section-title__text"
                               >
                                 File Storage
-                              </span>
-                            </a>
-                            <ul
-                              class="nav nav__sub-menu subsections"
-                            />
-                          </li>
-                          <li
-                            class="sidebar-section"
-                            data-testid="environment.export_storage"
-                          >
-                            <a
-                              class="sidebar-section-title"
-                              href="/admin_console/environment/export_storage"
-                              id="environment/export_storage"
-                            >
-                              <span
-                                class="sidebar-section-title__text"
-                              >
-                                Export Storage
                               </span>
                             </a>
                             <ul

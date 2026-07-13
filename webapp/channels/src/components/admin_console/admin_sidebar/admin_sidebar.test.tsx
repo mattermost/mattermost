@@ -399,7 +399,6 @@ describe('components/AdminSidebar', () => {
                 } as Office365Settings,
                 FeatureFlags: {
                     CustomProfileAttributes: true,
-                    CloudDedicatedExportUI: true,
                 },
             },
             adminDefinition: AdminDefinition,
@@ -532,7 +531,6 @@ describe('components/AdminSidebar', () => {
                 } as Office365Settings,
                 FeatureFlags: {
                     CustomProfileAttributes: true,
-                    CloudDedicatedExportUI: true,
                 },
             },
             adminDefinition: AdminDefinition,
