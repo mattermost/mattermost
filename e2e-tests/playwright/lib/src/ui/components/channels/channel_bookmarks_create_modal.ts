@@ -46,7 +46,6 @@ export default class ChannelBookmarksCreateModal {
         await this.linkInput.fill(url);
         await this.addButton.click();
     }
-
     async selectEmoji(searchTerm: string) {
         await this.emojiButton.click();
         await expect(this.emojiSearchInput).toBeVisible();

@@ -166,6 +166,18 @@ describe('dialog_conversion', () => {
         it('should return null for unknown types', () => {
             expect(getFieldType({type: 'unknown'} as DialogElement)).toBeNull();
         });
+
+        it('should map file fields to FILE type', () => {
+            expect(getFieldType({type: DialogElementTypes.FILE} as DialogElement)).toBe('file');
+        });
+
+        it('should map date fields correctly', () => {
+            expect(getFieldType({type: DialogElementTypes.DATE} as DialogElement)).toBe('date');
+        });
+
+        it('should map datetime fields correctly', () => {
+            expect(getFieldType({type: DialogElementTypes.DATETIME} as DialogElement)).toBe('datetime');
+        });
     });
 
     describe('getDefaultValue', () => {
@@ -1073,6 +1085,151 @@ describe('dialog_conversion', () => {
             expect(errors).toHaveLength(0);
             expect(form.submit?.state).toBeUndefined();
             expect(form.source?.state).toBeUndefined();
+        });
+
+        it('should convert file element to FILE field type', () => {
+            const elements: DialogElement[] = [
+                {
+                    name: 'file_field',
+                    type: 'file',
+                    display_name: 'Upload File',
+                    optional: false,
+                } as DialogElement,
+            ];
+
+            const {form, errors} = convertDialogToAppForm(
+                elements,
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                'http://example.com',
+                '',
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.fields).toHaveLength(1);
+            expect(form.fields?.[0].type).toBe('file');
+            expect(form.fields?.[0].name).toBe('file_field');
+            expect(form.fields?.[0].label).toBe('Upload File');
+        });
+
+        it('should preserve allow_multiple property on file fields', () => {
+            const elements: DialogElement[] = [
+                {
+                    name: 'file_field',
+                    type: 'file',
+                    display_name: 'Upload Files',
+                    optional: false,
+                    allow_multiple: true,
+                } as DialogElement,
+            ];
+
+            const {form, errors} = convertDialogToAppForm(
+                elements,
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                'http://example.com',
+                '',
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.fields?.[0].allow_multiple).toBe(true);
+        });
+
+        it('should not set allow_multiple if not present on file fields', () => {
+            const elements: DialogElement[] = [
+                {
+                    name: 'file_field',
+                    type: 'file',
+                    display_name: 'Upload File',
+                    optional: false,
+                } as DialogElement,
+            ];
+
+            const {form, errors} = convertDialogToAppForm(
+                elements,
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                'http://example.com',
+                '',
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.fields?.[0].allow_multiple).toBeUndefined();
+        });
+
+        it('should handle file elements with placeholder and help text', () => {
+            const elements: DialogElement[] = [
+                {
+                    name: 'file_field',
+                    type: 'file',
+                    display_name: 'Upload File',
+                    placeholder: 'Choose a file to upload',
+                    help_text: 'Supported formats: PDF, PNG, JPG',
+                    optional: false,
+                } as DialogElement,
+            ];
+
+            const {form, errors} = convertDialogToAppForm(
+                elements,
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                'http://example.com',
+                '',
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.fields?.[0].hint).toBe('Choose a file to upload');
+            expect(form.fields?.[0].description).toBe('Supported formats: PDF, PNG, JPG');
+        });
+
+        it('should handle multiple file upload fields with different settings', () => {
+            const elements: DialogElement[] = [
+                {
+                    name: 'single_file',
+                    type: 'file',
+                    display_name: 'Single File',
+                    optional: false,
+                } as DialogElement,
+                {
+                    name: 'multi_files',
+                    type: 'file',
+                    display_name: 'Multiple Files',
+                    optional: true,
+                    allow_multiple: true,
+                } as DialogElement,
+            ];
+
+            const {form, errors} = convertDialogToAppForm(
+                elements,
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                'http://example.com',
+                '',
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.fields).toHaveLength(2);
+            expect(form.fields?.[0].name).toBe('single_file');
+            expect(form.fields?.[0].allow_multiple).toBeUndefined();
+            expect(form.fields?.[0].is_required).toBe(true);
+            expect(form.fields?.[1].name).toBe('multi_files');
+            expect(form.fields?.[1].allow_multiple).toBe(true);
+            expect(form.fields?.[1].is_required).toBe(false);
         });
     });
 

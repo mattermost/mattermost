@@ -170,7 +170,7 @@ export default function IMEDiagram() {
             </div>
           </div>
           <div className={styles.appFooter}>
-            <Link to="/end-user-guide/access" className={styles.footerCell}>
+            <Link to="/end-user-guide/access/access-your-workspace" className={styles.footerCell}>
               <span className={styles.footerIcon}><IconDevices /></span>
               Desktop, web, mobile &amp; Microsoft&nbsp;Teams clients
             </Link>
@@ -194,7 +194,7 @@ export default function IMEDiagram() {
                 automations, and templates for rapid and effective systems integration.
               </p>
             </div>
-            <Cell to="/integrations-guide" title="Layered Extensibility" icon={<IconCode />}>
+            <Cell to="/integrations-guide/integrations-guide-index" title="Layered Extensibility" icon={<IconCode />}>
               <ul>
                 <li>Pre-packaged and custom integrations</li>
                 <li>Webhooks and slash commands</li>
@@ -211,11 +211,11 @@ export default function IMEDiagram() {
             </Cell>
           </div>
           <div className={styles.appFooter}>
-            <Link to="/integrations-guide" className={styles.footerCell}>
+            <Link to="/integrations-guide/integrations-guide-index" className={styles.footerCell}>
               <span className={styles.footerIcon}><IconVideo /></span>
               Video meetings: Pexip · Webex · Cisco
             </Link>
-            <Link to="/integrations-guide" className={styles.footerCell}>
+            <Link to="/integrations-guide/integrations-guide-index" className={styles.footerCell}>
               <span className={styles.footerIcon}><IconPlug /></span>
               Pre-built: GitHub · GitLab · Jira · ServiceNow · M365
             </Link>
@@ -236,7 +236,7 @@ export default function IMEDiagram() {
                 availability.
               </p>
             </div>
-            <Cell to="/deployment-guide/reference-architecture" title="Tactical Edge to Strategic Core" icon={<IconServer />}>
+            <Cell to="/deployment-guide/reference-architecture/reference-architecture-index" title="Tactical Edge to Strategic Core" icon={<IconServer />}>
               Runs at the edge, in your data center, in sovereign clouds, and on global hyperscalers: Azure, AWS, Google Cloud, Oracle Cloud.
             </Cell>
             <Cell to="/for/air-gapped-operator" title="Mission-Ready Security & Resilience" icon={<IconShield />}>

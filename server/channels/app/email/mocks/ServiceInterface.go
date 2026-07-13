@@ -503,6 +503,24 @@ func (_m *ServiceInterface) SendUserAccessTokenAddedEmail(_a0 string, locale str
 	return r0
 }
 
+// SendUserAccessTokenRotatedEmail provides a mock function with given fields: _a0, locale, siteURL
+func (_m *ServiceInterface) SendUserAccessTokenRotatedEmail(_a0 string, locale string, siteURL string) error {
+	ret := _m.Called(_a0, locale, siteURL)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SendUserAccessTokenRotatedEmail")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
+		r0 = rf(_a0, locale, siteURL)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // SendVerifyEmail provides a mock function with given fields: userEmail, locale, siteURL, token, redirect
 func (_m *ServiceInterface) SendVerifyEmail(userEmail string, locale string, siteURL string, token string, redirect string) error {
 	ret := _m.Called(userEmail, locale, siteURL, token, redirect)

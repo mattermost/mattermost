@@ -1,6 +1,9 @@
 ---
 title: "SMTP email setup"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 In a production environment, Mattermost requires SMTP email enabled for email notifications and password resets when using [email-based authentication](/administration-guide/configure/authentication-configuration-settings#enable-sign-in-with-email).
@@ -52,9 +55,8 @@ If deploying Mattermost using [Docker](/deployment-guide/server/deploy-container
 
 ## Sample SMTP settings
 
-<div class="tab">
-
-Amazon SES
+<Tabs>
+<TabItem value="amazon-ses" label="Amazon SES">
 
 - Set **SMTP Username** to **\[YOUR_SMTP_USERNAME\]**
 - Set **SMTP Password** to **\[YOUR_SMTP_PASSWORD\]**
@@ -62,11 +64,8 @@ Amazon SES
 - Set **SMTP Port** to **465**
 - Set **Connection Security** to **TLS**
 
-</div>
-
-<div class="tab">
-
-Postfix
+</TabItem>
+<TabItem value="postfix" label="Postfix">
 
 Make sure Postfix is installed on the same machine as Mattermost.
 
@@ -76,11 +75,8 @@ Make sure Postfix is installed on the same machine as Mattermost.
 - Set **SMTP Port** to **25**
 - Set **Connection Security** to **(empty)**
 
-</div>
-
-<div class="tab">
-
-Gmail
+</TabItem>
+<TabItem value="gmail" label="Gmail">
 
 - Set **SMTP Username** to **your_email@gmail.com**
 - Set **SMTP Password** to **your_password**
@@ -94,11 +90,8 @@ Additional configuration is required in Google to allow SMTP email to relay thro
 
 </Warning>
 
-</div>
-
-<div class="tab">
-
-Hotmail
+</TabItem>
+<TabItem value="hotmail" label="Hotmail">
 
 - Set **SMTP Username** to **your_email@hotmail.com**
 - Set **SMTP Password** to **your_password**
@@ -106,11 +99,8 @@ Hotmail
 - Set **SMTP Port** to **587**
 - Set **Connection Security** to **STARTTLS**
 
-</div>
-
-<div class="tab">
-
-Office365/Outlook
+</TabItem>
+<TabItem value="office365-outlook" label="Office365/Outlook">
 
 - Set **SMTP Username** to **your_email@hotmail.com**
 - Set **SMTP Password** to **your_password**
@@ -118,7 +108,9 @@ Office365/Outlook
 - Set **SMTP Port** to **587**
 - Set **Connection Security** to **STARTTLS**
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Troubleshooting SMTP
 

@@ -48,7 +48,7 @@ Customers pursuing IL4 / IL5 authorization should start with the FedRAMP Moderat
 
 | Requirement | Mattermost support |
 |---|---|
-| FIPS 140-3 validated cryptographic modules in all data paths | See [Configure FIPS at Install Time](../../deployment-guide/server/configure-fips-at-install-time). Enable FIPS mode at install. |
+| FIPS 140-3 validated cryptographic modules in all data paths | Deploy using the FIPS-compliant container image. See [FIPS / STIG container builds](../../deployment-guide/server/containers/fips-stig). |
 | TLS 1.2+ exclusively; no TLS 1.0 / 1.1 | Configure in NGINX / reverse proxy per [Setup TLS](../../deployment-guide/server/setup-tls). |
 | Data-at-rest encryption | See [Encryption Options](../../deployment-guide/encryption-options). |
 | Key management aligned with NIST 800-57 | Customer-managed via HSM, AWS KMS, Azure Key Vault, or equivalent. |
@@ -93,7 +93,7 @@ IL5 requires dedicated, non-shared infrastructure. Mattermost Cloud (multi-tenan
 
 A Mattermost deployment aligned with IL4 / IL5 requires, at minimum:
 
-1. **FIPS mode enabled at install time** — see [Configure FIPS at Install Time](../../deployment-guide/server/configure-fips-at-install-time).
+1. **Deployed using the FIPS-compliant container image** — see [FIPS / STIG container builds](../../deployment-guide/server/containers/fips-stig).
 2. **TLS 1.2+ exclusively** with FIPS-approved cipher suites.
 3. **Audit log retention ≥ 1 year (IL4) / ≥ 3 years (IL5)** via customer SIEM.
 4. **PIV / CAC authentication** via SAML federation to a customer-managed IdP.

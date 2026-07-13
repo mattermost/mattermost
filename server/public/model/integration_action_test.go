@@ -2529,6 +2529,192 @@ func TestMmBlocksContextMap(t *testing.T) {
 	})
 }
 
+func TestDialogElementFileValidation(t *testing.T) {
+	validFileId := NewId()
+	validFileId2 := NewId()
+	validFileId3 := NewId()
+
+	tests := map[string]struct {
+		element *DialogElement
+		wantErr string
+	}{
+		"valid file element with allow_multiple=false and single default ID": {
+			element: &DialogElement{
+				DisplayName:   "File Upload",
+				Name:          "file_element",
+				Type:          "file",
+				AllowMultiple: false,
+				Default:       validFileId,
+			},
+			wantErr: "",
+		},
+
+		"valid file element with allow_multiple=true and multiple comma-separated IDs": {
+			element: &DialogElement{
+				DisplayName:   "Multi File Upload",
+				Name:          "multi_file_element",
+				Type:          "file",
+				AllowMultiple: true,
+				Default:       validFileId + "," + validFileId2 + "," + validFileId3,
+			},
+			wantErr: "",
+		},
+
+		"allow_multiple=false with multiple default IDs returns error": {
+			element: &DialogElement{
+				DisplayName:   "Single File Upload",
+				Name:          "single_file_element",
+				Type:          "file",
+				AllowMultiple: false,
+				Default:       validFileId + "," + validFileId2,
+			},
+			wantErr: "default may not contain more than one file ID when allow_multiple is false",
+		},
+
+		"invalid-format file ID in default returns error": {
+			element: &DialogElement{
+				DisplayName:   "File Upload",
+				Name:          "file_element",
+				Type:          "file",
+				AllowMultiple: false,
+				Default:       "invalid-id-format",
+			},
+			wantErr: "is not a valid ID",
+		},
+
+		"more than MaxDialogFileIds (10) default IDs returns error": {
+			element: &DialogElement{
+				DisplayName:   "Multi File Upload",
+				Name:          "multi_file_element",
+				Type:          "file",
+				AllowMultiple: true,
+				Default: NewId() + "," + NewId() + "," + NewId() + "," + NewId() + "," + NewId() + "," +
+					NewId() + "," + NewId() + "," + NewId() + "," + NewId() + "," + NewId() + "," + NewId(),
+			},
+			wantErr: "default may not contain more than 10 file IDs",
+		},
+
+		"file element with Options set returns error": {
+			element: &DialogElement{
+				DisplayName: "File Upload",
+				Name:        "file_element",
+				Type:        "file",
+				Options: []*PostActionOptions{
+					{Text: "Option 1", Value: "opt1"},
+				},
+			},
+			wantErr: "file elements cannot have options",
+		},
+
+		"file element with DataSource set returns error": {
+			element: &DialogElement{
+				DisplayName: "File Upload",
+				Name:        "file_element",
+				Type:        "file",
+				DataSource:  "users",
+			},
+			wantErr: "file elements cannot have a data source",
+		},
+
+		"allow_multiple=true on non-file element returns error": {
+			element: &DialogElement{
+				DisplayName:   "Text Element",
+				Name:          "text_element",
+				Type:          "text",
+				AllowMultiple: true,
+			},
+			wantErr: "allow_multiple can only be used with file elements",
+		},
+
+		"placeholder exceeding DialogElementFileMaxLength returns error": {
+			element: &DialogElement{
+				DisplayName: "File Upload",
+				Name:        "file_element",
+				Type:        "file",
+				Placeholder: strings.Repeat("x", DialogElementFileMaxLength+1),
+			},
+			wantErr: "Placeholder cannot be longer than 300 characters",
+		},
+
+		"empty default passes validation": {
+			element: &DialogElement{
+				DisplayName:   "File Upload",
+				Name:          "file_element",
+				Type:          "file",
+				AllowMultiple: false,
+				Default:       "",
+			},
+			wantErr: "",
+		},
+
+		"multiple file IDs with spaces around commas passes": {
+			element: &DialogElement{
+				DisplayName:   "Multi File Upload",
+				Name:          "multi_file_element",
+				Type:          "file",
+				AllowMultiple: true,
+				Default:       validFileId + " , " + validFileId2 + " , " + validFileId3,
+			},
+			wantErr: "",
+		},
+
+		"placeholder at exactly DialogElementFileMaxLength passes": {
+			element: &DialogElement{
+				DisplayName: "File Upload",
+				Name:        "file_element",
+				Type:        "file",
+				Placeholder: strings.Repeat("x", DialogElementFileMaxLength),
+			},
+			wantErr: "",
+		},
+
+		"exactly MaxDialogFileIds (10) default IDs passes": {
+			element: &DialogElement{
+				DisplayName:   "Multi File Upload",
+				Name:          "multi_file_element",
+				Type:          "file",
+				AllowMultiple: true,
+				Default: NewId() + "," + NewId() + "," + NewId() + "," + NewId() + "," + NewId() + "," +
+					NewId() + "," + NewId() + "," + NewId() + "," + NewId() + "," + NewId(),
+			},
+			wantErr: "",
+		},
+
+		"empty strings in comma-separated list are skipped": {
+			element: &DialogElement{
+				DisplayName:   "Multi File Upload",
+				Name:          "multi_file_element",
+				Type:          "file",
+				AllowMultiple: true,
+				Default:       "," + validFileId + ",,",
+			},
+			wantErr: "",
+		},
+
+		"mixed valid and invalid IDs returns error": {
+			element: &DialogElement{
+				DisplayName:   "Multi File Upload",
+				Name:          "multi_file_element",
+				Type:          "file",
+				AllowMultiple: true,
+				Default:       validFileId + ",invalid-id-format",
+			},
+			wantErr: "is not a valid ID",
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			err := tc.element.IsValid()
+			if tc.wantErr == "" {
+				assert.NoError(t, err, name)
+			} else {
+				assert.ErrorContains(t, err, tc.wantErr, name)
+			}
+		})
+	}
+}
+
 func TestDialogElementIsValid_ActionButton(t *testing.T) {
 	t.Run("should pass validation with valid action_button element", func(t *testing.T) {
 		element := DialogElement{

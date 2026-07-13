@@ -176,6 +176,7 @@ export type DialogSubmission = {
     };
     cancelled: boolean;
     type?: string;
+    file_ids?: string[];
 };
 
 export type DialogElement = {
@@ -192,6 +193,7 @@ export type DialogElement = {
     data_source: string;
     data_source_url?: string;
     multiselect?: boolean;
+    allow_multiple?: boolean;
     options: Array<{
         text: string;
         value: any;
@@ -232,3 +234,6 @@ export type SubmitDialogResponse = {
     type?: string;
     form?: Dialog;
 };
+
+// Keep in sync with server/public/model/integration_action.go MaxDialogFileIds.
+export const MaxDialogFileIds = 10;
