@@ -201,6 +201,157 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         expect(container.querySelector('.profile-img')).toBeFalsy();
     });
 
+    describe('locked profile fields for email users', () => {
+        const lockedNameProps = {
+            ...requiredProps,
+            user: {...user},
+            lockProfileFieldsForEmailUsers: 'name_and_username',
+            isAdmin: false,
+        };
+
+        test('should not show name inputs when name is locked', () => {
+            const {container} = renderWithContext(
+                <UserSettingsGeneral
+                    {...lockedNameProps}
+                    activeSection='name'
+                />,
+            );
+            expect(container.querySelectorAll('#firstName').length).toBe(0);
+            expect(container.querySelectorAll('#lastName').length).toBe(0);
+            expect(screen.getByText('This field is managed by your System Admin. Contact them to request a change.')).toBeInTheDocument();
+        });
+
+        test('should keep name inputs editable when both names are empty (fill-once)', () => {
+            const {container} = renderWithContext(
+                <UserSettingsGeneral
+                    {...lockedNameProps}
+                    user={{...user, first_name: '', last_name: ''}}
+                    activeSection='name'
+                />,
+            );
+            expect(container.querySelectorAll('#firstName').length).toBe(1);
+            expect(container.querySelectorAll('#lastName').length).toBe(1);
+        });
+
+        test('should not show username input when username is locked', () => {
+            const {container} = renderWithContext(
+                <UserSettingsGeneral
+                    {...lockedNameProps}
+                    activeSection='username'
+                />,
+            );
+            expect(container.querySelectorAll('#username').length).toBe(0);
+            expect(screen.getByText('This field is managed by your System Admin. Contact them to request a change.')).toBeInTheDocument();
+        });
+
+        test('should keep nickname, position and picture editable with name_and_username', () => {
+            const {container, rerender} = renderWithContext(
+                <UserSettingsGeneral
+                    {...lockedNameProps}
+                    activeSection='nickname'
+                />,
+            );
+            expect(container.querySelectorAll('#nickname').length).toBe(1);
+
+            rerender(
+                <UserSettingsGeneral
+                    {...lockedNameProps}
+                    activeSection='position'
+                />,
+            );
+            expect(container.querySelectorAll('#position').length).toBe(1);
+
+            rerender(
+                <UserSettingsGeneral
+                    {...lockedNameProps}
+                    activeSection='picture'
+                />,
+            );
+            expect(container.querySelector('.profile-img')).toBeTruthy();
+        });
+
+        test('should lock nickname, position and picture with all', () => {
+            const lockedAllProps = {...lockedNameProps, lockProfileFieldsForEmailUsers: 'all'};
+            const {container, rerender} = renderWithContext(
+                <UserSettingsGeneral
+                    {...lockedAllProps}
+                    activeSection='nickname'
+                />,
+            );
+            expect(container.querySelectorAll('#nickname').length).toBe(0);
+
+            rerender(
+                <UserSettingsGeneral
+                    {...lockedAllProps}
+                    activeSection='position'
+                />,
+            );
+            expect(container.querySelectorAll('#position').length).toBe(0);
+
+            rerender(
+                <UserSettingsGeneral
+                    {...lockedAllProps}
+                    activeSection='picture'
+                />,
+            );
+            expect(container.querySelector('.profile-img')).toBeFalsy();
+        });
+
+        test('should keep fields editable for system admins', () => {
+            const adminProps = {...lockedNameProps, lockProfileFieldsForEmailUsers: 'all', isAdmin: true};
+            const {container, rerender} = renderWithContext(
+                <UserSettingsGeneral
+                    {...adminProps}
+                    activeSection='name'
+                />,
+            );
+            expect(container.querySelectorAll('#firstName').length).toBe(1);
+
+            rerender(
+                <UserSettingsGeneral
+                    {...adminProps}
+                    activeSection='username'
+                />,
+            );
+            expect(container.querySelectorAll('#username').length).toBe(1);
+        });
+
+        test('should keep fields editable when setting is none', () => {
+            const noneProps = {...lockedNameProps, lockProfileFieldsForEmailUsers: 'none'};
+            const {container, rerender} = renderWithContext(
+                <UserSettingsGeneral
+                    {...noneProps}
+                    activeSection='name'
+                />,
+            );
+            expect(container.querySelectorAll('#firstName').length).toBe(1);
+
+            rerender(
+                <UserSettingsGeneral
+                    {...noneProps}
+                    activeSection='username'
+                />,
+            );
+            expect(container.querySelectorAll('#username').length).toBe(1);
+        });
+
+        test('should not apply the lock to users with a login provider', () => {
+            // LDAP users fall under the provider-managed branches instead.
+            const ldapProps = {
+                ...lockedNameProps,
+                lockProfileFieldsForEmailUsers: 'all',
+                user: {...user, auth_service: 'ldap'},
+            };
+            renderWithContext(
+                <UserSettingsGeneral
+                    {...ldapProps}
+                    activeSection='name'
+                />,
+            );
+            expect(screen.queryByText('This field is managed by your System Admin. Contact them to request a change.')).not.toBeInTheDocument();
+        });
+    });
+
     test('it should display an error about a username conflicting with a group name', async () => {
         const updateMe = () => Promise.resolve({data: false, error: {server_error_id: 'app.user.group_name_conflict', message: ''}});
         const props = {...requiredProps, actions: {...requiredProps.actions, updateMe}};

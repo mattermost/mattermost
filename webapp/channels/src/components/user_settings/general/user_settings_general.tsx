@@ -171,6 +171,8 @@ export type Props = {
     ldapPositionAttributeSet?: boolean;
     samlPositionAttributeSet?: boolean;
     ldapPictureAttributeSet?: boolean;
+    lockProfileFieldsForEmailUsers?: string;
+    isAdmin?: boolean;
     enableCustomProfileAttributes: boolean;
 };
 
@@ -936,6 +938,29 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         );
     }
 
+    isFieldLockedByAdmin = (field: 'name' | 'username' | 'nickname' | 'position' | 'picture'): boolean => {
+        if (this.props.user.auth_service !== '' || this.props.isAdmin) {
+            return false;
+        }
+
+        const setting = this.props.lockProfileFieldsForEmailUsers;
+        if (setting === Constants.LOCK_PROFILE_FIELDS.NAME_AND_USERNAME) {
+            return field === 'name' || field === 'username';
+        }
+        return setting === Constants.LOCK_PROFILE_FIELDS.ALL;
+    };
+
+    createFieldManagedByAdminMessage = () => {
+        return (
+            <span>
+                <FormattedMessage
+                    id='user.settings.general.field_locked_by_admin'
+                    defaultMessage='This field is managed by your System Admin. Contact them to request a change.'
+                />
+            </span>
+        );
+    };
+
     createNameSection = () => {
         const user = this.props.user;
         const {formatMessage} = this.props.intl;
@@ -962,6 +987,9 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         />
                     </span>
                 );
+            } else if (this.isFieldLockedByAdmin('name') && (user.first_name !== '' || user.last_name !== '')) {
+                // Empty names may still be filled in once, matching the server-side rule.
+                extraInfo = this.createFieldManagedByAdminMessage();
             } else {
                 inputs.push(
                     <div
@@ -1125,6 +1153,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         />
                     </span>
                 );
+            } else if (this.isFieldLockedByAdmin('nickname')) {
+                extraInfo = this.createFieldManagedByAdminMessage();
             } else {
                 let nicknameLabel: JSX.Element | string = (
                     <FormattedMessage
@@ -1226,7 +1256,9 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
             let extraInfo;
             let submit = null;
-            if (this.props.user.auth_service === '') {
+            if (this.isFieldLockedByAdmin('username')) {
+                extraInfo = this.createFieldManagedByAdminMessage();
+            } else if (this.props.user.auth_service === '') {
                 let usernameLabel: JSX.Element | string = (
                     <FormattedMessage
                         id='user.settings.general.username'
@@ -1343,6 +1375,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         />
                     </span>
                 );
+            } else if (this.isFieldLockedByAdmin('position')) {
+                extraInfo = this.createFieldManagedByAdminMessage();
             } else {
                 let positionLabel: JSX.Element | string = (
                     <FormattedMessage
@@ -1707,6 +1741,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         />
                     </span>
                 );
+            } else if (this.isFieldLockedByAdmin('picture')) {
+                helpText = this.createFieldManagedByAdminMessage();
             } else {
                 submit = this.submitPicture;
                 setDefault = user.last_picture_update > 0 ? this.setDefaultProfilePicture : null;

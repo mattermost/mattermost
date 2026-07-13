@@ -15,6 +15,7 @@ import {
     getCustomProfileAttributeValues,
 } from 'mattermost-redux/actions/users';
 import {getConfig, getCustomProfileAttributes, getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {getIsMobileView} from 'selectors/views/browser';
 
@@ -39,6 +40,7 @@ function mapStateToProps(state: GlobalState) {
     const samlPositionAttributeSet = config.SamlPositionAttributeSet === 'true';
     const ldapPositionAttributeSet = config.LdapPositionAttributeSet === 'true';
     const ldapPictureAttributeSet = config.LdapPictureAttributeSet === 'true';
+    const lockProfileFieldsForEmailUsers = config.LockProfileFieldsForEmailUsers;
 
     const license = getLicense(state);
     const isEnterprise = isEnterpriseLicense(license);
@@ -58,6 +60,8 @@ function mapStateToProps(state: GlobalState) {
         samlPositionAttributeSet,
         ldapPositionAttributeSet,
         ldapPictureAttributeSet,
+        lockProfileFieldsForEmailUsers,
+        isAdmin: isCurrentUserSystemAdmin(state),
         enableCustomProfileAttributes,
     };
 }

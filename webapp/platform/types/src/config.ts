@@ -160,6 +160,7 @@ export type ClientConfig = {
     LdapPositionAttributeSet: string;
     LdapPictureAttributeSet: string;
     LockTeammateNameDisplay: string;
+    LockProfileFieldsForEmailUsers: string;
     ManagedResourcePaths: string;
     MaxFileSize: string;
     MaxPostSize: string;
@@ -470,6 +471,7 @@ export type TeamSettings = {
     TeammateNameDisplay: string;
     ExperimentalEnableAutomaticReplies: boolean;
     LockTeammateNameDisplay: boolean;
+    LockProfileFieldsForEmailUsers: string;
     ExperimentalPrimaryTeam: string;
     ExperimentalDefaultChannels: string[];
     EnableLastActiveTime: boolean;

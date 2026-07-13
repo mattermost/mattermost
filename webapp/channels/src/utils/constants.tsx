@@ -2059,6 +2059,11 @@ export const Constants = {
         SHOW_NICKNAME_FULLNAME: 'nickname_full_name',
         SHOW_FULLNAME: 'full_name',
     },
+    LOCK_PROFILE_FIELDS: {
+        NONE: 'none',
+        NAME_AND_USERNAME: 'name_and_username',
+        ALL: 'all',
+    },
     SEARCH_POST: 'searchpost',
     CHANNEL_ID_LENGTH: 26,
     TRANSPARENT_PIXEL: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
