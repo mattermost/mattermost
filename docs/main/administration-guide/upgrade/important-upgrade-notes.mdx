@@ -24,7 +24,6 @@ We recommend reviewing the [additional upgrade notes](#additional-upgrade-notes)
 </tr>
 <tr>
 <td colspan="2"><p>Added a new <code>Version</code> column to the <code>PropertyGroups</code> table to distinguish PSAv1 (legacy) groups from PSAv2 groups. Existing groups default to version 1, preserving current behavior for all legacy callers. <code>PropertyGroups</code> is a small configuration-like table, and the <code>ADD COLUMN ... DEFAULT 1 NOT NULL</code> is a metadata-only operation in PostgreSQL — no table rewrite occurs and the <code>AccessExclusiveLock</code> on <code>PropertyGroups</code> is held only for milliseconds. The migrations are fully backwards-compatible and no database downtime is expected for this upgrade. The SQL queries included are:</p><pre><code>-- Pre-upgrade schema changes (Mattermost 11.8).
-
 ALTER TABLE PropertyGroups ADD COLUMN IF NOT EXISTS Version integer DEFAULT 1 NOT NULL;</code></pre></td>
 <td></td>
 </tr>
@@ -42,14 +41,11 @@ ALTER TYPE channel_type ADD VALUE IF NOT EXISTS 'BP';</code></pre></td>
 <tr>
 <td colspan="2"><p>Introduced four schema migrations to the property and attribute system (<code>PropertyFields</code>, <code>PropertyGroups</code>, <code>AttributeView</code>) as part of the same release cycle. Migrations 000168 and 000169 add a nullable <code>LinkedFieldID varchar(26)</code> column to <code>PropertyFields</code> and a partial concurrent index over it, enabling fields to reference another field as a link. Migrations 000176 and 000177 promote the existing Custom Profile Attributes property group to a more general <code>access_control</code> group by updating permission columns on <code>PropertyFields</code> rows, renaming the <code>PropertyGroups</code> entry from <code>custom_profile_attributes</code> to <code>access_control</code>, and narrowing the <code>AttributeView</code> materialized view to user-scoped attributes only. <strong>Migrations 000176 and 000177 must ship together.</strong> None of the affected tables are in the large-table list — the property system tables are small. Note: during the rolling-upgrade window, old-ESR nodes hard-coding <code>'custom_profile_attributes'</code> as the group lookup key will experience transient failures on CPA profile read/write endpoints and the ABAC policy-management admin UI; end-user channel access and the membership sync worker are unaffected. The migrations are fully backwards-compatible and no database downtime is expected for this upgrade. The SQL queries included are:</p><pre><code>-- 000168: Add LinkedFieldID column
 ALTER TABLE PropertyFields ADD COLUMN IF NOT EXISTS LinkedFieldID varchar(26);
-
 -- 000169: Create partial index on LinkedFieldID
 CREATE INDEX CONCURRENTLY idx_propertyfields_linkedfieldid ON PropertyFields(LinkedFieldID) WHERE LinkedFieldID IS NOT NULL AND DeleteAt = 0;
-
 -- 000176: Migrate CPA to access_control
 UPDATE PropertyFields SET ObjectType = 'user' WHERE GroupID = (SELECT Id FROM PropertyGroups WHERE Name = 'custom_profile_attributes');
 UPDATE PropertyGroups SET Name = 'access_control', Version = 2 WHERE Name = 'custom_profile_attributes';
-
 -- 000177: Refresh AttributeView with user-scoped filter
 DROP MATERIALIZED VIEW AttributeView;
 CREATE MATERIALIZED VIEW AttributeView ... WHERE pf.ObjectType = 'user';</code></pre></td>
@@ -58,14 +54,11 @@ CREATE MATERIALIZED VIEW AttributeView ... WHERE pf.ObjectType = 'user';</code><
 <tr>
 <td colspan="2"><p>Mattermost v11.8 introduces schema changes to the <code>Recaps</code> table in the form of a new <code>ViewedAt</code> column and a new index on <code>(UserId, ViewedAt)</code>. The column is added as a metadata-only operation, and the index is created using <code>CONCURRENTLY</code>, meaning no table locks are acquired and existing operations on the table are not impacted. The migrations are fully backwards-compatible and no database downtime is expected for this upgrade. The SQL queries included are:</p><pre><code>-- 000172_add_recaps_viewed_at.up.sql
 ALTER TABLE Recaps ADD COLUMN IF NOT EXISTS ViewedAt BIGINT NOT NULL DEFAULT 0;
-
 -- 000172_add_recaps_viewed_at.down.sql
 ALTER TABLE Recaps DROP COLUMN IF EXISTS ViewedAt;
-
 -- 000173_create_recaps_user_id_viewed_at_index.up.sql
 -- morph:nontransactional
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_recaps_user_id_viewed_at ON Recaps(UserId, ViewedAt);
-
 -- 000173_create_recaps_user_id_viewed_at_index.down.sql
 -- morph:nontransactional
 DROP INDEX CONCURRENTLY IF EXISTS idx_recaps_user_id_viewed_at;</code></pre></td>
@@ -125,7 +118,6 @@ FROM (
 ) AS dupes
 WHERE p.ID = dupes.ID
   AND dupes.rn > 1;
-
 CREATE UNIQUE INDEX IF NOT EXISTS idx_accesscontrolpolicies_name_type
     ON AccessControlPolicies (Name, Type)
     WHERE Type = 'parent';</code></pre></td>
@@ -136,27 +128,21 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_accesscontrolpolicies_name_type
 ALTER TABLE PropertyFields
 ADD COLUMN IF NOT EXISTS CreatedBy varchar(26),
 ADD COLUMN IF NOT EXISTS UpdatedBy varchar(26);
-
 ALTER TABLE PropertyValues
 ADD COLUMN IF NOT EXISTS CreatedBy varchar(26),
 ADD COLUMN IF NOT EXISTS UpdatedBy varchar(26);
-
 --- 161
 ALTER TABLE PropertyFields ADD COLUMN IF NOT EXISTS ObjectType varchar(255) NOT NULL DEFAULT '';
-
 --- 162
 DROP INDEX CONCURRENTLY IF EXISTS idx_propertyfields_unique;
-
 --- 163
 CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS idx_propertyfields_unique_legacy
     ON PropertyFields (GroupID, TargetID, Name)
     WHERE DeleteAt = 0 AND ObjectType = '';
-
 --- 164
 CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS idx_propertyfields_unique_typed
     ON PropertyFields (ObjectType, GroupID, TargetType, TargetID, Name)
     WHERE DeleteAt = 0 AND ObjectType != '';
-
 --- 165
 DO $$
 BEGIN
@@ -169,13 +155,11 @@ BEGIN
 END;
 $$
 LANGUAGE plpgsql;
-
 ALTER TABLE PropertyFields
 ADD COLUMN IF NOT EXISTS Protected BOOLEAN NOT NULL DEFAULT FALSE,
 ADD COLUMN IF NOT EXISTS PermissionField permission_level,
 ADD COLUMN IF NOT EXISTS PermissionValues permission_level,
 ADD COLUMN IF NOT EXISTS PermissionOptions permission_level;
-
 --- 166
 CREATE TABLE IF NOT EXISTS Views (
     Id          VARCHAR(26)  PRIMARY KEY,
@@ -190,10 +174,8 @@ CREATE TABLE IF NOT EXISTS Views (
     UpdateAt    BIGINT       NOT NULL,
     DeleteAt    BIGINT       NOT NULL DEFAULT 0
 );
-
 --- 167
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_views_channel_id_delete_at ON Views(ChannelId, DeleteAt);
-
 --- 171
 DROP INDEX CONCURRENTLY IF EXISTS idx_propertyfields_protected;</code></pre></td>
 <td></td>
