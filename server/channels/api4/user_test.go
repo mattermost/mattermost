@@ -602,6 +602,36 @@ func TestCreateUserWithToken(t *testing.T) {
 		require.Equal(t, th.BasicTeam.Id, teams[0].Id, "The user joined team must be the team provided.")
 	})
 
+	t.Run("token profile overrides tampered request fields", func(t *testing.T) {
+		email := th.GenerateTestEmail()
+		tokenUsername := GenerateTestUsername()
+		token := model.NewToken(
+			model.TokenTypeTeamInvitation,
+			model.MapToJSON(map[string]string{
+				"teamId":     th.BasicTeam.Id,
+				"email":      email,
+				"username":   tokenUsername,
+				"first_name": "TokenFirst",
+				"last_name":  "TokenLast",
+			}),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		user := &model.User{
+			Email:     email,
+			Password:  model.NewTestPassword(),
+			Username:  GenerateTestUsername(),
+			FirstName: "TamperedFirst",
+			LastName:  "TamperedLast",
+		}
+		createdUser, resp, err := th.Client.CreateUserWithToken(context.Background(), user, token.Token)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.Equal(t, tokenUsername, createdUser.Username)
+		require.Equal(t, "TokenFirst", createdUser.FirstName)
+		require.Equal(t, "TokenLast", createdUser.LastName)
+	})
+
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: model.NewTestPassword(), Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId}
 		token := model.NewToken(
@@ -9964,6 +9994,23 @@ func TestLockProfileFieldsForEmailUsers(t *testing.T) {
 		checkHTTPStatus(t, resp, http.StatusConflict)
 	})
 
+	t.Run("fill once applies independently to each name field", func(t *testing.T) {
+		setLock(model.TeamSettingsLockProfileFieldsNameAndUsername)
+		setNames("ExistingFirst", "")
+
+		_, _, err := th.Client.PatchUser(context.Background(), th.BasicUser.Id, &model.UserPatch{
+			LastName: new("FilledLast"),
+		})
+		require.NoError(t, err)
+
+		_, resp, err := th.Client.PatchUser(context.Background(), th.BasicUser.Id, &model.UserPatch{
+			FirstName: new("ChangedFirst"),
+		})
+		require.Error(t, err)
+		checkHTTPStatus(t, resp, http.StatusConflict)
+		CheckErrorID(t, err, "api.user.patch_user.profile_field_locked.app_error")
+	})
+
 	t.Run("all additionally locks nickname, position and profile image", func(t *testing.T) {
 		setLock(model.TeamSettingsLockProfileFieldsAll)
 
@@ -10019,12 +10066,12 @@ func TestLockProfileFieldsForEmailUsers(t *testing.T) {
 		setLock(model.TeamSettingsLockProfileFieldsAll)
 
 		ldapUser := th.CreateUserWithAuth(t, model.UserAuthServiceLdap)
-		require.Empty(t, th.App.CheckLockedProfileFields(ldapUser, &model.UserPatch{
+		require.Empty(t, th.App.CheckLockedProfileFields(*th.Context.Session(), ldapUser, &model.UserPatch{
 			Username:  new("un_" + model.NewId()),
 			FirstName: new("Changed"),
 			Nickname:  new("Changed"),
 		}))
-		require.False(t, th.App.IsProfileImageLockedForUser(ldapUser))
+		require.False(t, th.App.IsProfileImageLockedForUser(*th.Context.Session(), ldapUser))
 
 		// The provider check still wins for provider-managed users.
 		require.Equal(t, "username", th.App.CheckProviderAttributes(th.Context, ldapUser, &model.UserPatch{

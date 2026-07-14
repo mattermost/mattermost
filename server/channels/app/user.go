@@ -1373,14 +1373,14 @@ func (a *App) UpdateUserAsUser(rctx request.CTX, user *model.User, asAdmin bool)
 	return updatedUser, nil
 }
 
+func tryingToChange(userValue *string, patchValue *string) bool {
+	return patchValue != nil && *patchValue != *userValue
+}
+
 // CheckProviderAttributes returns the empty string if the patch can be applied without
 // overriding attributes set by the user's login provider; otherwise, the name of the offending
 // field is returned.
 func (a *App) CheckProviderAttributes(rctx request.CTX, user *model.User, patch *model.UserPatch) string {
-	tryingToChange := func(userValue *string, patchValue *string) bool {
-		return patchValue != nil && *patchValue != *userValue
-	}
-
 	// If any login provider is used, then the username may not be changed
 	if user.AuthService != "" && tryingToChange(&user.Username, patch.Username) {
 		return "username"
@@ -1406,20 +1406,18 @@ func (a *App) CheckProviderAttributes(rctx request.CTX, user *model.User, patch 
 
 // CheckLockedProfileFields returns the name of the first profile field in the patch that
 // conflicts with TeamSettings.LockProfileFieldsForEmailUsers, or "" when there is no conflict.
-// It only applies to email/password users on Enterprise-licensed servers; callers are expected
-// to exempt sessions with the edit_other_users permission.
-func (a *App) CheckLockedProfileFields(user *model.User, patch *model.UserPatch) string {
-	if !model.MinimumEnterpriseLicense(a.License()) || user.AuthService != "" {
+// It only applies to email/password users on Enterprise-licensed servers and exempts sessions
+// with the edit_other_users permission.
+func (a *App) CheckLockedProfileFields(session model.Session, user *model.User, patch *model.UserPatch) string {
+	if a.SessionHasPermissionTo(session, model.PermissionEditOtherUsers) ||
+		!model.MinimumEnterpriseLicense(a.License()) ||
+		user.AuthService != "" {
 		return ""
 	}
 
 	setting := *a.Config().TeamSettings.LockProfileFieldsForEmailUsers
 	if setting != model.TeamSettingsLockProfileFieldsNameAndUsername && setting != model.TeamSettingsLockProfileFieldsAll {
 		return ""
-	}
-
-	tryingToChange := func(userValue *string, patchValue *string) bool {
-		return patchValue != nil && *patchValue != *userValue
 	}
 
 	if tryingToChange(&user.Username, patch.Username) {
@@ -1448,10 +1446,11 @@ func (a *App) CheckLockedProfileFields(user *model.User, patch *model.UserPatch)
 }
 
 // IsProfileImageLockedForUser returns true when TeamSettings.LockProfileFieldsForEmailUsers
-// locks the profile picture of the given email/password user. Callers are expected to exempt
-// sessions with the edit_other_users permission.
-func (a *App) IsProfileImageLockedForUser(user *model.User) bool {
-	return model.MinimumEnterpriseLicense(a.License()) &&
+// locks the profile picture of the given email/password user, unless the session has the
+// edit_other_users permission.
+func (a *App) IsProfileImageLockedForUser(session model.Session, user *model.User) bool {
+	return !a.SessionHasPermissionTo(session, model.PermissionEditOtherUsers) &&
+		model.MinimumEnterpriseLicense(a.License()) &&
 		user.AuthService == "" &&
 		*a.Config().TeamSettings.LockProfileFieldsForEmailUsers == model.TeamSettingsLockProfileFieldsAll
 }
