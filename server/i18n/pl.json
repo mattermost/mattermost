@@ -8209,7 +8209,7 @@
   },
   {
     "id": "api.file.test_connection_email_settings_nil.app_error",
-    "translation": "W ustawieniach poczty e-mail nie ustawiono wartości."
+    "translation": "W ustawieniach poczty e-mail są wartości, które nie zostały ustawione."
   },
   {
     "id": "model.member.is_valid.emails.app_error",
@@ -12674,5 +12674,129 @@
   {
     "id": "api.access_control_policy.channel_permission_policies.feature_disabled",
     "translation": "Funkcja polityki uprawnień na poziomie kanału nie jest włączona."
+  },
+  {
+    "id": "api.access_control_policy.policy_simulation.feature_disabled",
+    "translation": "Funkcja symulacji polityki nie jest włączona."
+  },
+  {
+    "id": "api.access_control_policy.simulate.users_out_of_scope.app_error",
+    "translation": "Wszyscy użytkownicy biorący udział w symulacji muszą być członkami zespołu lub kanału wskazanego w zgłoszeniu."
+  },
+  {
+    "id": "api.access_control_policy.team_membership.feature_disabled",
+    "translation": "Funkcja kontroli dostępu dla członków zespołu nie jest włączona."
+  },
+  {
+    "id": "api.admin.test_azure.missing_azure_field",
+    "translation": "Brakuje ustawień usługi Azure Blob Storage albo są one nieprawidłowe."
+  },
+  {
+    "id": "api.channel.board_channel.app_error",
+    "translation": "Nie można uzyskać dostępu do kanałów tablic za pośrednictwem punktów końcowych /channels. Zamiast tego skorzystaj z interfejsu API /boards."
+  },
+  {
+    "id": "api.channel.bookmark.board.readonly.app_error",
+    "translation": "Zakładki na tablicach są zarządzane przez funkcję tablic i nie można ich tworzyć, aktualizować ani usuwać za pomocą interfejsu API zakładek."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.already_member.app_error",
+    "translation": "Jesteś już członkiem tego kanału."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.archived.app_error",
+    "translation": "Nie można wysłać prośby o dołączenie do zarchiwizowanego kanału."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.discoverable_requires_approval.app_error",
+    "translation": "Aby dołączyć do tego kanału, potrzebna jest zgoda administratora. Wyślij prośbę z okienka „Przeglądaj kanały”."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.duplicate.app_error",
+    "translation": "Masz już oczekujące zgłoszenie o dołączenie do tego kanału."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.feature_disabled.app_error",
+    "translation": "Wykrywalne kanały nie są włączone na tym serwerze."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.guest.app_error",
+    "translation": "Goście nie mogą wysyłać próśb o dołącz do wykrywalnych prywatnych kanałów."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.invalid_patch.app_error",
+    "translation": "Nieprawidłowa aktualizacja dotycząca prośby o dołączenie do kanału."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.not_discoverable.app_error",
+    "translation": "Ten kanał nie jest wykrywalny."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.not_pending.app_error",
+    "translation": "Prośba o dołączenie nie jest już w toku."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.not_private.app_error",
+    "translation": "Tylko kanały prywatne akceptują prośby o dołączenie."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.policy_denied.app_error",
+    "translation": "Nie spełniasz reguł dostępu wymaganych do dołączenia do tego kanału."
+  },
+  {
+    "id": "api.channel.discoverable_join_request.shared.app_error",
+    "translation": "Udostępnione kanały nie akceptują wykrywalnych próśb o dołączenie."
+  },
+  {
+    "id": "api.channel.patch_update_channel.group_constrained_not_allowed.app_error",
+    "translation": "Nie masz uprawnień do ustawienia group_constrained dla tego typu Kanału."
+  },
+  {
+    "id": "api.channel.update_channel.policy_enforced_type_conversion.app_error",
+    "translation": "W tym kanale obowiązuje polityka członkostwa oparta na atrybutach. Usuń tę politykę przed zmianą statusu kanału z publicznego na prywatny."
+  },
+  {
+    "id": "api.data_spillage.report.open.app_error",
+    "translation": "Nie udało się otworzyć wygenerowanego pliku z raportem o zgłoszonych postach."
+  },
+  {
+    "id": "api.data_spillage.report.stat.app_error",
+    "translation": "Nie udało się odczytać informacji z pliku zgłoszenia dotyczącego oznaczonego posta."
+  },
+  {
+    "id": "api.emoji.upload.too_many_frames.app_error",
+    "translation": "Nie da się utworzyć emoji. Animowany plik GIF może mieć maksymalnie {{.MaxFrames}} klatek."
+  },
+  {
+    "id": "api.file.test_connection_auth.app_error",
+    "translation": "Nie udało się uwierzytelnić w systemie przechowywania plików. Sprawdź swoje dane logowania i ustawienia uwierzytelniania."
+  },
+  {
+    "id": "api.file.test_connection_no_bucket.app_error",
+    "translation": "Skonfigurowany zasobnik lub kontener nie istnieje. Sprawdź konfigurację przechowywania plików i uprawnienia."
+  },
+  {
+    "id": "api.file.test_connection_settings_nil.app_error",
+    "translation": "W ustawieniach przechowywania plików są wartości niezdefiniowane."
+  },
+  {
+    "id": "api.file.test_connection_unsupported_driver.app_error",
+    "translation": "Nieobsługiwany sterownik przechowywania plików \"{{.Driver}}\". Obsługiwane wartości to \"local\", \"amazons3\" i \"azureblob\"."
+  },
+  {
+    "id": "api.license.parse_license.parse_form.app_error",
+    "translation": "Nie udało się przetworzyć formularza przesyłania licencji."
+  },
+  {
+    "id": "api.mark_all_as_read.disabled.app_error",
+    "translation": "Funkcja „Oznacz wszystko jako przeczytane” nie jest włączona."
+  },
+  {
+    "id": "api.post.do_action.merge_query.app_error",
+    "translation": "Nie udało się połączyć zapytania z URL-em akcji."
+  },
+  {
+    "id": "api.post.do_action.query.app_error",
+    "translation": "Nieprawidłowe zapytanie dotyczące akcji."
   }
 ]
