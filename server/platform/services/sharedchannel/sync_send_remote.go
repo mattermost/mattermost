@@ -1209,9 +1209,6 @@ func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteClus
 	var wg sync.WaitGroup
 	wg.Add(1)
 
-	// sendErr captures a delivery failure reported asynchronously via the callback.
-	var sendErr error
-
 	err = rcs.SendMsg(ctx, rcMsg, rc, func(rcMsg model.RemoteClusterMsg, rc *model.RemoteCluster, rcResp *remotecluster.Response, errResp error) {
 		defer wg.Done()
 
@@ -1221,24 +1218,30 @@ func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteClus
 			return
 		}
 
-		// A delivery failure (e.g. the remote is unreachable) must propagate to the
-		// caller so the task is retried and, on retry exhaustion, the remote cluster
-		// service is notified to force a resync once the remote is back online.
-		// Without this, a failed send is silently dropped and the content never
-		// re-syncs until the next organic change in the channel.
+		// A delivery failure (e.g. the remote is unreachable) means the content was not
+		// synced. The send is fire-and-forget, so instead of surfacing an error to the
+		// caller we signal the remote cluster service: on its next successful ping it
+		// fires a connection-state-change event that triggers ForceSyncForRemote,
+		// re-syncing this channel once the remote is reachable again. The cursor is only
+		// advanced on success (via the result callback below), so nothing is lost in the
+		// meantime.
 		if errResp != nil {
-			sendErr = errResp
+			scs.notifyRemoteSyncFailed(rc)
 			return
 		}
 
 		var syncResp model.SyncResponse
 		if rcResp != nil && len(rcResp.Payload) > 0 {
 			if err2 := json.Unmarshal(rcResp.Payload, &syncResp); err2 != nil {
+				// A 200 response whose body we cannot parse: we can't confirm the sync
+				// landed, so leave the cursor un-advanced and trigger the same ping-driven
+				// resync as a delivery failure.
 				scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Invalid sync msg response from remote cluster",
 					mlog.String("remote", rc.Name),
 					mlog.String("channel_id", msg.ChannelId),
 					mlog.Err(err2),
 				)
+				scs.notifyRemoteSyncFailed(rc)
 				return
 			}
 
@@ -1246,20 +1249,30 @@ func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteClus
 				f(syncResp, errResp)
 			}
 		} else {
-			// No error but response is nil or empty
+			// A 200 with no payload. The receive side always sets a SyncResponse payload on
+			// success (onReceiveSyncMessage), so an empty payload means the sync was not
+			// confirmed. Treat it like an unparseable response: don't advance the cursor and
+			// trigger a ping-driven resync.
 			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Empty or nil response payload from remote cluster",
 				mlog.String("remote", rc.Name),
 				mlog.String("channel_id", msg.ChannelId),
 			)
+			scs.notifyRemoteSyncFailed(rc)
 		}
 	})
 
-	// If the enqueue itself failed the callback never runs, so don't wait on it.
-	if err != nil {
-		return err
-	}
 	wg.Wait()
-	return sendErr
+	return err
+}
+
+// notifyRemoteSyncFailed signals the remote cluster service that a sync to rc failed to
+// be delivered. On the remote's next successful ping this drives a connection-state-change
+// event and a ForceSyncForRemote, recovering content that could not be sent while the
+// remote was briefly unreachable (including short outages where IsOnline() never flipped).
+func (scs *Service) notifyRemoteSyncFailed(rc *model.RemoteCluster) {
+	if rcs := scs.server.GetRemoteClusterService(); rcs != nil {
+		rcs.NotifySyncFailed(rc.RemoteId)
+	}
 }
 
 // sendSyncMsgToRemote synchronously sends the sync message to a plugin.

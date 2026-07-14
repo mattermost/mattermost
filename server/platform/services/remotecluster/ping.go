@@ -34,9 +34,15 @@ func (rcs *Service) PingNow(rc *model.RemoteCluster) {
 		hasPendingSync, _ = prev.(bool)
 	}
 
-	if online != rc.IsOnline() || (pingSucceeded && hasPendingSync) {
-		if metrics := rcs.server.GetMetrics(); metrics != nil {
-			metrics.IncrementRemoteClusterConnStateChangeCounter(rc.RemoteId, rc.IsOnline())
+	// The connection-state-change counter tracks genuine online/offline transitions, so
+	// only bump it when IsOnline() actually flipped. The event itself must still fire on
+	// the pending-sync recovery path (online→online) to drive ForceSyncForRemote.
+	stateChanged := online != rc.IsOnline()
+	if stateChanged || (pingSucceeded && hasPendingSync) {
+		if stateChanged {
+			if metrics := rcs.server.GetMetrics(); metrics != nil {
+				metrics.IncrementRemoteClusterConnStateChangeCounter(rc.RemoteId, rc.IsOnline())
+			}
 		}
 		rcs.fireConnectionStateChgEvent(rc)
 	}
