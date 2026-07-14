@@ -229,7 +229,6 @@ func getTeamsForPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
-	c.App.SanitizeTeams(*c.AppContext.Session(), teams.Teams)
 
 	b, err := json.Marshal(teams)
 	if err != nil {
