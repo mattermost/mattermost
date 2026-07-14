@@ -481,7 +481,7 @@ func TestSendSyncMsgToRemote_EnqueueErrorDoesNotHang(t *testing.T) {
 		require.Error(t, err, "an enqueue failure must be returned to the caller")
 		assert.ErrorContains(t, err, "buffer full")
 	case <-time.After(5 * time.Second):
-		t.Fatal("sendSyncMsgToRemote hung on wg.Wait() after an enqueue failure")
+		require.Fail(t, "sendSyncMsgToRemote hung on wg.Wait() after an enqueue failure")
 	}
 
 	// The send never left the queue, so there is no delivery outcome to notify about; that
