@@ -21,6 +21,7 @@ export default class NotificationsSettings {
     readonly channelMentionAutoFollowEditButton;
     readonly keywordsTriggerNotificationsEditButton;
     readonly keywordsGetHighlightedEditButton;
+    readonly channelWideMentionsCheckbox;
 
     readonly testNotificationButton;
     readonly troubleshootingDocsButton;
@@ -42,6 +43,7 @@ export default class NotificationsSettings {
         });
         this.keywordsTriggerNotificationsEditButton = container.locator('#keywordsAndMentionsEdit');
         this.keywordsGetHighlightedEditButton = container.locator('#keywordsAndHighlightEdit');
+        this.channelWideMentionsCheckbox = container.getByRole('checkbox', {name: 'Channel-wide mentions'});
 
         this.testNotificationButton = container.getByRole('button', {name: 'Send a test notification'});
         this.troubleshootingDocsButton = container.getByRole('button', {name: 'Troubleshooting docs 󰏌'});

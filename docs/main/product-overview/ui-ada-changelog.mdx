@@ -18,6 +18,134 @@ This changelog tracks User Interface (UI) and Accessibility (ADA) changes across
 </thead>
 <tbody>
 <tr>
+<td>v11.8</td>
+<td>(UI) Added a new keyboard shortcut, ``Shift`` + ``ESC``, that marks all channels, threads, and direct messages as read for a team on webapp / desktop app.</td>
+</tr>
+<tr>
+<td>v11.8</td>
+<td>(UI) Added an overflow menu for channel bookmarks when the bookmark bar runs out of space. Bookmarks can be reordered via drag-and-drop between the bar and the overflow menu, or via keyboard (Space to select, arrow keys to move) on webapp. Replaced ``react-beautiful-dnd`` with ``@atlaskit/pragmatic-drag-and-drop``.</td>
+</tr>
+<tr>
+<td>v11.8</td>
+<td>(UI) Added an unread badge to Recaps.</td>
+</tr>
+<tr>
+<td>v11.8</td>
+<td>(UI) Added [managed channel categories](https://docs.mattermost.com/end-user-guide/preferences/customize-your-channel-sidebar.html) for **Channel Admins** to enforce sidebar organization across teams.</td>
+</tr>
+<tr>
+<td>v11.8</td>
+<td>(UI) Added per-channel classification assignment and banner integration for webapp/desktop app.</td>
+</tr>
+<tr>
+<td>v11.8</td>
+<td>(UI) Added [support](https://docs.mattermost.com/administration-guide/manage/admin/user-attributes.html) for **CPA Display Name** for user-facing labels of user attributes.</td>
+</tr>
+<tr>
+<td>v11.8</td>
+<td>(UI) Changed the **Invite People** modal to allow pasting any text, not only valid email formats.</td>
+</tr>
+<tr>
+<td>v11.8</td>
+<td>(UI) Standardized many buttons throughout the app, which may result in minor UX changes.</td>
+</tr>
+<tr>
+<td>v11.8</td>
+<td>(UI) Updated the **Enable Testing Commands** user interface to explicitly warn that ``EnableTesting`` must never be used in production.</td>
+</tr>
+<tr>
+<td>v11.8</td>
+<td>(UI) Changed the mobile view search box to only autofocus when the search button is pressed (reported on mobile browser).</td>
+</tr>
+<tr>
+<td>v11.8</td>
+<td>(UI) Improved the **Default "Report a Problem"** [behavior](https://docs.mattermost.com/administration-guide/configure/site-configuration-settings.html) to open a support ticket via email with metadata for licensed servers, and redirect to the Mattermost forums for free edition in webapp / desktop apps.</td>
+</tr>
+<tr>
+<td>v11.8</td>
+<td>(UI) Added support for system-scoped properties — property fields and values that attach to the Mattermost instance itself.</td>
+</tr>
+<tr>
+<td>v11.8</td>
+<td>(UI) Added the ability to define a property attribute once and reuse it across different object types (e.g., users, channels).</td>
+</tr>
+<tr>
+<td>v11.8</td>
+<td>(UI) Exposed the ``DefaultCategoryName`` to the [user interface](https://docs.mattermost.com/administration-guide/configure/site-configuration-settings.html) so admins can add, edit, and remove it easily.</td>
+</tr>
+<tr>
+<td>v11.8</td>
+<td>(UI) Moved interactive dialog date/datetime properties into ``datetime_config``.</td>
+</tr>
+<tr>
+<td>v11.8</td>
+<td>(UI) When a channel is shared or unshared with a remote, a system message will now be shown.</td>
+</tr>
+<tr>
+<td>v11.8</td>
+<td>(UI) On new installations using Elasticsearch or OpenSearch, search now includes public channels the user is not a member of by default.</td>
+</tr>
+<tr>
+<td>v11.8</td>
+<td>(UI) Added support for incoming webhooks to define a ``root_id`` to create posts in a thread.</td>
+</tr>
+<tr>
+<td>v11.8</td>
+<td>(UI) Updated membership policy user interface copy in the System Console and public channel settings to clarify qualifying-user requirements and auto-add behavior.</td>
+</tr>
+<tr>
+<td>v11.8</td>
+<td>(UI) Hid redundant "Download Apps" links and onboarding download reminders when Mattermost runs inside the Desktop app.</td>
+</tr>
+<tr>
+<td>v11.7</td>
+<td>(UI) Message attachment footers now support full Markdown rendering, including bold, italic, links, and emoji.</td>
+</tr>
+<tr>
+<td>v11.7</td>
+<td>(UI) Changed the **Browse Channels** modal and ``~channel`` autocomplete to prioritize channels with a matching display name.</td>
+</tr>
+<tr>
+<td>v11.7</td>
+<td>(UI) Added an "Open in new tab" button to the **Product Switcher** menu.</td>
+</tr>
+<tr>
+<td>v11.7</td>
+<td>(UI) Substring matching is now allowed when searching channel members in the member sub-panel in a channel.</td>
+</tr>
+<tr>
+<td>v11.7</td>
+<td>(Accessibility) Improved accessibility of thread list menus.</td>
+</tr>
+<tr>
+<td>v11.7</td>
+<td>(UI) Improved autocomplete while typing in Korean and using Firefox.</td>
+</tr>
+<tr>
+<td>v11.7</td>
+<td>(UI) Updated license renewal and expiry notification emails with refreshed branding, copy, and layout.</td>
+</tr>
+<tr>
+<td>v11.7</td>
+<td>(UI) Added the ability to open channels in a separate popout window, with full channel and right-hand side functionality.</td>
+</tr>
+<tr>
+<td>v11.7</td>
+<td>(UI) Dropped support for JS features required by browsers over three years old.</td>
+</tr>
+<tr>
+<td>v11.7</td>
+<td>(UI) Renamed user-visible references from "Custom Profile Attributes" to "User Attributes" across the admin console, error messages, and server translations.</td>
+</tr>
+<tr>
+<td>v11.7</td>
+<td>(UI) Added the [ability to handle](https://docs.mattermost.com/administration-guide/onboard/connected-workspaces.html) from which remotes a channel is shared from the channel settings user interface.</td>
+</tr>
+<tr>
+<td>v11.7</td>
+<td>(UI) Channel banners are now shown in thread views.</td>
+</tr>
+<tr>
 <td>v11.6</td>
 <td>(UI) Added support for Default Agent in suggestions and integrated Agents into the App Bar.</td>
 </tr>

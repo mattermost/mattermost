@@ -29,7 +29,7 @@ This feature was developed to a large extent by community contributions and we'd
 - [mmctl bot](#mmctl-bot) - Bot Management
 - [mmctl channel](#mmctl-channel) - Channel Management
 - [mmctl command](#mmctl-command) - Command Management
-- [mmctl cpa](#mmctl-cpa) - Custom Profile Attribute Management
+- [mmctl cpa](#mmctl-cpa) - User Attribute Management
 - [mmctl completion](#mmctl-completion) - Generate autocompletion scripts for bash, fish, powershell, and zsh
 - [mmctl compliance-export](#mmctl-compliance-export) - Compliance Export Management
 - [mmctl config](#mmctl-config) - Configuration Management
@@ -1970,7 +1970,7 @@ mmctl completion zsh [flags]
 Manage User Attributes for extended user profile information.
 
 > Child Commands  
-> - [mmctl cpa field](#mmctl-cpa-field) - Manage CPA fields
+> - [mmctl cpa field](#mmctl-cpa-field) - Manage User Attribute fields
 
 **Options**
 
@@ -1982,13 +1982,13 @@ Manage User Attributes for extended user profile information.
 
 **Description**
 
-Manage Custom Profile Attribute fields.
+Manage User Attribute fields.
 
 > Child Commands  
-> - [mmctl cpa field create](#mmctl-cpa-field-create) - Create a new CPA field
-> - [mmctl cpa field delete](#mmctl-cpa-field-delete) - Delete a CPA field
-> - [mmctl cpa field edit](#mmctl-cpa-field-edit) - Edit a CPA field
-> - [mmctl cpa field list](#mmctl-cpa-field-list) - List CPA fields
+> - [mmctl cpa field create](#mmctl-cpa-field-create) - Create a new User Attribute field
+> - [mmctl cpa field delete](#mmctl-cpa-field-delete) - Delete a User Attribute field
+> - [mmctl cpa field edit](#mmctl-cpa-field-edit) - Edit a User Attribute field
+> - [mmctl cpa field list](#mmctl-cpa-field-list) - List User Attribute fields
 
 **Options**
 
@@ -2000,7 +2000,7 @@ Manage Custom Profile Attribute fields.
 
 **Description**
 
-Create a new Custom Profile Attribute field.
+Create a new User Attribute field.
 
 **Format**
 
@@ -2042,7 +2042,7 @@ mmctl cpa field create "Location" --type select --options "New York,London,Tokyo
 
 **Description**
 
-Delete an existing Custom Profile Attribute field.
+Delete an existing User Attribute field.
 
 **Format**
 
@@ -2082,7 +2082,7 @@ mmctl cpa field delete location-field-002 --force
 
 **Description**
 
-Edit an existing Custom Profile Attribute field.
+Edit an existing User Attribute field.
 
 **Format**
 
@@ -2126,7 +2126,7 @@ mmctl cpa field edit location-field-002 --options "New York,London,Tokyo,Sydney"
 
 **Description**
 
-List all Custom Profile Attribute fields.
+List all User Attribute fields.
 
 **Format**
 
@@ -4058,7 +4058,10 @@ mmctl import process 35uy6cwrqfnhdx3genrhqqznxc_import.zip
 -h, --help          help for status
 --bypass-upload     File is read directly from the filesystem, instead of being processed from the server. Supported in --local mode only.
 --extract-content   Document attachments will be extracted and indexed during the import process. We recommend disabling this to improve performance.
+--workers int       The number of concurrent import worker goroutines. Controls database load during import. When set to `0` (default), uses the number of CPUs available. Maximum allowed is 4x the CPU count.
 ```
+
+Use `--workers` to reduce concurrency, for example `--workers 1`, when running imports against a live server to minimize database load at the cost of longer import duration.
 
 **Options inherited from parent commands**
 

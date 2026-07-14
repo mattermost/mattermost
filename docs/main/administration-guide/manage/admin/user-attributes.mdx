@@ -12,7 +12,7 @@ System attributes enable you to customize user profile attributes to match your 
 
 From Mattermost v11, you have enhanced control over these user attributes through admin-managed vs user-editable settings. By default, attributes are admin-managed for security, but you can explicitly allow user editing for specific attributes that don't impact access control or sensitive organizational data. These user attributes supplement existing user details visible from the user's profile picture.
 
-![Mobile examples of a user profile with custom user attributes added as system attributes.](/images/cpa-properties.png)
+![Mobile examples of a user profile with user attributes added as system attributes.](/images/cpa-properties.png)
 
 ## Before you begin
 
@@ -92,6 +92,8 @@ For security reasons, attributes used in ABAC policies are admin-managed by defa
 
 You can define and manage up to 20 system attributes using the System Console. Each attribute becomes a user profile option users can populate, unless you disable the **Editable by Users** option, available from Mattermost v11. Once you reach the maximum of 20 attributes, you can't create new attributes until you [delete attributes](#manage-attributes) you no longer need.
 
+From Mattermost v11.8, user attributes include both a **Display Name** and a **Name**. The Display Name is the label shown to users and admins in Mattermost. The Name is the internal attribute identifier used in API references and [attribute-based access control (ABAC)](/administration-guide/manage/admin/attribute-based-access-control) policy expressions. When you create a new user attribute, Mattermost can generate the Name from the Display Name, formatted as a CEL-safe identifier. Saved ABAC policies continue to reference the internal name using `user.attributes.<name>`.
+
 <Note>
 
 When you disable the **Editable by Users** option for an attribute, only admins can set its value using [mmctl cpa](/administration-guide/manage/mmctl-command-line-tool#mmctl-cpa) commands.
@@ -102,7 +104,8 @@ When you disable the **Editable by Users** option for an attribute, only admins 
 
 2.  Enter the following details:
 
-    > - **Attribute name**: Enter a unique name for the attribute. Attribute names can be up to 40 characters long.
+    > - **Display Name**: Enter a display name for the attribute that will be shown in any user facing UI.
+    > - **Attribute name**: Attribute name will be automatically generated from the provided Display Name. It can be overriden and with a preferred unique name for the attribute. Attribute names can be up to 40 characters long. The attribute name is used as the Common Expression Language (CEL) identifier in access control policies. It must start with a letter or underscore, and can contain only letters, numbers, and underscores. Reserved CEL words aren't allowed, including `true`, `false`, `null`, `in`, `as`, `break`, `const`, `continue`, `else`, `for`, `function`, `if`, `import`, `let`, `loop`, `package`, `namespace`, `return`, `var`, `void`, and `while`.
     > - **Type**: Specify the type of attribute as one of the following:
     >   - **Text** for text-based profile attributes.
     >   - **Phone** for phone number-based profile attributes.
@@ -134,17 +137,24 @@ Duplicate existing attributes by selecting **More** <img src="/img/ui/dots-horiz
 ## Manage attributes
 
 - **Modify**: Select the attribute fields to make inline changes to the attribute's name, type, or values. Select **More** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> to change a attribute's visibility.
+
+<Note>
+
+From Mattermost v11.8, existing user attributes are backfilled so the Display Name initially matches the Name. If the Display Name is empty or unavailable, Mattermost falls back to showing the Name. Duplicate display names are permitted, but internal names remain unique.
+
+</Note>
+
 - **Order**: Control the order you want attributes to appear in user profiles by dragging and dropping them in the list.
 - **Delete**: Delete attributes you no longer need or want by selecting **More** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> and selecting **Delete property**.
 
 <Note>
 
-When updating custom profile attributes via API or automation, the `attrs` object replaces existing attribute settings rather than merging. If you send only visibility, the sort order resets to `0` unless you include `sort_order` in the same request. If a patch fails, the API may return the error string "Unable to patch Custom Profile Attribute field".
+When updating user attributes via API or automation, the `attrs` object replaces existing attribute settings rather than merging. If you send only visibility, the sort order resets to `0` unless you include `sort_order` in the same request. If a patch fails, the API may return the error string "Unable to patch User Attribute field".
 
 </Note>
 
 - **User Edit Permissions**: From Mattermost v11, all user attributes are admin-managed by default for enhanced security. To allow user editing for specific attributes, administrators can enable this through the **More** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> menu and selecting **Allow user editing**. This should only be enabled for attributes that do not impact security access controls or organizational policies. Attributes used in ABAC policies should remain admin-managed unless there's a specific business need and the security implications are fully understood.
-- **Edit User Attribute Values**: From Mattermost v11.1, you can view and update custom profile attribute values for individual users through the System Console. See the [Manage user attributes](/administration-guide/configure/user-management-configuration-settings#manage-user-attributes) documentation for details.
+- **Edit User Attribute Values**: From Mattermost v11.1, you can view and update user attribute values for individual users through the System Console. See the [Manage user attributes](/administration-guide/configure/user-management-configuration-settings#manage-user-attributes) documentation for details.
 
 In cases where multiple system admins manage system attributes, refresh your web browser instance to see real-time updates to system attributes made by other admins.
 
