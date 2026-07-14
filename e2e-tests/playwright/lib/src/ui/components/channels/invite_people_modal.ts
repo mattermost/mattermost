@@ -45,7 +45,11 @@ export default class InvitePeopleModal {
         const listbox = this.container.getByRole('listbox');
         await expect(listbox.getByRole('option').first()).toBeVisible({timeout: 15000});
         await this.inviteInput.press('Enter');
-        await expect(this.container.getByText(email, {exact: true}).first()).toBeVisible();
+
+        // React-select clears the input only once the selection is taken. The selected
+        // chip may show the raw email or, for an existing user, their display name, so
+        // the cleared input is the reliable signal that the entry was added.
+        await expect(this.inviteInput).toHaveValue('');
     }
 
     async submitInvites() {
