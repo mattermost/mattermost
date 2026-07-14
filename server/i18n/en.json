@@ -12635,8 +12635,16 @@
     "translation": "Invalid last name in invitation profile"
   },
   {
+    "id": "model.member.is_valid.profile_nil.app_error",
+    "translation": "Invitation profile cannot be null"
+  },
+  {
     "id": "model.member.is_valid.profile_username.app_error",
     "translation": "Invalid username in invitation profile"
+  },
+  {
+    "id": "model.member.is_valid.profile_username_duplicate.app_error",
+    "translation": "Invitation profiles must have unique usernames"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",

@@ -97,6 +97,35 @@ func TestMemberInviteIsValid(t *testing.T) {
 		require.Nil(t, invite.IsValid())
 	})
 
+	for name, testCase := range map[string]struct {
+		invite      *MemberInvite
+		expectedErr string
+	}{
+		"nil profile": {
+			invite: &MemberInvite{
+				Emails:   []string{"user1@example.com"},
+				Profiles: []*MemberInviteProfile{nil},
+			},
+			expectedErr: "model.member.is_valid.profile_nil.app_error",
+		},
+		"duplicate usernames": {
+			invite: &MemberInvite{
+				Emails: []string{"user1@example.com", "user2@example.com"},
+				Profiles: []*MemberInviteProfile{
+					{Email: "user1@example.com", Username: "duplicate.user"},
+					{Email: "user2@example.com", Username: "DUPLICATE.USER"},
+				},
+			},
+			expectedErr: "model.member.is_valid.profile_username_duplicate.app_error",
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			appErr := testCase.invite.IsValid()
+			require.NotNil(t, appErr)
+			require.Equal(t, testCase.expectedErr, appErr.Id)
+		})
+	}
+
 	t.Run("invalid username", func(t *testing.T) {
 		invite := validInvite()
 		invite.Profiles[0].Username = "inv@lid"

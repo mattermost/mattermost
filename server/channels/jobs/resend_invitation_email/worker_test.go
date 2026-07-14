@@ -19,6 +19,25 @@ type fakeResendApp struct {
 	invitedWith *model.MemberInvite
 }
 
+type fakeJobServer struct {
+	errors int
+}
+
+func (s *fakeJobServer) Logger() mlog.LoggerIFace {
+	return mlog.CreateConsoleLogger()
+}
+
+func (s *fakeJobServer) HandleJobPanic(logger mlog.LoggerIFace, job *model.Job) {}
+
+func (s *fakeJobServer) SetJobSuccess(job *model.Job) *model.AppError {
+	return nil
+}
+
+func (s *fakeJobServer) SetJobError(job *model.Job, jobError *model.AppError) *model.AppError {
+	s.errors++
+	return nil
+}
+
 func (a *fakeResendApp) Config() *model.Config                                 { return &model.Config{} }
 func (a *fakeResendApp) AddConfigListener(func(old, cur *model.Config)) string { return "" }
 func (a *fakeResendApp) RemoveConfigListener(string)                           {}
@@ -38,9 +57,10 @@ func (a *fakeResendApp) InviteNewUsersToTeamGracefully(rctx request.CTX, memberI
 func TestResendEmailsCarriesJobData(t *testing.T) {
 	newWorker := func(app AppIface) *ResendInvitationEmailWorker {
 		return &ResendInvitationEmailWorker{
-			name:   "ResendInvitationEmail",
-			logger: mlog.CreateConsoleTestLogger(t),
-			app:    app,
+			name:      "ResendInvitationEmail",
+			logger:    mlog.CreateConsoleTestLogger(t),
+			app:       app,
+			jobServer: &fakeJobServer{},
 		}
 	}
 	newJob := func(data map[string]string) *model.Job {
@@ -90,5 +110,21 @@ func TestResendEmailsCarriesJobData(t *testing.T) {
 		require.NotNil(t, app.invitedWith)
 		require.Empty(t, app.invitedWith.Profiles)
 		require.Len(t, app.invitedWith.ChannelIds, 1)
+	})
+
+	t.Run("malformed profiles fail the job without sending invitations", func(t *testing.T) {
+		app := &fakeResendApp{}
+		worker := newWorker(app)
+		completed := worker.ResendEmails(worker.logger, newJob(map[string]string{
+			"emailList":    model.ArrayToJSON([]string{"user1@example.com"}),
+			"teamID":       model.NewId(),
+			"senderID":     model.NewId(),
+			"scheduledAt":  strconv.FormatInt(model.GetMillis(), 10),
+			"profilesList": "not-json",
+		}), "48")
+
+		require.False(t, completed)
+		require.Nil(t, app.invitedWith)
+		require.Equal(t, 1, worker.jobServer.(*fakeJobServer).errors)
 	})
 }

@@ -4316,10 +4316,19 @@ func TestInviteUsersToTeamWithProfiles(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	t.Run("accepted from a regular member with invite permission", func(t *testing.T) {
-		invitesWithErrors, _, err := th.Client.InviteMembersToTeamGracefully(context.Background(), th.BasicTeam.Id, newInvite())
+		invite := newInvite()
+		invitesWithErrors, _, err := th.Client.InviteMembersToTeamGracefully(context.Background(), th.BasicTeam.Id, invite)
 		require.NoError(t, err)
 		require.Len(t, invitesWithErrors, 1)
 		require.Nil(t, invitesWithErrors[0].Error)
+
+		resendJobs, err := th.App.Srv().Store().Job().GetAllByType(th.Context, model.JobTypeResendInvitationEmail)
+		require.NoError(t, err)
+		require.NotEmpty(t, resendJobs)
+
+		var profiles []*model.MemberInviteProfile
+		require.NoError(t, json.Unmarshal([]byte(resendJobs[0].Data["profilesList"]), &profiles))
+		require.Equal(t, invite.Profiles, profiles)
 	})
 
 	t.Run("accepted from a system admin", func(t *testing.T) {
@@ -4350,6 +4359,28 @@ func TestInviteUsersToTeamWithProfiles(t *testing.T) {
 	t.Run("taken username produces a per-email graceful error", func(t *testing.T) {
 		invite := newInvite()
 		invite.Profiles[0].Username = th.BasicUser2.Username
+
+		invitesWithErrors, _, err := th.Client.InviteMembersToTeamGracefully(context.Background(), th.BasicTeam.Id, invite)
+		require.NoError(t, err)
+		require.Len(t, invitesWithErrors, 1)
+		require.NotNil(t, invitesWithErrors[0].Error)
+		require.Equal(t, "api.team.invite_members.username_taken.app_error", invitesWithErrors[0].Error.Id)
+	})
+
+	t.Run("group name collision produces a per-email graceful error", func(t *testing.T) {
+		invite := newInvite()
+		username := invite.Profiles[0].Username
+		group, appErr := th.App.CreateGroup(&model.Group{
+			Name:        &username,
+			DisplayName: "Username collision",
+			Source:      model.GroupSourceLdap,
+			RemoteId:    model.NewPointer("ri_" + model.NewId()),
+		})
+		require.Nil(t, appErr)
+		t.Cleanup(func() {
+			_, appErr := th.App.DeleteGroup(group.Id)
+			require.Nil(t, appErr)
+		})
 
 		invitesWithErrors, _, err := th.Client.InviteMembersToTeamGracefully(context.Background(), th.BasicTeam.Id, invite)
 		require.NoError(t, err)

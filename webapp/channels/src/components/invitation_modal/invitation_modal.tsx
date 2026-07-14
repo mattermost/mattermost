@@ -6,6 +6,7 @@ import {defineMessages} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
+import type {LockProfileFieldsSetting} from '@mattermost/types/config';
 import type {MemberInviteProfile, Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -17,11 +18,11 @@ import {isEmail} from 'mattermost-redux/utils/helpers';
 import {focusElement} from 'utils/a11y_utils';
 import {isMembershipPolicyEnforced} from 'utils/channel_utils';
 import {Constants} from 'utils/constants';
+import {getEmailsToPreset, getProfileForEmail, setProfileForEmail, suggestMemberInviteProfile} from 'utils/member_invite_profiles';
 
 import {InviteType} from './invite_as';
 import InviteView, {initializeInviteState} from './invite_view';
 import type {InviteState} from './invite_view';
-import {getEmailsToPreset, suggestMemberInviteProfile} from './member_profile_inputs';
 import NoPermissionsView from './no_permissions_view';
 import ResultView, {defaultResultState} from './result_view';
 import type {ResultState, InviteResults} from './result_view';
@@ -78,7 +79,7 @@ export type Props = {
     townSquareDisplayName: string;
     invitableChannels: Channel[];
     emailInvitationsEnabled: boolean;
-    lockProfileFieldsForEmailUsers: string;
+    lockProfileFieldsForEmailUsers: LockProfileFieldsSetting;
     isAdmin: boolean;
     isCloud: boolean;
     canAddUsers: boolean;
@@ -380,8 +381,8 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
             if (this.presetProfilesEnabled()) {
                 // Seed newly added emails with a profile suggested from the email local-part.
                 for (const email of getEmailsToPreset(usersEmails)) {
-                    if (!profiles[email.toLowerCase()]) {
-                        profiles = {...profiles, [email.toLowerCase()]: suggestMemberInviteProfile(email)};
+                    if (!getProfileForEmail(profiles, email)) {
+                        profiles = setProfileForEmail(profiles, email, suggestMemberInviteProfile(email));
                     }
                 }
             }
@@ -401,10 +402,7 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
             ...state,
             invite: {
                 ...state.invite,
-                profiles: {
-                    ...state.invite.profiles,
-                    [profile.email.toLowerCase()]: profile,
-                },
+                profiles: setProfileForEmail(state.invite.profiles, profile.email, profile),
             },
         }));
     };

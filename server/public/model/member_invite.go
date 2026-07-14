@@ -49,14 +49,24 @@ func (i *MemberInvite) IsValid() *AppError {
 		}
 	}
 
+	usernames := make(map[string]struct{}, len(i.Profiles))
 	for _, profile := range i.Profiles {
+		if profile == nil {
+			return NewAppError("MemberInvite.IsValid", "model.member.is_valid.profile_nil.app_error", nil, "", http.StatusBadRequest)
+		}
+
 		if !slices.Contains(i.Emails, strings.ToLower(profile.Email)) {
 			return NewAppError("MemberInvite.IsValid", "model.member.is_valid.profile_email.app_error", nil, "email="+profile.Email, http.StatusBadRequest)
 		}
 
-		if !IsValidUsername(strings.ToLower(profile.Username)) {
+		username := strings.ToLower(profile.Username)
+		if !IsValidUsername(username) {
 			return NewAppError("MemberInvite.IsValid", "model.member.is_valid.profile_username.app_error", nil, "username="+profile.Username, http.StatusBadRequest)
 		}
+		if _, exists := usernames[username]; exists {
+			return NewAppError("MemberInvite.IsValid", "model.member.is_valid.profile_username_duplicate.app_error", nil, "username="+profile.Username, http.StatusBadRequest)
+		}
+		usernames[username] = struct{}{}
 
 		if utf8.RuneCountInString(profile.FirstName) > UserFirstNameMaxRunes {
 			return NewAppError("MemberInvite.IsValid", "model.member.is_valid.profile_first_name.app_error", nil, "email="+profile.Email, http.StatusBadRequest)

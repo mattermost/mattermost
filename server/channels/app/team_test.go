@@ -2038,6 +2038,29 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		*cfg.ServiceSettings.EnableEmailInvitations = true
 	})
 
+	inviteDataMatches := func(memberInvite *model.MemberInvite) any {
+		return mock.MatchedBy(func(inviteData email.InviteEmailData) bool {
+			if inviteData.Team.Id != th.BasicTeam.Id ||
+				inviteData.ErrorWhenNotSent != true ||
+				len(inviteData.Invites) != len(memberInvite.Emails) ||
+				len(inviteData.Channels) != len(memberInvite.ChannelIds) ||
+				len(inviteData.Profiles) != len(memberInvite.Profiles) {
+				return false
+			}
+			for i, invite := range inviteData.Invites {
+				if invite != memberInvite.Emails[i] {
+					return false
+				}
+			}
+			for _, profile := range memberInvite.Profiles {
+				if inviteData.Profiles[profile.Email] != profile {
+					return false
+				}
+			}
+			return true
+		})
+	}
+
 	t.Run("it return list of email with no error on success", func(t *testing.T) {
 		emailServiceMock := emailmocks.ServiceInterface{}
 		memberInvite := &model.MemberInvite{
@@ -2045,16 +2068,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		}
 		emailServiceMock.On("SendInviteEmails",
 			mock.Anything,
-			mock.AnythingOfType("*model.Team"),
-			mock.AnythingOfType("string"),
-			mock.AnythingOfType("string"),
-			memberInvite.Emails,
-			mock.Anything,
-			"",
-			mock.Anything,
-			true,
-			false,
-			false,
+			inviteDataMatches(memberInvite),
 		).Once().Return(nil)
 		emailServiceMock.On("Stop").Once().Return()
 		th.App.Srv().EmailService = &emailServiceMock
@@ -2072,16 +2086,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		}
 		emailServiceMock.On("SendInviteEmails",
 			mock.Anything,
-			mock.AnythingOfType("*model.Team"),
-			mock.AnythingOfType("string"),
-			mock.AnythingOfType("string"),
-			memberInvite.Emails,
-			mock.Anything,
-			"",
-			mock.Anything,
-			true,
-			false,
-			false,
+			inviteDataMatches(memberInvite),
 		).Once().Return(email.SendMailError)
 		emailServiceMock.On("Stop").Once().Return()
 		th.App.Srv().EmailService = &emailServiceMock
@@ -2100,19 +2105,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		}
 		emailServiceMock.On("SendInviteEmailsToTeamAndChannels",
 			mock.Anything,
-			mock.AnythingOfType("*model.Team"),
-			mock.AnythingOfType("[]*model.Channel"),
-			mock.AnythingOfType("string"),
-			mock.AnythingOfType("string"),
-			mock.AnythingOfType("[]uint8"),
-			memberInvite.Emails,
-			mock.Anything,
-			"",
-			mock.Anything,
-			mock.AnythingOfType("string"),
-			true,
-			false,
-			false,
+			inviteDataMatches(memberInvite),
 		).Once().Return([]*model.EmailInviteWithError{}, nil)
 		emailServiceMock.On("Stop").Once().Return()
 		th.App.Srv().EmailService = &emailServiceMock
@@ -2130,16 +2123,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		}
 		emailServiceMock.On("SendInviteEmails",
 			mock.Anything,
-			mock.AnythingOfType("*model.Team"),
-			mock.AnythingOfType("string"),
-			mock.AnythingOfType("string"),
-			[]string{"idontexist@mattermost.com"},
-			mock.Anything,
-			"",
-			mock.Anything,
-			true,
-			false,
-			false,
+			inviteDataMatches(memberInvite),
 		).Once().Return(nil)
 		emailServiceMock.On("Stop").Once().Return()
 		th.App.Srv().EmailService = &emailServiceMock
@@ -2163,16 +2147,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		}
 		emailServiceMock.On("SendInviteEmails",
 			mock.Anything,
-			mock.AnythingOfType("*model.Team"),
-			mock.AnythingOfType("string"),
-			mock.AnythingOfType("string"),
-			memberInvite.Emails,
-			map[string]*model.MemberInviteProfile{"idontexist@mattermost.com": memberInvite.Profiles[0]},
-			"",
-			mock.Anything,
-			true,
-			false,
-			false,
+			inviteDataMatches(memberInvite),
 		).Once().Return(nil)
 		emailServiceMock.On("Stop").Once().Return()
 		th.App.Srv().EmailService = &emailServiceMock

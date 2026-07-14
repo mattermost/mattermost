@@ -10,6 +10,7 @@ import {useSelector} from 'react-redux';
 import type {OnChangeValue, ActionMeta, StylesConfig} from 'react-select';
 import ReactSelect from 'react-select';
 
+import type {LockProfileFieldsSetting} from '@mattermost/types/config';
 import {supportsOptions, type PropertyFieldOption} from '@mattermost/types/properties';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {UserProfile} from '@mattermost/types/users';
@@ -171,8 +172,8 @@ export type Props = {
     ldapPositionAttributeSet?: boolean;
     samlPositionAttributeSet?: boolean;
     ldapPictureAttributeSet?: boolean;
-    lockProfileFieldsForEmailUsers?: string;
-    isAdmin?: boolean;
+    lockProfileFieldsForEmailUsers: LockProfileFieldsSetting;
+    canEditOtherUsers: boolean;
     enableCustomProfileAttributes: boolean;
 };
 
@@ -939,7 +940,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
     }
 
     isFieldLockedByAdmin = (field: 'name' | 'username' | 'nickname' | 'position' | 'picture'): boolean => {
-        if (this.props.user.auth_service !== '' || this.props.isAdmin) {
+        if (this.props.user.auth_service !== '' || this.props.canEditOtherUsers) {
             return false;
         }
 
@@ -972,6 +973,9 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
             let extraInfo;
             let submit = null;
+            const lockNameFields = this.isFieldLockedByAdmin('name');
+            const firstNameLocked = lockNameFields && user.first_name !== '';
+            const lastNameLocked = lockNameFields && user.last_name !== '';
             if (
                 (this.props.user.auth_service === Constants.LDAP_SERVICE &&
                     (this.props.ldapFirstNameAttributeSet || this.props.ldapLastNameAttributeSet)) ||
@@ -987,8 +991,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         />
                     </span>
                 );
-            } else if (this.isFieldLockedByAdmin('name') && (user.first_name !== '' || user.last_name !== '')) {
-                // Empty names may still be filled in once, matching the server-side rule.
+            } else if (firstNameLocked && lastNameLocked) {
                 extraInfo = this.createFieldManagedByAdminMessage();
             } else {
                 inputs.push(
@@ -1012,6 +1015,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                                 autoFocus={true}
                                 type='text'
                                 onChange={this.updateFirstName}
+                                disabled={firstNameLocked}
                                 maxLength={Constants.MAX_FIRSTNAME_LENGTH}
                                 value={this.state.firstName}
                                 onFocus={Utils.moveCursorToEnd}
@@ -1041,6 +1045,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                                 name='lastName'
                                 type='text'
                                 onChange={this.updateLastName}
+                                disabled={lastNameLocked}
                                 maxLength={Constants.MAX_LASTNAME_LENGTH}
                                 value={this.state.lastName}
                                 aria-label={formatMessage({id: 'user.settings.general.lastName', defaultMessage: 'Last Name'})}
@@ -1067,7 +1072,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     </a>
                 );
 
-                extraInfo = (
+                // Each empty name may be filled once even when the other name is already locked.
+                extraInfo = firstNameLocked || lastNameLocked ? this.createFieldManagedByAdminMessage() : (
                     <span>
                         <FormattedMessage
                             id='user.settings.general.notificationsExtra'

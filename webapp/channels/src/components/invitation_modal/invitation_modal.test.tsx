@@ -35,6 +35,7 @@ const defaultProps: Props = deepFreeze({
     },
     invitableChannels: [],
     emailInvitationsEnabled: true,
+    lockProfileFieldsForEmailUsers: 'none',
     isAdmin: false,
     isCloud: false,
     canAddUsers: true,

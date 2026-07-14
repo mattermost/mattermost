@@ -57,6 +57,8 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         ldapPositionAttributeSet: false,
         samlPositionAttributeSet: false,
         ldapPictureAttributeSet: false,
+        lockProfileFieldsForEmailUsers: 'none' as const,
+        canEditOtherUsers: false,
         enableCustomProfileAttributes: false,
     };
 
@@ -205,8 +207,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         const lockedNameProps = {
             ...requiredProps,
             user: {...user},
-            lockProfileFieldsForEmailUsers: 'name_and_username',
-            isAdmin: false,
+            lockProfileFieldsForEmailUsers: 'name_and_username' as const,
         };
 
         test('should not show name inputs when name is locked', () => {
@@ -231,6 +232,34 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             );
             expect(container.querySelectorAll('#firstName').length).toBe(1);
             expect(container.querySelectorAll('#lastName').length).toBe(1);
+        });
+
+        test('should lock only first name when first name is set and last name is empty', () => {
+            renderWithContext(
+                <UserSettingsGeneral
+                    {...lockedNameProps}
+                    user={{...user, first_name: 'First', last_name: ''}}
+                    activeSection='name'
+                />,
+            );
+
+            expect(screen.getByLabelText('First Name')).toBeDisabled();
+            expect(screen.getByLabelText('Last Name')).toBeEnabled();
+            expect(screen.getByText('This field is managed by your System Admin. Contact them to request a change.')).toBeInTheDocument();
+        });
+
+        test('should lock only last name when last name is set and first name is empty', () => {
+            renderWithContext(
+                <UserSettingsGeneral
+                    {...lockedNameProps}
+                    user={{...user, first_name: '', last_name: 'Last'}}
+                    activeSection='name'
+                />,
+            );
+
+            expect(screen.getByLabelText('First Name')).toBeEnabled();
+            expect(screen.getByLabelText('Last Name')).toBeDisabled();
+            expect(screen.getByText('This field is managed by your System Admin. Contact them to request a change.')).toBeInTheDocument();
         });
 
         test('should not show username input when username is locked', () => {
@@ -271,7 +300,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         });
 
         test('should lock nickname, position and picture with all', () => {
-            const lockedAllProps = {...lockedNameProps, lockProfileFieldsForEmailUsers: 'all'};
+            const lockedAllProps = {...lockedNameProps, lockProfileFieldsForEmailUsers: 'all' as const};
             const {container, rerender} = renderWithContext(
                 <UserSettingsGeneral
                     {...lockedAllProps}
@@ -297,8 +326,8 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             expect(container.querySelector('.profile-img')).toBeFalsy();
         });
 
-        test('should keep fields editable for system admins', () => {
-            const adminProps = {...lockedNameProps, lockProfileFieldsForEmailUsers: 'all', isAdmin: true};
+        test('should keep fields editable for users with edit_other_users permission', () => {
+            const adminProps = {...lockedNameProps, lockProfileFieldsForEmailUsers: 'all' as const, canEditOtherUsers: true};
             const {container, rerender} = renderWithContext(
                 <UserSettingsGeneral
                     {...adminProps}
@@ -317,7 +346,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         });
 
         test('should keep fields editable when setting is none', () => {
-            const noneProps = {...lockedNameProps, lockProfileFieldsForEmailUsers: 'none'};
+            const noneProps = {...lockedNameProps, lockProfileFieldsForEmailUsers: 'none' as const};
             const {container, rerender} = renderWithContext(
                 <UserSettingsGeneral
                     {...noneProps}
@@ -339,7 +368,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             // LDAP users fall under the provider-managed branches instead.
             const ldapProps = {
                 ...lockedNameProps,
-                lockProfileFieldsForEmailUsers: 'all',
+                lockProfileFieldsForEmailUsers: 'all' as const,
                 user: {...user, auth_service: 'ldap'},
             };
             renderWithContext(

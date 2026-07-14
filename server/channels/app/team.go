@@ -1576,13 +1576,28 @@ func (a *App) InviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *mod
 		}
 
 		userIsFirstAdmin := a.UserIsFirstAdmin(rctx, user)
+		inviteData := email.InviteEmailData{
+			Team:               team,
+			Channels:           channels,
+			SenderName:         user.GetDisplayName(nameFormat),
+			SenderUserID:       user.Id,
+			SenderProfileImage: senderProfileImage,
+			Invites:            goodEmails,
+			Profiles:           profilesByEmail,
+			SiteURL:            a.GetSiteURL(),
+			ReminderData:       reminderData,
+			Message:            memberInvite.Message,
+			ErrorWhenNotSent:   true,
+			IsSystemAdmin:      user.IsSystemAdmin(),
+			IsFirstAdmin:       userIsFirstAdmin,
+		}
 		var eErr error
 		var invitesWithErrors2 []*model.EmailInviteWithError
 		if len(channels) > 0 {
-			invitesWithErrors2, eErr = a.Srv().EmailService.SendInviteEmailsToTeamAndChannels(rctx, team, channels, user.GetDisplayName(nameFormat), user.Id, senderProfileImage, goodEmails, profilesByEmail, a.GetSiteURL(), reminderData, memberInvite.Message, true, user.IsSystemAdmin(), userIsFirstAdmin)
+			invitesWithErrors2, eErr = a.Srv().EmailService.SendInviteEmailsToTeamAndChannels(rctx, inviteData)
 			inviteListWithErrors = append(inviteListWithErrors, invitesWithErrors2...)
 		} else {
-			eErr = a.Srv().EmailService.SendInviteEmails(rctx, team, user.GetDisplayName(nameFormat), user.Id, goodEmails, profilesByEmail, a.GetSiteURL(), reminderData, true, user.IsSystemAdmin(), userIsFirstAdmin)
+			eErr = a.Srv().EmailService.SendInviteEmails(rctx, inviteData)
 		}
 		if eErr != nil {
 			switch {
@@ -1776,7 +1791,15 @@ func (a *App) InviteNewUsersToTeam(rctx request.CTX, emailList []string, teamID,
 	}
 
 	nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
-	eErr := a.Srv().EmailService.SendInviteEmails(rctx, team, user.GetDisplayName(nameFormat), user.Id, emailList, nil, a.GetSiteURL(), nil, false, user.IsSystemAdmin(), a.UserIsFirstAdmin(rctx, user))
+	eErr := a.Srv().EmailService.SendInviteEmails(rctx, email.InviteEmailData{
+		Team:          team,
+		SenderName:    user.GetDisplayName(nameFormat),
+		SenderUserID:  user.Id,
+		Invites:       emailList,
+		SiteURL:       a.GetSiteURL(),
+		IsSystemAdmin: user.IsSystemAdmin(),
+		IsFirstAdmin:  a.UserIsFirstAdmin(rctx, user),
+	})
 	if eErr != nil {
 		switch {
 		case errors.Is(eErr, email.NoRateLimiterError):

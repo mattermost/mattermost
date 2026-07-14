@@ -3,6 +3,8 @@
 
 import type {ContentFlaggingEvent, NotificationTarget} from './content_flagging';
 
+export type LockProfileFieldsSetting = 'none' | 'name_and_username' | 'all';
+
 export type ClientConfig = {
     AboutLink: string;
     AllowBannerDismissal: string;
@@ -160,7 +162,7 @@ export type ClientConfig = {
     LdapPositionAttributeSet: string;
     LdapPictureAttributeSet: string;
     LockTeammateNameDisplay: string;
-    LockProfileFieldsForEmailUsers: string;
+    LockProfileFieldsForEmailUsers: LockProfileFieldsSetting;
     ManagedResourcePaths: string;
     MaxFileSize: string;
     MaxPostSize: string;
@@ -471,7 +473,7 @@ export type TeamSettings = {
     TeammateNameDisplay: string;
     ExperimentalEnableAutomaticReplies: boolean;
     LockTeammateNameDisplay: boolean;
-    LockProfileFieldsForEmailUsers: string;
+    LockProfileFieldsForEmailUsers: LockProfileFieldsSetting;
     ExperimentalPrimaryTeam: string;
     ExperimentalDefaultChannels: string[];
     EnableLastActiveTime: boolean;

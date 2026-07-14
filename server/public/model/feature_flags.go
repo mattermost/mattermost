@@ -30,8 +30,6 @@ type FeatureFlags struct {
 	// Enable WYSIWYG text editor
 	WysiwygEditor bool
 
-	OnboardingTourTips bool
-
 	EnableExportDirectDownload bool
 
 	MoveThreadsEnabled bool
@@ -151,7 +149,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AppsEnabled = false
 	f.NormalizeLdapDNs = false
 	f.WysiwygEditor = false
-	f.OnboardingTourTips = true
 	f.EnableExportDirectDownload = false
 	f.MoveThreadsEnabled = false
 	f.CloudDedicatedExportUI = false

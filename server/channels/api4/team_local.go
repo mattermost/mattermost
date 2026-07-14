@@ -152,12 +152,24 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 		}
 		auditRec.AddMeta("errors", errList)
 		if len(goodEmails) > 0 {
+			inviteData := email.InviteEmailData{
+				Team:             team,
+				Channels:         channels,
+				SenderName:       "Administrator",
+				SenderUserID:     "mmctl " + model.NewId(),
+				Invites:          goodEmails,
+				SiteURL:          *c.App.Config().ServiceSettings.SiteURL,
+				Message:          memberInvite.Message,
+				ErrorWhenNotSent: true,
+				IsSystemAdmin:    true,
+			}
 			var invitesWithErrors2 []*model.EmailInviteWithError
 			if len(channels) > 0 {
-				invitesWithErrors2, err = c.App.Srv().EmailService.SendInviteEmailsToTeamAndChannels(c.AppContext, team, channels, "Administrator", "mmctl "+model.NewId(), nil, goodEmails, nil, *c.App.Config().ServiceSettings.SiteURL, nil, memberInvite.Message, true, true, false)
+				invitesWithErrors2, err = c.App.Srv().EmailService.SendInviteEmailsToTeamAndChannels(c.AppContext, inviteData)
 				invitesWithErrors = append(invitesWithErrors, invitesWithErrors2...)
 			} else {
-				err = c.App.Srv().EmailService.SendInviteEmails(c.AppContext, team, "Administrator", "mmctl "+model.NewId(), goodEmails, nil, *c.App.Config().ServiceSettings.SiteURL, nil, false, true, false)
+				inviteData.ErrorWhenNotSent = false
+				err = c.App.Srv().EmailService.SendInviteEmails(c.AppContext, inviteData)
 			}
 
 			if err != nil {
@@ -196,7 +208,14 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 			c.Err = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": s}, "", http.StatusBadRequest)
 			return
 		}
-		err := c.App.Srv().EmailService.SendInviteEmails(c.AppContext, team, "Administrator", "mmctl "+model.NewId(), emailList, nil, *c.App.Config().ServiceSettings.SiteURL, nil, false, true, false)
+		err := c.App.Srv().EmailService.SendInviteEmails(c.AppContext, email.InviteEmailData{
+			Team:          team,
+			SenderName:    "Administrator",
+			SenderUserID:  "mmctl " + model.NewId(),
+			Invites:       emailList,
+			SiteURL:       *c.App.Config().ServiceSettings.SiteURL,
+			IsSystemAdmin: true,
+		})
 		if err != nil {
 			switch {
 			case errors.Is(err, email.NoRateLimiterError):
