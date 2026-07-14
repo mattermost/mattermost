@@ -133,9 +133,10 @@ func (sm *ServerManager) logsDir() string {
 	return filepath.Join(sm.cfg.ServerDir, "logs")
 }
 
-// launchServerB starts (or restarts) the Server B process. The stdout log file is
-// opened in append mode so restarts preserve earlier output.
-func (sm *ServerManager) launchServerB(logsDir string) error {
+// launchServerB starts (or restarts) the Server B process. When truncate is true the
+// stdout log is reset (fresh tool run, matching Server A); when false it is opened in
+// append mode so an in-run restart preserves the pre-restart output.
+func (sm *ServerManager) launchServerB(logsDir string, truncate bool) error {
 	sm.procB = exec.Command(sm.binary, "server")
 	sm.procB.Dir = sm.cfg.ServerDir
 	sm.procB.Env = append(os.Environ(), sm.commonEnv()...)
@@ -145,7 +146,11 @@ func (sm *ServerManager) launchServerB(logsDir string) error {
 		"MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@localhost/mattermost_node_test?sslmode=disable&connect_timeout=10&binary_parameters=yes",
 		"MM_LOGSETTINGS_FILELOCATION="+filepath.Join(logsDir, "server_b.log"),
 	)
-	outB, err := os.OpenFile(filepath.Join(logsDir, "server_b_stdout.log"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644)
+	flags := os.O_CREATE | os.O_WRONLY | os.O_APPEND
+	if truncate {
+		flags = os.O_CREATE | os.O_WRONLY | os.O_TRUNC
+	}
+	outB, err := os.OpenFile(filepath.Join(logsDir, "server_b_stdout.log"), flags, 0o644)
 	if err != nil {
 		return fmt.Errorf("create server B log file: %w", err)
 	}
@@ -186,7 +191,7 @@ func (sm *ServerManager) startServers(ctx context.Context) error {
 
 	// Server B
 	sm.logger.Info("Starting Server B", mlog.String("url", sm.cfg.ServerBURL))
-	if err := sm.launchServerB(logsDir); err != nil {
+	if err := sm.launchServerB(logsDir, true); err != nil {
 		stopProc(sm.procA)
 		return err
 	}
@@ -214,7 +219,7 @@ func (sm *ServerManager) StopServerB() {
 // StartServerB relaunches the Server B process and waits for it to become ready.
 func (sm *ServerManager) StartServerB(ctx context.Context) error {
 	sm.logger.Info("Restarting Server B", mlog.String("url", sm.cfg.ServerBURL))
-	if err := sm.launchServerB(sm.logsDir()); err != nil {
+	if err := sm.launchServerB(sm.logsDir(), false); err != nil {
 		return err
 	}
 	return sm.waitForServer(ctx, sm.cfg.ServerBURL, "Server B")
