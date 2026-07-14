@@ -4,15 +4,19 @@
 package sharedchannel
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -200,6 +204,192 @@ func TestAddTask_OriginRemoteIDMerge(t *testing.T) {
 			assert.Equal(t, tc.expectedOrigin, merged.originRemoteID)
 		})
 	}
+}
+
+// mockRCSForSync is a minimal no-op implementation of RemoteClusterServiceIFace that
+// records NotifySyncFailed calls for testing retry-exhaustion behaviour.
+type mockRCSForSync struct {
+	mu          sync.Mutex
+	notifyCalls []string
+}
+
+func (m *mockRCSForSync) NotifySyncFailed(remoteId string) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.notifyCalls = append(m.notifyCalls, remoteId)
+}
+func (m *mockRCSForSync) Shutdown() error { return nil }
+func (m *mockRCSForSync) Start() error    { return nil }
+func (m *mockRCSForSync) Active() bool    { return true }
+func (m *mockRCSForSync) AddTopicListener(topic string, listener remotecluster.TopicListener) string {
+	return ""
+}
+func (m *mockRCSForSync) RemoveTopicListener(listenerId string) {}
+func (m *mockRCSForSync) AddConnectionStateListener(listener remotecluster.ConnectionStateListener) string {
+	return ""
+}
+func (m *mockRCSForSync) RemoveConnectionStateListener(listenerId string) {}
+func (m *mockRCSForSync) SendMsg(_ context.Context, msg model.RemoteClusterMsg, rc *model.RemoteCluster, f remotecluster.SendMsgResultFunc) error {
+	// Simulate an unreachable remote: the enqueue succeeds (return nil) but the
+	// delivery fails and is reported asynchronously via the callback, mirroring how
+	// remotecluster.Service.sendMsg surfaces a failed HTTP send.
+	if f != nil {
+		f(msg, rc, &remotecluster.Response{Err: "remote unreachable"}, errors.New("remote unreachable"))
+	}
+	return nil
+}
+func (m *mockRCSForSync) SendFile(_ context.Context, _ *model.UploadSession, _ *model.FileInfo, _ *model.RemoteCluster, _ remotecluster.ReaderProvider, _ remotecluster.SendFileResultFunc) error {
+	return errors.New("remote unreachable")
+}
+func (m *mockRCSForSync) SendProfileImage(_ context.Context, _ string, _ *model.RemoteCluster, _ remotecluster.ProfileImageProvider, _ remotecluster.SendProfileImageResultFunc) error {
+	return errors.New("remote unreachable")
+}
+func (m *mockRCSForSync) AcceptInvitation(_ *model.RemoteClusterInvite, _, _, _, _, _ string) (*model.RemoteCluster, error) {
+	return nil, nil
+}
+func (m *mockRCSForSync) ReceiveIncomingMsg(_ *model.RemoteCluster, _ model.RemoteClusterMsg) remotecluster.Response {
+	return remotecluster.Response{}
+}
+func (m *mockRCSForSync) ReceiveInviteConfirmation(_ model.RemoteClusterInvite) (*model.RemoteCluster, error) {
+	return nil, nil
+}
+func (m *mockRCSForSync) PingNow(_ *model.RemoteCluster) {}
+
+var _ remotecluster.RemoteClusterServiceIFace = (*mockRCSForSync)(nil)
+
+// TestProcessTask_RetryDelay verifies that a failed per-remote sync re-enqueues the task
+// with a schedule at least SyncRetryDelay in the future.
+func TestProcessTask_RetryDelay(t *testing.T) {
+	channelID := model.NewId()
+	remoteID := model.NewId()
+
+	rc := &model.RemoteCluster{
+		RemoteId:    remoteID,
+		DisplayName: "test-remote",
+		LastPingAt:  model.GetMillis(), // online
+	}
+
+	rcStoreMock := &mocks.RemoteClusterStore{}
+	rcStoreMock.On("Get", remoteID, false).Return(rc, nil)
+
+	mockStore := &mocks.Store{}
+	mockStore.On("RemoteCluster").Return(rcStoreMock)
+
+	mockServer := &MockServerIface{}
+	mockServer.On("GetStore").Return(mockStore)
+	mockServer.On("GetMetrics").Return(nil)
+	mockServer.On("GetRemoteClusterService").Return(nil) // nil rcs causes syncForRemote to fail immediately
+
+	scs := &Service{
+		server:       mockServer,
+		changeSignal: make(chan struct{}, 1),
+		tasks:        make(map[string]syncTask),
+	}
+
+	task := newSyncTask(channelID, "", remoteID, nil, nil)
+	scs.addTask(task)
+
+	before := time.Now()
+	scs.doSync()
+
+	scs.mux.RLock()
+	tasksCopy := make(map[string]syncTask, len(scs.tasks))
+	for k, v := range scs.tasks {
+		tasksCopy[k] = v
+	}
+	scs.mux.RUnlock()
+
+	require.Len(t, tasksCopy, 1, "failed task should be re-enqueued for retry")
+	for _, retried := range tasksCopy {
+		assert.Equal(t, 1, retried.retryCount, "retry count should be 1 after first failure")
+		assert.True(t, retried.schedule.After(before.Add(SyncRetryDelay-time.Second)),
+			"re-enqueued task schedule should be at least SyncRetryDelay in the future (got %s, want after %s)",
+			retried.schedule, before.Add(SyncRetryDelay))
+	}
+}
+
+// TestProcessTask_NotifySyncFailedOnRetryExhaustion verifies that when per-remote retries
+// are exhausted, NotifySyncFailed is called on the remote cluster service.
+func TestProcessTask_NotifySyncFailedOnRetryExhaustion(t *testing.T) {
+	channelID := model.NewId()
+	remoteID := model.NewId()
+
+	rc := &model.RemoteCluster{
+		RemoteId:    remoteID,
+		DisplayName: "test-remote",
+		LastPingAt:  model.GetMillis(), // online
+	}
+
+	mockRCS := &mockRCSForSync{}
+
+	rcStoreMock := &mocks.RemoteClusterStore{}
+	rcStoreMock.On("Get", remoteID, false).Return(rc, nil)
+
+	scStoreMock := &mocks.SharedChannelStore{}
+	scStoreMock.On("GetRemoteByIds", channelID, remoteID).Return(nil, errors.New("db error"))
+
+	mockStore := &mocks.Store{}
+	mockStore.On("RemoteCluster").Return(rcStoreMock)
+	mockStore.On("SharedChannel").Return(scStoreMock)
+
+	mockServer := &MockServerIface{}
+	mockServer.On("GetStore").Return(mockStore)
+	mockServer.On("GetMetrics").Return(nil)
+	mockServer.On("GetRemoteClusterService").Return(mockRCS)
+	mockServer.On("Log").Return(mlog.CreateConsoleTestLogger(t))
+
+	scs := &Service{
+		server:       mockServer,
+		changeSignal: make(chan struct{}, 1),
+		tasks:        make(map[string]syncTask),
+	}
+
+	task := newSyncTask(channelID, "", remoteID, nil, nil)
+	task.retryCount = MaxRetries // next incRetry() returns false → exhaustion path
+	scs.addTask(task)
+
+	scs.doSync()
+
+	// Task must be drained (not re-enqueued) after retry exhaustion.
+	scs.mux.RLock()
+	taskCount := len(scs.tasks)
+	scs.mux.RUnlock()
+	assert.Equal(t, 0, taskCount, "exhausted task should not be re-enqueued")
+
+	// NotifySyncFailed must have been called exactly once with the correct remoteId so
+	// the next successful ping triggers a full ForceSyncForRemote recovery.
+	mockRCS.mu.Lock()
+	notifyCalls := mockRCS.notifyCalls
+	mockRCS.mu.Unlock()
+	require.Len(t, notifyCalls, 1, "NotifySyncFailed should be called exactly once")
+	assert.Equal(t, remoteID, notifyCalls[0])
+}
+
+// TestSendSyncMsgToRemote_PropagatesDeliveryFailure guards the fix for the offline-recovery
+// bug: a send that fails asynchronously (remote unreachable) is reported via the callback and
+// must propagate out of sendSyncMsgToRemote so the caller retries and, on exhaustion, calls
+// NotifySyncFailed. Before the fix the callback error was silently discarded and the send
+// appeared to succeed.
+func TestSendSyncMsgToRemote_PropagatesDeliveryFailure(t *testing.T) {
+	mockRCS := &mockRCSForSync{}
+
+	mockServer := &MockServerIface{}
+	mockServer.On("GetRemoteClusterService").Return(mockRCS)
+	mockServer.On("Log").Return(mlog.CreateConsoleTestLogger(t))
+
+	scs := &Service{
+		server:       mockServer,
+		changeSignal: make(chan struct{}, 1),
+		tasks:        make(map[string]syncTask),
+	}
+
+	rc := &model.RemoteCluster{RemoteId: model.NewId(), Name: "test-remote", SiteURL: "http://example.invalid"}
+	msg := model.NewSyncMsg(model.NewId())
+
+	err := scs.sendSyncMsgToRemote(msg, rc, nil)
+
+	require.Error(t, err, "a delivery failure reported via the callback must propagate to the caller")
+	assert.ErrorContains(t, err, "remote unreachable")
 }
 
 func TestStripSharedChannelStatePostsForSync(t *testing.T) {

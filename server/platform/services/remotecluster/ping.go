@@ -17,16 +17,24 @@ import (
 func (rcs *Service) PingNow(rc *model.RemoteCluster) {
 	online := rc.IsOnline()
 
-	if err := rcs.pingRemote(rc); err != nil {
+	pingErr := rcs.pingRemote(rc)
+	if pingErr != nil {
 		rcs.server.Log().LogM(mlog.MlvlRemoteClusterServiceWarn, "Remote cluster ping failed",
 			mlog.String("remote", rc.DisplayName),
 			mlog.String("remoteId", rc.RemoteId),
 			mlog.String("pluginId", rc.PluginID),
-			mlog.Err(err),
+			mlog.Err(pingErr),
 		)
 	}
 
-	if online != rc.IsOnline() {
+	pingSucceeded := pingErr == nil
+	hasPendingSync := false
+	if pingSucceeded {
+		prev, _ := rcs.syncFailedSinceLastPing.Swap(rc.RemoteId, false)
+		hasPendingSync, _ = prev.(bool)
+	}
+
+	if online != rc.IsOnline() || (pingSucceeded && hasPendingSync) {
 		if metrics := rcs.server.GetMetrics(); metrics != nil {
 			metrics.IncrementRemoteClusterConnStateChangeCounter(rc.RemoteId, rc.IsOnline())
 		}

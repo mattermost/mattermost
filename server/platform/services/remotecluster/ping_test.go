@@ -17,6 +17,8 @@ import (
 	"github.com/wiggin77/merror"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
 const (
@@ -184,6 +186,121 @@ func TestPing(t *testing.T) {
 		assert.Eventually(t, checkPingCount, time.Second*5, 10*time.Millisecond)
 		assert.Eventually(t, checkErrorCount, time.Second*5, 10*time.Millisecond)
 	})
+}
+
+// TestPingNow_SyncFailureRecovery verifies that PingNow fires a connection-state-change
+// event when a sync failure was recorded since the last ping, even if the remote never
+// appeared offline (LastPingAt stayed within the 5-minute window).
+func TestPingNow_SyncFailureRecovery(t *testing.T) {
+	var listenerCalls int
+	var listenerOnline bool
+	var listenerMu sync.Mutex
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		pong, _ := json.Marshal(model.RemoteClusterPing{SentAt: model.GetMillis(), RecvAt: model.GetMillis()})
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(pong)
+	}))
+	defer ts.Close()
+
+	anyId := mock.AnythingOfType("string")
+	rcStoreMock := &mocks.RemoteClusterStore{}
+	rcStoreMock.On("SetLastPingAt", anyId).Return(nil)
+	storeMock := &mocks.Store{}
+	storeMock.On("RemoteCluster").Return(rcStoreMock)
+
+	mockServer := newMockServerWithStore(t, storeMock)
+	mockApp := newMockApp(t, nil)
+
+	service, err := NewRemoteClusterService(mockServer, mockApp)
+	require.NoError(t, err)
+
+	listenerId := service.AddConnectionStateListener(func(rc *model.RemoteCluster, online bool) {
+		listenerMu.Lock()
+		defer listenerMu.Unlock()
+		listenerCalls++
+		listenerOnline = online
+	})
+	defer service.RemoveConnectionStateListener(listenerId)
+
+	rc := &model.RemoteCluster{
+		RemoteId:    model.NewId(),
+		DisplayName: "test-remote",
+		SiteURL:     ts.URL,
+		Token:       model.NewId(),
+		RemoteToken: model.NewId(),
+		LastPingAt:  model.GetMillis(), // already online — IsOnline() won't flip
+	}
+
+	// Simulate a sync failure that occurred since the last ping.
+	service.syncFailedSinceLastPing.Store(rc.RemoteId, true)
+
+	service.PingNow(rc)
+
+	listenerMu.Lock()
+	calls := listenerCalls
+	wasOnline := listenerOnline
+	listenerMu.Unlock()
+
+	assert.Equal(t, 1, calls, "connection state listener should fire exactly once on sync failure recovery")
+	assert.True(t, wasOnline, "listener should report online=true")
+
+	// Flag must be cleared after a successful ping so subsequent pings don't re-fire.
+	val, _ := service.syncFailedSinceLastPing.Load(rc.RemoteId)
+	b, _ := val.(bool)
+	assert.False(t, b, "syncFailedSinceLastPing should be cleared after successful ping")
+}
+
+// TestPingNow_NoSpuriousFire verifies that PingNow does NOT fire a connection-state-change
+// event when the remote stays online and no sync failure flag is set.
+func TestPingNow_NoSpuriousFire(t *testing.T) {
+	var listenerCalls int
+	var listenerMu sync.Mutex
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		pong, _ := json.Marshal(model.RemoteClusterPing{SentAt: model.GetMillis(), RecvAt: model.GetMillis()})
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(pong)
+	}))
+	defer ts.Close()
+
+	anyId := mock.AnythingOfType("string")
+	rcStoreMock := &mocks.RemoteClusterStore{}
+	rcStoreMock.On("SetLastPingAt", anyId).Return(nil)
+	storeMock := &mocks.Store{}
+	storeMock.On("RemoteCluster").Return(rcStoreMock)
+
+	mockServer := newMockServerWithStore(t, storeMock)
+	mockApp := newMockApp(t, nil)
+
+	service, err := NewRemoteClusterService(mockServer, mockApp)
+	require.NoError(t, err)
+
+	listenerId := service.AddConnectionStateListener(func(rc *model.RemoteCluster, online bool) {
+		listenerMu.Lock()
+		defer listenerMu.Unlock()
+		listenerCalls++
+	})
+	defer service.RemoveConnectionStateListener(listenerId)
+
+	rc := &model.RemoteCluster{
+		RemoteId:    model.NewId(),
+		DisplayName: "test-remote",
+		SiteURL:     ts.URL,
+		Token:       model.NewId(),
+		RemoteToken: model.NewId(),
+		LastPingAt:  model.GetMillis(), // already online, no sync failure flag set
+	}
+
+	service.PingNow(rc)
+
+	listenerMu.Lock()
+	calls := listenerCalls
+	listenerMu.Unlock()
+
+	assert.Equal(t, 0, calls, "listener must not fire when remote stays online and no sync failure flag is set")
 }
 
 func checkRecent(millis int64, within int64) bool {

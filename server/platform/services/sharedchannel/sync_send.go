@@ -343,6 +343,7 @@ func (scs *Service) doSync() time.Duration {
 		if err := scs.processTask(task); err != nil {
 			// put task back into map so it will update again
 			if task.incRetry() {
+				task.schedule = time.Now().Add(SyncRetryDelay)
 				scs.addTask(task)
 			} else {
 				scs.server.Log().Error("Failed to synchronize shared channel",
@@ -453,8 +454,16 @@ func (scs *Service) processTask(task syncTask) error {
 		if err := scs.syncForRemote(rtask, rc); err != nil {
 			// retry...
 			if rtask.incRetry() {
+				rtask.schedule = time.Now().Add(SyncRetryDelay)
 				scs.addTask(rtask)
 			} else {
+				// Notify the remote cluster service that a sync failed for this remote.
+				// On the next successful ping it fires a connection-state-change event,
+				// triggering ForceSyncForRemote — this recovers short outages where the
+				// remote never crossed the IsOnline() offline threshold.
+				if rcs := scs.server.GetRemoteClusterService(); rcs != nil {
+					rcs.NotifySyncFailed(rc.RemoteId)
+				}
 				scs.server.Log().Error("Failed to synchronize shared channel for remote cluster",
 					mlog.String("channelId", rtask.channelID),
 					mlog.String("remote", rc.DisplayName),

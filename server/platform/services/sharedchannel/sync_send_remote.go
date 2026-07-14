@@ -1209,6 +1209,9 @@ func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteClus
 	var wg sync.WaitGroup
 	wg.Add(1)
 
+	// sendErr captures a delivery failure reported asynchronously via the callback.
+	var sendErr error
+
 	err = rcs.SendMsg(ctx, rcMsg, rc, func(rcMsg model.RemoteClusterMsg, rc *model.RemoteCluster, rcResp *remotecluster.Response, errResp error) {
 		defer wg.Done()
 
@@ -1218,33 +1221,45 @@ func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteClus
 			return
 		}
 
-		var syncResp model.SyncResponse
-		if errResp == nil {
-			if rcResp != nil && len(rcResp.Payload) > 0 {
-				if err2 := json.Unmarshal(rcResp.Payload, &syncResp); err2 != nil {
-					scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Invalid sync msg response from remote cluster",
-						mlog.String("remote", rc.Name),
-						mlog.String("channel_id", msg.ChannelId),
-						mlog.Err(err2),
-					)
-					return
-				}
+		// A delivery failure (e.g. the remote is unreachable) must propagate to the
+		// caller so the task is retried and, on retry exhaustion, the remote cluster
+		// service is notified to force a resync once the remote is back online.
+		// Without this, a failed send is silently dropped and the content never
+		// re-syncs until the next organic change in the channel.
+		if errResp != nil {
+			sendErr = errResp
+			return
+		}
 
-				if f != nil {
-					f(syncResp, errResp)
-				}
-			} else {
-				// No error but response is nil or empty
-				scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Empty or nil response payload from remote cluster",
+		var syncResp model.SyncResponse
+		if rcResp != nil && len(rcResp.Payload) > 0 {
+			if err2 := json.Unmarshal(rcResp.Payload, &syncResp); err2 != nil {
+				scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Invalid sync msg response from remote cluster",
 					mlog.String("remote", rc.Name),
 					mlog.String("channel_id", msg.ChannelId),
+					mlog.Err(err2),
 				)
+				return
 			}
+
+			if f != nil {
+				f(syncResp, errResp)
+			}
+		} else {
+			// No error but response is nil or empty
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Empty or nil response payload from remote cluster",
+				mlog.String("remote", rc.Name),
+				mlog.String("channel_id", msg.ChannelId),
+			)
 		}
 	})
 
+	// If the enqueue itself failed the callback never runs, so don't wait on it.
+	if err != nil {
+		return err
+	}
 	wg.Wait()
-	return err
+	return sendErr
 }
 
 // sendSyncMsgToRemote synchronously sends the sync message to a plugin.
