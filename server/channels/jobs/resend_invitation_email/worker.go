@@ -25,12 +25,19 @@ type AppIface interface {
 	InviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *model.MemberInvite, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError)
 }
 
+type jobServer interface {
+	Logger() mlog.LoggerIFace
+	HandleJobPanic(logger mlog.LoggerIFace, job *model.Job)
+	SetJobSuccess(job *model.Job) *model.AppError
+	SetJobError(job *model.Job, jobError *model.AppError) *model.AppError
+}
+
 type ResendInvitationEmailWorker struct {
 	name      string
 	stop      chan bool
 	stopped   chan bool
 	jobs      chan model.Job
-	jobServer *jobs.JobServer
+	jobServer jobServer
 	logger    mlog.LoggerIFace
 	app       AppIface
 	store     store.Store
@@ -91,7 +98,9 @@ func (rseworker *ResendInvitationEmailWorker) DoJob(job *model.Job) {
 
 	elapsedTimeSinceSchedule, DurationInMillis := rseworker.GetDurations(job)
 	if elapsedTimeSinceSchedule > DurationInMillis {
-		rseworker.ResendEmails(logger, job, "48")
+		if !rseworker.ResendEmails(logger, job, "48") {
+			return
+		}
 		rseworker.TearDown(logger, job)
 	}
 }
@@ -185,7 +194,7 @@ func (rseworker *ResendInvitationEmailWorker) TearDown(logger mlog.LoggerIFace, 
 	rseworker.setJobSuccess(logger, job)
 }
 
-func (rseworker *ResendInvitationEmailWorker) ResendEmails(logger mlog.LoggerIFace, job *model.Job, interval string) {
+func (rseworker *ResendInvitationEmailWorker) ResendEmails(logger mlog.LoggerIFace, job *model.Job, interval string) bool {
 	rctx := request.EmptyContext(logger)
 
 	teamID := job.Data["teamID"]
@@ -224,9 +233,9 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(logger mlog.LoggerIFa
 			appErr := model.NewAppError("worker: "+rseworker.name, "job_id: "+job.Id, nil, "", http.StatusInternalServerError).Wrap(err)
 			logger.Error("Worker: Failed to clean profiles string data", mlog.Err(appErr))
 			rseworker.setJobError(logger, job, appErr)
-		} else {
-			memberInvite.Profiles = profiles
+			return false
 		}
+		memberInvite.Profiles = profiles
 	}
 
 	_, appErr := rseworker.app.InviteNewUsersToTeamGracefully(rctx, &memberInvite, teamID, job.Data["senderID"], interval)
@@ -234,4 +243,5 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(logger mlog.LoggerIFa
 		logger.Error("Worker: Failed to send emails", mlog.Err(appErr))
 		rseworker.setJobError(logger, job, appErr)
 	}
+	return true
 }

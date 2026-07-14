@@ -122,6 +122,16 @@ func TestSendInviteEmails(t *testing.T) {
 	err := mail.DeleteMailBox(emailTo)
 	require.NoError(t, err, "Failed to delete mailbox")
 
+	newInviteData := func() InviteEmailData {
+		return InviteEmailData{
+			Team:         th.BasicTeam,
+			SenderName:   "test-user",
+			SenderUserID: th.BasicUser.Id,
+			Invites:      []string{emailTo},
+			SiteURL:      "http://testserver",
+		}
+	}
+
 	retrieveEmail := func(t *testing.T) mail.JSONMessageInbucket {
 		t.Helper()
 		var resultsMailbox mail.JSONMessageHeaderInbucket
@@ -157,7 +167,7 @@ func TestSendInviteEmails(t *testing.T) {
 		err := mail.DeleteMailBox(emailTo)
 		require.NoError(t, err, "Failed to delete mailbox")
 
-		err = th.service.SendInviteEmails(th.Context, th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, nil, "http://testserver", nil, false, false, false)
+		err = th.service.SendInviteEmails(th.Context, newInviteData())
 		require.NoError(t, err)
 
 		verifyMailbox(t)
@@ -175,10 +185,12 @@ func TestSendInviteEmails(t *testing.T) {
 			*cfg.EmailSettings.SMTPServerTimeout = originalTimeout
 		})
 
-		err := th.service.SendInviteEmails(th.Context, th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, nil, "http://testserver", nil, true, false, false)
+		inviteData := newInviteData()
+		inviteData.ErrorWhenNotSent = true
+		err := th.service.SendInviteEmails(th.Context, inviteData)
 		require.Error(t, err)
 
-		err = th.service.SendInviteEmails(th.Context, th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, nil, "http://testserver", nil, false, false, false)
+		err = th.service.SendInviteEmails(th.Context, newInviteData())
 		require.NoError(t, err)
 	})
 
@@ -285,19 +297,7 @@ func TestSendInviteEmails(t *testing.T) {
 		err := mail.DeleteMailBox(emailTo)
 		require.NoError(t, err, "Failed to delete mailbox")
 
-		err = th.service.SendInviteEmails(
-			th.Context,
-			th.BasicTeam,
-			"test-user",
-			th.BasicUser.Id,
-			[]string{emailTo},
-			nil,
-			"http://testserver",
-			nil,
-			false,
-			false,
-			false,
-		)
+		err = th.service.SendInviteEmails(th.Context, newInviteData())
 		require.NoError(t, err)
 
 		email := retrieveEmail(t)
@@ -308,19 +308,9 @@ func TestSendInviteEmails(t *testing.T) {
 		err := mail.DeleteMailBox(emailTo)
 		require.NoError(t, err, "Failed to delete mailbox")
 
-		err = th.service.SendInviteEmails(
-			th.Context,
-			th.BasicTeam,
-			"test-user",
-			th.BasicUser.Id,
-			[]string{emailTo},
-			nil,
-			"http://testserver",
-			nil,
-			false,
-			true,
-			false,
-		)
+		inviteData := newInviteData()
+		inviteData.IsSystemAdmin = true
+		err = th.service.SendInviteEmails(th.Context, inviteData)
 		require.NoError(t, err)
 
 		email := retrieveEmail(t)
@@ -331,19 +321,10 @@ func TestSendInviteEmails(t *testing.T) {
 		err := mail.DeleteMailBox(emailTo)
 		require.NoError(t, err, "Failed to delete mailbox")
 
-		err = th.service.SendInviteEmails(
-			th.Context,
-			th.BasicTeam,
-			"test-user",
-			th.BasicUser.Id,
-			[]string{emailTo},
-			nil,
-			"http://testserver",
-			nil,
-			false,
-			true,
-			true,
-		)
+		inviteData := newInviteData()
+		inviteData.IsSystemAdmin = true
+		inviteData.IsFirstAdmin = true
+		err = th.service.SendInviteEmails(th.Context, inviteData)
 		require.NoError(t, err)
 
 		email := retrieveEmail(t)
@@ -363,7 +344,9 @@ func TestSendInviteEmails(t *testing.T) {
 			},
 		}
 
-		err = th.service.SendInviteEmails(th.Context, th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, profiles, "http://testserver", nil, false, false, false)
+		inviteData := newInviteData()
+		inviteData.Profiles = profiles
+		err = th.service.SendInviteEmails(th.Context, inviteData)
 		require.NoError(t, err)
 
 		email := retrieveEmail(t)
@@ -393,7 +376,10 @@ func TestSendInviteEmails(t *testing.T) {
 			},
 		}
 
-		_, err = th.service.SendInviteEmailsToTeamAndChannels(th.Context, th.BasicTeam, []*model.Channel{th.BasicChannel}, "test-user", th.BasicUser.Id, nil, []string{emailTo}, profiles, "http://testserver", nil, "", false, false, false)
+		inviteData := newInviteData()
+		inviteData.Channels = []*model.Channel{th.BasicChannel}
+		inviteData.Profiles = profiles
+		_, err = th.service.SendInviteEmailsToTeamAndChannels(th.Context, inviteData)
 		require.NoError(t, err)
 
 		email := retrieveEmail(t)
@@ -413,7 +399,7 @@ func TestSendInviteEmails(t *testing.T) {
 		err := mail.DeleteMailBox(emailTo)
 		require.NoError(t, err, "Failed to delete mailbox")
 
-		err = th.service.SendInviteEmails(th.Context, th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, nil, "http://testserver", nil, false, false, false)
+		err = th.service.SendInviteEmails(th.Context, newInviteData())
 		require.NoError(t, err)
 
 		email := retrieveEmail(t)

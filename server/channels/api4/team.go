@@ -1712,14 +1712,14 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		for _, profile := range memberInvite.Profiles {
-			profile.Email = strings.ToLower(profile.Email)
-			profile.Username = strings.ToLower(profile.Username)
-		}
-
 		if appErr := memberInvite.IsValid(); appErr != nil {
 			c.Err = appErr
 			return
+		}
+
+		for _, profile := range memberInvite.Profiles {
+			profile.Email = strings.ToLower(profile.Email)
+			profile.Username = strings.ToLower(profile.Username)
 		}
 	}
 
