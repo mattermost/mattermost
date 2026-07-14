@@ -73,6 +73,7 @@ require (
 	github.com/tylerb/graceful v1.2.15
 	github.com/vmihailenco/msgpack/v5 v5.4.1
 	github.com/wiggin77/merror v1.0.5
+	github.com/wneessen/go-mail v0.7.3
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c
 	github.com/yuin/goldmark v1.8.2
 	golang.org/x/crypto v0.53.0
@@ -82,7 +83,6 @@ require (
 	golang.org/x/sys v0.46.0
 	golang.org/x/term v0.44.0
 	golang.org/x/text v0.38.0
-	gopkg.in/mail.v2 v2.3.1
 )
 
 require (
@@ -225,7 +225,6 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260511170946-3700d4141b60 // indirect
 	google.golang.org/grpc v1.81.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
-	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

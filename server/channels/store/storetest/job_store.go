@@ -666,14 +666,15 @@ func testJobUpdateOptimistically(t *testing.T, rctx request.CTX, ss store.Store)
 		"Foo": "Bar",
 	}
 
-	updated, err := ss.Job().UpdateOptimistically(job, model.JobStatusSuccess)
-	require.False(t, err != nil && updated)
+	ret, err := ss.Job().UpdateOptimistically(job, model.JobStatusSuccess)
+	require.NoError(t, err)
+	require.Nil(t, ret)
 
 	time.Sleep(2 * time.Millisecond)
 
-	updated, err = ss.Job().UpdateOptimistically(job, model.JobStatusPending)
+	ret, err = ss.Job().UpdateOptimistically(job, model.JobStatusPending)
 	require.NoError(t, err)
-	require.True(t, updated)
+	require.NotNil(t, ret)
 
 	updatedJob, err := ss.Job().Get(rctx, job.Id)
 	require.NoError(t, err)

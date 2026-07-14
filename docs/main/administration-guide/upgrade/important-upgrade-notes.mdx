@@ -1,6 +1,5 @@
 ---
 title: "Important Upgrade Notes"
-draft: true
 ---
 import Inc0_common_esr_support_rst from '../../product-overview/common-esr-support-rst.mdx';
 
@@ -19,11 +18,195 @@ We recommend reviewing the [additional upgrade notes](#additional-upgrade-notes)
 </colgroup>
 <tbody>
 <tr>
-<td rowspan="2"><blockquote><p>If you're upgrading from a version earlier than...</p></blockquote><dl><dt>====================================================</dt><dd><p>v11.6</p></dd></dl></td>
-<td colspan="2" rowspan="2"><blockquote><p>Then...</p></blockquote><dl><dt>==================================================================================================================================================================</dt><dd><p>Single-channel guests are no longer counted toward the primary licensed seat count and are permitted free up to a 1:1 ratio with licensed seats. A new stat card, license row, and admin banner provide visibility into single-channel guest usage and overage warnings.</p></dd></dl></td>
+<td rowspan="8">v11.8</td>
+<td colspan="2">The Custom Profile Attributes property group is renamed from <code>custom_profile_attributes</code> to <code>access_control</code>, and CPA fields and values are migrated from the legacy property model to the v2 model. The functionality of the CPA feature is unchanged. Plugin developers that use CPA will need to register against the new group name.</td>
 <td></td>
 </tr>
 <tr>
+<td colspan="2"><p>Added a new <code>Version</code> column to the <code>PropertyGroups</code> table to distinguish PSAv1 (legacy) groups from PSAv2 groups. Existing groups default to version 1, preserving current behavior for all legacy callers. <code>PropertyGroups</code> is a small configuration-like table, and the <code>ADD COLUMN ... DEFAULT 1 NOT NULL</code> is a metadata-only operation in PostgreSQL — no table rewrite occurs and the <code>AccessExclusiveLock</code> on <code>PropertyGroups</code> is held only for milliseconds. The migrations are fully backwards-compatible and no database downtime is expected for this upgrade. The SQL queries included are:</p><pre><code>-- Pre-upgrade schema changes (Mattermost 11.8).
+ALTER TABLE PropertyGroups ADD COLUMN IF NOT EXISTS Version integer DEFAULT 1 NOT NULL;</code></pre></td>
+<td></td>
+</tr>
+<tr>
+<td colspan="2"><p>Raised the PostgreSQL planner statistics target for <code>posts.rootid</code> and <code>posts.channelid</code> from the default 100 to 5000, and refreshes planner statistics with <code>ANALYZE posts (rootid, channelid)</code>. The <code>ALTER COLUMN ... SET STATISTICS</code> statements are metadata-only operations that acquire only a <code>SHARE UPDATE EXCLUSIVE</code> lock — no table rewrite occurs and concurrent SELECT, INSERT, UPDATE, and DELETE on <code>posts</code> remain unblocked. The <code>ANALYZE</code> step may take several minutes on large <code>posts</code> tables (100M+ rows) due to the larger sample size, but does not block reads or writes. The migrations are fully backwards-compatible and no database downtime is expected for this upgrade. The SQL queries included are:</p><pre><code>ALTER TABLE posts ALTER COLUMN rootid SET STATISTICS 5000;
+ALTER TABLE posts ALTER COLUMN channelid SET STATISTICS 5000;
+ANALYZE posts (rootid, channelid);</code></pre></td>
+<td></td>
+</tr>
+<tr>
+<td colspan="2"><p>Extended the <code>channel_type</code> enum with two new values: <code>'BO'</code> and <code>'BP'</code>. The <code>ALTER TYPE ... ADD VALUE</code> statements acquire a brief <code>AccessExclusiveLock</code> on the <code>channel_type</code> type only — no table rewrite occurs and no row-level locking is applied to the <code>channels</code> table, making the operation near-instant. The migrations are fully backwards-compatible and no database downtime is expected for this upgrade. The SQL queries included are:</p><pre><code>ALTER TYPE channel_type ADD VALUE IF NOT EXISTS 'BO';
+ALTER TYPE channel_type ADD VALUE IF NOT EXISTS 'BP';</code></pre></td>
+<td></td>
+</tr>
+<tr>
+<td colspan="2"><p>Introduced four schema migrations to the property and attribute system (<code>PropertyFields</code>, <code>PropertyGroups</code>, <code>AttributeView</code>) as part of the same release cycle. Migrations 000168 and 000169 add a nullable <code>LinkedFieldID varchar(26)</code> column to <code>PropertyFields</code> and a partial concurrent index over it, enabling fields to reference another field as a link. Migrations 000176 and 000177 promote the existing Custom Profile Attributes property group to a more general <code>access_control</code> group by updating permission columns on <code>PropertyFields</code> rows, renaming the <code>PropertyGroups</code> entry from <code>custom_profile_attributes</code> to <code>access_control</code>, and narrowing the <code>AttributeView</code> materialized view to user-scoped attributes only. <strong>Migrations 000176 and 000177 must ship together.</strong> None of the affected tables are in the large-table list — the property system tables are small. Note: during the rolling-upgrade window, old-ESR nodes hard-coding <code>'custom_profile_attributes'</code> as the group lookup key will experience transient failures on CPA profile read/write endpoints and the ABAC policy-management admin UI; end-user channel access and the membership sync worker are unaffected. The migrations are fully backwards-compatible and no database downtime is expected for this upgrade. The SQL queries included are:</p><pre><code>-- 000168: Add LinkedFieldID column
+ALTER TABLE PropertyFields ADD COLUMN IF NOT EXISTS LinkedFieldID varchar(26);
+-- 000169: Create partial index on LinkedFieldID
+CREATE INDEX CONCURRENTLY idx_propertyfields_linkedfieldid ON PropertyFields(LinkedFieldID) WHERE LinkedFieldID IS NOT NULL AND DeleteAt = 0;
+-- 000176: Migrate CPA to access_control
+UPDATE PropertyFields SET ObjectType = 'user' WHERE GroupID = (SELECT Id FROM PropertyGroups WHERE Name = 'custom_profile_attributes');
+UPDATE PropertyGroups SET Name = 'access_control', Version = 2 WHERE Name = 'custom_profile_attributes';
+-- 000177: Refresh AttributeView with user-scoped filter
+DROP MATERIALIZED VIEW AttributeView;
+CREATE MATERIALIZED VIEW AttributeView ... WHERE pf.ObjectType = 'user';</code></pre></td>
+<td></td>
+</tr>
+<tr>
+<td colspan="2"><p>Mattermost v11.8 introduces schema changes to the <code>Recaps</code> table in the form of a new <code>ViewedAt</code> column and a new index on <code>(UserId, ViewedAt)</code>. The column is added as a metadata-only operation, and the index is created using <code>CONCURRENTLY</code>, meaning no table locks are acquired and existing operations on the table are not impacted. The migrations are fully backwards-compatible and no database downtime is expected for this upgrade. The SQL queries included are:</p><pre><code>-- 000172_add_recaps_viewed_at.up.sql
+ALTER TABLE Recaps ADD COLUMN IF NOT EXISTS ViewedAt BIGINT NOT NULL DEFAULT 0;
+-- 000172_add_recaps_viewed_at.down.sql
+ALTER TABLE Recaps DROP COLUMN IF EXISTS ViewedAt;
+-- 000173_create_recaps_user_id_viewed_at_index.up.sql
+-- morph:nontransactional
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_recaps_user_id_viewed_at ON Recaps(UserId, ViewedAt);
+-- 000173_create_recaps_user_id_viewed_at_index.down.sql
+-- morph:nontransactional
+DROP INDEX CONCURRENTLY IF EXISTS idx_recaps_user_id_viewed_at;</code></pre></td>
+<td></td>
+</tr>
+<tr>
+<td colspan="2"><p>Mattermost v11.8 introduces six schema changes supporting a new channel join request workflow and discoverable private channels. A <code>Discoverable</code> boolean column (<code>DEFAULT FALSE</code>) is added to the <code>Channels</code> table as a metadata-only operation that completes instantaneously on PostgreSQL 11+. A new <code>ChannelJoinRequests</code> table is created to manage access request workflows, tracking request status, denial reasons, and reviewer information. Four concurrent indexes are then added: a partial index on <code>Channels</code> for discoverable team channels (<code>idx_channels_discoverable_team</code>), a unique partial index on <code>ChannelJoinRequests</code> for pending requests (<code>idx_channeljoinrequests_pending_unique</code>), and two composite indexes optimizing queries by channel+status and user+status respectively. All index operations use <code>CONCURRENTLY</code> and must be run outside explicit transaction blocks. These migrations are PostgreSQL-only. The migrations are fully backwards-compatible and no database downtime is expected for this upgrade. The SQL queries included are:</p><pre><code>-- Migration 000178: Add Discoverable column
+ALTER TABLE Channels ADD COLUMN IF NOT EXISTS Discoverable BOOLEAN NOT NULL DEFAULT FALSE;</code></pre><pre><code>-- Migration 000179: Partial index for discoverable channels
+-- Run outside a transaction block.
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_channels_discoverable_team
+    ON Channels (TeamId)
+    WHERE Discoverable = TRUE AND Type = 'P' AND DeleteAt = 0;</code></pre><pre><code>-- Migration 000180: Create ChannelJoinRequests table
+CREATE TABLE IF NOT EXISTS ChannelJoinRequests (
+    Id           VARCHAR(26)  PRIMARY KEY,
+    ChannelId    VARCHAR(26)  NOT NULL,
+    UserId       VARCHAR(26)  NOT NULL,
+    Message      TEXT         NOT NULL DEFAULT '',
+    Status       VARCHAR(16)  NOT NULL DEFAULT 'pending',
+    DenialReason TEXT         NOT NULL DEFAULT '',
+    CreateAt     BIGINT       NOT NULL,
+    UpdateAt     BIGINT       NOT NULL,
+    ReviewedBy   VARCHAR(26)  NOT NULL DEFAULT '',
+    ReviewedAt   BIGINT       NOT NULL DEFAULT 0
+);</code></pre><pre><code>-- Migration 000181: Unique index for pending requests
+-- Run outside a transaction block.
+CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS idx_channeljoinrequests_pending_unique
+    ON ChannelJoinRequests (ChannelId, UserId)
+    WHERE Status = 'pending';</code></pre><pre><code>-- Migration 000182: Index for channel+status queries
+-- Run outside a transaction block.
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_channeljoinrequests_channel_status_createat
+    ON ChannelJoinRequests (ChannelId, Status, CreateAt DESC);</code></pre><pre><code>-- Migration 000183: Index for user+status queries
+-- Run outside a transaction block.
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_channeljoinrequests_user_status_createat
+    ON ChannelJoinRequests (UserId, Status, CreateAt DESC);</code></pre></td>
+<td></td>
+</tr>
+<tr>
+<td colspan="2"><p>Mattermost v11.8 extends the <code>permission_level</code> PostgreSQL enum type to include an <code>admin</code> value alongside the existing <code>none</code>, <code>sysadmin</code>, and <code>member</code> values. This is a pure catalog change — <code>ALTER TYPE ADD VALUE</code> updates only the <code>pg_type</code> system catalog and does not touch the <code>PropertyFields</code> table or any other application table. No columns, indexes, or table data are modified by the up migration. The change enables a new admin-level permission tier in the property field access control model. The migrations are fully backwards-compatible and no database downtime is expected for this upgrade. The SQL queries included are:</p><pre><code>-- 000189_add_admin_to_permission_level.up.sql
+ALTER TYPE permission_level ADD VALUE IF NOT EXISTS 'admin';</code></pre></td>
+<td></td>
+</tr>
+<tr>
+<td rowspan="6">v11.7</td>
+<td colspan="2">FIPS builds require a minimum of 14 characters for passwords, atmos/camo proxy configuration, and shared channel secrets. Shorter passwords for existing users will no longer be valid and require a password reset. Non-FIPS builds are unaffected.</td>
+<td></td>
+</tr>
+<tr>
+<td colspan="2"><p>Added a new partial unique index (<code>idx_accesscontrolpolicies_name_type</code>) to the <code>AccessControlPolicies</code> table on (Name, Type) filtered to <code>WHERE Type = 'parent'</code>. Before creating the index, duplicate parent policy names are resolved by appending the policy ID to all but the oldest entry. This enforces uniqueness of parent policy names and prevents future duplicates from being created. The migration targets <code>AccessControlPolicies</code>, not posts or reactions. For deployments where <code>AttributeBasedAccessControl</code> was not enabled, the table will be empty and the migration completes in under a second. For deployments where the flag was enabled, the number of parent policies is expected to remain small, so timing is still negligible. The <code>CREATE UNIQUE INDEX</code> (non-concurrent) takes a brief <code>SHARE</code> lock on <code>AccessControlPolicies</code>, blocking concurrent <code>INSERT/UPDATE/DELETE</code> for the duration of the index build. The <code>UPDATE</code> (deduplication) takes a <code>ROW EXCLUSIVE</code> lock on the same table. The migrations are fully backwards-compatible and no database downtime is expected for this upgrade. The SQL queries included are:</p><pre><code>-- PostgreSQL only (MySQL not supported in v11+):
+-- Deduplicate parent policy names before adding unique constraint.
+-- The oldest policy (by CreateAt) keeps its original name; duplicates get ' (&lt;id&gt;)' appended.
+UPDATE AccessControlPolicies AS p
+SET Name = LEFT(p.Name, 128 - LENGTH(' (' || p.ID || ')')) || ' (' || p.ID || ')'
+FROM (
+    SELECT ID, Name, ROW_NUMBER() OVER (PARTITION BY Name ORDER BY CreateAt ASC) AS rn
+    FROM AccessControlPolicies
+    WHERE Type = 'parent'
+) AS dupes
+WHERE p.ID = dupes.ID
+  AND dupes.rn > 1;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_accesscontrolpolicies_name_type
+    ON AccessControlPolicies (Name, Type)
+    WHERE Type = 'parent';</code></pre></td>
+<td></td>
+</tr>
+<tr>
+<td colspan="2"><p>The <code>PropertyFields</code> table is modified. Two new nullable columns, <code>CreatedBy</code> and <code>UpdatedBy</code>, are added to track which user created and last modified each field. A new <code>ObjectType</code> column is added with a <code>NOT NULL</code> constraint and an empty string default, to discriminate between legacy and typed property fields. A new <code>Protected</code> boolean column is added with a default of <code>FALSE</code>, along with three new columns (<code>PermissionField</code>, <code>PermissionValues</code>, <code>PermissionOptions</code>) using a new <code>permission_level</code> enum type with values none, sysadmin, and member. The existing unique index <code>idx_propertyfields_unique</code> on (GroupID, TargetID, Name) is dropped and replaced by two new partial unique indexes: <code>idx_propertyfields_unique_legacy</code> which covers legacy rows where <code>ObjectType = ''</code> and <code>idx_propertyfields_unique_typed</code> which covers typed rows where <code>ObjectType != ''</code>, indexing (<code>ObjectType</code>, <code>GroupID</code>, <code>TargetType</code>, <code>TargetID</code>, <code>Name</code>).</p><p>The <code>PropertyValues</code> table is modified. Two new nullable columns, <code>CreatedBy</code> and <code>UpdatedBy</code>, are added, matching the same tracking columns on <code>PropertyFields</code>.</p><p>A new <code>Views</code> table is created. A new index <code>idx_views_channel_id_delete_at</code> on (<code>ChannelId</code>, <code>DeleteAt</code>) is created for this table.</p><p>Migrations 160, 161, and 165 use <code>ALTER TABLE ADD COLUMN</code>, which briefly acquires a lock, but this is instant (metadata-only) on PostgreSQL 11+. All other migrations, including index creation and deletion, use CONCURRENTLY and are lock-free. These eight migrations are safe for zero-downtime deployment. They only affect low-row-count tables (<code>PropertyFields</code>, <code>PropertyValues</code>) and create a new empty table (<code>Views</code>), with no full-table data modifications, no column type changes, and minimal I/O from concurrent index operations. The migrations are fully backwards-compatible and no database downtime is expected for this upgrade. The SQL queries included are:</p><pre><code>--- 160
+ALTER TABLE PropertyFields
+ADD COLUMN IF NOT EXISTS CreatedBy varchar(26),
+ADD COLUMN IF NOT EXISTS UpdatedBy varchar(26);
+ALTER TABLE PropertyValues
+ADD COLUMN IF NOT EXISTS CreatedBy varchar(26),
+ADD COLUMN IF NOT EXISTS UpdatedBy varchar(26);
+--- 161
+ALTER TABLE PropertyFields ADD COLUMN IF NOT EXISTS ObjectType varchar(255) NOT NULL DEFAULT '';
+--- 162
+DROP INDEX CONCURRENTLY IF EXISTS idx_propertyfields_unique;
+--- 163
+CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS idx_propertyfields_unique_legacy
+    ON PropertyFields (GroupID, TargetID, Name)
+    WHERE DeleteAt = 0 AND ObjectType = '';
+--- 164
+CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS idx_propertyfields_unique_typed
+    ON PropertyFields (ObjectType, GroupID, TargetType, TargetID, Name)
+    WHERE DeleteAt = 0 AND ObjectType != '';
+--- 165
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT * FROM pg_type typ
+                            INNER JOIN pg_namespace nsp ON nsp.oid = typ.typnamespace
+                        WHERE nsp.nspname = current_schema()
+                            AND typ.typname = 'permission_level') THEN
+    CREATE TYPE permission_level AS ENUM ('none', 'sysadmin', 'member');
+  END IF;
+END;
+$$
+LANGUAGE plpgsql;
+ALTER TABLE PropertyFields
+ADD COLUMN IF NOT EXISTS Protected BOOLEAN NOT NULL DEFAULT FALSE,
+ADD COLUMN IF NOT EXISTS PermissionField permission_level,
+ADD COLUMN IF NOT EXISTS PermissionValues permission_level,
+ADD COLUMN IF NOT EXISTS PermissionOptions permission_level;
+--- 166
+CREATE TABLE IF NOT EXISTS Views (
+    Id          VARCHAR(26)  PRIMARY KEY,
+    ChannelId   VARCHAR(26)  NOT NULL,
+    Type        VARCHAR(32)  NOT NULL,
+    CreatorId   VARCHAR(26)  NOT NULL,
+    Title       VARCHAR(256) NOT NULL,
+    Description TEXT,
+    SortOrder   INTEGER      NOT NULL DEFAULT 0,
+    Props       jsonb,
+    CreateAt    BIGINT       NOT NULL,
+    UpdateAt    BIGINT       NOT NULL,
+    DeleteAt    BIGINT       NOT NULL DEFAULT 0
+);
+--- 167
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_views_channel_id_delete_at ON Views(ChannelId, DeleteAt);
+--- 171
+DROP INDEX CONCURRENTLY IF EXISTS idx_propertyfields_protected;</code></pre></td>
+<td></td>
+</tr>
+<tr>
+<td colspan="2">The <code>role_updated</code> WebSocket events are scoped to the affected team/channel instead of broadcasting globally, improving performance and reducing unnecessary network traffic. No manual action is required from administrators as the migration runs automatically during the upgrade. No downtime is expected, and no special planning is needed for the upgrade as the migration can run during normal operations. All installations are affected by this change, but the impact is minimal since the <code>roles</code> table is small with well under 10k rows even on large installations. The upgrade includes automatic database migrations to add a <code>schemeid</code> column to the <code>roles</code> table for efficient role-scheme lookups. The migrations use PostgreSQL's non-blocking techniques: first adding the column with a brief ACCESS EXCLUSIVE lock (catalog-only operation), then backfilling existing data with a ROW EXCLUSIVE lock, and finally creating an index concurrently with a SHARE UPDATE EXCLUSIVE lock that doesn't block other operations. The <code>roles</code> table size is bounded and unaffected by posts, reactions, or other high-volume data. The migrations are fully backwards-compatible.</td>
+<td></td>
+</tr>
+<tr>
+<td colspan="2">v11.7 includes Agents plugin v2. Please see <a href="https://github.com/mattermost/mattermost-plugin-agents/blob/master/docs/upgrading_to_2.0.md">this guide</a> on how to upgrade the Mattermost Agents plugin from a v1.x release to v2.0.0. It covers the supported version path, the migrations that run automatically on first start of v2.0.0, the breaking changes and default-behavior flips that admins should know about before the upgrade window, and the verification steps to confirm the upgrade succeeded.</td>
+<td></td>
+</tr>
+<tr>
+<td colspan="2"><p>v11.7.6 migration removes orphaned rows from the <code>threadmemberships</code> table — specifically, rows where the associated user is no longer a member of the channel that the thread belongs to. The cleanup is performed via a filtered <code>DELETE</code> using a three-way join across <code>threadmemberships</code>, <code>threads</code>, and <code>channelmembers</code>. No schema objects (tables, columns, or indexes) are added or removed; only data rows are affected. Note for large instances: this migration issues a single unbatched delete that scans the entirety of <code>threadmemberships</code> with a join against <code>threads</code> and <code>channelmembers</code>. On databases with tens of millions of rows or significant historical channel-membership churn, this query may run for an extended period, block autovacuum on <code>threadmemberships</code>, increase WAL pressure, and contribute to replication lag. Administrators of large deployments should test execution time on a representative dataset before upgrading and consider scheduling the upgrade during a low-traffic window. The down migration contains no rollback SQL because the deleted rows cannot be recovered; this migration is irreversible. The migrations are fully backwards-compatible and no database downtime is expected for this upgrade. The SQL queries included are:</p><pre><code>-- Drop ThreadMembership rows whose user is no longer a member of the thread's channel.
+DELETE FROM threadmemberships WHERE (postid, userid) IN (
+    SELECT
+        threadmemberships.postid,
+        threadmemberships.userid
+    FROM
+        threadmemberships
+        JOIN threads ON threads.postid = threadmemberships.postid
+        LEFT JOIN channelmembers ON channelmembers.userid = threadmemberships.userid
+            AND threads.channelid = channelmembers.channelid
+    WHERE
+        channelmembers.channelid IS NULL
+);</code></pre></td>
+<td></td>
+</tr>
+<tr>
+<td>v11.6</td>
+<td colspan="2">Single-channel guests are no longer counted toward the primary licensed seat count and are permitted free up to a 1:1 ratio with licensed seats. A new stat card, license row, and admin banner provide visibility into single-channel guest usage and overage warnings.</td>
 <td></td>
 </tr>
 <tr>
@@ -178,12 +361,32 @@ We recommend reviewing the [additional upgrade notes](#additional-upgrade-notes)
 <td></td>
 </tr>
 <tr>
-<td rowspan="2">v10.11</td>
+<td rowspan="4">v10.11</td>
+<td colspan="2">Customers should not upgrade from <code>&gt;=10.11.17</code> to <code>&lt;=11.7.2</code> due to a bug that causes an issue with database migration numbers. The bug is fixed in v11.7.3.</td>
+<td></td>
+</tr>
+<tr>
 <td colspan="2">Starting in v10.11.11, photoshop Document (PSD) files are now no longer inline previewed, they are treated as regular file attachments.</td>
 <td></td>
 </tr>
 <tr>
 <td colspan="2">Mattermost v10.11.4 introduces a new API endpoint <code>/api/v4/users/login/sso/code-exchange</code> as part of security enhancements to the SSO authentication flow. Customer using SSO (e.g. with SAML) should ensure network configurations allow traffic to this endpoint.</td>
+<td></td>
+</tr>
+<tr>
+<td colspan="2"><p>v10.11.21 migration removes orphaned rows from the <code>threadmemberships</code> table — specifically, rows where the associated user is no longer a member of the channel that the thread belongs to. The cleanup is performed via a filtered <code>DELETE</code> using a three-way join across <code>threadmemberships</code>, <code>threads</code>, and <code>channelmembers</code>. No schema objects (tables, columns, or indexes) are added or removed; only data rows are affected. Note for large instances: this migration issues a single unbatched delete that scans the entirety of <code>threadmemberships</code> with a join against <code>threads</code> and <code>channelmembers</code>. On databases with tens of millions of rows or significant historical channel-membership churn, this query may run for an extended period, block autovacuum on <code>threadmemberships</code>, increase WAL pressure, and contribute to replication lag. Administrators of large deployments should test execution time on a representative dataset before upgrading and consider scheduling the upgrade during a low-traffic window. The down migration contains no rollback SQL because the deleted rows cannot be recovered; this migration is irreversible. The migrations are fully backwards-compatible and no database downtime is expected for this upgrade. The SQL queries included are:</p><pre><code>-- Drop ThreadMembership rows whose user is no longer a member of the thread's channel.
+DELETE FROM threadmemberships WHERE (postid, userid) IN (
+    SELECT
+        threadmemberships.postid,
+        threadmemberships.userid
+    FROM
+        threadmemberships
+        JOIN threads ON threads.postid = threadmemberships.postid
+        LEFT JOIN channelmembers ON channelmembers.userid = threadmemberships.userid
+            AND threads.channelid = channelmembers.channelid
+    WHERE
+        channelmembers.channelid IS NULL
+);</code></pre></td>
 <td></td>
 </tr>
 <tr>
@@ -1163,6 +1366,7 @@ We recommend reviewing the [additional upgrade notes](#additional-upgrade-notes)
 
 <Note>
 
+- See the [Deprecated Features](/product-overview/deprecated-features) document for upcoming deprecations in the v12.0 (October 2026) release.
 - Upgrading the Microsoft Teams Calling plugin to v2.0.0 requires users to reconnect their accounts.
 - Mattermost plugins built with Go versions 1.22.0 and 1.22.1 do not work. Plugin developers should use Go 1.22.2 or newer instead.
 - Keybase has stopped serving Mattermost's Ubuntu repository signing key. If you were using it, update your installation scripts to retrieve the key as mentioned in our [Linux deployment documentation](/deployment-guide/server/deploy-linux).

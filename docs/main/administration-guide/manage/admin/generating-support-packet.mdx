@@ -1,7 +1,9 @@
 ---
 title: "Generate a Support Packet"
-draft: true
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 The Support Packet is used to help customers diagnose and troubleshoot issues. Use the System Console or the [mmctl system supportpacket](/administration-guide/manage/mmctl-command-line-tool#mmctl-system-supportpacket) command to generate a zip file that includes configuration information, logs, plugin details, and data on external dependencies across all nodes in a high-availability cluster. Confidential data, such as passwords, are automatically stripped.
@@ -15,9 +17,8 @@ The Support Packet is used to help customers diagnose and troubleshoot issues. U
 
 </Important>
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 1.  Go to the System Console, and select **Commercial Support** from the System Console menu.
 
@@ -25,11 +26,8 @@ Web/Desktop
 
 2.  Select **Download Support Packet**. A zip file is downloaded to the local machine. You'll be notified if any packet files are unavailable during packet generation. See the `warning.txt` file for details.
 
-</div>
-
-<div class="tab">
-
-mmctl
+</TabItem>
+<TabItem value="mmctl" label="mmctl">
 
 Run the [mmctl system supportpacket](/administration-guide/manage/mmctl-command-line-tool#mmctl-system-supportpacket) command to generate and download a Support Packet to share with Mattermost Support.
 
@@ -42,13 +40,15 @@ Downloading Support Packet
 Downloaded Support Packet to mattermost_support_packet_.zip
 ```
 
-</div>
+</TabItem>
+</Tabs>
 
-## Santitize confidential data
+
+## Sanitize confidential data
 
 Please sanitize any confidential data you wish to exclude before sharing the packet with Mattermost.
 
-When present, the following information is automatically santized during packet generation: `LdapSettings.BindPassword`, `FileSettings.PublicLinkSalt`, `FileSettings.AmazonS3SecretAccessKey`, `EmailSettings.SMTPPassword`, `GitLabSettings.Secret`, `GoogleSettings.Secret`, `Office365Settings.Secret`, `OpenIdSettings.Secret`, `SqlSettings.DataSource`, `SqlSettings.AtRestEncryptKey`, `ElasticsearchSettings.Password`, `All SqlSettings.DataSourceReplicas`, `All SqlSettings.DataSourceSearchReplicas`, `MessageExportSettings.GlobalRelaySettings.SmtpPassword`, `ServiceSettings.SplitKey`, `FileSettings.ExportAmazonS3SecretAccessKey`, `ElasticsearchSettings.ClientKey`, `ServiceSettings.GoogleDeveloperKey`, and `ServiceSettings.GiphySdkKey` (from Mattermost v11.6.0).
+When present, the following information is automatically sanitized during packet generation: `LdapSettings.BindPassword`, `FileSettings.PublicLinkSalt`, `FileSettings.AmazonS3SecretAccessKey`, `EmailSettings.SMTPPassword`, `GitLabSettings.Secret`, `GoogleSettings.Secret`, `Office365Settings.Secret`, `OpenIdSettings.Secret`, `SqlSettings.DataSource`, `SqlSettings.AtRestEncryptKey`, `ElasticsearchSettings.Password`, `All SqlSettings.DataSourceReplicas`, `All SqlSettings.DataSourceSearchReplicas`, `MessageExportSettings.GlobalRelaySettings.SmtpPassword`, `ServiceSettings.SplitKey`, `FileSettings.ExportAmazonS3SecretAccessKey`, `ServiceSettings.GoogleDeveloperKey`, and `ServiceSettings.GiphySdkKey` (from Mattermost v11.6.0).
 
 <Important>
 
@@ -65,7 +65,7 @@ Add the generated Support Packet to a [standard support request](https://support
 
 <Important>
 
-Disable debug logging once you've generated the Support Packet. Debug logging can cause log files to expand substantially, and may adversely impact server performance. We recommend enabling it temporarily, or in development environments, but not production enviornments.
+Disable debug logging once you've generated the Support Packet. Debug logging can cause log files to expand substantially, and may adversely impact server performance. We recommend enabling it temporarily, or in development environments, but not production environments.
 
 </Important>
 
@@ -73,9 +73,8 @@ Disable debug logging once you've generated the Support Packet. Debug logging ca
 
 The contents of a Mattermost Support Packet can differ by server version. Select the tab that corresponds to your Mattermost version to see the files included in the Support Packet.
 
-<div class="tab" parse-titles="">
-
-v11.0 and later
+<Tabs>
+<TabItem value="v11-0-and-later" label="v11.0 and later">
 
 ### Cluster-wide files
 
@@ -121,11 +120,8 @@ The following additional plugin diagnostic data is available when the plugin is 
 - MSCalendar: `/com.mattermost.mscalendar/diagnostics.yaml`
 - Google Calendar: `/com.mattermost.gcal/diagnostics.yaml`
 
-</div>
-
-<div class="tab">
-
-v10.11
+</TabItem>
+<TabItem value="v10-11" label="v10.11">
 
 From v10.11, Support Packets include PostgreSQL database schema dump information that provides comprehensive metadata to help diagnose database configuration issues, performance problems, collation mismatches, and other database-related issues.
 
@@ -163,11 +159,8 @@ The following additional plugin diagnostic data is included in the generated Sup
 - MSCalendar: `/com.mattermost.mscalendar/diagnostics.yaml`
 - Google Calendar: `/com.mattermost.gcal/diagnostics.yaml`
 
-</div>
-
-<div class="tab">
-
-v10.10
+</TabItem>
+<TabItem value="v10-10" label="v10.10">
 
 From Mattermost v10.10, Support Packets from [high availability](/administration-guide/scale/high-availability-cluster-based-deployment) deployments organize cluster-specific files (such as log files) in subdirectories named after each cluster node, while cluster-wide files remain in the root directory.
 
@@ -209,11 +202,8 @@ The following additional plugin diagnostic data is included in the generated sup
 - MSCalendar: `/com.mattermost.mscalendar/diagnostics.yaml`
 - Google Calendar: `/com.mattermost.gcal/diagnostics.yaml`
 
-</div>
-
-<div class="tab">
-
-v10.5 to v10.9
+</TabItem>
+<TabItem value="v10-5-to-v10-9" label="v10.5 to v10.9">
 
 Prior to v10.10, each node in the cluster of a high availability deployment has its own `mattermost.log` file and advanced logging files included directly in the Support Packet.
 
@@ -253,11 +243,8 @@ The following additional plugin diagnostic data is included in the generated sup
 - MSCalendar: `/com.mattermost.mscalendar/diagnostics.yaml`
 - Google Calendar: `/com.mattermost.gcal/diagnostics.yaml`
 
-</div>
-
-<div class="tab">
-
-Prior to v10.5
+</TabItem>
+<TabItem value="prior-to-v10-5" label="Prior to v10.5">
 
 From Mattermost v10.4, a new `diagnostics.yaml` file includes Mattermost Calls diagostics data, including plugin version, calls and active session counts, as well as average duration and participant counts.
 
@@ -270,7 +257,9 @@ From Mattermost v10.4, a new `diagnostics.yaml` file includes Mattermost Calls d
 - [Go performance metrics](#go-performance-metrics), including: `cpu.prof`, `heap.prof`, and `goroutines`
 - `warning.txt` (present when issues are encountered during packet generation)
 
-</div>
+</TabItem>
+</Tabs>
+
 
 <Note>
 

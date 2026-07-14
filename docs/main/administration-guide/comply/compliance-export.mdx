@@ -1,6 +1,9 @@
 ---
 title: "Compliance export"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="ent-plus" />
 
 Mattermost Enterprise customers can archive history or transfer message data to third-party systems for auditing and compliance purposes with compliance exports. Supported integrations include [Smarsh (Actiance) Vantage](#actiance-xml), [Global Relay](#global-relay-eml), and [Proofpoint](#proofpoint).
@@ -26,7 +29,7 @@ Use the following guides to configure exports for [CSV](#csv), [Smarsh / Actianc
 
 - For self-hosted deployments, compliance exports are written to the `exports` subdirectory of the configured filestore in the chosen format. This will either be in the [Local Storage directory](/administration-guide/configure/environment-configuration-settings#file-storage) or the Mattermost S3 bucket if S3 storage is configured.
 - Alternatively, you can specify an alternate filestore target and generate an S3 presigned URL for compliance exports. See the [dedicated export filestore target](/administration-guide/configure/environment-configuration-settings#enable-dedicated-export-filestore-target) configuration settings documentation for details.
-- Compliance exports don't contain posts sent before the feature was enabled. For self-hosted deployments, you can export past history via the `export` [command line tool](/../manage/command-line-tools).
+- Compliance exports don't contain posts sent before the feature was enabled. For self-hosted deployments, you can export past history via the `export` [command line tool](/administration-guide/manage/mmctl-command-line-tool).
 
 </Note>
 
@@ -38,9 +41,8 @@ Use the following guides to configure exports for [CSV](#csv), [Smarsh / Actianc
 4.  Set the export file format to **CSV**.
 5.  Select **Save**.
 
-<div class="tab" parse-titles="">
-
-From Mattermost v10.5
+<Tabs>
+<TabItem value="from-mattermost-v10-5" label="From Mattermost v10.5">
 
 You can review export job status in the System Console.
 
@@ -76,17 +78,16 @@ batch001-1723105062492-1723106622163.zip
   - **Deleted** indicates that this message was deleted.
   - **FileDeleted** indicates that this message is recording that a file was deleted.
 
-</div>
-
-<div class="tab">
-
-Prior to Mattermost v10.5
+</TabItem>
+<TabItem value="prior-to-mattermost-v10-5" label="Prior to Mattermost v10.5">
 
 The daily compliance export job creates a `.zip` file with a unique job identifier of all messages posted in the last 24 hours. You can unzip the file to easily transform the default `.csv` format into a desired format for your third-party archive system.
 
 For a sample CSV output, [download a CSV export file here](https://github.com/mattermost/docs/blob/master/source/samples/csv_export.zip).
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ### Actiance XML
 
@@ -104,9 +105,8 @@ In Actiance XML exports, channel type is prepended to the channel names.
 
 </Note>
 
-<div class="tab" parse-titles="">
-
-From Mattermost v10.5
+<Tabs>
+<TabItem value="from-mattermost-v10-5" label="From Mattermost v10.5">
 
 You can review export job status in the System Console. Once you've selected Actiance XML as your file format, you can set up an integration with Actiance Vantage archive system.
 
@@ -143,15 +143,14 @@ If an XML field is empty, it won't be exported. This is a change from previous M
   - `Deleted` indicates that the message was deleted.
   - `FileDeleted` indicates that the message is recording that a file was deleted.
 
-</div>
-
-<div class="tab">
-
-Prior to Mattermost v10.5
+</TabItem>
+<TabItem value="prior-to-mattermost-v10-5" label="Prior to Mattermost v10.5">
 
 The daily compliance export job creates a `.zip` file with a unique job identifier of all messages posted in the last 24 hours. Once you've selected Actiance XML as your file format, you can set up an integration with Actiance Vantage archive system. For a sample Actiance output, [download an Actiance XML export file here](https://github.com/mattermost/docs/blob/master/source/samples/actiance_export.xml).
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ### Global Relay EML
 
@@ -194,7 +193,7 @@ No. Compliance exports only include channel messages, direct messages, file uplo
 
 ### How do I export past history?
 
-Run the `export` [command line tool](/../manage/command-line-tools). You can specify an `exportFrom` option to export data from a specified timestamp. All posts that were made after this timestamp will be exported.
+Run the `export` [command line tool](/administration-guide/manage/mmctl-command-line-tool). You can specify an `exportFrom` option to export data from a specified timestamp. All posts that were made after this timestamp will be exported.
 
 ### How do I download compliance export jobs using mmctl?
 

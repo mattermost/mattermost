@@ -63,7 +63,7 @@ To ensure high availability, database systems can leverage clustering, replicati
 
 **File Storage**: Manages all multimedia assets (e.g., file uploads, images, videos) shared across channels. Storage solutions include the following options:
 
-- **Local Storage**: Files stored directly on the server’s filesystem. For high availability, redundancy can be achieved using RAID configurations or backups to recover from disk failures.
+- **Local Storage**: Files stored directly on the server's filesystem. For high availability, redundancy can be achieved using RAID configurations or backups to recover from disk failures.
 - **Network Attached Storage (NAS)**: Common for enterprises centralizing file storage within their network. NAS setups can include fault-tolerant configurations like distributed systems or replication for uninterrupted access.
 - **S3**: Offers cloud-based scalable storage for larger environments or organizations with distributed deployments. The database and file storage handle scalability, ensuring efficient support for millions of messages and files while guaranteeing data consistency. S3 inherently supports high availability by distributing data across multiple availability zones, ensuring no single point of failure.
 
@@ -128,128 +128,35 @@ If Mattermost is accessible from the open internet with no VPN or MFA set up, we
 
 #### Mattermost services ports
 
-The following table lists the Mattermost services ports for Mattermost Server, push proxy, and mobile app clients. System admins with clients that need to speak to the Mattermost server without a proxy can open specific firewall ports as needed.
+The following tables list the Mattermost services ports for Mattermost Server, push proxy, and mobile app clients. System admins with clients that need to speak to the Mattermost server without a proxy can open specific firewall ports as needed.
 
 **Mattermost Server**
 
-<table style={{width: '98%'}}>
-<colgroup>
-<col style={{width: '26%'}} />
-<col style={{width: '17%'}} />
-<col style={{width: '15%'}} />
-<col style={{width: '5%'}} />
-<col style={{width: '5%'}} />
-<col style={{width: '27%'}} />
-</colgroup>
-<thead>
-<tr>
-<th>Service Name</th>
-<th>Config Setting</th>
-<th>Port (default)</th>
-<th>Protocol</th>
-<th>Direction</th>
-<th>Info</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>HTTP/Websocket</td>
-<td>ServiceSettings.ListenAddress</td>
-<td>8065/80/443 (TLS)</td>
-<td>TCP</td>
-<td>Inbound</td>
-<td rowspan="2">External (no proxy) / Internal (with proxy) Usually this requires port 80 and 443 when running HTTPS. Internal</td>
-</tr>
-<tr>
-<td>Cluster</td>
-<td>ClusterSettings.GossipPort</td>
-<td>8074</td>
-<td>TCP/UDP</td>
-<td>Inbound</td>
-</tr>
-<tr>
-<td>Metrics</td>
-<td>MetricsSettings.ListenAddress</td>
-<td>8067</td>
-<td>TCP</td>
-<td>Inbound</td>
-<td>External (no proxy) / Internal (with proxy)</td>
-</tr>
-<tr>
-<td>Database</td>
-<td>SqlSettings.DataSource</td>
-<td>5432 (PostgreSQL) / 3306 (MySQL)</td>
-<td>TCP</td>
-<td>Outbound</td>
-<td>Usually internal (recommended)</td>
-</tr>
-<tr>
-<td>LDAP</td>
-<td>LdapSettings.LdapPort</td>
-<td>389</td>
-<td>TCP/UDP</td>
-<td>Outbound</td>
-<td></td>
-</tr>
-<tr>
-<td>S3 Storage</td>
-<td>FileSettings.AmazonS3Endpoint</td>
-<td>443 (TLS)</td>
-<td>TCP</td>
-<td>Outbound</td>
-<td></td>
-</tr>
-<tr>
-<td>SMTP</td>
-<td>EmailSettings.SMTPPort</td>
-<td>10025</td>
-<td>TCP/UDP</td>
-<td>Outbound</td>
-<td></td>
-</tr>
-<tr>
-<td>Push Notifications</td>
-<td>EmailSettings.PushNotificationServer</td>
-<td>443 (TLS)</td>
-<td>TCP</td>
-<td>Outbound</td>
-<td></td>
-</tr>
-</tbody>
-</table>
+*Inbound ports*
+
+| Service | Config Setting | Port (default) | Protocol | Notes |
+|---|---|---|---|---|
+| HTTP/WebSocket | `ServiceSettings.ListenAddress` | 8065 / 80 / 443 (TLS) | TCP | External (no proxy) / Internal (with proxy). Ports 80 and 443 are typically used when running HTTPS. |
+| Cluster (HA) | `ClusterSettings.GossipPort` | 8074 | TCP/UDP | Internal only. Must be reachable between all Mattermost Server nodes. Both TCP and UDP must be open. HA only. |
+| Metrics | `MetricsSettings.ListenAddress` | 8067 | TCP | Internal only. Restrict access to trusted monitoring hosts (e.g., Prometheus). Must not be exposed to the public internet. Only required when metrics collection is enabled. |
+
+*Outbound ports*
+
+| Service | Config Setting | Port (default) | Protocol | Notes |
+|---|---|---|---|---|
+| Database | `SqlSettings.DataSource` | 5432 (PostgreSQL) | TCP | Usually internal (recommended). |
+| LDAP | `LdapSettings.LdapPort` | 389 | TCP/UDP | |
+| S3 Storage | `FileSettings.AmazonS3Endpoint` | 443 (TLS) | TCP | |
+| SMTP | `EmailSettings.SMTPPort` | 10025 | TCP/UDP | |
+| Push Notifications | `EmailSettings.PushNotificationServer` | 443 (TLS) | TCP | |
 
 **Push Proxy**
 
-<table style={{width: '97%'}}>
-<colgroup>
-<col style={{width: '12%'}} />
-<col style={{width: '14%'}} />
-<col style={{width: '14%'}} />
-<col style={{width: '9%'}} />
-<col style={{width: '10%'}} />
-<col style={{width: '36%'}} />
-</colgroup>
-<thead>
-<tr>
-<th>Service Name</th>
-<th>Config Setting</th>
-<th>Port (default)</th>
-<th>Protocol</th>
-<th>Direction</th>
-<th>Info</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Push Proxy</td>
-<td>ListenAddress</td>
-<td>8066</td>
-<td>TCP</td>
-<td>Inbound</td>
-<td>External (no proxy) / Internal (with proxy)</td>
-</tr>
-</tbody>
-</table>
+*Inbound ports*
+
+| Service | Config Setting | Port (default) | Protocol | Notes |
+|---|---|---|---|---|
+| Push Proxy | `ListenAddress` | 8066 | TCP | Internal only. Must be reachable only from Mattermost Server nodes. Required when running a self-hosted push proxy. |
 
 **Mobile Clients**
 

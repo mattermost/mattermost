@@ -1,0 +1,55 @@
+name: Docs CI
+
+on:
+  pull_request:
+    paths:
+      - "docs/**"
+      - "api/v4/source/**"
+      - "api/playbooks/**"
+  push:
+    branches:
+      - master
+    paths:
+      - "docs/**"
+      - "api/v4/source/**"
+      - "api/playbooks/**"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version-file: docs/site/.nvmrc
+          cache: "npm"
+          cache-dependency-path: docs/site/package-lock.json
+
+      - name: Set up Go
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+        with:
+          go-version-file: api/server/go.mod
+
+      - name: Install docs dependencies
+        working-directory: docs/site
+        run: npm ci
+
+      - name: Typecheck
+        working-directory: docs/site
+        run: npm run typecheck
+
+      - name: Build docs site (includes OpenAPI prebuild)
+        working-directory: docs/site
+        run: npm run build
+        env:
+          ALGOLIA_APP_ID: ${{ vars.ALGOLIA_APP_ID }}
+          ALGOLIA_SEARCH_API_KEY: ${{ vars.ALGOLIA_SEARCH_API_KEY }}

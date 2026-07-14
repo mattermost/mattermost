@@ -31,17 +31,7 @@ export default function AccessControlSyncJobTable(props: Props): JSX.Element {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
-        // Load jobs when component mounts
         props.actions.getJobsByType(JobTypes.ACCESS_CONTROL_SYNC);
-
-        // Set up polling interval
-        const interval = setInterval(() => {
-            props.actions.getJobsByType(JobTypes.ACCESS_CONTROL_SYNC);
-        }, 15000);
-
-        return () => {
-            clearInterval(interval);
-        };
     }, [props.actions]);
 
     const handleCreateJob = async (e?: React.SyntheticEvent) => {

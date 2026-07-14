@@ -1001,7 +1001,7 @@
     },
     {
       "from": "/deploy/server/containers/install-docker",
-      "to": "/deployment-guide/server/containers/install-docker"
+      "to": "/deployment-guide/server/deploy-containers"
     },
     {
       "from": "/deploy/server/deploy-containers",
@@ -1025,7 +1025,7 @@
     },
     {
       "from": "/deploy/server/kubernetes/deploy-k8s-aks",
-      "to": "/deployment-guide/server/kubernetes/deploy-k8s-aks"
+      "to": "/deployment-guide/server/deploy-kubernetes"
     },
     {
       "from": "/deploy/server/kubernetes/deploy-k8s-oke",

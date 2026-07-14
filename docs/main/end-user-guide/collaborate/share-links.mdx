@@ -1,6 +1,9 @@
 ---
 title: "Share links to channels and messages"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 You can share links to Mattermost [channels](#share-channel-links) and [messages](#share-message-links) with other Mattermost users.
@@ -17,9 +20,8 @@ Alternatively, you can select the **View info** <img src="/img/ui/information-ou
 
 ## Share message links
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 Sharing message links displays a preview of the message in the post. To share links to messages in Mattermost, select the **More** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> icon next to a message, then select **Copy Link**.
 
@@ -38,17 +40,16 @@ Paste the link into a message to share the image link with others. Sharing links
 
 </Tip>
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 Long press a message, and then tap **Copy Link** to copy the link to the clipboard. Long press to paste the link as a message or reply. From mobile v2.23, sharing links to messages generates a preview of the message.
 
 ![Tap and hold on a message to access the available options.](/images/mobile-copy-a-link-to-the-message.gif)
 
-</div>
+</TabItem>
+</Tabs>
+
 
 <Note>
 
