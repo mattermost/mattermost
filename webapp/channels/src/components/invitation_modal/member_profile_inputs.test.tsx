@@ -86,10 +86,25 @@ describe('MemberProfileInputs', () => {
         });
     });
 
-    test('shows an error for an invalid username', () => {
+    test('does not show a username error while typing', async () => {
+        const onProfileChange = jest.fn();
         renderWithContext(
             <MemberProfileInputs
                 {...baseProps}
+                onProfileChange={onProfileChange}
+            />,
+        );
+
+        await userEvent.type(screen.getByPlaceholderText('Username'), 'a');
+        expect(screen.queryByText(/Usernames have to begin with a lowercase letter/)).not.toBeInTheDocument();
+    });
+
+    test('shows a full-width username error after blur', async () => {
+        const onProfileChange = jest.fn();
+        renderWithContext(
+            <MemberProfileInputs
+                {...baseProps}
+                onProfileChange={onProfileChange}
                 profiles={{
                     'dave.roberts@gmail.com': {
                         email: 'dave.roberts@gmail.com',
@@ -100,6 +115,16 @@ describe('MemberProfileInputs', () => {
                 }}
             />,
         );
-        expect(screen.getByText(/Usernames have to begin with a lowercase letter/)).toBeInTheDocument();
+
+        const usernameInput = screen.getByPlaceholderText('Username');
+        expect(screen.queryByText(/Usernames have to begin with a lowercase letter/)).not.toBeInTheDocument();
+
+        await userEvent.click(usernameInput);
+        await userEvent.tab();
+
+        const error = screen.getByRole('alert');
+        expect(error).toHaveTextContent(/Usernames have to begin with a lowercase letter/);
+        expect(error).toHaveClass('MemberProfileInputs__error');
+        expect(error.parentElement).toHaveClass('MemberProfileInputs__row');
     });
 });

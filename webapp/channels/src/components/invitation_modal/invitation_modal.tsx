@@ -501,7 +501,7 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
             <GenericModal
                 id='invitationModal'
                 dataTestId='invitationModal'
-                className='InvitationModal a11y__modal modal--overflow'
+                className='InvitationModal a11y__modal'
                 show={this.state.show}
                 onHide={this.handleHide}
                 onExited={this.handleExit}
@@ -510,6 +510,7 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
                 compassDesign={true}
                 showCloseButton={false}
                 showHeader={false}
+                bodyPadding={false}
             >
                 {view}
             </GenericModal>

@@ -232,7 +232,7 @@ export default function InviteView(props: Props) {
                     onClick={props.onClose}
                 />
             </Modal.Header>
-            <Modal.Body className='overflow-visible'>
+            <Modal.Body>
                 <div className='InviteView__sectionTitle InviteView__sectionTitle--first'>
                     <FormattedMessage
                         id='invite_modal.to'

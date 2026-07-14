@@ -12,29 +12,82 @@
         justify-content: center;
         margin: auto;
         transform: translate(-50%, -50%) !important;
-
     }
 
+    // Cap height and stack header / body / footer so tall content (e.g. many
+    // member profile rows) scrolls inside the body instead of pushing the
+    // footer outside the modal frame. Same flex-chain approach as
+    // flag_post_modal and simulate_access_modal.
     .modal-content {
+        display: flex;
+        overflow: hidden;
         width: 100%;
         min-width: 0;
         max-width: 100%;
+        max-height: 90vh;
+        flex-direction: column;
     }
 
-    &__header {
-        padding-left: 0 !important;
+    .GenericModal__wrapper {
+        display: flex;
+        overflow: hidden;
+        min-height: 0;
+        flex: 1 1 auto;
+        flex-direction: column;
     }
 
-    &__footer {
-        padding-right: 0 !important;
+    // GenericModal wraps InviteView/ResultView children (each bringing its own
+    // modal-header / modal-body / modal-footer) inside .modal-body >
+    // .GenericModal__body. Both outer layers need to be flex columns with
+    // min-height: 0 so the nested body can scroll. No horizontal padding here —
+    // that would inset the scrollbar from the modal edge.
+    .GenericModal__wrapper > .modal-body {
+        display: flex;
+        overflow: hidden;
+        min-height: 0;
+        flex: 1 1 auto;
+        flex-direction: column;
+        padding: 0;
+    }
+
+    .GenericModal__body {
+        display: flex;
+        overflow: hidden;
+        min-height: 0;
+        flex: 1 1 auto;
+        flex-direction: column;
+        padding: 0;
+    }
+
+    .GenericModal__body > .modal-header,
+    .GenericModal__body > .modal-footer {
+        flex-shrink: 0;
+    }
+
+    // Scroll on the full-bleed nested body so the scrollbar sits on the modal's
+    // outer edge. Horizontal inset lives on the children — padding on this
+    // overflow container would pull the scrollbar inward.
+    .GenericModal__body > .modal-body {
+        min-height: 0;
+        max-height: none;
+        flex: 1 1 auto;
+        padding-right: 0;
+        padding-left: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+
+        > * {
+            padding-right: 32px;
+            padding-left: 32px;
+        }
     }
 
     @media screen and (max-width: 768px) {
         display: flex;
         max-height: 100%;
 
-        .modal-body {
-            overflow-y: auto !important;
+        .modal-content {
+            max-height: 100vh;
         }
     }
 }

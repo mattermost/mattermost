@@ -14,6 +14,8 @@ import type {
     GroupBase,
     MultiValueRemoveProps,
     SelectComponentsConfig,
+    StylesConfig,
+    MenuProps,
 } from 'react-select';
 import AsyncSelect from 'react-select/async';
 
@@ -129,6 +131,16 @@ export default class ChannelsInput<T extends Channel> extends React.PureComponen
         );
     };
 
+    // openMenuOnFocus opens an empty menu shell on focus before any query —
+    // skip rendering it until there is input text or loaded options.
+    Menu = (props: MenuProps<T, true>) => {
+        if (!props.selectProps.inputValue && props.options.length === 0) {
+            return null;
+        }
+
+        return <components.Menu {...props}/>;
+    };
+
     formatOptionLabel = (channel: T) => {
         let icon = <PublicChannelIcon className='public-channel-icon'/>;
         if (channel.type === Constants.PRIVATE_CHANNEL) {
@@ -162,6 +174,7 @@ export default class ChannelsInput<T extends Channel> extends React.PureComponen
         NoOptionsMessage: this.NoOptionsMessage,
         MultiValueRemove: this.MultiValueRemove,
         IndicatorsContainer: () => null,
+        Menu: this.Menu,
     };
 
     onFocus = () => {
@@ -169,6 +182,13 @@ export default class ChannelsInput<T extends Channel> extends React.PureComponen
     };
 
     render() {
+        const styles = {
+            menuPortal: (css) => ({
+                ...css,
+                zIndex: 99999999,
+            }),
+        } satisfies StylesConfig<T, true>;
+
         return (
             <AsyncSelect
                 ref={this.selectRef}
@@ -195,6 +215,8 @@ export default class ChannelsInput<T extends Channel> extends React.PureComponen
                 value={this.props.value}
                 aria-label={this.props.ariaLabel}
                 autoFocus={this.props.autoFocus}
+                styles={styles}
+                menuPortalTarget={typeof document === 'undefined' ? null : document.body}
             />
         );
     }
