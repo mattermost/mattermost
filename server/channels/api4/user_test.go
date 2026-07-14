@@ -2938,6 +2938,36 @@ func TestUpdateUserAuth(t *testing.T) {
 	userAuth.AuthService = user.AuthService
 	_, _, err = th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
 	require.Error(t, err, "Should have errored")
+
+	t.Run("changing auth method revokes existing sessions", func(t *testing.T) {
+		th.LoginSystemAdmin(t)
+
+		member := th.CreateUser(t)
+		th.LinkUserToTeam(t, member, team)
+		_, storeErr := th.App.Srv().Store().User().VerifyEmail(member.Id, member.Email)
+		require.NoError(t, storeErr)
+
+		// Step 1: member logs in and confirms their session works.
+		memberClient := model.NewAPIv4Client(th.Client.URL)
+		_, _, err = memberClient.Login(context.Background(), member.Email, member.Password)
+		require.NoError(t, err)
+		_, resp, err := memberClient.GetMe(context.Background(), "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		// Step 2: admin changes the member's authentication method.
+		authData := model.NewId()
+		_, _, err = th.SystemAdminClient.UpdateUserAuth(context.Background(), member.Id, &model.UserAuth{
+			AuthService: model.UserAuthServiceGitlab,
+			AuthData:    &authData,
+		})
+		require.NoError(t, err)
+
+		// Step 3: original token must no longer be accepted.
+		_, resp, err = memberClient.GetMe(context.Background(), "")
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
 }
 
 func TestDeleteUser(t *testing.T) {

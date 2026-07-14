@@ -133,12 +133,19 @@ type FeatureFlags struct {
 	// Enable the new mm_blocks Interactive Messages framework
 	MmBlocksEnabled bool
 
+	// ClusterGracefulDrain enables waiting for peer silence before closing the gossip
+	// socket during shutdown. Otherwise, peers keep sending messages before the gossip
+	// leave message finishes propagating and spam the logs with errors about the peer
+	// being unreachable.
+	ClusterGracefulDrain bool
+
 	ChannelBookmarks bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
 	f.TestFeature = "off"
 	f.TestBoolFeature = false
+	f.ClusterGracefulDrain = true
 	f.EnableSharedChannelsDMs = false
 	f.EnableSyncAllUsersForRemoteCluster = false
 	f.AppsEnabled = false
