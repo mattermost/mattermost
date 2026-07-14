@@ -68,11 +68,18 @@ test('MM-T5615 restricts bookmark management to users with permission', {tag: '@
     await expect(channelsPage.channelBookmarksBar.deleteMenuItem).not.toBeVisible();
     await page.keyboard.press('Escape');
 
+    // * Verify bookmarks render in their original order
+    const bookmarkLinks = channelsPage.channelBookmarksBar.getBookmarkLinks();
+    await expect(bookmarkLinks).toHaveText(['First link', 'Second link']);
+
     const firstLink = channelsPage.channelBookmarksBar.getBookmark('First link');
     await firstLink.focus();
     await firstLink.press('Space');
     await firstLink.press('ArrowRight');
     await firstLink.press('Space');
+
+    // * Verify the keyboard reorder attempt did not change the bookmark order or link
+    await expect(bookmarkLinks).toHaveText(['First link', 'Second link']);
     await expect(channelsPage.channelBookmarksBar.getBookmark('First link')).toHaveAttribute(
         'href',
         /^https:\/\/example\.com\/first/,
@@ -103,11 +110,18 @@ test('MM-T5725 prevents bookmark management in an archived channel', {tag: '@cha
     await expect(channelsPage.channelBookmarksBar.deleteMenuItem).not.toBeVisible();
     await page.keyboard.press('Escape');
 
+    // * Verify bookmarks render in their original order
+    const bookmarkLinks = channelsPage.channelBookmarksBar.getBookmarkLinks();
+    await expect(bookmarkLinks).toHaveText(['First link', 'Second link']);
+
     const firstLink = channelsPage.channelBookmarksBar.getBookmark('First link');
     await firstLink.focus();
     await firstLink.press('Space');
     await firstLink.press('ArrowRight');
     await firstLink.press('Space');
+
+    // * Verify the keyboard reorder attempt did not change the bookmark order or link
+    await expect(bookmarkLinks).toHaveText(['First link', 'Second link']);
     await expect(channelsPage.channelBookmarksBar.getBookmark('First link')).toHaveAttribute(
         'href',
         /^https:\/\/example\.com\/first/,

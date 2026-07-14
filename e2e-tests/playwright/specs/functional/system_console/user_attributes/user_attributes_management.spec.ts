@@ -23,25 +23,44 @@ test('MM-T5745 navigates to user attributes page and displays empty state', {tag
     await pw.skipIfNoLicense();
     await pw.skipIfFeatureFlagNotSet('CustomProfileAttributes', true);
     const {adminClient, adminUser} = await pw.initSetup();
+
+    // Custom profile attribute fields are global, so other specs may have left fields behind
+    // for reuse. Clear them to exercise the empty state, then restore them in `finally` so
+    // this test does not permanently wipe fields other specs depend on.
     const existing = await adminClient.getCustomProfileAttributeFields();
-    if (existing.length) {
-        const fields = Object.fromEntries(existing.map((field) => [field.id, field]));
-        await deleteCustomProfileAttributes(adminClient, fields);
+    try {
+        if (existing.length) {
+            const fields = Object.fromEntries(existing.map((field) => [field.id, field]));
+            await deleteCustomProfileAttributes(adminClient, fields);
+        }
+
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        await systemConsolePage.goto();
+        await systemConsolePage.toBeVisible();
+
+        // # Navigate to User Attributes via the sidebar
+        await systemConsolePage.sidebar.systemAttributes.userAttributes.click();
+        const sp = systemConsolePage.systemProperties;
+
+        // * Verify the empty management page and disabled Save button
+        await sp.toBeVisible();
+        await expect(sp.addAttributeButton).toBeVisible();
+        await expect(sp.saveButton).toBeVisible();
+        await expect(sp.saveButton).toBeDisabled();
+    } finally {
+        for (const field of existing) {
+            try {
+                await adminClient.createCustomProfileAttributeField({
+                    name: field.name,
+                    type: field.type,
+                    attrs: field.attrs,
+                });
+            } catch (error) {
+                // eslint-disable-next-line no-console
+                console.log(`Failed to restore custom profile attribute field ${field.name}:`, error);
+            }
+        }
     }
-
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-    await systemConsolePage.goto();
-    await systemConsolePage.toBeVisible();
-
-    // # Navigate to User Attributes via the sidebar
-    await systemConsolePage.sidebar.systemAttributes.userAttributes.click();
-    const sp = systemConsolePage.systemProperties;
-
-    // * Verify the empty management page and disabled Save button
-    await sp.toBeVisible();
-    await expect(sp.addAttributeButton).toBeVisible();
-    await expect(sp.saveButton).toBeVisible();
-    await expect(sp.saveButton).toBeDisabled();
 });
 
 /**

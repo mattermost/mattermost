@@ -40,6 +40,10 @@ export default class ChannelBookmarksBar {
         return this.container.getByRole('link', {name, exact: typeof name === 'string'});
     }
 
+    getBookmarkLinks(): Locator {
+        return this.container.getByRole('link');
+    }
+
     getBookmarkItem(name: string | RegExp): Locator {
         return this.container.getByTestId(/^bookmark-item-/).filter({hasText: name});
     }
