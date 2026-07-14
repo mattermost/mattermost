@@ -128,6 +128,33 @@ func HasPropertyFieldOwners(field *PropertyField) bool {
 	return len(GetPropertyFieldOwners(field)) > 0
 }
 
+// SetPropertyFieldOwners stores owners on the field's Attrs in the generic
+// ([]any of maps) shape so the value survives a plugin RPC (gob) boundary.
+// An empty slice removes the owners key. field must be non-nil.
+func SetPropertyFieldOwners(field *PropertyField, owners []PropertyOwner) error {
+	if field == nil {
+		return fmt.Errorf("field is nil")
+	}
+	if field.Attrs == nil {
+		field.Attrs = StringInterface{}
+	}
+	if len(owners) == 0 {
+		delete(field.Attrs, PropertyAttrsOwners)
+		return nil
+	}
+
+	data, err := json.Marshal(owners)
+	if err != nil {
+		return err
+	}
+	var generic []any
+	if err := json.Unmarshal(data, &generic); err != nil {
+		return err
+	}
+	field.Attrs[PropertyAttrsOwners] = generic
+	return nil
+}
+
 // IsKnownPropertyAccessMode checks if the given access mode is a recognized value
 func IsKnownPropertyAccessMode(accessMode string) bool {
 	switch accessMode {

@@ -58,11 +58,12 @@ func TestOwnerValueWriteAccessControl(t *testing.T) {
 		assert.NotNil(t, v)
 	})
 
-	t.Run("allows owner plugin writing with a mixed-case acting-as scope", func(t *testing.T) {
+	t.Run("denies owner plugin writing with a case-mismatched scope", func(t *testing.T) {
+		// Scopes are matched verbatim: an owner scoped to "entra" is not
+		// writable by a caller acting as "Entra".
 		rctx := RequestContextWithCallerIDAndOptions(th.Context, "plugin-owner", model.PropertyRequestOptions{ActingAsScope: "Entra"})
-		v, upErr := th.service.UpsertPropertyValue(rctx, newValue())
-		require.NoError(t, upErr)
-		assert.NotNil(t, v)
+		_, upErr := th.service.UpsertPropertyValue(rctx, newValue())
+		require.Error(t, upErr)
 	})
 
 	t.Run("denies owner plugin writing with a non-matching scope", func(t *testing.T) {

@@ -684,7 +684,7 @@ func (h *AccessControlHook) callerOwnerIdentity(callerID, scope string) (ownerID
 	case model.CallerIDSAMLSync:
 		return model.PropertyFieldAttrSAML, model.PropertyOwnerTypeService, ""
 	default:
-		return callerID, model.PropertyOwnerTypePlugin, strings.ToLower(scope)
+		return callerID, model.PropertyOwnerTypePlugin, scope
 	}
 }
 
@@ -795,7 +795,7 @@ func (h *AccessControlHook) enforceOwnerMutationRules(existing, updated *model.P
 
 	// Removing a scope from the caller's own entry requires acting as that
 	// scope, so a plugin can't drop a scope it isn't currently operating under.
-	effectiveScope := strings.ToLower(strings.TrimSpace(scope))
+	effectiveScope := strings.TrimSpace(scope)
 	updatedScopes := callerOwnScopes(updatedOwners, callerID)
 	for _, existingScope := range callerOwnScopes(existingOwners, callerID) {
 		if slices.Contains(updatedScopes, existingScope) {
@@ -862,7 +862,7 @@ func ownerKey(owner model.PropertyOwner) string {
 func normalizeOwnerScopes(scopes []string) []string {
 	normalized := make([]string, 0, len(scopes))
 	for _, scope := range scopes {
-		scope = strings.ToLower(strings.TrimSpace(scope))
+		scope = strings.TrimSpace(scope)
 		if scope == "" || slices.Contains(normalized, scope) {
 			continue
 		}

@@ -282,7 +282,7 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOwners(field *
 
 		scopes := make([]string, 0, len(owner.Scopes))
 		for _, scope := range owner.Scopes {
-			scope = strings.ToLower(strings.TrimSpace(scope))
+			scope = strings.TrimSpace(scope)
 			if scope == "" || slices.Contains(scopes, scope) {
 				continue
 			}

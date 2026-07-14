@@ -1,6 +1,8 @@
 package pluginapi
 
 import (
+	"slices"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 )
@@ -222,4 +224,91 @@ func (p *PropertyService) DeletePropertyValuesForTargetWithOptions(groupID, targ
 // Minimum server version: 11.10
 func (p *PropertyService) DeletePropertyValuesForFieldWithOptions(groupID, fieldID string, options model.PropertyRequestOptions) error {
 	return p.api.DeletePropertyValuesForFieldWithOptions(groupID, fieldID, options)
+}
+
+// UpdatePropertyFieldWithOptions updates a property field, declaring the scope
+// the plugin is acting as for owner-based access control. Removing an owner
+// scope requires acting as that scope.
+//
+// Minimum server version: 11.10
+func (p *PropertyService) UpdatePropertyFieldWithOptions(groupID string, field *model.PropertyField, options model.PropertyRequestOptions) (*model.PropertyField, error) {
+	return p.api.UpdatePropertyFieldWithOptions(groupID, field, options)
+}
+
+// AddPropertyFieldOwner adds owner to the field's owners list, merging owner.Scopes
+// into any existing entry with the same Type and ID. Other attrs are preserved.
+// Owners are written in the gob-safe generic Attrs shape required by UpdatePropertyField.
+// Adding scopes requires no acting-as scope.
+//
+// Minimum server version: 11.10
+func (p *PropertyService) AddPropertyFieldOwner(groupID, fieldID string, owner model.PropertyOwner) error {
+	field, err := p.api.GetPropertyField(groupID, fieldID)
+	if err != nil {
+		return err
+	}
+	owners := addPropertyFieldOwner(model.GetPropertyFieldOwners(field), owner)
+	if err := model.SetPropertyFieldOwners(field, owners); err != nil {
+		return err
+	}
+	_, err = p.api.UpdatePropertyField(groupID, field)
+	return err
+}
+
+// RemovePropertyFieldOwner removes owner.Scopes from the entry matching owner.Type/ID,
+// pruning the entry when it has no scopes left. Empty owner.Scopes removes the whole
+// entry. Other attrs are preserved.
+//
+// Because the server requires acting as each removed scope, callers removing a
+// scoped ownership should set options.ActingAsScope to that scope. Scopeless
+// ownership (empty owner.Scopes) may pass an empty PropertyRequestOptions.
+//
+// Minimum server version: 11.10
+func (p *PropertyService) RemovePropertyFieldOwner(groupID, fieldID string, owner model.PropertyOwner, options model.PropertyRequestOptions) error {
+	field, err := p.api.GetPropertyField(groupID, fieldID)
+	if err != nil {
+		return err
+	}
+	owners := removePropertyFieldOwner(model.GetPropertyFieldOwners(field), owner)
+	if err := model.SetPropertyFieldOwners(field, owners); err != nil {
+		return err
+	}
+	_, err = p.api.UpdatePropertyFieldWithOptions(groupID, field, options)
+	return err
+}
+
+func addPropertyFieldOwner(owners []model.PropertyOwner, owner model.PropertyOwner) []model.PropertyOwner {
+	for i := range owners {
+		if owners[i].Type == owner.Type && owners[i].ID == owner.ID {
+			for _, scope := range owner.Scopes {
+				if !slices.Contains(owners[i].Scopes, scope) {
+					owners[i].Scopes = append(owners[i].Scopes, scope)
+				}
+			}
+			return owners
+		}
+	}
+	return append(owners, owner)
+}
+
+func removePropertyFieldOwner(owners []model.PropertyOwner, owner model.PropertyOwner) []model.PropertyOwner {
+	out := make([]model.PropertyOwner, 0, len(owners))
+	for _, existing := range owners {
+		if existing.Type == owner.Type && existing.ID == owner.ID {
+			if len(owner.Scopes) == 0 {
+				continue
+			}
+			scopes := make([]string, 0, len(existing.Scopes))
+			for _, sc := range existing.Scopes {
+				if !slices.Contains(owner.Scopes, sc) {
+					scopes = append(scopes, sc)
+				}
+			}
+			if len(scopes) == 0 {
+				continue
+			}
+			existing.Scopes = scopes
+		}
+		out = append(out, existing)
+	}
+	return out
 }

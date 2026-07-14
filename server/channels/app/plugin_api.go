@@ -1592,7 +1592,7 @@ func (api *PluginAPI) psaPluginContext() request.CTX {
 }
 
 // psaPluginContextWithOptions is psaPluginContext plus the plugin's per-call
-// declarations, used by the *WithOptions value write methods so owner-based
+// declarations, used by the *WithOptions property methods so owner-based
 // access control can match the scope against a field's owners list.
 func (api *PluginAPI) psaPluginContextWithOptions(options model.PropertyRequestOptions) request.CTX {
 	return requestContextWithCallerIDAndOptions(api.ctx, api.manifest.Id, options)
@@ -1830,4 +1830,12 @@ func (api *PluginAPI) DeletePropertyValuesForFieldWithOptions(groupID, fieldID s
 		return appErr
 	}
 	return nil
+}
+
+func (api *PluginAPI) UpdatePropertyFieldWithOptions(groupID string, field *model.PropertyField, options model.PropertyRequestOptions) (*model.PropertyField, error) {
+	updatedField, _, appErr := api.app.UpdatePropertyField(api.psaPluginContextWithOptions(options), groupID, field, false, "")
+	if appErr != nil {
+		return nil, appErr
+	}
+	return updatedField, nil
 }

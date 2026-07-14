@@ -1744,6 +1744,13 @@ func (api *apiTimerLayer) DeletePropertyValuesForFieldWithOptions(groupID, field
 	return _returnsA
 }
 
+func (api *apiTimerLayer) UpdatePropertyFieldWithOptions(groupID string, field *model.PropertyField, options model.PropertyRequestOptions) (*model.PropertyField, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpdatePropertyFieldWithOptions(groupID, field, options)
+	api.recordTime(startTime, "UpdatePropertyFieldWithOptions", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) LogAuditRec(rec *model.AuditRecord) {
 	startTime := timePkg.Now()
 	api.apiImpl.LogAuditRec(rec)
