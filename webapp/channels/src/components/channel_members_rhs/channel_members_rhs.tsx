@@ -4,6 +4,7 @@
 import debounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -18,6 +19,8 @@ import ExternalLink from 'components/external_link';
 import MoreDirectChannels from 'components/more_direct_channels';
 import AlertTag from 'components/widgets/tag/alert_tag';
 import TagGroup from 'components/widgets/tag/tag_group';
+
+import {areChannelAccessControlIndicatorsEnabled} from 'selectors/general';
 
 import {isMembershipPolicyEnforced} from 'utils/channel_utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
@@ -84,10 +87,14 @@ export default function ChannelMembersRHS({
     // tags in the RHS — a permission-only policy (e.g. file upload) has
     // no bearing on who can be a member.
     const isMembershipPolicy = isMembershipPolicyEnforced(channel);
+
+    // Admins can disable the attribute indicators to avoid leaking policy
+    // details; when off we skip fetching/rendering the tags entirely.
+    const indicatorsEnabled = useSelector(areChannelAccessControlIndicatorsEnabled);
     const {structuredAttributes, loading} = useAccessControlAttributes(
         EntityType.Channel,
         channel.id,
-        isMembershipPolicy,
+        isMembershipPolicy && indicatorsEnabled,
     );
 
     // Memoise the rendered access-control tags so they don't re-render on

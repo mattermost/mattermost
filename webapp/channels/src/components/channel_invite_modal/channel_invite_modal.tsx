@@ -7,6 +7,7 @@ import isEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {IntlShape} from 'react-intl';
 import {injectIntl, FormattedMessage, defineMessage} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
@@ -31,6 +32,8 @@ import AlertTag from 'components/widgets/tag/alert_tag';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 import TagGroup from 'components/widgets/tag/tag_group';
+
+import {areChannelAccessControlIndicatorsEnabled} from 'selectors/general';
 
 import {isMembershipPolicyEnforced} from 'utils/channel_utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
@@ -133,11 +136,15 @@ const ChannelInviteModalComponent = (props: Props) => {
     const isPolicyEnforcedPrivate = isMembershipPolicy && props.channel.type !== Constants.OPEN_CHANNEL;
     const isPolicyRecommendedPublic = isMembershipPolicy && props.channel.type === Constants.OPEN_CHANNEL;
 
+    // Admins can disable the attribute indicators to avoid leaking policy
+    // details; when off we skip fetching/rendering the tags entirely.
+    const indicatorsEnabled = useSelector(areChannelAccessControlIndicatorsEnabled);
+
     // Use the useAccessControlAttributes hook
     const {structuredAttributes} = useAccessControlAttributes(
         EntityType.Channel,
         props.channel.id,
-        isMembershipPolicy,
+        isMembershipPolicy && indicatorsEnabled,
     );
 
     // Memoise the rendered access-control tags so they don't re-render on
