@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"os"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -992,11 +991,7 @@ func TestSearchAccessControlPolicies(t *testing.T) {
 }
 
 func TestSearchTeamAccessControlPolicies(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
 	th := Setup(t).InitBasic(t)
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
-	})
 
 	teamSearch := model.AccessControlPolicySearch{TeamID: th.BasicTeam.Id}
 
@@ -1796,11 +1791,7 @@ func TestResponseMaskingOnPolicyEndpoints(t *testing.T) {
 }
 
 func TestCreateAccessControlPolicyTeamAdmin(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
 	th := Setup(t).InitBasic(t)
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
-	})
 
 	t.Run("team admin with permission can create parent policy scoped to their team", func(t *testing.T) {
 		mockACS := setupTeamAdminABAC(t, th)
@@ -2019,11 +2010,7 @@ func TestCreateAccessControlPolicyTeamAdmin(t *testing.T) {
 }
 
 func TestGetAccessControlPolicyTeamAdmin(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
 	th := Setup(t).InitBasic(t)
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
-	})
 
 	t.Run("team admin can GET a policy scoped to their team", func(t *testing.T) {
 		mockACS := setupTeamAdminABAC(t, th)
@@ -2122,11 +2109,7 @@ func TestGetAccessControlPolicyTeamAdmin(t *testing.T) {
 }
 
 func TestDeleteAccessControlPolicyTeamAdmin(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
 	th := Setup(t).InitBasic(t)
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
-	})
 
 	t.Run("team admin can delete their own team-scoped policy", func(t *testing.T) {
 		mockACS := setupTeamAdminABAC(t, th)
@@ -2209,11 +2192,7 @@ func TestDeleteAccessControlPolicyTeamAdmin(t *testing.T) {
 }
 
 func TestAssignAccessPolicyTeamAdmin(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
 	th := Setup(t).InitBasic(t)
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
-	})
 
 	t.Run("team admin can assign channels from their own team", func(t *testing.T) {
 		mockACS := setupTeamAdminABAC(t, th)
@@ -2347,11 +2326,7 @@ func TestAssignAccessPolicyTeamAdmin(t *testing.T) {
 }
 
 func TestUnassignAccessPolicyTeamAdmin(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
 	th := Setup(t).InitBasic(t)
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
-	})
 
 	t.Run("team admin can unassign channels from their policy", func(t *testing.T) {
 		mockACS := setupTeamAdminABAC(t, th)
@@ -2541,11 +2516,7 @@ func TestUnassignAccessPolicyTeamAdmin(t *testing.T) {
 }
 
 func TestScopeReconciliationCrossTeam(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
 	th := Setup(t).InitBasic(t)
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
-	})
 
 	// System admin creates a parent policy with channels only from teamA.
 	// After assigning a channel from teamB, scope must be cleared.

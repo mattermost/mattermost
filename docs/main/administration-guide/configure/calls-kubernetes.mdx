@@ -17,9 +17,9 @@ This diagram shows how the RTCD standalone service can be deployed in a Kubernet
 
 1. Calls traffic is handled by dedicated RTCD pods
 2. Scaling is managed through Kubernetes deployment configurations
-3. Call recording and transcription is handled by the calls-offloader service (see [Calls Offloader Setup and Configuration](calls-offloader-setup.md))
+3. Call recording and transcription is handled by the calls-offloader service (see [Calls Offloader Setup and Configuration](calls-offloader-setup.mdx))
 
-If Mattermost isn't already deployed in your Kubernetes cluster and you want to use this deployment type, visit the [Kubernetes operator guide](/install/mattermost-kubernetes-operator.md).
+If Mattermost isn't already deployed in your Kubernetes cluster and you want to use this deployment type, visit the [Kubernetes operator guide](/deployment-guide/server/deploy-kubernetes).
 
 ## Helm Chart Deployment
 
@@ -65,7 +65,7 @@ For Kubernetes deployments, you need to ensure specific connectivity paths:
 
 Resource requirements for RTCD pods depend heavily on the expected call volume, participant count, and whether screen sharing is used. 
 
-We strongly recommend reviewing the [Performance Baselines](calls-metrics-monitoring.md#performance-baselines) to determine the appropriate CPU, memory, and network requests and limits for your specific deployment needs rather than relying on generic defaults.
+We strongly recommend reviewing the [Performance Baselines](/administration-guide/configure/calls-metrics-monitoring#performance-baselines) to determine the appropriate CPU, memory, and network requests and limits for your specific deployment needs rather than relying on generic defaults.
 
 ### Scaling Considerations
 
@@ -86,7 +86,7 @@ The general recommendation is to expose one external IP address per `rtcd` insta
 
 ## Monitoring and Metrics
 
-For detailed information on metrics collection and monitoring, see the [Calls Metrics and Monitoring](calls-metrics-monitoring.md) guide.
+For detailed information on metrics collection and monitoring, see the [Calls Metrics and Monitoring](/administration-guide/configure/calls-metrics-monitoring) guide.
 
 ## Troubleshooting
 
@@ -97,12 +97,12 @@ For Kubernetes-specific troubleshooting:
 3. Ensure UDP and TCP traffic is properly routed through your load balancer
 4. Verify network policies allow required communication paths
 
-For detailed logging guidance, see the [Calls Logging](calls-logging.md) guide.
+For detailed logging guidance, see the [Calls Logging](calls-logging.mdx) guide.
 
 ## Other Calls Documentation
 
-- [Calls Deployment Guide](calls-deployment-guide.md): Overview of deployment options and architecture
-- [RTCD Setup and Configuration](calls-rtcd-setup.md): Comprehensive guide for setting up the dedicated RTCD service
-- [Calls Offloader Setup and Configuration](calls-offloader-setup.md): Setup guide for call recording and transcription
-- [Calls Metrics and Monitoring](calls-metrics-monitoring.md): Guide to monitoring Calls performance using metrics and observability
-- [Calls Logging](calls-logging.md): Detailed guidance for collecting Calls logs and client diagnostics
+- [Calls Deployment Guide](calls-deployment-guide.mdx): Overview of deployment options and architecture
+- [RTCD Setup and Configuration](/administration-guide/configure/calls-rtcd-setup): Comprehensive guide for setting up the dedicated RTCD service
+- [Calls Offloader Setup and Configuration](calls-offloader-setup.mdx): Setup guide for call recording and transcription
+- [Calls Metrics and Monitoring](/administration-guide/configure/calls-metrics-monitoring): Guide to monitoring Calls performance using metrics and observability
+- [Calls Logging](calls-logging.mdx): Detailed guidance for collecting Calls logs and client diagnostics

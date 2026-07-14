@@ -64,165 +64,12 @@ jobs:
         uses: ./.github/actions/setup-buildenv
         with:
           go-version: ${{ steps.calculate.outputs.GO_VERSION }}
-  check-mocks:
-    name: Check mocks
+  check-generated:
+    name: Check generated files
     needs: go
     runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout mattermost project
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
-        with:
-          persist-credentials: false
-      - uses: ./.github/actions/run-in-buildenv
-        with:
-          run: make mocks
-      - name: Check mocks
-        run: |
-          if [ -n "$(git status --porcelain)" ]; then
-            echo "Please update the mocks using 'make mocks'"
-            git diff
-            exit 1
-          fi
-  check-go-mod-tidy:
-    name: Check go mod tidy
-    needs: go
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout mattermost project
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
-        with:
-          persist-credentials: false
-      - uses: ./.github/actions/run-in-buildenv
-        with:
-          run: make modules-tidy
-      - name: Check modules
-        run: |
-          if [ -n "$(git status --porcelain)" ]; then
-            echo "Please tidy up the Go modules using make modules-tidy"
-            git diff
-            exit 1
-          fi
-  check-style:
-    name: check-style
-    needs: go
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout mattermost project
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
-        with:
-          persist-credentials: false
-      - uses: ./.github/actions/run-in-buildenv
-        with:
-          run: make check-style
-  check-gen-serialized:
-    name: Check serialization methods for hot structs
-    needs: go
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout mattermost project
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
-        with:
-          persist-credentials: false
-      - uses: ./.github/actions/run-in-buildenv
-        with:
-          run: make gen-serialized
-      - name: Check serialized
-        run: |
-          if [ -n "$(git status --porcelain)" ]; then
-            echo "Please update the serialized files using 'make gen-serialized'"
-            git diff
-            exit 1
-          fi
-  check-mattermost-vet-api:
-    name: Vet API
-    needs: go
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout mattermost project
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
-        with:
-          persist-credentials: false
-      - uses: ./.github/actions/run-in-buildenv
-        with:
-          run: make vet-api
-  check-migrations:
-    name: Check migration files
-    needs: go
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout mattermost project
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
-        with:
-          persist-credentials: false
-      - uses: ./.github/actions/run-in-buildenv
-        with:
-          run: make migrations-extract
-      - name: Check migration files
-        run: |
-          if [ -n "$(git status --porcelain)" ]; then
-            echo "Please update the migrations using make migrations-extract"
-            git diff
-            exit 1
-          fi
-      - name: Check for renumbered or renamed migrations
-        # Only backports (PRs targeting a release branch) need this guard: the
-        # migrations they add must keep the exact version+name they have on
-        # master. New migrations on master-targeted PRs are normal and skipped.
-        if: startsWith(github.base_ref, 'release-')
-        uses: ./.github/actions/run-in-buildenv
-        with:
-          run: |
-            git fetch --no-tags --depth=1 origin master "${{ github.base_ref }}"
-            export MM_MIGRATION_CHECK_BASE_REF="origin/${{ github.base_ref }}"
-            export MM_MIGRATION_CHECK_CANONICAL_REF="origin/master"
-            make check-migration-changes
-  check-email-templates:
-    name: Generate email templates
-    needs: go
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout mattermost project
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
-        with:
-          persist-credentials: false
-      - uses: ./.github/actions/run-in-buildenv
-        with:
-          run: |
-            npm install -g mjml@4.9.0
-            make build-templates
-      - name: Check generated email templates
-        run: |
-          if [ -n "$(git status --porcelain)" ]; then
-            echo "Please update the email templates using 'make build-templates'"
-            git diff
-            exit 1
-          fi
-  check-store-layers:
-    name: Check store layers
-    needs: go
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout mattermost project
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
-        with:
-          persist-credentials: false
-      - uses: ./.github/actions/run-in-buildenv
-        with:
-          run: make store-layers
-      - name: Check generated code
-        run: |
-          if [ -n "$(git status --porcelain)" ]; then
-            echo "Please update the store layers using make store-layers"
-            git diff
-            exit 1
-          fi
-  check-default-roles-permissions:
-    name: Check default roles permissions
-    needs: go
-    runs-on: ubuntu-22.04
-    permissions:
-      contents: read
     services:
+      # make default-roles-permissions snapshots a live database.
       postgres:
         image: postgres:14
         env:
@@ -246,33 +93,58 @@ jobs:
           run: |
             export IS_CI=true
             export TEST_DATABASE_POSTGRESQL_DSN="postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"
-            make default-roles-permissions
-      - name: Check generated code
+            make generated
+      - name: Check generated files
         run: |
           if [ -n "$(git status --porcelain)" ]; then
-            echo "Please update the default roles permissions using make default-roles-permissions"
+            echo "Generated files are out of date. Please run 'make generated' and commit the result."
+            git status --porcelain
             git diff
             exit 1
           fi
-  check-mmctl-docs:
-    name: Check mmctl docs
+  check-backport-migrations:
+    name: Check backport migrations
+    needs: go
+    # Only backports (release-* base) must keep a migration's version+name; new master migrations are expected.
+    if: startsWith(github.base_ref, 'release-')
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+      - name: Check for renumbered or renamed migrations
+        uses: ./.github/actions/run-in-buildenv
+        with:
+          run: |
+            git fetch --no-tags --depth=1 origin master "${{ github.base_ref }}"
+            export MM_MIGRATION_CHECK_BASE_REF="origin/${{ github.base_ref }}"
+            export MM_MIGRATION_CHECK_CANONICAL_REF="origin/master"
+            make check-backport-migrations
+  check-style:
+    name: check-style
     needs: go
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout mattermost-server
+      - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
           persist-credentials: false
       - uses: ./.github/actions/run-in-buildenv
         with:
-          run: make mmctl-docs
-      - name: Check docs
-        run: |
-          if [ -n "$(git status --porcelain)" ]; then
-            echo "Please update the mmctl docs using make mmctl-docs"
-            git diff
-            exit 1
-          fi
+          run: make check-style
+  check-mattermost-vet-api:
+    name: Vet API
+    needs: go
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/run-in-buildenv
+        with:
+          run: make vet-api
   # NOTE: Postgres with binary parameters has been moved to server-ci-weekly.yml
   # (runs Monday 1am EST / 5am UTC). Low regression risk doesn't justify
   # consuming 8-core runners on every push.

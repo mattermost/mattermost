@@ -554,7 +554,7 @@ func configSubpathCmdF(cmd *cobra.Command, _ []string) error {
 	assetsDir, _ := cmd.Flags().GetString("assets-dir")
 	path, _ := cmd.Flags().GetString("path")
 
-	if err := utils.UpdateAssetsSubpathInDir(path, assetsDir); err != nil {
+	if err := utils.UpdateAssetsSubpathInDir(path, assetsDir, nil); err != nil {
 		return errors.Wrap(err, "failed to update assets subpath")
 	}
 

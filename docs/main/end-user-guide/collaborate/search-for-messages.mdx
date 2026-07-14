@@ -1,15 +1,17 @@
 ---
 title: "Search for messages"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 Use Mattermost search to find messages, replies, and the contents of files. You can also search by [hashtags](#hashtags), perform more advanced searches using [search modifiers](#search-modifiers), or adjust search results to show messages from the current team, a specific team, or all teams.
 
 ## Search for message
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 1.  Select the Search field, select **Messages**, enter your search criteria.
 
@@ -43,11 +45,14 @@ From Mattermost v10.8, you can also adjust your search results to show messages 
 
 </Tip>
 
-</div>
+<Tip>
 
-<div class="tab">
+When using Mattermost in a web browser or the desktop app, you can open your current search results in a separate popout window by selecting the **Open in new window** <img src="/img/ui/dock-window_F10AC.svg" alt="Open thread in a new browser window icon." /> icon in the search results header.
 
-Mobile
+</Tip>
+
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 1.  Tap the **Search** <img src="/img/ui/magnify_F0349.svg" alt="Search for messages and files in Mattermost." className="theme-icon" /> icon at the bottom of the app to search for messages or files attached to messages.
 
@@ -67,13 +72,9 @@ Mobile
 >
 > ![Check the search results to find your required message or file from the list.](/images/mobile-search-message-results.jpg)
 
-<Tip>
+</TabItem>
+</Tabs>
 
-When using Mattermost in a web browser or the desktop app, you can open your current search results in a separate popout window by selecting the **Open in new window** <img src="/img/ui/dock-window_F10AC.svg" alt="Open thread in a new browser window icon." /> icon in the search results header.
-
-</Tip>
-
-</div>
 
 ## Search for files
 
@@ -112,9 +113,8 @@ Using Mattermost in a web browser or the desktop app, you can narrow search resu
 
 You can access files recently shared in a channel:
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 Select the <img src="/img/ui/file-text-outline_F09EE.svg" alt="Use the Channel Files icon to search for files attached to messages in a given channel." className="theme-icon" /> icon to the right of the channel name to access files recently shared in that channel.
 
@@ -122,15 +122,14 @@ Select the <img src="/img/ui/file-text-outline_F09EE.svg" alt="Use the Channel F
 
 Alternatively, you can select the channel name, select the **View Info** <img src="/img/ui/information-outline_F02FD.svg" alt="Use the Channel Info icon to access additional channel management options." className="theme-icon" /> icon, then select **Files** in the right pane.
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 Tap the channel name to view channel options, then tap **Files**.
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Search modifiers
 

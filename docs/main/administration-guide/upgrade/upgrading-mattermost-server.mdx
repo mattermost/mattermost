@@ -1,6 +1,9 @@
 ---
 title: "Upgrade Mattermost Server"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 In most cases, you can upgrade Mattermost Server in a few minutes. However, the upgrade can take longer depending on several factors, including the size and complexity of your installation, and the version that you're upgrading from.
@@ -84,29 +87,27 @@ Consider generating a migration plan using the [mattermost db migrate --save-pla
 
 2.  Download [the latest version of Mattermost Server](https://mattermost.com/download/) based on your Mattermost edition.
 
-> <div class="tab">
->
-> Enterprise Edition
->
-> In the following command, replace `X.X.X` with the version that you want to download:
->
-> ``` sh
-> wget https://releases.mattermost.com/X.X.X/mattermost-X.X.X-linux-amd64.tar.gz
-> ```
->
-> </div>
->
-> <div class="tab">
->
-> Team Edition
->
-> In the following command, replace `X.X.X` with the version that you want to download:
->
-> ``` sh
-> wget https://releases.mattermost.com/X.X.X/mattermost-team-X.X.X-linux-amd64.tar.gz
-> ```
->
-> </div>
+<Tabs>
+<TabItem value="enterprise-edition" label="Enterprise Edition">
+
+In the following command, replace `X.X.X` with the version that you want to download:
+
+``` sh
+wget https://releases.mattermost.com/X.X.X/mattermost-X.X.X-linux-amd64.tar.gz
+```
+
+</TabItem>
+<TabItem value="team-edition" label="Team Edition">
+
+In the following command, replace `X.X.X` with the version that you want to download:
+
+``` sh
+wget https://releases.mattermost.com/X.X.X/mattermost-team-X.X.X-linux-amd64.tar.gz
+```
+
+</TabItem>
+</Tabs>
+
 
 3.  Confirm no other Mattermost zip folders exist in your `/tmp` directory. If another version's zip file does exist, delete or rename the file.
 

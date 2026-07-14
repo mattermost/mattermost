@@ -51,6 +51,8 @@ import {
 import {pages} from './ui/pages';
 import {matchSnapshot} from './visual';
 import {
+    clearCapturedNotifications,
+    clickNotification,
     closeWebsockets,
     connectWebsockets,
     mockWebsockets,
@@ -125,7 +127,9 @@ export class PlaywrightExtended {
 
     // ./mock_browser_api
     readonly stubNotification;
+    readonly clearCapturedNotifications;
     readonly waitForNotification;
+    readonly clickNotification;
     readonly mockWebsockets;
     readonly connectWebsockets;
     readonly closeWebsockets;
@@ -204,7 +208,9 @@ export class PlaywrightExtended {
 
         // ./mock_browser_api
         this.stubNotification = stubNotification;
+        this.clearCapturedNotifications = clearCapturedNotifications;
         this.waitForNotification = waitForNotification;
+        this.clickNotification = clickNotification;
         this.mockWebsockets = mockWebsockets;
         this.connectWebsockets = connectWebsockets;
         this.closeWebsockets = closeWebsockets;

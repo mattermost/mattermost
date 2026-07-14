@@ -1,6 +1,9 @@
 ---
 title: "Join and leave channels"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 ## Join a channel
@@ -18,9 +21,8 @@ To join a private channel, you need to be added to the channel by a member of th
 
 To join a public channel:
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 1.  Select the **Add channels** button in the channel sidebar, then select **Browse Channels**.
 
@@ -34,11 +36,8 @@ Web/Desktop
 
 > ![When browsing available channels, select the join option next to any channel to become a member.](/images/join-channels.png)
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 1.  Tap <img src="/img/ui/plus_F0415.svg" alt="The Plus icon provides access to channel and direct message functionality." className="theme-icon" /> located in the top right corner the app.
 
@@ -52,7 +51,9 @@ Mobile
 
 ![Tap on the public channel name that you want to join.](/images/mobile-browse-public-channels.jpg)
 
-</div>
+</TabItem>
+</Tabs>
+
 
 <Tip>
 
@@ -76,19 +77,15 @@ All users are added to the **Town Square** channel automatically. This means tha
 
 </Note>
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 Select the channel name at the top of the center pane to access the drop-down menu, then select **Leave Channel**.
 
 ![You can use channel options available from the channel name to leave a channel.](/images/leave-channels.png)
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 1.  Tap the channel you want to leave.
 
@@ -106,4 +103,15 @@ Mobile
 
 ![Tap on Leave to confirm your choice.](/images/mobile-confirm-leave-a-channel.jpg)
 
-</div>
+</TabItem>
+</Tabs>
+
+### Leave a public channel added by a membership policy
+
+From Mattermost v11.8.0, when you leave a public channel you were added to by a membership policy, Mattermost asks you to confirm:
+
+- Choosing **Leave channel** removes you from the channel.
+- Choosing **Mute instead** keeps you in the channel and mutes its notifications.
+
+If the channel is already muted, Mattermost shows **Cancel** and **Leave channel** instead of **Mute instead**.
+

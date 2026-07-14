@@ -1,7 +1,9 @@
 ---
 title: "Mattermost logging"
-draft: true
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 <Important>
@@ -86,9 +88,8 @@ Define logging output for general activities in JSON format in the System Consol
 
 You can use the sample JSON below as a starting point.
 
-<div class="tab">
-
-v11 or later
+<Tabs>
+<TabItem value="v11-or-later" label="v11 or later">
 
 ``` JSON
 {
@@ -164,11 +165,8 @@ v11 or later
 }
 ```
 
-</div>
-
-<div class="tab">
-
-v10.12 or earlier
+</TabItem>
+<TabItem value="v10-12-or-earlier" label="v10.12 or earlier">
 
 ``` JSON
 {
@@ -229,7 +227,9 @@ v10.12 or earlier
 }
 ```
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -249,9 +249,8 @@ From Mattermost v9.3, you can enable and customize advanced logging for AD/LDAP 
 
 </Note>
 
-<div class="tab">
-
-Self-Hosted Deployments
+<Tabs>
+<TabItem value="self-hosted-deployments" label="Self-Hosted Deployments">
 
 Go to **System Console \> Compliance \> Audit Logging** to customize audit logging. You can use the sample JSON below as a starting point.
 
@@ -259,11 +258,8 @@ You can customize console logs for [general](/administration-guide/configure/env
 
 Additionally, you can also output audit log records to any combination of [console](#console-target-configuration-options), [local file](#file-target-configuration-options), [syslog](#syslog-target-configuration-options), and [TCP socket](#tcp-target-configuration-options) targets, each featuring additional customization. See [Advanced Logging](#advanced-logging) below for details.
 
-</div>
-
-<div class="tab">
-
-Cloud Deployments
+</TabItem>
+<TabItem value="cloud-deployments" label="Cloud Deployments">
 
 From Mattermost v10.11, go to **System Console \> Compliance \> Audit Logging** to customize audit logging. You can use the sample JSON below as a starting point. Prior to Mattermost v10.11, customize audit logging by going to **System Console \> Experimental \> Features \> Audit Logging**.
 
@@ -271,20 +267,15 @@ From Mattermost v10.11, go to **System Console \> Compliance \> Audit Logging** 
 
 - From Mattermost v10.11, Cloud deployments include certificate-based audit logging capabilities not available within self-hosted deployments.
 
-- Cloud-based deployments use the following self-hosted audit logging default values:
-
-  > - FileEnabled: false
-  > - FileMaxSizeMB: 100
-  > - FileMaxAgeDays: 0 (no limit)
-  > - FileMaxBackups: 0 (retain all)
-  > - FileCompress: false
-  > - FileMaxQueueSize: 1000
+- Cloud-based deployments use the following self-hosted audit logging default values: `FileEnabled: false`
 
 - Cloud deployments can't configure local file-based audit logging, and all file-related settings are hidden.
 
 </Note>
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -407,9 +398,8 @@ Advanced logging options can be configured to:
 
 ### Define advanced log output
 
-<div class="tab" parse-titles="">
-
-Multi-line JSON
+<Tabs>
+<TabItem value="multi-line-json" label="Multi-line JSON">
 
 In the example below, file output is written to `./logs/audit.log` in plain text and includes all audit log levels & events. Older logs are kept for 1 day, and up to a total of 10 backup log files are kept at a time. Logs are rotated using gzip when the maximum size of the log file reaches 500 MB. A maximum of 1000 audit records can be queued/buffered while writing to the file.
 
@@ -488,11 +478,8 @@ In the example below, file output is written to `./logs/audit.log` in plain text
 }
 ```
 
-</div>
-
-<div class="tab" parse-titles="">
-
-Filespec
+</TabItem>
+<TabItem value="filespec" label="Filespec">
 
 Advanced logging configuration can be pointed to a filespec to another configuration file, rather than multi-line JSON, to keep the config.json file tidy:
 
@@ -611,7 +598,9 @@ Contents of `audit_log_config.json` file:
 }
 ```
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ### Specify destination targets
 
@@ -1009,7 +998,7 @@ Syslog targets support local and remote syslog servers, with or without TLS tran
 
 <PlanAvailability slug="entry-ent" />
 
-The TCP socket targets can be configured with an IP address or domain name, port, and optional TLS certificate. TCP socket target support requires Mattermost Enterprise. You can [download a sample JSON file](/samples/sample-logger-config.json) of the configuration to use as a starting point.
+The TCP socket targets can be configured with an IP address or domain name, port, and optional TLS certificate. TCP socket target support requires Mattermost Enterprise. You can [download a sample JSON file](https://github.com/mattermost/docs/blob/master/source/samples/sample-logger-config.json) of the configuration to use as a starting point.
 
 <table style={{width: '99%'}}>
 <colgroup>
