@@ -55,9 +55,10 @@ const (
 //     caller require pre-existing listed-owner membership (matching ID and Type)
 //     whose Scopes contain the caller's acting-as scope: the owner and scope must
 //     already be present before the definition can be edited. Owners-list changes
-//     are self-managed: a plugin may add or change only its own entry (adding a
-//     scope needs no acting scope) but removing a scope requires acting as that
-//     scope, and a plugin may never touch another owner's entry.
+//     are self-managed: a plugin may add or change only its own entry, and adding
+//     or removing a scope on an existing field requires acting as that scope
+//     (initial owners declared when the field is created are exempt); a plugin
+//     may never touch another owner's entry.
 //   - The field's PermissionValues is pinned to sysadmin so human callers are
 //     gated to system admins, keeping users and owners from writing the same
 //     value from two directions.

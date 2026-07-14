@@ -765,8 +765,9 @@ func (h *AccessControlHook) checkOwnerFieldWriteAccess(fieldID string, owners []
 // enforceOwnerMutationRules validates a change to attrs.owners. Owners are a
 // plugin-only, self-managed mechanism: a plugin may add, change, or remove only
 // its own entry (type=plugin, id == caller manifest id) and may never touch
-// another id's entry. Removing a scope from its own entry additionally requires
-// the caller to be acting as that scope. Non-plugin callers may not change
+// another id's entry. Adding or removing a scope on an existing field
+// additionally requires the caller to be acting as that scope; initial owners
+// set when the field is created are exempt. Non-plugin callers may not change
 // owners at all. existing is the stored field (nil on create).
 func (h *AccessControlHook) enforceOwnerMutationRules(existing, updated *model.PropertyField, callerID, scope string) error {
 	existingOwners := model.GetPropertyFieldOwners(existing)
@@ -793,16 +794,32 @@ func (h *AccessControlHook) enforceOwnerMutationRules(existing, updated *model.P
 		return fmt.Errorf("a plugin may only manage its own ownership (id %q), not another plugin's: %w", callerID, ErrAccessDenied)
 	}
 
-	// Removing a scope from the caller's own entry requires acting as that
-	// scope, so a plugin can't drop a scope it isn't currently operating under.
+	// Every scope the caller adds to or removes from its own entry on an existing
+	// field must be the scope it is currently acting as, so a plugin only grants
+	// or drops ownership for the scope it is operating under. Initial owners
+	// declared when the field is created (existing == nil) are exempt: a plugin
+	// may define its new field's owners atomically, like any other create attr.
 	effectiveScope := strings.TrimSpace(scope)
+	existingScopes := callerOwnScopes(existingOwners, callerID)
 	updatedScopes := callerOwnScopes(updatedOwners, callerID)
-	for _, existingScope := range callerOwnScopes(existingOwners, callerID) {
+
+	for _, existingScope := range existingScopes {
 		if slices.Contains(updatedScopes, existingScope) {
 			continue
 		}
 		if existingScope != effectiveScope {
 			return fmt.Errorf("removing scope %q from owner %q requires acting as that scope: %w", existingScope, callerID, ErrAccessDenied)
+		}
+	}
+
+	if existing != nil {
+		for _, addedScope := range updatedScopes {
+			if slices.Contains(existingScopes, addedScope) {
+				continue
+			}
+			if addedScope != effectiveScope {
+				return fmt.Errorf("adding scope %q to owner %q requires acting as that scope: %w", addedScope, callerID, ErrAccessDenied)
+			}
 		}
 	}
 	return nil

@@ -519,8 +519,9 @@ func TestPropertyFieldOwnerHelpers(t *testing.T) {
 				"options": []any{map[string]any{"name": "A", "id": "opt1"}},
 			},
 		}
+		opts := model.PropertyRequestOptions{ActingAsScope: "entra"}
 		api.On("GetPropertyField", "group1", "field1").Return(field, nil)
-		api.On("UpdatePropertyField", "group1", mock.MatchedBy(func(f *model.PropertyField) bool {
+		api.On("UpdatePropertyFieldWithOptions", "group1", mock.MatchedBy(func(f *model.PropertyField) bool {
 			owners := model.GetPropertyFieldOwners(f)
 			if len(owners) != 1 || owners[0].ID != pluginID || owners[0].Type != model.PropertyOwnerTypePlugin {
 				return false
@@ -531,12 +532,12 @@ func TestPropertyFieldOwnerHelpers(t *testing.T) {
 			// Other attrs preserved
 			_, ok := f.Attrs["options"]
 			return ok
-		})).Return(field, nil)
+		}), opts).Return(field, nil)
 
 		client := NewClient(api, nil)
 		err := client.Property.AddPropertyFieldOwner("group1", "field1", model.PropertyOwner{
 			ID: pluginID, Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra"},
-		})
+		}, opts)
 		require.NoError(t, err)
 		api.AssertExpectations(t)
 	})
@@ -553,8 +554,9 @@ func TestPropertyFieldOwnerHelpers(t *testing.T) {
 				},
 			},
 		}
+		opts := model.PropertyRequestOptions{ActingAsScope: "okta"}
 		api.On("GetPropertyField", "group1", "field1").Return(field, nil)
-		api.On("UpdatePropertyField", "group1", mock.MatchedBy(func(f *model.PropertyField) bool {
+		api.On("UpdatePropertyFieldWithOptions", "group1", mock.MatchedBy(func(f *model.PropertyField) bool {
 			owners := model.GetPropertyFieldOwners(f)
 			if len(owners) != 2 {
 				return false
@@ -573,12 +575,12 @@ func TestPropertyFieldOwnerHelpers(t *testing.T) {
 			}
 			return assert.Equal(t, []string{"entra", "okta"}, ours.Scopes) &&
 				assert.Equal(t, []string{"other"}, theirs.Scopes)
-		})).Return(field, nil)
+		}), opts).Return(field, nil)
 
 		client := NewClient(api, nil)
 		err := client.Property.AddPropertyFieldOwner("group1", "field1", model.PropertyOwner{
 			ID: pluginID, Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra", "okta"},
-		})
+		}, opts)
 		require.NoError(t, err)
 		api.AssertExpectations(t)
 	})
@@ -650,16 +652,17 @@ func TestPropertyFieldOwnerHelpers(t *testing.T) {
 				},
 			},
 		}
+		opts := model.PropertyRequestOptions{ActingAsScope: "entra"}
 		api.On("GetPropertyField", "group1", "field1").Return(field, nil)
-		api.On("UpdatePropertyField", "group1", mock.MatchedBy(func(f *model.PropertyField) bool {
+		api.On("UpdatePropertyFieldWithOptions", "group1", mock.MatchedBy(func(f *model.PropertyField) bool {
 			owners := model.GetPropertyFieldOwners(f)
 			return len(owners) == 1 && assert.Equal(t, []string{"entra"}, owners[0].Scopes)
-		})).Return(field, nil)
+		}), opts).Return(field, nil)
 
 		client := NewClient(api, nil)
 		err := client.Property.AddPropertyFieldOwner("group1", "field1", model.PropertyOwner{
 			ID: pluginID, Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra"},
-		})
+		}, opts)
 		require.NoError(t, err)
 		api.AssertExpectations(t)
 	})
@@ -672,18 +675,18 @@ func TestPropertyFieldOwnerHelpers(t *testing.T) {
 			Attrs:   model.StringInterface{},
 		}
 		api.On("GetPropertyField", "group1", "field1").Return(field, nil).Once()
-		api.On("UpdatePropertyField", "group1", mock.MatchedBy(func(f *model.PropertyField) bool {
+		api.On("UpdatePropertyFieldWithOptions", "group1", mock.MatchedBy(func(f *model.PropertyField) bool {
 			owners := model.GetPropertyFieldOwners(f)
 			return len(owners) == 1 &&
 				owners[0].ID == pluginID &&
 				owners[0].Type == model.PropertyOwnerTypePlugin &&
 				len(owners[0].Scopes) == 0
-		})).Return(field, nil).Once()
+		}), model.PropertyRequestOptions{}).Return(field, nil).Once()
 
 		client := NewClient(api, nil)
 		err := client.Property.AddPropertyFieldOwner("group1", "field1", model.PropertyOwner{
 			ID: pluginID, Type: model.PropertyOwnerTypePlugin,
-		})
+		}, model.PropertyRequestOptions{})
 		require.NoError(t, err)
 
 		owned := &model.PropertyField{

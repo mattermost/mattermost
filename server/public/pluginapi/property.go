@@ -238,10 +238,13 @@ func (p *PropertyService) UpdatePropertyFieldWithOptions(groupID string, field *
 // AddPropertyFieldOwner adds owner to the field's owners list, merging owner.Scopes
 // into any existing entry with the same Type and ID. Other attrs are preserved.
 // Owners are written in the gob-safe generic Attrs shape required by UpdatePropertyField.
-// Adding scopes requires no acting-as scope.
+//
+// Adding a scope to an existing field requires acting as that scope, so callers
+// should set options.ActingAsScope to the scope being claimed. Claiming
+// scopeless (unrestricted) ownership may pass an empty PropertyRequestOptions.
 //
 // Minimum server version: 11.10
-func (p *PropertyService) AddPropertyFieldOwner(groupID, fieldID string, owner model.PropertyOwner) error {
+func (p *PropertyService) AddPropertyFieldOwner(groupID, fieldID string, owner model.PropertyOwner, options model.PropertyRequestOptions) error {
 	field, err := p.api.GetPropertyField(groupID, fieldID)
 	if err != nil {
 		return err
@@ -250,7 +253,7 @@ func (p *PropertyService) AddPropertyFieldOwner(groupID, fieldID string, owner m
 	if err := model.SetPropertyFieldOwners(field, owners); err != nil {
 		return err
 	}
-	_, err = p.api.UpdatePropertyField(groupID, field)
+	_, err = p.api.UpdatePropertyFieldWithOptions(groupID, field, options)
 	return err
 }
 
