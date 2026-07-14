@@ -126,6 +126,10 @@ const ProductMenu = (): JSX.Element => {
 
         const destination = getProductSwitcherLinkURL(product, currentTeam?.name);
 
+        if (destination === null) {
+            return null;
+        }
+
         return (
             <ProductMenuItem
                 key={product.id}

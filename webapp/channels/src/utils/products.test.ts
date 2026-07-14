@@ -62,16 +62,16 @@ describe('getProductSwitcherLinkURL', () => {
         expect(getProductSwitcherLinkURL(product, 'myteam')).toBe('/myteam/spaces');
     });
 
-    it('returns the switcher link unchanged for a team-scoped product when no current team is provided', () => {
+    it('returns null for a team-scoped product when no current team is provided', () => {
         const product = makeProduct({switcherLinkURL: '/spaces', isTeamScoped: true});
 
-        expect(getProductSwitcherLinkURL(product, undefined)).toBe('/spaces');
+        expect(getProductSwitcherLinkURL(product, undefined)).toBeNull();
     });
 
-    it('returns the switcher link unchanged for a team-scoped product when the current team name is empty', () => {
+    it('returns null for a team-scoped product when the current team name is empty', () => {
         const product = makeProduct({switcherLinkURL: '/spaces', isTeamScoped: true});
 
-        expect(getProductSwitcherLinkURL(product, '')).toBe('/spaces');
+        expect(getProductSwitcherLinkURL(product, '')).toBeNull();
     });
 
     it('returns the switcher link unchanged for a global product even when a current team is provided', () => {

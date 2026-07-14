@@ -21,9 +21,9 @@ export const getTeamScopedProductRoutePath = (baseURL: string): string => `/:tea
 
 export const getTeamScopedProductURL = (baseURL: string, teamName: string): string => `/${teamName}${baseURL}`;
 
-export const getProductSwitcherLinkURL = (product: ProductComponent, currentTeamName?: string): string => {
-    if (isTeamScopedProduct(product) && currentTeamName) {
-        return `/${currentTeamName}${product.switcherLinkURL}`;
+export const getProductSwitcherLinkURL = (product: ProductComponent, currentTeamName?: string): string | null => {
+    if (isTeamScopedProduct(product)) {
+        return currentTeamName ? `/${currentTeamName}${product.switcherLinkURL}` : null;
     }
     return product.switcherLinkURL;
 };
