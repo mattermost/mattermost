@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"maps"
 	"sync"
 	"testing"
 	"time"
@@ -294,9 +295,7 @@ func TestProcessTask_RetryDelay(t *testing.T) {
 
 	scs.mux.RLock()
 	tasksCopy := make(map[string]syncTask, len(scs.tasks))
-	for k, v := range scs.tasks {
-		tasksCopy[k] = v
-	}
+	maps.Copy(tasksCopy, scs.tasks)
 	scs.mux.RUnlock()
 
 	require.Len(t, tasksCopy, 1, "failed task should be re-enqueued for retry")
