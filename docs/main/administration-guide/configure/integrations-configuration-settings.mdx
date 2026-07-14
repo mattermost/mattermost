@@ -1,13 +1,12 @@
 ---
 title: "Integrations configuration settings"
-draft: true
 ---
 <PlanAvailability slug="all-commercial" />
 
 Review and manage the following integration configuration options in the System Console by selecting the **Product** <img src="/img/ui/products_E82F.svg" alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> menu, selecting **System Console**, and then selecting **Integrations**:
 
 - [Integrations management](#integrations-management)
-- [Bot Accounts](#bot-acocunts)
+- [Bot Accounts](#bot-accounts)
 - [GIF](#gif)
 - [CORS](#cors)
 
@@ -187,7 +186,7 @@ Cloud admins can't modify this configuration setting.
 
 ### Integration request timeout
 
-The number of seconds to wait for external integration HTTP requests, before timing out, including [custom slash commands](https://developers.mattermost.com/integrate/slash-commands/custom/), [outgoing webhooks](https://developers.mattermost.com/integrate/webhooks/outgoing/), [interactive messages](https://developers.mattermost.com/integrate/plugins/interactive-messages/), and [interactive dialogs](https://developers.mattermost.com/integrate/plugins/interactive-dialogs/). Increase this value if you have external integrations that can take some time to generate an HTTP response, or experience delayed responses due to latency.
+The number of seconds to wait for external integration HTTP requests before timing out, including [custom slash commands](https://developers.mattermost.com/integrate/slash-commands/custom/), [outgoing webhooks](https://developers.mattermost.com/integrate/webhooks/outgoing/), [interactive messages](https://developers.mattermost.com/integrate/plugins/interactive-messages/), and [interactive dialogs](https://developers.mattermost.com/integrate/plugins/interactive-dialogs/). Increase this value if you have external integrations that can take some time to generate an HTTP response, or experience delayed responses due to latency.
 
 <table style={{width: '81%'}}>
 <colgroup>
@@ -195,7 +194,7 @@ The number of seconds to wait for external integration HTTP requests, before tim
 </colgroup>
 <tbody>
 <tr>
-<td>This feature's <code>config.json</code> setting is <code>"OutgoingIntegrationRequestsDefaultTimeout": 3</code>.</td>
+<td>This feature's <code>config.json</code> setting is <code>"OutgoingIntegrationRequestsTimeout": 30</code>.</td>
 </tr>
 </tbody>
 </table>

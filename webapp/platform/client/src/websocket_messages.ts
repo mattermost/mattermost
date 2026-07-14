@@ -10,6 +10,7 @@ import type {Draft} from '@mattermost/types/drafts';
 import type {CustomEmoji} from '@mattermost/types/emojis';
 import type {Group, GroupMember as GroupMemberType} from '@mattermost/types/groups';
 import type {OpenDialogRequest} from '@mattermost/types/integrations';
+import type {Job} from '@mattermost/types/jobs';
 import type {PluginManifest} from '@mattermost/types/plugins';
 import type {Post, PostAcknowledgement as PostAcknowledgementType} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
@@ -466,6 +467,12 @@ export type ContentFlaggingReportValueUpdated =
         property_values: JsonEncodedValue<Array<PropertyValue<unknown>>>;
         target_id: string;
     }>;
+
+// Job messages
+
+export type JobUpdated = BaseWebSocketMessage<WebSocketEvents.JobUpdated, {
+    job: JsonEncodedValue<Job>;
+}>;
 
 // Recap messages
 

@@ -162,7 +162,19 @@ func (a *App) DoActionRequest(rctx request.CTX, rawURL string, body []byte) (*ht
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return resp, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, fmt.Sprintf("status=%v", resp.StatusCode), http.StatusBadRequest)
+		// Preserve 429 and 503 because they carry retry semantics (RFC 6585,
+		// RFC 7231) that downstream HTTP clients legitimately need. Map other
+		// 5xx responses to 502 Bad Gateway since the failure is upstream of
+		// MM. Sanitize all other non-200 responses to 400 so plugin-specific
+		// 4xx codes do not leak misleading semantics to MM API clients.
+		status := http.StatusBadRequest
+		switch {
+		case resp.StatusCode == http.StatusTooManyRequests, resp.StatusCode == http.StatusServiceUnavailable:
+			status = resp.StatusCode
+		case resp.StatusCode >= 500:
+			status = http.StatusBadGateway
+		}
+		return resp, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, fmt.Sprintf("status=%v", resp.StatusCode), status)
 	}
 
 	return resp, nil
@@ -323,6 +335,138 @@ func (a *App) SubmitInteractiveDialog(rctx request.CTX, request model.SubmitDial
 	url := request.URL
 	request.URL = ""
 
+	// Validate submitted file IDs exist and belong to the submitting user.
+	// Dedup without sorting so the order the user selected the files is preserved
+	// when the request is forwarded to the integration.
+	request.FileIds = model.RemoveDuplicateStringsNonSort(request.FileIds)
+	if len(request.FileIds) > model.MaxDialogFileIds {
+		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.too_many_file_ids",
+			map[string]any{"Max": model.MaxDialogFileIds}, "", http.StatusBadRequest)
+	}
+	declaredFileIDs := make(map[string]bool, len(request.FileIds))
+	for _, fileID := range request.FileIds {
+		declaredFileIDs[fileID] = true
+	}
+
+	// Validate the declared file IDs with a single batched lookup (one DB roundtrip
+	// instead of one per file). This is the primary ownership check, so a store
+	// error fails closed.
+	if len(request.FileIds) > 0 {
+		declaredFiles, nErr := a.Srv().Store().FileInfo().GetByIds(request.FileIds, false, false, false)
+		if nErr != nil {
+			return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.get_file_info_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
+		foundFileIDs := make(map[string]bool, len(declaredFiles))
+		for _, fileInfo := range declaredFiles {
+			foundFileIDs[fileInfo.Id] = true
+			if fileInfo.CreatorId != request.UserId {
+				return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.file_not_owned", map[string]any{"FileId": fileInfo.Id}, "", http.StatusForbidden)
+			}
+		}
+		// Any declared ID not returned doesn't exist (or was deleted) — reject it.
+		for _, fileID := range request.FileIds {
+			if !foundFileIDs[fileID] {
+				return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.invalid_file_id", map[string]any{"FileId": fileID}, "", http.StatusBadRequest)
+			}
+		}
+	}
+
+	// Defense in depth: integrations read raw field values from request.Submission
+	// (e.g. submission["my_file"]), not request.FileIds. Because the submit request
+	// does not carry the dialog's element definitions, the server cannot tell which
+	// submission fields are file pickers, so a malicious client could smuggle another
+	// user's file ID through a submission value while sending a benign FileIds list.
+	// Collect ID-shaped tokens from submission values (recursing into arrays/objects),
+	// resolve them in a single batch, and enforce the same ownership check on any that
+	// are real files. Tokens that don't resolve to a file (e.g. user/channel select
+	// IDs, or ID-shaped free text) are ordinary values and ignored.
+	//
+	// The scan is bounded in both breadth (ID-shaped tokens collected) and depth
+	// (recursion into nested arrays/objects). Hitting either bound must not silently
+	// skip remaining values — breadth overflow fails closed so a padded submission
+	// cannot smuggle an unchecked file ID past the cap.
+	const maxSubmissionScanDepth = 100
+	candidateFileIDs := make([]string, 0)
+	seenCandidate := make(map[string]bool)
+	scanLimitExceeded := false
+	var collectIDs func(v any, depth int)
+	collectIDs = func(v any, depth int) {
+		if depth > maxSubmissionScanDepth || scanLimitExceeded {
+			return
+		}
+		switch typed := v.(type) {
+		case string:
+			for tok := range strings.SplitSeq(typed, ",") {
+				tok = strings.TrimSpace(tok)
+				if tok == "" || declaredFileIDs[tok] || seenCandidate[tok] || !model.IsValidId(tok) {
+					continue
+				}
+				if len(candidateFileIDs) >= model.MaxDialogSubmissionIDShapedTokenScan {
+					scanLimitExceeded = true
+					return
+				}
+				seenCandidate[tok] = true
+				candidateFileIDs = append(candidateFileIDs, tok)
+			}
+		case []any:
+			for _, e := range typed {
+				if scanLimitExceeded {
+					return
+				}
+				collectIDs(e, depth+1)
+			}
+		case []string:
+			for _, e := range typed {
+				if scanLimitExceeded {
+					return
+				}
+				collectIDs(e, depth+1)
+			}
+		case map[string]any:
+			for _, e := range typed {
+				if scanLimitExceeded {
+					return
+				}
+				collectIDs(e, depth+1)
+			}
+		}
+	}
+	for _, raw := range request.Submission {
+		if scanLimitExceeded {
+			break
+		}
+		collectIDs(raw, 0)
+	}
+
+	if scanLimitExceeded {
+		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.too_many_submission_ids",
+			map[string]any{"Max": model.MaxDialogSubmissionIDShapedTokenScan}, "", http.StatusBadRequest)
+	}
+
+	if len(candidateFileIDs) > 0 {
+		// allowFromCache=false: ownership must be decided from current DB state, not a
+		// possibly stale per-file cache entry.
+		submissionFiles, nErr := a.Srv().Store().FileInfo().GetByIds(candidateFileIDs, false, false, false)
+		if nErr != nil {
+			// Defense-in-depth scan: a transient store error must not block an otherwise
+			// valid submission whose tokens may just be coincidental ID-shaped text. The
+			// primary FileIds ownership check above already ran fail-closed.
+			rctx.Logger().Warn("Could not resolve submission file IDs for ownership check", mlog.Err(nErr))
+		} else {
+			for _, fileInfo := range submissionFiles {
+				if fileInfo.CreatorId != request.UserId {
+					return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.file_not_owned", map[string]any{"FileId": fileInfo.Id}, "", http.StatusForbidden)
+				}
+			}
+			// Only tokens that are real files count toward the limit; combine with the
+			// declared FileIds so the per-submission ceiling is MaxDialogFileIds total.
+			if len(declaredFileIDs)+len(submissionFiles) > model.MaxDialogFileIds {
+				return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.too_many_file_ids",
+					map[string]any{"Max": model.MaxDialogFileIds}, "", http.StatusBadRequest)
+			}
+		}
+	}
+
 	// Preserve Type field for field refresh functionality, otherwise default to dialog_submission
 	if request.Type != "refresh" {
 		request.Type = "dialog_submission"
@@ -339,6 +483,7 @@ func (a *App) SubmitInteractiveDialog(rctx request.CTX, request model.SubmitDial
 		mlog.String("user_id", request.UserId),
 		mlog.String("channel_id", request.ChannelId),
 		mlog.String("team_id", request.TeamId),
+		mlog.Bool("cancelled", request.Cancelled),
 	)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
@@ -377,6 +522,86 @@ func (a *App) SubmitInteractiveDialog(rctx request.CTX, request model.SubmitDial
 	}
 
 	return &response, nil
+}
+
+func (a *App) ExecuteDialogAction(rctx request.CTX, userID string, req model.ExecuteDialogActionRequest) (string, *model.AppError) {
+	if !model.IsValidLookupURL(req.URL) {
+		return "", model.NewAppError("ExecuteDialogAction", "api.post.do_action.action_integration.app_error", nil, "invalid URL", http.StatusBadRequest)
+	}
+
+	if err := model.ValidateActionQuery(req.Context); err != nil {
+		return "", model.NewAppError("ExecuteDialogAction", "api.post.do_action.action_integration.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	ctx := make(map[string]any, len(req.Context))
+	for k, v := range req.Context {
+		ctx[k] = v
+	}
+
+	upstreamRequest := &model.PostActionIntegrationRequest{
+		Type:      "dialog_action",
+		UserId:    userID,
+		ChannelId: req.ChannelId,
+		TeamId:    req.TeamId,
+		Context:   ctx,
+	}
+
+	user, userErr := a.Srv().Store().User().Get(context.Background(), userID)
+	if userErr != nil {
+		return "", model.NewAppError("ExecuteDialogAction", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(userErr)
+	}
+	upstreamRequest.UserName = user.Username
+
+	channel, channelErr := a.GetChannel(rctx, req.ChannelId)
+	if channelErr != nil {
+		return "", channelErr
+	}
+	upstreamRequest.ChannelName = channel.Name
+
+	if req.TeamId != "" {
+		team, teamErr := a.Srv().Store().Team().Get(req.TeamId)
+		if teamErr != nil {
+			return "", model.NewAppError("ExecuteDialogAction", "app.team.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(teamErr)
+		}
+		upstreamRequest.TeamName = team.Name
+	}
+
+	clientTriggerId, _, appErr := upstreamRequest.GenerateTriggerId(a.AsymmetricSigningKey())
+	if appErr != nil {
+		return "", appErr
+	}
+
+	requestJSON, err := json.Marshal(upstreamRequest)
+	if err != nil {
+		return "", model.NewAppError("ExecuteDialogAction", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	rctx.Logger().Info("ExecuteDialogAction POST request, through DoActionRequest",
+		mlog.String("url", req.URL),
+		mlog.String("user_id", userID),
+		mlog.String("channel_id", req.ChannelId),
+		mlog.String("team_id", req.TeamId),
+	)
+
+	timeoutCtx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
+	defer cancel()
+	resp, appErr := a.DoActionRequest(rctx.WithContext(timeoutCtx), req.URL, requestJSON)
+	if appErr != nil {
+		// DoActionRequest can return a non-nil response together with an error
+		// (e.g. a non-200 status). Drain and close it so the HTTP connection
+		// isn't leaked on the error path.
+		if resp != nil && resp.Body != nil {
+			_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, MaxDialogResponseSize))
+			_ = resp.Body.Close()
+		}
+		return "", appErr
+	}
+	defer resp.Body.Close()
+
+	// Drain response body to allow HTTP connection reuse
+	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, MaxDialogResponseSize))
+
+	return clientTriggerId, nil
 }
 
 func (a *App) LookupInteractiveDialog(rctx request.CTX, request model.SubmitDialogRequest) (*model.LookupDialogResponse, *model.AppError) {

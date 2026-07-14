@@ -1,0 +1,101 @@
+name: docs-cd
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "docs/**"
+      - "api/v4/source/**"
+      - "api/playbooks/**"
+
+# One deploy at a time. A newer push cancels an in-flight deploy — acceptable
+# for a static site where the newer content supersedes the older.
+concurrency:
+  group: docs-cd
+  cancel-in-progress: true
+
+permissions:
+  id-token: write # required for OIDC token exchange
+  contents: read
+
+jobs:
+  build-and-deploy:
+    name: Build and deploy docs
+    runs-on: ubuntu-24.04
+    steps:
+      - name: cd/checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: cd/setup-node
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version-file: docs/site/.nvmrc
+          cache: npm
+          cache-dependency-path: docs/site/package-lock.json
+
+      - name: cd/setup-go
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+        with:
+          go-version-file: api/server/go.mod
+
+      - name: cd/install-docs-dependencies
+        working-directory: docs/site
+        run: npm ci
+
+      - name: cd/typecheck
+        # docusaurus build (next step) doesn't run tsc — it strips types via
+        # babel without validating them. docs-ci.yaml typechecks the same
+        # commit in parallel, but that's a separate, uncoupled workflow (see
+        # docs-cd's on/push trigger) — this guards against deploying anyway
+        # if CI fails or a required check is bypassed on master.
+        working-directory: docs/site
+        run: npm run typecheck
+
+      - name: cd/build-docs-site
+        # npm's prebuild lifecycle script regenerates sidebars and the OpenAPI
+        # spec (via `make -C api build`) before docusaurus build runs.
+        working-directory: docs/site
+        env:
+          ALGOLIA_APP_ID: ${{ vars.ALGOLIA_APP_ID }}
+          ALGOLIA_SEARCH_API_KEY: ${{ vars.ALGOLIA_SEARCH_API_KEY }}
+        run: npm run build
+
+      - name: cd/configure-aws-credentials
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
+        with:
+          role-to-assume: ${{ vars.DOCS_DEPLOY_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: cd/sync-hashed-assets-to-s3
+        # Docusaurus content-hashes everything under assets/ (main.<hash>.js,
+        # styles.<hash>.css, images), so these are safe to cache for a year —
+        # a new deploy always produces new filenames, never a stale collision.
+        # No --delete here: old hashed assets may still be referenced by
+        # browser-cached HTML from a previous deploy, so let them accumulate
+        # (cheap) rather than risk deleting something still in use.
+        run: |
+          aws s3 sync docs/site/build/ s3://${{ vars.DOCS_BUCKET_NAME }}/ \
+            --exclude "*" --include "assets/*" \
+            --cache-control "public, max-age=31536000, immutable" \
+            --no-progress
+
+      - name: cd/sync-remaining-files-to-s3
+        # Everything else (index.html, 404.html, sitemap.xml, img/**, etc.)
+        # has no content hash, so it must revalidate on every request for
+        # changes to be visible immediately. --delete here removes pages that
+        # no longer exist in the new build.
+        run: |
+          aws s3 sync docs/site/build/ s3://${{ vars.DOCS_BUCKET_NAME }}/ \
+            --exclude "assets/*" \
+            --cache-control "no-cache" \
+            --delete \
+            --no-progress
+
+      - name: cd/invalidate-cloudfront-cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ vars.DOCS_CF_DISTRIBUTION_ID }} \
+            --paths "/*"

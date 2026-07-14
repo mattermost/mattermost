@@ -250,7 +250,7 @@ func (p *PropertyService) AddPropertyFieldOwner(groupID, fieldID string, owner m
 		return err
 	}
 	owners := addPropertyFieldOwner(model.GetPropertyFieldOwners(field), owner)
-	if err := model.SetPropertyFieldOwners(field, owners); err != nil {
+	if err = model.SetPropertyFieldOwners(field, owners); err != nil {
 		return err
 	}
 	_, err = p.api.UpdatePropertyFieldWithOptions(groupID, field, options)
@@ -272,7 +272,7 @@ func (p *PropertyService) RemovePropertyFieldOwner(groupID, fieldID string, owne
 		return err
 	}
 	owners := removePropertyFieldOwner(model.GetPropertyFieldOwners(field), owner)
-	if err := model.SetPropertyFieldOwners(field, owners); err != nil {
+	if err = model.SetPropertyFieldOwners(field, owners); err != nil {
 		return err
 	}
 	_, err = p.api.UpdatePropertyFieldWithOptions(groupID, field, options)

@@ -1,24 +1,23 @@
 ---
 title: "Install a license key"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 You can use the System Console or the mmctl tools to add or change a Mattermost license key.
 
-<div class="tab">
+<Tabs>
+<TabItem value="use-system-console" label="Use System Console">
 
-Use System Console
-
-1.  Go go **System Console \> About \> Edition and License**.
+1.  Go to **System Console \> About \> Edition and License**.
 2.  Upload your license key file.
 
 Once the key is uploaded and installed, the details of your license are displayed.
 
-</div>
-
-<div class="tab">
-
-Use mmctl
+</TabItem>
+<TabItem value="use-mmctl" label="Use mmctl">
 
 Use the [mmctl license upload](/administration-guide/manage/mmctl-command-line-tool#mmctl-license-upload) command to upload a new license or replace an existing license file with a new one. When complete, restart the Mattermost server. If you're running in a [High Availability](/administration-guide/scale/high-availability-cluster-based-deployment) environment, the new license file must be updated to every node.
 
@@ -26,7 +25,9 @@ Use the [mmctl license upload](/administration-guide/manage/mmctl-command-line-t
 mmctl license upload [license] [flags]
 ```
 
-</div>
+</TabItem>
+</Tabs>
+
 
 <Note>
 
@@ -45,7 +46,7 @@ You don't need to wait for your current license key to expire before replacing i
 
 <Tip>
 
-To review license usage before uploading a new key, go to **System Console \> Reporting \> Site Statistics**. The **Total Activated Users** field shows the primary paid seat count used for license validation. Review **Single-channel Guests** separately because guests in exactly one channel are tracked outside the primary paid seat count, are free up to a 1:1 ratio with licensed seats, and generate warnings instead of hard enforcement when that allowance is exceeded.
+To review license usage before uploading a new key, go to **System Console \> Reporting \> System Statistics**. The **Total Activated Users** field shows the primary paid seat count used for license validation. Review **Single-channel Guests** separately because guests in exactly one channel are tracked outside the primary paid seat count, are free up to a 1:1 ratio with licensed seats, and generate warnings instead of hard enforcement when that allowance is exceeded.
 
 </Tip>
 

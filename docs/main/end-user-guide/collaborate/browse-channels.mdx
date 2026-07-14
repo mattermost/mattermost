@@ -1,11 +1,13 @@
 ---
 title: "Browse channels"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 1.  Select the **Plus** <img src="/img/ui/plus_F0415.svg" alt="The Plus icon provides access to channel and direct message functionality." className="theme-icon" /> icon at the top of the channel sidebar to see all available public channels you can join that you're not already a member of.
 2.  Select **Browse Channels**.
@@ -18,11 +20,14 @@ From Mattermost v9.1, you can filter the list of channels by public, private, or
 
 </Tip>
 
-</div>
+<Note>
 
-<div class="tab">
+From Mattermost v11.8.0, if your organization uses membership policies, **Browse Channels** may include a **Recommended** filter. Recommended channels are public channels your attributes match. You can still browse and join public channels according to your organization's normal channel permissions.
 
-Mobile
+</Note>
+
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 1.  Tap the **Plus** <img src="/img/ui/plus_F0415.svg" alt="The Plus icon provides access to channel and direct message functionality." className="theme-icon" /> icon located in the top right corner of the app.
 
@@ -48,7 +53,9 @@ You can filter the list of channels by public, archived, or shared channels.
 
 </Tip>
 
-</div>
+</TabItem>
+</Tabs>
+
 
 Want to see all of the channels you're already a member of, or can't find a specific private channel? Using a browser or the desktop app, select **Find Channel** in the channel sidebar to see all of the channels you're currently a member of across all of your teams, including public and private channels, direct and group messages, channels with unread messages, and threads. Channels you have muted aren't included in results.
 

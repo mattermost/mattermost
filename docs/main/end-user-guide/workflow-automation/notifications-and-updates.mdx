@@ -1,6 +1,9 @@
 ---
 title: "Notifications and updates"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 There are multiple ways to receive collaborative playbook updates and notifications.
@@ -11,9 +14,8 @@ Status updates ensure that stakeholders remain informed about the playbook run's
 
 You can post a status update from the run channel and you can also configure the playbook to send a reminder to post a status update.
 
-<div class="tab">
-
-Web and Desktop
+<Tabs>
+<TabItem value="web-and-desktop" label="Web and Desktop">
 
 1.  To post a status update, access the **Playbooks** tab in Mattermost. Select the run you want to post the update for. In the run details page, select **Post update**.
     - If this is the first status update and the playbook has a defined template, that template will be pre-populated here.
@@ -23,11 +25,8 @@ Web and Desktop
     - If this is a subsequent status update, the last reminder timer will be pre-populated here.
 3.  Select **Post update** to post your status update.
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 From Mattermost v11.1 and mobile v2.34.0, mobile users can post status updates directly from the Mattermost mobile app:
 
@@ -47,7 +46,9 @@ From Mattermost v11.1 and mobile v2.34.0, mobile users can post status updates d
 
 </Note>
 
-</div>
+</TabItem>
+</Tabs>
+
 
 When the playbook has a defined broadcast channel, status updates are copied to the broadcast channel as a message from the Playbooks bot. Status updates broadcast to another channel won’t be updated or removed if the original post is edited or deleted.
 
