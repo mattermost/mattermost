@@ -1,0 +1,24 @@
+name: docs-preview
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'docs/**'
+      - 'api/**'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/docs-preview-template.yml
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    secrets:
+      AWS_DOCS_PR_PREVIEW_KEY_ID: ${{ secrets.AWS_DOCS_PR_PREVIEW_KEY_ID }}
+      AWS_DOCS_PR_PREVIEW_SECRET_ACCESS_KEY: ${{ secrets.AWS_DOCS_PR_PREVIEW_SECRET_ACCESS_KEY }}
+    with:
+      PR_NUMBER: ${{ github.event.number }}
+      TRIGGERING_ACTOR: ${{ github.event.pull_request.user.login }}
+      COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
