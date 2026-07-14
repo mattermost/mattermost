@@ -9,16 +9,65 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
+  statuses: write
 
 jobs:
+  update-initial-status:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - name: Set pending commit status
+        uses: mattermost/actions/delivery/update-commit-status@fec7b836001c9380d4bfaf28d443945c103a098c
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ github.event.pull_request.head.sha }}
+          context: "docs-preview / preview"
+          description: "Docs preview build for ${{ github.event.pull_request.head.sha }} is running"
+          status: pending
+
   deploy:
     uses: ./.github/workflows/docs-preview-template.yml
     if: github.event.pull_request.head.repo.full_name == github.repository
+    needs:
+      - update-initial-status
     secrets:
       AWS_DOCS_PR_PREVIEW_KEY_ID: ${{ secrets.AWS_DOCS_PR_PREVIEW_KEY_ID }}
       AWS_DOCS_PR_PREVIEW_SECRET_ACCESS_KEY: ${{ secrets.AWS_DOCS_PR_PREVIEW_SECRET_ACCESS_KEY }}
     with:
       PR_NUMBER: ${{ github.event.number }}
-      TRIGGERING_ACTOR: ${{ github.event.pull_request.user.login }}
       COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
+
+  update-failure-status:
+    runs-on: ubuntu-latest
+    if: failure() || cancelled()
+    needs:
+      - deploy
+    steps:
+      - uses: mattermost/actions/delivery/update-commit-status@fec7b836001c9380d4bfaf28d443945c103a098c
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ github.event.pull_request.head.sha }}
+          context: "docs-preview / preview"
+          description: "Docs preview build for ${{ github.event.pull_request.head.sha }} failed"
+          status: failure
+
+  update-success-status:
+    runs-on: ubuntu-latest
+    if: success()
+    needs:
+      - deploy
+    steps:
+      - uses: mattermost/actions/delivery/update-commit-status@fec7b836001c9380d4bfaf28d443945c103a098c
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository_full_name: ${{ github.repository }}
+          commit_sha: ${{ github.event.pull_request.head.sha }}
+          context: "docs-preview / preview"
+          description: "Docs preview build for ${{ github.event.pull_request.head.sha }} succeeded"
+          status: success
+          target_url: "http://${{ vars.DOCS_PREVIEW_BUCKET_NAME }}.s3-website-us-east-1.amazonaws.com/mattermost/pr-${{ github.event.number }}/"
