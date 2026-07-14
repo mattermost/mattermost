@@ -175,6 +175,7 @@ describe('LoggedIn mapStateToProps', () => {
                 mfaRequired: false,
                 showTermsOfService: false,
                 customProfileAttributesEnabled: true,
+                autoStatusUpdateEnabled: true,
             });
         });
     });

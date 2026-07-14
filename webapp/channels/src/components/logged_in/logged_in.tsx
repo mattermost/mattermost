@@ -35,6 +35,7 @@ export type Props = {
     children?: React.ReactNode;
     mfaRequired: boolean;
     customProfileAttributesEnabled: boolean;
+    autoStatusUpdateEnabled: boolean;
     actions: {
         autoUpdateTimezone: (deviceTimezone: string) => void;
         getChannelURLAction: (channelId: string, teamId: string, url: string) => void;
@@ -162,6 +163,12 @@ export default class LoggedIn extends React.PureComponent<Props> {
 
     private updateActiveStatus = (userIsActive: boolean, idleTime: number, manual: boolean) => {
         if (!this.props.currentUser) {
+            return;
+        }
+
+        // Respect the user's preference to disable automatic activity detection.
+        // Manual updates (e.g. an explicit status change from the Desktop App) still apply.
+        if (!manual && !this.props.autoStatusUpdateEnabled) {
             return;
         }
 

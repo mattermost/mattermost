@@ -315,6 +315,10 @@ func (ps *PlatformService) SetStatusOnline(userID string, manual bool) {
 			return // manually set status always overrides non-manual one
 		}
 
+		if !manual && !ps.isAutoStatusEnabled(userID) {
+			return // user disabled automatic activity detection
+		}
+
 		if status.Status != model.StatusOnline {
 			broadcast = true
 		}
@@ -495,6 +499,10 @@ func (ps *PlatformService) SetStatusAwayIfNeeded(userID string, manual bool) {
 		if !ps.isUserAway(status.LastActivityAt) {
 			return
 		}
+
+		if !ps.isAutoStatusEnabled(userID) {
+			return // user disabled automatic activity detection
+		}
 	}
 
 	status.Status = model.StatusAway
@@ -587,4 +595,16 @@ func (ps *PlatformService) SetStatusOutOfOffice(userID string) {
 
 func (ps *PlatformService) isUserAway(lastActivityAt int64) bool {
 	return model.GetMillis()-lastActivityAt >= *ps.Config().TeamSettings.UserStatusAwayTimeout*1000
+}
+
+// isAutoStatusEnabled reports whether automatic activity-driven status changes
+// are allowed for the user. Users can disable this via the advanced settings
+// preference so Mattermost does not move them between online and away on their
+// behalf. It defaults to enabled to preserve existing behavior.
+func (ps *PlatformService) isAutoStatusEnabled(userID string) bool {
+	pref, err := ps.Store.Preference().Get(userID, model.PreferenceCategoryAdvancedSettings, model.PreferenceNameAutoStatusUpdate)
+	if err != nil {
+		return true
+	}
+	return pref.Value != "false"
 }
