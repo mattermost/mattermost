@@ -14,11 +14,13 @@ import {
     saveCustomProfileAttribute,
     getCustomProfileAttributeValues,
 } from 'mattermost-redux/actions/users';
+import {Permissions} from 'mattermost-redux/constants';
 import {getConfig, getCustomProfileAttributes, getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
+import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import {getIsMobileView} from 'selectors/views/browser';
 
+import {normalizeLockProfileFieldsSetting} from 'utils/constants';
 import {isEnterpriseLicense} from 'utils/license_utils';
 
 import type {GlobalState} from 'types/store';
@@ -40,7 +42,7 @@ function mapStateToProps(state: GlobalState) {
     const samlPositionAttributeSet = config.SamlPositionAttributeSet === 'true';
     const ldapPositionAttributeSet = config.LdapPositionAttributeSet === 'true';
     const ldapPictureAttributeSet = config.LdapPictureAttributeSet === 'true';
-    const lockProfileFieldsForEmailUsers = config.LockProfileFieldsForEmailUsers;
+    const lockProfileFieldsForEmailUsers = normalizeLockProfileFieldsSetting(config.LockProfileFieldsForEmailUsers);
 
     const license = getLicense(state);
     const isEnterprise = isEnterpriseLicense(license);
@@ -61,7 +63,7 @@ function mapStateToProps(state: GlobalState) {
         ldapPositionAttributeSet,
         ldapPictureAttributeSet,
         lockProfileFieldsForEmailUsers,
-        isAdmin: isCurrentUserSystemAdmin(state),
+        canEditOtherUsers: haveISystemPermission(state, {permission: Permissions.EDIT_OTHER_USERS}),
         enableCustomProfileAttributes,
     };
 }

@@ -8,11 +8,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
-import MemberProfileInputs, {
-    getEmailsToPreset,
-    profileHasInput,
-    suggestMemberInviteProfile,
-} from './member_profile_inputs';
+import MemberProfileInputs from './member_profile_inputs';
 
 describe('MemberProfileInputs', () => {
     const baseProps = {
@@ -105,51 +101,5 @@ describe('MemberProfileInputs', () => {
             />,
         );
         expect(screen.getByText(/Usernames have to begin with a lowercase letter/)).toBeInTheDocument();
-    });
-});
-
-describe('suggestMemberInviteProfile', () => {
-    test('derives names and username from a first.last local-part', () => {
-        expect(suggestMemberInviteProfile('dave.roberts@gmail.com')).toEqual({
-            email: 'dave.roberts@gmail.com',
-            username: 'dave.roberts',
-            first_name: 'Dave',
-            last_name: 'Roberts',
-        });
-    });
-
-    test('normalizes case', () => {
-        expect(suggestMemberInviteProfile('Dave.ROBERTS@Gmail.com')).toEqual({
-            email: 'dave.roberts@gmail.com',
-            username: 'dave.roberts',
-            first_name: 'Dave',
-            last_name: 'Roberts',
-        });
-    });
-
-    test('leaves personal or shorthand addresses empty', () => {
-        expect(suggestMemberInviteProfile('djr1985@gmail.com')).toEqual({
-            email: 'djr1985@gmail.com',
-            username: '',
-            first_name: '',
-            last_name: '',
-        });
-        expect(suggestMemberInviteProfile('a.b.c@example.com').username).toBe('');
-    });
-});
-
-describe('profileHasInput', () => {
-    test('detects filled and empty profiles', () => {
-        expect(profileHasInput(undefined)).toBe(false);
-        expect(profileHasInput({email: 'a@b.c', username: '', first_name: '', last_name: ''})).toBe(false);
-        expect(profileHasInput({email: 'a@b.c', username: 'user', first_name: '', last_name: ''})).toBe(true);
-        expect(profileHasInput({email: 'a@b.c', username: '', first_name: 'First', last_name: ''})).toBe(true);
-    });
-});
-
-describe('getEmailsToPreset', () => {
-    test('keeps only plain valid email entries', () => {
-        const existingUser: UserProfile = TestHelper.getUserMock({username: 'existing'});
-        expect(getEmailsToPreset([existingUser, 'not-an-email', 'one@example.com'])).toEqual(['one@example.com']);
     });
 });

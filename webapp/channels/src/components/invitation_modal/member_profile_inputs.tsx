@@ -7,44 +7,13 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import type {MemberInviteProfile} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {isEmail} from 'mattermost-redux/utils/helpers';
-
 import Input from 'components/widgets/inputs/input/input';
 
 import {Constants, ValidationErrors} from 'utils/constants';
+import {emptyMemberInviteProfile, getEmailsToPreset, getProfileForEmail} from 'utils/member_invite_profiles';
 import {isValidUsername} from 'utils/utils';
 
 import './member_profile_inputs.scss';
-
-export const emptyMemberInviteProfile = (email: string): MemberInviteProfile => ({
-    email: email.toLowerCase(),
-    username: '',
-    first_name: '',
-    last_name: '',
-});
-
-// suggestMemberInviteProfile derives a profile from a first.last@domain email local-part.
-// Anything else (personal/shorthand addresses) yields an empty profile for manual entry.
-export const suggestMemberInviteProfile = (email: string): MemberInviteProfile => {
-    const profile = emptyMemberInviteProfile(email);
-    const match = (/^([a-z]+)\.([a-z]+)$/i).exec(email.split('@')[0]);
-    if (match) {
-        const capitalize = (part: string) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
-        profile.first_name = capitalize(match[1]);
-        profile.last_name = capitalize(match[2]);
-        profile.username = `${match[1]}.${match[2]}`.toLowerCase();
-    }
-    return profile;
-};
-
-// profileHasInput reports whether any pre-set field of the profile is filled in.
-export const profileHasInput = (profile?: MemberInviteProfile): boolean => {
-    return Boolean(profile && (profile.username || profile.first_name || profile.last_name));
-};
-
-export const getEmailsToPreset = (usersEmails: Array<UserProfile | string>): string[] => {
-    return usersEmails.filter((userOrEmail): userOrEmail is string => typeof userOrEmail === 'string' && isEmail(userOrEmail));
-};
 
 type Props = {
     usersEmails: Array<UserProfile | string>;
@@ -104,7 +73,7 @@ export default function MemberProfileInputs(props: Props) {
                 />
             </div>
             {emails.map((email) => {
-                const profile = props.profiles[email.toLowerCase()] ?? emptyMemberInviteProfile(email);
+                const profile = getProfileForEmail(props.profiles, email) ?? emptyMemberInviteProfile(email);
                 const updateField = (field: 'username' | 'first_name' | 'last_name') => (event: React.ChangeEvent<HTMLInputElement>) => {
                     props.onProfileChange({...profile, [field]: event.target.value});
                 };

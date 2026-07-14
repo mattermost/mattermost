@@ -21,24 +21,9 @@ import type {InviteResult} from 'components/invitation_modal/result_table';
 import type {InviteResults} from 'components/invitation_modal/result_view';
 
 import {ConsolePages} from 'utils/constants';
+import {filterProfilesForEmails} from 'utils/member_invite_profiles';
 
 import type {DispatchFunc, ActionFuncAsync} from 'types/store';
-
-// filterProfilesForEmails keeps only the profiles belonging to the emails actually being
-// invited, dropping rows with no pre-set fields.
-function filterProfilesForEmails(profiles: Record<string, MemberInviteProfile> | undefined, emails: string[]): MemberInviteProfile[] {
-    if (!profiles) {
-        return [];
-    }
-    const result: MemberInviteProfile[] = [];
-    for (const email of emails) {
-        const profile = profiles[email.toLowerCase()];
-        if (profile && (profile.username || profile.first_name || profile.last_name)) {
-            result.push({...profile, email: email.toLowerCase()});
-        }
-    }
-    return result;
-}
 
 export function sendMembersInvites(teamId: string, users: UserProfile[], emails: string[], profiles?: Record<string, MemberInviteProfile>): ActionFuncAsync<InviteResults> {
     return async (dispatch, getState) => {

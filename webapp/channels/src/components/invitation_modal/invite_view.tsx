@@ -8,6 +8,7 @@ import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
 import type {Channel} from '@mattermost/types/channels';
+import type {LockProfileFieldsSetting} from '@mattermost/types/config';
 import type {MemberInviteProfile, Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -17,13 +18,14 @@ import useCopyText from 'components/common/hooks/useCopyText';
 import UsersEmailsInput from 'components/widgets/inputs/users_emails_input';
 
 import {Constants} from 'utils/constants';
+import {getEmailsToPreset, getProfileForEmail, profileHasInput} from 'utils/member_invite_profiles';
 import {getSiteURL} from 'utils/url';
 import {isValidUsername} from 'utils/utils';
 
 import AddToChannels, {defaultCustomMessage, defaultInviteChannels} from './add_to_channels';
 import type {CustomMessageProps, InviteChannels} from './add_to_channels';
 import InviteAs, {InviteType} from './invite_as';
-import MemberProfileInputs, {getEmailsToPreset, profileHasInput} from './member_profile_inputs';
+import MemberProfileInputs from './member_profile_inputs';
 import OverageUsersBannerNotice from './overage_users_banner_notice';
 
 import './invite_view.scss';
@@ -77,7 +79,7 @@ export type Props = InviteState & {
     onPaste?: (e: ClipboardEvent) => void;
     useGuestMagicLink: boolean;
     toggleGuestMagicLink: () => void;
-    lockProfileFieldsForEmailUsers: string;
+    lockProfileFieldsForEmailUsers: LockProfileFieldsSetting;
     onProfileChange: (profile: MemberInviteProfile) => void;
 };
 
@@ -179,8 +181,8 @@ export default function InviteView(props: Props) {
         // A row may be left fully empty, but any pre-set fields need a valid username to
         // pass server-side invite validation.
         return getEmailsToPreset(props.usersEmails).every((email) => {
-            const profile = props.profiles[email.toLowerCase()];
-            if (!profileHasInput(profile)) {
+            const profile = getProfileForEmail(props.profiles, email);
+            if (!profile || !profileHasInput(profile)) {
                 return true;
             }
             return isValidUsername(profile.username.toLowerCase()) === undefined;
