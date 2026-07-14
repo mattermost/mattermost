@@ -89,7 +89,7 @@ type Service struct {
 	active      atomic.Bool   // true after Start(), false after Shutdown()
 	disablePing bool          // when true, pingStart skips launching the ping loop; for testing
 
-	syncFailedSinceLastPing sync.Map // key: remoteId (string), value: bool
+	syncFailedSinceLastPing sync.Map // set of remoteIds (string) with a pending sync failure; presence is the marker
 
 	// everything below guarded by `mux`
 	mux                      sync.RWMutex
@@ -104,7 +104,7 @@ type Service struct {
 // successful ping, PingNow will fire a connection-state-change event so the shared
 // channel service re-syncs any affected channels.
 func (rcs *Service) NotifySyncFailed(remoteId string) {
-	rcs.syncFailedSinceLastPing.Store(remoteId, true)
+	rcs.syncFailedSinceLastPing.Store(remoteId, struct{}{})
 }
 
 // NewRemoteClusterService creates a RemoteClusterService instance. In product this is called a "Secured Connection".

@@ -1218,14 +1218,17 @@ func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteClus
 			return
 		}
 
-		// A delivery failure (e.g. the remote is unreachable) means the content was not
-		// synced. The send is fire-and-forget, so instead of surfacing an error to the
+		// Any failure to confirm delivery means the content was not applied: a transport
+		// error (remote unreachable) or a non-success response envelope reported by the
+		// remote. The send is fire-and-forget, so instead of surfacing an error to the
 		// caller we signal the remote cluster service: on its next successful ping it
 		// fires a connection-state-change event that triggers ForceSyncForRemote,
 		// re-syncing this channel once the remote is reachable again. The cursor is only
 		// advanced on success (via the result callback below), so nothing is lost in the
-		// meantime.
-		if errResp != nil {
+		// meantime. Checking IsSuccess() here is essential: without it a failed envelope
+		// carrying a JSON body would be unmarshalled and passed to f, advancing the cursor
+		// as if the sync had succeeded.
+		if errResp != nil || (rcResp != nil && !rcResp.IsSuccess()) {
 			scs.notifyRemoteSyncFailed(rc)
 			return
 		}

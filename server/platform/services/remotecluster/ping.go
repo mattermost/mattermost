@@ -30,8 +30,9 @@ func (rcs *Service) PingNow(rc *model.RemoteCluster) {
 	pingSucceeded := pingErr == nil
 	hasPendingSync := false
 	if pingSucceeded {
-		prev, _ := rcs.syncFailedSinceLastPing.Swap(rc.RemoteId, false)
-		hasPendingSync, _ = prev.(bool)
+		// Consume the pending-sync-failure marker (if any). LoadAndDelete clears it so the
+		// map does not accumulate entries for remotes that have recovered.
+		_, hasPendingSync = rcs.syncFailedSinceLastPing.LoadAndDelete(rc.RemoteId)
 	}
 
 	// The connection-state-change counter tracks genuine online/offline transitions, so
