@@ -13,9 +13,7 @@ export default class WysiwygEditor {
     constructor(container: Locator, isRHS = false) {
         this.container = container;
         this.page = container.page();
-        this.input = container.locator(
-            isRHS ? '[data-testid="reply_textbox"]' : '[data-testid="post_textbox"]',
-        );
+        this.input = container.locator(isRHS ? '[data-testid="reply_textbox"]' : '[data-testid="post_textbox"]');
         this.formattingBar = container.getByTestId('formattingBarContainer');
     }
 
@@ -83,17 +81,22 @@ export default class WysiwygEditor {
 
     async pasteText(text: string, html?: string) {
         await this.focus();
-        await this.input.evaluate((el, {text, html}) => {
-            const dt = new DataTransfer();
-            dt.setData('text/plain', text);
-            if (html) {
-                dt.setData('text/html', html);
-            }
-            el.dispatchEvent(new ClipboardEvent('paste', {
-                clipboardData: dt,
-                bubbles: true,
-                cancelable: true,
-            }));
-        }, {text, html});
+        await this.input.evaluate(
+            (el, {text, html}) => {
+                const dt = new DataTransfer();
+                dt.setData('text/plain', text);
+                if (html) {
+                    dt.setData('text/html', html);
+                }
+                el.dispatchEvent(
+                    new ClipboardEvent('paste', {
+                        clipboardData: dt,
+                        bubbles: true,
+                        cancelable: true,
+                    }),
+                );
+            },
+            {text, html},
+        );
     }
 }

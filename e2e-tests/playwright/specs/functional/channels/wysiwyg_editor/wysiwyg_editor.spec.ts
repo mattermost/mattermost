@@ -1,12 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {
-    expect,
-    setWysiwygUserPreference,
-    test,
-    WysiwygEditor,
-} from '@mattermost/playwright-lib';
+import {expect, setWysiwygUserPreference, test, WysiwygEditor} from '@mattermost/playwright-lib';
 
 const TAGS = {tag: ['@channels', '@wysiwyg_editor']};
 
@@ -296,10 +291,7 @@ test.describe('WYSIWYG editor - RHS reply composer', TAGS, () => {
         await root.reply();
         await channelsPage.sidebarRight.toBeVisible();
 
-        const rhsEditor = new WysiwygEditor(
-            page.locator('#sidebar-right').getByTestId('comment-create'),
-            true,
-        );
+        const rhsEditor = new WysiwygEditor(page.locator('#sidebar-right').getByTestId('comment-create'), true);
         await rhsEditor.toBeVisible();
 
         // pasteText, not type(): opening a thread briefly re-focuses the
@@ -340,7 +332,11 @@ test('helper: setWysiwygUserPreference is idempotent', TAGS, async ({pw}) => {
     const {user, userClient} = await pw.initSetup();
     await setWysiwygUserPreference(userClient, user.id, true);
     await setWysiwygUserPreference(userClient, user.id, true);
-    const prefs = (await userClient.getMyPreferences()) as unknown as Array<{category: string; name: string; value: string}>;
+    const prefs = (await userClient.getMyPreferences()) as unknown as Array<{
+        category: string;
+        name: string;
+        value: string;
+    }>;
     const match = prefs.find((p) => p.category === 'display_settings' && p.name === 'wysiwyg_editor');
     expect(match?.value).toBe('true');
 });
