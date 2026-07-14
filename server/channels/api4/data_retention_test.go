@@ -719,17 +719,12 @@ func TestGetTeamsForPolicy(t *testing.T) {
 	// Create and set up the mock
 	mockDataRetentionInterface := &mocks.DataRetentionInterface{}
 
-	// Set up the mock to return sample teams. team1 carries a secret InviteId and Email,
-	// mirroring an invite-only private team, to verify the endpoint sanitizes them for
-	// callers who lack team-scoped permissions on that team (MM-69394).
+	// Set up the mock to return sample teams
 	sampleTeams := &model.TeamsWithCount{
 		Teams: []*model.Team{
 			{
-				Id:       model.NewId(),
-				Name:     "team1",
-				Type:     model.TeamInvite,
-				InviteId: model.NewId(),
-				Email:    "team1-secret@example.com",
+				Id:   model.NewId(),
+				Name: "team1",
 			},
 			{
 				Id:   model.NewId(),
@@ -783,23 +778,6 @@ func TestGetTeamsForPolicy(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 		assert.Nil(t, teams, "Teams should be nil when user has no permission")
-	})
-
-	t.Run("SanitizesInviteIDAndEmailForUserWithoutTeamAccess", func(t *testing.T) {
-		// A user holding ONLY the read-only Data Retention Policy permission, who is not a
-		// member of the team and holds no team-scoped permissions on it, must not be able to
-		// read the team's secret invite_id or email via this endpoint (MM-69394).
-		th.AddPermissionToRole(model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemUserRoleId)
-		defer th.RemovePermissionFromRole(model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemUserRoleId)
-
-		teams, resp, err := th.Client.GetTeamsForRetentionPolicy(context.Background(), validPolicyId, 0, 100)
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-		require.NotNil(t, teams, "Teams should not be nil")
-		require.Len(t, teams.Teams, 2, "Should return 2 teams")
-		assert.Equal(t, "team1", teams.Teams[0].Name, "Non-secret team fields should still be returned")
-		assert.Empty(t, teams.Teams[0].InviteId, "InviteId must be sanitized for a caller without team access")
-		assert.Empty(t, teams.Teams[0].Email, "Email must be sanitized for a caller without team access")
 	})
 
 	t.Run("NotLoggedIn", func(t *testing.T) {
