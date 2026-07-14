@@ -337,22 +337,30 @@ const DotMenu = ({
                             />
                         </span>
                         <span>
-                            {(isOwnerManaged && isSynced) ? (
-                                <FormattedMessage
-                                    id='admin.system_properties.user_properties.dotmenu.editable_by_users.owner_managed_synced_help'
-                                    defaultMessage='Managed by an integration and synced via AD/LDAP or SAML'
-                                />
-                            ) : isOwnerManaged ? (
-                                <FormattedMessage
-                                    id='admin.system_properties.user_properties.dotmenu.editable_by_users.owner_managed_help'
-                                    defaultMessage='This attribute is managed by an integration'
-                                />
-                            ) : (
-                                <FormattedMessage
-                                    id='admin.system_properties.user_properties.dotmenu.editable_by_users.synced_help'
-                                    defaultMessage='Synced attributes are managed by AD/LDAP or SAML'
-                                />
-                            )}
+                            {(() => {
+                                if (isOwnerManaged && isSynced) {
+                                    return (
+                                        <FormattedMessage
+                                            id='admin.system_properties.user_properties.dotmenu.editable_by_users.owner_managed_synced_help'
+                                            defaultMessage='Managed by an integration and synced via AD/LDAP or SAML'
+                                        />
+                                    );
+                                }
+                                if (isOwnerManaged) {
+                                    return (
+                                        <FormattedMessage
+                                            id='admin.system_properties.user_properties.dotmenu.editable_by_users.owner_managed_help'
+                                            defaultMessage='This attribute is managed by an integration'
+                                        />
+                                    );
+                                }
+                                return (
+                                    <FormattedMessage
+                                        id='admin.system_properties.user_properties.dotmenu.editable_by_users.synced_help'
+                                        defaultMessage='Synced attributes are managed by AD/LDAP or SAML'
+                                    />
+                                );
+                            })()}
                         </span>
                     </>
                 ) : (
