@@ -11,6 +11,7 @@ export default class InvitePeopleModal {
     readonly inviteInput: Locator;
     readonly inviteButton: Locator;
     readonly copyInviteLinkButton: Locator;
+    readonly profileInputs: Locator;
 
     constructor(container: Locator) {
         this.container = container;
@@ -19,6 +20,7 @@ export default class InvitePeopleModal {
         this.inviteInput = container.getByRole('combobox', {name: 'Invite People'});
         this.inviteButton = container.getByRole('button', {name: 'Invite', exact: true});
         this.copyInviteLinkButton = container.getByText('Copy invite link');
+        this.profileInputs = container.getByTestId('MemberProfileInputs');
     }
 
     async toBeVisible() {
@@ -31,9 +33,9 @@ export default class InvitePeopleModal {
 
     /**
      * Types an email or username into the react-select invite input,
-     * waits for a selectable option to load, selects it, then clicks the invite button.
+     * waits for a selectable option to load, and selects it.
      */
-    async inviteByEmail(email: string) {
+    async addEmail(email: string) {
         await expect(this.inviteInput).toBeVisible();
         await this.inviteInput.click();
         await this.inviteInput.pressSequentially(email, {delay: 50});
@@ -43,8 +45,26 @@ export default class InvitePeopleModal {
         const listbox = this.container.getByRole('listbox');
         await expect(listbox.getByRole('option').first()).toBeVisible({timeout: 15000});
         await this.inviteInput.press('Enter');
+        await expect(this.container.getByText(email, {exact: true}).first()).toBeVisible();
+    }
 
+    async submitInvites() {
         await expect(this.inviteButton).toBeEnabled();
         await this.inviteButton.click();
+    }
+
+    async inviteByEmail(email: string) {
+        await this.addEmail(email);
+        await this.submitInvites();
+    }
+
+    getProfileRow(email: string) {
+        const row = this.container.getByTestId(`MemberProfileInputs__row-${email.toLowerCase()}`);
+        return {
+            container: row,
+            firstNameInput: row.getByRole('textbox', {name: 'First name'}),
+            lastNameInput: row.getByRole('textbox', {name: 'Last name'}),
+            usernameInput: row.getByRole('textbox', {name: 'Username'}),
+        };
     }
 }

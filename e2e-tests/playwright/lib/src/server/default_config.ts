@@ -247,6 +247,7 @@ const defaultServerConfig: AdminConfig = {
         TeammateNameDisplay: 'username',
         ExperimentalEnableAutomaticReplies: false,
         LockTeammateNameDisplay: false,
+        LockProfileFieldsForEmailUsers: 'none',
         ExperimentalPrimaryTeam: '',
         ExperimentalDefaultChannels: [],
     },

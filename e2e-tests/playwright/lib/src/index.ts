@@ -14,10 +14,13 @@ export {
     getAdminClient,
     mergeWithOnPremServerConfig,
     getOnPremServerConfig,
+    getRecentEmail,
+    extractEmailLink,
     isWebhookTestServerReachable,
     setupWebhookTestServer,
     PlaywrightClient4,
 } from './server';
+export type {InbucketEmail} from './server';
 
 export {
     ChannelsPage,
