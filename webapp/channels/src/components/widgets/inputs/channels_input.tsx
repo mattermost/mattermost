@@ -43,6 +43,7 @@ type Props<T extends Channel> = {
     loadingMessage?: MessageDescriptor;
     noOptionsMessage?: MessageDescriptor;
     formatOptionLabel?: ComponentProps<typeof AsyncSelect<T>>['formatOptionLabel'];
+
     // When true, render the autocomplete menu in a portal on document.body so
     // it is not clipped by overflow parents (e.g. the invite modal body).
     menuPortal?: boolean;
