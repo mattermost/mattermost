@@ -1,6 +1,9 @@
 ---
 title: "mmctl command line tool"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 The mmctl is a CLI tool for the Mattermost server which is installed locally and uses the Mattermost API, but may also be used remotely. Authentication is done with either login credentials or an authentication token. This mmctl tool is included and replaces the [CLI](/administration-guide/manage/command-line-tools). The mmctl can currently be used alongside the Mattermost CLI tool. The Mattermost CLI tool will be deprecated in a future release.
@@ -26,7 +29,7 @@ This feature was developed to a large extent by community contributions and we'd
 - [mmctl bot](#mmctl-bot) - Bot Management
 - [mmctl channel](#mmctl-channel) - Channel Management
 - [mmctl command](#mmctl-command) - Command Management
-- [mmctl cpa](#mmctl-cpa) - Custom Profile Attribute Management
+- [mmctl cpa](#mmctl-cpa) - User Attribute Management
 - [mmctl completion](#mmctl-completion) - Generate autocompletion scripts for bash, fish, powershell, and zsh
 - [mmctl compliance-export](#mmctl-compliance-export) - Compliance Export Management
 - [mmctl config](#mmctl-config) - Configuration Management
@@ -81,9 +84,8 @@ The mmctl tool comes bundled with Mattermost package. For customers that want to
 
 <div id="install-mmctl-options">
 
-<div class="tab">
-
-Release package
+<Tabs>
+<TabItem value="release-package" label="Release package">
 
 If you're using a release page for Linux, macOS, or Windows, we recommend downloading the mmctl builds through their release URL: `https://releases.mattermost.com/mmctl/$&#123;MATTERMOST_VERSION&#125;/$&#123;PLATFORM&#125;_$&#123;ARCHITECTURE&#125;.tar` (for windows, substitute the `.tar` suffix with `.zip`)
 
@@ -95,13 +97,8 @@ curl -vfsSL -O https://releases.mattermost.com/mmctl/v10.7.0/linux_amd64.tar
 
 Supported platforms, and corresponding supported architectures include linux (amd64 and arm64), darwin (amd64 and arm64), windows (amd64 only).
 
-</div>
-
-</div>
-
-<div class="tab">
-
-Local git clone
+</TabItem>
+<TabItem value="local-git-clone" label="Local git clone">
 
 You can build mmctl from a local Git clone to work directly with the source code, use the latest features, and experiment with custom changes. This workflow is ideal if you need a tailored version of mmctl, want to fix bugs, or test new updates before they’re officially released.
 
@@ -111,11 +108,8 @@ cd mattermost/server
 go install ./cmd/mmctl
 ```
 
-</div>
-
-<div class="tab">
-
-Homebrew
+</TabItem>
+<TabItem value="homebrew" label="Homebrew">
 
 **On Linux or macOS, this isn't an officially supported method** This installation channel is managed by the community. Please refer to the [homebrew/homebrew-core repo](https://github.com/Homebrew/homebrew-core) for reporting issues.
 
@@ -124,6 +118,9 @@ Use this option on Linux and macOS if you have Homebrew installed.
 ``` sh
 brew install mmctl
 ```
+
+</TabItem>
+</Tabs>
 
 </div>
 
@@ -1973,7 +1970,7 @@ mmctl completion zsh [flags]
 Manage User Attributes for extended user profile information.
 
 > Child Commands  
-> - [mmctl cpa field](#mmctl-cpa-field) - Manage CPA fields
+> - [mmctl cpa field](#mmctl-cpa-field) - Manage User Attribute fields
 
 **Options**
 
@@ -1985,13 +1982,13 @@ Manage User Attributes for extended user profile information.
 
 **Description**
 
-Manage Custom Profile Attribute fields.
+Manage User Attribute fields.
 
 > Child Commands  
-> - [mmctl cpa field create](#mmctl-cpa-field-create) - Create a new CPA field
-> - [mmctl cpa field delete](#mmctl-cpa-field-delete) - Delete a CPA field
-> - [mmctl cpa field edit](#mmctl-cpa-field-edit) - Edit a CPA field
-> - [mmctl cpa field list](#mmctl-cpa-field-list) - List CPA fields
+> - [mmctl cpa field create](#mmctl-cpa-field-create) - Create a new User Attribute field
+> - [mmctl cpa field delete](#mmctl-cpa-field-delete) - Delete a User Attribute field
+> - [mmctl cpa field edit](#mmctl-cpa-field-edit) - Edit a User Attribute field
+> - [mmctl cpa field list](#mmctl-cpa-field-list) - List User Attribute fields
 
 **Options**
 
@@ -2003,7 +2000,7 @@ Manage Custom Profile Attribute fields.
 
 **Description**
 
-Create a new Custom Profile Attribute field.
+Create a new User Attribute field.
 
 **Format**
 
@@ -2045,7 +2042,7 @@ mmctl cpa field create "Location" --type select --options "New York,London,Tokyo
 
 **Description**
 
-Delete an existing Custom Profile Attribute field.
+Delete an existing User Attribute field.
 
 **Format**
 
@@ -2085,7 +2082,7 @@ mmctl cpa field delete location-field-002 --force
 
 **Description**
 
-Edit an existing Custom Profile Attribute field.
+Edit an existing User Attribute field.
 
 **Format**
 
@@ -2129,7 +2126,7 @@ mmctl cpa field edit location-field-002 --options "New York,London,Tokyo,Sydney"
 
 **Description**
 
-List all Custom Profile Attribute fields.
+List all User Attribute fields.
 
 **Format**
 
@@ -4061,7 +4058,10 @@ mmctl import process 35uy6cwrqfnhdx3genrhqqznxc_import.zip
 -h, --help          help for status
 --bypass-upload     File is read directly from the filesystem, instead of being processed from the server. Supported in --local mode only.
 --extract-content   Document attachments will be extracted and indexed during the import process. We recommend disabling this to improve performance.
+--workers int       The number of concurrent import worker goroutines. Controls database load during import. When set to `0` (default), uses the number of CPUs available. Maximum allowed is 4x the CPU count.
 ```
+
+Use `--workers` to reduce concurrency, for example `--workers 1`, when running imports against a live server to minimize database load at the cost of longer import duration.
 
 **Options inherited from parent commands**
 

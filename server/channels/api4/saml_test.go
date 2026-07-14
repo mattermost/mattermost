@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
@@ -61,7 +62,7 @@ func TestSamlResetId(t *testing.T) {
 	th.App.Channels().Saml = &mocks.SamlInterface{}
 
 	user := th.BasicUser
-	_, appErr := th.App.UpdateUserAuth(nil, user.Id, &model.UserAuth{
+	_, appErr := th.App.UpdateUserAuth(request.TestContext(t), user.Id, &model.UserAuth{
 		AuthData:    new(model.NewId()),
 		AuthService: model.UserAuthServiceSaml,
 	})

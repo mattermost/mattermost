@@ -29,7 +29,7 @@ Key benefits for enterprise customers include:
 - **Geographic distribution**: Users connect to the nearest cluster for lower latency and faster response times.
 - **Load distribution**: Workload can be balanced between clusters to improve performance and system scalability.
 
-These deployments require careful configuration management and coordination to ensure data consistency, upgrade safety, and seamless traffic failover. These clusters must maintain configuration/data consistency and require coordinated upgrades. See the [Active/Active upgrade considerations](#active-active-upgrade-considerations) section for recommendations.
+These deployments require careful configuration management and coordination to ensure data consistency, upgrade safety, and seamless traffic failover. These clusters must maintain configuration/data consistency and require coordinated upgrades. See the [Active/Active upgrade considerations](#step-3-activeactive-upgrade-considerations) section for recommendations.
 
 ## Step 1: Prepare
 
@@ -75,7 +75,7 @@ This phase ensures your environment is healthy, backed up, and ready for an upgr
 
     > Use `pg_dump` or volume snapshots to create a full backup to a secure, external location (e.g., S3 or NFS). Validate the backup can be restored. See the [Backup and Disaster Recovery](/deployment-guide/backup-disaster-recovery) documentation for details.
 
-6.  **Ensure configuration consistency**: Validate that `values.yaml`, secrets, and other configuration files are version-controlled and consistent across all clusters (required for [Active/Active deployments](#active-active-upgrade-considerations)). Use tools like GitOps or configuration management systems to ensure all clusters have the same configuration.
+6.  **Ensure configuration consistency**: Validate that `values.yaml`, secrets, and other configuration files are version-controlled and consistent across all clusters (required for [Active/Active deployments](#step-3-activeactive-upgrade-considerations)). Use tools like GitOps or configuration management systems to ensure all clusters have the same configuration.
 
 7.  We strongly recommend performing a dry run by testing the upgrade in a staging environment that mirrors production to catch misconfigurations early.
 

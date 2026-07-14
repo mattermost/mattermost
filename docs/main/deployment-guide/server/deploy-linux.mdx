@@ -6,7 +6,7 @@ Mattermost Server runs on any 64-bit Linux system. For production, run Mattermos
 
 ## Choose an install method
 
-<CardGrid columns={3} cards={[
+<CardGrid columns={4} cards={[
   {
     title: 'Ubuntu / Debian',
     description: 'Install from the signed Mattermost APT repository (deb). Recommended for Ubuntu 20.04 / 22.04 / 24.04 LTS and Debian — provides automatic security updates via apt.',
@@ -22,23 +22,29 @@ Mattermost Server runs on any 64-bit Linux system. For production, run Mattermos
     description: 'Install on any 64-bit Linux distribution from the release tarball. Maximum flexibility — typically chosen by advanced administrators and air-gapped environments.',
     to: '/deployment-guide/server/linux/deploy-tar',
   },
+  {
+    title: 'Azure Native VM',
+    description: 'Deploy a production-ready Mattermost stack from the Azure Marketplace, provisioned into your own Azure subscription with managed compute, database, storage, and load balancing.',
+    to: '/deployment-guide/server/linux/deploy-azure-native-vm',
+  },
 ]} />
 
 ## Before you install
 
-All three install methods require:
+The Ubuntu/Debian, Red Hat (RHEL), and manual (tarball) methods all require you to bring your own host and database:
 
 - A 64-bit Linux host with at least **1 vCPU and 2 GB RAM** (supports up to ~1,000 users)
 - **PostgreSQL 14+** — either local to the host, on a separate server, or a managed service. See [PostgreSQL Migration](/deployment-guide/postgres-migration) if you're moving from MySQL.
 - Inbound ports **80** and **443** (HTTPS) and **8065** (System Console). See [Preparations](/deployment-guide/server/preparations) for the full pre-install checklist.
 - Outbound port **10025** if you'll send notification email through a relay.
 
+The Azure Native VM method provisions its own compute, managed PostgreSQL, and storage from the Azure Marketplace — see its [prerequisites](/deployment-guide/server/linux/deploy-azure-native-vm#prerequisites) instead.
+
 ## After you install
 
 Once Mattermost is running, complete these steps before exposing it to users:
 
 - [Set up an NGINX reverse proxy](/deployment-guide/server/setup-nginx-proxy) and [terminate TLS](/deployment-guide/server/setup-tls) at the proxy. Don't run Mattermost as an internet-facing service without a proxy.
-- Decide whether you need [FIPS 140-3 cryptography](/deployment-guide/server/configure-fips-at-install-time). FIPS is **install-time only** — it cannot be enabled after data is written.
 - Configure [pre-authentication secrets](/deployment-guide/server/pre-authentication-secrets) if your environment requires them.
 - Review the [post-install configuration checklist](/deployment-guide/server/server-deployment-planning) under Server deployment planning.
 

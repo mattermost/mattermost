@@ -216,7 +216,10 @@ const ProfilePopover = ({
                     hide={hide}
                 />
             </div>
-            <div className='user-profile-popover-bottom-row'>
+            <div
+                className='user-profile-popover-bottom-row'
+                data-testid='user-profile-popover-bottom-row'
+            >
                 <hr className='user-popover__bottom-row-hr'/>
                 <ProfilePopoverOverrideDisclaimer
                     haveOverrideProp={haveOverrideProp}

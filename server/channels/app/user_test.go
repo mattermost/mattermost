@@ -1805,6 +1805,38 @@ func TestPasswordChangeSessionTermination(t *testing.T) {
 	})
 }
 
+func TestUpdateUserAuthRevokesExistingSessions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	session1, err := th.App.CreateSession(th.Context, &model.Session{
+		UserId: th.BasicUser.Id,
+		Roles:  model.SystemUserRoleId,
+	})
+	require.Nil(t, err)
+
+	session2, err := th.App.CreateSession(th.Context, &model.Session{
+		UserId: th.BasicUser.Id,
+		Roles:  model.SystemUserRoleId,
+	})
+	require.Nil(t, err)
+
+	authData := model.NewId()
+	_, err = th.App.UpdateUserAuth(th.Context, th.BasicUser.Id, &model.UserAuth{
+		AuthService: model.UserAuthServiceGitlab,
+		AuthData:    &authData,
+	})
+	require.Nil(t, err)
+
+	session1, err = th.App.GetSession(session1.Token)
+	require.NotNil(t, err, "session1 should have been revoked after UpdateUserAuth")
+	require.Nil(t, session1)
+
+	session2, err = th.App.GetSession(session2.Token)
+	require.NotNil(t, err, "session2 should have been revoked after UpdateUserAuth")
+	require.Nil(t, session2)
+}
+
 func TestGetViewUsersRestrictions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

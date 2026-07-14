@@ -1,13 +1,15 @@
 ---
 title: "Customize your Desktop App experience"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 You can customize your desktop app further with additional settings. Select the tab below that matches your operating system to learn more about what's available.
 
-<div class="tab" parse-titles="">
-
-macOS
+<Tabs>
+<TabItem value="macos" label="macOS">
 
 With the Mattermost desktop app in focus, select **Mattermost \> Settings...**
 
@@ -46,11 +48,8 @@ With the Mattermost desktop app in focus, select **Mattermost \> Settings...**
 - **Send error reports to help improve the app**: From Mattermost Desktop v6.1.0, error reports and crash information are automatically sent to Sentry (a third-party error tracking service) to help identify and fix issues. This setting is enabled by default. Error reports include crash information, app version, and platform details (OS, architecture, memory stats), but no personally identifiable information (PII) is included. You can disable error reporting if preferred. Restart the desktop app to apply changes to this setting.
 - **Use GPU hardware acceleration**: GPU hardware acceleration renders the desktop app interface more efficiently. If you encounter decreased stability, disable GPU hardware acceleration. Restart the desktop app to apply changes to this setting.
 
-</div>
-
-<div class="tab" parse-titles="">
-
-Windows/Linux
+</TabItem>
+<TabItem value="windows-linux" label="Windows/Linux">
 
 With the Mattermost desktop app in focus, select the **More** <img src="/img/ui/dots-vertical_F01D9.svg" alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> icon in the top left of the menu bar and select **File \> Settings...**
 
@@ -66,6 +65,7 @@ With the Mattermost desktop app in focus, select the **More** <img src="/img/ui/
 - **Open app in full screen**: Configure the desktop app to open in fullscreen. Disable this setting to open the app in a windowed view.
 - **Synchronize Desktop App theme with server**: The desktop app theme automatically matches the theme set on your primary Mattermost server. Disable this setting to manage desktop app themes independently.
 - **Maximum number of open views**: From Desktop v6.0, set the maximum number of open tabs and windows per workspace. When a limit is set, Mattermost prompts you to close tabs or windows when the limit is exceeded. Leave this field blank for no maximum limit.
+- **Use native title bar** (Linux only): From Mattermost Desktop v6.2.0, render the desktop app with your Linux desktop environment's native title bar and window controls instead of the custom Mattermost title bar. Restart the desktop app to apply changes to this setting.
 
 ## Notifications
 
@@ -92,4 +92,6 @@ With the Mattermost desktop app in focus, select the **More** <img src="/img/ui/
 - **Send error reports to help improve the app**: From Mattermost Desktop v6.1.0, error reports and crash information are automatically sent to Sentry (a third-party error tracking service) to help identify and fix issues. This setting is enabled by default. Error reports include crash information, app version, and platform details (OS, architecture, memory stats), but no personally identifiable information (PII) is included. You can disable error reporting if preferred. Restart the desktop app to apply changes to this setting.
 - **Use GPU hardware acceleration**: GPU hardware acceleration renders the desktop app interface more efficiently. If you encounter decreased stability, disable GPU hardware acceleration. Restart the desktop app to apply changes to this setting.
 
-</div>
+</TabItem>
+</Tabs>
+

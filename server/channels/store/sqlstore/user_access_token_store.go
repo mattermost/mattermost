@@ -346,7 +346,7 @@ func (s SqlUserAccessTokenStore) GetExpiringTokens(now int64, thresholds []int, 
 
 // UpdateLastNotifiedAt records the time (Unix milliseconds) at which the token
 // owner was most recently warned about the token's upcoming expiry, so the hourly
-// pat_expiry_notify job does not re-send the same warning on subsequent runs.
+// notify_expiring_access_tokens job does not re-send the same warning on subsequent runs.
 func (s SqlUserAccessTokenStore) UpdateLastNotifiedAt(tokenId string, notifiedAt int64) error {
 	if _, err := s.GetMaster().Exec("UPDATE UserAccessTokens SET LastNotifiedAt = ? WHERE Id = ?", notifiedAt, tokenId); err != nil {
 		return errors.Wrapf(err, "failed to update LastNotifiedAt for UserAccessToken with id=%s", tokenId)
@@ -485,6 +485,36 @@ func (s SqlUserAccessTokenStore) deleteSessionsAndDisableToken(transaction *sqlx
 func (s SqlUserAccessTokenStore) updateTokenDisable(transaction *sqlxTxWrapper, tokenId string) error {
 	if _, err := transaction.Exec("UPDATE UserAccessTokens SET IsActive = FALSE WHERE Id = ?", tokenId); err != nil {
 		return errors.Wrapf(err, "failed to update UserAccessToken with id=%s", tokenId)
+	}
+
+	return nil
+}
+
+// UpdateTokenRotate replaces the secret and expiry on an existing token inside
+// a single transaction.  Old sessions keyed to the previous secret are deleted
+// first (the join reads the old Token value, so the DELETE must precede the
+// UPDATE), then the token row is updated with the new secret and expiry.
+func (s SqlUserAccessTokenStore) UpdateTokenRotate(tokenID, newToken string, expiresAt int64) (err error) {
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	deleteQuery := "DELETE FROM Sessions s USING UserAccessTokens o WHERE o.Token = s.Token AND o.Id = ?"
+	if _, err = transaction.Exec(deleteQuery, tokenID); err != nil {
+		return errors.Wrapf(err, "failed to delete Sessions for UserAccessToken id=%s during rotate", tokenID)
+	}
+
+	if _, err = transaction.Exec(
+		"UPDATE UserAccessTokens SET Token = ?, ExpiresAt = ? WHERE Id = ?",
+		newToken, expiresAt, tokenID,
+	); err != nil {
+		return errors.Wrapf(err, "failed to rotate UserAccessToken id=%s", tokenID)
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return errors.Wrap(err, "commit_transaction")
 	}
 
 	return nil

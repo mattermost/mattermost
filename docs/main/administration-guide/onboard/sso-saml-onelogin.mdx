@@ -1,6 +1,5 @@
 ---
 title: "Configure SAML with OneLogin"
-draft: true
 ---
 import Inc0_sso_saml_before_you_begin from './sso-saml-before-you-begin.mdx';
 import Inc1_sso_saml_ldapsync from './sso-saml-ldapsync.mdx';
@@ -91,7 +90,7 @@ See the encryption options documentation for details on what [encryption methods
 </tbody>
 </table>
 
-> Attribute parameters map attributes between OneLogin and Mattermost. For more information on which attributes are configurable, see our [documentation on SAML configuration settings](#saml-enterprise).
+> Attribute parameters map attributes between OneLogin and Mattermost. For more information on which attributes are configurable, see our [documentation on SAML configuration settings](/administration-guide/configure/authentication-configuration-settings#saml-20).
 >
 > *Email* attributes are required.
 >
@@ -168,7 +167,7 @@ To confirm that SAML SSO is successfully enabled, switch your system admin accou
 
 We also recommend that you post an announcement to your users detailing how the migration will work.
 
-You can also configure SAML for OneLogin by editing the `config.json` file to enable SAML based on [SAML configuration settings](#saml-enterprise). You must restart the Mattermost server for the changes to take effect.
+You can also configure SAML for OneLogin by editing the `config.json` file to enable SAML based on [SAML configuration settings](/administration-guide/configure/authentication-configuration-settings#saml-20). You must restart the Mattermost server for the changes to take effect.
 
 <Inc1_sso_saml_ldapsync />
 

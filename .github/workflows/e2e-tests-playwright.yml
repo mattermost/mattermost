@@ -51,10 +51,6 @@ on:
         required: false
       REPORT_WEBHOOK_URL:
         required: false
-      AWS_ACCESS_KEY_ID:
-        required: true
-      AWS_SECRET_ACCESS_KEY:
-        required: true
 
 permissions: {}
 
@@ -170,53 +166,16 @@ jobs:
             -f target_url="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           echo "Posted success for ${CONTEXT_NAME}"
 
-  # ── Routing fork ─────────────────────────────────────────────────────
-  # vars.E2E_USE_TEST_IO_DISPATCH selects between v1 (legacy) and v2.
-  # vars.E2E_USE_STAGING_TEST_IO_URL toggles v2's staging vs production
-  # endpoint (default: staging).
-
-  playwright-full-v1:
+  playwright-full:
     needs:
       - generate-build-variables
-    if: inputs.should_run != 'false' && vars.E2E_USE_TEST_IO_DISPATCH != 'true'
-    permissions:
-      contents: read
-      statuses: write
-    uses: ./.github/workflows/e2e-tests-playwright-template.yml
-    with:
-      test_type: full
-      test_filter: "--grep-invert @visual"
-      workers: 8
-      enabled_docker_services: "postgres inbucket minio openldap elasticsearch keycloak"
-      commit_sha: ${{ inputs.commit_sha }}
-      branch: ${{ needs.generate-build-variables.outputs.branch }}
-      build_id: ${{ needs.generate-build-variables.outputs.build_id }}
-      server_image_tag: ${{ needs.generate-build-variables.outputs.server_image_tag }}
-      server_edition: ${{ inputs.server_edition }}
-      server_image_repo: ${{ inputs.server_image_repo }}
-      server_image_aliases: ${{ inputs.server_image_aliases }}
-      server: ${{ inputs.server }}
-      enable_reporting: ${{ inputs.enable_reporting }}
-      report_type: ${{ inputs.report_type }}
-      ref_branch: ${{ inputs.ref_branch }}
-      pr_number: ${{ inputs.pr_number }}
-      context_name: "e2e-test/playwright-full/${{ inputs.server_edition || 'enterprise' }}${{ needs.generate-build-variables.outputs.context_suffix }}"
-    secrets:
-      MM_LICENSE: ${{ secrets.MM_LICENSE }}
-      REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-  playwright-full-v2:
-    needs:
-      - generate-build-variables
-    if: inputs.should_run != 'false' && vars.E2E_USE_TEST_IO_DISPATCH == 'true'
+    if: inputs.should_run != 'false'
     permissions:
       contents: read
       statuses: write
       id-token: write
       pull-requests: write
-    uses: ./.github/workflows/e2e-tests-playwright-template-v2.yml
+    uses: ./.github/workflows/e2e-tests-playwright-template.yml
     with:
       workers: 15
       enabled_docker_services: "postgres inbucket"

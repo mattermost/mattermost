@@ -284,20 +284,18 @@ const DEPLOYMENT_GROUPS = {
         'server/linux/deploy-ubuntu',
         'server/linux/deploy-rhel',
         'server/linux/deploy-tar',
+        'server/linux/deploy-azure-native-vm',
       ]},
       {label: 'Install on Kubernetes', landing: 'server/deploy-kubernetes', items: [
         'server/kubernetes/deploy-k8s',
-        'server/kubernetes/deploy-k8s-aks',
         'server/kubernetes/deploy-k8s-oke',
       ]},
       {label: 'Install with Containers', landing: 'server/deploy-containers', items: [
-        'server/containers/install-docker',
         'server/containers/fips-stig',
       ]},
-      // Configure at install time — install-blocking decisions like FIPS,
-      // TLS, NGINX reverse proxy, image proxy, MySQL setup, pre-auth secrets.
+      // Configure at install time — install-blocking decisions like TLS,
+      // NGINX reverse proxy, image proxy, MySQL setup, pre-auth secrets.
       {label: 'Configure at install time', items: [
-        'server/configure-fips-at-install-time',
         'server/setup-nginx-proxy',
         'server/setup-tls',
         'server/pre-authentication-secrets',
