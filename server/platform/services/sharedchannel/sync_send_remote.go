@@ -1264,6 +1264,11 @@ func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteClus
 		}
 	})
 
+	if err != nil {
+		// The enqueue failed (e.g. BufferFullError), so the callback never runs and
+		// wg.Done() is never called; returning here avoids blocking on wg.Wait() forever.
+		return err
+	}
 	wg.Wait()
 	return err
 }

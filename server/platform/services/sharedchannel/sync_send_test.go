@@ -218,6 +218,8 @@ type mockRCSForSync struct {
 	cbConfigured bool
 	cbResp       *remotecluster.Response
 	cbErr        error
+
+	enqueueErr error // when set, SendMsg returns this WITHOUT invoking the callback
 }
 
 func (m *mockRCSForSync) NotifySyncFailed(remoteId string) {
@@ -237,6 +239,10 @@ func (m *mockRCSForSync) AddConnectionStateListener(listener remotecluster.Conne
 }
 func (m *mockRCSForSync) RemoveConnectionStateListener(listenerId string) {}
 func (m *mockRCSForSync) SendMsg(_ context.Context, msg model.RemoteClusterMsg, rc *model.RemoteCluster, f remotecluster.SendMsgResultFunc) error {
+	// Simulate an enqueue failure (e.g. BufferFullError): the callback never runs.
+	if m.enqueueErr != nil {
+		return m.enqueueErr
+	}
 	// The enqueue succeeds (return nil); the outcome is reported asynchronously via the
 	// callback, mirroring how remotecluster.Service.sendMsg surfaces a send result.
 	if f != nil {
@@ -443,6 +449,47 @@ func TestSendSyncMsgToRemote_NotifiesOnUnconfirmedResponse(t *testing.T) {
 			assert.Equal(t, remoteID, notifyCalls[0])
 		})
 	}
+}
+
+// TestSendSyncMsgToRemote_EnqueueErrorDoesNotHang verifies that when SendMsg fails to enqueue
+// (e.g. BufferFullError) — so the result callback never runs — sendSyncMsgToRemote returns the
+// error instead of blocking forever on the callback's WaitGroup, which would freeze the single
+// doSync goroutine and stall all shared-channel sync.
+func TestSendSyncMsgToRemote_EnqueueErrorDoesNotHang(t *testing.T) {
+	mockRCS := &mockRCSForSync{enqueueErr: errors.New("buffer full")}
+
+	mockServer := &MockServerIface{}
+	mockServer.On("GetRemoteClusterService").Return(mockRCS)
+	mockServer.On("Log").Return(mlog.CreateConsoleTestLogger(t))
+
+	scs := &Service{
+		server:       mockServer,
+		changeSignal: make(chan struct{}, 1),
+		tasks:        make(map[string]syncTask),
+	}
+
+	rc := &model.RemoteCluster{RemoteId: model.NewId(), Name: "test-remote", SiteURL: "http://example.invalid"}
+	msg := model.NewSyncMsg(model.NewId())
+
+	// Guard with a timeout so a regression (hang on wg.Wait) fails fast instead of blocking
+	// the whole suite until the test binary times out.
+	done := make(chan error, 1)
+	go func() { done <- scs.sendSyncMsgToRemote(msg, rc, nil) }()
+
+	select {
+	case err := <-done:
+		require.Error(t, err, "an enqueue failure must be returned to the caller")
+		assert.ErrorContains(t, err, "buffer full")
+	case <-time.After(5 * time.Second):
+		t.Fatal("sendSyncMsgToRemote hung on wg.Wait() after an enqueue failure")
+	}
+
+	// The send never left the queue, so there is no delivery outcome to notify about; that
+	// path is the caller's retry (the returned error), not a ping-driven resync.
+	mockRCS.mu.Lock()
+	notifyCount := len(mockRCS.notifyCalls)
+	mockRCS.mu.Unlock()
+	assert.Zero(t, notifyCount, "no sync-failed notification should fire when the enqueue itself failed")
 }
 
 func TestStripSharedChannelStatePostsForSync(t *testing.T) {
