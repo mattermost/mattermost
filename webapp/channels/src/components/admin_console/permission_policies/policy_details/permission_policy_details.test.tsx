@@ -44,6 +44,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
     const accessControlSettings: AccessControlSettings = {
         EnableAttributeBasedAccessControl: true,
         EnableUserManagedAttributes: false,
+        EnableChannelIndicators: true,
         TrustProxyDeviceIdentityHeader: false,
         EnforceDeviceIDConsistency: false,
     };

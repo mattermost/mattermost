@@ -12,6 +12,8 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {ProfilesInChannelSortBy} from 'mattermost-redux/actions/users';
 
+import {areChannelAccessControlIndicatorsEnabled} from 'selectors/general';
+
 import AlertBanner from 'components/alert_banner';
 import ChannelInviteModal from 'components/channel_invite_modal';
 import useAccessControlAttributes, {EntityType} from 'components/common/hooks/useAccessControlAttributes';
@@ -19,8 +21,6 @@ import ExternalLink from 'components/external_link';
 import MoreDirectChannels from 'components/more_direct_channels';
 import AlertTag from 'components/widgets/tag/alert_tag';
 import TagGroup from 'components/widgets/tag/tag_group';
-
-import {areChannelAccessControlIndicatorsEnabled} from 'selectors/general';
 
 import {isMembershipPolicyEnforced} from 'utils/channel_utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
