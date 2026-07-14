@@ -30,6 +30,7 @@ export default class ProfileModal {
     readonly currentPasswordInput;
     readonly pictureSelectButton;
     readonly pictureSaveButton;
+    readonly sectionHeadings;
 
     constructor(container: Locator) {
         this.container = container;
@@ -57,6 +58,7 @@ export default class ProfileModal {
         this.currentPasswordInput = container.locator('#currentPassword');
         this.pictureSelectButton = container.getByTestId('inputSettingPictureButton');
         this.pictureSaveButton = container.getByTestId('saveSettingPicture');
+        this.sectionHeadings = this.profileSettingsTab.container.getByTestId('section-min').getByRole('heading');
     }
 
     async toBeVisible() {
@@ -99,6 +101,25 @@ export default class ProfileModal {
     async closeSection() {
         await expect(this.cancelButton).toBeVisible();
         await this.cancelButton.click();
+    }
+
+    getAttributeSection(label: string) {
+        return this.profileSettingsTab.container.getByTestId('section-min').filter({hasText: label});
+    }
+
+    getAttributeValue(label: string, value: string) {
+        return this.getAttributeSection(label).getByText(value, {exact: true});
+    }
+
+    async editAttribute(label: string) {
+        await this.getAttributeSection(label)
+            .getByRole('button', {name: `${label} Edit`, exact: true})
+            .click();
+        await expect(this.getAttributeInput(label)).toBeVisible();
+    }
+
+    getAttributeInput(label: string) {
+        return this.profileSettingsTab.container.getByRole('textbox', {name: label, exact: true});
     }
 }
 

@@ -1484,6 +1484,10 @@ func (a *App) UpdateUserAuth(rctx request.CTX, userID string, userAuth *model.Us
 
 	a.InvalidateCacheForUser(userID)
 
+	if err := a.RevokeAllSessions(rctx, userID); err != nil {
+		return nil, err
+	}
+
 	return userAuth, nil
 }
 

@@ -22,6 +22,7 @@ declare global {
     interface Window {
         originalNotification: typeof Notification;
         capturedNotifications: NotificationData[];
+        capturedNotificationInstances: Notification[];
         getNotifications: () => NotificationData[];
         mockWebsockets: MockWebSocket[];
     }
@@ -40,11 +41,16 @@ function installNotificationStub(notificationPermission: NotificationPermission)
 
     window.capturedNotifications = window.capturedNotifications ?? [];
 
+    // Keep the live notification instances too, so a test can invoke their
+    // onclick handler to simulate a user clicking a desktop notification.
+    window.capturedNotificationInstances = window.capturedNotificationInstances ?? [];
+
     class CustomNotification extends window.originalNotification {
         constructor(title: string, options?: NotificationOptions) {
             super(title, options);
             const notification = {title, ...options};
             window.capturedNotifications.push(notification);
+            window.capturedNotificationInstances.push(this);
         }
     }
 
@@ -80,6 +86,7 @@ export async function stubNotification(page: Page, permission: NotificationPermi
 export async function clearCapturedNotifications(page: Page) {
     await page.evaluate(() => {
         window.capturedNotifications = [];
+        window.capturedNotificationInstances = [];
     });
 }
 
@@ -106,6 +113,23 @@ export async function waitForNotification(
     // eslint-disable-next-line no-console
     console.error(`Notification not received within the timeout period of ${timeout}ms`);
     return [];
+}
+
+/**
+ * `clickNotification` simulates a user clicking a captured desktop notification by invoking the
+ * `onclick` handler the app assigned to it (which focuses the window and navigates to the post).
+ * Requires `stubNotification` to have been called on the same page first.
+ * @param page Page object
+ * @param index Index of the captured notification to click (default: the first one)
+ */
+export async function clickNotification(page: Page, index = 0) {
+    await page.evaluate((notificationIndex) => {
+        const instance = window.capturedNotificationInstances?.[notificationIndex];
+        if (!instance || typeof instance.onclick !== 'function') {
+            throw new Error(`No clickable notification captured at index ${notificationIndex}`);
+        }
+        instance.onclick(new Event('click'));
+    }, index);
 }
 
 /**
