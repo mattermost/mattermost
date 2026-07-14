@@ -164,95 +164,96 @@
 }
 
 // Menu is portaled to document.body so these selectors must live outside
-// .ChannelsInput — classNamePrefix still applies the same class names.
+// .ChannelsInput. Nest under __menu for enough specificity to beat
+// react-select's emotion styles (same as the old .ChannelsInput nesting).
 .channels-input__menu {
     margin-top: 0;
     background: var(--center-channel-bg);
     box-shadow: 0 0 0 0 hsla(0, 0%, 0%, 0.1), 0 4px 11px hsla(0, 0%, 0%, 0.1);
     color: var(--center-channel-color);
-}
 
-.channels-input__menu-list {
-    padding: 8px 0;
-    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    .channels-input__menu-list {
+        padding: 8px 0;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
 
-    &:empty {
-        display: none;
-    }
-}
-
-.channels-input__menu-notice {
-    display: flex;
-    height: 44px;
-    align-items: center;
-    justify-content: center;
-    padding: 12px;
-    border-radius: 4px 4px 0 0;
-}
-
-.channels-input__option {
-    display: flex;
-    height: 44px;
-    align-items: center;
-    padding: 12px;
-    cursor: pointer;
-    font-size: 14px;
-
-    &--no-matches {
-        color: rgba(var(--center-channel-color-rgb), 0.75);
-        text-align: center;
-
-        span {
-            width: 100%;
-        }
-
-        strong {
-            font-weight: 600;
+        &:empty {
+            display: none;
         }
     }
 
-    &:first-child {
+    .channels-input__menu-notice {
+        display: flex;
+        height: 44px;
+        align-items: center;
+        justify-content: center;
+        padding: 12px;
         border-radius: 4px 4px 0 0;
     }
 
-    &:last-child {
-        border-radius: 0 0 4px 4px;
-    }
-
-    &--is-focused {
-        background: rgba(var(--button-bg-rgb), 0.08);
-    }
-
-    &--no-matches:hover {
-        background: none;
-        cursor: default;
-    }
-
-    .public-channel-icon,
-    .private-channel-icon {
+    .channels-input__option {
         display: flex;
-        width: 18px;
-        height: 18px;
+        height: 44px;
         align-items: center;
-        margin-right: 8px;
+        padding: 12px;
+        cursor: pointer;
+        font-size: 14px;
 
-        svg {
+        &--no-matches {
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+            text-align: center;
+
+            span {
+                width: 100%;
+            }
+
+            strong {
+                font-weight: 600;
+            }
+        }
+
+        &:first-child {
+            border-radius: 4px 4px 0 0;
+        }
+
+        &:last-child {
+            border-radius: 0 0 4px 4px;
+        }
+
+        &--is-focused {
+            background: rgba(var(--button-bg-rgb), 0.08);
+        }
+
+        &--no-matches:hover {
+            background: none;
+            cursor: default;
+        }
+
+        .public-channel-icon,
+        .private-channel-icon {
+            display: flex;
             width: 18px;
             height: 18px;
-            fill: rgba(var(--center-channel-color-rgb), 0.75);
-        }
-    }
+            align-items: center;
+            margin-right: 8px;
 
-    .channel-name {
-        color: rgba(var(--center-channel-color-rgb), 0.75);
-
-        &::before {
-            padding-left: 5px;
-            content: "(";
+            svg {
+                width: 18px;
+                height: 18px;
+                fill: rgba(var(--center-channel-color-rgb), 0.75);
+            }
         }
 
-        &::after {
-            content: ")";
+        .channel-name {
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+
+            &::before {
+                padding-left: 5px;
+                content: "(";
+            }
+
+            &::after {
+                content: ")";
+            }
         }
     }
 }
