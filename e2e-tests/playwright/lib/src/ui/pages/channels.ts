@@ -108,7 +108,7 @@ export default class ChannelsPage {
         );
         this.searchResultsPanel = new components.SearchResultsPanel(page.locator('#searchContainer'));
         this.marketplaceModal = new components.MarketplaceModal(page.getByRole('dialog', {name: 'App Marketplace'}));
-        this.channelBookmarksBar = page.getByTestId('channel-bookmarks-container');
+        this.channelBookmarksBar = new components.ChannelBookmarksBar(page.getByTestId('channel-bookmarks-container'));
         this.bookmarkCreateModal = new components.ChannelBookmarksCreateModal(
             page.getByRole('dialog', {name: 'Add a bookmark'}),
         );
@@ -179,6 +179,10 @@ export default class ChannelsPage {
 
     getViewUserGroupModal(groupDisplayName: string) {
         return new components.ViewUserGroupModal(this.page.getByRole('dialog', {name: groupDisplayName, exact: true}));
+    }
+
+    getBookmarkEditModal() {
+        return new components.ChannelBookmarksCreateModal(this.page.getByRole('dialog', {name: 'Edit bookmark'}));
     }
 
     async getMembersInvitedModal(teamDisplayName: string) {

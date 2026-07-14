@@ -10,9 +10,11 @@ import {expect} from '@playwright/test';
  */
 export default class SearchResultsPanel {
     readonly container: Locator;
+    readonly filesTab: Locator;
 
     constructor(container: Locator) {
         this.container = container;
+        this.filesTab = container.getByRole('tab', {name: /^Files/});
     }
 
     async toBeVisible() {

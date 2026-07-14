@@ -1,29 +1,28 @@
 ---
-name: E2E Tests - Cypress Template
+name: E2E Tests - Cypress Template (test system io dispatch)
+
+# Delegates Cypress spec dispatch + reporting to test system io.
+# Authenticates via GitHub Actions OIDC; calling job MUST grant
+# `id-token: write`.
+
 on:
   workflow_call:
     inputs:
-      # Test configuration
       test_type:
         description: "Type of test run (smoke or full)"
         type: string
         required: true
-      test_filter:
-        description: "Test filter arguments"
-        type: string
-        required: true
       workers:
-        description: "Number of parallel workers"
+        description: "Number of parallel test system io dispatch workers"
         type: number
         required: false
-        default: 1
+        default: 40
       enabled_docker_services:
         description: "Space-separated list of docker services to enable"
         type: string
         required: false
-        default: "postgres inbucket"
+        default: "postgres inbucket minio openldap elasticsearch keycloak"
 
-      # Common build variables
       commit_sha:
         type: string
         required: true
@@ -52,11 +51,10 @@ on:
         required: false
         default: mattermostdevelopment
       server_image_aliases:
-        description: "Comma-separated alias tags for description (e.g., 'release-11.4, release-11')"
+        description: "Comma-separated alias tags for description"
         type: string
         required: false
 
-      # Reporting options
       enable_reporting:
         type: boolean
         required: false
@@ -65,28 +63,51 @@ on:
         type: string
         required: false
       ref_branch:
-        description: "Source branch name for webhook messages (e.g., 'master' or 'release-11.4')"
         type: string
         required: false
       pr_number:
         type: string
         required: false
-      # Commit status configuration
       context_name:
         description: "GitHub commit status context name"
         type: string
         required: true
 
-    outputs:
-      passed:
-        description: "Number of passed tests"
-        value: ${{ jobs.report.outputs.passed }}
-      failed:
-        description: "Number of failed tests"
-        value: ${{ jobs.report.outputs.failed }}
-      status_check_url:
-        description: "URL to test results"
-        value: ${{ jobs.generate-test-cycle.outputs.status_check_url }}
+      cypress_stage:
+        description: "Comma-separated `// Stage:` tags; spec must share at least one. Empty disables filter."
+        type: string
+        required: false
+        default: "@prod"
+      cypress_include_group:
+        description: "Comma-separated `// Group:` tags; spec must share at least one. Empty disables filter."
+        type: string
+        required: false
+        default: ""
+      cypress_exclude_group:
+        description: "Comma-separated `// Group:` tags; spec dropped if it shares any."
+        type: string
+        required: false
+        default: "@te_only,@cloud_only,@high_availability"
+      cypress_skip_on:
+        description: "Comma-separated active-env tag(s); spec dropped if its `// Skip:` line shares any."
+        type: string
+        required: false
+        default: "@headless"
+      cypress_sort_first:
+        description: "Comma-separated `// Group:` tags; matching specs dispatch first."
+        type: string
+        required: false
+        default: "@compliance_export,@elasticsearch,@ldap_group,@ldap"
+      cypress_sort_last:
+        description: "Comma-separated `// Group:` tags; matching specs dispatch last."
+        type: string
+        required: false
+        default: "@saml,@keycloak,@plugin,@plugins_uninstall,@mfa,@license_removal"
+      retest_on_fail:
+        description: "Re-dispatch failed dispatch units once (whole-spec retry, on top of cypress.config retries)"
+        type: boolean
+        required: false
+        default: true
 
     secrets:
       MM_LICENSE:
@@ -104,620 +125,280 @@ on:
       CWS_EXTRA_HTTP_HEADERS:
         required: false
 
-# Callers must grant at least these scopes on the job that uses this workflow
+# Callers must grant: contents: read, statuses: write, id-token: write
 permissions:
   contents: read
   statuses: write
+  id-token: write
 
 env:
   SERVER_IMAGE: "${{ inputs.server_image_repo }}/${{ inputs.server_edition == 'fips' && 'mattermost-enterprise-fips-edition' || inputs.server_edition == 'team' && 'mattermost-team-edition' || 'mattermost-enterprise-edition' }}:${{ inputs.server_image_tag }}"
 
 jobs:
-  update-initial-status:
+  prepare-run:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
+      id-token: write
       statuses: write
-    steps:
-      - name: ci/set-initial-status
-        uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          repository_full_name: ${{ github.repository }}
-          commit_sha: ${{ inputs.commit_sha }}
-          context: ${{ inputs.context_name }}
-          description: "tests running, image_tag:${{ inputs.server_image_tag }}${{ inputs.server_image_aliases && format(' ({0})', inputs.server_image_aliases) || '' }}"
-          status: pending
-
-  generate-test-cycle:
-    runs-on: ubuntu-24.04
     outputs:
-      status_check_url: "${{ steps.generate-cycle.outputs.status_check_url }}"
-      workers: "${{ steps.generate-workers.outputs.workers }}"
-      start_time: "${{ steps.generate-workers.outputs.start_time }}"
+      composite-identity-json: ${{ steps.composite-identity.outputs.composite-identity-json }}
+      workers-matrix: ${{ steps.matrix.outputs.workers }}
+      start_time: ${{ steps.matrix.outputs.start_time }}
     steps:
-      - name: ci/generate-workers
-        id: generate-workers
-        env:
-          INPUT_WORKERS: ${{ inputs.workers }}
-        run: |
-          echo "workers=$(jq -nc --argjson n "${INPUT_WORKERS}" '[range($n)]')" >> $GITHUB_OUTPUT
-          echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
-
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
           ref: ${{ inputs.commit_sha }}
-          fetch-depth: 0
-      - name: ci/restore-npm-cache
-        uses: ./.github/actions/restore-e2e-npm-cache
-      - name: ci/setup-node
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
-        with:
-          node-version-file: ".nvmrc"
-
-      - name: ci/generate-test-cycle
-        id: generate-cycle
-        working-directory: e2e-tests
+          fetch-depth: 1
+      - name: ci/composite-identity
+        id: composite-identity
         env:
-          AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
-          AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.AUTOMATION_DASHBOARD_TOKEN }}"
-          BRANCH: "${{ inputs.branch }}-${{ inputs.test_type }}"
-          BUILD_ID: "${{ inputs.build_id }}"
-          TEST: cypress
-          TEST_FILTER: "${{ inputs.test_filter }}"
-          GITHUB_SERVER_URL: ${{ github.server_url }}
+          CONTEXT_NAME: ${{ inputs.context_name }}
           GITHUB_REPOSITORY: ${{ github.repository }}
-          GITHUB_RUN_ID: ${{ github.run_id }}
+          MM_BRANCH: ${{ inputs.branch }}
+          MM_SHA: ${{ inputs.commit_sha }}
+          PR_NUMBER: ${{ inputs.pr_number }}
         run: |
-          set -e -o pipefail
-          make generate-test-cycle | tee generate-test-cycle.out
-          TEST_CYCLE_ID=$(sed -nE "s/^.*id: '([^']+)'.*$/\1/p" <generate-test-cycle.out)
-          if [ -n "$TEST_CYCLE_ID" ]; then
-            echo "status_check_url=https://automation-dashboard.vercel.app/cycles/${TEST_CYCLE_ID}" >> $GITHUB_OUTPUT
+          # Derive the test-system-io run name from the GitHub commit-status
+          # context: drop the `e2e-test/` prefix (the framework name already
+          # implies E2E in the dashboard) and swap remaining `/` for `-` so
+          # the dashboard URL is path-safe. The commit-status context itself
+          # stays unchanged elsewhere — branch protection rules depend on it.
+          NAME="${CONTEXT_NAME#e2e-test/}"
+          NAME="${NAME//\//-}"
+          # gh_pr_number is optional; include it only when present.
+          if [ -n "$PR_NUMBER" ]; then
+            COMPOSITE_IDENTITY=$(jq -nc \
+              --arg repo "${GITHUB_REPOSITORY}" \
+              --arg sha "${MM_SHA}" \
+              --arg run_id "${GITHUB_RUN_ID}" \
+              --arg name "${NAME}" \
+              --arg attempt "${GITHUB_RUN_ATTEMPT}" \
+              --arg branch "${MM_BRANCH}" \
+              --arg pr "${PR_NUMBER}" \
+              '{repository:$repo, commit_sha:$sha, gh_run_id:$run_id, name:$name, gh_run_attempt:$attempt, branch:$branch, gh_pr_number:$pr}')
           else
-            echo "status_check_url=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" >> $GITHUB_OUTPUT
+            COMPOSITE_IDENTITY=$(jq -nc \
+              --arg repo "${GITHUB_REPOSITORY}" \
+              --arg sha "${MM_SHA}" \
+              --arg run_id "${GITHUB_RUN_ID}" \
+              --arg name "${NAME}" \
+              --arg attempt "${GITHUB_RUN_ATTEMPT}" \
+              --arg branch "${MM_BRANCH}" \
+              '{repository:$repo, commit_sha:$sha, gh_run_id:$run_id, name:$name, gh_run_attempt:$attempt, branch:$branch}')
           fi
+          echo "composite-identity-json=${COMPOSITE_IDENTITY}" >> $GITHUB_OUTPUT
+      - name: ci/matrix
+        id: matrix
+        env:
+          INPUT_WORKERS: ${{ inputs.workers }}
+        run: |
+          echo "workers=$(jq -nc --argjson n "${INPUT_WORKERS}" '[range(1; $n+1)]')" >> $GITHUB_OUTPUT
+          echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
 
-  run-tests:
+  # Install webapp node_modules once via the shared webapp-setup action, then
+  # workers restore the same stable cache. The node_modules cache is keyed only
+  # on webapp/package-lock.json and is shared with webapp-ci.yml jobs.
+  prep-deps:
+    name: prep-deps
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 1
+      - name: ci/setup-webapp-node-modules
+        uses: ./.github/actions/webapp-setup
+      - name: ci/cache-cypress-deps
+        # node_modules + the cypress binary (downloaded to ~/.cache/Cypress by
+        # cypress's postinstall, not into node_modules). Both must be cached;
+        # otherwise workers see "cypress npm package installed but binary missing".
+        id: cache-cypress
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: |
+            e2e-tests/cypress/node_modules
+            ~/.cache/Cypress
+          key: e2e-cypress-deps-${{ runner.os }}-${{ hashFiles('e2e-tests/cypress/package-lock.json') }}
+      - name: ci/install-cypress-deps
+        if: steps.cache-cypress.outputs.cache-hit != 'true'
+        working-directory: e2e-tests/cypress
+        run: npm ci
+
+  # Register the Test System IO run AFTER prep-deps so workers reach
+  # dispatch-run within Test System IO's inactivity window.
+  dispatch-begin:
+    runs-on: ubuntu-24.04
+    needs: [prepare-run, prep-deps]
+    permissions:
+      contents: read
+      id-token: write
+      statuses: write
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 1
+      - name: ci/dispatch-begin
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-begin@a2ea7f005484c28fedf51e16645f6d3bd683fd63 # 2026-05-16
+        with:
+          use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
+          framework: cypress
+          repo-dir: ${{ github.workspace }}
+          composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
+          total-reports-expected: ${{ inputs.workers }}
+          retest-on-fail: ${{ inputs.retest_on_fail }}
+          cypress-stage: ${{ inputs.cypress_stage }}
+          cypress-include-group: ${{ inputs.cypress_include_group }}
+          cypress-exclude-group: ${{ inputs.cypress_exclude_group }}
+          cypress-skip-on: ${{ inputs.cypress_skip_on }}
+          cypress-sort-first: ${{ inputs.cypress_sort_first }}
+          cypress-sort-last: ${{ inputs.cypress_sort_last }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          commit-status-context: ${{ inputs.context_name }}
+          image-tag: ${{ inputs.server_image_tag }}
+          image-aliases: ${{ inputs.server_image_aliases }}
+
+  workers:
+    name: dispatch-run-${{ matrix.worker_index }}
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    continue-on-error: ${{ inputs.workers > 1 }}
-    needs:
-      - generate-test-cycle
-    if: needs.generate-test-cycle.result == 'success'
+    needs: [prepare-run, dispatch-begin]
+    permissions:
+      contents: read
+      id-token: write
     strategy:
       fail-fast: false
       matrix:
-        worker_index: ${{ fromJSON(needs.generate-test-cycle.outputs.workers) }}
-    defaults:
-      run:
-        working-directory: e2e-tests
+        worker_index: ${{ fromJSON(needs.prepare-run.outputs.workers-matrix) }}
     env:
-      AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
-      AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.AUTOMATION_DASHBOARD_TOKEN }}"
+      COMPOSITE_IDENTITY: ${{ needs.prepare-run.outputs.composite-identity-json }}
       SERVER: "${{ inputs.server }}"
       MM_LICENSE: "${{ secrets.MM_LICENSE }}"
       ENABLED_DOCKER_SERVICES: "${{ inputs.enabled_docker_services }}"
       TEST: cypress
-      TEST_FILTER: "${{ inputs.test_filter }}"
-      BRANCH: "${{ inputs.branch }}-${{ inputs.test_type }}"
+      # The dispatch adapter invokes `npx cypress run` directly (no
+      # cross-env), so pin TZ here — several specs assume UTC.
+      TZ: Etc/UTC
+      BRANCH: "${{ inputs.branch }}"
       BUILD_ID: "${{ inputs.build_id }}"
       CI_BASE_URL: "${{ inputs.test_type }}-test-${{ matrix.worker_index }}"
       CYPRESS_pushNotificationServer: "${{ secrets.PUSH_NOTIFICATION_SERVER }}"
       CWS_URL: "${{ secrets.CWS_URL }}"
       CWS_EXTRA_HTTP_HEADERS: "${{ secrets.CWS_EXTRA_HTTP_HEADERS }}"
     steps:
+      - name: ci/checkout-actions
+        # Sparse-checkout just .github/actions from the triggering ref (master)
+        # so the composite action below is available before the full checkout
+        # overwrites the workspace with inputs.commit_sha.
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          sparse-checkout: .github/actions
+          sparse-checkout-cone-mode: true
+      - name: ci/runner-prep-for-openldap
+        uses: ./.github/actions/runner-prep-openldap
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
-      - name: ci/restore-npm-cache
-        uses: ./.github/actions/restore-e2e-npm-cache
-      - name: ci/setup-node
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+      - name: ci/setup-webapp-node-modules
+        uses: ./.github/actions/webapp-setup
         with:
-          node-version-file: ".nvmrc"
-      - name: ci/npm-cache-verify
-        # Heal any partial/dangling entries left in the restored ~/.npm cache
-        # before running `npm ci`. Avoids the intermittent EEXIST/ENOENT
-        # failures in npm's cacache writer.
-        run: npm cache verify
-      - name: ci/get-webapp-node-modules
-        working-directory: webapp
-        run: make node_modules
-      - name: ci/run-tests
-        run: |
-          make cloud-init
-          make
-      - name: ci/cloud-teardown
-        if: always()
-        run: make cloud-teardown
-      - name: ci/upload-results
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-        if: always()
+          read-only: "true"
+      - name: ci/restore-cypress-deps
+        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
-          name: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-results-${{ matrix.worker_index }}
           path: |
-            e2e-tests/cypress/logs/
-            e2e-tests/cypress/results/
-          retention-days: 5
-
-  calculate-results:
-    runs-on: ubuntu-24.04
-    needs:
-      - generate-test-cycle
-      - run-tests
-    if: always() && needs.generate-test-cycle.result == 'success'
-    outputs:
-      passed: ${{ steps.calculate.outputs.passed }}
-      failed: ${{ steps.calculate.outputs.failed }}
-      pending: ${{ steps.calculate.outputs.pending }}
-      total_specs: ${{ steps.calculate.outputs.total_specs }}
-      failed_specs: ${{ steps.calculate.outputs.failed_specs }}
-      failed_specs_count: ${{ steps.calculate.outputs.failed_specs_count }}
-      failed_tests: ${{ steps.calculate.outputs.failed_tests }}
-      commit_status_message: ${{ steps.calculate.outputs.commit_status_message }}
-      total: ${{ steps.calculate.outputs.total }}
-      pass_rate: ${{ steps.calculate.outputs.pass_rate }}
-      color: ${{ steps.calculate.outputs.color }}
-      test_duration: ${{ steps.calculate.outputs.test_duration }}
-      end_time: ${{ steps.record-end-time.outputs.end_time }}
-    steps:
-      - name: ci/checkout-repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          persist-credentials: false
-      - name: ci/download-results
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
-        with:
-          pattern: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-results-*
-          path: e2e-tests/cypress/
-          merge-multiple: true
-      - name: ci/calculate
-        id: calculate
-        uses: ./.github/actions/calculate-cypress-results
-        with:
-          original-results-path: e2e-tests/cypress/results
-      - name: ci/record-end-time
-        id: record-end-time
-        run: echo "end_time=$(date +%s)" >> $GITHUB_OUTPUT
-
-  run-failed-tests:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    needs:
-      - generate-test-cycle
-      - run-tests
-      - calculate-results
-    if: >-
-      always() &&
-      needs.calculate-results.result == 'success' &&
-      needs.calculate-results.outputs.failed != '0' &&
-      fromJSON(needs.calculate-results.outputs.failed_specs_count) <= 20
-    defaults:
-      run:
+            e2e-tests/cypress/node_modules
+            ~/.cache/Cypress
+          key: e2e-cypress-deps-${{ runner.os }}-${{ hashFiles('e2e-tests/cypress/package-lock.json') }}
+          fail-on-cache-miss: true
+      - name: ci/cloud-init
         working-directory: e2e-tests
-    env:
-      AUTOMATION_DASHBOARD_URL: "${{ secrets.AUTOMATION_DASHBOARD_URL }}"
-      AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.AUTOMATION_DASHBOARD_TOKEN }}"
-      SERVER: "${{ inputs.server }}"
-      MM_LICENSE: "${{ secrets.MM_LICENSE }}"
-      ENABLED_DOCKER_SERVICES: "${{ inputs.enabled_docker_services }}"
-      TEST: cypress
-      BRANCH: "${{ inputs.branch }}-${{ inputs.test_type }}-retest"
-      BUILD_ID: "${{ inputs.build_id }}-retest"
-      CYPRESS_pushNotificationServer: "${{ secrets.PUSH_NOTIFICATION_SERVER }}"
-      CWS_URL: "${{ secrets.CWS_URL }}"
-      CWS_EXTRA_HTTP_HEADERS: "${{ secrets.CWS_EXTRA_HTTP_HEADERS }}"
-    steps:
-      - name: ci/checkout-repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        run: make cloud-init
+      - name: ci/start-server
+        working-directory: e2e-tests
+        run: make start-server
+      - name: ci/dispatch-run
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-run@a2ea7f005484c28fedf51e16645f6d3bd683fd63 # 2026-05-16
         with:
-          persist-credentials: false
-          ref: ${{ inputs.commit_sha }}
-          fetch-depth: 0
-      - name: ci/restore-npm-cache
-        uses: ./.github/actions/restore-e2e-npm-cache
-      - name: ci/setup-node
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
-        with:
-          node-version-file: ".nvmrc"
-      - name: ci/run-failed-specs
-        env:
-          SPEC_FILES: ${{ needs.calculate-results.outputs.failed_specs }}
-        run: |
-          echo "Retesting failed specs: $SPEC_FILES"
-          make cloud-init
-          make start-server run-specs
+          use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
+          framework: cypress
+          composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
+          repo-dir: ${{ github.workspace }}
+          artifacts-root: ${{ github.workspace }}/worker-artifacts
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          gh-job-name: dispatch-run-${{ matrix.worker_index }}
       - name: ci/cloud-teardown
         if: always()
+        working-directory: e2e-tests
         run: make cloud-teardown
-      - name: ci/upload-retest-results
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+      - name: ci/upload-debug-artifacts
         if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
-          name: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-retest-results
+          name: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-debug-${{ matrix.worker_index }}
           path: |
             e2e-tests/cypress/logs/
             e2e-tests/cypress/results/
+            e2e-tests/cypress/tests/screenshots/
+            worker-artifacts/
           retention-days: 5
+          if-no-files-found: ignore
 
   report:
     runs-on: ubuntu-24.04
-    needs:
-      - generate-test-cycle
-      - run-tests
-      - calculate-results
-      - run-failed-tests
-    if: always() && needs.calculate-results.result == 'success'
+    needs: [prepare-run, dispatch-begin, workers]
+    if: always()
+    permissions:
+      contents: read
+      id-token: write
+      statuses: write
     outputs:
-      passed: "${{ steps.final-results.outputs.passed }}"
-      failed: "${{ steps.final-results.outputs.failed }}"
-      commit_status_message: "${{ steps.final-results.outputs.commit_status_message }}"
-      duration: "${{ steps.duration.outputs.duration }}"
-      duration_display: "${{ steps.duration.outputs.duration_display }}"
-      retest_display: "${{ steps.duration.outputs.retest_display }}"
-    defaults:
-      run:
-        working-directory: e2e-tests
+      commit_status_description: ${{ steps.summary.outputs.commit_status_description }}
+      webhook_payload: ${{ steps.summary.outputs.webhook_payload }}
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - name: ci/restore-npm-cache
-        uses: ./.github/actions/restore-e2e-npm-cache
-      - name: ci/setup-node
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+      - name: ci/run-summary
+        id: summary
+        continue-on-error: true
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-summary@a2ea7f005484c28fedf51e16645f6d3bd683fd63 # 2026-05-16
         with:
-          node-version-file: ".nvmrc"
-
-      # PATH A: run-failed-tests was skipped (no failures to retest)
-      - name: ci/download-results-path-a
-        if: needs.run-failed-tests.result == 'skipped'
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
-        with:
-          pattern: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-results-*
-          path: e2e-tests/cypress/
-          merge-multiple: true
-      - name: ci/use-previous-calculation
-        if: needs.run-failed-tests.result == 'skipped'
-        id: use-previous
-        env:
-          CALC_PASSED: ${{ needs.calculate-results.outputs.passed }}
-          CALC_FAILED: ${{ needs.calculate-results.outputs.failed }}
-          CALC_PENDING: ${{ needs.calculate-results.outputs.pending }}
-          CALC_TOTAL_SPECS: ${{ needs.calculate-results.outputs.total_specs }}
-          CALC_FAILED_SPECS: ${{ needs.calculate-results.outputs.failed_specs }}
-          CALC_FAILED_SPECS_COUNT: ${{ needs.calculate-results.outputs.failed_specs_count }}
-          CALC_COMMIT_STATUS_MESSAGE: ${{ needs.calculate-results.outputs.commit_status_message }}
-          CALC_TOTAL: ${{ needs.calculate-results.outputs.total }}
-          CALC_PASS_RATE: ${{ needs.calculate-results.outputs.pass_rate }}
-          CALC_COLOR: ${{ needs.calculate-results.outputs.color }}
-          CALC_TEST_DURATION: ${{ needs.calculate-results.outputs.test_duration }}
-          CALC_FAILED_TESTS: ${{ needs.calculate-results.outputs.failed_tests }}
-        run: |
-          echo "passed=${CALC_PASSED}" >> $GITHUB_OUTPUT
-          echo "failed=${CALC_FAILED}" >> $GITHUB_OUTPUT
-          echo "pending=${CALC_PENDING}" >> $GITHUB_OUTPUT
-          echo "total_specs=${CALC_TOTAL_SPECS}" >> $GITHUB_OUTPUT
-          echo "failed_specs=${CALC_FAILED_SPECS}" >> $GITHUB_OUTPUT
-          echo "failed_specs_count=${CALC_FAILED_SPECS_COUNT}" >> $GITHUB_OUTPUT
-          echo "commit_status_message=${CALC_COMMIT_STATUS_MESSAGE}" >> $GITHUB_OUTPUT
-          echo "total=${CALC_TOTAL}" >> $GITHUB_OUTPUT
-          echo "pass_rate=${CALC_PASS_RATE}" >> $GITHUB_OUTPUT
-          echo "color=${CALC_COLOR}" >> $GITHUB_OUTPUT
-          echo "test_duration=${CALC_TEST_DURATION}" >> $GITHUB_OUTPUT
-          {
-            echo "failed_tests<<EOF"
-            echo "${CALC_FAILED_TESTS}"
-            echo "EOF"
-          } >> $GITHUB_OUTPUT
-
-      # PATH B: run-failed-tests ran, need to merge and recalculate
-      - name: ci/download-original-results
-        if: needs.run-failed-tests.result != 'skipped'
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
-        with:
-          pattern: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-results-*
-          path: e2e-tests/cypress/
-          merge-multiple: true
-      - name: ci/download-retest-results
-        if: needs.run-failed-tests.result != 'skipped'
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
-        with:
-          name: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-retest-results
-          path: e2e-tests/cypress/retest-results/
-      - name: ci/calculate-results
-        if: needs.run-failed-tests.result != 'skipped'
-        id: recalculate
-        uses: ./.github/actions/calculate-cypress-results
-        with:
-          original-results-path: e2e-tests/cypress/results
-          retest-results-path: e2e-tests/cypress/retest-results/results
-
-      # Set final outputs from either path
-      - name: ci/set-final-results
-        id: final-results
-        env:
-          RUN_FAILED_TESTS_RESULT: ${{ needs.run-failed-tests.result }}
-          USE_PREVIOUS_FAILED_TESTS: ${{ steps.use-previous.outputs.failed_tests }}
-          USE_PREVIOUS_PASSED: ${{ steps.use-previous.outputs.passed }}
-          USE_PREVIOUS_FAILED: ${{ steps.use-previous.outputs.failed }}
-          USE_PREVIOUS_PENDING: ${{ steps.use-previous.outputs.pending }}
-          USE_PREVIOUS_TOTAL_SPECS: ${{ steps.use-previous.outputs.total_specs }}
-          USE_PREVIOUS_FAILED_SPECS: ${{ steps.use-previous.outputs.failed_specs }}
-          USE_PREVIOUS_FAILED_SPECS_COUNT: ${{ steps.use-previous.outputs.failed_specs_count }}
-          USE_PREVIOUS_COMMIT_STATUS_MESSAGE: ${{ steps.use-previous.outputs.commit_status_message }}
-          USE_PREVIOUS_TOTAL: ${{ steps.use-previous.outputs.total }}
-          USE_PREVIOUS_PASS_RATE: ${{ steps.use-previous.outputs.pass_rate }}
-          USE_PREVIOUS_COLOR: ${{ steps.use-previous.outputs.color }}
-          USE_PREVIOUS_TEST_DURATION: ${{ steps.use-previous.outputs.test_duration }}
-          RECALCULATE_FAILED_TESTS: ${{ steps.recalculate.outputs.failed_tests }}
-          RECALCULATE_PASSED: ${{ steps.recalculate.outputs.passed }}
-          RECALCULATE_FAILED: ${{ steps.recalculate.outputs.failed }}
-          RECALCULATE_PENDING: ${{ steps.recalculate.outputs.pending }}
-          RECALCULATE_TOTAL_SPECS: ${{ steps.recalculate.outputs.total_specs }}
-          RECALCULATE_FAILED_SPECS: ${{ steps.recalculate.outputs.failed_specs }}
-          RECALCULATE_FAILED_SPECS_COUNT: ${{ steps.recalculate.outputs.failed_specs_count }}
-          RECALCULATE_COMMIT_STATUS_MESSAGE: ${{ steps.recalculate.outputs.commit_status_message }}
-          RECALCULATE_TOTAL: ${{ steps.recalculate.outputs.total }}
-          RECALCULATE_PASS_RATE: ${{ steps.recalculate.outputs.pass_rate }}
-          RECALCULATE_COLOR: ${{ steps.recalculate.outputs.color }}
-          RECALCULATE_TEST_DURATION: ${{ steps.recalculate.outputs.test_duration }}
-        run: |
-          if [ "$RUN_FAILED_TESTS_RESULT" == "skipped" ]; then
-            echo "passed=${USE_PREVIOUS_PASSED}" >> $GITHUB_OUTPUT
-            echo "failed=${USE_PREVIOUS_FAILED}" >> $GITHUB_OUTPUT
-            echo "pending=${USE_PREVIOUS_PENDING}" >> $GITHUB_OUTPUT
-            echo "total_specs=${USE_PREVIOUS_TOTAL_SPECS}" >> $GITHUB_OUTPUT
-            echo "failed_specs=${USE_PREVIOUS_FAILED_SPECS}" >> $GITHUB_OUTPUT
-            echo "failed_specs_count=${USE_PREVIOUS_FAILED_SPECS_COUNT}" >> $GITHUB_OUTPUT
-            echo "commit_status_message=${USE_PREVIOUS_COMMIT_STATUS_MESSAGE}" >> $GITHUB_OUTPUT
-            echo "total=${USE_PREVIOUS_TOTAL}" >> $GITHUB_OUTPUT
-            echo "pass_rate=${USE_PREVIOUS_PASS_RATE}" >> $GITHUB_OUTPUT
-            echo "color=${USE_PREVIOUS_COLOR}" >> $GITHUB_OUTPUT
-            echo "test_duration=${USE_PREVIOUS_TEST_DURATION}" >> $GITHUB_OUTPUT
-            {
-              echo "failed_tests<<EOF"
-              echo "$USE_PREVIOUS_FAILED_TESTS"
-              echo "EOF"
-            } >> $GITHUB_OUTPUT
-          else
-            echo "passed=${RECALCULATE_PASSED}" >> $GITHUB_OUTPUT
-            echo "failed=${RECALCULATE_FAILED}" >> $GITHUB_OUTPUT
-            echo "pending=${RECALCULATE_PENDING}" >> $GITHUB_OUTPUT
-            echo "total_specs=${RECALCULATE_TOTAL_SPECS}" >> $GITHUB_OUTPUT
-            echo "failed_specs=${RECALCULATE_FAILED_SPECS}" >> $GITHUB_OUTPUT
-            echo "failed_specs_count=${RECALCULATE_FAILED_SPECS_COUNT}" >> $GITHUB_OUTPUT
-            echo "commit_status_message=${RECALCULATE_COMMIT_STATUS_MESSAGE}" >> $GITHUB_OUTPUT
-            echo "total=${RECALCULATE_TOTAL}" >> $GITHUB_OUTPUT
-            echo "pass_rate=${RECALCULATE_PASS_RATE}" >> $GITHUB_OUTPUT
-            echo "color=${RECALCULATE_COLOR}" >> $GITHUB_OUTPUT
-            echo "test_duration=${RECALCULATE_TEST_DURATION}" >> $GITHUB_OUTPUT
-            {
-              echo "failed_tests<<EOF"
-              echo "$RECALCULATE_FAILED_TESTS"
-              echo "EOF"
-            } >> $GITHUB_OUTPUT
-          fi
-
-      - name: ci/compute-duration
-        id: duration
-        env:
-          START_TIME: ${{ needs.generate-test-cycle.outputs.start_time }}
-          FIRST_PASS_END_TIME: ${{ needs.calculate-results.outputs.end_time }}
-          RETEST_RESULT: ${{ needs.run-failed-tests.result }}
-          RETEST_SPEC_COUNT: ${{ needs.calculate-results.outputs.failed_specs_count }}
-          TEST_DURATION: ${{ steps.final-results.outputs.test_duration }}
-        run: |
-          NOW=$(date +%s)
-          ELAPSED=$((NOW - START_TIME))
-          MINUTES=$((ELAPSED / 60))
-          SECONDS=$((ELAPSED % 60))
-          DURATION="${MINUTES}m ${SECONDS}s"
-
-          # Compute first-pass and re-run durations
-          FIRST_PASS_ELAPSED=$((FIRST_PASS_END_TIME - START_TIME))
-          FP_MIN=$((FIRST_PASS_ELAPSED / 60))
-          FP_SEC=$((FIRST_PASS_ELAPSED % 60))
-          FIRST_PASS="${FP_MIN}m ${FP_SEC}s"
-
-          if [ "$RETEST_RESULT" != "skipped" ]; then
-            RERUN_ELAPSED=$((NOW - FIRST_PASS_END_TIME))
-            RR_MIN=$((RERUN_ELAPSED / 60))
-            RR_SEC=$((RERUN_ELAPSED % 60))
-            RUN_BREAKDOWN=" (first-pass: ${FIRST_PASS}, re-run: ${RR_MIN}m ${RR_SEC}s)"
-          else
-            RUN_BREAKDOWN=""
-          fi
-
-          # Duration icons: >20m high alert, >15m warning, otherwise clock
-          if [ "$MINUTES" -ge 20 ]; then
-            DURATION_DISPLAY=":rotating_light: ${DURATION}${RUN_BREAKDOWN} | test: ${TEST_DURATION}"
-          elif [ "$MINUTES" -ge 15 ]; then
-            DURATION_DISPLAY=":warning: ${DURATION}${RUN_BREAKDOWN} | test: ${TEST_DURATION}"
-          else
-            DURATION_DISPLAY=":clock3: ${DURATION}${RUN_BREAKDOWN} | test: ${TEST_DURATION}"
-          fi
-
-          # Retest indicator with spec count
-          if [ "$RETEST_RESULT" != "skipped" ]; then
-            RETEST_DISPLAY=":repeat: re-run ${RETEST_SPEC_COUNT} spec(s)"
-          else
-            RETEST_DISPLAY=""
-          fi
-
-          echo "duration=${DURATION}" >> $GITHUB_OUTPUT
-          echo "duration_display=${DURATION_DISPLAY}" >> $GITHUB_OUTPUT
-          echo "retest_display=${RETEST_DISPLAY}" >> $GITHUB_OUTPUT
-
-      - name: ci/upload-combined-results
-        if: inputs.workers > 1
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-        with:
-          name: cypress-${{ inputs.test_type }}-${{ inputs.server_edition }}-results
-          path: |
-            e2e-tests/cypress/logs/
-            e2e-tests/cypress/results/
-      - name: ci/publish-report
+          use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
+          composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
+          framework: cypress
+          report-type: ${{ inputs.report_type }}
+          image-tag: ${{ inputs.server_image_tag }}
+          image-aliases: ${{ inputs.server_image_aliases }}
+          server-image: ${{ env.SERVER_IMAGE }}
+          pr-number: ${{ inputs.pr_number }}
+          ref-branch: ${{ inputs.ref_branch }}
+          commit-status-context: ${{ inputs.context_name }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: ci/publish-webhook
         if: inputs.enable_reporting && env.REPORT_WEBHOOK_URL != ''
         env:
           REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
-          COMMIT_STATUS_MESSAGE: ${{ steps.final-results.outputs.commit_status_message }}
-          COLOR: ${{ steps.final-results.outputs.color }}
-          REPORT_URL: ${{ needs.generate-test-cycle.outputs.status_check_url }}
-          TEST_TYPE: ${{ inputs.test_type }}
-          REPORT_TYPE: ${{ inputs.report_type }}
-          COMMIT_SHA: ${{ inputs.commit_sha }}
-          REF_BRANCH: ${{ inputs.ref_branch }}
-          PR_NUMBER: ${{ inputs.pr_number }}
-          DURATION_DISPLAY: ${{ steps.duration.outputs.duration_display }}
-          RETEST_DISPLAY: ${{ steps.duration.outputs.retest_display }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          SERVER_IMAGE: ${{ env.SERVER_IMAGE }}
+          PAYLOAD: ${{ steps.summary.outputs.webhook_payload }}
         run: |
-          # Capitalize test type
-          TEST_TYPE_CAP=$(echo "$TEST_TYPE" | sed 's/.*/\u&/')
-
-          # Build source line based on report type
-          COMMIT_SHORT="${COMMIT_SHA::7}"
-          COMMIT_URL="https://github.com/${GITHUB_REPOSITORY}/commit/${COMMIT_SHA}"
-          if [ "$REPORT_TYPE" = "RELEASE_CUT" ]; then
-            SOURCE_LINE=":github_round: [${COMMIT_SHORT}](${COMMIT_URL}) on \`${REF_BRANCH}\`"
-          elif [ "$REPORT_TYPE" = "MASTER" ] || [ "$REPORT_TYPE" = "RELEASE" ]; then
-            SOURCE_LINE=":git_merge: [${COMMIT_SHORT}](${COMMIT_URL}) on \`${REF_BRANCH}\`"
-          else
-            SOURCE_LINE=":open-pull-request: [mattermost-pr-${PR_NUMBER}](https://github.com/${GITHUB_REPOSITORY}/pull/${PR_NUMBER})"
-          fi
-
-          # Build retest part for message
-          RETEST_PART=""
-          if [ -n "$RETEST_DISPLAY" ]; then
-            RETEST_PART=" | ${RETEST_DISPLAY}"
-          fi
-
-          # Build payload with attachments
-          PAYLOAD=$(cat <<EOF
-          {
-            "username": "E2E Test",
-            "icon_url": "https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png",
-            "attachments": [{
-              "color": "${COLOR}",
-              "text": "**Results - Cypress ${TEST_TYPE_CAP} Tests**\n\n${SOURCE_LINE}\n:docker: \`${SERVER_IMAGE}\`\n${COMMIT_STATUS_MESSAGE}${RETEST_PART} | [full report](${REPORT_URL})\n${DURATION_DISPLAY}"
-            }]
-          }
-          EOF
-          )
-
-          # Send to webhook
           curl -X POST -H "Content-Type: application/json" -d "$PAYLOAD" "$REPORT_WEBHOOK_URL"
-      - name: ci/write-job-summary
-        if: always()
-        env:
-          STATUS_CHECK_URL: ${{ needs.generate-test-cycle.outputs.status_check_url }}
-          TEST_TYPE: ${{ inputs.test_type }}
-          PASSED: ${{ steps.final-results.outputs.passed }}
-          FAILED: ${{ steps.final-results.outputs.failed }}
-          PENDING: ${{ steps.final-results.outputs.pending }}
-          TOTAL_SPECS: ${{ steps.final-results.outputs.total_specs }}
-          FAILED_SPECS_COUNT: ${{ steps.final-results.outputs.failed_specs_count }}
-          FAILED_SPECS: ${{ steps.final-results.outputs.failed_specs }}
-          COMMIT_STATUS_MESSAGE: ${{ steps.final-results.outputs.commit_status_message }}
-          FAILED_TESTS: ${{ steps.final-results.outputs.failed_tests }}
-          DURATION_DISPLAY: ${{ steps.duration.outputs.duration_display }}
-          RETEST_RESULT: ${{ needs.run-failed-tests.result }}
-        run: |
-          {
-            echo "## E2E Test Results - Cypress ${TEST_TYPE}"
-            echo ""
-
-            if [ "$FAILED" = "0" ]; then
-              echo "All tests passed: **${PASSED} passed**"
-            else
-              echo "<details>"
-              echo "<summary>${FAILED} failed, ${PASSED} passed</summary>"
-              echo ""
-              echo "| Test | File |"
-              echo "|------|------|"
-              echo "${FAILED_TESTS}"
-              echo "</details>"
-            fi
-
-            echo ""
-            echo "### Calculation Outputs"
-            echo ""
-            echo "| Output | Value |"
-            echo "|--------|-------|"
-            echo "| passed | ${PASSED} |"
-            echo "| failed | ${FAILED} |"
-            echo "| pending | ${PENDING} |"
-            echo "| total_specs | ${TOTAL_SPECS} |"
-            echo "| failed_specs_count | ${FAILED_SPECS_COUNT} |"
-            echo "| commit_status_message | ${COMMIT_STATUS_MESSAGE} |"
-            echo "| failed_specs | ${FAILED_SPECS:-none} |"
-            echo "| duration | ${DURATION_DISPLAY} |"
-            if [ "$RETEST_RESULT" != "skipped" ]; then
-              echo "| retested | Yes |"
-            else
-              echo "| retested | No |"
-            fi
-
-            echo ""
-            echo "---"
-            echo "[View Full Report](${STATUS_CHECK_URL})"
-          } >> $GITHUB_STEP_SUMMARY
       - name: ci/assert-results
         env:
-          FINAL_RESULTS_FAILED: ${{ steps.final-results.outputs.failed }}
+          SUMMARY_OUTCOME: ${{ steps.summary.outcome }}
         run: |
-          [ "${FINAL_RESULTS_FAILED}" = "0" ]
-
-  update-success-status:
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-      statuses: write
-    if: always() && needs.report.result == 'success' && needs.calculate-results.result == 'success'
-    needs:
-      - generate-test-cycle
-      - calculate-results
-      - report
-    steps:
-      - uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          repository_full_name: ${{ github.repository }}
-          commit_sha: ${{ inputs.commit_sha }}
-          context: ${{ inputs.context_name }}
-          description: "${{ needs.report.outputs.commit_status_message }}, ${{ needs.report.outputs.duration }}, image_tag:${{ inputs.server_image_tag }}${{ inputs.server_image_aliases && format(' ({0})', inputs.server_image_aliases) || '' }}"
-          status: success
-          target_url: ${{ needs.generate-test-cycle.outputs.status_check_url }}
-
-  update-failure-status:
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-      statuses: write
-    if: always() && (needs.report.result != 'success' || needs.calculate-results.result != 'success')
-    needs:
-      - generate-test-cycle
-      - calculate-results
-      - report
-    steps:
-      - uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          repository_full_name: ${{ github.repository }}
-          commit_sha: ${{ inputs.commit_sha }}
-          context: ${{ inputs.context_name }}
-          description: "${{ needs.report.outputs.commit_status_message }}, ${{ needs.report.outputs.duration }}, image_tag:${{ inputs.server_image_tag }}${{ inputs.server_image_aliases && format(' ({0})', inputs.server_image_aliases) || '' }}"
-          status: failure
-          target_url: ${{ needs.generate-test-cycle.outputs.status_check_url }}
+          [ "$SUMMARY_OUTCOME" = "success" ]
