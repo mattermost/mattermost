@@ -74,7 +74,7 @@ export default class WysiwygEditor {
     }
 
     suggestionList() {
-        return this.page.getByRole('listbox', {name: 'Suggestions'});
+        return this.container.getByRole('listbox', {name: 'Suggestions'});
     }
 
     placeholder() {

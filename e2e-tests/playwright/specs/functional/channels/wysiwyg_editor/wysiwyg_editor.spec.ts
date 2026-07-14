@@ -21,7 +21,7 @@ test('MM-69305 WYSIWYG editor is not mounted when user preference is off', TAGS,
     await expect(page.locator('.WysiwygEditor')).toHaveCount(0);
 });
 
-test('MM-69305 WYSIWYG editor mounts when feature flag and preference are enabled', TAGS, async ({pw}) => {
+test('MM-69305 WYSIWYG editor mounts when the user preference is enabled', TAGS, async ({pw}) => {
     const {user, userClient, team} = await pw.initSetup();
     await setWysiwygUserPreference(userClient, user.id, true);
 
@@ -84,7 +84,6 @@ test.describe('WYSIWYG editor - composing and posting', TAGS, () => {
 
         await expect(page.getByTestId('post-edit-container')).toBeVisible();
     });
-
 });
 
 test.describe('WYSIWYG editor - markdown-as-you-type rich text', TAGS, () => {
