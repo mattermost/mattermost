@@ -454,6 +454,15 @@ func (scs *Service) processTask(task syncTask) error {
 		if err := scs.syncForRemote(rtask, rc); err != nil {
 			// retry, spaced by SyncRetryDelay to avoid hammering the remote...
 			if rtask.incRetry() {
+				// A task with no specific remote fans out to every remote in this loop, and
+				// each rtask is a copy that still carries the original (remote-less) task id.
+				// Give the per-remote retry a distinct, remote-specific id so addTask (which
+				// merges on id) keeps a separate retry task per failed remote instead of
+				// collapsing them into one. Single-remote tasks already have a remote-specific
+				// id, so leave those untouched (recomputing would grow the id on every retry).
+				if task.remoteID == "" {
+					rtask.id = task.id + rc.RemoteId
+				}
 				rtask.schedule = time.Now().Add(SyncRetryDelay)
 				scs.addTask(rtask)
 			} else {

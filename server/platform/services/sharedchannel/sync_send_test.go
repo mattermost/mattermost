@@ -311,10 +311,56 @@ func TestProcessTask_RetryDelay(t *testing.T) {
 	require.Len(t, tasksCopy, 1, "failed task should be re-enqueued for retry")
 	for _, retried := range tasksCopy {
 		assert.Equal(t, 1, retried.retryCount, "retry count should be 1 after first failure")
-		assert.True(t, retried.schedule.After(before.Add(SyncRetryDelay-time.Second)),
+		assert.True(t, retried.schedule.After(before.Add(SyncRetryDelay)),
 			"re-enqueued task schedule should be at least SyncRetryDelay in the future (got %s, want after %s)",
 			retried.schedule, before.Add(SyncRetryDelay))
 	}
+}
+
+// TestProcessTask_FanOutRetryPerRemote verifies that when a task with no specific remote
+// fans out to several remotes and each fails, every remote keeps its own retry task (rather
+// than all but one being discarded by addTask's merge on the shared task id).
+func TestProcessTask_FanOutRetryPerRemote(t *testing.T) {
+	channelID := model.NewId()
+	rcA := &model.RemoteCluster{RemoteId: model.NewId(), DisplayName: "remote-A"}
+	rcB := &model.RemoteCluster{RemoteId: model.NewId(), DisplayName: "remote-B"}
+
+	rcStoreMock := &mocks.RemoteClusterStore{}
+	// Both the in-channel and auto-invited lookups return the two remotes; remotesMap dedups.
+	rcStoreMock.On("GetAll", 0, 999999, mock.Anything).Return([]*model.RemoteCluster{rcA, rcB}, nil)
+
+	mockStore := &mocks.Store{}
+	mockStore.On("RemoteCluster").Return(rcStoreMock)
+
+	mockServer := &MockServerIface{}
+	mockServer.On("GetStore").Return(mockStore)
+	mockServer.On("GetMetrics").Return(nil)
+	mockServer.On("GetRemoteClusterService").Return(nil) // nil rcs makes syncForRemote fail for each remote
+
+	scs := &Service{
+		server:       mockServer,
+		changeSignal: make(chan struct{}, 1),
+		tasks:        make(map[string]syncTask),
+	}
+
+	// Fan-out task: empty remoteID.
+	scs.addTask(newSyncTask(channelID, "", "", nil, nil))
+
+	scs.doSync()
+
+	scs.mux.RLock()
+	tasksCopy := make(map[string]syncTask, len(scs.tasks))
+	maps.Copy(tasksCopy, scs.tasks)
+	scs.mux.RUnlock()
+
+	require.Len(t, tasksCopy, 2, "each failed remote should retain its own retry task")
+	gotRemotes := make(map[string]bool)
+	for _, retried := range tasksCopy {
+		assert.Equal(t, 1, retried.retryCount, "retry count should be 1 after first failure")
+		gotRemotes[retried.remoteID] = true
+	}
+	assert.True(t, gotRemotes[rcA.RemoteId], "remote A should have its own retry task")
+	assert.True(t, gotRemotes[rcB.RemoteId], "remote B should have its own retry task")
 }
 
 // TestSendSyncMsgToRemote_NotifiesOnDeliveryFailure guards the offline-recovery fix: when a
@@ -339,9 +385,11 @@ func TestSendSyncMsgToRemote_NotifiesOnDeliveryFailure(t *testing.T) {
 	rc := &model.RemoteCluster{RemoteId: remoteID, Name: "test-remote", SiteURL: "http://example.invalid"}
 	msg := model.NewSyncMsg(model.NewId())
 
-	err := scs.sendSyncMsgToRemote(msg, rc, nil)
+	var callbackInvoked bool
+	err := scs.sendSyncMsgToRemote(msg, rc, func(model.SyncResponse, error) { callbackInvoked = true })
 
 	require.NoError(t, err, "a delivery failure must not be surfaced as an error; the send is fire-and-forget")
+	assert.False(t, callbackInvoked, "the result callback must not run on a delivery failure, so the cursor stays un-advanced")
 
 	mockRCS.mu.Lock()
 	notifyCalls := mockRCS.notifyCalls
@@ -382,9 +430,11 @@ func TestSendSyncMsgToRemote_NotifiesOnUnconfirmedResponse(t *testing.T) {
 			rc := &model.RemoteCluster{RemoteId: remoteID, Name: "test-remote", SiteURL: "http://example.invalid"}
 			msg := model.NewSyncMsg(model.NewId())
 
-			err := scs.sendSyncMsgToRemote(msg, rc, nil)
+			var callbackInvoked bool
+			err := scs.sendSyncMsgToRemote(msg, rc, func(model.SyncResponse, error) { callbackInvoked = true })
 
 			require.NoError(t, err, "an unconfirmed response must not be surfaced as an error")
+			assert.False(t, callbackInvoked, "the result callback must not run for an unconfirmed response, so the cursor stays un-advanced")
 
 			mockRCS.mu.Lock()
 			notifyCalls := mockRCS.notifyCalls
