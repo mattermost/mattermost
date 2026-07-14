@@ -38,7 +38,6 @@ All three install methods require:
 Once Mattermost is running, complete these steps before exposing it to users:
 
 - [Set up an NGINX reverse proxy](/deployment-guide/server/setup-nginx-proxy) and [terminate TLS](/deployment-guide/server/setup-tls) at the proxy. Don't run Mattermost as an internet-facing service without a proxy.
-- Decide whether you need [FIPS 140-3 cryptography](/deployment-guide/server/configure-fips-at-install-time). FIPS is **install-time only** — it cannot be enabled after data is written.
 - Configure [pre-authentication secrets](/deployment-guide/server/pre-authentication-secrets) if your environment requires them.
 - Review the [post-install configuration checklist](/deployment-guide/server/server-deployment-planning) under Server deployment planning.
 

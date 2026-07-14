@@ -88,7 +88,7 @@ const ViewUserGroupModalHeader = ({
             return (
                 <Modal.Title
                     componentClass='h1'
-                    id='userGroupsModalLabel'
+                    id='viewUserGroupModalLabel'
                 >
                     {group.display_name}
                     {

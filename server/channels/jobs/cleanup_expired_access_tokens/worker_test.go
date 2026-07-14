@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 // fakeStore implements expiredTokenStore. Each call to GetExpiredBefore pops
@@ -66,14 +67,16 @@ func makeTokens(n int, base int64) []*model.UserAccessToken {
 
 func nopClearSession(_ string) {}
 
+func nopNotify(_ request.CTX, _ []*model.UserAccessToken) {}
+
 func TestCleanupExpired(t *testing.T) {
-	logger := mlog.CreateConsoleTestLogger(t)
+	rctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t))
 
 	t.Run("happy path single batch", func(t *testing.T) {
 		tokens := makeTokens(3, 1000)
 		store := &fakeStore{batches: [][]*model.UserAccessToken{tokens}}
 
-		err := cleanupExpired(logger, store, nopClearSession, 9999, 1000, 10)
+		err := cleanupExpired(rctx, store, nopClearSession, nopNotify, 9999, 1000, 10)
 		require.NoError(t, err)
 
 		// Exactly one DeleteByIds call with the three token ids. A partial first
@@ -87,7 +90,7 @@ func TestCleanupExpired(t *testing.T) {
 	t.Run("empty result is no-op", func(t *testing.T) {
 		store := &fakeStore{} // no batches, no errors
 
-		err := cleanupExpired(logger, store, nopClearSession, 9999, 1000, 10)
+		err := cleanupExpired(rctx, store, nopClearSession, nopNotify, 9999, 1000, 10)
 		require.NoError(t, err)
 
 		require.Equal(t, 1, store.getCalls)
@@ -100,7 +103,7 @@ func TestCleanupExpired(t *testing.T) {
 		second := makeTokens(2, 2000)    // partial batch -> loop stops
 		store := &fakeStore{batches: [][]*model.UserAccessToken{first, second}}
 
-		err := cleanupExpired(logger, store, nopClearSession, 9999, limit, 10)
+		err := cleanupExpired(rctx, store, nopClearSession, nopNotify, 9999, limit, 10)
 		require.NoError(t, err)
 
 		require.Equal(t, 2, store.getCalls)
@@ -118,7 +121,7 @@ func TestCleanupExpired(t *testing.T) {
 			makeTokens(limit, 3000), // never reached
 		}}
 
-		err := cleanupExpired(logger, store, nopClearSession, 9999, limit, maxIter)
+		err := cleanupExpired(rctx, store, nopClearSession, nopNotify, 9999, limit, maxIter)
 		require.NoError(t, err)
 
 		require.Equal(t, maxIter, store.getCalls, "loop must cap at maxIter")
@@ -133,7 +136,7 @@ func TestCleanupExpired(t *testing.T) {
 			getErr:   wantErr,
 		}
 
-		err := cleanupExpired(logger, store, nopClearSession, 9999, 1000, 10)
+		err := cleanupExpired(rctx, store, nopClearSession, nopNotify, 9999, 1000, 10)
 		require.ErrorIs(t, err, wantErr)
 		require.Empty(t, store.deletedIDs, "delete must not run when get fails")
 	})
@@ -145,7 +148,7 @@ func TestCleanupExpired(t *testing.T) {
 			deleteErr: wantErr,
 		}
 
-		err := cleanupExpired(logger, store, nopClearSession, 9999, 1000, 10)
+		err := cleanupExpired(rctx, store, nopClearSession, nopNotify, 9999, 1000, 10)
 		require.ErrorIs(t, err, wantErr)
 		require.Len(t, store.deletedIDs, 1, "DeleteByIds was called once before failing")
 	})
@@ -160,10 +163,40 @@ func TestCleanupExpired(t *testing.T) {
 		store := &fakeStore{batches: [][]*model.UserAccessToken{tokens}}
 
 		cleared := map[string]int{}
-		err := cleanupExpired(logger, store, func(userID string) { cleared[userID]++ }, 9999, 1000, 10)
+		err := cleanupExpired(rctx, store, func(userID string) { cleared[userID]++ }, nopNotify, 9999, 1000, 10)
 		require.NoError(t, err)
 
 		require.Len(t, cleared, 2, "cache must be cleared for each unique user")
 		require.Equal(t, 1, cleared[sharedUserID], "each user cleared exactly once per batch")
+	})
+
+	t.Run("notify is called with each batch before delete", func(t *testing.T) {
+		const limit = 3
+		first := makeTokens(limit, 1000) // full batch -> loop continues
+		second := makeTokens(1, 2000)    // partial batch -> loop stops
+		store := &fakeStore{batches: [][]*model.UserAccessToken{first, second}}
+
+		var notified [][]*model.UserAccessToken
+		notify := func(_ request.CTX, tokens []*model.UserAccessToken) {
+			// Each batch must be notified before it is deleted: at the Nth
+			// notify call exactly N-1 prior batches should have been deleted.
+			require.Len(t, store.deletedIDs, len(notified), "notify must run before this batch's DeleteByIds")
+			notified = append(notified, tokens)
+		}
+
+		err := cleanupExpired(rctx, store, nopClearSession, notify, 9999, limit, 10)
+		require.NoError(t, err)
+
+		require.Len(t, notified, 2, "notify called once per batch")
+		require.Equal(t, first, notified[0])
+		require.Equal(t, second, notified[1])
+	})
+
+	t.Run("nil notify is tolerated", func(t *testing.T) {
+		store := &fakeStore{batches: [][]*model.UserAccessToken{makeTokens(2, 1000)}}
+
+		err := cleanupExpired(rctx, store, nopClearSession, nil, 9999, 1000, 10)
+		require.NoError(t, err)
+		require.Len(t, store.deletedIDs, 1)
 	})
 }

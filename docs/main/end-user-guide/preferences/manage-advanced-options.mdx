@@ -1,6 +1,9 @@
 ---
 title: "Manage advanced options"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 Using Mattermost in a web browser or the desktop app, you can customize advanced Mattermost options based on your preferences. Select the gear icon <img src="/img/ui/settings-outline_F08BB.svg" alt="Use the Settings icon to customize your Mattermost user experience." className="theme-icon" /> next to your profile picture, then select **Advanced**.
@@ -13,9 +16,8 @@ And you enter new text lines by pressing <kbd>Shift</kbd> <kbd>Enter</kbd> on Wi
 
 You can chance this message send behavior.
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 If you find you're accidentally sending messages too soon, you can configure Mattermost to require an extra keystroke to send all messages, or for code blocks.
 
@@ -23,55 +25,50 @@ Select **Send Messages on CTRL/⌘ + ENTER \> Edit** to configure how messages a
 
 You can configure Mattermost to send messages by pressing <kbd>Ctrl</kbd> <kbd>Enter</kbd> on Windows or Linux, or <kbd>⌘</kbd> <kbd>↵</kbd> on Mac for all messages or only for code blocks that start with ``\`\`\`.
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 This option isn't something you can set using the mobile app.
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Enable post formatting
 
 By default, Mattermost formats your messages with Markdown to show links, emojis, text styles, and line breaks. You can control whether your messages show the formatting or show text only.
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 Select **Enable Post Formatting** to show your messages as raw text only that includes Markdown syntax.
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 This option isn't something you can set using the mobile app.
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Enable join/leave messages
 
 By default, Mattermost shows you system messages when users join or leave channels you're a member of. You can hide these messages if preferred.
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 Select **Enable Join/Leave Messages** to hide the system messages when users join or leave channels you're a member of. When users are added to or removed from a channel, a system message displays even when you've disabled this feature.
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 This option isn't something you can set using the mobile app.
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Deactivate account
 
@@ -84,21 +81,19 @@ You can deactivate your account if you access Mattermost using an email address 
 
 </Important>
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 Select **Deactivate Account** to deactivate your Mattermost user account.
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 This option isn't applicable to the mobile app.
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Delete account
 
@@ -113,29 +108,26 @@ From Mattermost v10.11, you can permanently delete your account if you access Ma
 
 </Important>
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 Select **Delete Account** to permanently delete your Mattermost user account. You'll be asked to confirm this action before proceeding.
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 This option isn't applicable to the mobile app.
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Performance debugging
 
 You can disable key Mattermost features temporarily to help isolate issues while debugging Mattermost, if your system admin [enables your ability to do so](/administration-guide/configure/environment-configuration-settings#enable-client-debugging). We don't recommend leaving these settings enabled for an extended period of time as they can negatively impact your user experience.
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 Select **Performance Debugging** to disable one or more of the following Mattermost features:
 
@@ -145,74 +137,67 @@ Select **Performance Debugging** to disable one or more of the following Matterm
 
 You may need to refresh Mattermost to see these settings take effect.
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 This option isn't something you can set using the mobile app.
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Scroll position when viewing unread channels
 
 You can choose where to start viewing unread messages in all channels you're a member of.
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 Select **Scroll position when viewing an unread channel** to choose your scroll position starting point as where you left off or at the newest message.
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 This option isn't something you can set using the mobile app.
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Allow message drafts to sync with the server
 
 By default, [message drafts](/end-user-guide/collaborate/send-messages#draft-messages) are synchronized on the Mattermost server and accessible everywhere you access Mattermost using a web browser or the desktop app. You can disable server-synchronized drafts and limit drafts to your current Mattermost client, if preferred.
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 Select **Allow message drafts to sync with the server** to disable server-synchronized drafts.
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 This option isn't applicable to the mobile app.
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Delete local files
 
 You can delete local Mattermost files from your mobile device using the mobile app.
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 This option isn't applicable to the web or desktop app instance of Mattermost.
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 Access **Settings** by tapping on your profile picture. Then, tap **Advanced Settings** and **Delete local files**.
 
 Only data specific to the current Mattermost server is removed from your device. You'll need to repeat this process for each [Mattermost workspace you're connected to](/end-user-guide/preferences/connect-multiple-workspaces) on the mobile app.
 
-</div>
+</TabItem>
+</Tabs>
+

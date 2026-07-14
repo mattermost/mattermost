@@ -1,13 +1,15 @@
 ---
 title: "Install desktop app on Linux"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 This page describes how to install the Mattermost desktop app on Linux.
 
-<div class="tab" parse-titles="">
-
-Ubuntu/Debian
+<Tabs>
+<TabItem value="ubuntu-debian" label="Ubuntu/Debian">
 
 Both a `.deb` package (Beta), and an official APT repository is available for Debian 9 and for Ubuntu releases 20.04 LTS or later. Automatic app updates are supported and enabled. When a new version of the desktop app is released, your app updates automatically.
 
@@ -53,11 +55,8 @@ You can review the current version of your desktop app by selecting the **More**
 
 </Tip>
 
-</div>
-
-<div class="tab" parse-titles="">
-
-CentOS/RHEL
+</TabItem>
+<TabItem value="centos-rhel" label="CentOS/RHEL">
 
 Beta `.rpm` packages are available for CentOS and RHEL 7 and 8. Automatic app updates aren't supported. You must update your app manually.
 
@@ -84,11 +83,8 @@ You can review the current version of your desktop app by selecting the **More**
 
 </Tip>
 
-</div>
-
-<div class="tab" parse-titles="">
-
-Flatpak
+</TabItem>
+<TabItem value="flatpak" label="Flatpak">
 
 From Mattermost Desktop v6.1, Flatpak packages are available for Linux systems. Flatpak is a universal Linux package format that provides a sandboxed environment and includes runtime dependencies. The Flatpak version is currently in **beta**.
 
@@ -137,11 +133,8 @@ You can review the current version of your desktop app by selecting the **More**
 
 </Tip>
 
-</div>
-
-<div class="tab" parse-titles="">
-
-Generic Linux
+</TabItem>
+<TabItem value="generic-linux" label="Generic Linux">
 
 The Desktop app is available in two formats which are usable on most Linux distributions: a compressed tarball, and an AppImage binary. Both can be downloaded from the [Desktop App's Github releases page](https://github.com/mattermost/desktop/releases). Automatic app updates are supported and enabled on AppImage binary builds. When a new version of the desktop app is released, your app updates automatically.
 
@@ -154,4 +147,6 @@ For instructions on how to use the AppImage binary, please refer to the [AppImag
 3.  Execute `mattermost-desktop` located inside the extracted directory.
 4.  To create a Desktop launcher, open the file `README.md`, and follow the instructions in the **Desktop launcher** section.
 
-</div>
+</TabItem>
+</Tabs>
+

@@ -1,6 +1,9 @@
 ---
 title: "Work with boards"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="entry-ent" />
 
 Start by selecting the type of board you want to use. A board contains cards, which typically track tasks or topics, and views, which define how to display the cards, or a subset of them. Views can display cards in a board, table, calendar, or gallery layout, optionally filtered and grouped by a property (e.g., priority, status, etc).
@@ -52,9 +55,8 @@ To turn an existing board into a template, hover over the board title in the sid
 
 ### Share a custom board template
 
-<div class="tab">
-
-From Boards v7.2 or later
+<Tabs>
+<TabItem value="from-boards-v7-2-or-later" label="From Boards v7.2 or later">
 
 Custom templates support permissions control, and are restricted to only the template creator by default. The template creator is an admin of the template. To make the template accessible to everyone on the team, select **Share** on the template editor, and then set the team role as **Viewer**. All members of the team will now be able to see and select the template from the template picker.
 
@@ -64,34 +66,31 @@ The admin of the template can also grant specific team members elevated permissi
 - **Editor**: Can modify but not delete the template, nor change permissions.
 - **Viewer**: Can view and select the template.
 
-</div>
-
-<div class="tab">
-
-Prior to Boards v7.2
+</TabItem>
+<TabItem value="prior-to-boards-v7-2" label="Prior to Boards v7.2">
 
 Boards and templates are channel-specific so whichever channel you create your board or template in, is where you’ll find it. If you’d like to re-use a board as a template on another channel workspace, you can export it and then import the archive file in the channel of your choosing.
 
 To do this, select the options menu <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> in the toolbar at the top of the board. Then select **Export** board archive. Download the archive file. Navigate to the channel where you’d like to add the exported board. Select the gear icon <img src="/img/ui/settings-outline_F08BB.svg" alt="Use the Settings icon to customize your Mattermost user experience." className="theme-icon" /> next to your profile picture, then choose **Import archive**. The board you created will be added to this channel.
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Edit board templates
 
 Custom templates are fully editable, but standard templates cannot be edited or deleted. To open the template editor for a specific template, go to the template picker then hover over the custom template and select the pencil icon. Any changes made on the template editor will be automatically saved and visible to team members who have access to the template.
 
-<div class="tab">
-
-From Boards v7.2 or later
+<Tabs>
+<TabItem value="from-boards-v7-2-or-later" label="From Boards v7.2 or later">
 
 Only admins and editors of a custom template can edit the template. If you don't see the pencil icon when hovering over the template, then you don't have the appropriate permissions to edit the template.
 
-</div>
-
-<div class="tab">
-
-Prior to Boards v7.2
+</TabItem>
+<TabItem value="prior-to-boards-v7-2" label="Prior to Boards v7.2">
 
 Any member of the channel workspace can edit a custom template in the channel. To limit access to the template, create or export the template to a private channel.
 
-</div>
+</TabItem>
+</Tabs>
+

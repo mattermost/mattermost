@@ -1,6 +1,9 @@
 ---
 title: "React with emojis and GIFs"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 Emojis and GIFs are small, digital images, animated images, or icons you can use to communicate or express concepts such as emotions, humor, and physical gestures in your messages.
@@ -11,23 +14,21 @@ From Mattermost v10.10, text emoticons (such as `:)` or `:D`) are automatically 
 
 You can react with up to 50 emojis per message. Recently used emojis are sorted based on how often you've used them. Don't see your most recently used emojis? Enable quick reactions by going to **Settings \> Display** and enabling **Quick reactions on messages**.
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 Hover over a message to select a recently used emoji.
 
 > ![React to messages quickly by selecting one of your most recently used emojis.](/images/recent-emojis.png)
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 Long press on a message, and then select a recently used emoji.
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Include emojis and GIFs in messages
 
@@ -37,9 +38,8 @@ Can't find the perfect emoji? [Upload your own custom emoji](#upload-custom-emoj
 
 </Tip>
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 Select the **Smile** icon <img src="/img/ui/emoticon-plus-outline_E80F.svg" alt="Use the Smile icon to add emojis to your message." className="theme-icon" /> inside the Mattermost message input box to open the emoji and GIF picker.
 
@@ -49,17 +49,16 @@ You can also specify emojis based on their name. Type `:` followed by at least t
 
 ![Emoji autocomplete](/images/emojiautocomplete.png)
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 Select the <img src="/img/ui/emoticon-plus-outline_E80F.svg" alt="Use the Smile icon to add emojis to your message." className="theme-icon" /> to add an emoji. Mattermost accesses the emojis and GIFs available on your mobile device. You can also specify emojis based on their name. Type at least two characters of the word describing the emoji. This opens an emoji autocomplete.
 
 ![Tap and hold on a message to access the recent emojis or even choose other ones.](/images/mobile-include-emojis-for-a-message-reaction.gif)
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Manage emojis
 

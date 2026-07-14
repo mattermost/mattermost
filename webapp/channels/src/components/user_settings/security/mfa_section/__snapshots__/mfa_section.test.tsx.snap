@@ -6,6 +6,7 @@ exports[`MfaSection rendering when section is collapsed and MFA is active 1`] = 
 <div>
   <div
     class="section-min"
+    data-testid="section-min"
   >
     <div
       class="section-min__header"
@@ -44,6 +45,7 @@ exports[`MfaSection rendering when section is collapsed and MFA is not active 1`
 <div>
   <div
     class="section-min"
+    data-testid="section-min"
   >
     <div
       class="section-min__header"

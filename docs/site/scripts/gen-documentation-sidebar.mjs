@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Generate the Documentation sidebar from the migrated content tree under
-// docs/. Output: docs-site/sidebars/documentation.generated.json
+// main/. Output: docs-site/sidebars/documentation.generated.json
 //
 // Mirrors gen-developer-sidebar.mjs in structure. Only differences are
 // the source directory and the top-level section list (per PLAN.md 3.1).
@@ -14,7 +14,7 @@ import {fileURLToPath} from 'node:url';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const SITE_ROOT = resolve(HERE, '..');
 const REPO_ROOT = resolve(SITE_ROOT, '..');
-const SRC = join(REPO_ROOT, 'docs');
+const SRC = join(REPO_ROOT, 'main');
 const OUT = join(SITE_ROOT, 'sidebars', 'documentation.generated.json');
 
 const TOP_LEVEL = [
@@ -287,17 +287,14 @@ const DEPLOYMENT_GROUPS = {
       ]},
       {label: 'Install on Kubernetes', landing: 'server/deploy-kubernetes', items: [
         'server/kubernetes/deploy-k8s',
-        'server/kubernetes/deploy-k8s-aks',
         'server/kubernetes/deploy-k8s-oke',
       ]},
       {label: 'Install with Containers', landing: 'server/deploy-containers', items: [
-        'server/containers/install-docker',
         'server/containers/fips-stig',
       ]},
-      // Configure at install time — install-blocking decisions like FIPS,
-      // TLS, NGINX reverse proxy, image proxy, MySQL setup, pre-auth secrets.
+      // Configure at install time — install-blocking decisions like TLS,
+      // NGINX reverse proxy, image proxy, MySQL setup, pre-auth secrets.
       {label: 'Configure at install time', items: [
-        'server/configure-fips-at-install-time',
         'server/setup-nginx-proxy',
         'server/setup-tls',
         'server/pre-authentication-secrets',
@@ -528,7 +525,7 @@ function buildOverviewSidebar(autoCat) {
 }
 
 function main() {
-  if (!existsSync(SRC)) { console.error(`docs/ not found at ${SRC}`); process.exit(1); }
+  if (!existsSync(SRC)) { console.error(`SRC not found at ${SRC}`); process.exit(1); }
 
   const sidebar = [];
   for (const {dir, label} of TOP_LEVEL) {

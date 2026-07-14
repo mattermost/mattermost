@@ -11,6 +11,7 @@ exports[`components/admin_console/CustomTermsOfServiceSettings should match snap
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Custom Terms of Service
       </div>

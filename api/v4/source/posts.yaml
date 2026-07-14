@@ -18,6 +18,18 @@
           required: false
           schema:
             type: boolean
+        - name: silent
+          in: query
+          description: >
+            When `true`, the post is delivered silently: visible in the channel
+            and broadcast over WebSocket, but produces no desktop/push/email
+            notifications, no unread or mention count increments, and no
+            "New Messages" line. Only bot accounts, OAuth apps, incoming
+            webhooks, and plugins may set this; non-integration senders
+            receive HTTP 403. `force_notification` overrides `silent`.
+          required: false
+          schema:
+            type: boolean
       requestBody:
         content:
           application/json:
@@ -988,6 +1000,28 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "429":
+          description: The upstream integration rate-limited the request. The
+            original status code is preserved so clients can honor retry
+            semantics.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "502":
+          description: The upstream integration returned a 5xx (other than 503).
+            Surfaced as Bad Gateway because the failure is upstream of Mattermost.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "503":
+          description: The upstream integration is unavailable. The original
+            status code is preserved so clients can honor retry semantics.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
   "/api/v4/posts/ids":
     post:
       tags:

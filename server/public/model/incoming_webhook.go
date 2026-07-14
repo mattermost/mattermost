@@ -60,6 +60,8 @@ type IncomingWebhookRequest struct {
 	Type        string               `json:"type"`
 	IconEmoji   string               `json:"icon_emoji"`
 	Priority    *PostPriority        `json:"priority"`
+	// Silent requests notification-suppressed delivery; persisted as PostPropsSilentNotification.
+	Silent bool `json:"silent"`
 }
 
 // HasInteractiveMessageProps reports whether props contain post content beyond the
