@@ -1681,6 +1681,14 @@ type API interface {
 	// Minimum server version: 11.10
 	DeletePropertyValuesForFieldWithOptions(groupID, fieldID string, options model.PropertyRequestOptions) error
 
+	// UpdatePropertyFieldWithOptions updates a property field, declaring the
+	// scope the plugin is acting as for owner-based access control (e.g.
+	// removing an owner scope requires acting as that scope).
+	//
+	// @tag PropertyField
+	// Minimum server version: 11.10
+	UpdatePropertyFieldWithOptions(groupID string, field *model.PropertyField, options model.PropertyRequestOptions) (*model.PropertyField, error)
+
 	// LogAuditRec logs an audit record using the default audit logger.
 	//
 	// @tag Audit

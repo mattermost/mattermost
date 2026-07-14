@@ -337,7 +337,12 @@ const DotMenu = ({
                             />
                         </span>
                         <span>
-                            {isOwnerManaged ? (
+                            {(isOwnerManaged && isSynced) ? (
+                                <FormattedMessage
+                                    id='admin.system_properties.user_properties.dotmenu.editable_by_users.owner_managed_synced_help'
+                                    defaultMessage='Managed by an integration and synced via AD/LDAP or SAML'
+                                />
+                            ) : isOwnerManaged ? (
                                 <FormattedMessage
                                     id='admin.system_properties.user_properties.dotmenu.editable_by_users.owner_managed_help'
                                     defaultMessage='This attribute is managed by an integration'

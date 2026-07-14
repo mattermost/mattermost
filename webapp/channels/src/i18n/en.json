@@ -3376,6 +3376,7 @@
   "admin.system_properties.user_properties.dotmenu.edit_ranking.label": "Edit ranking",
   "admin.system_properties.user_properties.dotmenu.editable_by_users.label": "Editable by users",
   "admin.system_properties.user_properties.dotmenu.editable_by_users.owner_managed_help": "This attribute is managed by an integration",
+  "admin.system_properties.user_properties.dotmenu.editable_by_users.owner_managed_synced_help": "Managed by an integration and synced via AD/LDAP or SAML",
   "admin.system_properties.user_properties.dotmenu.editable_by_users.synced_help": "Synced attributes are managed by AD/LDAP or SAML",
   "admin.system_properties.user_properties.dotmenu.label": "Select an action",
   "admin.system_properties.user_properties.dotmenu.saml.edit_link.label": "Edit SAML link",

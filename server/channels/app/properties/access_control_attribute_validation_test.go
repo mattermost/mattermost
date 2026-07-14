@@ -1684,7 +1684,7 @@ func TestAccessControlAttributeValidationHook_Owners(t *testing.T) {
 		assert.ElementsMatch(t, []string{"entra", "okta"}, owners[0].Scopes)
 	})
 
-	t.Run("normalizes scope labels to lowercase", func(t *testing.T) {
+	t.Run("preserves scope label case verbatim", func(t *testing.T) {
 		field := &model.PropertyField{
 			GroupID:    group.ID,
 			Name:       "field_" + model.NewId(),
@@ -1700,10 +1700,10 @@ func TestAccessControlAttributeValidationHook_Owners(t *testing.T) {
 
 		owners := model.GetPropertyFieldOwners(created)
 		require.Len(t, owners, 1)
-		assert.Equal(t, []string{"entra"}, owners[0].Scopes)
+		assert.Equal(t, []string{"Entra"}, owners[0].Scopes)
 	})
 
-	t.Run("dedupes case-variant scope labels", func(t *testing.T) {
+	t.Run("keeps case-variant scope labels distinct but dedupes exact duplicates", func(t *testing.T) {
 		field := &model.PropertyField{
 			GroupID:    group.ID,
 			Name:       "field_" + model.NewId(),
@@ -1711,7 +1711,7 @@ func TestAccessControlAttributeValidationHook_Owners(t *testing.T) {
 			TargetType: "system",
 			ObjectType: "user",
 			Attrs: newOwnerFieldAttrs([]model.PropertyOwner{
-				{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"Entra", "entra"}},
+				{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"Entra", "entra", "Entra"}},
 			}),
 		}
 		created, createErr := th.service.CreatePropertyField(th.Context, field)
@@ -1719,7 +1719,7 @@ func TestAccessControlAttributeValidationHook_Owners(t *testing.T) {
 
 		owners := model.GetPropertyFieldOwners(created)
 		require.Len(t, owners, 1)
-		assert.Equal(t, []string{"entra"}, owners[0].Scopes)
+		assert.Equal(t, []string{"Entra", "entra"}, owners[0].Scopes)
 	})
 
 	t.Run("rejects a scope with invalid characters", func(t *testing.T) {
