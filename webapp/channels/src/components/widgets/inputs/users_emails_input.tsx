@@ -49,6 +49,9 @@ type Props = {
     autoFocus?: boolean;
     suppressNoOptionsMessage?: boolean;
     onPaste?: (e: ClipboardEvent) => void;
+    // When true, render the autocomplete menu in a portal on document.body so
+    // it is not clipped by overflow parents (e.g. the invite modal body).
+    menuPortal?: boolean;
     intl: IntlShape;
 };
 
@@ -298,10 +301,11 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
         );
     };
 
-    // openMenuOnFocus opens an empty menu shell on focus before any query —
-    // skip rendering it until there is input text or loaded options.
+    // When menuPortal is on, openMenuOnFocus would otherwise open an empty
+    // menu shell on focus before any query — skip until there is input text
+    // or loaded options.
     Menu = (props: MenuProps<UserProfile | EmailInvite, true>) => {
-        if (!props.selectProps.inputValue && props.options.length === 0) {
+        if (this.props.menuPortal && !props.selectProps.inputValue && props.options.length === 0) {
             return null;
         }
 
@@ -604,10 +608,12 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
                 ...css,
                 gridTemplateColumns: 'minmax(0, 1fr)',
             }),
-            menuPortal: (css) => ({
-                ...css,
-                zIndex: 99999999,
-            }),
+            ...(this.props.menuPortal ? {
+                menuPortal: (css) => ({
+                    ...css,
+                    zIndex: 99999999,
+                }),
+            } : {}),
         } satisfies StylesConfig<UserProfile | EmailInvite, true >;
 
         return (
@@ -643,7 +649,7 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
                     aria-label={this.props.ariaLabel}
                     autoFocus={this.props.autoFocus}
                     styles={styles}
-                    menuPortalTarget={typeof document === 'undefined' ? null : document.body}
+                    menuPortalTarget={this.props.menuPortal && typeof document !== 'undefined' ? document.body : null}
                 />
                 {this.props.showError && (
                     <div className='InputErrorBox'>

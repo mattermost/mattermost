@@ -127,6 +127,7 @@ export default function AddToChannels(props: Props) {
             onInputChange={props.onChannelsInputChange}
             inputValue={props.inviteChannels.search}
             value={props.inviteChannels.channels}
+            menuPortal={true}
         />
         <div
             className='AddToChannels__customMessage'

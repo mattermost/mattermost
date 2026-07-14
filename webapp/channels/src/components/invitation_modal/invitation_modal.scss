@@ -1,18 +1,20 @@
-.InvitationModal {
-    .modal-dialog {
-        @media screen and (min-width: 640px) {
-            position: absolute;
-            width: 600px;
-        }
-
-        top: 50%;
-        left: 50%;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        margin: auto;
-        transform: translate(-50%, -50%) !important;
+// InvitationModal is the dialog element. Prefix with .app__body/.console__body
+// so flex overrides beat GenericModal location--center's
+// `.modal-content { flex: 1 1 auto }` — otherwise the card grows to full dialog
+// height and blocks click-away above/below (left/right still worked).
+.app__body .modal .InvitationModal.GenericModal__location--center,
+.console__body .modal .InvitationModal.GenericModal__location--center {
+    @media screen and (min-width: 640px) {
+        width: 600px;
     }
+
+    // Dialog is height:100% (location--center). Pass clicks through empty
+    // areas to the backdrop so click-away can dismiss.
+    pointer-events: none;
+
+    // Do not set transform/top/left for centering — Bootstrap's fade animates
+    // the dialog with transform (translate 0,-25% → 0,0). location--center's
+    // flexbox already centers the card.
 
     // Cap height and stack header / body / footer so tall content (e.g. many
     // member profile rows) scrolls inside the body instead of pushing the
@@ -25,7 +27,14 @@
         min-width: 0;
         max-width: 100%;
         max-height: 90vh;
+        // Stay content-sized — do not fill the full-height dialog.
+        flex-grow: 0;
+        flex-shrink: 1;
+        flex-basis: auto;
         flex-direction: column;
+        align-self: center;
+        height: auto;
+        pointer-events: auto;
     }
 
     .GenericModal__wrapper {
@@ -62,6 +71,18 @@
     .GenericModal__body > .modal-header,
     .GenericModal__body > .modal-footer {
         flex-shrink: 0;
+    }
+
+    // Nested invite header: default stretch makes the title fill the header and
+    // sit against the top while the absolute close icon stays lower. Center
+    // the title and clear h1 margins.
+    .GenericModal__body > .modal-header {
+        align-items: center;
+        padding: 24px 64px 24px 32px;
+
+        .modal-title {
+            margin: 0;
+        }
     }
 
     // Scroll on the full-bleed nested body so the scrollbar sits on the modal's

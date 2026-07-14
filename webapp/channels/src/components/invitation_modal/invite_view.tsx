@@ -258,6 +258,7 @@ export default function InviteView(props: Props) {
                     emailInvitationsEnabled={props.emailInvitationsEnabled}
                     autoFocus={true}
                     onPaste={props.onPaste}
+                    menuPortal={true}
                 />
                 {props.canInviteGuests && props.canAddUsers &&
                 <InviteAs
