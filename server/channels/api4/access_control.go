@@ -949,6 +949,11 @@ func unassignAccessPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionManageTeamAccessRules)
 			return
 		}
+		// Mirror the assign path: every target channel must currently belong to the requesting team.
+		if appErr := c.App.ValidateTeamScopePolicyChannelAssignment(c.AppContext, assignments.TeamID, assignments.ChannelIds); appErr != nil {
+			c.Err = appErr
+			return
+		}
 	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventUnassignAccessPolicy, model.AuditStatusFail)
