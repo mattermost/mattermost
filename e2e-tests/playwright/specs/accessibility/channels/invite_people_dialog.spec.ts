@@ -43,7 +43,7 @@ test(
         await expect(modalTitle).toContainText('Invite people to');
 
         // # Get the close button and verify accessibility
-        const closeButton = inviteModal.locator('button.icon-close');
+        const closeButton = inviteModal.getByRole('button', {name: 'Close'});
         await expect(closeButton).toHaveAttribute('aria-label', 'Close');
 
         // # Focus on close button and verify tab navigation works
@@ -95,15 +95,14 @@ test(
 
         // * Verify aria snapshot of Invite People dialog (key structural elements only).
         await expect(inviteModal).toMatchAriaSnapshot(`
-            - dialog /Invite people to/:
+            - dialog /Invite people to .+/:
               - document:
-                - heading /Invite people to/ [level=1]
+                - heading /Invite people to .+/ [level=1]
                 - button "Close"
                 - text: "To:"
-                - log
-                - text: Add members
-                - combobox "Invite People" [expanded]
-                - button /team invite link/
+                - log: /1 result available for search term .+/
+                - combobox "Invite People" [expanded]: /.+/
+                - button /team invite link .+/
                 - button "Invite" [disabled]
         `);
 

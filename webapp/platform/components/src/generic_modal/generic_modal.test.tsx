@@ -4,6 +4,8 @@
 import {act, render, screen, waitFor} from '@testing-library/react';
 import React from 'react';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import {GenericModal} from './generic_modal';
 
 import {wrapIntl} from '../testUtils';
@@ -46,7 +48,7 @@ describe('GenericModal', () => {
                     contentSized={true}
                     headerClassName='custom-header'
                     footerClassName='custom-footer'
-                    footerContent={<button>{'Footer action'}</button>}
+                    footerContent={<Button>{'Footer action'}</Button>}
                 >
                     <div>{'Body content'}</div>
                 </GenericModal>,
