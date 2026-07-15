@@ -592,96 +592,83 @@ blockquote {
   margin: 2.5rem 0 1.5rem;
 }
 
-/* === Mermaid Gantt charts (release policy timeline) === */
+/* === Release policy Gantt chart (scoped — no global mermaid overrides) === */
 
-.docusaurus-mermaid-container,
-.mermaid {
-  margin: 1.5rem 0;
+.release-policy-gantt {
+  margin: 1.25rem 0;
+  /* On narrow viewports, scroll horizontally instead of shrinking the
+   * chart below a legible size. */
+  overflow-x: auto;
 }
 
-[data-theme='light'] .docusaurus-mermaid-container,
-[data-theme='light'] .mermaid {
+.release-policy-gantt .docusaurus-mermaid-container {
+  margin: 0;
   background: var(--mm-color-white);
   border: 2px solid #0745a1;
   border-radius: 4px;
-  padding: 0.5rem;
+  padding: 0.35rem 0.5rem 0.25rem;
 }
 
-[data-theme='light'] .docusaurus-mermaid-container svg,
-[data-theme='light'] .mermaid svg {
-  background: var(--mm-color-white);
+[data-theme='dark'] .release-policy-gantt .docusaurus-mermaid-container {
+  background: #1e1e1e;
+  border-color: #555555;
 }
 
-[data-theme='light'] .docusaurus-mermaid-container svg line,
-[data-theme='light'] .mermaid svg line {
+/* Hide mermaid's semi-transparent gantt row backgrounds (pink tint in light mode) */
+.release-policy-gantt .docusaurus-mermaid-container svg rect.section,
+.release-policy-gantt .docusaurus-mermaid-container svg rect.grid-panel {
+  opacity: 0 !important;
+}
+
+.release-policy-gantt .docusaurus-mermaid-container svg {
+  background: transparent;
+}
+
+.release-policy-gantt .docusaurus-mermaid-container svg line {
   stroke: #0745a1;
 }
 
-[data-theme='light'] .docusaurus-mermaid-container svg rect.task,
-[data-theme='light'] .mermaid svg rect.task {
+.release-policy-gantt .docusaurus-mermaid-container svg rect.task {
   fill: #0984e3 !important;
   stroke: #2d3436 !important;
   stroke-width: 2px !important;
 }
 
-[data-theme='light'] .docusaurus-mermaid-container svg rect[class*='crit'],
-[data-theme='light'] .mermaid svg rect[class*='crit'] {
+.release-policy-gantt .docusaurus-mermaid-container svg rect[class*='crit'] {
   fill: #d63031 !important;
   stroke: #2d3436 !important;
   stroke-width: 2px !important;
 }
 
-[data-theme='light'] .docusaurus-mermaid-container .taskText,
-[data-theme='light'] .docusaurus-mermaid-container .taskTextOutsideLeft,
-[data-theme='light'] .docusaurus-mermaid-container .taskTextOutsideRight,
-[data-theme='light'] .mermaid .taskText,
-[data-theme='light'] .mermaid .taskTextOutsideLeft,
-[data-theme='light'] .mermaid .taskTextOutsideRight {
+.release-policy-gantt .docusaurus-mermaid-container .taskText,
+.release-policy-gantt .docusaurus-mermaid-container .taskTextOutsideLeft,
+.release-policy-gantt .docusaurus-mermaid-container .taskTextOutsideRight {
   fill: #ffffff !important;
   font-weight: 700 !important;
-  font-size: 12px !important;
+  font-size: 22px !important;
 }
 
-[data-theme='light'] .docusaurus-mermaid-container .sectionTitle,
-[data-theme='light'] .docusaurus-mermaid-container text[class*='tick'],
-[data-theme='light'] .docusaurus-mermaid-container text[class*='label'],
-[data-theme='light'] .mermaid .sectionTitle,
-[data-theme='light'] .mermaid text[class*='tick'],
-[data-theme='light'] .mermaid text[class*='label'] {
+.release-policy-gantt .docusaurus-mermaid-container .sectionTitle,
+.release-policy-gantt .docusaurus-mermaid-container text[class*='tick'],
+.release-policy-gantt .docusaurus-mermaid-container text[class*='label'] {
   fill: #2d3436 !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
+  font-size: 22px !important;
 }
 
-[data-theme='dark'] .docusaurus-mermaid-container,
-[data-theme='dark'] .mermaid {
-  background: #1e1e1e;
-  border: 2px solid #555555;
-  border-radius: 4px;
-  padding: 0.5rem;
-}
-
-[data-theme='dark'] .docusaurus-mermaid-container svg rect.task,
-[data-theme='dark'] .mermaid svg rect.task {
-  fill: #0984e3 !important;
+[data-theme='dark'] .release-policy-gantt .docusaurus-mermaid-container svg rect.task {
   stroke: #ffffff !important;
-  stroke-width: 2px !important;
 }
 
-[data-theme='dark'] .docusaurus-mermaid-container svg rect[class*='crit'],
-[data-theme='dark'] .mermaid svg rect[class*='crit'] {
-  fill: #d63031 !important;
+[data-theme='dark'] .release-policy-gantt .docusaurus-mermaid-container svg rect[class*='crit'] {
   stroke: #ffffff !important;
-  stroke-width: 2px !important;
 }
 
-[data-theme='dark'] .docusaurus-mermaid-container text,
-[data-theme='dark'] .mermaid text {
+[data-theme='dark'] .release-policy-gantt .docusaurus-mermaid-container text {
   fill: #ffffff !important;
-  font-weight: 700 !important;
 }
 
-.docusaurus-mermaid-container > svg,
-.mermaid > svg {
+.release-policy-gantt .docusaurus-mermaid-container > svg {
   display: block;
   width: 100%;
   height: auto;
