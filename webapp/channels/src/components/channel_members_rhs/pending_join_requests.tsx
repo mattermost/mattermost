@@ -155,12 +155,13 @@ function PendingJoinRequestRow({
     const handleDenyConfirm = useCallback(async () => {
         setDenying(true);
         try {
-            const succeeded = await reviewRequest('denied');
-            if (succeeded) {
-                setShowDenyConfirm(false);
-            }
+            await reviewRequest('denied');
         } finally {
             setDenying(false);
+
+            // Always close the confirmation modal so a failure's inline error
+            // in the row is visible rather than hidden behind the dialog.
+            setShowDenyConfirm(false);
         }
     }, [reviewRequest]);
 

@@ -97,4 +97,70 @@ describe('PendingJoinRequests', () => {
 
         expect(container).toBeEmptyDOMElement();
     });
+
+    const renderRow = () => renderWithContext(
+        <PendingJoinRequests
+            channelId='channel1'
+            requests={[baseRequest]}
+        />,
+        {
+            entities: {
+                users: {
+                    profiles: {
+                        user1: baseUser,
+                    },
+                },
+            },
+        },
+    );
+
+    test('denies a request through the confirmation modal', async () => {
+        mockPatchChannelJoinRequest.mockReturnValue({
+            type: 'MOCK_PATCH_CHANNEL_JOIN_REQUEST',
+            data: {...baseRequest, status: 'denied'},
+        });
+
+        renderRow();
+
+        await userEvent.click(screen.getByRole('button', {name: 'Deny'}));
+        await userEvent.click(await screen.findByText('Deny request'));
+
+        await waitFor(() => {
+            expect(mockPatchChannelJoinRequest).toHaveBeenCalledWith('channel1', 'request1', {status: 'denied'});
+        });
+    });
+
+    test('closes the deny modal and surfaces the inline error when denial fails', async () => {
+        mockPatchChannelJoinRequest.mockReturnValue({
+            type: 'MOCK_PATCH_CHANNEL_JOIN_REQUEST',
+            error: {server_error_id: 'api.channel.discoverable_join_request.not_pending.app_error', message: 'stale'},
+        });
+
+        renderRow();
+
+        await userEvent.click(screen.getByRole('button', {name: 'Deny'}));
+        await userEvent.click(await screen.findByText('Deny request'));
+
+        // The row error is visible (modal closed) and the queue is refreshed
+        // because a not_pending error means the list is stale.
+        expect(await screen.findByRole('alert')).toHaveTextContent('This request is no longer pending.');
+        await waitFor(() => {
+            expect(mockGetChannelJoinRequests).toHaveBeenCalledWith('channel1', {status: 'pending'});
+        });
+        expect(screen.queryByText('Deny request')).not.toBeInTheDocument();
+    });
+
+    test('maps the feature_disabled error without refreshing the queue on approve', async () => {
+        mockPatchChannelJoinRequest.mockReturnValue({
+            type: 'MOCK_PATCH_CHANNEL_JOIN_REQUEST',
+            error: {server_error_id: 'api.channel.discoverable_join_request.feature_disabled.app_error', message: 'off'},
+        });
+
+        renderRow();
+
+        await userEvent.click(screen.getByRole('button', {name: 'Approve'}));
+
+        expect(await screen.findByRole('alert')).toHaveTextContent('Discoverable channels are not enabled on this server.');
+        expect(mockGetChannelJoinRequests).not.toHaveBeenCalled();
+    });
 });
