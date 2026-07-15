@@ -9,6 +9,8 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import {createChannel} from 'mattermost-redux/actions/channels';
 import Permissions from 'mattermost-redux/constants/permissions';
 
+import useClassificationMarkings from 'components/common/hooks/useClassificationMarkings';
+
 import {
     act,
     renderWithContext,
@@ -39,6 +41,12 @@ jest.mock('plugins/pluggable', () => ({
 }));
 
 jest.mock('mattermost-redux/actions/channels');
+jest.mock('components/common/hooks/useClassificationMarkings', () => ({
+    __esModule: true,
+    default: jest.fn(() => ({available: false, loading: false, channelField: null, levels: []})),
+}));
+
+const mockedUseClassificationMarkings = useClassificationMarkings as jest.MockedFunction<typeof useClassificationMarkings>;
 
 describe('components/new_channel_modal', () => {
     const initialState: DeepPartial<GlobalState> = {
@@ -588,6 +596,7 @@ describe('components/new_channel_modal - plugin channel-type options', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockedUseClassificationMarkings.mockReturnValue({available: false, loading: false, channelField: null, levels: []});
         (createChannel as jest.Mock).mockReturnValue(() => Promise.resolve({data: mockChannel, error: null}));
     });
 
@@ -678,9 +687,35 @@ describe('components/new_channel_modal - plugin channel-type options', () => {
             url: 'my-channel',
             purpose: '',
             type: 'plugin-option',
+            defaultCategoryName: undefined,
             managedCategoryName: undefined,
+            classificationId: undefined,
+            bannerText: undefined,
         }));
         expect(createChannel).not.toHaveBeenCalled();
+    });
+
+    test('passes classification fields to the plugin onCreate callback', async () => {
+        const onCreate = jest.fn().mockResolvedValue({status: 'created', channel: mockChannel});
+        mockedUseClassificationMarkings.mockReturnValue({
+            available: true,
+            loading: false,
+            channelField: null,
+            levels: [{id: 'secret', name: 'SECRET', color: '#C8102E', rank: 1}],
+        });
+        renderWithContext(<NewChannelModal/>, stateWithOption({onCreate}));
+
+        await userEvent.click(screen.getByText('Plugin Channel'));
+        await userEvent.click(screen.getByTestId('channelClassificationToggle-button'));
+        await userEvent.click(screen.getByRole('combobox'));
+        await userEvent.click(screen.getByText('SECRET'));
+        await userEvent.type(screen.getByRole('textbox', {name: 'Channel name'}), 'My Channel');
+        await userEvent.click(screen.getByRole('button', {name: /create channel/i}));
+
+        await waitFor(() => expect(onCreate).toHaveBeenCalledWith(expect.objectContaining({
+            classificationId: 'secret',
+            bannerText: '**SECRET**',
+        })));
     });
 
     test('CreateResult: deferred - modal closes without dispatching switchToChannel', async () => {

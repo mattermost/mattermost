@@ -37,6 +37,10 @@ const (
 var atMentionPattern = regexp.MustCompile(`\B@`)
 
 func (a *App) CreatePostAsUser(rctx request.CTX, post *model.Post, currentSessionId string, setOnline bool) (*model.Post, bool, *model.AppError) {
+	return a.CreatePostAsUserWithFlags(rctx, post, currentSessionId, model.CreatePostFlags{SetOnline: setOnline})
+}
+
+func (a *App) CreatePostAsUserWithFlags(rctx request.CTX, post *model.Post, currentSessionId string, flags model.CreatePostFlags) (*model.Post, bool, *model.AppError) {
 	// Check that channel has not been deleted
 	channel, errCh := a.Srv().Store().Channel().Get(post.ChannelId, true)
 	if errCh != nil {
@@ -63,7 +67,8 @@ func (a *App) CreatePostAsUser(rctx request.CTX, post *model.Post, currentSessio
 		return nil, false, model.NewAppError("createPost", "api.post.create_post.can_not_post_in_restricted_dm.error", nil, "", http.StatusBadRequest)
 	}
 
-	rp, isMemberForPreviews, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{TriggerWebhooks: true, SetOnline: setOnline})
+	flags.TriggerWebhooks = true
+	rp, isMemberForPreviews, err := a.CreatePost(rctx, post, channel, flags)
 	if err != nil {
 		if err.Id == "api.post.create_post.root_id.app_error" ||
 			err.Id == "api.post.create_post.channel_root_id.app_error" {
@@ -96,6 +101,14 @@ func (a *App) CreatePostAsUser(rctx request.CTX, post *model.Post, currentSessio
 }
 
 func (a *App) CreatePostMissingChannel(rctx request.CTX, post *model.Post, triggerWebhooks bool, setOnline bool) (*model.Post, bool, *model.AppError) {
+	return a.CreatePostMissingChannelWithFlags(rctx, post, model.CreatePostFlags{TriggerWebhooks: triggerWebhooks, SetOnline: setOnline})
+}
+
+// CreatePostMissingChannelWithFlags is the flags-aware variant of
+// CreatePostMissingChannel. Used by entry points that need to assert
+// integration authority (FromIncomingWebhook, FromPlugin) which the
+// older two-bool signature can't express.
+func (a *App) CreatePostMissingChannelWithFlags(rctx request.CTX, post *model.Post, flags model.CreatePostFlags) (*model.Post, bool, *model.AppError) {
 	channel, err := a.Srv().Store().Channel().Get(post.ChannelId, true)
 	if err != nil {
 		errCtx := map[string]any{"channel_id": post.ChannelId}
@@ -108,7 +121,7 @@ func (a *App) CreatePostMissingChannel(rctx request.CTX, post *model.Post, trigg
 		}
 	}
 
-	return a.CreatePost(rctx, post, channel, model.CreatePostFlags{TriggerWebhooks: triggerWebhooks, SetOnline: setOnline})
+	return a.CreatePost(rctx, post, channel, flags)
 }
 
 // deduplicateCreatePost attempts to make posting idempotent within a caching window.
@@ -204,6 +217,16 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		}
 	}()
 
+	if flags.SilentNotification {
+		if persistentNotification := post.GetPersistentNotification(); persistentNotification != nil && *persistentNotification {
+			rctx.Logger().Warn("Rejected silent notification post with persistent notifications",
+				mlog.String("user_id", post.UserId),
+				mlog.String("channel_id", channel.Id),
+			)
+			return nil, false, model.NewAppError("CreatePost", "api.post.create_post.silent_persistent_notification.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	// Validate recipients counts in case it's not DM
 	if persistentNotification := post.GetPersistentNotification(); persistentNotification != nil && *persistentNotification && channel.Type != model.ChannelTypeDirect {
 		err := a.forEachPersistentNotificationPost([]*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *MentionResults, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
@@ -218,6 +241,8 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 			return nil, false, model.NewAppError("CreatePost", "api.post.post_priority.persistent_notification_validation_error.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
+
+	silentRequested := flags.SilentNotification
 
 	post.SanitizeProps()
 
@@ -246,8 +271,27 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		post.AddProp(model.PostPropsFromBot, "true")
 	}
 
+	if flags.FromIncomingWebhook {
+		post.AddProp(model.PostPropsFromWebhook, "true")
+	}
+
+	if flags.FromPlugin {
+		post.AddProp(model.PostPropsFromPlugin, "true")
+	}
+
 	if flags.ForceNotification {
 		post.AddProp(model.PostPropsForceNotification, model.NewId())
+	}
+
+	if silentRequested {
+		if !a.isIntegrationPostAuthor(rctx, user, flags) {
+			rctx.Logger().Warn("Rejected silent notification post from non-integration author",
+				mlog.String("user_id", user.Id),
+				mlog.String("channel_id", channel.Id),
+			)
+			return nil, false, model.NewAppError("CreatePost", "api.post.create_post.silent_notification.app_error", nil, "", http.StatusForbidden)
+		}
+		post.AddProp(model.PostPropsSilentNotification, true)
 	}
 
 	if rctx.Session().IsOAuth {
@@ -629,6 +673,40 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 	return nil
 }
 
+// isIntegrationPostAuthor decides whether the caller may set integration-only
+// post markers (silent_notification, force_notification). It is deliberately
+// narrower than model.Session.IsIntegration(): in particular, personal access
+// tokens (Session.IsUserAccessToken()) are NOT considered integrations here.
+//
+// PATs belong to human users — a PAT is just a long-lived bearer credential
+// for an account that can also log in interactively. Treating PAT sessions as
+// integrations would let any human with a PAT bypass the silent-post gate,
+// which is exactly the impersonation surface the strip-and-reinject pattern
+// closes. The four predicates below are the only authentic integration
+// authorities:
+//
+//   - user.IsBot              — true bot accounts (User.IsBot column)
+//   - Session.IsOAuth         — OAuth APP session (not Session.IsOAuthUser(),
+//     which is a human SSO login)
+//   - flags.FromIncomingWebhook — set only by app.CreateWebhookPost and
+//     app.CreateCommandPost (trusted server entry points)
+//   - flags.FromPlugin        — set only by PluginAPI.CreatePost
+//
+// Do NOT add Session.IsUserAccessToken() here to "align" with IsIntegration():
+// that would re-open silent-post forgery for every PAT-holding human user.
+func (a *App) isIntegrationPostAuthor(rctx request.CTX, user *model.User, flags model.CreatePostFlags) bool {
+	if user.IsBot {
+		return true
+	}
+	if rctx.Session().IsOAuth {
+		return true
+	}
+	if flags.FromIncomingWebhook || flags.FromPlugin {
+		return true
+	}
+	return false
+}
+
 func (a *App) handlePostEvents(rctx request.CTX, post *model.Post, user *model.User, channel *model.Channel, triggerWebhooks bool, parentPostList *model.PostList, setOnline bool) error {
 	var team *model.Team
 	if channel.TeamId != "" {
@@ -844,6 +922,7 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		newPost.IsPinned = receivedUpdatedPost.IsPinned
 		newPost.HasReactions = receivedUpdatedPost.HasReactions
 		newPost.SetProps(receivedUpdatedPost.GetProps())
+		newPost.PreserveIdentityPropsFrom(oldPost)
 
 		// mm_blocks_actions can only be modified by trusted paths that have
 		// pre-validated the new value (AllowMmBlocksActionsUpdate). Session
@@ -2893,56 +2972,62 @@ func (a *App) applyPostsWillBeConsumedHook(rctx request.CTX, posts map[string]*m
 		return
 	}
 
+	metadataByPostID := make(map[string]*model.PostMetadata, len(posts))
 	postsSlice := make([]*model.Post, 0, len(posts))
-
-	for _, post := range posts {
-		postsSlice = append(postsSlice, post.ForPlugin())
+	rebuildPostsSlice := func() {
+		postsSlice = postsSlice[:0]
+		for postID, post := range posts {
+			if _, ok := metadataByPostID[postID]; !ok {
+				continue
+			}
+			postsSlice = append(postsSlice, post.ForPlugin())
+		}
 	}
-	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-		postReplacements := hooks.MessagesWillBeConsumed(postsSlice)
+	for postID, post := range posts {
+		if post.Type == model.PostTypeBurnOnRead {
+			continue
+		}
+		metadataByPostID[postID] = post.Metadata
+	}
+	if len(metadataByPostID) == 0 {
+		return
+	}
+	rebuildPostsSlice()
+
+	applyReplacements := func(postReplacements []*model.Post) {
 		for _, postReplacement := range postReplacements {
+			if postReplacement == nil {
+				continue
+			}
+			// if the plugin returned a post with a new id, ignore it.
+			metadata, ok := metadataByPostID[postReplacement.Id]
+			if !ok {
+				continue
+			}
+			postReplacement.Metadata = metadata
 			posts[postReplacement.Id] = postReplacement
 		}
+		rebuildPostsSlice()
+	}
+
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+		postReplacements := hooks.MessagesWillBeConsumed(postsSlice)
+		applyReplacements(postReplacements)
 		return true
 	}, plugin.MessagesWillBeConsumedID)
 
 	pluginContext := pluginContext(rctx)
 	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 		postReplacements := hooks.MessagesWillBeConsumedWithContext(pluginContext, postsSlice)
-		for _, postReplacement := range postReplacements {
-			posts[postReplacement.Id] = postReplacement
-		}
+		applyReplacements(postReplacements)
 		return true
 	}, plugin.MessagesWillBeConsumedWithContextID)
 }
 
 func (a *App) applyPostWillBeConsumedHook(rctx request.CTX, post **model.Post) {
-	if (*post).Type == model.PostTypeBurnOnRead {
-		return
-	}
-
-	env := a.GetPluginsEnvironment()
-	if env == nil || (!env.HasPluginImplementing(plugin.MessagesWillBeConsumedID) && !env.HasPluginImplementing(plugin.MessagesWillBeConsumedWithContextID)) {
-		return
-	}
-
-	ps := []*model.Post{*post}
-	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-		rp := hooks.MessagesWillBeConsumed(ps)
-		if len(rp) > 0 {
-			(*post) = rp[0]
-		}
-		return true
-	}, plugin.MessagesWillBeConsumedID)
-
-	pluginContext := pluginContext(rctx)
-	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-		rp := hooks.MessagesWillBeConsumedWithContext(pluginContext, ps)
-		if len(rp) > 0 {
-			(*post) = rp[0]
-		}
-		return true
-	}, plugin.MessagesWillBeConsumedWithContextID)
+	posts := map[string]*model.Post{(*post).Id: *post}
+	a.applyPostsWillBeConsumedHook(rctx, posts)
+	*post = posts[(*post).Id]
 }
 
 func makePostLink(siteURL, teamName, postID string) string {

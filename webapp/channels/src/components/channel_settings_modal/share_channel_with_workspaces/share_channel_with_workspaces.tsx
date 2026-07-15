@@ -10,7 +10,6 @@ import type {RemoteClusterInfo} from '@mattermost/types/shared_channels';
 
 import {Client4} from 'mattermost-redux/client';
 
-import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import Toggle from 'components/toggle';
 
 import AddWorkspaceDropdown, {type RemoteToAdd} from './add_workspace_dropdown';
@@ -64,10 +63,6 @@ export default function ShareChannelWithWorkspaces({
     const hasAvailableWorkspaces = availableRemoteClusters !== null && availableRemoteClusters.length > 0;
 
     const currentRemoteIds = useMemo(() => new Set(remotes.map((w) => w.remote_id || w.name)), [remotes]);
-
-    useDidUpdate(() => {
-        onRemotesChange(remotes);
-    }, [remotes, onRemotesChange]);
 
     const handleToggle = useCallback(() => {
         const next = !enabled;

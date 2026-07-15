@@ -32,6 +32,7 @@ export default class ChannelsPage {
 
     readonly channelSettingsModal;
     readonly channelNotificationPreferencesModal;
+    readonly editChannelHeaderModal;
     readonly createTeamForm;
     readonly deletePostModal;
     readonly findChannelsModal;
@@ -47,15 +48,23 @@ export default class ChannelsPage {
     readonly scheduledDraftModal;
     readonly scheduleMessageModal;
     readonly burnOnReadConfirmationModal;
+    readonly searchResultsPanel;
+    readonly marketplaceModal;
+    readonly channelBookmarksBar;
+    readonly bookmarkCreateModal;
+    readonly userGroupsModal;
+    readonly leaveTeamModal;
     readonly archivedChannelMessage;
 
     readonly postContainer;
+    readonly channelMenu;
     readonly postDotMenu;
     readonly postReminderMenu;
     readonly userAccountMenu;
     readonly teamMenu;
 
     readonly emojiGifPickerPopup;
+    readonly reactionEmojiPicker;
     readonly scheduleMessageMenu;
 
     readonly searchResultsContainer;
@@ -79,6 +88,9 @@ export default class ChannelsPage {
         this.channelNotificationPreferencesModal = new components.ChannelNotificationPreferencesModal(
             page.getByRole('dialog', {name: 'Notification Preferences'}),
         );
+        this.editChannelHeaderModal = new components.EditChannelHeaderModal(
+            page.getByRole('dialog', {name: /Edit Header/}),
+        );
         this.keyboardShortcutsModal = page.getByRole('dialog', {name: /Keyboard shortcuts/});
         this.createTeamForm = new CreateTeamForm(page.getByTestId('create-team-form'));
         this.deletePostModal = new components.DeletePostModal(page.locator('#deletePostModal'));
@@ -94,8 +106,18 @@ export default class ChannelsPage {
         this.burnOnReadConfirmationModal = new components.BurnOnReadConfirmationModal(
             page.getByRole('dialog').filter({hasText: /burn|delete/i}),
         );
+        this.searchResultsPanel = new components.SearchResultsPanel(page.locator('#searchContainer'));
+        this.marketplaceModal = new components.MarketplaceModal(page.getByRole('dialog', {name: 'App Marketplace'}));
+        this.channelBookmarksBar = new components.ChannelBookmarksBar(page.getByTestId('channel-bookmarks-container'));
+        this.bookmarkCreateModal = new components.ChannelBookmarksCreateModal(
+            page.getByRole('dialog', {name: 'Add a bookmark'}),
+        );
+        this.userGroupsModal = new components.UserGroupsModal(page.locator('#userGroupsModal'));
+        this.leaveTeamModal = new components.LeaveTeamModal(page.getByRole('dialog', {name: 'Leave the team?'}));
 
         // Menus
+        // The channel header dropdown menu's accessible name is "<channel> Channel Menu".
+        this.channelMenu = new components.ChannelMenu(page.getByRole('menu', {name: /Channel Menu/i}));
         this.postDotMenu = new components.PostDotMenu(page.getByRole('menu', {name: 'Post extra options'}));
         this.postReminderMenu = new components.PostReminderMenu(page.getByRole('menu', {name: 'Set a reminder for:'}));
         this.userAccountMenu = new components.UserAccountMenu(page.locator('#userAccountMenu'));
@@ -104,6 +126,7 @@ export default class ChannelsPage {
 
         // Popovers
         this.emojiGifPickerPopup = new components.EmojiGifPicker(page.locator('#emojiGifPicker'));
+        this.reactionEmojiPicker = new components.EmojiGifPicker(page.getByRole('dialog', {name: 'Emoji Picker'}));
         this.scheduledDraftModal = new components.ScheduledDraftModal(page.getByRole('dialog', {name: /scheduled/i}));
         this.scheduleMessageModal = new components.ScheduleMessageModal(
             page.getByRole('dialog', {name: 'Schedule message'}),
@@ -148,6 +171,18 @@ export default class ChannelsPage {
             this.page.getByRole('dialog', {name: `Invite people to ${teamDisplayName}`}),
         );
         return this.invitePeopleModal;
+    }
+
+    getAddPeopleToChannelModal() {
+        return new components.AddPeopleToChannelModal(this.page.getByRole('dialog', {name: /Add people to/}));
+    }
+
+    getViewUserGroupModal(groupDisplayName: string) {
+        return new components.ViewUserGroupModal(this.page.getByRole('dialog', {name: groupDisplayName, exact: true}));
+    }
+
+    getBookmarkEditModal() {
+        return new components.ChannelBookmarksCreateModal(this.page.getByRole('dialog', {name: 'Edit bookmark'}));
     }
 
     async getMembersInvitedModal(teamDisplayName: string) {
@@ -220,11 +255,52 @@ export default class ChannelsPage {
         return this.teamSettingsModal;
     }
 
-    async openChannelSettings(): Promise<ChannelSettingsModal> {
-        await this.centerView.header.openChannelMenu();
+    /**
+     * Returns a confirm-modal page object scoped to the dialog with the given title (its accessible name).
+     * @param title The modal's title text.
+     * @param confirmLabel The confirm button label (defaults to "Confirm").
+     */
+    getConfirmModal(title: string, confirmLabel = 'Confirm') {
+        return new components.GenericConfirmModal(this.page.getByRole('dialog', {name: title}), confirmLabel);
+    }
 
-        const channelSettingsMenuItem = this.page.getByRole('menuitem', {name: 'Channel Settings'});
-        const moreActionsMenuItem = this.page.getByRole('menuitem', {name: /More actions/i});
+    /**
+     * Opens the channel header dropdown menu and returns it.
+     */
+    async openChannelMenu() {
+        await this.centerView.header.openChannelMenu();
+        await this.channelMenu.toBeVisible();
+
+        return this.channelMenu;
+    }
+
+    /**
+     * Archives the current channel via the channel header menu and confirms the
+     * archive dialog. Waits for the archived-channel footer to appear.
+     */
+    async archiveChannel() {
+        const channelMenu = await this.openChannelMenu();
+        await channelMenu.archiveToggle.click();
+        await this.page.getByRole('button', {name: 'Archive', exact: true}).click();
+        await expect(this.archivedChannelMessage).toBeVisible();
+    }
+
+    /**
+     * Opens the search UI, runs a search for the given term, and waits for the
+     * results panel to appear.
+     */
+    async searchFor(term: string) {
+        await this.globalHeader.openSearch();
+        await this.searchBox.toBeVisible();
+        await this.searchBox.search(term);
+        await this.searchResultsPanel.toBeVisible();
+    }
+
+    async openChannelSettings(): Promise<ChannelSettingsModal> {
+        const channelMenu = await this.openChannelMenu();
+
+        const channelSettingsMenuItem = channelMenu.channelSettings;
+        const moreActionsMenuItem = channelMenu.item(/More actions/i);
 
         const channelSettingsVisible = await channelSettingsMenuItem.isVisible({timeout: 1500}).catch(() => false);
         if (!channelSettingsVisible) {
@@ -242,16 +318,16 @@ export default class ChannelsPage {
     }
 
     async openChannelNotificationPreferences(): Promise<ChannelNotificationPreferencesModal> {
-        await this.centerView.header.openChannelMenu();
-        await this.page.getByRole('menuitem', {name: 'Notification Preferences'}).click();
+        const channelMenu = await this.openChannelMenu();
+        await channelMenu.notificationPreferences.click();
         await this.channelNotificationPreferencesModal.toBeVisible();
 
         return this.channelNotificationPreferencesModal;
     }
 
     async closeGroupMessage() {
-        await this.centerView.header.openChannelMenu();
-        await this.page.getByRole('menuitem', {name: 'Close Group Message'}).click();
+        const channelMenu = await this.openChannelMenu();
+        await channelMenu.closeConversation.click();
     }
 
     async openSettings(): Promise<SettingsModal> {
@@ -309,6 +385,23 @@ export default class ChannelsPage {
         await this.userAccountMenuButton.click();
         await expect(this.userAccountMenu.container).toBeVisible();
         return this.userAccountMenu;
+    }
+
+    /**
+     * Switches to another team via its button in the team sidebar.
+     */
+    async switchToTeam(teamName: string) {
+        const teamButton = this.page.locator(`#${teamName}TeamButton`);
+        await teamButton.waitFor();
+        await teamButton.click();
+    }
+
+    /**
+     * Logs the current user out via the user account menu.
+     */
+    async logout() {
+        const menu = await this.openUserAccountMenu();
+        await menu.logout.click();
     }
 
     async openProfileModal() {

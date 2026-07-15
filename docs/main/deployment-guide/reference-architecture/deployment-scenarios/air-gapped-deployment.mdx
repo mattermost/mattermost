@@ -1,6 +1,9 @@
 ---
 title: "Deploy in Air-Gapped Environments"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 An air-gapped environment is one that is isolated from the public internet, requiring all necessary components to be available locally. This guide outlines what you'll need to deploy Mattermost in a self-hosted air-gapped environment, focusing on appropriate preparation, deployment guidance and configurations required for a successful deployment.
 
 ## Overview
@@ -45,9 +48,8 @@ Consider [talking to a Mattermost expert](https://mattermost.com/contact-sales/)
 
 On an internet connected machine, you must gather all required packages, container images, and dependencies needed for the installation process. The resources you'll need will depend on your deployment method, specifically:
 
-<div class="tab">
-
-Linux
+<Tabs>
+<TabItem value="linux" label="Linux">
 
 Using our provided tarball is recommeded as the simplest installation method for air-gapped environments. You can install the Mattermost Server in a few minutes on any air-gapped 64-bit Linux system.
 
@@ -65,11 +67,8 @@ Using our provided tarball is recommeded as the simplest installation method for
 > - [Elasticsearch](https://www.elastic.co/downloads/elasticsearch) can be [deployed](https://www.elastic.co/docs/deploy-manage/deploy/self-managed/installing-elasticsearch) for enhanced search performance at scale.
 > - [Prometheus](https://prometheus.io/download/) and [Grafana](https://grafana.com/grafana/download) for monitoring and observability
 
-</div>
-
-<div class="tab">
-
-Kubernetes
+</TabItem>
+<TabItem value="kubernetes" label="Kubernetes">
 
 Kubernetes is recommended for a highly scalable and robust deployment if your organization is already running a Kubernetes cluster in the air-gapped environment.
 
@@ -81,17 +80,38 @@ Kubernetes is recommended for a highly scalable and robust deployment if your or
 > - Load balancer: If you already have a load balancer running in your air-gapped environment you can skip this resource, otherwise we recommend deploying [NGINX](/deployment-guide/server/setup-nginx-proxy), using the [NGINX Ingress Controller operator](https://docs.nginx.com/nginx-ingress-controller/installation/installing-nic/installation-with-operator/).
 > - Desktop app: Download the [required package](https://github.com/mattermost/desktop/releases) based on your deployment method.
 >
+> <Note>
+>
+> **Database readiness check (air-gapped recommendation)**
+>
+> If your installed Mattermost Operator supports `spec.database.readinessCheck.mode`, it can run the database-readiness init container from the same Mattermost image as the main container by setting `spec.database.readinessCheck.mode: builtin` on the `Mattermost` custom resource. The init container then invokes the in-image `mattermost db ping` command instead of pulling `postgres:13` and running `pg_isready`.
+>
+> We recommend this mode for air-gapped clusters because it removes the requirement to mirror `postgres:13` into your private registry; the only image needed for the readiness check is the Mattermost image you're already mirroring. Before using `builtin` mode, confirm that your installed operator version includes the `readinessCheck.mode` field in the Mattermost CRD or in the operator release notes. `builtin` mode also requires a Mattermost release that ships the `mattermost db ping` command (see the [Mattermost server release notes](https://github.com/mattermost/mattermost/pull/36406) for availability).
+>
+> Example:
+>
+> ``` yaml
+> spec:
+>   database:
+>     external:
+>       secret: <my-db-secret>
+>     readinessCheck:
+>       mode: builtin
+>       timeout: 5m   # optional; default is 5m
+> ```
+>
+> The legacy `external` mode (which uses `postgres:13` + `pg_isready`) remains the default for backward compatibility and is still selectable for users on older Mattermost versions, but it is slated for deprecation in a future operator release. See the [Mattermost CRD reference](https://github.com/mattermost/mattermost-operator/blob/master/docs/mattermost_v1beta1_crd.md) for the full `readinessCheck` field schema.
+>
+> </Note>
+>
 > **(Optional) Supporting Services** Consider downloading these additional resources if you plan to enable these optional components:
 >
 > - [Mattermost Calls](/administration-guide/configure/calls-deployment-guide) helm charts: [mattermost-calls-offloader](https://github.com/mattermost/mattermost-helm/tree/master/charts/mattermost-calls-offloader) and [values](https://github.com/mattermost/mattermost-helm/blob/master/charts/mattermost-calls-offloader/values.yaml) (required for recording, transcription and live captions), [mattermost-rtcd](https://github.com/mattermost/mattermost-helm/tree/master/charts/mattermost-rtcd) and [values](https://github.com/mattermost/mattermost-helm/blob/master/charts/mattermost-rtcd/values.yaml) (required for performance and scalability).
 > - [Elasticsearch](https://www.elastic.co/docs/deploy-manage/deploy/cloud-on-k8s) can be [deployed in air-gapped k8 environments](https://www.elastic.co/guide/en/cloud-on-k8s/2.8/k8s-air-gapped.html) for enhanced search performance at scale.
 > - [Prometheus](https://github.com/prometheus-operator/prometheus-operator) and [Grafana](https://github.com/grafana/grafana-operator) operators for monitoring and observability
 
-</div>
-
-<div class="tab">
-
-Docker
+</TabItem>
+<TabItem value="docker" label="Docker">
 
 Docker can be used if you don't have a running Kubernetes cluster in the air-gapped environment, but want to use containers for simplified installation and dependency management. Docker is not recommended for production environments at high scale, as it doesn’t support clustered deployments or High Availability (HA) configurations out-of-the-box.
 
@@ -108,7 +128,9 @@ Docker can be used if you don't have a running Kubernetes cluster in the air-gap
 > - [Elasticsearch](https://hub.docker.com/_/elasticsearch) image for enhanced search performance at scale.
 > - [Prometheus](https://hub.docker.com/r/prom/prometheus) and [Grafana](https://hub.docker.com/r/grafana/grafana) images for monitoring and observability.
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ### Mattermost Plugins
 
@@ -163,9 +185,8 @@ To avoid log errors we recommend disabling [Telemetry-related features](/adminis
 
 A private container registry securely stores the Docker images necessary for air-gapped deployments, ensuring compliance with data isolation requirements. Similarly, a private package mirror stores operating system packages necessary for air-gapped deployments in Ubuntu or RHEL/CentOS Linux environments. Setting up a local registry or mirror is a critical step in deploying Mattermost to ensure all images, dependencies and packages are available to you in the air-gapped environment. The steps below outline the process required to setup a local registry or mirror, depending on the deployment method you are using. These steps are a rough guide, and can be supplemented with online resources depending on your specific deployment needs.
 
-<div class="tab">
-
-Linux
+<Tabs>
+<TabItem value="linux" label="Linux">
 
 **(Ubuntu) Set up a private Debian package mirror**
 
@@ -285,11 +306,8 @@ We will use reprosync for a local mirror.
     yum repolist
     ```
 
-</div>
-
-<div class="tab">
-
-Kubernetes
+</TabItem>
+<TabItem value="kubernetes" label="Kubernetes">
 
 **Set up a self-hosted private container registry**
 
@@ -369,11 +387,8 @@ When using Kubernetes in an air-gapped environment, you need to configure it to 
       - name: regcred
     ```
 
-</div>
-
-<div class="tab">
-
-Docker
+</TabItem>
+<TabItem value="docker" label="Docker">
 
 **Set up a self-hosted private container registry**
 
@@ -449,4 +464,6 @@ Configure Docker on all hosts to trust and use your private registry.
     docker pull registry.example.com:5000/mattermost/mattermost-enterprise-edition:latest
     ```
 
-</div>
+</TabItem>
+</Tabs>
+

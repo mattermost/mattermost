@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {Client4} from '@mattermost/client';
-import type {Channel} from '@mattermost/types/channels';
+import type {Channel, ChannelType} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {createRandomChannel} from './channel';
@@ -13,15 +13,29 @@ import {createNewUserProfile} from './user';
  * These are not part of the Mattermost server API — do not add real API wrappers here.
  */
 export class PlaywrightClient4 extends Client4 {
-    async createPublicChannel(teamId: string, displayName = 'Public', name?: string): Promise<Channel> {
+    private createChannelOfType(
+        teamId: string,
+        displayName: string,
+        type: ChannelType,
+        name?: string,
+    ): Promise<Channel> {
         return this.createChannel(
             createRandomChannel({
                 teamId,
                 name: name ?? displayName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
                 displayName,
+                type,
                 unique: true,
             }),
         );
+    }
+
+    async createPublicChannel(teamId: string, displayName = 'Public', name?: string): Promise<Channel> {
+        return this.createChannelOfType(teamId, displayName, 'O', name);
+    }
+
+    async createPrivateChannel(teamId: string, displayName = 'Private', name?: string): Promise<Channel> {
+        return this.createChannelOfType(teamId, displayName, 'P', name);
     }
 
     async createUsers(teamId: string, count: number, prefix = 'user'): Promise<UserProfile[]> {

@@ -1,17 +1,22 @@
 ---
 title: "Manage channel members"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 ## Add members to a channel
 
 Any member of a channel can add other members to public or private channels, unless your system admin has restricted access to do so.
 
-When a channel has [attribute-based access controls](/administration-guide/manage/admin/attribute-based-access-control) enabled, you'll see details about which user attributes are permitted access to the channel. Only users who meet the requirements appear in search results when adding members to that channel.
+When a channel has [attribute-based access controls](/administration-guide/manage/admin/attribute-based-access-control) enabled, you'll see details about which user attributes are permitted access to the channel. Behavior differs by channel type:
 
-<div class="tab">
+- **Private channels**: Only users who meet the requirements appear in search results when adding members, and only those users can be added.
+- **Public channels**: All eligible team members appear in search results, and users who meet the recommended attributes are labeled **Recommended**. Anyone can still be added because public-channel access controls are advisory and never remove existing members.
 
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 To add members to a channel:
 
@@ -34,11 +39,8 @@ To add members to a channel:
 
     </div>
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 To add members to a channel:
 
@@ -58,7 +60,9 @@ To add members to a channel:
 
     ![Click on Add Members to add the member(s) to the current channel.](/images/mobile-add-selected-member-to-a-channel.jpg)
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ### Mention users
 
@@ -84,17 +88,13 @@ Using a web browser or the desktop app, you can also add users to channels withi
 
 You can leave public or private channels any time.
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 Select the channel name at the top of the center pane to access the drop-down menu, then select **Leave Channel**. When you have permission to manage channel members, you can also leave a channel by going to **View Info \> Members \> Manage** and selecting your own name.
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 1.  In a channel, tap <img src="/img/ui/dots-vertical_F01D9.svg" alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> in the top right corner.
 
@@ -108,15 +108,16 @@ Mobile
 
     ![Tap on Leave to confirm your choice.](/images/mobile-confirm-leave-a-channel.jpg)
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Remove other members from a channel
 
 Any member of a channel can remove other members from a channel.
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 You have two ways to remove members from a channel:
 
@@ -125,11 +126,8 @@ You have two ways to remove members from a channel:
 
 ![Use options available through the channel name to remove a member from a channel.](/images/remove-member-from-channel.png)
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 1.  In a channel, tap <img src="/img/ui/dots-vertical_F01D9.svg" alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> in the top right corner.
 
@@ -161,4 +159,6 @@ Mobile
 
     ![Tap on Done to exit and return to the channel.](/images/mobile-exit-after-removing-user-from-a-channel.jpg)
 
-</div>
+</TabItem>
+</Tabs>
+

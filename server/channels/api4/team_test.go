@@ -5065,7 +5065,6 @@ func TestGetTeamMembersForUserRoleDataSanitization(t *testing.T) {
 
 func TestGetAllTeamsDirectoryHiding(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.AttributeBasedAccessControl = true
 		cfg.FeatureFlags.TeamMembershipAccessControl = true
 	}).InitBasic(t)
 

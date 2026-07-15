@@ -1,6 +1,9 @@
 ---
 title: "Connect Zoom to Mattermost"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 Reduce friction and time lost to coordinating meetings and switching between apps by integrating Zoom with Mattermost. Make it easy for your teams to start spontaneous video calls directly from Mattermost channels. Receive Zoom cloud recordings and transcripts directly in Mattermost once they're available.
@@ -24,9 +27,8 @@ For Account-Level apps, only Zoom users associated with the Zoom Account that cr
 
 </Important>
 
-<div class="tab">
-
-Account-Level
+<Tabs>
+<TabItem value="account-level" label="Account-Level">
 
 Complete the following steps to create an account-level Zoom app for Mattermost.
 
@@ -39,11 +41,8 @@ Complete the following steps to create an account-level Zoom app for Mattermost.
 7.  Enter a valid **Redirect URL for OAuth** (<code>https://SITEURL/plugins/zoom/oauth2/complete</code>) and add the same URL under **Add Allow List**. Note that <code>SITEURL</code> should be your Mattermost server URL.
 8.  To add user scopes to the app, select **Scopes**, and add the following scopes: `meeting:read:meeting` (retrieve meeting details), `meeting:write:meeting` (create and update meetings), `user:read:user` (read user profile info), `cloud_recording:read:recording` (access cloud recording files), `archiving:read:list_archived_files` (list archived files).
 
-</div>
-
-<div class="tab">
-
-User-Managed
+</TabItem>
+<TabItem value="user-managed" label="User-Managed">
 
 Complete the following steps to create a user-managed Zoom app for Mattermost.
 
@@ -56,7 +55,9 @@ Complete the following steps to create a user-managed Zoom app for Mattermost.
 7.  Enter a valid **Redirect URL for OAuth** (<code>https://SITEURL/plugins/zoom/oauth2/complete</code>) and add the same URL under **Add Allow List**. Note that <code>SITEURL</code> should be your Mattermost server URL.
 8.  To add user scopes to the app, select **Scopes**, and add the following scopes: `meeting:read:meeting` (retrieve meeting details), `meeting:write:meeting` (create and update meetings), `user:read:user` (read user profile info), `cloud_recording:read:recording` (access cloud recording files), `archiving:read:list_archived_files` (list archived files).
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ### Configure webhook events
 

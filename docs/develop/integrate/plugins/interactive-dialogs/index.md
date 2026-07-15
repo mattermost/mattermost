@@ -408,8 +408,6 @@ The full list of supported fields are included below:
 
 Date elements provide native date picker functionality for selecting dates without time information. Below is an example of a `date` element for event scheduling.
 
-![image](interactive-dialog-date.png)
-
 ```json
 {
     "display_name": "Event Date",
@@ -477,8 +475,6 @@ The full list of supported fields for `date` elements is included below:
 ##### Minimum Server Version: 11.1
 
 DateTime elements provide combined date and time picker functionality with timezone support. Below is an example of a `datetime` element for meeting scheduling.
-
-![image](interactive-dialog-datetime.png)
 
 ```json
 {

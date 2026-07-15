@@ -79,6 +79,7 @@ jobs:
         id: timing-prep
         run: |
           mkdir -p server
+          echo "date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
           if [[ -f merged-report.xml && $(stat -c%s merged-report.xml) -gt 1024 ]]; then
             cp merged-report.xml server/prev-report.xml
             cat shards/*/gotestsum.json > server/prev-gotestsum.json 2>/dev/null || true
@@ -100,5 +101,5 @@ jobs:
           path: |
             server/prev-report.xml
             server/prev-gotestsum.json
-          # The v2 prefix matches the v2 restore prefix in server-test-template.yml.
-          key: server-test-timing-v2-master-${{ github.run_id }}
+          # Bucket by UTC date (not run id) so we save at most one cache per day.
+          key: server-test-timing-v2-master-${{ steps.timing-prep.outputs.date }}
