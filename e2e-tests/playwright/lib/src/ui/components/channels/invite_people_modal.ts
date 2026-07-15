@@ -7,6 +7,9 @@ import {expect} from '@playwright/test';
 export default class InvitePeopleModal {
     readonly container: Locator;
 
+    /** Portaled react-select menu (rendered on document.body when menuPortal is on). */
+    readonly listbox: Locator;
+
     readonly closeButton: Locator;
     readonly inviteInput: Locator;
     readonly inviteButton: Locator;
@@ -15,12 +18,17 @@ export default class InvitePeopleModal {
 
     constructor(container: Locator) {
         this.container = container;
+        const page = container.page();
 
         this.closeButton = container.getByRole('button', {name: 'Close'});
         this.inviteInput = container.getByRole('combobox', {name: 'Invite People'});
         this.inviteButton = container.getByRole('button', {name: 'Invite', exact: true});
         this.copyInviteLinkButton = container.getByText('Copy invite link');
         this.profileInputs = container.getByTestId('MemberProfileInputs');
+
+        // Invite-modal UsersEmailsInput portals its menu to document.body, so the
+        // listbox is outside the dialog container.
+        this.listbox = page.getByRole('listbox');
     }
 
     async toBeVisible() {
@@ -29,6 +37,10 @@ export default class InvitePeopleModal {
 
     async close() {
         await this.closeButton.click();
+    }
+
+    getOption(name: string | RegExp, options?: {exact?: boolean}) {
+        return this.listbox.getByRole('option', {name, ...options});
     }
 
     /**
@@ -42,8 +54,7 @@ export default class InvitePeopleModal {
 
         // Wait for react-select to finish loading and show a selectable option.
         // Use a longer timeout (15 s) to tolerate slow email-validation responses in CI.
-        const listbox = this.container.getByRole('listbox');
-        await expect(listbox.getByRole('option').first()).toBeVisible({timeout: 15000});
+        await expect(this.listbox.getByRole('option').first()).toBeVisible({timeout: 15000});
         await this.inviteInput.press('Enter');
 
         // React-select clears the input only once the selection is taken. The selected

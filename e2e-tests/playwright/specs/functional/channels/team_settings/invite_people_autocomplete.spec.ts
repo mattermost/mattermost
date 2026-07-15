@@ -41,38 +41,38 @@ test('MM-66937 Invite modal results match the current input state', async ({pw})
     // # Type the prefix to filter out all users
     await inviteModal.inviteInput.pressSequentially(randomPrefix);
 
-    // * Verify that both users appear in the results initially
-    const listbox = inviteModal.container.getByRole('listbox');
+    // * Verify that both users appear in the results initially (menu is portaled to body)
+    const listbox = inviteModal.listbox;
     await expect(listbox.getByRole('option')).toHaveCount(2);
-    await expect(listbox.getByRole('option', {name: `@${user1.username}`})).toBeVisible();
-    await expect(listbox.getByRole('option', {name: `@${user2.username}`})).toBeVisible();
+    await expect(inviteModal.getOption(`@${user1.username}`)).toBeVisible();
+    await expect(inviteModal.getOption(`@${user2.username}`)).toBeVisible();
 
     // # Type an 'a' to filter the results
     await inviteModal.inviteInput.press('a');
 
     // * Verify that only user1 is now listed
     await expect(listbox.getByRole('option')).toHaveCount(1);
-    await expect(listbox.getByRole('option', {name: `@${user1.username}`})).toBeVisible();
-    await expect(listbox.getByRole('option', {name: `@${user2.username}`})).not.toBeAttached();
+    await expect(inviteModal.getOption(`@${user1.username}`)).toBeVisible();
+    await expect(inviteModal.getOption(`@${user2.username}`)).not.toBeAttached();
 
     // # Backspace that 'a'
     await inviteModal.inviteInput.press('Backspace');
 
     // * Verify that both users are listed again
     await expect(listbox.getByRole('option')).toHaveCount(2);
-    await expect(listbox.getByRole('option', {name: `@${user1.username}`})).toBeVisible();
-    await expect(listbox.getByRole('option', {name: `@${user2.username}`})).toBeVisible();
+    await expect(inviteModal.getOption(`@${user1.username}`)).toBeVisible();
+    await expect(inviteModal.getOption(`@${user2.username}`)).toBeVisible();
 
     // # Type a 'b' to filter the results
     await inviteModal.inviteInput.press('b');
 
     // * Verify that only user2 is now listed
     await expect(listbox.getByRole('option')).toHaveCount(1);
-    await expect(listbox.getByRole('option', {name: `@${user1.username}`})).not.toBeAttached();
-    await expect(listbox.getByRole('option', {name: `@${user2.username}`})).toBeVisible();
+    await expect(inviteModal.getOption(`@${user1.username}`)).not.toBeAttached();
+    await expect(inviteModal.getOption(`@${user2.username}`)).toBeVisible();
 });
 
-test('Invite modal autocomplete is not clipped vertically', async ({pw}) => {
+test('Invite modal autocomplete menu is portaled and fully interactive', async ({pw}) => {
     const {adminUser, adminClient, team} = await pw.initSetup();
 
     const randomPrefix = pw.random.id(8);
@@ -92,19 +92,15 @@ test('Invite modal autocomplete is not clipped vertically', async ({pw}) => {
     await inviteModal.inviteInput.pressSequentially(randomPrefix);
 
     const modalContent = inviteModal.container.locator('.modal-content');
-    const listbox = inviteModal.container.getByRole('listbox');
+    const listbox = inviteModal.listbox;
     const options = listbox.getByRole('option');
     await expect(options).toHaveCount(users.length);
 
-    const lastOption = options.last();
-    await expect(lastOption).toBeVisible();
+    const firstOption = options.first();
+    await expect(firstOption).toBeVisible();
+    await expect(firstOption).toBeInViewport();
 
-    const geometry = await Promise.all([modalContent.boundingBox(), lastOption.boundingBox()]);
-    const [modalContentBox, lastOptionBox] = geometry;
-    expect(modalContentBox).not.toBeNull();
-    expect(lastOptionBox).not.toBeNull();
-    expect(lastOptionBox!.y + lastOptionBox!.height).toBeGreaterThan(modalContentBox!.y + modalContentBox!.height);
-
+    // Modal content intentionally clips with overflow:hidden; the menu portals to body.
     const modalContentOverflow = await modalContent.evaluate((element: HTMLElement) => {
         const style = window.getComputedStyle(element);
 
@@ -114,8 +110,17 @@ test('Invite modal autocomplete is not clipped vertically', async ({pw}) => {
         };
     });
 
-    expect(modalContentOverflow.overflowX).toBe('visible');
-    expect(modalContentOverflow.overflowY).toBe('visible');
+    expect(modalContentOverflow.overflowX).toBe('hidden');
+    expect(modalContentOverflow.overflowY).toBe('hidden');
+
+    // * Verify the listbox is not inside the dialog (portaled to document.body)
+    await expect(inviteModal.container.getByRole('listbox')).toHaveCount(0);
+    await expect(listbox).toBeVisible();
+
+    // * Verify a result remains fully usable (not clipped) despite modal overflow:hidden
+    await firstOption.click();
+    await expect(inviteModal.inviteInput).toHaveValue('');
+    await expect(listbox).not.toBeVisible();
 });
 
 test('Invite modal results are visible outside the modal', async ({pw}) => {
@@ -146,7 +151,7 @@ test('Invite modal results are visible outside the modal', async ({pw}) => {
     for (let i = 0; i < users.length; i++) {
         const user = users[i];
 
-        const option = await inviteModal.container.getByRole('option', {name: user.username, exact: false});
+        const option = inviteModal.getOption(user.username, {exact: false});
         if (i < visibleCount) {
             // * Verify that this user is in the list and on the screen
             await expect(option).toBeVisible();
@@ -160,16 +165,22 @@ test('Invite modal results are visible outside the modal', async ({pw}) => {
 });
 
 test('Invite modal remains width-constrained with long unbroken input', async ({pw}) => {
-    const {adminUser, team} = await pw.initSetup();
+    const {adminUser, adminClient, team} = await pw.initSetup();
+
+    // Enable email invitations so the long address can surface an "Add" creatable option.
+    await adminClient.patchConfig({
+        ServiceSettings: {EnableEmailInvitations: true},
+    });
+
     const inviteModal = await openInvitePeopleModal(pw, adminUser, team);
 
     const modalContent = inviteModal.container.locator('.modal-content');
     const initialModalContentBox = await modalContent.boundingBox();
     expect(initialModalContentBox).not.toBeNull();
 
-    await inviteModal.inviteInput.pressSequentially(
-        'averyveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryverylongunbrokeninviteinput@example.com',
-    );
+    const longEmail =
+        'averyveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryverylongunbrokeninviteinput@example.com';
+    await inviteModal.inviteInput.pressSequentially(longEmail);
 
     const modalContentMetrics = await modalContent.evaluate((element: HTMLElement) => {
         const style = window.getComputedStyle(element);
@@ -183,8 +194,15 @@ test('Invite modal remains width-constrained with long unbroken input', async ({
     });
 
     expect(modalContentMetrics.width).toBeLessThanOrEqual(Math.ceil(initialModalContentBox!.width));
-    expect(modalContentMetrics.overflowX).toBe('visible');
-    expect(modalContentMetrics.overflowY).toBe('visible');
+    expect(modalContentMetrics.overflowX).toBe('hidden');
+    expect(modalContentMetrics.overflowY).toBe('hidden');
+
+    // * Autocomplete "Add ..." option is still fully visible/interactive via the body portal
+    const addOption = inviteModal.listbox.getByRole('option').first();
+    await expect(addOption).toBeVisible();
+    await expect(addOption).toBeInViewport();
+    await addOption.click();
+    await expect(inviteModal.inviteInput).toHaveValue('');
 });
 
 test('MM-66937 Invite modal results match the current input state when typing in Korean', async ({browserName, pw}) => {
@@ -219,9 +237,9 @@ test('MM-66937 Invite modal results match the current input state when typing in
     await inviteModal.inviteInput.pressSequentially(randomPrefix);
 
     // * Verify that the user appears in the results initially
-    const listbox = inviteModal.container.getByRole('listbox');
+    const listbox = inviteModal.listbox;
     await expect(listbox.getByRole('option')).toHaveCount(1);
-    await expect(listbox.getByRole('option', {name: `@${user.username}`})).toBeVisible();
+    await expect(inviteModal.getOption(`@${user.username}`)).toBeVisible();
 
     // # Type all 3 keys that form a single Hangul character
     const client = await page.context().newCDPSession(page);
@@ -229,7 +247,7 @@ test('MM-66937 Invite modal results match the current input state when typing in
 
     // * Verify that the user is still listed
     await expect(listbox.getByRole('option')).toHaveCount(1);
-    await expect(listbox.getByRole('option', {name: `@${user.username}`})).toBeVisible();
+    await expect(inviteModal.getOption(`@${user.username}`)).toBeVisible();
 
     await client.detach();
 });

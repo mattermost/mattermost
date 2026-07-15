@@ -88,18 +88,18 @@ test(
         await expect(inviteModal).toBeVisible();
         await pw.wait(pw.duration.one_sec);
 
-        // * Verify aria snapshot of Invite People dialog (key structural elements only)
+        // * Verify aria snapshot of Invite People dialog (key structural elements only).
+        // Autocomplete options portal to document.body, so the listbox is outside this dialog.
         await expect(inviteModal).toMatchAriaSnapshot(`
-            - dialog:
+            - dialog /Invite people to/:
               - document:
-                - heading [level=1]
-                - button
+                - heading /Invite people to/ [level=1]
+                - button "Close"
                 - text: "To:"
                 - log
                 - text: Add members
-                - combobox "Invite People"
-                - listbox
-                - button
+                - combobox "Invite People" [expanded]
+                - button /team invite link/
                 - button "Invite" [disabled]
         `);
 
