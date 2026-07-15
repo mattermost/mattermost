@@ -29,11 +29,11 @@
         max-height: 90vh;
         // Stay content-sized — do not fill the full-height dialog.
         flex-grow: 0;
-        flex-shrink: 1;
         flex-basis: auto;
+        flex-shrink: 1;
         flex-direction: column;
-        align-self: center;
         height: auto;
+        align-self: center;
         pointer-events: auto;
     }
 
