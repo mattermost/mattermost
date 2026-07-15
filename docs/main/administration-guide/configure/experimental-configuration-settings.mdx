@@ -6,7 +6,6 @@ title: "Experimental configuration settings"
 Review and manage the following [experimental](/administration-guide/manage/feature-labels#experimental) configuration options in the System Console by selecting the **Product** <img src="/img/ui/products_E82F.svg" alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> menu, selecting **System Console**, and then selecting **Experimental \> Features**:
 
 - [Experimental System Console configuration settings](#experimental-system-console-configuration-settings)
-- [Experimental audit logging configuration settings](#experimental-audit-logging-configuration-settings)
 - [Experimental job configuration settings](#experimental-job-configuration-settings)
 - [Experimental configuration settings for self-hosted deployments only](#experimental-configuration-settings-for-self-hosted-deployments-only)
 
@@ -291,6 +290,33 @@ Changes made when hardened mode is enabled:
 <tbody>
 <tr>
 <td>This feature's <code>config.json</code> setting is <code>"ExperimentalEnableHardenedMode": false</code> with options <code>true</code> and <code>false</code>.</td>
+</tr>
+</tbody>
+</table>
+
+### Enable Mobile Watermark
+
+Available on [Enterprise Advanced](https://mattermost.com/pricing/) from Mattermost v11.7 onward.
+
+**True**: Authenticated Mattermost mobile sessions display a watermark overlay showing the user's username, the server domain, the current date (YYYY-MM-DD), and the current time (HH:mm). This experimental capability is intended to support data loss prevention (DLP) workflows by helping identify the user, server, and time associated with mobile screenshots or shared screen captures.
+
+**False**: No watermark overlay is displayed in the Mattermost mobile app.
+
+<Note>
+
+- This is an experimental setting. Behavior, defaults, and visual presentation may change in future releases.
+- This setting only applies to the Mattermost mobile app. It does not add a watermark to the Mattermost web app or desktop apps.
+- The watermark overlay is a visual aid and does not, by itself, prevent screenshots, screen recordings, file exports, or other forms of data extraction. Use it in combination with other mobile security controls, such as [screenshot and screen recording prevention](/deployment-guide/mobile/mobile-security-features#screenshot-and-screen-recording-prevention), where appropriate.
+
+</Note>
+
+<table>
+<colgroup>
+<col style={{width: '100%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>"ExperimentalSettings.EnableWatermark": false</code> with options <code>true</code> and <code>false</code>.</td>
 </tr>
 </tbody>
 </table>
@@ -704,151 +730,6 @@ Select **Purge Index** to remove the contents of the Bleve index directory. Sear
 </table>
 
 ------------------------------------------------------------------------------------------------------------------------
-
-## Experimental audit logging configuration settings
-
-Enable the following settings to output audit events in the System Console by going to **Compliance \> Audit Logging**, or in the `config.json` file.
-
-<Note>
-
-The ability to enable and configure audit logging is currently in [Beta](/administration-guide/manage/feature-labels#beta).
-
-</Note>
-
-### Advanced logging
-
-<PlanAvailability slug="entry-ent" />
-
-Output log and audit records to any combination of console, local file, syslog, and TCP socket targets for a Mattermost Cloud deployment. See the [advanced logging](/administration-guide/manage/logging#advanced-logging) documentation for details about logging options.
-
-### Enable audit logging
-
-<PlanAvailability slug="ent-plus" />
-
-When audit logging is enabled in a self-hosted instance, you can specify size, backup interval, compression, maximium age to manage file rotation, and timestamps for audit logging, as defined below. You can specify these settings independently for audit events and AD/LDAP events.
-
-**True**: Audit logging files are enabled, and audit files are written locally to a file for a self-hosted deployment.
-
-**False**: Audit logging files aren't enabled, and audit logs aren't written locally to a file for a self-hosted deployment.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>".ExperimentalAuditSettings.FileEnabled": false",</code> with options <code>true</code> and <code>false</code>.</td>
-</tr>
-</tbody>
-</table>
-
-### File name
-
-<PlanAvailability slug="ent-plus" />
-
-Specify the path to the audit file for a self-hosted deployment.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>".ExperimentalAuditSettings.FileName": ""</code> with string input consisting of a user-defined path (e.g. <code>/var/log/mattermost_audit.log</code>).</td>
-</tr>
-</tbody>
-</table>
-
-### Max file size
-
-<PlanAvailability slug="ent-plus" />
-
-This is the maximum size, in megabytes, that the file can grow before triggering rotation for a self-hosted deployment. The default setting is `100`.
-
-<table style={{width: '98%'}}>
-<colgroup>
-<col style={{width: '98%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>".ExperimentalAuditSettings.FileMaxSizeMB": 100</code> with numerical input.</td>
-</tr>
-</tbody>
-</table>
-
-### Max file age
-
-<PlanAvailability slug="ent-plus" />
-
-This is the maximum age, in days, a file can reach before triggering rotation for a self-hosted deployment. The default value is `0`, indicating no limit on the age.
-
-<table style={{width: '98%'}}>
-<colgroup>
-<col style={{width: '97%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>".ExperimentalAuditSettings.FileMaxAgeDays": 0</code> with numerical input.</td>
-</tr>
-</tbody>
-</table>
-
-### Maximum file backups
-
-<PlanAvailability slug="ent-plus" />
-
-This is the maximum number of rotated files kept for a self-hosted deployment. The oldest is deleted first. The default value is `0`, indicating no limit on the number of backups.
-
-<table style={{width: '98%'}}>
-<colgroup>
-<col style={{width: '97%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>".ExperimentalAuditSettings.FileMaxBackups": 0</code> with numerical input.</td>
-</tr>
-</tbody>
-</table>
-
-### File compression
-
-<PlanAvailability slug="ent-plus" />
-
-When `true`, rotated files are compressed using `gzip` in a self-hosted deployment.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>".ExperimentalAuditSettings.FileCompress": false</code> with options <code>true</code> and <code>false</code>.</td>
-</tr>
-</tbody>
-</table>
-
-### Maximum file queue
-
-<PlanAvailability slug="ent-plus" />
-
-This setting determines how many audit records can be queued/buffered at any point in time when writing to a file for a self-hosted deployment. The default is `1000` records. This setting can be left as default unless you are seeing audit write failures in the server log and need to adjust the number accordingly.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>".ExperimentalAuditSettings.FileMaxQueueSize": 1000</code> with numerical input.</td>
-</tr>
-</tbody>
-</table>
-
-### Certificate
-
-Cloud Enterprise customers can upload and manage a certificate for audit logging encryption on Syslog or TCP logging targets.
-
-Upload the certificate PEM file in the System Console by going to **System Console \> Audit Log Settings \> Certificate** and selecting **File/Remove Certificate**. The certificate file can be stored in the filestore or stored locally on the filesystem.
 
 ## Experimental configuration settings for self-hosted deployments only
 

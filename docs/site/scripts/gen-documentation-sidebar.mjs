@@ -284,6 +284,7 @@ const DEPLOYMENT_GROUPS = {
         'server/linux/deploy-ubuntu',
         'server/linux/deploy-rhel',
         'server/linux/deploy-tar',
+        'server/linux/deploy-azure-native-vm',
       ]},
       {label: 'Install on Kubernetes', landing: 'server/deploy-kubernetes', items: [
         'server/kubernetes/deploy-k8s',

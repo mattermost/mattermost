@@ -6,9 +6,6 @@ on:
       PR_NUMBER:
         type: string
         required: true
-      TRIGGERING_ACTOR:
-        type: string
-        required: true
       COMMIT_SHA:
         type: string
         required: true
@@ -26,7 +23,6 @@ concurrency:
 
 permissions:
   contents: read
-  pull-requests: write
 
 jobs:
   preview:
@@ -93,18 +89,3 @@ jobs:
             "s3://${BUCKET_NAME}/mattermost/pr-${PR_NUMBER}/" \
             --delete \
             --no-progress
-
-      - name: Post preview URL comment
-        # Plain gh CLI instead of a third-party action -- posts a new comment
-        # every run (same behavior peter-evans/create-or-update-comment had
-        # here, since it wasn't given a comment-id/body-includes matcher).
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ inputs.PR_NUMBER }}
-          TRIGGERING_ACTOR: ${{ inputs.TRIGGERING_ACTOR }}
-          COMMIT_SHA: ${{ inputs.COMMIT_SHA }}
-          BUCKET_NAME: ${{ vars.DOCS_PREVIEW_BUCKET_NAME }}
-        run: |
-          BODY=$(printf 'Newest code from %s and commit %s has docs preview environment ready:\n\n**[Open preview environment](http://%s.s3-website-us-east-1.amazonaws.com/mattermost/pr-%s/)**' \
-            "$TRIGGERING_ACTOR" "$COMMIT_SHA" "$BUCKET_NAME" "$PR_NUMBER")
-          gh pr comment "$PR_NUMBER" --repo "${{ github.repository }}" --body "$BODY"
