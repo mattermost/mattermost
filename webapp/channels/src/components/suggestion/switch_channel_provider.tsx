@@ -368,7 +368,6 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
                     emphasis={hasPendingJoinRequest ? 'tertiary' : 'primary'}
                     size='sm'
                     tabIndex={-1}
-                    aria-hidden={true}
                 >
                     {hasPendingJoinRequest ? formatMessage({id: 'more_channels.withdrawRequest', defaultMessage: 'Withdraw request'}) : formatMessage({id: 'more_channels.requestToJoin', defaultMessage: 'Request to join'})}
                 </Button>
