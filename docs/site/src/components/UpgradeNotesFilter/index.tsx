@@ -28,7 +28,7 @@ function collectRows(table: HTMLTableElement): {rows: RowRef[]; versions: string
   const versions: string[] = [];
   let lastVersion: string | null = null;
 
-  table.querySelectorAll('tbody tr').forEach((tr) => {
+  table.querySelectorAll<HTMLTableRowElement>('tbody tr').forEach((tr) => {
     const cells = tr.querySelectorAll('td');
     if (cells.length > 1) {
       const versionText = cells[0].textContent?.trim() ?? '';
