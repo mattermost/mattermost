@@ -249,6 +249,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         }
 
         setServerError(errorMessage || formatMessage({id: 'signup_user_completed.invalid_invite.title', defaultMessage: 'This invite link is invalid'}));
+        setIsWaiting(false);
         setLoading(false);
     };
 
@@ -583,6 +584,11 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
             const {data, error} = await dispatch(createUser(user, token, inviteId, redirectTo));
 
             if (error) {
+                if (parsedUsername && error.server_error_id === 'app.user.save.username_exists.app_error') {
+                    handleInvalidInvite(error);
+                    return;
+                }
+
                 setAlertBanner({
                     mode: 'danger' as ModeType,
                     title: (error as ServerError).message,
@@ -743,7 +749,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                             defaultMessage: 'Email address',
                                         })}
                                         disabled={isWaiting || Boolean(parsedEmail)}
-                                        autoFocus={true}
+                                        autoFocus={!parsedEmail}
                                         customMessage={emailCustomLabelForInput}
                                     />
                                     <Input
@@ -759,7 +765,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                             defaultMessage: 'Choose a Username',
                                         })}
                                         disabled={isWaiting || Boolean(parsedUsername)}
-                                        autoFocus={Boolean(parsedEmail)}
+                                        autoFocus={Boolean(parsedEmail) && !parsedUsername}
                                         customMessage={getUsernameCustomMessage()}
                                     />
                                     <PasswordInput
@@ -770,6 +776,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         onChange={handlePasswordInputOnChange}
                                         disabled={isWaiting}
                                         createMode={true}
+                                        autoFocus={Boolean(parsedEmail && parsedUsername)}
                                         info={passwordInfo as string}
                                         error={passwordError}
                                     />

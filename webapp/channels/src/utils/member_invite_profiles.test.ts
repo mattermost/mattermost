@@ -7,6 +7,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import {TestHelper} from 'utils/test_helper';
 
 import {
+    canPresetMemberInviteProfiles,
     filterProfilesForEmails,
     getEmailsToPreset,
     getProfileForEmail,
@@ -45,6 +46,13 @@ describe('member_invite_profiles', () => {
     test('keeps only plain valid email entries', () => {
         const existingUser: UserProfile = TestHelper.getUserMock({username: 'existing'});
         expect(getEmailsToPreset([existingUser, 'not-an-email', 'one@example.com'])).toEqual(['one@example.com']);
+    });
+
+    test('enables preset profiles only when email invitations and profile locking are enabled', () => {
+        expect(canPresetMemberInviteProfiles(true, 'name_and_username')).toBe(true);
+        expect(canPresetMemberInviteProfiles(true, 'all')).toBe(true);
+        expect(canPresetMemberInviteProfiles(true, 'none')).toBe(false);
+        expect(canPresetMemberInviteProfiles(false, 'all')).toBe(false);
     });
 
     test('gets and immutably sets profiles using normalized email keys', () => {

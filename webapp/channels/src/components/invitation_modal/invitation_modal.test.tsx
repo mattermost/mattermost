@@ -9,7 +9,7 @@ import type {Team} from '@mattermost/types/teams';
 import {General} from 'mattermost-redux/constants';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
-import {renderWithContext, screen, act} from 'tests/react_testing_utils';
+import {renderWithContext, screen, act, userEvent, waitFor} from 'tests/react_testing_utils';
 import {SelfHostedProducts} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 import {generateId} from 'utils/utils';
@@ -28,7 +28,7 @@ const defaultProps: Props = deepFreeze({
         sendMembersInvitesToChannels: jest.fn(),
     },
     currentTeam: {
-        display_name: '',
+        display_name: 'Test Team',
     } as Team,
     currentChannel: {
         display_name: '',
@@ -118,7 +118,27 @@ describe('InvitationModal', () => {
             <InvitationModal {...props}/>,
             state,
         );
+
+        const dialog = screen.getByRole('dialog', {name: 'Invite people to Test Team'});
+        expect(dialog.querySelectorAll('.modal-header')).toHaveLength(1);
+        expect(dialog.querySelectorAll('.modal-body')).toHaveLength(1);
+        expect(dialog.querySelectorAll('.modal-footer')).toHaveLength(1);
+        expect(screen.getByRole('button', {name: 'Close'})).toBeVisible();
         expect(screen.getByTestId('inviteButton')).toBeInTheDocument();
+    });
+
+    it('closes on click-away when the invite is empty', async () => {
+        renderWithContext(
+            <InvitationModal {...props}/>,
+            state,
+        );
+
+        const dialog = screen.getByRole('dialog');
+        await userEvent.click(dialog);
+
+        await waitFor(() => {
+            expect(dialog).not.toHaveClass('in');
+        });
     });
 
     it('shows result view when view state is result', () => {
@@ -136,6 +156,9 @@ describe('InvitationModal', () => {
             ref.current!.setState({view: View.RESULT});
         });
 
+        expect(screen.getByRole('dialog', {name: 'Members invited to Test Team'})).toBeVisible();
+        expect(screen.getByTestId('invite-more')).toBeVisible();
+        expect(screen.getAllByRole('button', {name: 'Close'})).toEqual([screen.getByTestId('confirm-done')]);
         expect(screen.getByTestId('confirm-done')).toBeInTheDocument();
     });
 
@@ -150,6 +173,8 @@ describe('InvitationModal', () => {
             state,
         );
 
+        expect(screen.getByRole('dialog', {name: 'Unable to invite people'})).toBeVisible();
+        expect(screen.getAllByRole('button', {name: 'Close'})).toHaveLength(2);
         expect(screen.getByTestId('confirm-done')).toBeInTheDocument();
     });
 

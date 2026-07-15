@@ -9,8 +9,11 @@ import ReactSelect, {components} from 'react-select';
 import type {Props as SelectProps, IndicatorsContainerProps, ControlProps, OptionProps, StylesConfig, SingleValue, GroupBase} from 'react-select';
 
 import 'components/widgets/inputs/input/input.scss';
-import './dropdown_input_hybrid.scss';
 import {formatAsString} from 'utils/i18n';
+
+import {REACT_SELECT_PORTAL_Z_INDEX} from './react_select_utils';
+
+import './dropdown_input_hybrid.scss';
 
 type OptionType = {
     label: string | JSX.Element;
@@ -55,7 +58,7 @@ const baseStyles = {
     }),
     menuPortal: (provided) => ({
         ...provided,
-        zIndex: 99999999,
+        zIndex: REACT_SELECT_PORTAL_Z_INDEX,
     }),
 } satisfies StylesConfig<OptionType, false>;
 

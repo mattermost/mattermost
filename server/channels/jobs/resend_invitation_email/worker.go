@@ -205,6 +205,7 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(logger mlog.LoggerIFa
 		appErr := model.NewAppError("worker: "+rseworker.name, "job_id: "+job.Id, nil, "", http.StatusInternalServerError).Wrap(err)
 		logger.Error("Worker: Failed to clean emails string data", mlog.Err(appErr))
 		rseworker.setJobError(logger, job, appErr)
+		return false
 	}
 
 	var channelList []string
@@ -214,10 +215,14 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(logger mlog.LoggerIFa
 			appErr := model.NewAppError("worker: "+rseworker.name, "job_id: "+job.Id, nil, "", http.StatusInternalServerError).Wrap(err)
 			logger.Error("Worker: Failed to clean channel string data", mlog.Err(appErr))
 			rseworker.setJobError(logger, job, appErr)
+			return false
 		}
 	}
 
 	emailList = rseworker.removeAlreadyJoined(teamID, emailList)
+	if len(emailList) == 0 {
+		return true
+	}
 
 	memberInvite := model.MemberInvite{
 		Emails: emailList,
@@ -235,13 +240,34 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(logger mlog.LoggerIFa
 			rseworker.setJobError(logger, job, appErr)
 			return false
 		}
-		memberInvite.Profiles = profiles
+
+		remainingEmails := make(map[string]struct{}, len(emailList))
+		for _, email := range emailList {
+			remainingEmails[model.NormalizeEmail(email)] = struct{}{}
+		}
+		for _, profile := range profiles {
+			if profile == nil {
+				memberInvite.Profiles = append(memberInvite.Profiles, profile)
+				continue
+			}
+			if _, ok := remainingEmails[model.NormalizeEmail(profile.Email)]; ok {
+				memberInvite.Profiles = append(memberInvite.Profiles, profile)
+			}
+		}
 	}
 
-	_, appErr := rseworker.app.InviteNewUsersToTeamGracefully(rctx, &memberInvite, teamID, job.Data["senderID"], interval)
+	invitesWithErrors, appErr := rseworker.app.InviteNewUsersToTeamGracefully(rctx, &memberInvite, teamID, job.Data["senderID"], interval)
 	if appErr != nil {
 		logger.Error("Worker: Failed to send emails", mlog.Err(appErr))
 		rseworker.setJobError(logger, job, appErr)
+		return false
+	}
+	for _, invite := range invitesWithErrors {
+		if invite != nil && invite.Error != nil {
+			logger.Error("Worker: Failed to resend invitation", mlog.String("email", invite.Email), mlog.Err(invite.Error))
+			rseworker.setJobError(logger, job, invite.Error)
+			return false
+		}
 	}
 	return true
 }

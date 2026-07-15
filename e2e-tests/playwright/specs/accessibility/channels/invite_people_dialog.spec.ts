@@ -67,7 +67,8 @@ test(
         await pw.skipIfNoLicense();
 
         // # Initialize setup
-        const {team, user} = await pw.initSetup();
+        const {team, user, adminClient} = await pw.initSetup();
+        const inviteCandidate = await adminClient.createUser(await pw.random.user(), '', '');
 
         // # Log in as user
         const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -86,10 +87,13 @@ test(
         // * Verify the Invite People modal is visible
         const inviteModal = page.getByTestId('invitationModal');
         await expect(inviteModal).toBeVisible();
-        await pw.wait(pw.duration.one_sec);
+        const inviteInput = inviteModal.getByRole('combobox', {name: 'Invite People'});
+        await inviteInput.pressSequentially(inviteCandidate.username);
+        const listbox = page.getByRole('listbox');
+        await expect(listbox).toBeVisible();
+        await expect(listbox.getByRole('option', {name: new RegExp(inviteCandidate.username)})).toBeVisible();
 
         // * Verify aria snapshot of Invite People dialog (key structural elements only).
-        // Autocomplete options portal to document.body, so the listbox is outside this dialog.
         await expect(inviteModal).toMatchAriaSnapshot(`
             - dialog /Invite people to/:
               - document:
@@ -107,6 +111,7 @@ test(
         const accessibilityScanResults = await axe
             .builder(page, {disableColorContrast: true})
             .include('[data-testid="invitationModal"]')
+            .include('.users-emails-input__menu-portal')
             .analyze();
 
         // * Should have no violations

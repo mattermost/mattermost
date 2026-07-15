@@ -3899,6 +3899,14 @@
     "translation": "No one to invite."
   },
   {
+    "id": "api.team.invite_members.profiles_disabled.app_error",
+    "translation": "Pre-setting profile fields on invitations requires locked profile fields to be enabled."
+  },
+  {
+    "id": "api.team.invite_members.profiles_graceful.app_error",
+    "translation": "Pre-setting profile fields on invitations requires graceful mode."
+  },
+  {
     "id": "api.team.invite_members.profiles_license.app_error",
     "translation": "Pre-setting profile fields on invitations requires an Enterprise license."
   },
@@ -12625,6 +12633,10 @@
   {
     "id": "model.member.is_valid.profile_email.app_error",
     "translation": "Profile email is not in the invited email list"
+  },
+  {
+    "id": "model.member.is_valid.profile_email_duplicate.app_error",
+    "translation": "Invitation profiles must have unique emails"
   },
   {
     "id": "model.member.is_valid.profile_first_name.app_error",

@@ -235,6 +235,49 @@ describe('components/signup/Signup', () => {
         expect(screen.getByTestId('signup-body-card-preset-name')).toHaveTextContent("You'll join as Dave Roberts.");
     });
 
+    it('should focus the first editable field when signup values are pre-set', () => {
+        mockLocation.search = 'd=' + encodeURIComponent(JSON.stringify({
+            email: 'dave.roberts@gmail.com',
+        }));
+        const {unmount} = renderWithContext(<Signup/>);
+
+        expect(screen.getByLabelText('Email address')).toBeDisabled();
+        expect(screen.getByLabelText('Choose a Username')).toHaveFocus();
+
+        unmount();
+        mockLocation.search = 'd=' + encodeURIComponent(JSON.stringify({
+            email: 'dave.roberts@gmail.com',
+            username: 'dave.roberts',
+        }));
+        renderWithContext(<Signup/>);
+
+        expect(screen.getByLabelText('Email address')).toBeDisabled();
+        expect(screen.getByLabelText('Choose a Username')).toBeDisabled();
+        expect(screen.getByLabelText('Choose a Password')).toHaveFocus();
+    });
+
+    it('should show an invalid invite state when a pre-set username becomes unavailable', async () => {
+        mockLocation.search = 'd=' + encodeURIComponent(JSON.stringify({
+            email: 'dave.roberts@gmail.com',
+            username: 'dave.roberts',
+        }));
+        mockDispatch = jest.fn().mockResolvedValue({
+            error: {
+                server_error_id: 'app.user.save.username_exists.app_error',
+                message: 'Username already exists',
+            },
+        });
+        renderWithContext(<Signup/>);
+
+        await userEvent.type(screen.getByLabelText('Choose a Password'), 'password123');
+        await userEvent.click(screen.getByRole('checkbox', {name: /terms and privacy policy checkbox/i}));
+        await userEvent.click(screen.getByRole('button', {name: 'Create account'}));
+
+        expect(await screen.findByText('This invite link is invalid')).toBeInTheDocument();
+        expect(screen.getByText('Please speak with your Administrator to receive an invitation.')).toBeInTheDocument();
+        expect(screen.queryByLabelText('Choose a Username')).not.toBeInTheDocument();
+    });
+
     it('should show the pre-set name line with only a first name', () => {
         mockLocation.search = 'd=' + encodeURIComponent(JSON.stringify({
             email: 'dave.roberts@gmail.com',

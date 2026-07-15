@@ -62,7 +62,11 @@ function MemberProfileInputRow({email, profile, onProfileChange}: RowProps) {
     };
 
     const handleUsernameBlur = (event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setUsernameError(getUsernameErrorMessage(event.target.value, formatMessage));
+        const username = event.target.value.toLowerCase();
+        if (username !== profile.username) {
+            onProfileChange({...profile, username});
+        }
+        setUsernameError(getUsernameErrorMessage(username, formatMessage));
     };
 
     return (

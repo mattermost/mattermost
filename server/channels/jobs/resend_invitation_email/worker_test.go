@@ -16,11 +16,15 @@ import (
 )
 
 type fakeResendApp struct {
-	invitedWith *model.MemberInvite
+	invitedWith  *model.MemberInvite
+	inviteResult []*model.EmailInviteWithError
+	inviteErr    *model.AppError
+	joinedEmail  string
 }
 
 type fakeJobServer struct {
-	errors int
+	errors    int
+	successes int
 }
 
 func (s *fakeJobServer) Logger() mlog.LoggerIFace {
@@ -30,6 +34,7 @@ func (s *fakeJobServer) Logger() mlog.LoggerIFace {
 func (s *fakeJobServer) HandleJobPanic(logger mlog.LoggerIFace, job *model.Job) {}
 
 func (s *fakeJobServer) SetJobSuccess(job *model.Job) *model.AppError {
+	s.successes++
 	return nil
 }
 
@@ -42,16 +47,22 @@ func (a *fakeResendApp) Config() *model.Config                                 {
 func (a *fakeResendApp) AddConfigListener(func(old, cur *model.Config)) string { return "" }
 func (a *fakeResendApp) RemoveConfigListener(string)                           {}
 func (a *fakeResendApp) GetUserByEmail(email string) (*model.User, *model.AppError) {
+	if email == a.joinedEmail {
+		return &model.User{Id: email}, nil
+	}
 	return nil, model.NewAppError("GetUserByEmail", "app.user.missing_account.const", nil, "", http.StatusNotFound)
 }
 
 func (a *fakeResendApp) GetTeamMembersByIds(teamID string, userIDs []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
+	if len(userIDs) == 1 && userIDs[0] == a.joinedEmail {
+		return []*model.TeamMember{{UserId: a.joinedEmail}}, nil
+	}
 	return nil, nil
 }
 
 func (a *fakeResendApp) InviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *model.MemberInvite, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError) {
 	a.invitedWith = memberInvite
-	return nil, nil
+	return a.inviteResult, a.inviteErr
 }
 
 func TestResendEmailsCarriesJobData(t *testing.T) {
@@ -96,6 +107,28 @@ func TestResendEmailsCarriesJobData(t *testing.T) {
 		require.Equal(t, "One", app.invitedWith.Profiles[0].LastName)
 	})
 
+	t.Run("profiles for users who already joined are removed", func(t *testing.T) {
+		profiles := []*model.MemberInviteProfile{
+			{Email: "joined@example.com", Username: "joined.user"},
+			{Email: "waiting@example.com", Username: "waiting.user"},
+		}
+		profilesJSON, err := json.Marshal(profiles)
+		require.NoError(t, err)
+
+		app := &fakeResendApp{joinedEmail: "joined@example.com"}
+		worker := newWorker(app)
+		worker.ResendEmails(worker.logger, newJob(map[string]string{
+			"emailList":    model.ArrayToJSON([]string{"joined@example.com", "waiting@example.com"}),
+			"teamID":       model.NewId(),
+			"senderID":     model.NewId(),
+			"profilesList": string(profilesJSON),
+		}), "48")
+
+		require.NotNil(t, app.invitedWith)
+		require.Equal(t, []string{"waiting@example.com"}, app.invitedWith.Emails)
+		require.Equal(t, profiles[1:], app.invitedWith.Profiles)
+	})
+
 	t.Run("no profiles in jobData leaves invite profiles empty", func(t *testing.T) {
 		app := &fakeResendApp{}
 		worker := newWorker(app)
@@ -112,19 +145,51 @@ func TestResendEmailsCarriesJobData(t *testing.T) {
 		require.Len(t, app.invitedWith.ChannelIds, 1)
 	})
 
-	t.Run("malformed profiles fail the job without sending invitations", func(t *testing.T) {
-		app := &fakeResendApp{}
-		worker := newWorker(app)
-		completed := worker.ResendEmails(worker.logger, newJob(map[string]string{
-			"emailList":    model.ArrayToJSON([]string{"user1@example.com"}),
-			"teamID":       model.NewId(),
-			"senderID":     model.NewId(),
-			"scheduledAt":  strconv.FormatInt(model.GetMillis(), 10),
-			"profilesList": "not-json",
-		}), "48")
+	for _, test := range []struct {
+		name          string
+		malformedKey  string
+		inviteResult  []*model.EmailInviteWithError
+		inviteErr     *model.AppError
+		expectInvited bool
+	}{
+		{name: "malformed emails", malformedKey: "emailList"},
+		{name: "malformed channels", malformedKey: "channelList"},
+		{name: "malformed profiles", malformedKey: "profilesList"},
+		{
+			name:          "app error",
+			inviteErr:     model.NewAppError("InviteNewUsersToTeamGracefully", "test.invite_error", nil, "", http.StatusInternalServerError),
+			expectInvited: true,
+		},
+		{
+			name: "per-email error",
+			inviteResult: []*model.EmailInviteWithError{{
+				Email: "user1@example.com",
+				Error: model.NewAppError("InviteNewUsersToTeamGracefully", "test.invite_error", nil, "", http.StatusInternalServerError),
+			}},
+			expectInvited: true,
+		},
+	} {
+		t.Run(test.name+" does not fall through to success", func(t *testing.T) {
+			app := &fakeResendApp{inviteResult: test.inviteResult, inviteErr: test.inviteErr}
+			worker := newWorker(app)
+			data := map[string]string{
+				"emailList": model.ArrayToJSON([]string{"user1@example.com"}),
+				"teamID":    model.NewId(),
+				"senderID":  model.NewId(),
+			}
+			if test.malformedKey != "" {
+				data[test.malformedKey] = "not-json"
+			}
 
-		require.False(t, completed)
-		require.Nil(t, app.invitedWith)
-		require.Equal(t, 1, worker.jobServer.(*fakeJobServer).errors)
-	})
+			worker.DoJob(newJob(data))
+
+			if test.expectInvited {
+				require.NotNil(t, app.invitedWith)
+			} else {
+				require.Nil(t, app.invitedWith)
+			}
+			require.Equal(t, 1, worker.jobServer.(*fakeJobServer).errors)
+			require.Zero(t, worker.jobServer.(*fakeJobServer).successes)
+		})
+	}
 }

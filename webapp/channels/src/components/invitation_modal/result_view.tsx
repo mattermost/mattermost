@@ -1,9 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
-import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
@@ -31,16 +29,19 @@ export const defaultResultState = deepFreeze({
     notSent: [],
 });
 
-type Props = {
+type Props = ResultState;
+
+type ResultViewTitleProps = {
     inviteType: InviteType;
     currentTeamName: string;
-    onDone: () => void;
-    headerClass: string;
-    footerClass: string;
-    inviteMore: () => void;
-} & ResultState;
+};
 
-export default function ResultView(props: Props) {
+type ResultViewFooterProps = {
+    onDone: () => void;
+    inviteMore: () => void;
+};
+
+export function ResultViewTitle(props: ResultViewTitleProps) {
     let inviteType;
     if (props.inviteType === InviteType.MEMBER) {
         inviteType = (
@@ -59,60 +60,61 @@ export default function ResultView(props: Props) {
     }
 
     return (
+        <FormattedMessage
+            id='invite_modal.invited'
+            defaultMessage='{inviteType} invited to {team_name}'
+            values={{
+                inviteType,
+                team_name: props.currentTeamName,
+            }}
+        />
+    );
+}
+
+export function ResultViewFooter(props: ResultViewFooterProps) {
+    return (
         <>
-            <Modal.Header className={props.headerClass}>
-                <h1
-                    id='invitation_modal_title'
-                    className='modal-title'
-                >
-                    <FormattedMessage
-                        id='invite_modal.invited'
-                        defaultMessage='{inviteType} invited to {team_name}'
-                        values={{
-                            inviteType,
-                            team_name: props.currentTeamName,
-                        }}
-                    />
-                </h1>
-            </Modal.Header>
-            <Modal.Body>
-                {props.notSent.length > 0 && (
-                    <ResultTable
-                        sent={false}
-                        rows={props.notSent}
-                    />
-                )}
-                {props.sent.length > 0 && (
-                    <ResultTable
-                        sent={true}
-                        rows={props.sent}
-                    />
-                )}
-            </Modal.Body>
-            <Modal.Footer className={classNames('InviteView__footer', props.footerClass)}>
-                <Button
-                    onClick={props.inviteMore}
-                    emphasis='tertiary'
-                    data-testid='invite-more'
-                >
-                    <FormattedMessage
-                        id='invitation_modal.invite.more'
-                        defaultMessage='Invite More People'
-                    />
-                </Button>
-                <Button
-                    onClick={props.onDone}
-                    emphasis='primary'
-                    data-testid='confirm-done'
-                    aria-label='Close'
-                    title='Close'
-                >
-                    <FormattedMessage
-                        id='invitation_modal.confirm.done'
-                        defaultMessage='Done'
-                    />
-                </Button>
-            </Modal.Footer>
+            <Button
+                onClick={props.inviteMore}
+                emphasis='tertiary'
+                data-testid='invite-more'
+            >
+                <FormattedMessage
+                    id='invitation_modal.invite.more'
+                    defaultMessage='Invite More People'
+                />
+            </Button>
+            <Button
+                onClick={props.onDone}
+                emphasis='primary'
+                data-testid='confirm-done'
+                aria-label='Close'
+                title='Close'
+            >
+                <FormattedMessage
+                    id='invitation_modal.confirm.done'
+                    defaultMessage='Done'
+                />
+            </Button>
+        </>
+    );
+}
+
+export default function ResultView(props: Props) {
+    return (
+        <>
+            {props.notSent.length > 0 && (
+                <ResultTable
+                    sent={false}
+                    rows={props.notSent}
+                />
+            )}
+            {props.sent.length > 0 && (
+                <ResultTable
+                    sent={true}
+                    rows={props.sent}
+                />
+            )}
         </>
     );
 }

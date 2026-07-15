@@ -78,18 +78,22 @@ async function getNewestMatchingEmail(
     }
 
     const summaries = (await response.json()) as InbucketEmailSummary[];
-    for (const summary of [...summaries].reverse()) {
+    const normalizedRecipient = recipient.toLowerCase();
+    const receivedAfterTime = receivedAfter?.getTime();
+    const matchingSummaries = summaries.filter((summary) => {
+        const addressedToRecipient = summary.to.some((address) => parseEmailAddress(address) === normalizedRecipient);
+        const arrivedInTime = receivedAfterTime === undefined || new Date(summary.date).getTime() >= receivedAfterTime;
+
+        return addressedToRecipient && arrivedInTime;
+    });
+
+    for (const summary of matchingSummaries.reverse()) {
         const messageResponse = await fetch(`${mailboxURL}/${encodeURIComponent(summary.id)}`);
         if (!messageResponse.ok) {
             continue;
         }
 
-        const email = (await messageResponse.json()) as InbucketEmail;
-        const addressedToRecipient = email.to.some((address) => parseEmailAddress(address) === recipient.toLowerCase());
-        const arrivedInTime = !receivedAfter || new Date(email.date).getTime() >= receivedAfter.getTime();
-        if (addressedToRecipient && arrivedInTime) {
-            return email;
-        }
+        return (await messageResponse.json()) as InbucketEmail;
     }
 
     return undefined;

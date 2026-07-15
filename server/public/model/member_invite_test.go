@@ -83,24 +83,47 @@ func TestMemberInviteIsValid(t *testing.T) {
 		require.Equal(t, "model.member.is_valid.channel.app_error", appErr.Id)
 	})
 
-	t.Run("profile email not in email list", func(t *testing.T) {
-		invite := validInvite()
-		invite.Profiles[0].Email = "other@example.com"
-		appErr := invite.IsValid()
-		require.NotNil(t, appErr)
-		require.Equal(t, "model.member.is_valid.profile_email.app_error", appErr.Id)
-	})
-
-	t.Run("profile email matching is case-insensitive", func(t *testing.T) {
-		invite := validInvite()
-		invite.Profiles[0].Email = "User1@Example.com"
-		require.Nil(t, invite.IsValid())
-	})
-
 	for name, testCase := range map[string]struct {
 		invite      *MemberInvite
 		expectedErr string
 	}{
+		"case-insensitive matching profile email": {
+			invite: &MemberInvite{
+				Emails: []string{"USER1@EXAMPLE.COM"},
+				Profiles: []*MemberInviteProfile{
+					{Email: "user1@example.com", Username: "user.one"},
+				},
+			},
+		},
+		"profile email not invited": {
+			invite: &MemberInvite{
+				Emails: []string{"user1@example.com"},
+				Profiles: []*MemberInviteProfile{
+					{Email: "other@example.com", Username: "user.one"},
+				},
+			},
+			expectedErr: "model.member.is_valid.profile_email.app_error",
+		},
+		"duplicate profile email": {
+			invite: &MemberInvite{
+				Emails: []string{"user1@example.com"},
+				Profiles: []*MemberInviteProfile{
+					{Email: "user1@example.com", Username: "user.one"},
+					{Email: "user1@example.com", Username: "user.two"},
+				},
+			},
+			expectedErr: "model.member.is_valid.profile_email_duplicate.app_error",
+		},
+		"case-insensitive duplicate profile email": {
+			invite: &MemberInvite{
+				Emails: []string{"user1@example.com"},
+				Profiles: []*MemberInviteProfile{
+					{Email: "user1@example.com", Username: "user.one"},
+					{Email: "USER1@EXAMPLE.COM", Username: "user.two"},
+				},
+			},
+			expectedErr: "model.member.is_valid.profile_email_duplicate.app_error",
+		},
 		"nil profile": {
 			invite: &MemberInvite{
 				Emails:   []string{"user1@example.com"},
@@ -121,6 +144,10 @@ func TestMemberInviteIsValid(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			appErr := testCase.invite.IsValid()
+			if testCase.expectedErr == "" {
+				require.Nil(t, appErr)
+				return
+			}
 			require.NotNil(t, appErr)
 			require.Equal(t, testCase.expectedErr, appErr.Id)
 		})

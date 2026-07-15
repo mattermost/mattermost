@@ -1,10 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {LockProfileFieldsSetting} from '@mattermost/types/config';
 import type {MemberInviteProfile} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {isEmail} from 'mattermost-redux/utils/helpers';
+
+import {Constants} from 'utils/constants';
 
 type MemberInviteProfiles = Record<string, MemberInviteProfile>;
 
@@ -37,6 +40,10 @@ export const profileHasInput = (profile?: MemberInviteProfile): boolean => {
 
 export const getEmailsToPreset = (usersEmails: Array<UserProfile | string>): string[] => {
     return usersEmails.filter((userOrEmail): userOrEmail is string => typeof userOrEmail === 'string' && isEmail(userOrEmail));
+};
+
+export const canPresetMemberInviteProfiles = (emailInvitationsEnabled: boolean, lockProfileFields: LockProfileFieldsSetting): boolean => {
+    return emailInvitationsEnabled && lockProfileFields !== Constants.LOCK_PROFILE_FIELDS.NONE;
 };
 
 export const getProfileForEmail = (profiles: MemberInviteProfiles | undefined, email: string): MemberInviteProfile | undefined => {

@@ -27,6 +27,8 @@ import Avatar from 'components/widgets/users/avatar';
 
 import {getDisplayName, getLongDisplayNameParts, imageURLForUser} from 'utils/utils';
 
+import {REACT_SELECT_PORTAL_Z_INDEX, renderReactSelectMenu} from './react_select_utils';
+
 import './users_emails_input.scss';
 
 type Props = {
@@ -302,16 +304,7 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
         );
     };
 
-    // When menuPortal is on, openMenuOnFocus would otherwise open an empty
-    // menu shell on focus before any query — skip until there is input text
-    // or loaded options.
-    Menu = (props: MenuProps<UserProfile | EmailInvite, true>) => {
-        if (this.props.menuPortal && !props.selectProps.inputValue && props.options.length === 0) {
-            return null;
-        }
-
-        return <components.Menu {...props}/>;
-    };
+    Menu = (props: MenuProps<UserProfile | EmailInvite, true>) => renderReactSelectMenu(props, Boolean(this.props.menuPortal));
 
     private renderAriaLabel = (option: UserProfile | EmailInvite): string => {
         if (!option) {
@@ -612,7 +605,7 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
             ...(this.props.menuPortal ? {
                 menuPortal: (css) => ({
                     ...css,
-                    zIndex: 99999999,
+                    zIndex: REACT_SELECT_PORTAL_Z_INDEX,
                 }),
             } : {}),
         } satisfies StylesConfig<UserProfile | EmailInvite, true >;

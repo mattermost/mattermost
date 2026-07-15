@@ -99,6 +99,35 @@ describe('MemberProfileInputs', () => {
         expect(screen.queryByText(/Usernames have to begin with a lowercase letter/)).not.toBeInTheDocument();
     });
 
+    test('normalizes a mixed-case username on blur', async () => {
+        const onProfileChange = jest.fn();
+        renderWithContext(
+            <MemberProfileInputs
+                {...baseProps}
+                onProfileChange={onProfileChange}
+                profiles={{
+                    'dave.roberts@gmail.com': {
+                        email: 'dave.roberts@gmail.com',
+                        username: 'Dave.Roberts',
+                        first_name: 'Dave',
+                        last_name: 'Roberts',
+                    },
+                }}
+            />,
+        );
+
+        await userEvent.click(screen.getByPlaceholderText('Username'));
+        await userEvent.tab();
+
+        expect(onProfileChange).toHaveBeenCalledWith({
+            email: 'dave.roberts@gmail.com',
+            username: 'dave.roberts',
+            first_name: 'Dave',
+            last_name: 'Roberts',
+        });
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
+
     test('shows a full-width username error after blur', async () => {
         const onProfileChange = jest.fn();
         renderWithContext(

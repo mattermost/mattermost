@@ -25,6 +25,7 @@ type PasswordInputProps = {
     createMode?: boolean;
     disabled?: boolean;
     inputSize?: SIZE;
+    autoFocus?: boolean;
 };
 
 const PasswordInput = React.forwardRef((

@@ -1539,26 +1539,102 @@ func (a *App) InviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *mod
 	if err != nil {
 		return nil, err
 	}
-	profilesByEmail := make(map[string]*model.MemberInviteProfile, len(memberInvite.Profiles))
-	for _, profile := range memberInvite.Profiles {
-		profilesByEmail[profile.Email] = profile
+
+	nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
+	senderProfileImage, _, imageErr := a.GetProfileImage(user)
+	if imageErr != nil {
+		rctx.Logger().Warn("Unable to get the sender user profile image.", mlog.String("user_id", user.Id), mlog.String("team_id", team.Id), mlog.Err(imageErr))
 	}
 
-	allowedDomains := a.ch.srv.teamService.GetAllowedDomains(user, team)
+	inviteData := email.InviteEmailData{
+		Team:               team,
+		Channels:           channels,
+		SenderName:         user.GetDisplayName(nameFormat),
+		SenderUserID:       user.Id,
+		SenderProfileImage: senderProfileImage,
+		SiteURL:            a.GetSiteURL(),
+		Message:            memberInvite.Message,
+		ErrorWhenNotSent:   true,
+		IsSystemAdmin:      user.IsSystemAdmin(),
+		IsFirstAdmin:       a.UserIsFirstAdmin(rctx, user),
+	}
+
+	return a.sendInviteNewUsersToTeamGracefully(rctx, memberInvite, inviteData, a.ch.srv.teamService.GetAllowedDomains(user, team), reminderInterval)
+}
+
+func (a *App) InviteNewUsersToTeamGracefullyForLocal(rctx request.CTX, memberInvite *model.MemberInvite, team *model.Team, channels []*model.Channel) ([]*model.EmailInviteWithError, *model.AppError) {
+	if !*a.Config().ServiceSettings.EnableEmailInvitations {
+		return nil, model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+	if len(memberInvite.Emails) == 0 {
+		return nil, model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.no_one.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	inviteData := email.InviteEmailData{
+		Team:             team,
+		Channels:         channels,
+		SenderName:       "Administrator",
+		SenderUserID:     "mmctl " + model.NewId(),
+		SiteURL:          a.GetSiteURL(),
+		Message:          memberInvite.Message,
+		ErrorWhenNotSent: len(channels) > 0,
+		IsSystemAdmin:    true,
+	}
+	allowedDomains := []string{team.AllowedDomains, *a.Config().TeamSettings.RestrictCreationToDomains}
+
+	return a.sendInviteNewUsersToTeamGracefully(rctx, memberInvite, inviteData, allowedDomains, "")
+}
+
+func (a *App) validateAndNormalizeMemberInviteProfiles(memberInvite *model.MemberInvite) *model.AppError {
+	if len(memberInvite.Profiles) == 0 {
+		return nil
+	}
+
+	if !model.MinimumEnterpriseLicense(a.License()) {
+		return model.NewAppError("InviteNewUsersToTeamGracefully", "api.team.invite_members.profiles_license.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *a.Config().TeamSettings.LockProfileFieldsForEmailUsers == model.TeamSettingsLockProfileFieldsNone {
+		return model.NewAppError("InviteNewUsersToTeamGracefully", "api.team.invite_members.profiles_disabled.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if appErr := memberInvite.IsValid(); appErr != nil {
+		return appErr
+	}
+
+	for _, profile := range memberInvite.Profiles {
+		profile.Email = model.NormalizeEmail(profile.Email)
+		profile.Username = model.NormalizeUsername(profile.Username)
+	}
+
+	return nil
+}
+
+func (a *App) sendInviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *model.MemberInvite, inviteData email.InviteEmailData, allowedDomains []string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError) {
+	if appErr := a.validateAndNormalizeMemberInviteProfiles(memberInvite); appErr != nil {
+		return nil, appErr
+	}
+
+	profilesByEmail := make(map[string]*model.MemberInviteProfile, len(memberInvite.Profiles))
+	for _, profile := range memberInvite.Profiles {
+		profilesByEmail[model.NormalizeEmail(profile.Email)] = profile
+	}
+
 	var inviteListWithErrors []*model.EmailInviteWithError
 	var goodEmails []string
-	for _, email := range emailList {
+	for _, invitedEmail := range memberInvite.Emails {
+		invitedEmail = model.NormalizeEmail(invitedEmail)
 		invite := &model.EmailInviteWithError{
-			Email: email,
+			Email: invitedEmail,
 			Error: nil,
 		}
-		if !teams.IsEmailAddressAllowed(email, allowedDomains) {
-			invite.Error = model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": email}, "", http.StatusBadRequest)
-		} else if profile := profilesByEmail[email]; profile != nil && !a.isPreSetUsernameAvailable(profile.Username) {
+		if !teams.IsEmailAddressAllowed(invitedEmail, allowedDomains) {
+			invite.Error = model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": invitedEmail}, "", http.StatusBadRequest)
+		} else if profile := profilesByEmail[invitedEmail]; profile != nil && !a.isPreSetUsernameAvailable(profile.Username) {
 			// Catch taken usernames at invite time so the invitee doesn't dead-end at signup.
 			invite.Error = model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.username_taken.app_error", map[string]any{"Username": profile.Username}, "", http.StatusBadRequest)
 		} else {
-			goodEmails = append(goodEmails, email)
+			goodEmails = append(goodEmails, invitedEmail)
 		}
 		inviteListWithErrors = append(inviteListWithErrors, invite)
 	}
@@ -1569,31 +1645,12 @@ func (a *App) InviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *mod
 	}
 
 	if len(goodEmails) > 0 {
-		nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
-		senderProfileImage, _, err := a.GetProfileImage(user)
-		if err != nil {
-			rctx.Logger().Warn("Unable to get the sender user profile image.", mlog.String("user_id", user.Id), mlog.String("team_id", team.Id), mlog.Err(err))
-		}
-
-		userIsFirstAdmin := a.UserIsFirstAdmin(rctx, user)
-		inviteData := email.InviteEmailData{
-			Team:               team,
-			Channels:           channels,
-			SenderName:         user.GetDisplayName(nameFormat),
-			SenderUserID:       user.Id,
-			SenderProfileImage: senderProfileImage,
-			Invites:            goodEmails,
-			Profiles:           profilesByEmail,
-			SiteURL:            a.GetSiteURL(),
-			ReminderData:       reminderData,
-			Message:            memberInvite.Message,
-			ErrorWhenNotSent:   true,
-			IsSystemAdmin:      user.IsSystemAdmin(),
-			IsFirstAdmin:       userIsFirstAdmin,
-		}
+		inviteData.Invites = goodEmails
+		inviteData.Profiles = profilesByEmail
+		inviteData.ReminderData = reminderData
 		var eErr error
 		var invitesWithErrors2 []*model.EmailInviteWithError
-		if len(channels) > 0 {
+		if len(inviteData.Channels) > 0 {
 			invitesWithErrors2, eErr = a.Srv().EmailService.SendInviteEmailsToTeamAndChannels(rctx, inviteData)
 			inviteListWithErrors = append(inviteListWithErrors, invitesWithErrors2...)
 		} else {
@@ -1612,11 +1669,11 @@ func (a *App) InviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *mod
 					}
 				}
 			case errors.Is(eErr, email.NoRateLimiterError):
-				return nil, model.NewAppError("InviteNewUsersToTeamGracefully", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s", user.Id, team.Id), http.StatusInternalServerError)
+				return nil, model.NewAppError("InviteNewUsersToTeamGracefully", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s", inviteData.SenderUserID, inviteData.Team.Id), http.StatusInternalServerError)
 			case errors.Is(eErr, email.SetupRateLimiterError):
-				return nil, model.NewAppError("InviteNewUsersToTeamGracefully", "app.email.setup_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s, error=%v", user.Id, team.Id, eErr), http.StatusInternalServerError)
+				return nil, model.NewAppError("InviteNewUsersToTeamGracefully", "app.email.setup_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s, error=%v", inviteData.SenderUserID, inviteData.Team.Id, eErr), http.StatusInternalServerError)
 			default:
-				return nil, model.NewAppError("InviteNewUsersToTeamGracefully", "app.email.rate_limit_exceeded.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s, error=%v", user.Id, team.Id, eErr), http.StatusRequestEntityTooLarge)
+				return nil, model.NewAppError("InviteNewUsersToTeamGracefully", "app.email.rate_limit_exceeded.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s, error=%v", inviteData.SenderUserID, inviteData.Team.Id, eErr), http.StatusRequestEntityTooLarge)
 			}
 		}
 	}

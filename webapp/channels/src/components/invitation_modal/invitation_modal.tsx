@@ -17,14 +17,13 @@ import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import {focusElement} from 'utils/a11y_utils';
 import {isMembershipPolicyEnforced} from 'utils/channel_utils';
-import {Constants} from 'utils/constants';
-import {getEmailsToPreset, getProfileForEmail, setProfileForEmail, suggestMemberInviteProfile} from 'utils/member_invite_profiles';
+import {canPresetMemberInviteProfiles, getEmailsToPreset, getProfileForEmail, setProfileForEmail, suggestMemberInviteProfile} from 'utils/member_invite_profiles';
 
 import {InviteType} from './invite_as';
-import InviteView, {initializeInviteState} from './invite_view';
+import InviteView, {InviteViewFooter, InviteViewTitle, initializeInviteState} from './invite_view';
 import type {InviteState} from './invite_view';
-import NoPermissionsView from './no_permissions_view';
-import ResultView, {defaultResultState} from './result_view';
+import NoPermissionsView, {NoPermissionsViewFooter, NoPermissionsViewTitle} from './no_permissions_view';
+import ResultView, {ResultViewFooter, ResultViewTitle, defaultResultState} from './result_view';
 import type {ResultState, InviteResults} from './result_view';
 
 import './invitation_modal.scss';
@@ -371,8 +370,7 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
     };
 
     presetProfilesEnabled = () => {
-        return this.props.emailInvitationsEnabled &&
-            this.props.lockProfileFieldsForEmailUsers !== Constants.LOCK_PROFILE_FIELDS.NONE;
+        return canPresetMemberInviteProfiles(this.props.emailInvitationsEnabled, this.props.lockProfileFieldsForEmailUsers);
     };
 
     onChangeUsersEmails = (usersEmails: Array<UserProfile | string>) => {
@@ -443,58 +441,88 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
             return null;
         }
 
-        let view = (
-            <InviteView
-                setInviteAs={this.setInviteAs}
-                invite={this.invite}
-                setCustomMessage={this.setCustomMessage}
-                channelsLoader={this.channelsLoader}
-                toggleCustomMessage={this.toggleCustomMessage}
-                regenerateTeamInviteId={this.props.actions.regenerateTeamInviteId}
-                currentTeam={this.props.currentTeam}
-                onChannelsInputChange={this.onChannelsInputChange}
-                onChannelsChange={this.onChannelsChange}
-                currentChannel={this.props.currentChannel}
-                townSquareDisplayName={this.props.townSquareDisplayName}
-                isAdmin={this.props.isAdmin}
-                usersLoader={this.usersLoader}
-                emailInvitationsEnabled={this.props.emailInvitationsEnabled}
-                onChangeUsersEmails={this.onChangeUsersEmails}
-                onUsersInputChange={this.onUsersInputChange}
-                isCloud={this.props.isCloud}
-                canAddUsers={this.props.canAddUsers}
-                canInviteGuests={this.props.canInviteGuests}
-                headerClass='InvitationModal__header'
-                footerClass='InvitationModal__footer'
-                onClose={this.handleHide}
-                channelToInvite={this.props.channelToInvite}
-                useGuestMagicLink={this.state.useGuestMagicLink}
-                toggleGuestMagicLink={this.toggleGuestMagicLink}
-                lockProfileFieldsForEmailUsers={this.props.lockProfileFieldsForEmailUsers}
-                onProfileChange={this.onProfileChange}
-                {...this.state.invite}
-            />
-        );
-        if (this.state.view === View.RESULT) {
+        let view: React.ReactNode;
+        let modalHeaderText: React.ReactNode;
+        let footerContent: React.ReactNode;
+        let headerClassName = 'InvitationModal__header';
+        let footerClassName: string | undefined;
+        let showCloseButton = true;
+
+        if (!this.props.canInviteGuests && !this.props.canAddUsers) {
+            view = <NoPermissionsView/>;
+            modalHeaderText = <NoPermissionsViewTitle/>;
+            footerContent = <NoPermissionsViewFooter onDone={this.handleHide}/>;
+            headerClassName = 'NoPermissionsView__header';
+        } else if (this.state.view === View.RESULT) {
             view = (
                 <ResultView
-                    inviteType={this.state.invite.inviteType}
-                    currentTeamName={this.props.currentTeam.display_name}
-                    onDone={this.handleHide}
-                    inviteMore={this.inviteMore}
-                    headerClass='InvitationModal__header'
-                    footerClass='InvitationModal__footer'
                     {...this.state.result}
                 />
             );
-        }
-        if (!this.props.canInviteGuests && !this.props.canAddUsers) {
-            view = (
-                <NoPermissionsView
-                    footerClass='InvitationModal__footer'
-                    onDone={this.handleHide}
+            modalHeaderText = (
+                <ResultViewTitle
+                    inviteType={this.state.invite.inviteType}
+                    currentTeamName={this.props.currentTeam.display_name}
                 />
             );
+            footerContent = (
+                <ResultViewFooter
+                    onDone={this.handleHide}
+                    inviteMore={this.inviteMore}
+                />
+            );
+            footerClassName = 'InviteView__footer';
+            showCloseButton = false;
+        } else {
+            view = (
+                <InviteView
+                    setInviteAs={this.setInviteAs}
+                    setCustomMessage={this.setCustomMessage}
+                    channelsLoader={this.channelsLoader}
+                    toggleCustomMessage={this.toggleCustomMessage}
+                    regenerateTeamInviteId={this.props.actions.regenerateTeamInviteId}
+                    currentTeam={this.props.currentTeam}
+                    onChannelsInputChange={this.onChannelsInputChange}
+                    onChannelsChange={this.onChannelsChange}
+                    currentChannel={this.props.currentChannel}
+                    townSquareDisplayName={this.props.townSquareDisplayName}
+                    isAdmin={this.props.isAdmin}
+                    usersLoader={this.usersLoader}
+                    emailInvitationsEnabled={this.props.emailInvitationsEnabled}
+                    onChangeUsersEmails={this.onChangeUsersEmails}
+                    onUsersInputChange={this.onUsersInputChange}
+                    isCloud={this.props.isCloud}
+                    canAddUsers={this.props.canAddUsers}
+                    canInviteGuests={this.props.canInviteGuests}
+                    channelToInvite={this.props.channelToInvite}
+                    useGuestMagicLink={this.state.useGuestMagicLink}
+                    toggleGuestMagicLink={this.toggleGuestMagicLink}
+                    lockProfileFieldsForEmailUsers={this.props.lockProfileFieldsForEmailUsers}
+                    onProfileChange={this.onProfileChange}
+                    {...this.state.invite}
+                />
+            );
+            modalHeaderText = (
+                <InviteViewTitle
+                    currentTeam={this.props.currentTeam}
+                    inviteType={this.state.invite.inviteType}
+                />
+            );
+            footerContent = (
+                <InviteViewFooter
+                    currentTeam={this.props.currentTeam}
+                    emailInvitationsEnabled={this.props.emailInvitationsEnabled}
+                    inviteChannels={this.state.invite.inviteChannels}
+                    inviteType={this.state.invite.inviteType}
+                    lockProfileFieldsForEmailUsers={this.props.lockProfileFieldsForEmailUsers}
+                    profiles={this.state.invite.profiles}
+                    usersEmails={this.state.invite.usersEmails}
+                    invite={this.invite}
+                />
+            );
+            footerClassName = this.state.invite.inviteType === InviteType.GUEST ?
+                'InviteView__footer InviteView__footer-guest' :
+                'InviteView__footer';
         }
 
         return (
@@ -507,10 +535,14 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
                 onExited={this.handleExit}
                 backdrop={this.getBackdrop()}
                 ariaLabelledby='invitation_modal_title'
+                modalHeaderText={modalHeaderText}
+                modalHeaderTextId='invitation_modal_title'
+                headerClassName={headerClassName}
+                footerContent={footerContent}
+                footerClassName={footerClassName}
                 compassDesign={true}
-                showCloseButton={false}
-                showHeader={false}
-                bodyPadding={false}
+                showCloseButton={showCloseButton}
+                contentSized={true}
             >
                 {view}
             </GenericModal>

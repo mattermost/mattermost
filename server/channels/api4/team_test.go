@@ -4303,6 +4303,27 @@ func TestInviteUsersToTeamWithProfiles(t *testing.T) {
 			}},
 		}
 	}
+	findResendJob := func(t *testing.T, email string) *model.Job {
+		t.Helper()
+		resendJobs, err := th.App.Srv().Store().Job().GetAllByType(th.Context, model.JobTypeResendInvitationEmail)
+		require.NoError(t, err)
+		for _, job := range resendJobs {
+			if job.Data["teamID"] != th.BasicTeam.Id {
+				continue
+			}
+			var emails []string
+			if json.Unmarshal([]byte(job.Data["emailList"]), &emails) != nil {
+				continue
+			}
+			for _, jobEmail := range emails {
+				if model.NormalizeEmail(jobEmail) == model.NormalizeEmail(email) {
+					return job
+				}
+			}
+		}
+		require.FailNow(t, "resend job not found", "team=%s email=%s", th.BasicTeam.Id, email)
+		return nil
+	}
 
 	t.Run("rejected without an Enterprise license", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
@@ -4315,6 +4336,27 @@ func TestInviteUsersToTeamWithProfiles(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
+	t.Run("rejected when locked profile fields are disabled", func(t *testing.T) {
+		_, resp, err := th.Client.InviteMembersToTeamGracefully(context.Background(), th.BasicTeam.Id, newInvite())
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.team.invite_members.profiles_disabled.app_error")
+	})
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.LockProfileFieldsForEmailUsers = model.TeamSettingsLockProfileFieldsNameAndUsername
+	})
+
+	t.Run("rejected when graceful is explicitly false", func(t *testing.T) {
+		invite := newInvite()
+		inviteJSON, err := json.Marshal(invite)
+		require.NoError(t, err)
+		resp, err := th.Client.DoAPIPost(context.Background(), "/teams/"+th.BasicTeam.Id+"/invite/email?graceful=false", string(inviteJSON))
+		require.Error(t, err)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		CheckErrorID(t, err, "api.team.invite_members.profiles_graceful.app_error")
+	})
+
 	t.Run("accepted from a regular member with invite permission", func(t *testing.T) {
 		invite := newInvite()
 		invitesWithErrors, _, err := th.Client.InviteMembersToTeamGracefully(context.Background(), th.BasicTeam.Id, invite)
@@ -4322,12 +4364,9 @@ func TestInviteUsersToTeamWithProfiles(t *testing.T) {
 		require.Len(t, invitesWithErrors, 1)
 		require.Nil(t, invitesWithErrors[0].Error)
 
-		resendJobs, err := th.App.Srv().Store().Job().GetAllByType(th.Context, model.JobTypeResendInvitationEmail)
-		require.NoError(t, err)
-		require.NotEmpty(t, resendJobs)
-
+		resendJob := findResendJob(t, invite.Emails[0])
 		var profiles []*model.MemberInviteProfile
-		require.NoError(t, json.Unmarshal([]byte(resendJobs[0].Data["profilesList"]), &profiles))
+		require.NoError(t, json.Unmarshal([]byte(resendJob.Data["profilesList"]), &profiles))
 		require.Equal(t, invite.Profiles, profiles)
 	})
 
@@ -4338,10 +4377,34 @@ func TestInviteUsersToTeamWithProfiles(t *testing.T) {
 		require.Nil(t, invitesWithErrors[0].Error)
 	})
 
-	t.Run("invalid username is rejected", func(t *testing.T) {
+	t.Run("accepted from local mode with profile data in the token", func(t *testing.T) {
+		invite := newInvite()
+		invitesWithErrors, _, err := th.LocalClient.InviteMembersToTeamGracefully(context.Background(), th.BasicTeam.Id, invite)
+		require.NoError(t, err)
+		require.Len(t, invitesWithErrors, 1)
+		require.Nil(t, invitesWithErrors[0].Error)
+
+		tokens, err := th.App.Srv().Store().Token().GetAllTokensByType(model.TokenTypeTeamInvitation)
+		require.NoError(t, err)
+		var tokenData map[string]string
+		for _, token := range tokens {
+			var data map[string]string
+			require.NoError(t, json.Unmarshal([]byte(token.Extra), &data))
+			if data["email"] == invite.Emails[0] {
+				tokenData = data
+				break
+			}
+		}
+		require.NotNil(t, tokenData)
+		require.Equal(t, invite.Profiles[0].Username, tokenData["username"])
+		require.Equal(t, invite.Profiles[0].FirstName, tokenData["first_name"])
+		require.Equal(t, invite.Profiles[0].LastName, tokenData["last_name"])
+	})
+
+	t.Run("invalid username is rejected in local mode", func(t *testing.T) {
 		invite := newInvite()
 		invite.Profiles[0].Username = "inv@lid username"
-		_, resp, err := th.Client.InviteMembersToTeamGracefully(context.Background(), th.BasicTeam.Id, invite)
+		_, resp, err := th.LocalClient.InviteMembersToTeamGracefully(context.Background(), th.BasicTeam.Id, invite)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 		CheckErrorID(t, err, "model.member.is_valid.profile_username.app_error")

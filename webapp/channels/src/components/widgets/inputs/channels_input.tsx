@@ -29,6 +29,8 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {Constants} from 'utils/constants';
 
+import {REACT_SELECT_PORTAL_Z_INDEX, renderReactSelectMenu} from './react_select_utils';
+
 import './channels_input.scss';
 
 type Props<T extends Channel> = {
@@ -135,16 +137,7 @@ export default class ChannelsInput<T extends Channel> extends React.PureComponen
         );
     };
 
-    // When menuPortal is on, openMenuOnFocus would otherwise open an empty
-    // menu shell on focus before any query — skip until there is input text
-    // or loaded options.
-    Menu = (props: MenuProps<T, true>) => {
-        if (this.props.menuPortal && !props.selectProps.inputValue && props.options.length === 0) {
-            return null;
-        }
-
-        return <components.Menu {...props}/>;
-    };
+    Menu = (props: MenuProps<T, true>) => renderReactSelectMenu(props, Boolean(this.props.menuPortal));
 
     formatOptionLabel = (channel: T) => {
         let icon = <PublicChannelIcon className='public-channel-icon'/>;
@@ -190,7 +183,7 @@ export default class ChannelsInput<T extends Channel> extends React.PureComponen
         const styles = this.props.menuPortal ? {
             menuPortal: (css) => ({
                 ...css,
-                zIndex: 99999999,
+                zIndex: REACT_SELECT_PORTAL_Z_INDEX,
             }),
         } satisfies StylesConfig<T, true> : undefined;
 

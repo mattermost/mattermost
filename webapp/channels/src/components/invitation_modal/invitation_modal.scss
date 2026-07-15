@@ -1,114 +1,19 @@
-// InvitationModal is the dialog element. Prefix with .app__body/.console__body
-// so flex overrides beat GenericModal location--center's
-// `.modal-content { flex: 1 1 auto }` — otherwise the card grows to full dialog
-// height and blocks click-away above/below (left/right still worked).
 .app__body .modal .InvitationModal.GenericModal__location--center,
 .console__body .modal .InvitationModal.GenericModal__location--center {
     @media screen and (min-width: 640px) {
         width: 600px;
     }
 
-    // Dialog is height:100% (location--center). Pass clicks through empty
-    // areas to the backdrop so click-away can dismiss.
-    pointer-events: none;
-
-    // Do not set transform/top/left for centering — Bootstrap's fade animates
-    // the dialog with transform (translate 0,-25% → 0,0). location--center's
-    // flexbox already centers the card.
-
-    // Cap height and stack header / body / footer so tall content (e.g. many
-    // member profile rows) scrolls inside the body instead of pushing the
-    // footer outside the modal frame. Same flex-chain approach as
-    // flag_post_modal and simulate_access_modal.
-    .modal-content {
-        display: flex;
-        overflow: hidden;
-        width: 100%;
-        min-width: 0;
-        max-width: 100%;
-        height: auto;
-        max-height: 90vh;
-        flex-basis: auto;
-        flex-direction: column;
-        // Stay content-sized — do not fill the full-height dialog.
-        flex-grow: 0;
-        flex-shrink: 1;
-        align-self: center;
-        pointer-events: auto;
-    }
-
-    .GenericModal__wrapper {
-        display: flex;
-        overflow: hidden;
-        min-height: 0;
-        flex: 1 1 auto;
-        flex-direction: column;
-    }
-
-    // GenericModal wraps InviteView/ResultView children (each bringing its own
-    // modal-header / modal-body / modal-footer) inside .modal-body >
-    // .GenericModal__body. Both outer layers need to be flex columns with
-    // min-height: 0 so the nested body can scroll. No horizontal padding here —
-    // that would inset the scrollbar from the modal edge.
-    .GenericModal__wrapper > .modal-body {
-        display: flex;
-        overflow: hidden;
-        min-height: 0;
-        flex: 1 1 auto;
-        flex-direction: column;
-        padding: 0;
-    }
-
-    .GenericModal__body {
-        display: flex;
-        overflow: hidden;
-        min-height: 0;
-        flex: 1 1 auto;
-        flex-direction: column;
-        padding: 0;
-    }
-
-    .GenericModal__body > .modal-header,
-    .GenericModal__body > .modal-footer {
-        flex-shrink: 0;
-    }
-
-    // Nested invite header: default stretch makes the title fill the header and
-    // sit against the top while the absolute close icon stays lower. Center
-    // the title and clear h1 margins.
-    .GenericModal__body > .modal-header {
+    .InvitationModal__header {
         align-items: center;
         padding: 24px 64px 24px 32px;
 
+        .GenericModal__header__text_container {
+            margin-top: 0;
+        }
+
         .modal-title {
             margin: 0;
-        }
-    }
-
-    // Scroll on the full-bleed nested body so the scrollbar sits on the modal's
-    // outer edge. Horizontal inset lives on the children — padding on this
-    // overflow container would pull the scrollbar inward.
-    .GenericModal__body > .modal-body {
-        min-height: 0;
-        max-height: none;
-        flex: 1 1 auto;
-        padding-right: 0;
-        padding-left: 0;
-        overflow-x: hidden;
-        overflow-y: auto;
-
-        > * {
-            padding-right: 32px;
-            padding-left: 32px;
-        }
-    }
-
-    @media screen and (max-width: 768px) {
-        display: flex;
-        max-height: 100%;
-
-        .modal-content {
-            max-height: 100vh;
         }
     }
 }

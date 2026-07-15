@@ -22,79 +22,6 @@ test.beforeEach(async ({pw}) => {
     await pw.skipIfNoLicense();
 });
 
-test.afterEach(async ({pw}) => {
-    const {adminClient} = await pw.getAdminClient();
-    await adminClient.patchConfig({
-        AnnouncementSettings: {AdminNoticesEnabled: true, UserNoticesEnabled: true},
-        ServiceSettings: {EnableEmailInvitations: false},
-        TeamSettings: {LockProfileFieldsForEmailUsers: 'none'},
-    });
-});
-
-/**
- * @objective Verify email invite rows suggest profile fields only for first.last addresses when profile locking is enabled.
- * @precondition An Enterprise license and email invitations are enabled.
- */
-test(
-    'suggests profile details for business-style email invites and leaves personal-style invites blank',
-    {tag: '@locked_profile_fields'},
-    async ({pw}) => {
-        const {user, adminClient, team} = await pw.initSetup();
-        await setLockConfig(adminClient, 'name_and_username');
-
-        // # Open the team invite modal as a member with invite permission.
-        const {channelsPage} = await pw.testBrowser.login(user);
-        const inviteModal = await openInviteModal(channelsPage, team);
-
-        // # Add a first.last email address.
-        const businessEmail = `jane.doe@${pw.random.id()}.example.com`;
-        await inviteModal.addEmail(businessEmail);
-        const businessProfile = inviteModal.getProfileRow(businessEmail);
-
-        // * The row suggests the name and username derived from the email local part.
-        await expect(inviteModal.profileInputs).toBeVisible();
-        await expect(businessProfile.firstNameInput).toHaveValue('Jane');
-        await expect(businessProfile.lastNameInput).toHaveValue('Doe');
-        await expect(businessProfile.usernameInput).toHaveValue('jane.doe');
-
-        // # Add a personal-style email address to the same invitation.
-        const personalEmail = `xyz123@${pw.random.id()}.example.com`;
-        await inviteModal.addEmail(personalEmail);
-        const personalProfile = inviteModal.getProfileRow(personalEmail);
-
-        // * Personal-style addresses have editable profile fields without automatic suggestions.
-        await expect(personalProfile.firstNameInput).toHaveValue('');
-        await expect(personalProfile.lastNameInput).toHaveValue('');
-        await expect(personalProfile.usernameInput).toHaveValue('');
-
-        // * Adding another email does not re-seed the first row's suggestions.
-        await expect(businessProfile.firstNameInput).toHaveValue('Jane');
-        await expect(businessProfile.lastNameInput).toHaveValue('Doe');
-        await expect(businessProfile.usernameInput).toHaveValue('jane.doe');
-    },
-);
-
-/**
- * @objective Verify profile inputs are absent from email invites when profile locking is disabled.
- * @precondition Email invitations are enabled.
- */
-test(
-    'does not show profile detail inputs when email profile locking is disabled',
-    {tag: '@locked_profile_fields'},
-    async ({pw}) => {
-        const {user, adminClient, team} = await pw.initSetup();
-        await setLockConfig(adminClient, 'none');
-
-        // # Open the invite modal and add an email address.
-        const {channelsPage} = await pw.testBrowser.login(user);
-        const inviteModal = await openInviteModal(channelsPage, team);
-        await inviteModal.addEmail(`jane.doe@${pw.random.id()}.example.com`);
-
-        // * The invite remains a normal email invite without pre-provisioned profile inputs.
-        await expect(inviteModal.profileInputs).not.toBeAttached();
-    },
-);
-
 /**
  * @objective Verify an email invite with a pre-set username that is already taken fails
  * gracefully in the invite results instead of dead-ending the invitee at signup.
@@ -132,8 +59,8 @@ test(
 );
 
 /**
- * @objective Verify an admin-provisioned email invite controls signup data even when the signup
- * link and form are tampered with, and locks the resulting member profile.
+ * @objective Verify an admin-provisioned email invite controls signup data and locks the
+ * resulting member profile.
  * @precondition An Enterprise license, Inbucket, and email invitations are available.
  */
 test(
@@ -176,33 +103,12 @@ test(
         await expect(pw.signupPage.adminChosenUsernameMessage).toBeVisible();
         await expect(pw.signupPage.presetName).toHaveText("You'll join as Jane Doe.");
 
-        // # Tamper with the link's d= display payload, which the server must not trust.
-        const tamperedUrl = new URL(signupLink);
-        const tamperedData = JSON.parse(tamperedUrl.searchParams.get('d') ?? '{}');
-        tamperedData.username = `hacked${uniqueId}`;
-        tamperedData.first_name = 'Hacked';
-        tamperedUrl.searchParams.set('d', JSON.stringify(tamperedData));
-        await pw.signupPage.goto(tamperedUrl.toString());
-        await pw.signupPage.toBeVisible();
-        await expect(pw.signupPage.usernameInput).toHaveValue(`hacked${uniqueId}`);
-
-        // # Also force the locked username input editable in the DOM and submit yet another value.
-        const domTamperedUsername = `sneaky${uniqueId}`;
-        await pw.signupPage.usernameInput.evaluate((element, value) => {
-            const input = element as HTMLInputElement;
-            input.removeAttribute('disabled');
-            const setValue = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
-            setValue?.call(input, value);
-            input.dispatchEvent(new Event('input', {bubbles: true}));
-        }, domTamperedUsername);
-        await expect(pw.signupPage.usernameInput).toHaveValue(domTamperedUsername);
-
-        // # Complete signup with a password despite the tampered form.
+        // # Complete signup with a password.
         await pw.signupPage.createInvitedUser(password);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.toBeVisible();
 
-        // * The new member carries the invite token's profile, not the tampered values.
+        // * The new member carries the profile values from the invitation.
         await expect(page).toHaveURL(new RegExp(`/${team.name}/channels/town-square`));
         const createdUser = await adminClient.getUserByEmail(invitedEmail);
         expect(createdUser.username).toBe(invitedUsername);

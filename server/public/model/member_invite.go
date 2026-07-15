@@ -6,7 +6,6 @@ package model
 import (
 	"encoding/json"
 	"net/http"
-	"slices"
 	"strings"
 	"unicode/utf8"
 )
@@ -49,15 +48,26 @@ func (i *MemberInvite) IsValid() *AppError {
 		}
 	}
 
+	invitedEmails := make(map[string]struct{}, len(i.Emails))
+	for _, email := range i.Emails {
+		invitedEmails[NormalizeEmail(email)] = struct{}{}
+	}
+
+	profileEmails := make(map[string]struct{}, len(i.Profiles))
 	usernames := make(map[string]struct{}, len(i.Profiles))
 	for _, profile := range i.Profiles {
 		if profile == nil {
 			return NewAppError("MemberInvite.IsValid", "model.member.is_valid.profile_nil.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if !slices.Contains(i.Emails, strings.ToLower(profile.Email)) {
+		email := NormalizeEmail(profile.Email)
+		if _, exists := invitedEmails[email]; !exists {
 			return NewAppError("MemberInvite.IsValid", "model.member.is_valid.profile_email.app_error", nil, "email="+profile.Email, http.StatusBadRequest)
 		}
+		if _, exists := profileEmails[email]; exists {
+			return NewAppError("MemberInvite.IsValid", "model.member.is_valid.profile_email_duplicate.app_error", nil, "email="+profile.Email, http.StatusBadRequest)
+		}
+		profileEmails[email] = struct{}{}
 
 		username := strings.ToLower(profile.Username)
 		if !IsValidUsername(username) {
