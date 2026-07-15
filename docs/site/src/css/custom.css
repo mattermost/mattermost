@@ -498,6 +498,7 @@ blockquote {
 
 .upgrade-notes-table-wrapper {
   width: 100%;
+  max-width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -505,36 +506,69 @@ blockquote {
 .markdown table.upgrade-notes-table {
   display: table;
   width: 100%;
-  min-width: 100%;
+  min-width: 0;
   table-layout: fixed;
-  overflow-x: visible;
 }
 
 .markdown table.upgrade-notes-table thead {
   display: table-header-group;
-  width: 100%;
 }
 
 .markdown table.upgrade-notes-table tbody {
   display: table-row-group;
-  width: 100%;
+}
+
+.markdown table.upgrade-notes-table thead th {
+  text-transform: none;
+  letter-spacing: normal;
+  font-family: var(--mm-font-sans);
+  font-weight: 700;
+  font-size: 0.85rem;
+  line-height: 1.35;
+  padding: 0.5rem 0.65rem;
+}
+
+.markdown table.upgrade-notes-table th,
+.markdown table.upgrade-notes-table td {
+  vertical-align: top;
+  padding: 0.5rem 0.65rem;
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .markdown table.upgrade-notes-table th:first-child,
 .markdown table.upgrade-notes-table td:first-child {
-  width: 18%;
-  vertical-align: top;
-  white-space: nowrap;
+  width: 25%;
 }
 
 .markdown table.upgrade-notes-table th:last-child,
 .markdown table.upgrade-notes-table td:last-child {
-  width: 82%;
-  word-break: break-word;
-  overflow-wrap: anywhere;
+  width: 75%;
+  max-width: 0;
+}
+
+.markdown table.upgrade-notes-table td:first-child:not(:last-child) {
+  white-space: nowrap;
+}
+
+.markdown table.upgrade-notes-table tbody tr:nth-child(even) {
+  background: transparent;
+}
+
+.markdown table.upgrade-notes-table tbody td {
+  border-bottom: 1px solid var(--mm-border-subtle);
 }
 
 .markdown table.upgrade-notes-table pre,
+.markdown table.upgrade-notes-table .sourceCode {
+  max-width: 100%;
+  margin: 0.5rem 0 0;
+  overflow-x: auto;
+}
+
+.markdown table.upgrade-notes-table pre,
+.markdown table.upgrade-notes-table pre code,
 .markdown table.upgrade-notes-table code {
   white-space: pre-wrap;
   word-break: break-word;
