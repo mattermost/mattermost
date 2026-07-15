@@ -72,9 +72,11 @@
     },
     "@types/estree": "0.0.51",
     "asn1.js": "5.4.1",
+    "react": "19.2.7",
     "react-beautiful-dnd": {
       "react-redux": "9.2.0"
     },
+    "react-dom": "19.2.7",
     "redux-persist": {
       "redux": "5.0.1"
     },
