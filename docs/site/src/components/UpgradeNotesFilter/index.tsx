@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import styles from './styles.module.css';
 
 type VersionParts = {major: number; minor: number};
@@ -23,6 +23,25 @@ function parseVersion(version: string): VersionParts {
   return {major, minor};
 }
 
+function isVersionRelevant(
+  version: string,
+  sourceVersion: string,
+  targetVersion: string,
+): boolean {
+  const rowV = parseVersion(version);
+  const sourceV = parseVersion(sourceVersion);
+  const targetV = parseVersion(targetVersion);
+
+  return (
+    (sourceVersion === 'all' ||
+      rowV.major > sourceV.major ||
+      (rowV.major === sourceV.major && rowV.minor >= sourceV.minor)) &&
+    (targetVersion === 'all' ||
+      rowV.major < targetV.major ||
+      (rowV.major === targetV.major && rowV.minor <= targetV.minor))
+  );
+}
+
 function collectRows(table: HTMLTableElement): {rows: RowRef[]; versions: string[]} {
   const rows: RowRef[] = [];
   const versions: string[] = [];
@@ -32,7 +51,7 @@ function collectRows(table: HTMLTableElement): {rows: RowRef[]; versions: string
     const cells = tr.querySelectorAll('td');
     if (cells.length > 1) {
       const versionText = cells[0].textContent?.trim() ?? '';
-      const versionMatch = versionText.match(/v(\d+\.\d+)/);
+      const versionMatch = versionText.match(/^v(\d+\.\d+)$/);
       if (versionMatch) {
         const version = versionMatch[1];
         if (!versions.includes(version)) {
@@ -56,23 +75,48 @@ function collectRows(table: HTMLTableElement): {rows: RowRef[]; versions: string
   return {rows, versions: sortVersions(versions)};
 }
 
+function findUpgradeNotesTable(): HTMLTableElement | null {
+  return document.querySelector<HTMLTableElement>('.upgrade-notes-table');
+}
+
 export default function UpgradeNotesFilter() {
   const rowsRef = useRef<RowRef[]>([]);
   const [versions, setVersions] = useState<string[]>([]);
   const [sourceVersion, setSourceVersion] = useState('all');
   const [targetVersion, setTargetVersion] = useState('all');
   const [error, setError] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
 
-  useEffect(() => {
-    const table = document.querySelector<HTMLTableElement>('.upgrade-notes-table');
-    if (!table) {
-      return;
+  const initializeRows = useCallback(() => {
+    const table = findUpgradeNotesTable();
+    if (!table || table.querySelectorAll('tbody tr').length === 0) {
+      return false;
     }
 
     const {rows, versions: foundVersions} = collectRows(table);
+    if (rows.length === 0 || foundVersions.length === 0) {
+      return false;
+    }
+
     rowsRef.current = rows;
     setVersions(foundVersions);
+    setReady(true);
+    return true;
   }, []);
+
+  useEffect(() => {
+    if (initializeRows()) {
+      return undefined;
+    }
+
+    const timer = window.setInterval(() => {
+      if (initializeRows()) {
+        window.clearInterval(timer);
+      }
+    }, 100);
+
+    return () => window.clearInterval(timer);
+  }, [initializeRows]);
 
   const showAllRows = () => {
     rowsRef.current.forEach(({row}) => row.classList.remove('filtered'));
@@ -80,6 +124,13 @@ export default function UpgradeNotesFilter() {
 
   const applyFilter = () => {
     setError(null);
+
+    if (!ready || rowsRef.current.length === 0) {
+      if (!initializeRows()) {
+        setError('Error: Upgrade notes table is still loading. Try again in a moment.');
+        return;
+      }
+    }
 
     if (sourceVersion === 'all' && targetVersion === 'all') {
       showAllRows();
@@ -97,17 +148,16 @@ export default function UpgradeNotesFilter() {
       return;
     }
 
-    rowsRef.current.forEach(({row, version}) => {
-      const rowV = parseVersion(version);
-      const isRelevant =
-        (sourceVersion === 'all' ||
-          rowV.major > sourceV.major ||
-          (rowV.major === sourceV.major && rowV.minor >= sourceV.minor)) &&
-        (targetVersion === 'all' ||
-          rowV.major < targetV.major ||
-          (rowV.major === targetV.major && rowV.minor <= targetV.minor));
+    const versionVisibility = new Map<string, boolean>();
+    versions.forEach((version) => {
+      versionVisibility.set(
+        version,
+        isVersionRelevant(version, sourceVersion, targetVersion),
+      );
+    });
 
-      row.classList.toggle('filtered', !isRelevant);
+    rowsRef.current.forEach(({row, version}) => {
+      row.classList.toggle('filtered', !versionVisibility.get(version));
     });
   };
 
@@ -130,7 +180,8 @@ export default function UpgradeNotesFilter() {
           <select
             id="source-version"
             value={sourceVersion}
-            onChange={(event) => setSourceVersion(event.target.value)}>
+            onChange={(event) => setSourceVersion(event.target.value)}
+            disabled={!ready}>
             <option value="all">All versions</option>
             {versions.map((version) => (
               <option key={`source-${version}`} value={version}>
@@ -145,7 +196,8 @@ export default function UpgradeNotesFilter() {
           <select
             id="target-version"
             value={targetVersion}
-            onChange={(event) => setTargetVersion(event.target.value)}>
+            onChange={(event) => setTargetVersion(event.target.value)}
+            disabled={!ready}>
             <option value="all">All versions</option>
             {versions.map((version) => (
               <option key={`target-${version}`} value={version}>
@@ -155,7 +207,11 @@ export default function UpgradeNotesFilter() {
           </select>
         </label>
 
-        <button type="button" className={styles.applyButton} onClick={applyFilter}>
+        <button
+          type="button"
+          className={styles.applyButton}
+          onClick={applyFilter}
+          disabled={!ready}>
           Apply Filter
         </button>
         <button type="button" className={styles.resetButton} onClick={resetFilter}>

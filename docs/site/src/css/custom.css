@@ -516,6 +516,50 @@ blockquote {
   overflow-wrap: anywhere;
 }
 
+.upgrade-notes-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.markdown table.upgrade-notes-table {
+  display: table;
+  width: 100%;
+  min-width: 100%;
+  table-layout: fixed;
+  overflow-x: visible;
+}
+
+.markdown table.upgrade-notes-table thead {
+  display: table-header-group;
+  width: 100%;
+}
+
+.markdown table.upgrade-notes-table tbody {
+  display: table-row-group;
+  width: 100%;
+}
+
+.markdown table.upgrade-notes-table th:first-child,
+.markdown table.upgrade-notes-table td:first-child {
+  width: 18%;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.markdown table.upgrade-notes-table th:last-child,
+.markdown table.upgrade-notes-table td:last-child {
+  width: 82%;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.markdown table.upgrade-notes-table pre,
+.markdown table.upgrade-notes-table code {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 /* === Mobile / responsive === */
 
 @media (max-width: 996px) {
