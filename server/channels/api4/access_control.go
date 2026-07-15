@@ -14,6 +14,13 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
 
+// shouldRedactExpressions reports whether raw CEL expressions should be masked for this caller.
+// Masking is attribute-based, not permission-based: system admins who do not hold all values
+// in a policy must also receive redacted raw expressions.
+func shouldRedactExpressions(c *Context) bool {
+	return c.App.Config().FeatureFlags.AttributeValueMasking
+}
+
 func (api *API) InitAccessControlPolicy() {
 	if !api.srv.Config().FeatureFlags.AttributeBasedAccessControl {
 		return
@@ -372,7 +379,6 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
-
 
 // validateTeamIdsExist returns a 400 if any entry is not a well-formed, existing
 // team id. GetTeams silently drops unknown ids (partial list) or returns 404 (all

@@ -11,7 +11,15 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/db"
 )
+
+func readMigrationSQL(t *testing.T, filename string) string {
+	t.Helper()
+	data, err := db.Assets().ReadFile("migrations/postgres/" + filename)
+	require.NoError(t, err, "failed to read migration file %s", filename)
+	return string(data)
+}
 
 func TestMigration000194(t *testing.T) {
 	logger := mlog.CreateTestLogger(t)

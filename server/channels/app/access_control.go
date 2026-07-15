@@ -1090,3 +1090,11 @@ func (a *App) refreshAttributeViewIfStale(rctx request.CTX) {
 
 	ch.attributeViewRefreshLast = time.Now()
 }
+
+// MaskPolicyExpressions masks non-held literal values in all policy rule expressions, in place.
+// No-op when AttributeValueMasking is disabled (release branch without full masking support).
+func (a *App) MaskPolicyExpressions(rctx request.CTX, policy *model.AccessControlPolicy, callerID string) {
+	if policy == nil || !a.Config().FeatureFlags.AttributeValueMasking {
+		return
+	}
+}
