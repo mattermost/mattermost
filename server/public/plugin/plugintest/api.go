@@ -6019,36 +6019,6 @@ func (_m *API) UpdatePropertyField(groupID string, field *model.PropertyField) (
 	return r0, r1
 }
 
-// UpdatePropertyFieldWithOptions provides a mock function with given fields: groupID, field, options
-func (_m *API) UpdatePropertyFieldWithOptions(groupID string, field *model.PropertyField, options model.PropertyRequestOptions) (*model.PropertyField, error) {
-	ret := _m.Called(groupID, field, options)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UpdatePropertyFieldWithOptions")
-	}
-
-	var r0 *model.PropertyField
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, *model.PropertyField, model.PropertyRequestOptions) (*model.PropertyField, error)); ok {
-		return rf(groupID, field, options)
-	}
-	if rf, ok := ret.Get(0).(func(string, *model.PropertyField, model.PropertyRequestOptions) *model.PropertyField); ok {
-		r0 = rf(groupID, field, options)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.PropertyField)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, *model.PropertyField, model.PropertyRequestOptions) error); ok {
-		r1 = rf(groupID, field, options)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // UpdatePropertyFields provides a mock function with given fields: groupID, fields
 func (_m *API) UpdatePropertyFields(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
 	ret := _m.Called(groupID, fields)

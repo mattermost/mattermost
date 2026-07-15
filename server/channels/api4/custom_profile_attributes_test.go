@@ -1978,3 +1978,120 @@ func TestOwnerManagedCPAFieldHumanValueWrites(t *testing.T) {
 	// is allowed) is covered by the property-service tests in
 	// channels/app/properties, which can stub the plugin checker.
 }
+
+func TestSysadminManagesCPAFieldOwners(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.CustomProfileAttributes = true
+	}).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	t.Run("system admin can create a field with owners and scopes", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.PropertyAttrsOwners: []model.PropertyOwner{
+					{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra"}},
+				},
+			},
+		}
+
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.NotNil(t, created)
+
+		owners := model.GetPropertyFieldOwners(created)
+		require.Len(t, owners, 1)
+		assert.Equal(t, "com.mattermost.scim", owners[0].ID)
+		assert.Equal(t, model.PropertyOwnerTypePlugin, owners[0].Type)
+		assert.Equal(t, []string{"entra"}, owners[0].Scopes)
+	})
+
+	t.Run("member cannot create a field with owners", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.PropertyAttrsOwners: []model.PropertyOwner{
+					{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra"}},
+				},
+			},
+		}
+
+		_, resp, err := th.Client.CreateCPAField(context.Background(), field)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+	})
+
+	t.Run("system admin can patch owners to add, change, and remove scopes", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeText,
+		}
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+
+		// Add owners
+		patched, resp, err := th.SystemAdminClient.PatchCPAField(context.Background(), created.ID, &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{
+				model.PropertyAttrsOwners: []model.PropertyOwner{
+					{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra"}},
+				},
+			},
+		})
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		owners := model.GetPropertyFieldOwners(patched)
+		require.Len(t, owners, 1)
+		assert.Equal(t, []string{"entra"}, owners[0].Scopes)
+
+		// Change scopes
+		patched, resp, err = th.SystemAdminClient.PatchCPAField(context.Background(), created.ID, &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{
+				model.PropertyAttrsOwners: []model.PropertyOwner{
+					{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra", "okta"}},
+				},
+			},
+		})
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		owners = model.GetPropertyFieldOwners(patched)
+		require.Len(t, owners, 1)
+		assert.ElementsMatch(t, []string{"entra", "okta"}, owners[0].Scopes)
+
+		// Remove owners
+		patched, resp, err = th.SystemAdminClient.PatchCPAField(context.Background(), created.ID, &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{
+				model.PropertyAttrsOwners: nil,
+			},
+		})
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		assert.False(t, model.HasPropertyFieldOwners(patched))
+	})
+
+	t.Run("member cannot patch owners on a field", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeText,
+		}
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+
+		_, resp, err = th.Client.PatchCPAField(context.Background(), created.ID, &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{
+				model.PropertyAttrsOwners: []model.PropertyOwner{
+					{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra"}},
+				},
+			},
+		})
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+	})
+}

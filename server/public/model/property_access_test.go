@@ -79,55 +79,6 @@ func TestGetPropertyFieldOwners(t *testing.T) {
 	})
 }
 
-func TestSetPropertyFieldOwners(t *testing.T) {
-	t.Run("nil field returns error", func(t *testing.T) {
-		err := SetPropertyFieldOwners(nil, []PropertyOwner{{ID: "p", Type: PropertyOwnerTypePlugin}})
-		require.Error(t, err)
-	})
-
-	t.Run("empty owners removes the key", func(t *testing.T) {
-		field := &PropertyField{Attrs: StringInterface{
-			PropertyAttrsOwners: []PropertyOwner{{ID: "p", Type: PropertyOwnerTypePlugin}},
-			"other":             "kept",
-		}}
-		require.NoError(t, SetPropertyFieldOwners(field, nil))
-		_, ok := field.Attrs[PropertyAttrsOwners]
-		assert.False(t, ok)
-		assert.Equal(t, "kept", field.Attrs["other"])
-		assert.False(t, HasPropertyFieldOwners(field))
-	})
-
-	t.Run("stores generic shape that round-trips through GetPropertyFieldOwners", func(t *testing.T) {
-		field := &PropertyField{}
-		owners := []PropertyOwner{
-			{ID: "com.mattermost.scim", Type: PropertyOwnerTypePlugin, Scopes: []string{"entra", "okta"}},
-		}
-		require.NoError(t, SetPropertyFieldOwners(field, owners))
-
-		raw, ok := field.Attrs[PropertyAttrsOwners]
-		require.True(t, ok)
-		_, isTyped := raw.([]PropertyOwner)
-		assert.False(t, isTyped, "must not store typed []PropertyOwner (gob-unsafe)")
-		_, isGeneric := raw.([]any)
-		assert.True(t, isGeneric, "must store generic []any shape")
-
-		got := GetPropertyFieldOwners(field)
-		require.Len(t, got, 1)
-		assert.Equal(t, "com.mattermost.scim", got[0].ID)
-		assert.Equal(t, PropertyOwnerTypePlugin, got[0].Type)
-		assert.Equal(t, []string{"entra", "okta"}, got[0].Scopes)
-	})
-
-	t.Run("initializes nil Attrs", func(t *testing.T) {
-		field := &PropertyField{Attrs: nil}
-		require.NoError(t, SetPropertyFieldOwners(field, []PropertyOwner{
-			{ID: "p", Type: PropertyOwnerTypePlugin, Scopes: []string{"s"}},
-		}))
-		require.NotNil(t, field.Attrs)
-		assert.True(t, HasPropertyFieldOwners(field))
-	})
-}
-
 func TestIsKnownPropertyAccessMode(t *testing.T) {
 	tests := []struct {
 		name       string

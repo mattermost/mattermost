@@ -9292,35 +9292,3 @@ func (s *apiRPCServer) DeletePropertyValuesForFieldWithOptions(args *Z_DeletePro
 	}
 	return nil
 }
-
-type Z_UpdatePropertyFieldWithOptionsArgs struct {
-	A string
-	B *model.PropertyField
-	C model.PropertyRequestOptions
-}
-
-type Z_UpdatePropertyFieldWithOptionsReturns struct {
-	A *model.PropertyField
-	B error
-}
-
-func (g *apiRPCClient) UpdatePropertyFieldWithOptions(groupID string, field *model.PropertyField, options model.PropertyRequestOptions) (*model.PropertyField, error) {
-	_args := &Z_UpdatePropertyFieldWithOptionsArgs{groupID, field, options}
-	_returns := &Z_UpdatePropertyFieldWithOptionsReturns{}
-	if err := g.client.Call("Plugin.UpdatePropertyFieldWithOptions", _args, _returns); err != nil {
-		log.Printf("RPC call to UpdatePropertyFieldWithOptions API failed: %s", err.Error())
-	}
-	return _returns.A, _returns.B
-}
-
-func (s *apiRPCServer) UpdatePropertyFieldWithOptions(args *Z_UpdatePropertyFieldWithOptionsArgs, returns *Z_UpdatePropertyFieldWithOptionsReturns) error {
-	if hook, ok := s.impl.(interface {
-		UpdatePropertyFieldWithOptions(groupID string, field *model.PropertyField, options model.PropertyRequestOptions) (*model.PropertyField, error)
-	}); ok {
-		returns.A, returns.B = hook.UpdatePropertyFieldWithOptions(args.A, args.B, args.C)
-		returns.B = encodableError(returns.B)
-	} else {
-		return encodableError(fmt.Errorf("API UpdatePropertyFieldWithOptions called but not implemented."))
-	}
-	return nil
-}
