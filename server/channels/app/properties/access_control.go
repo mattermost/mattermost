@@ -26,7 +26,6 @@ import (
 	"maps"
 	"net/http"
 	"slices"
-	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -712,84 +711,40 @@ func (h *AccessControlHook) checkOwnerValueWriteAccess(field *model.PropertyFiel
 	return fmt.Errorf("field %s is owner-managed and caller %q acting as scope %q is not an owner with a matching scope: %w", field.ID, callerID, effectiveScope, ErrAccessDenied)
 }
 
+// isListedOwner reports whether the machine caller matches an explicit owner
+// entry on the field (by id and type). Scope is not consulted: being a listed
+// owner is what authorizes managing the field; scope only gates value writes.
+func (h *AccessControlHook) isListedOwner(field *model.PropertyField, callerID string) bool {
+	ownerID, ownerType, _ := h.callerOwnerIdentity(callerID, "")
+	for _, owner := range model.GetPropertyFieldOwners(field) {
+		if owner.Type == ownerType && owner.ID == ownerID {
+			return true
+		}
+	}
+	return false
+}
+
 // enforceFieldUpdateAccess gates a field-definition update.
 //
-// For owner-managed fields:
-//   - The owners list may only be changed by human callers (sysadmins via REST).
-//   - A machine caller may edit the rest of the definition only if it is a
-//     listed scopeless owner (see checkOwnerFieldWriteAccess).
+// Owner-managed fields allow a machine caller only if it is a listed owner
+// (checked against the stored owners, so a non-owner cannot add itself). A
+// listed owner may edit the whole definition including the owners attr. Human
+// callers pass through to the API-layer sysadmin pin.
 //
 // For non-owner-managed fields, machine callers may not add owners, and legacy
 // protected / source_plugin_id rules continue to apply.
 func (h *AccessControlHook) enforceFieldUpdateAccess(existing, updated *model.PropertyField, callerID string) error {
-	existingOwners := model.GetPropertyFieldOwners(existing)
-	updatedOwners := model.GetPropertyFieldOwners(updated)
-
 	if model.HasPropertyFieldOwners(existing) {
-		if h.isMachineCaller(callerID) && !ownerSetsEqual(existingOwners, updatedOwners) {
-			return fmt.Errorf("owners can only be changed by an administrator: %w", ErrAccessDenied)
+		if h.isMachineCaller(callerID) && !h.isListedOwner(existing, callerID) {
+			return fmt.Errorf("field %s is owner-managed and can only be modified by an administrator or a listed owner: %w", existing.ID, ErrAccessDenied)
 		}
-		return h.checkOwnerFieldWriteAccess(existing.ID, existingOwners, callerID)
+		return nil
 	}
 
 	if h.isMachineCaller(callerID) && model.HasPropertyFieldOwners(updated) {
 		return fmt.Errorf("owners can only be set by an administrator: %w", ErrAccessDenied)
 	}
 	return h.checkLegacyFieldWriteAccess(existing, callerID)
-}
-
-// checkOwnerFieldWriteAccess enforces an owners list on a field-definition write.
-// A machine caller is allowed only if it is a listed owner (matching ID and type)
-// whose Scopes list is empty (scopeless ownership). Scoped owners cannot edit the
-// field definition without a scoped field plugin API; human callers pass through
-// to be governed by the API-layer permission levels.
-func (h *AccessControlHook) checkOwnerFieldWriteAccess(fieldID string, owners []model.PropertyOwner, callerID string) error {
-	if !h.isMachineCaller(callerID) {
-		return nil
-	}
-
-	ownerID, ownerType, _ := h.callerOwnerIdentity(callerID, "")
-	for _, owner := range owners {
-		if owner.Type == ownerType && owner.ID == ownerID && len(owner.Scopes) == 0 {
-			return nil
-		}
-	}
-
-	return fmt.Errorf("field %s is owner-managed and caller %q is not a scopeless owner: %w", fieldID, callerID, ErrAccessDenied)
-}
-
-func ownerKey(owner model.PropertyOwner) string {
-	return strings.TrimSpace(owner.Type) + "\x00" + strings.TrimSpace(owner.ID)
-}
-
-func normalizeOwnerScopes(scopes []string) []string {
-	normalized := make([]string, 0, len(scopes))
-	for _, scope := range scopes {
-		scope = strings.TrimSpace(scope)
-		if scope == "" || slices.Contains(normalized, scope) {
-			continue
-		}
-		normalized = append(normalized, scope)
-	}
-	slices.Sort(normalized)
-	return normalized
-}
-
-func ownerScopeSet(owners []model.PropertyOwner) map[string][]string {
-	set := make(map[string][]string, len(owners))
-	for _, owner := range owners {
-		key := ownerKey(owner)
-		parts := strings.SplitN(key, "\x00", 2)
-		if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
-			continue
-		}
-		set[key] = normalizeOwnerScopes(owner.Scopes)
-	}
-	return set
-}
-
-func ownerSetsEqual(a, b []model.PropertyOwner) bool {
-	return maps.EqualFunc(ownerScopeSet(a), ownerScopeSet(b), slices.Equal)
 }
 
 // getSourcePluginID extracts the source_plugin_id from a PropertyField's attrs.
@@ -862,8 +817,8 @@ func (h *AccessControlHook) validateProtectedFieldUpdate(updatedField *model.Pro
 
 // checkLegacyFieldWriteAccess enforces the protected / source_plugin_id rules on
 // a non-owner-managed field. Owner-managed fields are gated by
-// checkOwnerFieldWriteAccess instead; callers must confirm the field has no
-// owners before calling this.
+// enforceFieldUpdateAccess; callers must confirm the field has no owners before
+// calling this.
 // IMPORTANT: Always pass the existing field fetched from the database, not a field provided by the caller.
 func (h *AccessControlHook) checkLegacyFieldWriteAccess(field *model.PropertyField, callerID string) error {
 	if !model.IsPropertyFieldProtected(field) {
@@ -885,11 +840,9 @@ func (h *AccessControlHook) checkLegacyFieldWriteAccess(field *model.PropertyFie
 // checkFieldDeleteAccess checks if the given caller can delete a PropertyField.
 // IMPORTANT: Always pass the existing field fetched from the database, not a field provided by the caller.
 func (h *AccessControlHook) checkFieldDeleteAccess(field *model.PropertyField, callerID string) error {
-	// Deleting an owner-managed field is administrator-only; machine callers
-	// (plugins/sync) are always denied.
 	if model.HasPropertyFieldOwners(field) {
-		if h.isMachineCaller(callerID) {
-			return fmt.Errorf("field %s is owner-managed and can only be deleted by an administrator: %w", field.ID, ErrAccessDenied)
+		if h.isMachineCaller(callerID) && !h.isListedOwner(field, callerID) {
+			return fmt.Errorf("field %s is owner-managed and can only be deleted by an administrator or a listed owner: %w", field.ID, ErrAccessDenied)
 		}
 		return nil
 	}
