@@ -201,7 +201,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 		if *license.Features.Cluster {
 			props["EnableMetrics"] = strconv.FormatBool(*c.MetricsSettings.Enable)
 			props["EnableClientMetrics"] = strconv.FormatBool(*c.MetricsSettings.Enable && *c.MetricsSettings.EnableClientMetrics)
-			props["EnableNotificationMetrics"] = strconv.FormatBool(c.FeatureFlags.NotificationMonitoring && *c.MetricsSettings.EnableNotificationMetrics)
+			props["EnableNotificationMetrics"] = strconv.FormatBool(*c.MetricsSettings.EnableNotificationMetrics)
 		}
 
 		if *license.Features.Announcement {
@@ -228,7 +228,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 		if license.HasSharedChannels() {
 			props["ExperimentalSharedChannels"] = strconv.FormatBool(*c.ConnectedWorkspacesSettings.EnableSharedChannels)
-			props["ExperimentalRemoteClusterService"] = strconv.FormatBool(c.FeatureFlags.EnableRemoteClusterService && *c.ConnectedWorkspacesSettings.EnableRemoteClusterService)
+			props["ExperimentalRemoteClusterService"] = strconv.FormatBool(*c.ConnectedWorkspacesSettings.EnableRemoteClusterService)
 		}
 
 		if model.MinimumProfessionalLicense(license) {

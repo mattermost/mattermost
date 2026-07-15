@@ -1,0 +1,137 @@
+---
+title: "Share and collaborate"
+---
+<PlanAvailability slug="all-commercial" />
+
+There are different ways for teams to access and interact with collaborative playbooks. This is managed in the System Console using permissions. Permissions can be granted in a variety of ways, to allow for different combinations of access and visibility.
+
+Permissions are provided using:
+
+- **System Scheme:** Applies permissions universally across all teams, channels, and playbooks.
+- **Team Override Schemes:** Allow admins to customize permissions for each team.
+
+For more information about System and Team Override Schemes, refer to the [Advanced Permissions](/administration-guide/onboard/advanced-permissions) documentation.
+
+<Note>
+
+Some permissions functionality is only available to Mattermost Enterprise customers. For more information, visit [https://mattermost.com/pricing](https://mattermost.com/pricing).
+
+</Note>
+
+In the context of collaborative playbooks, members are assigned a role and based on the selected permissions, this determines how they interact with playbooks. A member can be a member of one playbook, and an admin of another. This allows for granular permissions across teams and departments. For example, setting playbook visibility so only certain teams can view it, or setting permissions to allow an organization to view a playbook but only designated team members can make edits.
+
+Permissions are applied only to playbooks. There are no permissions that are specific to runs.
+
+<Important>
+
+From Playbooks v2.6.0, channel checklists use [channel-based permissions](/administration-guide/manage/team-channel-members) rather than playbook-specific permissions. This means that users with appropriate channel permissions can create, manage, and interact with checklists directly within channels without requiring separate playbook access permissions.
+
+</Important>
+
+## Playbook roles
+
+- **Member**: In the context of collaborative playbooks, members are users of Mattermost who are added to a playbook.
+- **Playbook Admin**: Playbook Admins are also members, and may have elevated permissions to change playbook and run visibility as well as functional settings. They do not have access to the System Console and their privileges are managed by the system admin. Members need to be promoted to the role from within playbooks. The Playbook Admin role is applied per playbook.
+
+<Note>
+
+Before you make system or team changes to permissions, ensure that you don't lose access to your existing playbooks. Navigate to the playbook you're a member of. Select the **Manage Access** icon and change your role from **Member** to **Admin**.
+
+</Note>
+
+## Playbooks permissions
+
+Default playbooks settings are completely open which enable all members to participate in runs, edit playbooks, view runs and playbooks, remove other members from runs, edit actions, and make other changes. Permissions provide better control over confidential runs and playbooks, as well as member management. Note that even with the default settings, private playbooks restrict these actions to members of the playbook.
+
+### Create read-only playbooks
+
+In the following example, only playbook admins can edit playbooks. Other users can view public playbooks and private playbooks of which they are a member, but can't edit any playbook or change playbook memberships.
+
+1.  Go to **System Console \> User Management \> Permissions**.
+2.  In the **All Members** section, uncheck **Manage Public Playbooks** and uncheck **Manage Private Playbooks**.
+3.  Scroll down to the **Playbook Admin** section and confirm that **Manage Public Playbooks** and **Manage Private Playbooks** are checked.
+4.  Select **Save**.
+
+## Restrict who can create playbooks
+
+You can also set permissions for read-only playbooks that do allow members to create new public or private playbooks.
+
+1.  Go to **System Console \> User Management \> Permissions**.
+2.  In the **All Members** section, uncheck **Manage Public Playbooks** and uncheck **Manage Private Playbooks**.
+3.  Then, check **Create Public Playbook** and **Create Private Playbook**.
+4.  Select **Save**.
+
+### I want to restrict who can convert playbooks from public to private
+
+You can control whether Members can convert playbooks from public to private.
+
+1.  Go to **System Console \> User Management \> Permissions**.
+2.  In the **All Members** section, check **Convert Playbooks**.
+3.  Select **Save**.
+
+Alternatively, to restrict this action so only Playbook Admins can convert playbooks from public to private, uncheck the setting above and:
+
+1.  Go to **System Console \> User Management \> Permissions**.
+2.  Scroll down to **Playbook Admin**.
+3.  Check **Convert Playbooks**.
+4.  Select **Save**.
+
+### I want to control who starts a run
+
+By default, all Members can start a run using a playbook. You can restrict this so that only Playbook Admins can start a run. Note that with this configuration, Members are not able to start runs or edit playbooks.
+
+1.  Go to **System Console \> User Management \> Permissions**.
+2.  In the **All Members** section, uncheck **Manage Runs**. This also unchecks **Create Runs**.
+3.  Scroll down to **Playbook Admin** and ensure that **Manage Runs** is checked.
+4.  Select **Save**.
+
+If you want to continue to allow Members to edit playbooks, an alternative to this configuration is to make the playbook private.
+
+## Duplicate a playbook
+
+Playbooks are repeatable workflows and sometimes it’s easier to copy and improve rather than start from scratch.
+
+You can do this by duplicating a playbook in the Playbooks screen. Select the **...** under **Actions** and then select **Duplicate**. The copied playbook will have **Copy of** appended to its original name which you can edit.
+
+To import a playbook, go to the Playbooks screen, and select **Import**. Choose the team you’re importing to, then select the JSON file. You can also export any playbook to JSON to easily share with other Mattermost servers.
+
+## Archive a playbook
+
+<Note>
+
+To archive a playbook, you must be a member of the playbook or playbook admin and have applicable **Manage Playbook Configurations** permission granted by a system administrator.
+
+</Note>
+
+To archive a playbook:
+
+1.  Go to the **Product** <img src="/img/ui/products_E82F.svg" alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> icon and select **Playbooks**.
+2.  Select **View all...** under the **Playbooks** section in the left menu.
+3.  Select the **...** in the **Actions** column for the playbook you would like to archive.
+4.  Select the **Archive** menu option then the **Archive** button to confirm you would like to archive the playbook.
+
+![Archive a playbook](/images/archive-a-playbook.gif)
+
+## Restore an archived playbook
+
+<Note>
+
+To restore an archived playbook, you must have applicable **Manage Playbook Configurations** permission granted by a system administrator.
+
+</Note>
+
+To restore an archived playbook:
+
+1.  Go to the **Product** <img src="/img/ui/products_E82F.svg" alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> icon and select **Playbooks**.
+2.  Select **View all...** under the **Playbooks** section in the left menu.
+3.  Verify the **With archived** checkbox next to the playbook search bar is selected.
+4.  Select the **...** in the **Actions** column for the playbook you would like to restore.
+5.  Select the **Restore** menu option then the **Restore** button to confirm you would like to restore the playbook.
+
+![Restore an archived playbook](/images/restore-an-archived-playbook.gif)
+
+## Export channel data
+
+<PlanAvailability slug="ent-plus" />
+
+See the [export channel data](/administration-guide/comply/export-mattermost-channel-data) documentation for details on working with channel export functionality.

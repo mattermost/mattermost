@@ -210,6 +210,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.AddMeta("obtained_user_id", user.Id)
+	auditRec.AddMeta("obtained_user_email", user.Email)
 	c.LogAuditWithUserId(user.Id, "obtained user")
 
 	desktopToken := relayProps["desktop_token"]

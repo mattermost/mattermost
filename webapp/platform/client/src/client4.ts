@@ -117,13 +117,8 @@ import type {
 import type {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics, PostInfo} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
-import type {
-    NameMappedPropertyFields,
-    PropertyField,
-    UserPropertyField,
-    UserPropertyFieldPatch,
-    PropertyValue,
-} from '@mattermost/types/properties';
+import type {NameMappedPropertyFields, PropertyField, PropertyValue} from '@mattermost/types/properties';
+import type {UserPropertyField, UserPropertyFieldPatch} from '@mattermost/types/properties_user';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Recap, CreateRecapRequest} from '@mattermost/types/recaps';
 import type {RemoteCluster, RemoteClusterAcceptInvite, RemoteClusterPatch, RemoteClusterWithPassword} from '@mattermost/types/remote_clusters';
@@ -1258,7 +1253,16 @@ export default class Client4 {
         );
     };
 
-    authorizeOAuthApp = (responseType: string, clientId: string, redirectUri: string, state: string, scope: string, resource?: string, codeChallenge?: string, codeChallengeMethod?: string) => {
+    authorizeOAuthApp = (
+        responseType: string | null,
+        clientId: string | null,
+        redirectUri: string | null,
+        state: string | null,
+        scope: string | null,
+        resource?: string | null,
+        codeChallenge?: string | null,
+        codeChallengeMethod?: string | null,
+    ) => {
         const body: any = {client_id: clientId, response_type: responseType, redirect_uri: redirectUri, state, scope};
 
         // Include resource parameter if provided
@@ -1274,7 +1278,7 @@ export default class Client4 {
             body.code_challenge_method = codeChallengeMethod;
         }
 
-        return this.doFetch<void>(
+        return this.doFetch<{redirect: string}>(
             `${this.url}/oauth/authorize`,
             {method: 'post', body: JSON.stringify(body)},
         );
@@ -1287,10 +1291,14 @@ export default class Client4 {
         );
     };
 
-    createUserAccessToken = (userId: string, description: string) => {
+    createUserAccessToken = (userId: string, description: string, expiresAt?: number) => {
+        const body: {description: string; expires_at?: number} = {description};
+        if (expiresAt !== undefined) {
+            body.expires_at = expiresAt;
+        }
         return this.doFetch<UserAccessToken>(
             `${this.getUserRoute(userId)}/tokens`,
-            {method: 'post', body: JSON.stringify({description})},
+            {method: 'post', body: JSON.stringify(body)},
         );
     };
 
@@ -1319,6 +1327,20 @@ export default class Client4 {
         return this.doFetch<StatusOK>(
             `${this.getUsersRoute()}/tokens/revoke`,
             {method: 'post', body: JSON.stringify({token_id: tokenId})},
+        );
+    };
+
+    getNonCompliantUserAccessTokenCount = () => {
+        return this.doFetch<{count: number}>(
+            `${this.getUsersRoute()}/tokens/non_compliant/count`,
+            {method: 'get'},
+        );
+    };
+
+    revokeNonCompliantUserAccessTokens = () => {
+        return this.doFetch<{count: number}>(
+            `${this.getUsersRoute()}/tokens/non_compliant/revoke`,
+            {method: 'post'},
         );
     };
 
@@ -2706,6 +2728,13 @@ export default class Client4 {
         );
     };
 
+    getFileInfo = (fileId: string) => {
+        return this.doFetch<FileInfo>(
+            `${this.getFileRoute(fileId)}/info`,
+            {method: 'get'},
+        );
+    };
+
     getFlaggedPosts = (userId: string, channelId = '', teamId = '', page = 0, perPage = PER_PAGE_DEFAULT) => {
         return this.doFetch<PostList>(
             `${this.getUserRoute(userId)}/posts/flagged${buildQueryString({channel_id: channelId, team_id: teamId, page, per_page: perPage})}`,
@@ -2823,26 +2852,25 @@ export default class Client4 {
     };
 
     doPostAction = (postId: string, actionId: string, selectedOption = '') => {
-        return this.doPostActionWithCookie(postId, actionId, '', selectedOption);
+        return this.doPostActionWithCookie(postId, actionId, '', selectedOption, undefined, '');
     };
 
-    doPostActionWithCookie = (postId: string, actionId: string, actionCookie: string, selectedOption = '') => {
+    doPostActionWithCookie = (postId: string, actionId: string, actionCookie: string, selectedOption = '', query?: Record<string, string>, integrationFormat = '') => {
         const msg: any = {
             selected_option: selectedOption,
         };
         if (actionCookie !== '') {
             msg.cookie = actionCookie;
         }
+        if (query && Object.keys(query).length > 0) {
+            msg.query = query;
+        }
+        if (integrationFormat) {
+            msg.integration_format = integrationFormat;
+        }
         return this.doFetch<PostActionResponse>(
             `${this.getPostRoute(postId)}/actions/${encodeURIComponent(actionId)}`,
             {method: 'post', body: JSON.stringify(msg)},
-        );
-    };
-
-    doPostActionWithQuery = (postId: string, actionId: string, query: Record<string, string>) => {
-        return this.doFetch<PostActionResponse>(
-            `${this.getPostRoute(postId)}/actions/${encodeURIComponent(actionId)}`,
-            {method: 'post', body: JSON.stringify({query})},
         );
     };
 
@@ -2942,7 +2970,7 @@ export default class Client4 {
 
     // General Routes
 
-    ping = (getServerStatus: boolean, deviceId?: string) => {
+    ping = (getServerStatus?: boolean, deviceId?: string) => {
         return this.doFetch<{
             status: string;
             ActiveSearchBackend: string;
@@ -3343,6 +3371,13 @@ export default class Client4 {
         return this.doFetch<SubmitDialogResponse>(
             `${this.getBaseRoute()}/actions/dialogs/submit`,
             {method: 'post', body: JSON.stringify(data)},
+        );
+    };
+
+    executeDialogAction = (url: string, context?: Record<string, string>, channelId?: string, teamId?: string) => {
+        return this.doFetch<PostActionResponse>(
+            `${this.getBaseRoute()}/actions/dialogs/execute`,
+            {method: 'post', body: JSON.stringify({url, context, channel_id: channelId, team_id: teamId})},
         );
     };
 

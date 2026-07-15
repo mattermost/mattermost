@@ -50,7 +50,7 @@ import './style.scss';
 
 export type Actions = {
     addMessageIntoHistory: (message: string) => void;
-    editPost: (input: Partial<Post>) => Promise<Post>;
+    editPost: (input: Post) => Promise<ActionResult<Post>>;
     setDraft: (name: string, value: PostDraft | null) => void;
     unsetEditingPost: () => void;
     scrollPostListToBottom: () => void;

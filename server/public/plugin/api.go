@@ -519,7 +519,7 @@ type API interface {
 	// a different plugin add a new claim.
 	//
 	// @tag Channel
-	// Minimum server version: 11.8
+	// Minimum server version: 11.9
 	RegisterChannelGuard(channelID string) *model.AppError
 
 	// UnregisterChannelGuard releases this plugin's claim on the channel. Only the registering
@@ -527,7 +527,7 @@ type API interface {
 	// unaffected.
 	//
 	// @tag Channel
-	// Minimum server version: 11.8
+	// Minimum server version: 11.9
 	UnregisterChannelGuard(channelID string) *model.AppError
 
 	// SearchChannels returns the channels on a team matching the provided search term.

@@ -20,7 +20,7 @@ import {
     isMyChannelAutotranslated,
     getPendingJoinRequestsCount,
 } from 'mattermost-redux/selectors/entities/channels';
-import {getConfig, getFeatureFlagValue, isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities/general';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getRemoteNamesForChannel} from 'mattermost-redux/selectors/entities/shared_channels';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
@@ -58,8 +58,6 @@ function makeMapStateToProps() {
         const channel = getCurrentChannel(state);
         const user = getCurrentUser(state);
         const config = getConfig(state);
-        const sharedChannelsPluginsEnabled = getFeatureFlagValue(state, 'EnableSharedChannelsPlugins') === 'true';
-
         let dmUser;
         let gmMembers;
         let customStatus;
@@ -124,7 +122,6 @@ function makeMapStateToProps() {
             isLastActiveEnabled,
             timestampUnits,
             hideGuestTags: config.HideGuestTags === 'true',
-            sharedChannelsPluginsEnabled,
             isChannelAutotranslated: channel ? isMyChannelAutotranslated(state, channel.id) : false,
             hasPendingJoinRequests,
         };

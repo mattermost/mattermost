@@ -36,7 +36,7 @@ import AdminSectionPanel from 'components/widgets/admin_console/admin_section_pa
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 import BetaTag from 'components/widgets/tag/beta_tag';
 
-import * as I18n from 'i18n/i18n.jsx';
+import * as I18n from 'i18n/i18n';
 import Constants from 'utils/constants';
 import {mappingValueFromRoles, rolesFromMapping} from 'utils/policy_roles_adapter';
 
@@ -1075,13 +1075,17 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                 if (section.component) {
                     const CustomComponent = section.component;
                     sections.push((
-                        <CustomComponent
-                            settingsList={settingsList}
+                        <div
                             key={section.key}
-                            sectionTitle={section.title}
-                            sectionDescription={section.description}
-                            {...section.componentProps}
-                        />
+                            data-testid={section.key}
+                        >
+                            <CustomComponent
+                                settingsList={settingsList}
+                                sectionTitle={section.title}
+                                sectionDescription={section.description}
+                                {...section.componentProps}
+                            />
+                        </div>
                     ));
                     return;
                 }
@@ -1137,6 +1141,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                             title={section.title}
                             description={section.description}
                             licenseSku={section.license_sku}
+                            data-testid={section.key}
                         >
                             {header}
                             {settingsList}

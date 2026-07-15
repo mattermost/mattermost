@@ -204,6 +204,18 @@ func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*mode
 	return sessions, nil
 }
 
+func (me SqlSessionStore) GetAllSessionsWithActiveDeviceIds() ([]*model.Session, error) {
+	builder := me.sessionSelectQuery.
+		Where(sq.NotEq{"DeviceId": ""}).
+		Where("DeviceId != COALESCE(Props->>'last_removed_device_id', '')")
+
+	sessions := []*model.Session{}
+	if err := me.GetReplica().SelectBuilder(&sessions, builder); err != nil {
+		return nil, errors.Wrap(err, "failed to find all sessions with active device IDs")
+	}
+	return sessions, nil
+}
+
 func (me SqlSessionStore) GetMobileSessionMetadata() ([]*model.MobileSessionMetadata, error) {
 	versionProp := model.SessionPropMobileVersion
 	notificationDisabledProp := model.SessionPropDeviceNotificationDisabled

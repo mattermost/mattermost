@@ -178,14 +178,12 @@ jobs:
           persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
+      - name: ci/restore-npm-cache
+        uses: ./.github/actions/restore-e2e-npm-cache
       - name: ci/setup-node
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: |
-            e2e-tests/playwright/package-lock.json
-            webapp/package-lock.json
       - name: ci/npm-cache-verify
         # Heal any partial/dangling entries left in the restored ~/.npm cache
         # before running `npm ci`. Avoids the intermittent EEXIST/ENOENT
@@ -210,7 +208,7 @@ jobs:
         # tar for all future runs — no need for a retry loop.
         run: |
           set -euo pipefail
-          IMAGE="mcr.microsoft.com/playwright:v1.59.1-noble"
+          IMAGE="mcr.microsoft.com/playwright:v1.61.0-noble"
           TAR="/tmp/playwright-docker-image.tar"
           if [ -f "${TAR}" ]; then
             echo "Loading Playwright image from GitHub Actions cache"
@@ -295,12 +293,12 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
+      - name: ci/restore-npm-cache
+        uses: ./.github/actions/restore-e2e-npm-cache
       - name: ci/setup-node
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: "e2e-tests/playwright/package-lock.json"
       - name: ci/download-shard-results
         uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
@@ -362,12 +360,12 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
+      - name: ci/restore-npm-cache
+        uses: ./.github/actions/restore-e2e-npm-cache
       - name: ci/setup-node
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: "e2e-tests/playwright/package-lock.json"
 
       # Download merged results (uploaded by calculate-results). These blob
       # reports already include the inline per-shard retry results, so no

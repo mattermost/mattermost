@@ -39,6 +39,7 @@ import {reArg} from 'utils/func';
 import {registerRHSPluginPopoutListener, type PopoutListeners} from 'utils/popouts/popout_windows';
 import {generateId} from 'utils/utils';
 
+import type {ChannelSettingsTab} from 'types/plugins/channel_settings';
 import type {
     PluginsState,
     ProductComponent,
@@ -525,6 +526,41 @@ export default class PluginRegistry {
             text: resolveReactElement(text),
             action,
             shouldRender,
+        });
+
+        return id;
+    });
+
+    /**
+     * Register a tab for the channel settings modal. A registration is either:
+     *
+     * - A declarative `schema` (`sections` + `onSave`): the host renders the
+     *   controls, tracks changes, and owns the save bar. On save the host
+     *   collects the values and calls the plugin's `onSave(values, channel)`.
+     *   The plugin owns persistence; reject in `onSave` to keep the tab dirty.
+     * - A custom `component`: the plugin renders the whole tab body. It receives
+     *   the current `channel`, `setUnsaved`, and `registerHandlers` so the
+     *   host-owned save bar can delegate Save/Reset to plugin logic.
+     *
+     * Both branches accept `uiName`, `icon`, and `shouldRender(state, channel)`.
+     * Returns a unique identifier.
+     */
+    registerChannelSettingsTab = reArg([
+        'uiName',
+        'icon',
+        'shouldRender',
+        'sections',
+        'onSave',
+        'loadValues',
+        'component',
+    ], (registration: ChannelSettingsTab) => {
+        const id = generateId();
+
+        // The raw registration is validated and normalized in the plugins
+        // reducer (see `extractChannelSettingsTab`), mirroring user settings.
+        store.dispatch({
+            type: ActionTypes.RECEIVED_PLUGIN_CHANNEL_SETTINGS_TAB,
+            data: {...registration, id, pluginId: this.id},
         });
 
         return id;
@@ -1095,6 +1131,7 @@ export default class PluginRegistry {
      * Accepts the following:
      * - component - A react component to display in the Right-Hand Sidebar.
      * - title - A string or JSX element to display as a title for the RHS.
+     * - showPopout - Optional boolean (default: true). Set to false to hide the "Open in new window" button in the RHS header.
      * Returns:
      * - id: a unique identifier
      * - showRHSPlugin: the action to dispatch that will open the RHS.
@@ -1104,12 +1141,15 @@ export default class PluginRegistry {
     registerRightHandSidebarComponent = reArg([
         'component',
         'title',
+        'showPopout',
     ], ({
         component,
         title,
+        showPopout = true,
     }: {
         component: RightHandSidebarComponent['component'];
         title: ReactResolvable;
+        showPopout?: boolean;
     }) => {
         const id = generateId();
 
@@ -1118,6 +1158,7 @@ export default class PluginRegistry {
             pluginId: this.id,
             component,
             title: resolveReactElement(title),
+            showPopout,
         });
 
         return {id, showRHSPlugin: showRHSPlugin(id), hideRHSPlugin: hideRHSPlugin(id), toggleRHSPlugin: toggleRHSPlugin(id)};
@@ -1333,6 +1374,7 @@ export default class PluginRegistry {
         'isAvailable',
         'extraContent',
         'onCreate',
+        'createButtonText',
     ], ({
         label,
         description,
@@ -1340,6 +1382,7 @@ export default class PluginRegistry {
         isAvailable,
         extraContent,
         onCreate,
+        createButtonText,
     }: {
         label: ReactResolvable;
         description: ReactResolvable;
@@ -1347,6 +1390,7 @@ export default class PluginRegistry {
         isAvailable: ChannelTypeOptionComponent['isAvailable'];
         extraContent?: ChannelTypeOptionComponent['extraContent'];
         onCreate: ChannelTypeOptionComponent['onCreate'];
+        createButtonText?: ReactResolvable;
     }) => {
         const id = generateId();
         dispatchPluginComponentWithData('ChannelTypeOption', {
@@ -1358,6 +1402,7 @@ export default class PluginRegistry {
             isAvailable,
             extraContent,
             onCreate,
+            createButtonText: createButtonText === undefined ? undefined : resolveReactElement(createButtonText),
         });
 
         return id;

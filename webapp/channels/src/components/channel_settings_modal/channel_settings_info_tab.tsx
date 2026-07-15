@@ -95,15 +95,6 @@ function ChannelSettingsInfoTab({
         return haveIChannelPermission(state, channel.team_id, channel.id, Permissions.MANAGE_PRIVATE_CHANNEL_DISCOVERABILITY);
     });
 
-    // Render condition: feature flag on, channel currently private (the toggle
-    // is meaningless for public channels), and the channel is not archived
-    // or shared (the server rejects discoverable patches on those anyway).
-    const showDiscoverableToggle = discoverableFeatureEnabled &&
-        !isDMorGroupChannel &&
-        channel.type === Constants.PRIVATE_CHANNEL &&
-        channel.delete_at === 0 &&
-        !channel.shared;
-
     // Permissions for managing channel (name, header, purpose)
     const channelPropertiesPermission = isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES;
     const canManageChannelProperties = useSelector((state: GlobalState) => {
@@ -169,6 +160,17 @@ function ChannelSettingsInfoTab({
     const [channelHeader, setChannelHeader] = useState(channel?.header ?? '');
     const [channelType, setChannelType] = useState<ChannelType>(channel?.type as ChannelType ?? Constants.OPEN_CHANNEL as ChannelType);
     const [discoverable, setDiscoverable] = useState<boolean>(channel?.discoverable ?? false);
+
+    // Render condition: feature flag on, the in-progress type selection is
+    // private (gating on channelType rather than channel.type so the toggle
+    // appears immediately during a Public->Private conversion, matching the
+    // New Channel modal), and the channel is not archived or shared (the
+    // server rejects discoverable patches on those anyway).
+    const showDiscoverableToggle = discoverableFeatureEnabled &&
+        !isDMorGroupChannel &&
+        channelType === Constants.PRIVATE_CHANNEL &&
+        channel.delete_at === 0 &&
+        !channel.shared;
 
     // UI Feedback: errors, states
     const [formError, setFormError] = useState('');
@@ -480,7 +482,10 @@ function ChannelSettingsInfoTab({
     }, [channel, isDMorGroupChannel, displayName, channelUrl, channelPurpose, channelHeader, channelType, saveChangesPanelState, defaultCategoryName, serverDefaultCategoryName, managedCategoryName, serverManagedCategoryName, discoverable, showDiscoverableToggle]);
 
     return (
-        <div className='ChannelSettingsModal__infoTab'>
+        <div
+            className='ChannelSettingsModal__infoTab'
+            data-testid='channel-settings-info-tab'
+        >
             {/* ConvertConfirmModal for channel privacy changes */}
             <ConvertConfirmModal
                 show={showConvertConfirmModal}
@@ -562,7 +567,7 @@ function ChannelSettingsInfoTab({
                             </label>
                             <label
                                 className='Input_subheading'
-                                aria-label={discoverableTitle}
+                                aria-label={discoverableDescription}
                             >
                                 {discoverableDescription}
                             </label>

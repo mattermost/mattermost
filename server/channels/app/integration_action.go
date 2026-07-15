@@ -24,7 +24,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"maps"
 	"net/http"
 	"net/url"
 	"path"
@@ -36,285 +35,47 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
-// maxMmBlocksActionsCloneDepth caps recursion in cloneMmBlocksActionsProp.
-// ValidateMmBlocksActions bounds top-level entry count and key length but
-// does not bound nesting depth inside spec.Context — a bot/plugin could
-// otherwise stash a pathologically nested object that drives stack
-// exhaustion on the restore path. 64 is well past any plausible legitimate
-// nesting; deeper input is treated as malicious and truncated.
-const maxMmBlocksActionsCloneDepth = 64
-
-// cloneMmBlocksActionsProp deep-clones the post.props.mm_blocks_actions value.
-// Each per-action entry can carry nested context / query maps (and arrays
-// inside those), so the clone walks the structure recursively — a shallow
-// clone at any level would leave nested objects aliased back to the live
-// post's props, defeating the restore-after-invalid-response guarantee.
-func cloneMmBlocksActionsProp(v any) any {
-	return cloneMmBlocksActionsPropAt(v, 0)
-}
-
-func cloneMmBlocksActionsPropAt(v any, depth int) any {
-	if depth > maxMmBlocksActionsCloneDepth {
-		// Defense-in-depth: drop the subtree rather than risk stack
-		// exhaustion. The restore path that calls this helper is on a
-		// rare branch (plugin response is invalid), and pathological
-		// nesting at this depth is not a legitimate use case.
-		return nil
-	}
-	switch typed := v.(type) {
-	case map[string]any:
-		out := make(map[string]any, len(typed))
-		for k, child := range typed {
-			out[k] = cloneMmBlocksActionsPropAt(child, depth+1)
-		}
-		return out
-	case []any:
-		out := make([]any, len(typed))
-		for i, child := range typed {
-			out[i] = cloneMmBlocksActionsPropAt(child, depth+1)
-		}
-		return out
-	default:
-		// Scalars (string/number/bool/nil) are immutable — safe to share.
-		return v
-	}
-}
-
-func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie, query map[string]string) (string, *model.AppError) {
+func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID, selectedOption string, legacyCookie *model.PostActionCookie, mmBlocksCookie *model.MmBlocksActionCookie, clientQuery map[string]string, integrationFormat string) (string, string, *model.AppError) {
 	// Bound the per-click query at the App boundary so any caller — REST
 	// handler, plugin, future internal trigger — gets the same enforcement.
-	if err := model.ValidateActionQuery(query); err != nil {
-		return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.query.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	if err := model.ValidateActionQuery(clientQuery); err != nil {
+		return "", "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.query.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	// PostAction may result in the original post being updated. For the
-	// updated post, we need to unconditionally preserve the original
-	// IsPinned and HasReaction attributes, and preserve its entire
-	// original Props set unless the plugin returns a replacement value.
-	// originalXxx variables are used to preserve these values.
-	var originalProps map[string]any
-	originalIsPinned := false
-	originalHasReactions := false
-
-	// If the updated post does contain a replacement Props set, we still
-	// need to preserve some original values, as listed in
-	// model.PostActionRetainPropKeys. remove and retain track these.
-	remove := []string{}
-	retain := map[string]any{}
-
-	datasource := ""
-	upstreamURL := ""
-	rootPostId := ""
-	upstreamRequest := &model.PostActionIntegrationRequest{
-		UserId: userID,
-		PostId: postID,
+	setup, gotoURL, appErr := a.resolvePostActionSetup(rctx, postID, actionId, userID, legacyCookie, mmBlocksCookie, clientQuery, integrationFormat)
+	if appErr != nil {
+		return "", "", appErr
+	}
+	if gotoURL != "" {
+		return "", gotoURL, nil
 	}
 
-	// See if the post exists in the DB, if so ignore the cookie.
-	// Start all queries here for parallel execution
-	pchan := make(chan store.StoreResult[*model.Post], 1)
-	go func() {
-		post, err := a.Srv().Store().Post().GetSingle(rctx, postID, false)
-		pchan <- store.StoreResult[*model.Post]{Data: post, NErr: err}
-		close(pchan)
-	}()
+	upstreamRequest := setup.upstreamRequest
 
-	cchan := make(chan store.StoreResult[*model.Channel], 1)
-	go func() {
-		channel, err := a.Srv().Store().Channel().GetForPost(postID)
-		cchan <- store.StoreResult[*model.Channel]{Data: channel, NErr: err}
-		close(cchan)
-	}()
-
-	userChan := make(chan store.StoreResult[*model.User], 1)
-	go func() {
-		user, err := a.Srv().Store().User().Get(context.Background(), upstreamRequest.UserId)
-		userChan <- store.StoreResult[*model.User]{Data: user, NErr: err}
-		close(userChan)
-	}()
-
-	result := <-pchan
-	if result.NErr != nil {
-		if cookie == nil {
-			var nfErr *store.ErrNotFound
-			switch {
-			case errors.As(result.NErr, &nfErr):
-				return "", model.NewAppError("DoPostActionWithCookie", "app.post.get.app_error", nil, "", http.StatusNotFound).Wrap(result.NErr)
-			default:
-				return "", model.NewAppError("DoPostActionWithCookie", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
-			}
+	if selectedOption != "" {
+		if upstreamRequest.Context == nil {
+			upstreamRequest.Context = map[string]any{}
 		}
-		if cookie.Integration == nil {
-			return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "no Integration in action cookie", http.StatusBadRequest)
-		}
-
-		if postID != cookie.PostId {
-			return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "postId doesn't match", http.StatusBadRequest)
-		}
-
-		channel, err := a.Srv().Store().Channel().Get(cookie.ChannelId, true)
-		if err != nil {
-			errCtx := map[string]any{"channel_id": cookie.ChannelId}
-			var nfErr *store.ErrNotFound
-			switch {
-			case errors.As(err, &nfErr):
-				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.existing.app_error", errCtx, "", http.StatusNotFound).Wrap(err)
-			default:
-				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.find.app_error", errCtx, "", http.StatusInternalServerError).Wrap(err)
-			}
-		}
-
-		upstreamRequest.ChannelId = cookie.ChannelId
-		upstreamRequest.ChannelName = channel.Name
-		upstreamRequest.TeamId = channel.TeamId
-		upstreamRequest.Type = cookie.Type
-		// Clone the Context map — later code may add selected_option to
-		// it, and we must not mutate the shared source.
-		//
-		// query is intentionally not merged on the cookie path: cookies are
-		// only baked for attachment action buttons, not for mm_blocks
-		// actions, so this branch is never reached by a click that carries
-		// per-click query params.
-		upstreamRequest.Context = maps.Clone(cookie.Integration.Context)
-		datasource = cookie.DataSource
-
-		retain = maps.Clone(cookie.RetainProps)
-		remove = cookie.RemoveProps
-		rootPostId = cookie.RootPostId
-		upstreamURL = cookie.Integration.URL
-	} else {
-		post := result.Data
-		chResult := <-cchan
-		if chResult.NErr != nil {
-			return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(chResult.NErr)
-		}
-		channel := chResult.Data
-
-		action := post.GetAction(actionId)
-		if action == nil || action.Integration == nil {
-			return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_id.app_error", nil, fmt.Sprintf("action=%v", action), http.StatusNotFound)
-		}
-
-		upstreamRequest.ChannelId = post.ChannelId
-		upstreamRequest.ChannelName = channel.Name
-		upstreamRequest.TeamId = channel.TeamId
-		upstreamRequest.Type = action.Type
-		// Clone the Context map — the action pointer returned from
-		// post.GetAction may alias post.props state (attachment action) or
-		// the synthesized mm_blocks_actions spec. Mutating it directly
-		// would leak per-click values (selected_option) into the post's
-		// cached integration for subsequent clickers.
-		upstreamRequest.Context = maps.Clone(action.Integration.Context)
-		datasource = action.DataSource
-
-		// Save the original values that may need to be preserved (including selected
-		// Props, i.e. override_username, override_icon_url)
-		for _, key := range model.PostActionRetainPropKeys {
-			value, ok := post.GetProps()[key]
-			if ok {
-				retain[key] = value
-			} else {
-				remove = append(remove, key)
-			}
-		}
-		// Clone — originalProps may be passed to response.Update.SetProps,
-		// which would otherwise have response.Update alias the original
-		// post's props map.
-		originalProps = maps.Clone(post.GetProps())
-		originalIsPinned = post.IsPinned
-		originalHasReactions = post.HasReactions
-
-		if post.RootId == "" {
-			rootPostId = post.Id
-		} else {
-			rootPostId = post.RootId
-		}
-
-		upstreamURL = action.Integration.URL
-	}
-
-	teamChan := make(chan store.StoreResult[*model.Team], 1)
-
-	go func() {
-		defer close(teamChan)
-
-		// Direct and group channels won't have teams.
-		if upstreamRequest.TeamId == "" {
-			return
-		}
-
-		team, err := a.Srv().Store().Team().Get(upstreamRequest.TeamId)
-		teamChan <- store.StoreResult[*model.Team]{Data: team, NErr: err}
-	}()
-
-	ur := <-userChan
-	if ur.NErr != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(ur.NErr, &nfErr):
-			return "", model.NewAppError("DoPostActionWithCookie", MissingAccountError, nil, "", http.StatusNotFound).Wrap(ur.NErr)
-		default:
-			return "", model.NewAppError("DoPostActionWithCookie", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(ur.NErr)
-		}
-	}
-	user := ur.Data
-	upstreamRequest.UserName = user.Username
-
-	tr, ok := <-teamChan
-	if ok {
-		if tr.NErr != nil {
-			var nfErr *store.ErrNotFound
-			switch {
-			case errors.As(tr.NErr, &nfErr):
-				return "", model.NewAppError("DoPostActionWithCookie", "app.team.get.find.app_error", nil, "", http.StatusNotFound).Wrap(tr.NErr)
-			default:
-				return "", model.NewAppError("DoPostActionWithCookie", "app.team.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(tr.NErr)
-			}
-		}
-
-		team := tr.Data
-		upstreamRequest.TeamName = team.Name
-	}
-
-	if upstreamRequest.Type == model.PostActionTypeSelect {
-		if selectedOption != "" {
-			if upstreamRequest.Context == nil {
-				upstreamRequest.Context = map[string]any{}
-			}
-			upstreamRequest.DataSource = datasource
-			upstreamRequest.Context["selected_option"] = selectedOption
-		}
+		upstreamRequest.Context["selected_option"] = selectedOption
+		upstreamRequest.DataSource = setup.datasource
 	}
 
 	clientTriggerId, _, appErr := upstreamRequest.GenerateTriggerId(a.AsymmetricSigningKey())
 	if appErr != nil {
-		return "", appErr
+		return "", "", appErr
 	}
 
 	requestJSON, err := json.Marshal(upstreamRequest)
 	if err != nil {
-		return "", model.NewAppError("DoPostActionWithCookie", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	// Merge per-click query into the upstream URL. This is the canonical
-	// transport for mm_blocks_actions external clicks; for legacy attachment
-	// clicks `query` is empty so this is a no-op. Done before the request
-	// log so operators see the URL actually sent on the wire.
-	if len(query) > 0 {
-		mergedURL, mergeErr := model.MergeQueryIntoURL(upstreamURL, query)
-		if mergeErr != nil {
-			return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.merge_query.app_error", nil, "", http.StatusBadRequest).Wrap(mergeErr)
-		}
-		upstreamURL = mergedURL
+		return "", "", model.NewAppError("DoPostActionWithCookie", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// Log request, regardless of whether destination is internal or external
 	rctx.Logger().Info("DoPostActionWithCookie POST request, through DoActionRequest",
-		mlog.String("url", upstreamURL),
+		mlog.String("url", setup.upstreamURL),
 		mlog.String("user_id", upstreamRequest.UserId),
 		mlog.String("post_id", upstreamRequest.PostId),
 		mlog.String("channel_id", upstreamRequest.ChannelId),
@@ -323,9 +84,9 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
 	defer cancel()
-	resp, appErr := a.DoActionRequest(rctx.WithContext(ctx), upstreamURL, requestJSON)
+	resp, appErr := a.DoActionRequest(rctx.WithContext(ctx), setup.upstreamURL, requestJSON)
 	if appErr != nil {
-		return "", appErr
+		return "", "", appErr
 	}
 	defer resp.Body.Close()
 
@@ -333,71 +94,18 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 	limitedReader := io.LimitReader(resp.Body, MaxIntegrationResponseSize)
 	respBytes, err := io.ReadAll(limitedReader)
 	if err != nil {
-		return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return "", "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	if len(respBytes) > 0 {
 		if err = json.Unmarshal(respBytes, &response); err != nil {
-			return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			return "", "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 	}
 
 	if response.Update != nil {
-		response.Update.Id = postID
-
-		// Restore the post attributes and Props that need to be preserved
-		if response.Update.GetProps() == nil {
-			response.Update.SetProps(originalProps)
-		} else {
-			for key, value := range retain {
-				response.Update.AddProp(key, value)
-			}
-			for _, key := range remove {
-				response.Update.DelProp(key)
-			}
-		}
-		response.Update.IsPinned = originalIsPinned
-		response.Update.HasReactions = originalHasReactions
-
-		// Validate mm_blocks_actions on update responses. Since
-		// AllowMmBlocksActionsUpdate bypasses the non-integration guard in
-		// UpdatePost, and mm_blocks_actions are not in
-		// PostActionRetainPropKeys, a bad response would otherwise
-		// permanently replace the post's valid mm_blocks_actions. Keep the
-		// original value (if any) and log a warning so integration authors
-		// can diagnose.
-		//
-		// Contract (matches the attachments contract): a plugin update
-		// response that returns a non-nil Props map MUST echo
-		// mm_blocks_actions back if it wants the buttons to survive.
-		// Omitting the key drops the prop. This is intentional symmetry
-		// with attachments and matches the behavior in the mm_blocks
-		// framework PR.
-		if response.Update.GetProp(model.PostPropsMmBlocksActions) != nil {
-			if originalProps[model.PostPropsMmBlocksActions] == nil {
-				rctx.Logger().Info("Dropping mm_blocks_actions from plugin update response: original post had none",
-					mlog.String("post_id", postID),
-					mlog.String("url", upstreamURL),
-				)
-				response.Update.DelProp(model.PostPropsMmBlocksActions)
-			} else if err := model.ValidateMmBlocksActions(response.Update); err != nil {
-				rctx.Logger().Info("Restoring original mm_blocks_actions: plugin update response was invalid",
-					mlog.String("post_id", postID),
-					mlog.String("url", upstreamURL),
-					mlog.Err(err),
-				)
-				// originalProps came from maps.Clone(post.GetProps())
-				// which is a shallow clone — the nested
-				// mm_blocks_actions map is still aliased to
-				// post.Props. Deep-clone before reattaching so a
-				// later mutation through response.Update can't
-				// reach back into the original post's prop map.
-				response.Update.AddProp(model.PostPropsMmBlocksActions, cloneMmBlocksActionsProp(originalProps[model.PostPropsMmBlocksActions]))
-			}
-		}
-
-		if _, _, appErr = a.UpdatePost(rctx, response.Update, &model.UpdatePostOptions{SafeUpdate: false, AllowMmBlocksActionsUpdate: true}); appErr != nil {
-			return "", appErr
+		if appErr = a.applyPostActionUpdate(rctx, setup, postID, userID, response.Update); appErr != nil {
+			return "", "", appErr
 		}
 	}
 
@@ -405,7 +113,7 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 		ephemeralPost := &model.Post{
 			Message:   response.EphemeralText,
 			ChannelId: upstreamRequest.ChannelId,
-			RootId:    rootPostId,
+			RootId:    setup.rootPostId,
 			UserId:    userID,
 		}
 
@@ -413,13 +121,13 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 			ephemeralPost.Message = model.ParseSlackLinksToMarkdown(response.EphemeralText)
 		}
 
-		for key, value := range retain {
+		for key, value := range setup.retain {
 			ephemeralPost.AddProp(key, value)
 		}
 		a.SendEphemeralPost(rctx, userID, ephemeralPost)
 	}
 
-	return clientTriggerId, nil
+	return clientTriggerId, response.GotoLocation, nil
 }
 
 // DoActionRequest performs an HTTP POST request to an integration's action endpoint.
@@ -615,6 +323,138 @@ func (a *App) SubmitInteractiveDialog(rctx request.CTX, request model.SubmitDial
 	url := request.URL
 	request.URL = ""
 
+	// Validate submitted file IDs exist and belong to the submitting user.
+	// Dedup without sorting so the order the user selected the files is preserved
+	// when the request is forwarded to the integration.
+	request.FileIds = model.RemoveDuplicateStringsNonSort(request.FileIds)
+	if len(request.FileIds) > model.MaxDialogFileIds {
+		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.too_many_file_ids",
+			map[string]any{"Max": model.MaxDialogFileIds}, "", http.StatusBadRequest)
+	}
+	declaredFileIDs := make(map[string]bool, len(request.FileIds))
+	for _, fileID := range request.FileIds {
+		declaredFileIDs[fileID] = true
+	}
+
+	// Validate the declared file IDs with a single batched lookup (one DB roundtrip
+	// instead of one per file). This is the primary ownership check, so a store
+	// error fails closed.
+	if len(request.FileIds) > 0 {
+		declaredFiles, nErr := a.Srv().Store().FileInfo().GetByIds(request.FileIds, false, false, false)
+		if nErr != nil {
+			return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.get_file_info_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
+		foundFileIDs := make(map[string]bool, len(declaredFiles))
+		for _, fileInfo := range declaredFiles {
+			foundFileIDs[fileInfo.Id] = true
+			if fileInfo.CreatorId != request.UserId {
+				return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.file_not_owned", map[string]any{"FileId": fileInfo.Id}, "", http.StatusForbidden)
+			}
+		}
+		// Any declared ID not returned doesn't exist (or was deleted) — reject it.
+		for _, fileID := range request.FileIds {
+			if !foundFileIDs[fileID] {
+				return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.invalid_file_id", map[string]any{"FileId": fileID}, "", http.StatusBadRequest)
+			}
+		}
+	}
+
+	// Defense in depth: integrations read raw field values from request.Submission
+	// (e.g. submission["my_file"]), not request.FileIds. Because the submit request
+	// does not carry the dialog's element definitions, the server cannot tell which
+	// submission fields are file pickers, so a malicious client could smuggle another
+	// user's file ID through a submission value while sending a benign FileIds list.
+	// Collect ID-shaped tokens from submission values (recursing into arrays/objects),
+	// resolve them in a single batch, and enforce the same ownership check on any that
+	// are real files. Tokens that don't resolve to a file (e.g. user/channel select
+	// IDs, or ID-shaped free text) are ordinary values and ignored.
+	//
+	// The scan is bounded in both breadth (ID-shaped tokens collected) and depth
+	// (recursion into nested arrays/objects). Hitting either bound must not silently
+	// skip remaining values — breadth overflow fails closed so a padded submission
+	// cannot smuggle an unchecked file ID past the cap.
+	const maxSubmissionScanDepth = 100
+	candidateFileIDs := make([]string, 0)
+	seenCandidate := make(map[string]bool)
+	scanLimitExceeded := false
+	var collectIDs func(v any, depth int)
+	collectIDs = func(v any, depth int) {
+		if depth > maxSubmissionScanDepth || scanLimitExceeded {
+			return
+		}
+		switch typed := v.(type) {
+		case string:
+			for tok := range strings.SplitSeq(typed, ",") {
+				tok = strings.TrimSpace(tok)
+				if tok == "" || declaredFileIDs[tok] || seenCandidate[tok] || !model.IsValidId(tok) {
+					continue
+				}
+				if len(candidateFileIDs) >= model.MaxDialogSubmissionIDShapedTokenScan {
+					scanLimitExceeded = true
+					return
+				}
+				seenCandidate[tok] = true
+				candidateFileIDs = append(candidateFileIDs, tok)
+			}
+		case []any:
+			for _, e := range typed {
+				if scanLimitExceeded {
+					return
+				}
+				collectIDs(e, depth+1)
+			}
+		case []string:
+			for _, e := range typed {
+				if scanLimitExceeded {
+					return
+				}
+				collectIDs(e, depth+1)
+			}
+		case map[string]any:
+			for _, e := range typed {
+				if scanLimitExceeded {
+					return
+				}
+				collectIDs(e, depth+1)
+			}
+		}
+	}
+	for _, raw := range request.Submission {
+		if scanLimitExceeded {
+			break
+		}
+		collectIDs(raw, 0)
+	}
+
+	if scanLimitExceeded {
+		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.too_many_submission_ids",
+			map[string]any{"Max": model.MaxDialogSubmissionIDShapedTokenScan}, "", http.StatusBadRequest)
+	}
+
+	if len(candidateFileIDs) > 0 {
+		// allowFromCache=false: ownership must be decided from current DB state, not a
+		// possibly stale per-file cache entry.
+		submissionFiles, nErr := a.Srv().Store().FileInfo().GetByIds(candidateFileIDs, false, false, false)
+		if nErr != nil {
+			// Defense-in-depth scan: a transient store error must not block an otherwise
+			// valid submission whose tokens may just be coincidental ID-shaped text. The
+			// primary FileIds ownership check above already ran fail-closed.
+			rctx.Logger().Warn("Could not resolve submission file IDs for ownership check", mlog.Err(nErr))
+		} else {
+			for _, fileInfo := range submissionFiles {
+				if fileInfo.CreatorId != request.UserId {
+					return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.file_not_owned", map[string]any{"FileId": fileInfo.Id}, "", http.StatusForbidden)
+				}
+			}
+			// Only tokens that are real files count toward the limit; combine with the
+			// declared FileIds so the per-submission ceiling is MaxDialogFileIds total.
+			if len(declaredFileIDs)+len(submissionFiles) > model.MaxDialogFileIds {
+				return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.too_many_file_ids",
+					map[string]any{"Max": model.MaxDialogFileIds}, "", http.StatusBadRequest)
+			}
+		}
+	}
+
 	// Preserve Type field for field refresh functionality, otherwise default to dialog_submission
 	if request.Type != "refresh" {
 		request.Type = "dialog_submission"
@@ -631,6 +471,7 @@ func (a *App) SubmitInteractiveDialog(rctx request.CTX, request model.SubmitDial
 		mlog.String("user_id", request.UserId),
 		mlog.String("channel_id", request.ChannelId),
 		mlog.String("team_id", request.TeamId),
+		mlog.Bool("cancelled", request.Cancelled),
 	)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
@@ -669,6 +510,86 @@ func (a *App) SubmitInteractiveDialog(rctx request.CTX, request model.SubmitDial
 	}
 
 	return &response, nil
+}
+
+func (a *App) ExecuteDialogAction(rctx request.CTX, userID string, req model.ExecuteDialogActionRequest) (string, *model.AppError) {
+	if !model.IsValidLookupURL(req.URL) {
+		return "", model.NewAppError("ExecuteDialogAction", "api.post.do_action.action_integration.app_error", nil, "invalid URL", http.StatusBadRequest)
+	}
+
+	if err := model.ValidateActionQuery(req.Context); err != nil {
+		return "", model.NewAppError("ExecuteDialogAction", "api.post.do_action.action_integration.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	ctx := make(map[string]any, len(req.Context))
+	for k, v := range req.Context {
+		ctx[k] = v
+	}
+
+	upstreamRequest := &model.PostActionIntegrationRequest{
+		Type:      "dialog_action",
+		UserId:    userID,
+		ChannelId: req.ChannelId,
+		TeamId:    req.TeamId,
+		Context:   ctx,
+	}
+
+	user, userErr := a.Srv().Store().User().Get(context.Background(), userID)
+	if userErr != nil {
+		return "", model.NewAppError("ExecuteDialogAction", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(userErr)
+	}
+	upstreamRequest.UserName = user.Username
+
+	channel, channelErr := a.GetChannel(rctx, req.ChannelId)
+	if channelErr != nil {
+		return "", channelErr
+	}
+	upstreamRequest.ChannelName = channel.Name
+
+	if req.TeamId != "" {
+		team, teamErr := a.Srv().Store().Team().Get(req.TeamId)
+		if teamErr != nil {
+			return "", model.NewAppError("ExecuteDialogAction", "app.team.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(teamErr)
+		}
+		upstreamRequest.TeamName = team.Name
+	}
+
+	clientTriggerId, _, appErr := upstreamRequest.GenerateTriggerId(a.AsymmetricSigningKey())
+	if appErr != nil {
+		return "", appErr
+	}
+
+	requestJSON, err := json.Marshal(upstreamRequest)
+	if err != nil {
+		return "", model.NewAppError("ExecuteDialogAction", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	rctx.Logger().Info("ExecuteDialogAction POST request, through DoActionRequest",
+		mlog.String("url", req.URL),
+		mlog.String("user_id", userID),
+		mlog.String("channel_id", req.ChannelId),
+		mlog.String("team_id", req.TeamId),
+	)
+
+	timeoutCtx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
+	defer cancel()
+	resp, appErr := a.DoActionRequest(rctx.WithContext(timeoutCtx), req.URL, requestJSON)
+	if appErr != nil {
+		// DoActionRequest can return a non-nil response together with an error
+		// (e.g. a non-200 status). Drain and close it so the HTTP connection
+		// isn't leaked on the error path.
+		if resp != nil && resp.Body != nil {
+			_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, MaxDialogResponseSize))
+			_ = resp.Body.Close()
+		}
+		return "", appErr
+	}
+	defer resp.Body.Close()
+
+	// Drain response body to allow HTTP connection reuse
+	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, MaxDialogResponseSize))
+
+	return clientTriggerId, nil
 }
 
 func (a *App) LookupInteractiveDialog(rctx request.CTX, request model.SubmitDialogRequest) (*model.LookupDialogResponse, *model.AppError) {

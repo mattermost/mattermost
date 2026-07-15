@@ -10,7 +10,8 @@ import {useSelector} from 'react-redux';
 import type {OnChangeValue, ActionMeta, StylesConfig} from 'react-select';
 import ReactSelect from 'react-select';
 
-import type {UserPropertyField, PropertyFieldOption} from '@mattermost/types/properties';
+import {supportsOptions, type PropertyFieldOption} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {UserProfile} from '@mattermost/types/users';
 
 import type {LogErrorOptions} from 'mattermost-redux/actions/errors';
@@ -1453,7 +1454,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     return '';
                 }
 
-                if (attribute.type === 'select' || attribute.type === 'multiselect') {
+                if (supportsOptions(attribute)) {
                     const attribOptions = attribute.attrs.options;
                     if (!attribOptions) {
                         return '';
@@ -1554,7 +1555,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         attributeLabel = '';
                     }
 
-                    if (attribute.type === 'select' || attribute.type === 'multiselect') {
+                    if (supportsOptions(attribute)) {
                         const attribOptions: PropertyFieldOption[] = attribute.attrs!.options as PropertyFieldOption[];
                         const opts = attribOptions.map((o) => {
                             return {label: o.name, value: o.id} as SelectOption;

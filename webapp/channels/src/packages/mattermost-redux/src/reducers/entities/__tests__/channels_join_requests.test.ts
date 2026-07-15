@@ -82,10 +82,9 @@ describe('joinRequests reducer', () => {
         // Row dedup keeps the list at length 1.
         expect(next.byChannel.channel1).toHaveLength(1);
 
-        // Count still bumps on every CREATED event though, because the server
-        // only fires CREATED on initial insert (re-submission after withdraw
-        // is a fresh row). This is documented in the reducer comment.
-        expect(next.countsByChannel.channel1).toBe(2);
+        // The count must NOT bump for a row already tracked — a re-delivered
+        // CREATED event should be idempotent.
+        expect(next.countsByChannel.channel1).toBe(1);
     });
 
     test('CHANNEL_JOIN_REQUEST_UPDATED replaces row, clears myPending and decrements count on terminal', () => {
@@ -101,7 +100,7 @@ describe('joinRequests reducer', () => {
             type: ChannelTypes.CHANNEL_JOIN_REQUEST_UPDATED,
             data: approved,
         });
-        expect(next.byChannel.channel1).toHaveLength(0);
+        expect(next.byChannel.channel1[0].status).toBe('approved');
         expect(next.myPendingByChannel.channel1).toBeUndefined();
         expect(next.countsByChannel.channel1).toBe(0);
         expect(next.myList[0].status).toBe('approved');
@@ -123,6 +122,56 @@ describe('joinRequests reducer', () => {
         // The count does NOT go negative — we floor at 0. This guards against
         // ordering bugs where a CREATED bump is missed but UPDATED arrives.
         expect(next.countsByChannel.channel1).toBe(0);
+    });
+
+    test('CHANNEL_JOIN_REQUEST_UPDATED does not double-decrement on the local dispatch + WebSocket echo of a single approval', () => {
+        // Two pending requests are tracked; the acting admin approves one.
+        const pending1 = pendingRow({id: 'req1'});
+        const pending2 = pendingRow({id: 'req2', channel_id: 'channel1'});
+        const seed: ChannelJoinRequestsState = {
+            ...emptyState,
+            byChannel: {channel1: [pending1, pending2]},
+            countsByChannel: {channel1: 2},
+        };
+
+        const approved = pendingRow({id: 'req1', status: 'approved', reviewed_at: 2000});
+
+        // First dispatch (optimistic, from the patchChannelJoinRequest thunk).
+        const afterLocal = joinRequests(seed, {
+            type: ChannelTypes.CHANNEL_JOIN_REQUEST_UPDATED,
+            data: approved,
+        });
+        expect(afterLocal.countsByChannel.channel1).toBe(1);
+
+        // Second dispatch: the server broadcasts the same transition back to
+        // the actor. The tracked row is already terminal, so it is a no-op.
+        const afterEcho = joinRequests(afterLocal, {
+            type: ChannelTypes.CHANNEL_JOIN_REQUEST_UPDATED,
+            data: approved,
+        });
+        expect(afterEcho.countsByChannel.channel1).toBe(1);
+    });
+
+    test('CHANNEL_JOIN_REQUEST_UPDATED decrements once when only the count is loaded (queue not open)', () => {
+        const seed: ChannelJoinRequestsState = {
+            ...emptyState,
+            countsByChannel: {channel1: 3},
+        };
+        const approved = pendingRow({status: 'approved', reviewed_at: 2000});
+        const next = joinRequests(seed, {
+            type: ChannelTypes.CHANNEL_JOIN_REQUEST_UPDATED,
+            data: approved,
+        });
+        expect(next.countsByChannel.channel1).toBe(2);
+
+        // The untracked row is now persisted, so a re-delivered terminal event
+        // finds it as terminal and does not decrement the count again.
+        expect(next.byChannel.channel1).toHaveLength(1);
+        const afterDuplicate = joinRequests(next, {
+            type: ChannelTypes.CHANNEL_JOIN_REQUEST_UPDATED,
+            data: approved,
+        });
+        expect(afterDuplicate.countsByChannel.channel1).toBe(2);
     });
 
     test('CHANNEL_JOIN_REQUEST_REMOVED drops myPending entry', () => {
@@ -162,6 +211,20 @@ describe('joinRequests reducer', () => {
         });
         expect(next.myList).toHaveLength(2);
         expect(Object.keys(next.myPendingByChannel)).toEqual(['channel1']);
+    });
+
+    test('RECEIVED_MY_CHANNEL_JOIN_REQUESTS prunes stale pending entries not in the fresh list', () => {
+        const seed: ChannelJoinRequestsState = {
+            ...emptyState,
+            myPendingByChannel: {channelStale: pendingRow({id: 'reqStale', channel_id: 'channelStale'})},
+        };
+        const fresh = pendingRow();
+        const next = joinRequests(seed, {
+            type: ChannelTypes.RECEIVED_MY_CHANNEL_JOIN_REQUESTS,
+            data: {requests: [fresh], total_count: 1},
+        });
+        expect(Object.keys(next.myPendingByChannel)).toEqual(['channel1']);
+        expect(next.myPendingByChannel.channelStale).toBeUndefined();
     });
 
     test('RECEIVED_CHANNEL_JOIN_REQUESTS replaces admin queue list for that channel', () => {

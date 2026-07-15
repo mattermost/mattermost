@@ -415,9 +415,9 @@ describe('PostComponent', () => {
 
     describe('file list', () => {
         test('should show file list in post', () => {
-            const fileInfo1 = TestHelper.getFileInfoMock({id: 'fileId1', name: 'file1.jpg'});
-            const fileInfo2 = TestHelper.getFileInfoMock({id: 'fileId2', name: 'file2.jpg'});
-            const fileInfo3 = TestHelper.getFileInfoMock({id: 'fileId3', name: 'file3.jpg'});
+            const fileInfo1 = TestHelper.getFileInfoMock({id: 'fileId1', name: 'file1.jpg', delete_at: 0});
+            const fileInfo2 = TestHelper.getFileInfoMock({id: 'fileId2', name: 'file2.jpg', delete_at: 0});
+            const fileInfo3 = TestHelper.getFileInfoMock({id: 'fileId3', name: 'file3.jpg', delete_at: 0});
 
             const post = TestHelper.getPostMock({file_ids: [fileInfo1.id, fileInfo2.id, fileInfo3.id]});
 
@@ -448,10 +448,11 @@ describe('PostComponent', () => {
 
             const {container} = renderWithContext(<PostComponent {...props}/>, state);
             expect(screen.getByTestId('fileAttachmentList')).toBeInTheDocument();
-            expect(container.querySelectorAll('.post-image__column')).toHaveLength(3);
-            expect(container.querySelectorAll('.post-image__column')[0]).toHaveTextContent(fileInfo1.name);
-            expect(container.querySelectorAll('.post-image__column')[1]).toHaveTextContent(fileInfo2.name);
-            expect(container.querySelectorAll('.post-image__column')[2]).toHaveTextContent(fileInfo3.name);
+            const tiles = container.querySelectorAll('[data-testid="media-gallery-tile"]');
+            expect(tiles).toHaveLength(3);
+            expect(tiles[0]?.getAttribute('data-file-name')).toBe(fileInfo1.name);
+            expect(tiles[1]?.getAttribute('data-file-name')).toBe(fileInfo2.name);
+            expect(tiles[2]?.getAttribute('data-file-name')).toBe(fileInfo3.name);
         });
 
         test('should show file list in edit container when editing', async () => {
@@ -670,7 +671,7 @@ describe('PostComponent', () => {
             expect(screen.queryByLabelText(/AI-generated|Message posted by/)).not.toBeInTheDocument();
         });
 
-        test('should not show AI-generated indicator for consecutive posts', () => {
+        test('should show AI-generated indicator for consecutive AI posts', () => {
             const props = {
                 ...baseProps,
                 post: aiGeneratedPost,
@@ -679,7 +680,7 @@ describe('PostComponent', () => {
             };
             renderWithContext(<PostComponent {...props}/>);
 
-            expect(screen.queryByLabelText(/AI-generated|Message posted by/)).not.toBeInTheDocument();
+            expect(screen.getByLabelText('Message posted by @aibot')).toBeInTheDocument();
         });
 
         test('should show AI-generated indicator in PostUserProfile for compact mode in CENTER', () => {
@@ -697,7 +698,7 @@ describe('PostComponent', () => {
             expect(indicators.length).toBe(1);
         });
 
-        test('should hide AI-generated indicator for consecutive posts in threads', () => {
+        test('should show AI-generated indicator for consecutive AI posts in threads', () => {
             const threadPost = TestHelper.getPostMock({
                 channel_id: channel.id,
                 root_id: 'root_post_id',
@@ -715,7 +716,7 @@ describe('PostComponent', () => {
             };
             renderWithContext(<PostComponent {...props}/>);
 
-            expect(screen.queryByLabelText(/AI-generated|Message posted by/)).not.toBeInTheDocument();
+            expect(screen.getByLabelText('Message posted by @aibot')).toBeInTheDocument();
         });
 
         test('should show AI-generated indicator for non-consecutive posts in threads', () => {

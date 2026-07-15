@@ -1970,6 +1970,10 @@
     "translation": "Unable to get user from session UserID."
   },
   {
+    "id": "api.context.invalid_body.app_error",
+    "translation": "Invalid post props."
+  },
+  {
     "id": "api.context.invalid_body_param.app_error",
     "translation": "Invalid or missing {{.Name}} in request body."
   },
@@ -2677,6 +2681,14 @@
     "translation": "This license only supports {{.Users}} users, when your system has {{.Count}} unique users. Unique users are counted distinctly by email address. You can see total user count under Site Reports -> View Statistics."
   },
   {
+    "id": "api.license.add_license.wrong_environment_production.app_error",
+    "translation": "This is a production license, but this server is running in a test or development environment. Production licenses can only be used on production servers."
+  },
+  {
+    "id": "api.license.add_license.wrong_environment_test.app_error",
+    "translation": "This is a test or development license, but this server is running in a production environment. Test or development licenses can only be used on test or development servers."
+  },
+  {
     "id": "api.license.client.old_format.app_error",
     "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
   },
@@ -2985,6 +2997,14 @@
     "translation": "Invalid RootId parameter."
   },
   {
+    "id": "api.post.create_post.silent_notification.app_error",
+    "translation": "Only bot, webhook, OAuth app, and plugin posts can be delivered silently."
+  },
+  {
+    "id": "api.post.create_post.silent_persistent_notification.app_error",
+    "translation": "Silent posts cannot use persistent notifications."
+  },
+  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Error creating post."
   },
@@ -3031,10 +3051,6 @@
   {
     "id": "api.post.do_action.action_integration.app_error",
     "translation": "Action integration error."
-  },
-  {
-    "id": "api.post.do_action.merge_query.app_error",
-    "translation": "Failed to merge query into action URL."
   },
   {
     "id": "api.post.do_action.query.app_error",
@@ -3283,12 +3299,28 @@
     "translation": "You do not have permission to delete this property field."
   },
   {
+    "id": "api.property_field.get.invalid_opts.app_error",
+    "translation": "Invalid property field search options."
+  },
+  {
     "id": "api.property_field.get.invalid_target_type.app_error",
     "translation": "A valid target_type (system, team, or channel) is required."
   },
   {
+    "id": "api.property_field.get.scope_conflict.app_error",
+    "translation": "channel_id/team_id cannot be combined with target_type/target_id."
+  },
+  {
+    "id": "api.property_field.get.scope_required.app_error",
+    "translation": "A scope parameter (channel_id, team_id, or target_type) is required."
+  },
+  {
     "id": "api.property_field.get.target_id_required.app_error",
     "translation": "A target_id is required when querying by channel or team target_type."
+  },
+  {
+    "id": "api.property_field.get.target_type_required.app_error",
+    "translation": "A target_type is required when target_id is provided."
   },
   {
     "id": "api.property_field.invalid_patch.app_error",
@@ -3309,6 +3341,10 @@
   {
     "id": "api.property_field.update.no_options_permission.app_error",
     "translation": "You do not have permission to manage options for this property field."
+  },
+  {
+    "id": "api.property_value.get.invalid_opts.app_error",
+    "translation": "Invalid property value search options."
   },
   {
     "id": "api.property_value.invalid_object_type.app_error",
@@ -7781,6 +7817,10 @@
     "translation": "Could not query for expression."
   },
   {
+    "id": "app.pap.rehydrate_rank.app_error",
+    "translation": "Could not restore ranked operators in policy expression."
+  },
+  {
     "id": "app.pap.save_policy.app_error",
     "translation": "Unable to save access control policy."
   },
@@ -7879,6 +7919,18 @@
   {
     "id": "app.pap.update_access_control_policies_active.app_error",
     "translation": "Could not update active status of access control policies."
+  },
+  {
+    "id": "app.pat_expiry_notify.dm",
+    "translation": "Your personal access token \"{{.Description}}\" will expire in {{.Days}} days or less. Open **Profile > Security** to regenerate it before it stops working."
+  },
+  {
+    "id": "app.pat_expiry_notify.dm_final",
+    "translation": "Your personal access token \"{{.Description}}\" will expire within 24 hours. Open **Profile > Security** to regenerate it before it stops working."
+  },
+  {
+    "id": "app.pat_expiry_notify.unnamed_token",
+    "translation": "(no description)"
   },
   {
     "id": "app.pdp.access_evaluation.app_error",
@@ -8465,6 +8517,10 @@
     "translation": "The specified property field does not exist."
   },
   {
+    "id": "app.property_field.rank_disabled.app_error",
+    "translation": "Rank property fields are not enabled."
+  },
+  {
     "id": "app.property_field.search.app_error",
     "translation": "Unable to search property fields."
   },
@@ -9027,6 +9083,18 @@
     "translation": "Encountered an error decoding JSON response from interactive dialog submission."
   },
   {
+    "id": "app.submit_interactive_dialog.file_not_owned",
+    "translation": "File {{.FileId}} does not belong to the submitting user."
+  },
+  {
+    "id": "app.submit_interactive_dialog.get_file_info_error",
+    "translation": "Unable to validate submitted file IDs."
+  },
+  {
+    "id": "app.submit_interactive_dialog.invalid_file_id",
+    "translation": "File {{.FileId}} is invalid or inaccessible."
+  },
+  {
     "id": "app.submit_interactive_dialog.invalid_response",
     "translation": "Encountered an invalid response from interactive dialog submission."
   },
@@ -9037,6 +9105,14 @@
   {
     "id": "app.submit_interactive_dialog.read_body_error",
     "translation": "Encountered an error reading response body from interactive dialog submission."
+  },
+  {
+    "id": "app.submit_interactive_dialog.too_many_file_ids",
+    "translation": "Too many file IDs submitted. Maximum allowed is {{.Max}}."
+  },
+  {
+    "id": "app.submit_interactive_dialog.too_many_submission_ids",
+    "translation": "Too many ID-shaped values in the submission. Maximum allowed is {{.Max}}."
   },
   {
     "id": "app.system.complete_onboarding_request.app_error",
@@ -9627,6 +9703,10 @@
     "translation": "Unable to update verify email field."
   },
   {
+    "id": "app.user_access_token.count_non_compliant.app_error",
+    "translation": "Unable to count the personal access tokens that violate the maximum lifetime policy."
+  },
+  {
     "id": "app.user_access_token.delete.app_error",
     "translation": "Unable to delete the personal access token."
   },
@@ -9637,6 +9717,10 @@
   {
     "id": "app.user_access_token.expired",
     "translation": "The personal access token has expired."
+  },
+  {
+    "id": "app.user_access_token.expired_deleted_notification",
+    "translation": "Your personal access token \"{{.Description}}\" has expired and been removed. Open **Profile → Security** to create a new token."
   },
   {
     "id": "app.user_access_token.expires_at_in_past.app_error",
@@ -9659,8 +9743,20 @@
     "translation": "Unable to get the personal access tokens by user."
   },
   {
+    "id": "app.user_access_token.get_expiring.app_error",
+    "translation": "Unable to retrieve expiring personal access tokens."
+  },
+  {
     "id": "app.user_access_token.invalid_or_missing",
     "translation": "Invalid or missing token."
+  },
+  {
+    "id": "app.user_access_token.revoke_non_compliant.no_policy.app_error",
+    "translation": "No maximum personal access token lifetime is configured, so there are no non-compliant tokens to revoke."
+  },
+  {
+    "id": "app.user_access_token.revoke_non_compliant.partial.app_error",
+    "translation": "The batch limit was reached before all non-compliant tokens could be revoked. Run the operation again to continue."
   },
   {
     "id": "app.user_access_token.save.app_error",
@@ -11441,6 +11537,22 @@
   {
     "id": "model.command_hook.user_id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.command_response.is_valid.attachment.app_error",
+    "translation": "Invalid attachment."
+  },
+  {
+    "id": "model.command_response.is_valid.goto_location.app_error",
+    "translation": "Invalid goto location."
+  },
+  {
+    "id": "model.command_response.is_valid.icon_url.app_error",
+    "translation": "Invalid icon url."
+  },
+  {
+    "id": "model.command_response.is_valid.response_type.app_error",
+    "translation": "Invalid response type."
   },
   {
     "id": "model.compliance.is_valid.create_at.app_error",

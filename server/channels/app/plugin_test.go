@@ -648,7 +648,7 @@ func TestPluginPanicLogs(t *testing.T) {
 		th.App.ch.ShutDownPlugins()
 		tearDown()
 
-		testlib.AssertLog(t, th.LogBuffer, mlog.LvlDebug.Name, "panic: some text from panic")
+		testlib.AssertLog(t, th.LogBuffer, mlog.LvlError.Name, "panic: some text from panic")
 	})
 }
 

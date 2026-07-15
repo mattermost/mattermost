@@ -15,6 +15,7 @@ export default class GlobalHeader {
     readonly recentMentionsButton;
     readonly savedMessagesButton;
     readonly settingsButton;
+    readonly helpButton;
     readonly searchBox;
     readonly userProfileMenu;
 
@@ -27,6 +28,7 @@ export default class GlobalHeader {
         this.recentMentionsButton = container.getByRole('button', {name: 'Recent mentions'});
         this.savedMessagesButton = container.getByRole('button', {name: 'Saved messages'});
         this.settingsButton = container.getByRole('button', {name: 'Settings'});
+        this.helpButton = container.getByRole('button', {name: 'Help'});
         this.searchBox = container.locator('#searchFormContainer');
         this.userProfileMenu = container.locator('#userAccountMenuButton');
     }
@@ -52,6 +54,24 @@ export default class GlobalHeader {
     async openRecentMentions() {
         await expect(this.recentMentionsButton).toBeVisible();
         await this.recentMentionsButton.click();
+    }
+
+    async openSavedMessages() {
+        await expect(this.savedMessagesButton).toBeVisible();
+        await this.savedMessagesButton.click();
+    }
+
+    async openHelpMenu() {
+        await expect(this.helpButton).toBeVisible();
+        await this.helpButton.click();
+    }
+
+    /**
+     * Opens the Help menu and selects the "Keyboard shortcuts" item.
+     */
+    async openKeyboardShortcuts() {
+        await this.openHelpMenu();
+        await this.container.page().getByRole('menuitem', {name: 'Keyboard shortcuts'}).click();
     }
 
     async openSearch() {

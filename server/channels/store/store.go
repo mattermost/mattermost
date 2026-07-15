@@ -402,6 +402,7 @@ type PostStore interface {
 	GetPostAfterTime(channelID string, timestamp int64, collapsedThreads bool) (*model.Post, error)
 	GetPostIdAfterTime(channelID string, timestamp int64, collapsedThreads bool) (string, error)
 	GetPostIdBeforeTime(channelID string, timestamp int64, collapsedThreads bool) (string, error)
+	GetVisiblePostIdAroundTime(channelID string, timestamp int64, before bool, collapsedThreads bool, userID string) (string, error)
 	GetEtag(channelID string, allowFromCache bool, collapsedThreads bool, includeTranslations bool) string
 	Search(teamID string, userID string, params *model.SearchParams) (*model.PostList, error)
 	AnalyticsUserCountsWithPostsByDay(teamID string) (model.AnalyticsRows, error)
@@ -550,6 +551,7 @@ type SessionStore interface {
 	GetLRUSessions(rctx request.CTX, userID string, limit uint64, offset uint64) ([]*model.Session, error)
 	GetMobileSessionMetadata() ([]*model.MobileSessionMetadata, error)
 	GetSessionsWithActiveDeviceIds(userID string) ([]*model.Session, error)
+	GetAllSessionsWithActiveDeviceIds() ([]*model.Session, error)
 	GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, error)
 	UpdateExpiredNotify(sessionid string, notified bool) error
 	Remove(sessionIDOrToken string) error
@@ -851,9 +853,13 @@ type UserAccessTokenStore interface {
 	GetByToken(tokenString string) (*model.UserAccessToken, error)
 	GetByUser(userID string, page, perPage int) ([]*model.UserAccessToken, error)
 	GetExpiredBefore(cutoff int64, limit int) ([]*model.UserAccessToken, error)
+	GetExpiringTokens(now int64, thresholds []int, limit int) ([]*model.UserAccessToken, error)
+	CountNonCompliantExpiry(maxExpiresAt int64) (int64, error)
+	DeleteNonCompliantExpiry(maxExpiresAt int64, limit int) ([]string, error)
 	Search(term string) ([]*model.UserAccessToken, error)
 	UpdateTokenEnable(tokenID string) error
 	UpdateTokenDisable(tokenID string) error
+	UpdateLastNotifiedAt(tokenID string, notifiedAt int64) error
 }
 
 type PluginStore interface {
@@ -1177,6 +1183,7 @@ type PropertyFieldStore interface {
 	Get(ctx context.Context, groupID, id string) (*model.PropertyField, error)
 	GetMany(ctx context.Context, groupID string, ids []string) ([]*model.PropertyField, error)
 	GetFieldByName(ctx context.Context, groupID, targetID, name string) (*model.PropertyField, error)
+	GetFieldByNameForObjectType(ctx context.Context, groupID, targetID, objectType, name string) (*model.PropertyField, error)
 	GetForGroup(ctx context.Context, groupID string) ([]*model.PropertyField, error)
 	CountForGroup(groupID string, includeDeleted bool) (int64, error)
 	CountForGroupObjectType(groupID, objectType string, includeDeleted bool) (int64, error)

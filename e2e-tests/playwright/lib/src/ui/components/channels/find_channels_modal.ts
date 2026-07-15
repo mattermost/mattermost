@@ -13,7 +13,7 @@ export default class FindChannelsModal {
         this.container = container;
 
         this.input = container.getByRole('combobox', {name: 'quick switch input'});
-        this.searchList = container.locator('.suggestion-list__item');
+        this.searchList = container.getByRole('option');
     }
 
     async toBeVisible() {

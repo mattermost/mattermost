@@ -90,6 +90,8 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/tokens", api.APISessionRequired(getUserAccessTokensForUser)).Methods(http.MethodGet)
 	api.BaseRoutes.Users.Handle("/tokens", api.APISessionRequired(getUserAccessTokens)).Methods(http.MethodGet)
 	api.BaseRoutes.Users.Handle("/tokens/search", api.APISessionRequired(searchUserAccessTokens)).Methods(http.MethodPost)
+	api.BaseRoutes.Users.Handle("/tokens/non_compliant/count", api.APISessionRequired(countNonCompliantUserAccessTokens)).Methods(http.MethodGet)
+	api.BaseRoutes.Users.Handle("/tokens/non_compliant/revoke", api.APISessionRequired(revokeNonCompliantUserAccessTokens)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/tokens/{token_id:[A-Za-z0-9]+}", api.APISessionRequired(getUserAccessToken)).Methods(http.MethodGet)
 	api.BaseRoutes.Users.Handle("/tokens/revoke", api.APISessionRequired(revokeUserAccessToken)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/tokens/disable", api.APISessionRequired(disableUserAccessToken)).Methods(http.MethodPost)
@@ -2649,7 +2651,7 @@ func revokeAllSessionsAllUsers(c *Context, w http.ResponseWriter, r *http.Reques
 	auditRec := c.MakeAuditRecord(model.AuditEventRevokeAllSessionsAllUsers, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
-	if err := c.App.RevokeSessionsFromAllUsers(); err != nil {
+	if err := c.App.RevokeSessionsFromAllUsers(c.AppContext); err != nil {
 		c.Err = err
 		return
 	}
@@ -3062,6 +3064,58 @@ func getUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func countNonCompliantUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	count, appErr := c.App.CountNonCompliantUserAccessTokens()
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	js, err := json.Marshal(model.NonCompliantUserAccessTokenResult{Count: count})
+	if err != nil {
+		c.Err = model.NewAppError("countNonCompliantUserAccessTokens", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func revokeNonCompliantUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord(model.AuditEventRevokeNonCompliantUserAccessTokens, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	count, appErr := c.App.RevokeNonCompliantUserAccessTokens(c.AppContext)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	model.AddEventParameterToAuditRec(auditRec, "revoked_count", count)
+	auditRec.Success()
+
+	js, err := json.Marshal(model.NonCompliantUserAccessTokenResult{Count: count})
+	if err != nil {
+		c.Err = model.NewAppError("revokeNonCompliantUserAccessTokens", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
 func getUserAccessTokensForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireUserId()
 	if c.Err != nil {
@@ -3135,6 +3189,12 @@ func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "token_id", tokenId)
 	c.LogAudit("")
 
+	if c.AppContext.Session().IsOAuth {
+		c.SetPermissionError(model.PermissionRevokeUserAccessToken)
+		c.Err.DetailedError += ", attempted access by oauth app"
+		return
+	}
+
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionRevokeUserAccessToken) {
 		c.SetPermissionError(model.PermissionRevokeUserAccessToken)
 		return
@@ -3178,6 +3238,12 @@ func disableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) 
 	model.AddEventParameterToAuditRec(auditRec, "token_id", tokenId)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("")
+
+	if c.AppContext.Session().IsOAuth {
+		c.SetPermissionError(model.PermissionRevokeUserAccessToken)
+		c.Err.DetailedError += ", attempted access by oauth app"
+		return
+	}
 
 	// No separate permission for this action for now
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionRevokeUserAccessToken) {
@@ -3223,6 +3289,12 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "token_id", tokenId)
 	c.LogAudit("")
+
+	if c.AppContext.Session().IsOAuth {
+		c.SetPermissionError(model.PermissionCreateUserAccessToken)
+		c.Err.DetailedError += ", attempted access by oauth app"
+		return
+	}
 
 	// No separate permission for this action for now
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateUserAccessToken) {

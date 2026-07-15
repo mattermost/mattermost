@@ -1584,6 +1584,70 @@ describe('makeGetUniqueEmojiNameReactionsForPost', () => {
     });
 });
 
+describe('PostUtils.areConsecutivePostsBySameUser', () => {
+    const userId = 'user_id_1';
+    const baseTime = 1_000_000;
+
+    const makePost = (override: Partial<Post> = {}): Post => {
+        return TestHelper.getPostMock({
+            user_id: userId,
+            create_at: baseTime,
+            type: '',
+            ...override,
+        });
+    };
+
+    test('should return true for consecutive posts from the same user', () => {
+        const previousPost = makePost({create_at: baseTime});
+        const post = makePost({create_at: baseTime + 1000});
+
+        expect(PostUtils.areConsecutivePostsBySameUser(post, previousPost)).toBe(true);
+    });
+
+    test('should return false when current post is AI-generated', () => {
+        const previousPost = makePost({create_at: baseTime});
+        const post = makePost({
+            create_at: baseTime + 1000,
+            props: {
+                ai_generated_by: 'ai_user_id',
+                ai_generated_by_username: 'aibot',
+            },
+        });
+
+        expect(PostUtils.areConsecutivePostsBySameUser(post, previousPost)).toBe(false);
+    });
+
+    test('should return false when current AI post follows another AI post from the same user', () => {
+        const aiProps = {
+            ai_generated_by: 'ai_user_id',
+            ai_generated_by_username: 'aibot',
+        };
+        const previousPost = makePost({
+            create_at: baseTime,
+            props: aiProps,
+        });
+        const post = makePost({
+            create_at: baseTime + 1000,
+            props: aiProps,
+        });
+
+        expect(PostUtils.areConsecutivePostsBySameUser(post, previousPost)).toBe(false);
+    });
+
+    test('should return false when a normal post follows an AI post from the same user', () => {
+        const previousPost = makePost({
+            create_at: baseTime,
+            props: {
+                ai_generated_by: 'ai_user_id',
+                ai_generated_by_username: 'aibot',
+            },
+        });
+        const post = makePost({create_at: baseTime + 1000});
+
+        expect(PostUtils.areConsecutivePostsBySameUser(post, previousPost)).toBe(false);
+    });
+});
+
 describe('shouldShowActionsMenu', () => {
     const baseState = {
         entities: {

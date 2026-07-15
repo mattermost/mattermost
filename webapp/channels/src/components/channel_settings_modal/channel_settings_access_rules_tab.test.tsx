@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
 

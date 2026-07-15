@@ -1554,14 +1554,18 @@ export function getChannelJoinRequests(state: GlobalState, channelId: string): C
     return state.entities.channels.joinRequests.byChannel[channelId] ?? [];
 }
 
-export function getPendingChannelJoinRequests(state: GlobalState, channelId: string): ChannelJoinRequest[] {
-    return (state.entities.channels.joinRequests.byChannel[channelId] ?? []).filter((r) => r.status === 'pending');
-}
+export const getPendingChannelJoinRequests: (state: GlobalState, channelId: string) => ChannelJoinRequest[] = createSelector(
+    'getPendingChannelJoinRequests',
+    (state: GlobalState, channelId: string) => state.entities.channels.joinRequests.byChannel[channelId],
+    (requests) => (requests ?? []).filter((r) => r.status === 'pending'),
+);
 
 export function getPendingJoinRequestsCount(state: GlobalState, channelId: string): number {
     return state.entities.channels.joinRequests.countsByChannel[channelId] ?? 0;
 }
 
-export function getMyPendingJoinRequestList(state: GlobalState): ChannelJoinRequest[] {
-    return state.entities.channels.joinRequests.myList.filter((r) => r.status === 'pending');
-}
+export const getMyPendingJoinRequestList: (state: GlobalState) => ChannelJoinRequest[] = createSelector(
+    'getMyPendingJoinRequestList',
+    (state: GlobalState) => state.entities.channels.joinRequests.myList,
+    (myList) => myList.filter((r) => r.status === 'pending'),
+);

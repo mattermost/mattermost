@@ -8206,10 +8206,6 @@
     "translation": "OnlyThreads and OnlyTotals parameters to getThreadsForUser are mutually exclusive"
   },
   {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "The file storage settings have unset values."
-  },
-  {
     "id": "api.file.test_connection_email_settings_nil.app_error",
     "translation": "The email settings have unset values."
   },

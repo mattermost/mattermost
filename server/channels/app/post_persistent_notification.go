@@ -166,6 +166,11 @@ func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(pos
 	var postsForPersistentNotificationCleanup []*model.Post
 
 	for _, post := range posts {
+		if post.IsNotificationSuppressed() {
+			postsForPersistentNotificationCleanup = append(postsForPersistentNotificationCleanup, post)
+			continue
+		}
+
 		channel := channelsMap[post.ChannelId]
 		if channel == nil {
 			postsForPersistentNotificationCleanup = append(postsForPersistentNotificationCleanup, post)
@@ -207,7 +212,7 @@ func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(pos
 			keywords := channelKeywords[channel.Id]
 			keywords.AddGroupsMap(channelGroupMap[channel.Id])
 
-			mentions = getExplicitMentions(post, keywords)
+			mentions = getExplicitMentions(post, keywords, a.Config().FeatureFlags.MmBlocksEnabled)
 			for groupID := range mentions.GroupMentions {
 				group := channelGroupMap[channel.Id][groupID]
 				_, err := a.insertGroupMentions(post.UserId, group, channel, profileMap, mentions)

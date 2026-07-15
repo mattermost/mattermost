@@ -33,6 +33,7 @@ func newSqlUserAccessTokenStore(sqlStore *SqlStore) store.UserAccessTokenStore {
 			"UserAccessTokens.Description",
 			"UserAccessTokens.IsActive",
 			"UserAccessTokens.ExpiresAt",
+			"UserAccessTokens.LastNotifiedAt",
 		).
 		From("UserAccessTokens")
 
@@ -268,6 +269,148 @@ func (s SqlUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*m
 	}
 
 	return tokens, nil
+}
+
+// GetExpiringTokens returns active, non-bot tokens belonging to non-deactivated
+// users that need a pre-expiry warning for one of the given day thresholds
+// (e.g. 7/3/1), ordered most-urgent first, up to the given limit. Bot tokens are
+// excluded because bot accounts are exempt from the expiry policy and have no
+// human inbox to notify.
+//
+// Only *actionable* rows are returned: for each threshold T a token qualifies
+// when it has entered the T-day bucket (ExpiresAt <= now + T days) and has not
+// yet been notified at T or a more urgent bucket. "Not yet notified at T" means
+// the last warning (if any) was sent while more than T days remained, i.e.
+// LastNotifiedAt < ExpiresAt - T days (or LastNotifiedAt IS NULL). OR-ing this
+// across every threshold yields exactly the tokens whose current (most urgent)
+// bucket is still un-notified, so tokens already warned at their current bucket
+// never consume a result slot — without this, a backlog of already-warned tokens
+// ordered ahead of a less-urgent unnotified token could starve it past the limit
+// on every run. The worker still recomputes each token's bucket and re-checks the
+// last-notified time as a guard against races. The secret Token column is
+// intentionally NOT selected — callers use the returned rows for metadata
+// (notification, marker update) only.
+//
+// A non-positive limit or empty thresholds returns an empty slice without
+// hitting the DB rather than relying on the int -> uint64 cast (which would
+// otherwise wrap a negative value into an enormous unsigned limit and
+// effectively disable the bound).
+func (s SqlUserAccessTokenStore) GetExpiringTokens(now int64, thresholds []int, limit int) ([]*model.UserAccessToken, error) {
+	tokens := []*model.UserAccessToken{}
+
+	if limit <= 0 || len(thresholds) == 0 {
+		return tokens, nil
+	}
+
+	actionable := sq.Or{}
+	for _, t := range thresholds {
+		bucketMillis := int64(t) * model.DayInMilliseconds
+		actionable = append(actionable, sq.And{
+			sq.LtOrEq{"UserAccessTokens.ExpiresAt": now + bucketMillis},
+			sq.Or{
+				sq.Eq{"UserAccessTokens.LastNotifiedAt": nil},
+				sq.Expr("UserAccessTokens.LastNotifiedAt < UserAccessTokens.ExpiresAt - ?", bucketMillis),
+			},
+		})
+	}
+
+	query := s.getQueryBuilder().
+		Select(
+			"UserAccessTokens.Id",
+			"UserAccessTokens.UserId",
+			"UserAccessTokens.Description",
+			"UserAccessTokens.IsActive",
+			"UserAccessTokens.ExpiresAt",
+			"UserAccessTokens.LastNotifiedAt",
+		).
+		From("UserAccessTokens").
+		InnerJoin("Users ON Users.Id = UserAccessTokens.UserId").
+		LeftJoin("Bots ON Bots.UserId = UserAccessTokens.UserId").
+		Where(sq.Eq{"UserAccessTokens.IsActive": true}).
+		Where(sq.Gt{"UserAccessTokens.ExpiresAt": now}).
+		Where(sq.Eq{"Users.DeleteAt": 0}).
+		Where(sq.Eq{"Bots.UserId": nil}).
+		Where(actionable).
+		OrderBy("UserAccessTokens.ExpiresAt ASC").
+		Limit(uint64(limit))
+
+	// Read from master: this dedups against LastNotifiedAt (written to master),
+	// so a lagging replica could re-surface an already-warned token and send a
+	// duplicate. It runs at most once per job run, so master costs nothing here.
+	if err := s.GetMaster().SelectBuilder(&tokens, query); err != nil {
+		return nil, errors.Wrap(err, "failed to find expiring UserAccessTokens")
+	}
+
+	return tokens, nil
+}
+
+// UpdateLastNotifiedAt records the time (Unix milliseconds) at which the token
+// owner was most recently warned about the token's upcoming expiry, so the hourly
+// pat_expiry_notify job does not re-send the same warning on subsequent runs.
+func (s SqlUserAccessTokenStore) UpdateLastNotifiedAt(tokenId string, notifiedAt int64) error {
+	if _, err := s.GetMaster().Exec("UPDATE UserAccessTokens SET LastNotifiedAt = ? WHERE Id = ?", notifiedAt, tokenId); err != nil {
+		return errors.Wrapf(err, "failed to update LastNotifiedAt for UserAccessToken with id=%s", tokenId)
+	}
+	return nil
+}
+
+// CountNonCompliantExpiry returns the number of active, non-bot tokens that
+// violate the maximum lifetime policy implied by maxExpiresAt. It is used to
+// preview the blast radius before revoking.
+func (s SqlUserAccessTokenStore) CountNonCompliantExpiry(maxExpiresAt int64) (int64, error) {
+	query := s.getQueryBuilder().
+		Select("COUNT(*)").
+		From("UserAccessTokens").
+		Where(sq.Or{
+			sq.Eq{"UserAccessTokens.ExpiresAt": 0},
+			sq.Gt{"UserAccessTokens.ExpiresAt": maxExpiresAt},
+		}).
+		Where(sq.Eq{"UserAccessTokens.IsActive": true}).
+		Where(sq.Expr("UserAccessTokens.UserId NOT IN (SELECT UserId FROM Bots)"))
+
+	var count int64
+	if err := s.GetReplica().GetBuilder(&count, query); err != nil {
+		return 0, errors.Wrap(err, "failed to count non-compliant UserAccessTokens")
+	}
+
+	return count, nil
+}
+
+// DeleteNonCompliantExpiry hard-deletes up to limit non-compliant tokens and
+// their associated sessions in a single transaction, returning one UserId per
+// deleted token row so the caller can count deletions and clear per-user
+// session caches. A non-positive limit returns nil without hitting the DB.
+func (s SqlUserAccessTokenStore) DeleteNonCompliantExpiry(maxExpiresAt int64, limit int) ([]string, error) {
+	if limit <= 0 {
+		return nil, nil
+	}
+
+	sql := `
+WITH to_delete AS (
+    SELECT Id, Token, UserId
+    FROM UserAccessTokens
+    WHERE (ExpiresAt = 0 OR ExpiresAt > $1)
+      AND IsActive = true
+      AND UserId NOT IN (SELECT UserId FROM Bots)
+    LIMIT $2
+),
+deleted_sessions AS (
+    DELETE FROM Sessions
+    WHERE Token IN (SELECT Token FROM to_delete)
+),
+deleted_tokens AS (
+    DELETE FROM UserAccessTokens
+    WHERE Id IN (SELECT Id FROM to_delete)
+    RETURNING UserId
+)
+SELECT UserId FROM deleted_tokens`
+
+	var userIDs []string
+	if err := s.GetMaster().Select(&userIDs, sql, maxExpiresAt, limit); err != nil {
+		return nil, errors.Wrap(err, "failed to delete non-compliant UserAccessTokens")
+	}
+
+	return userIDs, nil
 }
 
 // DeleteByIds deletes the tokens identified by tokenIDs along with any sessions

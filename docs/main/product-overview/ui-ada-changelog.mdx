@@ -1,0 +1,193 @@
+---
+title: "UI & ADA Changelog"
+---
+This changelog tracks User Interface (UI) and Accessibility (ADA) changes across Mattermost releases. Administrators can use this page to easily see what changed in the UI from their current version to the one they're upgrading to, and track ADA improvements release to release.
+
+## Changelog
+
+<table>
+<colgroup>
+<col style={{width: '12%'}} />
+<col style={{width: '87%'}} />
+</colgroup>
+<thead>
+<tr>
+<th>Version</th>
+<th>Change Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>v11.6</td>
+<td>(UI) Added support for Default Agent in suggestions and integrated Agents into the App Bar.</td>
+</tr>
+<tr>
+<td>v11.6</td>
+<td>(UI) Improved the reliability of AI recap summarization by using structured JSON output from the LLM.</td>
+</tr>
+<tr>
+<td>v11.6</td>
+<td>(UI) Added a new feature of creating teams and channels using <a href="https://docs.mattermost.com/end-user-guide/collaborate/rename-channels.html">anonymous URLs</a> so the channel and team name are not revealed in the URL. Requires Enterprise Advanced license.</td>
+</tr>
+<tr>
+<td>v11.6</td>
+<td>(UI) Added <a href="https://docs.mattermost.com/end-user-guide/collaborate/search-for-messages.html#search-for-message">popouts</a> for Recent Mentions, Saved Messages, and Search Results via the right-hand side.</td>
+</tr>
+<tr>
+<td>v11.6</td>
+<td>(UI) The emoji picker on web and Desktop now inserts unicode emoji characters into the message composer instead of shortcode text.</td>
+</tr>
+<tr>
+<td>v11.6</td>
+<td>(UI) Renamed Enterprise Advanced feature Content Flagging to Data Spillage.</td>
+</tr>
+<tr>
+<td>v11.6</td>
+<td>(UI) Added <a href="https://docs.mattermost.com/administration-guide/onboard/sso-google.html#step-3-configure-mattermost-for-google-apps-sso">a contextual note</a> in Security Settings that explains how Google SSO can synchronize usernames and emails, shown alongside the Sign-in Method details.</td>
+</tr>
+<tr>
+<td>v11.6</td>
+<td>(UI) Renamed <code>SlackAttachment</code> and <code>SlackAttachmentField</code> types to <code>MessageAttachment</code> and <code>MessageAttachmentField</code>. Old names are maintained as deprecated aliases for backward compatibility with plugins.</td>
+</tr>
+<tr>
+<td>v11.6</td>
+<td>(UI) Posts created by integrations using Slack-compatible attachments (webhooks, bots, plugins) are now fully searchable in Elasticsearch. Previously, only the attachment text field was indexed. Now title, pretext, fallback, and field content are also indexed. A bulk re-index is required after upgrade to apply this to existing posts.</td>
+</tr>
+<tr>
+<td>v11.6</td>
+<td>(UI) Added timezone support and manual time entry for Interactive Dialog <code>datetime</code> fields.</td>
+</tr>
+<tr>
+<td>v11.6</td>
+<td>(UI) Added sub-day relative date patterns (H/M/S) for datetime dialog fields, enabling min/max constraints with hour, minute, and second precision.</td>
+</tr>
+<tr>
+<td>v11.5</td>
+<td>(UI) Added support for <a href="https://docs.mattermost.com/end-user-guide/collaborate/autotranslate-messages.html">auto-translations</a>. Initial Beta release. Requires Enterprise Advanced license.</td>
+</tr>
+<tr>
+<td>v11.5</td>
+<td>(UI) Added the ability for web app plugin code to be loaded asynchronously.</td>
+</tr>
+<tr>
+<td>v11.5</td>
+<td>(UI) <a href="https://docs.mattermost.com/end-user-guide/collaborate/send-messages.html#rewrite-messages-with-ai">AI Rewrites</a> now includes some context from the most recent messages in the thread to help provide better rewrites.</td>
+</tr>
+<tr>
+<td>v11.5</td>
+<td>(UI) Available AI Agents are now shown in the @-mention autocomplete menu, regardless of channel membership.</td>
+</tr>
+<tr>
+<td>v11.5</td>
+<td>(UI) Added the ability to access channel settings and rename a channel from the channel info right-hand sidebar.</td>
+</tr>
+<tr>
+<td>v11.5</td>
+<td>(UI) Added tooltips to action buttons, and action errors are now displayed.</td>
+</tr>
+<tr>
+<td>v11.5</td>
+<td>(UI) Updated the signup flow to replace the newsletter opt-in with a checkbox to agree to the <strong>Acceptable Use Policy</strong> and <strong>Privacy Policy</strong>.</td>
+</tr>
+<tr>
+<td>v11.5</td>
+<td>(UI) Added back <a href="https://docs.mattermost.com/end-user-guide/collaborate/send-messages.html">offline Help documentation</a> accessible from the message composer.</td>
+</tr>
+<tr>
+<td>v11.5</td>
+<td>(UI) Added <a href="https://docs.mattermost.com/end-user-guide/collaborate/channel-types.html#archived-channels">new icons</a> for archived and private channels.</td>
+</tr>
+<tr>
+<td>v11.5</td>
+<td>(Accessibility) Fixed an issue where the profile status menu disappeared at higher zoom levels or at resized window on mobile view.</td>
+</tr>
+<tr>
+<td>v11.4</td>
+<td>(UI) Updated illustrations and visual design for the initial loading screen, preparing workspace flow, IP filtering empty state, and admin console feature discovery panels.</td>
+</tr>
+<tr>
+<td>v11.4</td>
+<td>(UI) Added adjustments to thread and right-hand side plugin pop-out titles.</td>
+</tr>
+<tr>
+<td>v11.4</td>
+<td>(UI) MS Teams and Outlook on mobile no longer display a "Your browser does not support notifications" warning banner when running Mattermost embedded in those apps.</td>
+</tr>
+<tr>
+<td>v11.3</td>
+<td>(UI) Added Korean language support and upgraded Korean translations from Alpha to Official.</td>
+</tr>
+<tr>
+<td>v11.3</td>
+<td>(UI) Added pop-outs for right-hand-side (RHS) plugins.</td>
+</tr>
+<tr>
+<td>v11.3</td>
+<td>(UI) Removed outdated system notices.</td>
+</tr>
+<tr>
+<td>v11.3</td>
+<td>(UI) Removed the Collapsed Reply Threads tutorial.</td>
+</tr>
+<tr>
+<td>v11.3</td>
+<td>(UI) Added support for triggering user mentions using the full-width at-sign (＠) in addition to the standard half-width at-sign (@), improving the experience for users of Japanese input methods.</td>
+</tr>
+<tr>
+<td>v11.3</td>
+<td>(UI) Added the ability to schedule posts in 15-minutes interval.</td>
+</tr>
+<tr>
+<td>v11.3</td>
+<td>(UI) Updated Giphy SDK from 8.1.0 to 10.1.0.</td>
+</tr>
+<tr>
+<td>v11.3</td>
+<td>(UI) Custom Profile Attributes now always return a set of <a href="https://docs.mattermost.com/administration-guide/manage/admin/user-attributes.html#add-attributes">default attributes</a> if they're not set.</td>
+</tr>
+<tr>
+<td>v11.3</td>
+<td>(UI) Added a new webapp plugin component <code>registerSidebarBrowseOrAddChannelMenuComponent</code>, which allows users to add options to the <code>BrowseOrCreateChannel</code> menu.</td>
+</tr>
+<tr>
+<td>v11.2</td>
+<td>(UI) Enabled <a href="https://docs.mattermost.com/end-user-guide/collaborate/organize-conversations.html#start-or-reply-to-threads">thread popouts</a> in the browser.</td>
+</tr>
+<tr>
+<td>v11.2</td>
+<td>(UI) Reduced the channel banner height.</td>
+</tr>
+<tr>
+<td>v11.2</td>
+<td>(UI) Improved license and plan name clarity throughout the user interface. License settings and the <strong>About</strong> modal now display specific plan names (Professional, Enterprise, Entry) instead of the generic "Enterprise Edition" label, reducing confusion between edition and plan terminology.</td>
+</tr>
+<tr>
+<td>v11.1</td>
+<td>(UI) Added support for standalone windows pop-out. Threads can now be popped out to its own window in Desktop.</td>
+</tr>
+<tr>
+<td>v11.1</td>
+<td>(UI) The desktop app version is now shown on the <strong>About</strong> modal, allowing clicking to copy both the server and desktop app versions.</td>
+</tr>
+<tr>
+<td>v11.1</td>
+<td>(UI) Removed Mattermost MS Teams Sync plugin from pre-packaged plugins.</td>
+</tr>
+<tr>
+<td>v11.1</td>
+<td>(UI) Downgraded French language support from Beta to Alpha.</td>
+</tr>
+<tr>
+<td>v11.0</td>
+<td>(UI) Removed Playbooks v1 from pre-packaged plugins.</td>
+</tr>
+<tr>
+<td>v11.0</td>
+<td>(UI) Updated the library used for customizing scrollbars.</td>
+</tr>
+<tr>
+<td>v11.0</td>
+<td>(UI) Increased page size when retrieving posts in channels with high number of hidden messages.</td>
+</tr>
+</tbody>
+</table>

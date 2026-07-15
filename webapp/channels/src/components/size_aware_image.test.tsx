@@ -79,6 +79,28 @@ describe('components/SizeAwareImage', () => {
         expect(container).toMatchSnapshot();
     });
 
+    test('should reserve a placeholder without rendering image content when renderPlaceholderOnly is true', () => {
+        const props = {
+            ...baseProps,
+            showLoader: true,
+            renderPlaceholderOnly: true,
+            fileInfo: TestHelper.getFileInfoMock({
+                ...baseProps.fileInfo,
+                mime_type: 'mime_type',
+                mini_preview: 'mini_preview',
+            }),
+        };
+
+        const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
+
+        const svgElement = container.querySelector('.image-loading__container > svg');
+        expect(svgElement).not.toBeNull();
+        expect(svgElement?.getAttribute('viewBox')).toEqual('0 0 300 200');
+        expect(container.querySelector('img')).toBeNull();
+        expect(container.querySelector('.file__image-loading')).toBeNull();
+        expect(container.querySelector('.file-preview__button')).toBeNull();
+    });
+
     test('should render a mini preview when showLoader is true and preview is set', () => {
         const props = {
             ...baseProps,

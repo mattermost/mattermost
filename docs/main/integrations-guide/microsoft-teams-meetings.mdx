@@ -1,0 +1,116 @@
+---
+title: "Connect Microsoft Teams Meetings to Mattermost"
+---
+<PlanAvailability slug="all-commercial" />
+
+Start and join voice calls, video calls, and use screen sharing with your team members in Microsoft Teams without leaving Mattermost.
+
+## Deploy
+
+Setup starts in Microsoft Azure and ends in Mattermost.
+
+### Create a Mattermost App in Azure
+
+1.  Sign in to the [Azure portal](https://portal.azure.com) using an admin Azure account.
+2.  Navigate to [App Registrations](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredApps).
+3.  Select **New registration** at the top of the page.
+
+> ![In Azure, create a new app registration.](/images/ms-teams-meetings-new-azure-registration.png)
+
+4.  Fill out the form with the following values, then select **Register** to submit the form:
+
+> - **Name**: Mattermost Microsoft Teams Meetings Plugin
+> - **Supported account types**: Default value (Single tenant)
+> - **Redirect URI**: `https://<MM_SITE_URL>/plugins/com.mattermost.msteamsmeetings/oauth2/complete`. Replace `<MM_SITE_URL>` with your Mattermost server's Site URL.
+>
+> ![In Azure, create a new app registration.](/images/ms-teams-meetings-reg-info.png)
+
+5.  Go to **Certificates & secrets** in the left pane.
+
+> ![In Azure, go to Certificates & secrets located in the left pane.](/images/ms-teams-meetings-certs-secrets.png)
+
+6.  Select **New client secret \> Add**, then copy the new secret in the bottom right corner of the screen. We'll use this value later in the Mattermost System Console.
+
+> ![In Azure, create a new client secret and copy the value for later.](/images/ms-teams-meetings-new-client-secret.png)
+
+7.  Go to **API permissions** in the left pane.
+
+> ![In Azure, go to API permissions located in the left pane.](/images/ms-teams-meetings-api-permissions.png)
+
+8.  Select **Add a permission** and select **Microsoft Graph** in the right pane.
+
+> ![In Azure, add a permission for Microsoft Graph.](/images/ms-teams-meetings-add-permission.png)
+
+9.  Select **Delegated permissions**, and scroll down to select the `OnlineMeetings.ReadWrite` permissions. Select **Add permissions** to submit the form.
+
+> ![In Azure, select OnlineMeetings.ReadWrite permissions.](/images/ms-teams-meetings-delegated-permissions.png)
+
+10. Select **Grant admin consent for mattermost** to grant the permissions for the application.
+
+> ![In Azure, grant admin consent permissions for the application.](/images/ms-teams-meetings-grant-admin-consent.png)
+
+You're all set for configuration inside of the Azure portal.
+
+### Install the Microsoft Teams Meetings integration
+
+1.  Log in to your Mattermost [workspace](/end-user-guide/end-user-guide-index) as a system admin.
+2.  In Mattermost, from the Product menu <img src="/img/ui/products_E82F.svg" alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" />, select **App Marketplace**.
+3.  Search for or scroll to MS Teams Meetings, and select **Install**.
+4.  Once installed, select **Configure**. You're taken to the System Console, directly to the **MS Teams Meetings** integration page, under **Plugins**.
+
+<Note>
+
+From Mattermost v9.11.2 (ESR) and Mattermost Cloud v10, this plugin is pre-packaged with the Mattermost Server. If your Mattermost deployment is on a release prior to v9.11.2, download the [latest plugin binary release](https://github.com/mattermost/mattermost-plugin-msteams-meetings/releases), and upload it to your server via **System Console \> Plugin Management**.
+
+</Note>
+
+### Enable and configure the Microsoft Teams Meetings integration in Mattermost
+
+1.  In Azure, copy the **Application (client) ID** and **Directory (tenant) ID** from the Azure portal.
+
+> ![In Azure, copy the Client ID and Tenant ID values.](/images/ms-teams-meetings-copy-ids.png)
+
+2.  In Mattermost, go to **System Console \> Plugins \> MS Teams Meetings** to enable this integration.
+3.  In Mattermost, enter the following values in the fields provided. Select **Save** to apply the configuration:
+
+> - **Azure - Directory (tenant) ID** - Paste the **Directory (tenant) ID** from the Azure portal.
+> - **Azure - Application (client) ID** - Paste the **Application (client) ID** from the Azure portal.
+> - **Azure - Application (client) Secret** - Copy from the Azure portal (generated in **Certificates & secrets** earlier in these instructions).
+
+Notify your teams that they can [connect their Microsoft Teams Meetings accounts to Mattermost](#connect-a-microsoft-teams-account-to-mattermost).
+
+## Use
+
+Users who want to use MS Teams Meetings interconnectivity must connect a Microsoft Teams Meetings account to Mattermost.
+
+Once connected, you'll receive direct messages from the Microsoft Teams Meetings bot in Mattermost for Microsoft Teams Meetings activity.
+
+### Connect a Microsoft Teams account to Mattermost
+
+Use the <code>/mstmeetings connect</code> slash command to connect an MS Teams account to Mattermost.
+
+### Start a call
+
+Start a call either by selecting the video icon in a Mattermost channel or by running the <code>/mstmeetings start</code> slash command. Every meeting you start creates a new meeting room in Microsoft Teams.
+
+<Note>
+
+If you start two meetings less than 30 seconds apart you'll be prompted to confirm that you want to create the meeting.
+
+</Note>
+
+### Disconnect a Microsoft Teams account from Mattermost
+
+Run the <code>/mstmeetings disconnect</code> slash command to disconnect a Microsoft Teams account from Mattermost.
+
+## Upgrade
+
+We recommend updating this integration as new versions are released. Generally, updates are seamless and don't interrupt the user experience in Mattermost. Visit the [Releases page](https://github.com/mattermost/mattermost-plugin-mscalendar) for the latest release, available releases, and compatibiilty considerations.
+
+## Get help
+
+Customers with a Mattermost subscription can open a [Mattermost support case](https://support.mattermost.com/hc/en-us/requests/new). Community deployments can report a bug by opening a GitHub issue against the [Microsoft Teams Notifications plugin](https://github.com/mattermost/mattermost-plugin-msteams-meetings).
+
+For questions, feedback, and assistance, join our pubic [Integrations and Apps channel](https://community.mattermost.com/core/channels/integrations) on the [Mattermost Community Server](https://community.mattermost.com/) for assistance.
+
+Mattermost Team Edition and Free customers can visit the Mattermost [peer-to-peer troubleshooting forum](https://forum.mattermost.com/c/trouble-shoot/16) to access the global Mattermost Community for assistance.

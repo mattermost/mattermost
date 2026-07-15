@@ -1,6 +1,6 @@
 module github.com/mattermost/mattermost/server/v8
 
-go 1.26.3
+go 1.26.4
 
 require (
 	code.sajari.com/docconv/v2 v2.0.0-pre.4
@@ -75,13 +75,13 @@ require (
 	github.com/wiggin77/merror v1.0.5
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c
 	github.com/yuin/goldmark v1.8.2
-	golang.org/x/crypto v0.51.0
+	golang.org/x/crypto v0.53.0
 	golang.org/x/image v0.40.0
-	golang.org/x/net v0.54.0
-	golang.org/x/sync v0.20.0
-	golang.org/x/sys v0.44.0
-	golang.org/x/term v0.43.0
-	golang.org/x/text v0.37.0
+	golang.org/x/net v0.56.0
+	golang.org/x/sync v0.21.0
+	golang.org/x/sys v0.46.0
+	golang.org/x/term v0.44.0
+	golang.org/x/text v0.38.0
 	gopkg.in/mail.v2 v2.3.1
 )
 

@@ -7,11 +7,13 @@ import type {Agent} from '@mattermost/types/agents';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {getAgents as getAgentsAction} from 'mattermost-redux/actions/agents';
+import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Client4} from 'mattermost-redux/client';
 
 import type TextboxClass from 'components/textbox/textbox';
 
-import {renderHookWithContext, waitFor} from 'tests/react_testing_utils';
+import {act, renderHookWithContext, waitFor} from 'tests/react_testing_utils';
+import {Preferences} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
@@ -23,11 +25,17 @@ jest.mock('mattermost-redux/actions/agents', () => ({
     getAgents: jest.fn(() => ({type: 'GET_AGENTS'})),
 }));
 
+jest.mock('mattermost-redux/actions/preferences', () => ({
+    savePreferences: jest.fn(() => ({type: 'SAVE_PREFERENCES'})),
+}));
+
 jest.mock('mattermost-redux/client', () => ({
     Client4: {
         getAIRewrittenMessage: jest.fn(),
     },
 }));
+
+const CURRENT_USER_ID = 'current_user_id';
 
 describe('useRewrite', () => {
     const mockAgents: Agent[] = [
@@ -94,17 +102,33 @@ describe('useRewrite', () => {
         document.body.innerHTML = '';
     });
 
-    function getBaseState(): DeepPartial<GlobalState> {
+    function getBaseState(agents: Agent[] = mockAgents, selectedAgentPref?: string): DeepPartial<GlobalState> {
+        const myPreferences: Record<string, {category: string; name: string; user_id: string; value: string}> = {};
+        if (selectedAgentPref) {
+            myPreferences[`${Preferences.CATEGORY_AGENTS}--${Preferences.SELECTED_AGENT}`] = {
+                category: Preferences.CATEGORY_AGENTS,
+                name: Preferences.SELECTED_AGENT,
+                user_id: CURRENT_USER_ID,
+                value: selectedAgentPref,
+            };
+        }
+
         return {
             entities: {
                 agents: {
-                    agents: mockAgents,
+                    agents,
+                },
+                users: {
+                    currentUserId: CURRENT_USER_ID,
+                },
+                preferences: {
+                    myPreferences,
                 },
             },
         };
     }
 
-    function renderHookWithProps(draft: PostDraft = mockDraft, overrides?: Partial<typeof mockDraft>) {
+    function renderHookWithProps(draft: PostDraft = mockDraft, overrides?: Partial<typeof mockDraft>, state: DeepPartial<GlobalState> = getBaseState()) {
         return renderHookWithContext(
             () => useRewrite(
                 {...draft, ...overrides},
@@ -113,7 +137,7 @@ describe('useRewrite', () => {
                 mockFocusTextbox,
                 mockSetServerError,
             ),
-            getBaseState(),
+            state,
         );
     }
 
@@ -123,10 +147,66 @@ describe('useRewrite', () => {
             expect(getAgentsAction).toHaveBeenCalledTimes(1);
         });
 
-        it('should set default selected agent when agents are available', () => {
+        it('should fall back to the first agent when there is no preference or default', () => {
             const {result} = renderHookWithProps();
             const props = result.current.rewriteMenuProps;
             expect(props.selectedAgentId).toBe('agent1');
+        });
+
+        it('should select the system default agent when no preference is set', () => {
+            const agentsWithDefault: Agent[] = [
+                mockAgents[0],
+                {...mockAgents[1], is_default: true},
+            ];
+            const {result} = renderHookWithProps(mockDraft, undefined, getBaseState(agentsWithDefault));
+            const props = result.current.rewriteMenuProps;
+            expect(props.selectedAgentId).toBe('agent2');
+        });
+
+        it('should restore the saved preference agent over the default', () => {
+            const agentsWithDefault: Agent[] = [
+                {...mockAgents[0], is_default: true},
+                mockAgents[1],
+            ];
+            const {result} = renderHookWithProps(mockDraft, undefined, getBaseState(agentsWithDefault, 'agent2'));
+            const props = result.current.rewriteMenuProps;
+            expect(props.selectedAgentId).toBe('agent2');
+        });
+
+        it('should ignore a saved preference that is no longer available', () => {
+            const agentsWithDefault: Agent[] = [
+                mockAgents[0],
+                {...mockAgents[1], is_default: true},
+            ];
+            const {result} = renderHookWithProps(mockDraft, undefined, getBaseState(agentsWithDefault, 'missing_agent'));
+            const props = result.current.rewriteMenuProps;
+            expect(props.selectedAgentId).toBe('agent2');
+        });
+
+        it('should fall back to the first agent when the saved preference is stale and there is no default', () => {
+            const {result} = renderHookWithProps(mockDraft, undefined, getBaseState(mockAgents, 'missing_agent'));
+            const props = result.current.rewriteMenuProps;
+            expect(props.selectedAgentId).toBe('agent1');
+        });
+
+        it('should not persist a preference during auto-resolution', () => {
+            renderHookWithProps();
+            expect(savePreferences).not.toHaveBeenCalled();
+        });
+
+        it('should persist the preference on an explicit selection', () => {
+            const {result} = renderHookWithProps();
+
+            act(() => {
+                result.current.rewriteMenuProps.setSelectedAgentId('agent2');
+            });
+
+            expect(savePreferences).toHaveBeenCalledWith(CURRENT_USER_ID, [{
+                category: Preferences.CATEGORY_AGENTS,
+                name: Preferences.SELECTED_AGENT,
+                user_id: CURRENT_USER_ID,
+                value: 'agent2',
+            }]);
         });
     });
 

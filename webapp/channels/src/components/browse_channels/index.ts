@@ -15,7 +15,6 @@ import {
     getChannelsMemberCount,
     searchAllChannels,
     getMyChannelJoinRequests,
-    requestJoinChannel,
     withdrawMyChannelJoinRequest,
 } from 'mattermost-redux/actions/channels';
 import {RequestStatus} from 'mattermost-redux/constants';
@@ -95,7 +94,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
             closeRightHandSide,
             getChannelsMemberCount,
             getMyChannelJoinRequests,
-            requestJoinChannel,
             withdrawMyChannelJoinRequest,
         }, dispatch),
     };

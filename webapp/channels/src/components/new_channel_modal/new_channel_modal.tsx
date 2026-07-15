@@ -457,7 +457,7 @@ const NewChannelModal = () => {
         <LoadingSpinner
             text={formatMessage({id: 'channel_modal.creating', defaultMessage: 'Creating...'})}
         />
-    ) : formatMessage({id: 'channel_modal.createNew', defaultMessage: 'Create channel'});
+    ) : (activePluginOption?.createButtonText ?? formatMessage({id: 'channel_modal.createNew', defaultMessage: 'Create channel'}));
 
     return (
         <GenericModal
@@ -516,7 +516,7 @@ const NewChannelModal = () => {
                                 </label>
                                 <label
                                     className='Input_subheading'
-                                    aria-label={discoverableTitle}
+                                    aria-label={discoverableDescription}
                                 >
                                     {discoverableDescription}
                                 </label>

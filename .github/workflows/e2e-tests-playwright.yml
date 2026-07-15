@@ -218,7 +218,7 @@ jobs:
       pull-requests: write
     uses: ./.github/workflows/e2e-tests-playwright-template-v2.yml
     with:
-      workers: 10
+      workers: 15
       enabled_docker_services: "postgres inbucket"
       commit_sha: ${{ inputs.commit_sha }}
       branch: ${{ needs.generate-build-variables.outputs.branch }}

@@ -3,10 +3,7 @@
 
 import React from 'react';
 
-import type {
-    PropertyField,
-    PropertyValue,
-} from '@mattermost/types/properties';
+import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
 import type {
     ChannelFieldMetadata,
@@ -52,6 +49,7 @@ export default function PropertyValueRenderer({field, value, metadata}: Props) {
             />
         );
     case 'select':
+    case 'rank':
         return (
             <SelectPropertyRenderer
                 value={value}

@@ -68,7 +68,7 @@ func TestPostActionInvalidURL(t *testing.T) {
 	require.NotEmpty(t, attachments[0].Actions)
 	require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-	_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
+	_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
 	require.NotNil(t, err)
 	assert.ErrorContains(t, err, "missing protocol scheme")
 }
@@ -120,7 +120,7 @@ func TestPostActionEmptyResponse(t *testing.T) {
 		attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
 		require.True(t, ok)
 
-		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
+		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
 		require.Nil(t, err)
 	})
 
@@ -168,10 +168,58 @@ func TestPostActionEmptyResponse(t *testing.T) {
 			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = new(int64(1))
 		})
 
-		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
+		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
 		require.NotNil(t, err)
 		assert.ErrorContains(t, err, "context deadline exceeded")
 	})
+}
+
+func TestDoPostActionWithCookieGotoLocation(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	wantGoto := "http://127.0.0.1:9999/some/relative/path"
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		payload, _ := json.Marshal(map[string]string{"goto_location": wantGoto})
+		_, _ = w.Write(payload)
+	}))
+	defer ts.Close()
+
+	interactivePost := model.Post{
+		Message:       "Interactive post",
+		ChannelId:     th.BasicChannel.Id,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        th.BasicUser.Id,
+		Props: model.StringInterface{
+			model.PostPropsAttachments: []*model.MessageAttachment{
+				{
+					Text: "hello",
+					Actions: []*model.PostAction{
+						{
+							Type: model.PostActionTypeButton,
+							Name: "action",
+							Integration: &model.PostActionIntegration{
+								URL: ts.URL,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+	require.Nil(t, err)
+	attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
+	require.True(t, ok)
+
+	_, gotoLoc, err := th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
+	require.Nil(t, err)
+	assert.Equal(t, wantGoto, gotoLoc)
 }
 
 // infiniteReader generates unlimited data for testing response size limits
@@ -236,8 +284,8 @@ func TestPostActionResponseSizeLimit(t *testing.T) {
 		require.True(t, ok)
 
 		// Should return error due to truncated JSON, but NOT crash or OOM
-		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id,
-			attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
+		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id,
+			attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
 		require.NotNil(t, err)
 		// Truncated JSON causes unmarshal error
 		assert.Equal(t, "api.post.do_action.action_integration.app_error", err.Id)
@@ -279,8 +327,8 @@ func TestPostActionResponseSizeLimit(t *testing.T) {
 		require.True(t, ok)
 
 		// Should return error due to invalid JSON, but NOT crash or OOM
-		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id,
-			attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
+		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id,
+			attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
 		require.NotNil(t, err)
 		assert.Equal(t, "api.post.do_action.action_integration.app_error", err.Id)
 	})
@@ -426,16 +474,16 @@ func TestPostAction(t *testing.T) {
 			require.NotEmpty(t, attachments2[0].Actions)
 			require.NotEmpty(t, attachments2[0].Actions[0].Id)
 
-			clientTriggerID, err := th.App.DoPostActionWithCookie(th.Context, post.Id, "notavalidid", th.BasicUser.Id, "", nil, nil)
+			clientTriggerID, _, err := th.App.DoPostActionWithCookie(th.Context, post.Id, "notavalidid", th.BasicUser.Id, "", nil, nil, nil, "")
 			require.NotNil(t, err)
 			assert.Equal(t, http.StatusNotFound, err.StatusCode)
 			assert.Len(t, clientTriggerID, 0)
 
-			clientTriggerID, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
+			clientTriggerID, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
 			require.Nil(t, err)
 			assert.Len(t, clientTriggerID, 26)
 
-			clientTriggerID, err = th.App.DoPostActionWithCookie(th.Context, post2.Id, attachments2[0].Actions[0].Id, th.BasicUser.Id, "selected", nil, nil)
+			clientTriggerID, _, err = th.App.DoPostActionWithCookie(th.Context, post2.Id, attachments2[0].Actions[0].Id, th.BasicUser.Id, "selected", nil, nil, nil, "")
 			require.Nil(t, err)
 			assert.Len(t, clientTriggerID, 26)
 
@@ -443,7 +491,7 @@ func TestPostAction(t *testing.T) {
 				*cfg.ServiceSettings.AllowedUntrustedInternalConnections = ""
 			})
 
-			_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
+			_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
 			require.NotNil(t, err)
 			assert.ErrorContains(t, err, "address forbidden")
 
@@ -481,18 +529,21 @@ func TestPostAction(t *testing.T) {
 			attachmentsPlugin, ok := postplugin.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
 			require.True(t, ok)
 
-			_, err = th.App.DoPostActionWithCookie(th.Context, postplugin.Id, attachmentsPlugin[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
+			_, _, err = th.App.DoPostActionWithCookie(th.Context, postplugin.Id, attachmentsPlugin[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
 			require.Equal(t, "api.post.do_action.action_integration.app_error", err.Id)
 
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 			})
 
-			_, err = th.App.DoPostActionWithCookie(th.Context, postplugin.Id, attachmentsPlugin[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
+			_, _, err = th.App.DoPostActionWithCookie(th.Context, postplugin.Id, attachmentsPlugin[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
 			require.Nil(t, err)
 
 			th.App.UpdateConfig(func(cfg *model.Config) {
-				*cfg.ServiceSettings.SiteURL = "http://127.1.1.1"
+				// Unreachable localhost port fails immediately (connection refused) instead of
+				// waiting for OutgoingIntegrationRequestsTimeout on black-holed addresses.
+				*cfg.ServiceSettings.SiteURL = "http://127.0.0.1:1"
+				cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = new(int64(1))
 			})
 
 			interactivePostSiteURL := model.Post{
@@ -514,7 +565,7 @@ func TestPostAction(t *testing.T) {
 											"s": "foo",
 											"n": 3,
 										},
-										URL: "http://127.1.1.1/plugins/myplugin/myaction",
+										URL: "http://127.0.0.1:1/plugins/myplugin/myaction",
 									},
 								},
 							},
@@ -529,7 +580,7 @@ func TestPostAction(t *testing.T) {
 			attachmentsSiteURL, ok := postSiteURL.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
 			require.True(t, ok)
 
-			_, err = th.App.DoPostActionWithCookie(th.Context, postSiteURL.Id, attachmentsSiteURL[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
+			_, _, err = th.App.DoPostActionWithCookie(th.Context, postSiteURL.Id, attachmentsSiteURL[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
 			require.NotNil(t, err)
 			assert.ErrorContains(t, err, "connection refused")
 
@@ -571,7 +622,7 @@ func TestPostAction(t *testing.T) {
 			attachmentsSubpath, ok := postSubpath.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
 			require.True(t, ok)
 
-			_, err = th.App.DoPostActionWithCookie(th.Context, postSubpath.Id, attachmentsSubpath[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
+			_, _, err = th.App.DoPostActionWithCookie(th.Context, postSubpath.Id, attachmentsSubpath[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
 			require.Nil(t, err)
 		})
 	}
@@ -645,7 +696,7 @@ func TestPostActionProps(t *testing.T) {
 	attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
 	require.True(t, ok)
 
-	clientTriggerId, err := th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
+	clientTriggerId, _, err := th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
 	require.Nil(t, err)
 	assert.Len(t, clientTriggerId, 26)
 
@@ -658,6 +709,12 @@ func TestPostActionProps(t *testing.T) {
 	assert.Nil(t, newPost.GetProp(model.PostPropsOverrideUsername))
 	assert.Equal(t, "AA", newPost.GetProp("A"))
 	assert.Equal(t, "old_override_icon", newPost.GetProp(model.PostPropsOverrideIconURL))
+	// from_webhook is NOT in the default SanitizeProps strip list under hardened-OFF (v11) — it
+	// remains user-settable for backward compatibility with the user-PAT-impersonation idiom.
+	// The client-supplied value survives sanitization. PostActionRetainPropKeys includes
+	// from_webhook, so the post-action update preserves it. (v12 will move the from_* markers
+	// into the default strip list — see SanitizeProps doc in public/model/post.go — and this
+	// assertion should flip back to nil.)
 	assert.Equal(t, "false", newPost.GetProp(model.PostPropsFromWebhook))
 }
 
@@ -831,7 +888,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
+		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
 		require.NotNil(t, err)
 	})
 
@@ -871,7 +928,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
+		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
 		require.NotNil(t, err)
 	})
 
@@ -911,7 +968,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
+		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
 		require.NotNil(t, err)
 	})
 
@@ -951,7 +1008,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
+		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
 		require.NotNil(t, err)
 	})
 
@@ -991,7 +1048,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
+		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
 		require.NotNil(t, err)
 	})
 }
@@ -1068,7 +1125,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
+		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
 		require.NotNil(t, err)
 	})
 
@@ -1108,7 +1165,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
+		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
 		require.Nil(t, err)
 	})
 
@@ -1148,7 +1205,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
+		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
 		require.Nil(t, err)
 	})
 
@@ -1188,7 +1245,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 		require.NotEmpty(t, attachments[0].Actions)
 		require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-		_, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
+		_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
 		require.Nil(t, err)
 	})
 }
@@ -1758,7 +1815,7 @@ func TestDoPostActionWithCookieEdgeCases(t *testing.T) {
 			},
 		}
 
-		_, err := th.App.DoPostActionWithCookie(th.Context, "nonexistent_post_id", "action_id", th.BasicUser.Id, "", cookie, nil)
+		_, _, err := th.App.DoPostActionWithCookie(th.Context, "nonexistent_post_id", "action_id", th.BasicUser.Id, "", cookie, nil, nil, "")
 		require.Nil(t, err)
 	})
 
@@ -1772,7 +1829,7 @@ func TestDoPostActionWithCookieEdgeCases(t *testing.T) {
 			},
 		}
 
-		_, err := th.App.DoPostActionWithCookie(th.Context, "actual_post_id", "action_id", th.BasicUser.Id, "", cookie, nil)
+		_, _, err := th.App.DoPostActionWithCookie(th.Context, "actual_post_id", "action_id", th.BasicUser.Id, "", cookie, nil, nil, "")
 		require.NotNil(t, err)
 		assert.Contains(t, err.Error(), "postId doesn't match")
 	})
@@ -1785,7 +1842,7 @@ func TestDoPostActionWithCookieEdgeCases(t *testing.T) {
 			Integration: nil,
 		}
 
-		_, err := th.App.DoPostActionWithCookie(th.Context, "nonexistent_post_id", "action_id", th.BasicUser.Id, "", cookie, nil)
+		_, _, err := th.App.DoPostActionWithCookie(th.Context, "nonexistent_post_id", "action_id", th.BasicUser.Id, "", cookie, nil, nil, "")
 		require.NotNil(t, err)
 		assert.Contains(t, err.Error(), "no Integration in action cookie")
 	})
@@ -1806,7 +1863,7 @@ func TestDoPostActionWithCookieEdgeCases(t *testing.T) {
 			},
 		}
 
-		_, err := th.App.DoPostActionWithCookie(th.Context, "nonexistent_post_id", "action_id", "nonexistent_user_id", "", cookie, nil)
+		_, _, err := th.App.DoPostActionWithCookie(th.Context, "nonexistent_post_id", "action_id", "nonexistent_user_id", "", cookie, nil, nil, "")
 		require.NotNil(t, err)
 		assert.Contains(t, err.Error(), "Unable to find the user.")
 	})
@@ -1820,7 +1877,7 @@ func TestDoPostActionWithCookieEdgeCases(t *testing.T) {
 			oversized["k"+strconv.Itoa(i)] = "v"
 		}
 
-		_, err := th.App.DoPostActionWithCookie(th.Context, "any_post", "any_action", th.BasicUser.Id, "", nil, oversized)
+		_, _, err := th.App.DoPostActionWithCookie(th.Context, "any_post", "any_action", th.BasicUser.Id, "", nil, nil, oversized, "")
 		require.NotNil(t, err)
 		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
 		assert.Equal(t, "api.post.do_action.query.app_error", err.Id)
@@ -1928,6 +1985,196 @@ func TestCloneMmBlocksActionsProp(t *testing.T) {
 			current = m["n"]
 		}
 		t.Fatalf("clone walked %d levels without hitting truncation", tooDeep)
+	})
+}
+
+func TestDoPostActionWithCookie(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("mm blocks cookie missing post update", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+		})
+
+		const missingPostID = "nonexistent_post_for_mm_blocks_update"
+
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{"update": {"message": "PLAYWRIGHT_MM_BLOCKS_UPDATED"}}`))
+		}))
+		defer ts.Close()
+
+		mmCookie := &model.MmBlocksActionCookie{
+			Kind:       model.MmBlocksActionCookieKind,
+			PostId:     missingPostID,
+			ChannelId:  th.BasicChannel.Id,
+			RootPostId: missingPostID,
+			Actions: map[string]map[string]any{
+				"apply_update": {
+					"type": "external",
+					"url":  ts.URL,
+				},
+			},
+		}
+
+		_, _, err := th.App.DoPostActionWithCookie(th.Context, missingPostID, "apply_update", th.BasicUser.Id, "", nil, mmCookie, nil, "")
+		require.Nil(t, err)
+	})
+
+	t.Run("legacy cookie missing post update", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+		})
+
+		const missingPostID = "nonexistent_post_for_legacy_attachment_update"
+
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{"update": {"message": "ephemeral_attachment_updated"}}`))
+		}))
+		defer ts.Close()
+
+		cookie := &model.PostActionCookie{
+			PostId:    missingPostID,
+			ChannelId: th.BasicChannel.Id,
+			Type:      model.PostActionTypeButton,
+			Integration: &model.PostActionIntegration{
+				URL: ts.URL,
+			},
+		}
+
+		_, _, err := th.App.DoPostActionWithCookie(th.Context, missingPostID, "action_id", th.BasicUser.Id, "", cookie, nil, nil, "")
+		require.Nil(t, err)
+	})
+
+	t.Run("mm blocks disabled", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		th.ConfigStore.SetReadOnlyFF(false)
+		defer th.ConfigStore.SetReadOnlyFF(true)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.MmBlocksEnabled = false })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.MmBlocksEnabled = true })
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+		})
+
+		botUser := setupBotInChannel(t, th)
+		intSeedCtx := th.Context.WithSession(&model.Session{UserId: botUser.Id, IsOAuth: true})
+
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{}`))
+		}))
+		defer ts.Close()
+
+		root := model.Post{
+			Message:   "mm_blocks disabled host post",
+			ChannelId: th.BasicChannel.Id,
+			UserId:    botUser.Id,
+			Props: model.StringInterface{
+				model.PostPropsMmBlocks: []any{
+					map[string]any{"type": "button", "text": "Go", "action_id": "mm_blocks_act"},
+				},
+				model.PostPropsMmBlocksActions: buildMmBlocksActionsProp("mm_blocks_act", ts.URL, nil),
+			},
+		}
+
+		post, _, appErr := th.App.CreatePostAsUser(intSeedCtx, &root, "", true)
+		require.Nil(t, appErr)
+
+		_, _, err := th.App.DoPostActionWithCookie(
+			th.Context,
+			post.Id,
+			"mm_blocks_act",
+			th.BasicUser.Id,
+			"",
+			nil,
+			nil,
+			nil,
+			model.PostActionIntegrationFormatMmBlock,
+		)
+		require.NotNil(t, err)
+		assert.Equal(t, "api.post.do_action.action_integration.app_error", err.Id)
+		assert.Contains(t, err.Error(), "mm_blocks are not enabled")
+	})
+
+	t.Run("mm blocks external forwards selected option", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+		})
+
+		botUser := setupBotInChannel(t, th)
+		intSeedCtx := th.Context.WithSession(&model.Session{UserId: botUser.Id, IsOAuth: true})
+
+		var gotJSON string
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			body, readErr := io.ReadAll(r.Body)
+			require.NoError(t, readErr)
+			gotJSON = string(body)
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{}`))
+		}))
+		defer ts.Close()
+
+		root := model.Post{
+			Message:   "mm_blocks static_select host post",
+			ChannelId: th.BasicChannel.Id,
+			UserId:    botUser.Id,
+			Props: model.StringInterface{
+				"mm_blocks": []any{
+					map[string]any{
+						"type":        "static_select",
+						"action_id":   "mm_blocks_sel_act",
+						"placeholder": "Choose",
+						"options": []any{
+							map[string]any{"text": "Alpha", "value": "opt_alpha"},
+							map[string]any{"text": "Beta", "value": "opt_beta"},
+						},
+					},
+				},
+				model.PostPropsMmBlocksActions: map[string]any{
+					"mm_blocks_sel_act": map[string]any{
+						"type":    model.MmBlocksActionTypeExternal,
+						"url":     ts.URL,
+						"context": map[string]any{"track": "mm_blocks_select"},
+					},
+				},
+			},
+		}
+
+		post, _, appErr := th.App.CreatePostAsUser(intSeedCtx, &root, "", true)
+		require.Nil(t, appErr)
+		require.NotNil(t, post.GetProp(model.PostPropsMmBlocksActions))
+
+		_, _, err := th.App.DoPostActionWithCookie(
+			th.Context,
+			post.Id,
+			"mm_blocks_sel_act",
+			th.BasicUser.Id,
+			"opt_beta",
+			nil,
+			nil,
+			nil,
+			model.PostActionIntegrationFormatMmBlock,
+		)
+		require.Nil(t, err)
+
+		var req model.PostActionIntegrationRequest
+		require.NoError(t, json.Unmarshal([]byte(gotJSON), &req))
+		assert.Equal(t, model.PostActionTypeButton, req.Type)
+		sel, ok := req.Context["selected_option"]
+		require.True(t, ok)
+		assert.Equal(t, "opt_beta", sel)
+		_, ok = req.Context["track"]
+		require.True(t, ok)
 	})
 }
 
@@ -2123,6 +2370,81 @@ func TestDoPluginRequest(t *testing.T) {
 	})
 }
 
+func TestDoPostActionIntegrationFormatCollision(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	botUser := setupBotInChannel(t, th)
+	intSeedCtx := th.Context.WithSession(&model.Session{UserId: botUser.Id, IsOAuth: true})
+
+	sharedActionID := "dupact1"
+	var sawAttachment, sawMmBlock bool
+	tsAttachment := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sawAttachment = true
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{}`))
+	}))
+	defer tsAttachment.Close()
+	tsMmBlock := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sawMmBlock = true
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{}`))
+	}))
+	defer tsMmBlock.Close()
+
+	interactivePost := &model.Post{
+		Message:       "collision",
+		ChannelId:     th.BasicChannel.Id,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        botUser.Id,
+		Props: model.StringInterface{
+			model.PostPropsAttachments: []*model.MessageAttachment{
+				{
+					Text: "a",
+					Actions: []*model.PostAction{
+						{
+							Id:   sharedActionID,
+							Type: model.PostActionTypeButton,
+							Name: "btn",
+							Integration: &model.PostActionIntegration{
+								URL: tsAttachment.URL,
+							},
+						},
+					},
+				},
+			},
+			model.PostPropsMmBlocksActions: map[string]any{
+				sharedActionID: map[string]any{
+					"type": model.MmBlocksActionTypeExternal,
+					"url":  tsMmBlock.URL,
+				},
+			},
+		},
+	}
+
+	post, _, err := th.App.CreatePostAsUser(intSeedCtx, interactivePost, "", true)
+	require.Nil(t, err)
+	require.NotNil(t, post.GetProp(model.PostPropsMmBlocksActions))
+
+	sawAttachment = false
+	sawMmBlock = false
+	_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, sharedActionID, th.BasicUser.Id, "", nil, nil, nil, model.PostActionIntegrationFormatAttachment)
+	require.Nil(t, err)
+	assert.True(t, sawAttachment)
+	assert.False(t, sawMmBlock)
+
+	sawAttachment = false
+	sawMmBlock = false
+	_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, sharedActionID, th.BasicUser.Id, "", nil, nil, nil, model.PostActionIntegrationFormatMmBlock)
+	require.Nil(t, err)
+	assert.False(t, sawAttachment)
+	assert.True(t, sawMmBlock)
+}
+
 // buildMmBlocksActionsProp returns a mm_blocks_actions map (an "external"-type
 // action) suitable for use as a post prop in tests.
 func buildMmBlocksActionsProp(id, url string, context map[string]any) map[string]any {
@@ -2306,10 +2628,11 @@ func TestMmBlocksActionsKeptForWebhookImpersonation(t *testing.T) {
 }
 
 // TestMmBlocksActionsStripGate locks the create-time strip policy: keep
-// when the post is bot-authored OR the session is an integration; strip
-// when neither signal is present. The bot-author signal covers
-// PluginAPI.CreatePost (whose static rctx is unmarked) where the post is
-// authored by the plugin's bot user; the integration-session signal
+// when the post is bot-authored or the session is an integration; strip
+// when neither signal is present. Incoming webhooks use AllowMmBlocksActions
+// (see TestCreateWebhookPostKeepsMmBlocksActions). The bot-author signal
+// covers PluginAPI.CreatePost (whose static rctx is unmarked) where the post
+// is authored by the plugin's bot user; the integration-session signal
 // covers REST callers using bot tokens, PATs, or OAuth apps.
 func TestMmBlocksActionsStripGate(t *testing.T) {
 	mainHelper.Parallel(t)
@@ -2519,15 +2842,12 @@ func TestUpdatePostMmBlocksActionsGuard(t *testing.T) {
 	})
 }
 
-// TestCreateWebhookPostStripsMmBlocksActions locks the contract that an
-// incoming webhook cannot persist mm_blocks_actions even if the payload
-// includes the prop in its `props` map. CreateWebhookPost's prop iteration
-// has no explicit blocklist entry for mm_blocks_actions; it falls through
-// to AddProp and would land on the post object. The strip in CreatePost
-// (post.go) then fires because the webhook flow has no integration session
-// (incomingWebhook is registered with RequireSession: false). If a future
-// refactor changes the webhook session model, this test catches it.
-func TestCreateWebhookPostStripsMmBlocksActions(t *testing.T) {
+// TestCreateWebhookPostKeepsMmBlocksActions locks the contract that an
+// incoming webhook can persist mm_blocks_actions from its props map.
+// CreateWebhookPost passes AllowMmBlocksActions into CreatePost so the
+// create-time strip does not remove the prop (the webhook URL is the
+// trust boundary, same as legacy attachment actions).
+func TestCreateWebhookPostKeepsMmBlocksActions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -2547,26 +2867,98 @@ func TestCreateWebhookPostStripsMmBlocksActions(t *testing.T) {
 
 	post, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "hello", "user", "http://iconurl", "",
 		model.StringInterface{
+			model.PostPropsMmBlocks: []any{
+				map[string]any{"type": "button", "text": "Go", "action_id": "actx"},
+			},
 			model.PostPropsMmBlocksActions: inline,
 		},
-		"", "", nil)
+		"", "", nil, false)
 	require.Nil(t, appErr)
 
-	assert.Nil(t, post.GetProp(model.PostPropsMmBlocksActions),
-		"incoming webhook payload must not be able to persist mm_blocks_actions; the strip in CreatePost should fire because the webhook session has IsIntegration()==false")
+	require.NotNil(t, post.GetProp(model.PostPropsMmBlocksActions),
+		"incoming webhook payload must persist mm_blocks_actions for client action dispatch")
 
-	// Belt and suspenders: read back from the DB to confirm the prop is
-	// not persisted either.
 	stored, nErr := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, false)
 	require.NoError(t, nErr)
-	assert.Nil(t, stored.GetProp(model.PostPropsMmBlocksActions),
-		"stored webhook post must not carry mm_blocks_actions")
+	require.NotNil(t, stored.GetProp(model.PostPropsMmBlocksActions),
+		"stored webhook post must carry mm_blocks_actions")
+	spec := stored.GetMmBlocksActionSpec("actx")
+	require.NotNil(t, spec)
+	assert.Equal(t, "http://127.0.0.1/plugins/myplugin/x", spec.URL)
 }
 
-func TestSendEphemeralPostStripsMmBlocksActions(t *testing.T) {
+// TestCreateWebhookPostKeepsMmBlocksActionsOnInteractiveSplit verifies split
+// webhook posts persist mm_blocks_actions on the chunk that carries mm_blocks.
+// CreateWebhookPost returns the first split (typically the leading message chunk).
+func TestCreateWebhookPostKeepsMmBlocksActionsOnInteractiveSplit(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+
+	hook, hookErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+	require.Nil(t, hookErr)
+	defer func() {
+		_ = th.App.DeleteIncomingWebhook(hook.Id)
+	}()
+
+	inline := buildMmBlocksActionsProp(
+		"actx",
+		"http://127.0.0.1/plugins/myplugin/x",
+		nil,
+	)
+
+	marker := "mm-blocks-split-" + model.NewId()
+	longMessage := marker + strings.Repeat("x", th.App.MaxPostSize()+100)
+
+	returned, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, longMessage, "user", "http://iconurl", "",
+		model.StringInterface{
+			model.PostPropsMmBlocks: []any{
+				map[string]any{"type": "text", "text": "interactive body"},
+				map[string]any{"type": "button", "text": "Go", "action_id": "actx"},
+			},
+			model.PostPropsMmBlocksActions: inline,
+		},
+		"", "", nil, false)
+	require.Nil(t, appErr)
+	require.True(t, strings.HasPrefix(returned.Message, marker))
+	require.Nil(t, returned.GetProp(model.PostPropsMmBlocks))
+	require.Nil(t, returned.GetProp(model.PostPropsMmBlocksActions))
+
+	list, listErr := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 20)
+	require.Nil(t, listErr)
+
+	var mmBlocksPost *model.Post
+	messageChunks := 0
+	for _, p := range list.Posts {
+		if p.Message != "" && strings.Contains(longMessage, p.Message) {
+			messageChunks++
+		}
+		if p.GetProp(model.PostPropsMmBlocks) != nil {
+			mmBlocksPost = p
+		}
+	}
+	require.Greater(t, messageChunks, 1, "message should be split into multiple posts")
+	require.NotNil(t, mmBlocksPost)
+	require.NotEqual(t, returned.Id, mmBlocksPost.Id, "interactive props should be on a later split, not the returned first chunk")
+
+	stored, err := th.App.Srv().Store().Post().GetSingle(th.Context, mmBlocksPost.Id, false)
+	require.NoError(t, err)
+	require.NotNil(t, stored.GetProp(model.PostPropsMmBlocksActions),
+		"mm_blocks_actions must be on the post that carries mm_blocks")
+
+	for _, p := range list.Posts {
+		if p.GetProp(model.PostPropsMmBlocksActions) != nil {
+			assert.Equal(t, mmBlocksPost.Id, p.Id, "only the mm_blocks post should keep mm_blocks_actions")
+		}
+	}
+}
+
+func TestSendEphemeralPostEncryptsMmBlocksActionsCookie(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	secret := th.App.PostActionCookieSecret()
 	ephemeral := &model.Post{
 		ChannelId: th.BasicChannel.Id,
 		UserId:    th.BasicUser.Id,
@@ -2582,9 +2974,20 @@ func TestSendEphemeralPostStripsMmBlocksActions(t *testing.T) {
 
 	result, _ := th.App.SendEphemeralPost(th.Context, th.BasicUser.Id, ephemeral)
 	require.NotNil(t, result)
-	assert.Nil(t, result.GetProp(model.PostPropsMmBlocksActions), "SendEphemeralPost must drop mm_blocks_actions")
+	raw := result.GetProp(model.PostPropsMmBlocksActions)
+	enc, ok := raw.(string)
+	require.True(t, ok, "SendEphemeralPost must encrypt mm_blocks_actions into a cookie string for client clicks")
+	require.NotEmpty(t, enc)
 
-	// UpdateEphemeralPost path
+	plain, err := model.DecryptPostActionCookie(enc, secret)
+	require.NoError(t, err)
+	_, mm, err := model.ParseDecryptedActionCookiePayload(plain)
+	require.NoError(t, err)
+	require.NotNil(t, mm)
+	spec := mm.ActionSpec("eph")
+	require.NotNil(t, spec)
+	assert.Equal(t, "http://127.0.0.1/plugins/myplugin/eph", spec.URL)
+
 	ephemeral2 := &model.Post{
 		Id:        result.Id,
 		ChannelId: th.BasicChannel.Id,
@@ -2600,7 +3003,9 @@ func TestSendEphemeralPostStripsMmBlocksActions(t *testing.T) {
 	}
 	updated, _ := th.App.UpdateEphemeralPost(th.Context, th.BasicUser.Id, ephemeral2)
 	require.NotNil(t, updated)
-	assert.Nil(t, updated.GetProp(model.PostPropsMmBlocksActions), "UpdateEphemeralPost must drop mm_blocks_actions")
+	enc2, ok := updated.GetProp(model.PostPropsMmBlocksActions).(string)
+	require.True(t, ok)
+	require.NotEmpty(t, enc2)
 }
 
 func TestDoPostActionQueryMergedIntoURL(t *testing.T) {
@@ -2650,7 +3055,7 @@ func TestDoPostActionQueryMergedIntoURL(t *testing.T) {
 	require.NotNil(t, created.GetProp(model.PostPropsMmBlocksActions))
 
 	query := map[string]string{"tail": "214"}
-	_, err = th.App.DoPostActionWithCookie(th.Context, created.Id, "inline1", th.BasicUser.Id, "", nil, query)
+	_, _, err = th.App.DoPostActionWithCookie(th.Context, created.Id, "inline1", th.BasicUser.Id, "", nil, nil, query, model.PostActionIntegrationFormatMmBlock)
 	require.Nil(t, err)
 
 	// Query was appended to the upstream URL.
@@ -2704,7 +3109,7 @@ func TestDoPostActionStaticQueryMergedWithPerClickQuery(t *testing.T) {
 	created, _, err := th.App.CreatePostAsUser(intSeedCtx, botPost, "", true)
 	require.Nil(t, err)
 
-	_, err = th.App.DoPostActionWithCookie(th.Context, created.Id, "inline1", th.BasicUser.Id, "", nil, map[string]string{"tail": "214"})
+	_, _, err = th.App.DoPostActionWithCookie(th.Context, created.Id, "inline1", th.BasicUser.Id, "", nil, nil, map[string]string{"tail": "214"}, model.PostActionIntegrationFormatMmBlock)
 	require.Nil(t, err)
 
 	parsedQuery, qErr := url.ParseQuery(capturedRawQuery)
@@ -2745,7 +3150,7 @@ func TestDoPostActionContextMapNotMutated(t *testing.T) {
 	require.Nil(t, err)
 
 	// First click: carries one set of per-click query values.
-	_, err = th.App.DoPostActionWithCookie(th.Context, created.Id, "inline1", th.BasicUser.Id, "", nil, map[string]string{"tail": "214"})
+	_, _, err = th.App.DoPostActionWithCookie(th.Context, created.Id, "inline1", th.BasicUser.Id, "", nil, nil, map[string]string{"tail": "214"}, model.PostActionIntegrationFormatMmBlock)
 	require.Nil(t, err)
 
 	// Post's stored mm_blocks_actions Context must not be mutated by the click.
@@ -2757,7 +3162,7 @@ func TestDoPostActionContextMapNotMutated(t *testing.T) {
 	assert.Equal(t, ts.URL, spec.URL, "stored URL must not absorb per-click query")
 
 	// Second click with a different per-click query.
-	_, err = th.App.DoPostActionWithCookie(th.Context, created.Id, "inline1", th.BasicUser.Id, "", nil, map[string]string{"tail": "999"})
+	_, _, err = th.App.DoPostActionWithCookie(th.Context, created.Id, "inline1", th.BasicUser.Id, "", nil, nil, map[string]string{"tail": "999"}, model.PostActionIntegrationFormatMmBlock)
 	require.Nil(t, err)
 
 	stored, nErr = th.App.Srv().Store().Post().GetSingle(th.Context, created.Id, false)
@@ -2829,13 +3234,100 @@ func TestDoPostActionPluginResponseMmBlocksActionsDropped(t *testing.T) {
 	require.NotEmpty(t, attachments[0].Actions[0].Id)
 	require.Nil(t, created.GetProp(model.PostPropsMmBlocksActions))
 
-	_, err = th.App.DoPostActionWithCookie(th.Context, created.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
+	_, _, err = th.App.DoPostActionWithCookie(th.Context, created.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
 	require.Nil(t, err)
 
 	stored, nErr := th.App.Srv().Store().Post().GetSingle(th.Context, created.Id, false)
 	require.NoError(t, nErr)
 	assert.Nil(t, stored.GetProp(model.PostPropsMmBlocksActions), "plugin response must not be able to add mm_blocks_actions where none existed")
 	assert.Equal(t, "updated message", stored.Message)
+}
+
+func TestDoPostActionMmBlocksActions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	botUser := setupBotInChannel(t, th)
+	intSeedCtx := th.Context.WithSession(&model.Session{UserId: botUser.Id, IsOAuth: true})
+
+	t.Run("external posts integration request with merged query on URL", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			var request model.PostActionIntegrationRequest
+			require.NoError(t, json.NewDecoder(r.Body).Decode(&request))
+			assert.Equal(t, th.BasicUser.Id, request.UserId)
+			assert.Equal(t, model.PostActionTypeButton, request.Type)
+			assert.Equal(t, "v", request.Context["k"])
+			// clientQuery is merged into the upstream URL, not the integration context.
+			assert.Equal(t, "fromClient", r.URL.Query().Get("c"))
+			assert.Equal(t, "yes", r.URL.Query().Get("fromAction"))
+			assert.Equal(t, "2", r.URL.Query().Get("existing"))
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		actionID := model.NewId()
+		interactivePost := &model.Post{
+			Message:       "mm_blocks action",
+			ChannelId:     th.BasicChannel.Id,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        botUser.Id,
+			Props: model.StringInterface{
+				model.PostPropsMmBlocksActions: map[string]any{
+					actionID: map[string]any{
+						"type":    model.MmBlocksActionTypeExternal,
+						"url":     ts.URL + "/base?existing=1",
+						"context": map[string]any{"k": "v"},
+						"query": map[string]any{
+							"fromAction": "yes",
+							"existing":   "2",
+						},
+					},
+				},
+			},
+		}
+
+		post, _, err := th.App.CreatePostAsUser(intSeedCtx, interactivePost, "", true)
+		require.Nil(t, err)
+		require.NotNil(t, post.GetProp(model.PostPropsMmBlocksActions))
+
+		clientQuery := map[string]string{"c": "fromClient"}
+		_, _, appErr := th.App.DoPostActionWithCookie(th.Context, post.Id, actionID, th.BasicUser.Id, "", nil, nil, clientQuery, model.PostActionIntegrationFormatMmBlock)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("openURL returns goto_location as defined url", func(t *testing.T) {
+		actionID := model.NewId()
+		interactivePost := &model.Post{
+			Message:       "mm_blocks open",
+			ChannelId:     th.BasicChannel.Id,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        botUser.Id,
+			Props: model.StringInterface{
+				model.PostPropsMmBlocksActions: map[string]any{
+					actionID: map[string]any{
+						"type": model.MmBlocksActionTypeOpenURL,
+						"url":  "https://example.com/page?keep=1",
+						"query": map[string]any{
+							"a":    "b",
+							"keep": "2",
+						},
+					},
+				},
+			},
+		}
+		post, _, err := th.App.CreatePostAsUser(intSeedCtx, interactivePost, "", true)
+		require.Nil(t, err)
+		require.NotNil(t, post.GetProp(model.PostPropsMmBlocksActions))
+
+		trigger, gotoLoc, appErr := th.App.DoPostActionWithCookie(th.Context, post.Id, actionID, th.BasicUser.Id, "", nil, nil, nil, model.PostActionIntegrationFormatMmBlock)
+		require.Nil(t, appErr)
+		assert.Equal(t, "", trigger)
+		assert.Equal(t, "https://example.com/page?a=b&keep=2", gotoLoc)
+	})
 }
 
 func TestDoPostActionPluginResponseInvalidMmBlocksActionsRestored(t *testing.T) {
@@ -2906,7 +3398,7 @@ func TestDoPostActionPluginResponseInvalidMmBlocksActionsRestored(t *testing.T) 
 	require.NotEmpty(t, attachments[0].Actions)
 	require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-	_, err = th.App.DoPostActionWithCookie(th.Context, created.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
+	_, _, err = th.App.DoPostActionWithCookie(th.Context, created.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
 	require.Nil(t, err)
 
 	stored, nErr := th.App.Srv().Store().Post().GetSingle(th.Context, created.Id, false)
@@ -2936,6 +3428,12 @@ func TestPostActionRetainsFromBotAndFromPlugin(t *testing.T) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
 
+	// from_bot and from_plugin are now server-set: from_bot via user.IsBot,
+	// from_plugin via the FromPlugin CreatePostFlag. Forged client-supplied
+	// values would be stripped by SanitizeProps.
+	botUser := setupBotInChannel(t, th)
+	intSeedCtx := th.Context.WithSession(&model.Session{UserId: botUser.Id, IsOAuth: true})
+
 	// Plugin response deliberately omits from_bot / from_plugin from props.
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, `{"update": {"message": "updated", "props": {"A": "AA"}}}`)
@@ -2946,7 +3444,7 @@ func TestPostActionRetainsFromBotAndFromPlugin(t *testing.T) {
 		Message:       "interactive",
 		ChannelId:     th.BasicChannel.Id,
 		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
-		UserId:        th.BasicUser.Id,
+		UserId:        botUser.Id,
 		Props: model.StringInterface{
 			model.PostPropsAttachments: []*model.MessageAttachment{{
 				Text: "hello",
@@ -2958,17 +3456,18 @@ func TestPostActionRetainsFromBotAndFromPlugin(t *testing.T) {
 					},
 				}},
 			}},
-			model.PostPropsFromBot:    "true",
-			model.PostPropsFromPlugin: "true",
 		},
 	}
 
-	post, _, appErr := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+	post, _, appErr := th.App.CreatePostAsUserWithFlags(intSeedCtx, &interactivePost, "", model.CreatePostFlags{
+		SetOnline:  true,
+		FromPlugin: true,
+	})
 	require.Nil(t, appErr)
 	attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
 	require.True(t, ok)
 
-	_, appErr = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
+	_, _, appErr = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
 	require.Nil(t, appErr)
 
 	stored, nErr := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, false)
@@ -2977,4 +3476,525 @@ func TestPostActionRetainsFromBotAndFromPlugin(t *testing.T) {
 	assert.Equal(t, "true", stored.GetProp(model.PostPropsFromBot), "from_bot must be retained across plugin update response")
 	assert.Equal(t, "true", stored.GetProp(model.PostPropsFromPlugin), "from_plugin must be retained across plugin update response")
 	assert.Equal(t, "AA", stored.GetProp("A"), "plugin-supplied prop applied")
+}
+
+func TestSubmitInteractiveDialogFileValidation(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		resp := model.SubmitDialogResponse{}
+		b, _ := json.Marshal(resp)
+		_, _ = w.Write(b)
+	}))
+	defer ts.Close()
+
+	baseSubmit := model.SubmitDialogRequest{
+		URL:        ts.URL,
+		UserId:     th.BasicUser.Id,
+		ChannelId:  th.BasicChannel.Id,
+		TeamId:     th.BasicTeam.Id,
+		CallbackId: "someid",
+		State:      "somestate",
+		Submission: map[string]any{"name1": "value1"},
+	}
+
+	t.Run("empty FileIds passes validation", func(t *testing.T) {
+		submit := baseSubmit
+		submit.FileIds = nil
+		resp, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		assert.Nil(t, appErr)
+		require.NotNil(t, resp)
+	})
+
+	t.Run("deduplication happens before count check", func(t *testing.T) {
+		// Create one valid file
+		fileInfo := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+
+		// Build FileIds with the same ID repeated MaxDialogFileIds+1 times.
+		// After dedup this should be 1 ID, which is within the limit.
+		ids := make([]string, model.MaxDialogFileIds+1)
+		for i := range ids {
+			ids[i] = fileInfo.Id
+		}
+
+		submit := baseSubmit
+		submit.FileIds = ids
+		resp, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		assert.Nil(t, appErr)
+		require.NotNil(t, resp)
+	})
+
+	t.Run("too many file IDs after dedup returns error", func(t *testing.T) {
+		ids := make([]string, model.MaxDialogFileIds+1)
+		for i := range ids {
+			fi := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+			ids[i] = fi.Id
+		}
+
+		submit := baseSubmit
+		submit.FileIds = ids
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "too_many_file_ids")
+	})
+
+	t.Run("duplicates that would exceed limit raw but not after dedup passes", func(t *testing.T) {
+		// Create exactly MaxDialogFileIds unique files
+		uniqueIds := make([]string, model.MaxDialogFileIds)
+		for i := range uniqueIds {
+			fi := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+			uniqueIds[i] = fi.Id
+		}
+		// Add a duplicate so raw count is MaxDialogFileIds+1
+		ids := make([]string, 0, len(uniqueIds)+1)
+		ids = append(ids, uniqueIds...)
+		ids = append(ids, uniqueIds[0])
+
+		submit := baseSubmit
+		submit.FileIds = ids
+		resp, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		assert.Nil(t, appErr)
+		require.NotNil(t, resp)
+	})
+
+	t.Run("valid file ID owned by submitting user passes", func(t *testing.T) {
+		fileInfo := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+
+		submit := baseSubmit
+		submit.FileIds = []string{fileInfo.Id}
+		resp, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		assert.Nil(t, appErr)
+		require.NotNil(t, resp)
+	})
+
+	t.Run("file ID not found returns 400 invalid_file_id", func(t *testing.T) {
+		submit := baseSubmit
+		submit.FileIds = []string{model.NewId()}
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "invalid_file_id")
+	})
+
+	t.Run("file owned by different user returns 403 file_not_owned", func(t *testing.T) {
+		fileInfo := th.CreateFileInfo(t, th.BasicUser2.Id, "", th.BasicChannel.Id)
+
+		submit := baseSubmit
+		submit.FileIds = []string{fileInfo.Id}
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "file_not_owned")
+	})
+
+	t.Run("batch with a valid owned file and a missing file returns 400 invalid_file_id", func(t *testing.T) {
+		// The batched GetByIds returns only the existing file; the not-found ID must
+		// still be detected by diffing the found set against the requested IDs.
+		fileInfo := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+
+		submit := baseSubmit
+		submit.FileIds = []string{fileInfo.Id, model.NewId()}
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "invalid_file_id")
+	})
+
+	t.Run("batch with an owned file and another user's file returns 403 file_not_owned", func(t *testing.T) {
+		// Ownership must be enforced across every file in the batch, not just a single ID.
+		ownFile := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+		otherFile := th.CreateFileInfo(t, th.BasicUser2.Id, "", th.BasicChannel.Id)
+
+		submit := baseSubmit
+		submit.FileIds = []string{ownFile.Id, otherFile.Id}
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "file_not_owned")
+	})
+
+	t.Run("unowned file ID smuggled via submission (empty FileIds) is rejected", func(t *testing.T) {
+		// A client puts another user's file ID in a submission value while sending no
+		// FileIds. Integrations read submission values, so this must still be blocked.
+		fileInfo := th.CreateFileInfo(t, th.BasicUser2.Id, "", th.BasicChannel.Id)
+
+		submit := baseSubmit
+		submit.FileIds = nil
+		submit.Submission = map[string]any{"single_document": fileInfo.Id}
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "file_not_owned")
+	})
+
+	t.Run("own file ID referenced only via submission passes", func(t *testing.T) {
+		fileInfo := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+
+		submit := baseSubmit
+		submit.FileIds = nil
+		submit.Submission = map[string]any{"single_document": fileInfo.Id}
+		resp, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		assert.Nil(t, appErr)
+		require.NotNil(t, resp)
+	})
+
+	t.Run("ID-shaped submission value that is not a real file is treated as text", func(t *testing.T) {
+		// A textarea value that happens to be a valid-format ID but isn't a file must
+		// not block submission.
+		submit := baseSubmit
+		submit.FileIds = nil
+		submit.Submission = map[string]any{"notes": model.NewId()}
+		resp, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		assert.Nil(t, appErr)
+		require.NotNil(t, resp)
+	})
+
+	t.Run("many ID-shaped non-file submission values are not rejected (e.g. select fields)", func(t *testing.T) {
+		// Regression guard: a dialog with more than MaxDialogFileIds ID-shaped values
+		// that are NOT files (user/channel select IDs) must not trip the file-count cap.
+		submission := make(map[string]any)
+		for i := range model.MaxDialogFileIds + 5 {
+			submission[fmt.Sprintf("select_%d", i)] = model.NewId()
+		}
+		submit := baseSubmit
+		submit.FileIds = nil
+		submit.Submission = submission
+		resp, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		assert.Nil(t, appErr)
+		require.NotNil(t, resp)
+	})
+
+	t.Run("submission ID scan fails closed when breadth cap is exceeded", func(t *testing.T) {
+		otherFile := th.CreateFileInfo(t, th.BasicUser2.Id, "", th.BasicChannel.Id)
+
+		maxTokens := model.MaxDialogSubmissionIDShapedTokenScan
+		require.Greater(t, maxTokens, 0)
+
+		padded := make([]any, 0, maxTokens+1)
+		for range maxTokens {
+			padded = append(padded, model.NewId())
+		}
+		require.Len(t, padded, maxTokens)
+
+		padded = append(padded, otherFile.Id)
+
+		submit := baseSubmit
+		submit.FileIds = nil
+		submit.Submission = map[string]any{"overflow": padded}
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "too_many_submission_ids")
+	})
+
+	t.Run("submission ID scan fails closed for comma-separated padding attack", func(t *testing.T) {
+		otherFile := th.CreateFileInfo(t, th.BasicUser2.Id, "", th.BasicChannel.Id)
+
+		maxTokens := model.MaxDialogSubmissionIDShapedTokenScan
+		require.Greater(t, maxTokens, 0)
+
+		var b strings.Builder
+		for i := range maxTokens {
+			if i > 0 {
+				b.WriteString(", ")
+			}
+			b.WriteString(model.NewId())
+		}
+		b.WriteString(", ")
+		b.WriteString(otherFile.Id)
+
+		submit := baseSubmit
+		submit.FileIds = nil
+		submit.Submission = map[string]any{"documents": b.String()}
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "too_many_submission_ids")
+	})
+
+	t.Run("unowned file ID smuggled via a nested submission map is rejected", func(t *testing.T) {
+		fileInfo := th.CreateFileInfo(t, th.BasicUser2.Id, "", th.BasicChannel.Id)
+
+		submit := baseSubmit
+		submit.FileIds = nil
+		submit.Submission = map[string]any{
+			"metadata": map[string]any{"document": fileInfo.Id},
+		}
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "file_not_owned")
+	})
+
+	t.Run("unowned file ID smuggled via comma-separated submission string is rejected", func(t *testing.T) {
+		ownFile := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+		otherFile := th.CreateFileInfo(t, th.BasicUser2.Id, "", th.BasicChannel.Id)
+
+		submit := baseSubmit
+		submit.FileIds = nil
+		submit.Submission = map[string]any{
+			"documents": ownFile.Id + ", " + otherFile.Id,
+		}
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "file_not_owned")
+	})
+
+	t.Run("declared and submission file IDs combined cannot exceed MaxDialogFileIds", func(t *testing.T) {
+		declaredIds := make([]string, model.MaxDialogFileIds/2)
+		for i := range declaredIds {
+			fi := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+			declaredIds[i] = fi.Id
+		}
+		submissionIds := make([]string, model.MaxDialogFileIds-len(declaredIds)+1)
+		for i := range submissionIds {
+			fi := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+			submissionIds[i] = fi.Id
+		}
+
+		submit := baseSubmit
+		submit.FileIds = declaredIds
+		submit.Submission = map[string]any{"extra": submissionIds}
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "too_many_file_ids")
+	})
+
+	t.Run("unowned file ID smuggled via a submission array is rejected", func(t *testing.T) {
+		fileInfo := th.CreateFileInfo(t, th.BasicUser2.Id, "", th.BasicChannel.Id)
+
+		submit := baseSubmit
+		submit.FileIds = nil
+		submit.Submission = map[string]any{"attachments": []any{fileInfo.Id}}
+		_, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.Contains(t, appErr.Id, "file_not_owned")
+	})
+
+	t.Run("deeply nested submission value is depth-bounded and does not exhaust the stack", func(t *testing.T) {
+		// Built in-memory (not via JSON), so this bypasses the json decoder's own depth
+		// limit and exercises our explicit recursion guard directly. Nesting far beyond
+		// the depth cap must be traversed only up to the cap and then ignored — no panic,
+		// no stack overflow — and the submission still succeeds.
+		var nested any = model.NewId()
+		for range 5000 {
+			nested = []any{nested}
+		}
+
+		submit := baseSubmit
+		submit.FileIds = nil
+		submit.Submission = map[string]any{"deep": nested}
+		resp, appErr := th.App.SubmitInteractiveDialog(th.Context, submit)
+		assert.Nil(t, appErr)
+		require.NotNil(t, resp)
+	})
+}
+
+func TestExecuteDialogAction(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	t.Run("happy path — returns non-empty trigger ID and integration receives dialog_action request", func(t *testing.T) {
+		var received model.PostActionIntegrationRequest
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			err := json.NewDecoder(r.Body).Decode(&received)
+			require.NoError(t, err)
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		req := model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: th.BasicChannel.Id,
+			TeamId:    th.BasicTeam.Id,
+			Context:   map[string]string{"key": "value"},
+		}
+
+		triggerId, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
+		require.Nil(t, appErr)
+		assert.NotEmpty(t, triggerId)
+		assert.Len(t, triggerId, 26)
+
+		assert.Equal(t, "dialog_action", received.Type)
+		assert.Equal(t, th.BasicUser.Id, received.UserId)
+		assert.Equal(t, th.BasicUser.Username, received.UserName)
+		assert.Equal(t, th.BasicChannel.Id, received.ChannelId)
+		assert.Equal(t, th.BasicTeam.Id, received.TeamId)
+		assert.Equal(t, "value", received.Context["key"])
+		assert.NotEmpty(t, received.TriggerId)
+	})
+
+	t.Run("empty TeamId works — no error for DM/GM channels", func(t *testing.T) {
+		user1 := th.CreateUser(t)
+		dmChannel := th.CreateDmChannel(t, user1)
+
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		req := model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: dmChannel.Id,
+			TeamId:    "",
+		}
+
+		triggerId, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
+		require.Nil(t, appErr)
+		assert.NotEmpty(t, triggerId)
+	})
+
+	t.Run("oversized context is rejected with 400", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		oversizedContext := make(map[string]string, model.MaxActionQueryEntries+1)
+		for i := range model.MaxActionQueryEntries + 1 {
+			oversizedContext[fmt.Sprintf("k%d", i)] = "v"
+		}
+
+		req := model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: th.BasicChannel.Id,
+			TeamId:    th.BasicTeam.Id,
+			Context:   oversizedContext,
+		}
+
+		_, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("context key exceeding max length is rejected with 400", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		req := model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: th.BasicChannel.Id,
+			TeamId:    th.BasicTeam.Id,
+			Context:   map[string]string{strings.Repeat("k", model.MaxActionQueryKeyLength+1): "v"},
+		}
+
+		_, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("context value exceeding max length is rejected with 400", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		req := model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: th.BasicChannel.Id,
+			TeamId:    th.BasicTeam.Id,
+			Context:   map[string]string{"k": strings.Repeat("v", model.MaxActionQueryValueLength+1)},
+		}
+
+		_, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("invalid URL returns 400", func(t *testing.T) {
+		req := model.ExecuteDialogActionRequest{
+			URL:       "not-a-valid-url",
+			ChannelId: th.BasicChannel.Id,
+			TeamId:    th.BasicTeam.Id,
+		}
+
+		_, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("empty URL returns 400", func(t *testing.T) {
+		req := model.ExecuteDialogActionRequest{
+			URL:       "",
+			ChannelId: th.BasicChannel.Id,
+			TeamId:    th.BasicTeam.Id,
+		}
+
+		_, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("non-existent channel returns error", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		req := model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: model.NewId(), // valid-format but non-existent
+			TeamId:    th.BasicTeam.Id,
+		}
+
+		_, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
+		require.NotNil(t, appErr)
+	})
+
+	t.Run("non-existent team returns 500", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		// The api4 handler overwrites TeamId with channel.TeamId before calling
+		// ExecuteDialogAction, so the only way to exercise the app-layer team
+		// lookup error branch is via a direct call with a bogus TeamId and a
+		// valid channel whose TeamId is empty (DM channel, so the handler would
+		// set TeamId="" and skip the lookup).  Here we call the app layer directly
+		// with a real channel but a synthetic non-existent TeamId so the store
+		// lookup fails.
+		req := model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: th.BasicChannel.Id,
+			TeamId:    model.NewId(), // valid-format but non-existent
+		}
+
+		_, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+	})
+
+	t.Run("integration returns 500 — DoActionRequest non-200 path drains body and returns error", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+		}))
+		defer ts.Close()
+
+		req := model.ExecuteDialogActionRequest{
+			URL:       ts.URL,
+			ChannelId: th.BasicChannel.Id,
+			TeamId:    th.BasicTeam.Id,
+		}
+
+		_, appErr := th.App.ExecuteDialogAction(th.Context, th.BasicUser.Id, req)
+		require.NotNil(t, appErr)
+		// DoActionRequest maps non-200 upstream responses to a 400 AppError.
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
 }

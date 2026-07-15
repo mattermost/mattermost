@@ -652,11 +652,12 @@ describe('components/new_channel_modal - plugin channel-type options', () => {
         group_constrained: false,
     };
 
-    function stateWithOption(overrides: {isAvailable?: () => boolean; onCreate?: jest.Mock; extraContent?: React.ComponentType<any>} = {}): DeepPartial<GlobalState> {
+    function stateWithOption(overrides: {isAvailable?: () => boolean; onCreate?: jest.Mock; extraContent?: React.ComponentType<any>; createButtonText?: React.ReactNode} = {}): DeepPartial<GlobalState> {
         const {
             isAvailable = () => true,
             onCreate = jest.fn().mockResolvedValue({status: 'created', channel: mockChannel}),
             extraContent,
+            createButtonText,
         } = overrides;
 
         return {
@@ -674,6 +675,7 @@ describe('components/new_channel_modal - plugin channel-type options', () => {
                             isAvailable,
                             onCreate,
                             extraContent,
+                            createButtonText,
                         },
                     ],
                 },
@@ -702,6 +704,26 @@ describe('components/new_channel_modal - plugin channel-type options', () => {
         await userEvent.click(pluginButton);
 
         expect(pluginButton.closest('button')).toHaveClass('selected');
+    });
+
+    test('confirm button label - falls back to "Create channel" when the selected option supplies no createButtonText', async () => {
+        renderWithContext(<NewChannelModal/>, stateWithOption());
+
+        await userEvent.click(screen.getByText('Plugin Channel'));
+
+        expect(screen.getByRole('button', {name: /create channel/i})).toBeInTheDocument();
+    });
+
+    test('confirm button label - uses the selected option createButtonText when supplied', async () => {
+        renderWithContext(<NewChannelModal/>, stateWithOption({createButtonText: 'Next'}));
+
+        // Before selecting the plugin option, the default built-in label is shown.
+        expect(screen.getByRole('button', {name: /create channel/i})).toBeInTheDocument();
+
+        await userEvent.click(screen.getByText('Plugin Channel'));
+
+        expect(screen.getByRole('button', {name: 'Next'})).toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: /create channel/i})).not.toBeInTheDocument();
     });
 
     test('isAvailable gating - unavailable option renders only Public and Private', () => {

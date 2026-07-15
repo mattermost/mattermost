@@ -438,15 +438,11 @@ class ChannelHeader extends React.PureComponent<Props> {
                             </div>
                         </div>
                     </div>
-                    {(!channel.shared || this.props.sharedChannelsPluginsEnabled) && (
-                        <>
-                            <ChannelHeaderPlug
-                                channel={channel}
-                                channelMember={channelMember}
-                            />
-                            <CallButton/>
-                        </>
-                    )}
+                    <ChannelHeaderPlug
+                        channel={channel}
+                        channelMember={channelMember}
+                    />
+                    <CallButton/>
                     {canPopout() && !isChannelPopoutWindow() && (
                         <PopoutButton
                             className='channel-header__icon'

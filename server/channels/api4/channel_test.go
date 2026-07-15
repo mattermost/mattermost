@@ -5001,6 +5001,84 @@ func TestUpdateChannelRoles(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 }
 
+func TestUpdateChannelMemberRolesRejectsNonChannelScopedRoles(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+
+	const channelAdmin = "channel_user channel_admin"
+	const channelMember = "channel_user"
+
+	channel := th.CreatePublicChannel(t)
+
+	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, channel, false)
+	require.Nil(t, appErr)
+
+	invalidRoles := []struct {
+		name  string
+		roles string
+	}{
+		{name: "system manager with channel user", roles: channelMember + " " + model.SystemManagerRoleId},
+		{name: "system user manager with channel user", roles: channelMember + " " + model.SystemUserManagerRoleId},
+		{name: "system admin with channel admin", roles: channelAdmin + " " + model.SystemAdminRoleId},
+		{name: "team user with channel user", roles: channelMember + " " + model.TeamUserRoleId},
+		{name: "team admin with channel user", roles: channelMember + " " + model.TeamAdminRoleId},
+		{name: "team post all with channel user", roles: channelMember + " " + model.TeamPostAllRoleId},
+		{name: "system post all with channel user", roles: channelMember + " " + model.SystemPostAllRoleId},
+		{name: "system read only admin with channel user", roles: channelMember + " " + model.SystemReadOnlyAdminRoleId},
+		{name: "custom group user with channel user", roles: channelMember + " " + model.CustomGroupUserRoleId},
+	}
+
+	for _, tc := range invalidRoles {
+		t.Run("rejects "+tc.name, func(t *testing.T) {
+			memberBefore, _, err := client.GetChannelMember(context.Background(), channel.Id, th.BasicUser2.Id, "")
+			require.NoError(t, err)
+			rolesBefore := memberBefore.Roles
+
+			resp, err := client.UpdateChannelRoles(context.Background(), channel.Id, th.BasicUser2.Id, tc.roles)
+			require.Error(t, err)
+			CheckBadRequestStatus(t, resp)
+
+			memberAfter, _, err := client.GetChannelMember(context.Background(), channel.Id, th.BasicUser2.Id, "")
+			require.NoError(t, err)
+			require.Equal(t, rolesBefore, memberAfter.Roles)
+		})
+	}
+
+	validRoles := []struct {
+		name  string
+		roles string
+	}{
+		{name: "channel member", roles: channelMember},
+		{name: "channel admin", roles: channelAdmin},
+	}
+
+	for _, tc := range validRoles {
+		t.Run("accepts "+tc.name, func(t *testing.T) {
+			_, err := client.UpdateChannelRoles(context.Background(), channel.Id, th.BasicUser2.Id, tc.roles)
+			require.NoError(t, err)
+
+			member, _, err := client.GetChannelMember(context.Background(), channel.Id, th.BasicUser2.Id, "")
+			require.NoError(t, err)
+			require.Equal(t, tc.roles, member.Roles)
+		})
+	}
+
+	t.Run("rejects system manager assigned by system admin", func(t *testing.T) {
+		memberBefore, _, err := th.SystemAdminClient.GetChannelMember(context.Background(), channel.Id, th.BasicUser2.Id, "")
+		require.NoError(t, err)
+		rolesBefore := memberBefore.Roles
+
+		resp, err := th.SystemAdminClient.UpdateChannelRoles(context.Background(), channel.Id, th.BasicUser2.Id, channelMember+" "+model.SystemManagerRoleId)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		memberAfter, _, err := th.SystemAdminClient.GetChannelMember(context.Background(), channel.Id, th.BasicUser2.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, rolesBefore, memberAfter.Roles)
+	})
+}
+
 func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

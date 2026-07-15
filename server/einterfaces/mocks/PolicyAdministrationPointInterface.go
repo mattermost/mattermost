@@ -408,6 +408,11 @@ func (_m *PolicyAdministrationPointInterface) NormalizePolicy(rctx request.CTX, 
 	return r0, r1
 }
 
+// OnPropertyFieldOptionsChanged provides a mock function with given fields: rctx, fieldID
+func (_m *PolicyAdministrationPointInterface) OnPropertyFieldOptionsChanged(rctx request.CTX, fieldID string) {
+	_m.Called(rctx, fieldID)
+}
+
 // QueryUsersForExpression provides a mock function with given fields: rctx, expression, opts
 func (_m *PolicyAdministrationPointInterface) QueryUsersForExpression(rctx request.CTX, expression string, opts model.SubjectSearchOptions) ([]*model.User, int64, *model.AppError) {
 	ret := _m.Called(rctx, expression, opts)
