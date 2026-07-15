@@ -289,7 +289,7 @@
   "admin.access_control.policies.resources.channels": "{count, number} {count, plural, one {channel} other {channels}}",
   "admin.access_control.policies.resources.none": "None",
   "admin.access_control.policies.resources.teams": "{count, number} {count, plural, one {team} other {teams}}",
-  "admin.access_control.policies.title": "Membership Policies",
+  "admin.access_control.policies.title": "Access Control Policies",
   "admin.access_control.policy.channel_list.autoAddHeader": "Auto-add members",
   "admin.access_control.policy.channel_list.autoAddTooltip.line1": "Toggle to auto-add members who meet all access requirements",
   "admin.access_control.policy.channel_list.autoAddTooltip.line2": "Channel administrators can modify this setting",
