@@ -55,6 +55,7 @@ const config: Config = {
   onBrokenLinks: 'warn',
 
   markdown: {
+    mermaid: true,
     hooks: {
       onBrokenMarkdownLinks: 'warn',
       onBrokenMarkdownImages: 'warn',
@@ -156,7 +157,7 @@ const config: Config = {
 
   // Theme for the API endpoint pages (parameter tables, request/response
   // schemas, code-sample picker). Layered on the classic preset theme.
-  themes: ['docusaurus-theme-openapi-docs'],
+  themes: ['docusaurus-theme-openapi-docs', '@docusaurus/theme-mermaid'],
 
   themeConfig: {
     image: 'img/brand/logo-horizontal-denim.svg',
