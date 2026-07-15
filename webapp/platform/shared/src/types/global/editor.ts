@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ComponentType, KeyboardEvent, KeyboardEventHandler, ReactNode, ReactNodeArray, RefObject} from 'react';
+import type {ComponentType, ForwardRefExoticComponent, KeyboardEvent, KeyboardEventHandler, ReactNode, ReactNodeArray, RefAttributes, RefObject} from 'react';
 
 import type {Agent} from '@mattermost/types/agents';
 import type {Channel} from '@mattermost/types/channels';
@@ -116,9 +116,20 @@ export type PublishedSuggestionProviderConstructors = {
 
 export type PublishedSuggestionProviderId = keyof PublishedSuggestionProviderConstructors;
 
+export type PublishedWysiwygEditorHandle = {
+    insertText: (text: string) => void;
+    focus: () => void;
+    blur: () => void;
+    getInputBox: () => HTMLElement | null;
+};
+
+export type PublishedFormattingBarHandle = {
+    openLinkPopover: () => void;
+};
+
 export type PublishedEditorUtils = {
-    WysiwygEditor: ComponentType<WysiwygEditorProps>;
+    WysiwygEditor: ForwardRefExoticComponent<WysiwygEditorProps & RefAttributes<PublishedWysiwygEditorHandle>>;
     SuggestionList: ComponentType<SuggestionListProps>;
-    FormattingBar: ComponentType<FormattingBarProps>;
+    FormattingBar: ForwardRefExoticComponent<FormattingBarProps & RefAttributes<PublishedFormattingBarHandle>>;
     providers: PublishedSuggestionProviderConstructors;
 };
