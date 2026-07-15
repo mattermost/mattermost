@@ -80,7 +80,7 @@
     "react-day-picker": "8.3.6",
     "react-dom": "19.2.7",
     "react-intl": "*",
-    "react-is": "18.2.0",
+    "react-is": "19.2.7",
     "react-overlays": "5.2.1",
     "react-redux": "9.2.0",
     "react-router-dom": "5.3.4",
