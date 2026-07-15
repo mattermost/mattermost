@@ -674,10 +674,15 @@ blockquote {
   stroke-width: 2px !important;
 }
 
-.release-policy-gantt .docusaurus-mermaid-container .taskText,
+.release-policy-gantt .docusaurus-mermaid-container .taskText {
+  fill: #ffffff !important;
+  font-weight: 700 !important;
+  font-size: 22px !important;
+}
+
 .release-policy-gantt .docusaurus-mermaid-container .taskTextOutsideLeft,
 .release-policy-gantt .docusaurus-mermaid-container .taskTextOutsideRight {
-  fill: #ffffff !important;
+  fill: #2d3436 !important;
   font-weight: 700 !important;
   font-size: 22px !important;
 }
