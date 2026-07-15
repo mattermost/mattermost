@@ -487,33 +487,13 @@ blockquote {
   text-decoration: none;
 }
 
-/* Tables: scroll horizontally within themselves instead of overflowing the
- * viewport. Applied unconditionally (not just under the mobile breakpoint
- * below) since a wide table can force the same horizontal-overflow problem
- * at any viewport width — e.g. at higher browser zoom levels, where the
- * effective layout width shrinks but the media query doesn't re-trigger. */
+/* Tables: keep native table layout so header and body columns stay aligned.
+ * Wide tables (e.g. upgrade notes) use a dedicated wrapper class instead. */
 .markdown table {
-  display: block;
-  width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.markdown table thead,
-.markdown table tbody {
   display: table;
   width: 100%;
   table-layout: auto;
-}
-
-.markdown table tr {
-  display: table-row;
-}
-
-.markdown table th,
-.markdown table td {
-  display: table-cell;
-  overflow-wrap: anywhere;
+  border-collapse: collapse;
 }
 
 .upgrade-notes-table-wrapper {
