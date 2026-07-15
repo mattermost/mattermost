@@ -4098,7 +4098,7 @@ func (s *ExportSettings) SetDefaults() {
 type AccessControlSettings struct {
 	EnableAttributeBasedAccessControl *bool
 	EnableUserManagedAttributes       *bool `access:"write_restrictable"`
-	EnableChannelIndicators           *bool `access:"write_restrictable"`
+	EnableChannelPolicyIndicators     *bool `access:"write_restrictable"`
 	TrustProxyDeviceIdentityHeader    *bool `access:"write_restrictable,cloud_restrictable"`
 	EnforceDeviceIDConsistency        *bool `access:"write_restrictable,cloud_restrictable"`
 }
@@ -4112,10 +4112,10 @@ func (s *AccessControlSettings) SetDefaults() {
 		s.EnableUserManagedAttributes = new(false)
 	}
 
-	// Channel access indicators are shown by default to preserve existing
+	// Channel policy indicators are shown by default to preserve existing
 	// behavior; admins may disable them to avoid leaking policy details.
-	if s.EnableChannelIndicators == nil {
-		s.EnableChannelIndicators = new(true)
+	if s.EnableChannelPolicyIndicators == nil {
+		s.EnableChannelPolicyIndicators = new(true)
 	}
 
 	if s.TrustProxyDeviceIdentityHeader == nil {

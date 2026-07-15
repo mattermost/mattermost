@@ -515,7 +515,7 @@ describe('components/channel_invite_modal', () => {
         expect(screen.getByText('Attribute1: tag2')).toBeInTheDocument();
     });
 
-    test('does not request access control indicators when EnableChannelIndicators is disabled', () => {
+    test('does not request access control indicators when EnableChannelPolicyIndicators is disabled', () => {
         const useAccessControlAttributesMock = require('components/common/hooks/useAccessControlAttributes').default;
         useAccessControlAttributesMock.mockClear();
 
@@ -534,7 +534,7 @@ describe('components/channel_invite_modal', () => {
                 entities: {
                     general: {
                         config: {
-                            EnableChannelIndicators: 'false',
+                            EnableChannelPolicyIndicators: 'false',
                         },
                     },
                 },

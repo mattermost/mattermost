@@ -29,7 +29,7 @@ export const getAccessControlSettings = createSelector(
 
             // Absent in older/limited client configs — default to shown to
             // preserve behavior when the server hasn't sent the flag.
-            EnableChannelIndicators: config?.EnableChannelIndicators !== 'false',
+            EnableChannelPolicyIndicators: config?.EnableChannelPolicyIndicators !== 'false',
         } as AccessControlSettings;
     },
 );

@@ -37,7 +37,7 @@ describe('TeamPolicyEditor', () => {
         accessControlSettings: {
             EnableAttributeBasedAccessControl: true,
             EnableUserManagedAttributes: false,
-            EnableChannelIndicators: true,
+            EnableChannelPolicyIndicators: true,
             TrustProxyDeviceIdentityHeader: false,
             EnforceDeviceIDConsistency: false,
         },

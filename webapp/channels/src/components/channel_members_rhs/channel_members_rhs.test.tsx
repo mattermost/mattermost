@@ -320,7 +320,7 @@ describe('channel_members_rhs/channel_members_rhs', () => {
                 entities: {
                     general: {
                         config: {
-                            EnableChannelIndicators: 'false',
+                            EnableChannelPolicyIndicators: 'false',
                         },
                     },
                 },

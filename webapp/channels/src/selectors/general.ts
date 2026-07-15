@@ -44,5 +44,5 @@ export function isChannelAccessControlEnabled(state: GlobalState): boolean {
 // tags shown in the members RHS and invite modal banners) should be shown to
 // end users. Admins can disable these to avoid leaking policy details.
 export function areChannelAccessControlIndicatorsEnabled(state: GlobalState): boolean {
-    return getAccessControlSettings(state).EnableChannelIndicators;
+    return getAccessControlSettings(state).EnableChannelPolicyIndicators;
 }
