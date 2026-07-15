@@ -7,6 +7,8 @@ import type {Dispatch} from 'redux';
 
 import type {Channel} from '@mattermost/types/channels';
 
+import {withdrawMyChannelJoinRequest} from 'mattermost-redux/actions/channels';
+
 import {joinChannelById, switchToChannel} from 'actions/views/channel';
 import {openModal} from 'actions/views/modals';
 import {closeRightHandSide} from 'actions/views/rhs';
@@ -34,6 +36,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
         joinChannelById,
         switchToChannel,
         closeRightHandSide,
+        withdrawJoinRequest: withdrawMyChannelJoinRequest,
     }, dispatch);
 
     return {

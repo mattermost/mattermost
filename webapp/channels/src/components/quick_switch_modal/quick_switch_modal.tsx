@@ -41,6 +41,7 @@ export type Props = WrappedComponentProps & {
         switchToChannel: (channel: Channel) => Promise<ActionResult>;
         closeRightHandSide: () => void;
         openRequestJoinModal: (channel: Channel) => void;
+        withdrawJoinRequest: (channelId: string) => Promise<ActionResult>;
     };
     focusOriginElement: string;
 };
@@ -126,14 +127,17 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
         }
 
         if (this.state.mode === CHANNEL_MODE) {
-            const {joinChannelById, switchToChannel, openRequestJoinModal} = this.props.actions;
+            const {joinChannelById, switchToChannel, openRequestJoinModal, withdrawJoinRequest} = this.props.actions;
             const selectedChannel = selected.channel;
 
             if (selected.discoverableNonMember && selectedChannel?.id) {
+                // Centralized here so both mouse and keyboard (ENTER) selection
+                // request or withdraw consistently, then dismiss the switcher.
                 if (selected.hasPendingJoinRequest) {
-                    return;
+                    withdrawJoinRequest(selectedChannel.id);
+                } else {
+                    openRequestJoinModal(selectedChannel);
                 }
-                openRequestJoinModal(selectedChannel);
                 this.hideOnSelect();
                 return;
             }

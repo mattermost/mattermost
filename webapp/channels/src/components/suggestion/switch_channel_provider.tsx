@@ -2,21 +2,20 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
+import React, {useLayoutEffect, useRef, useState} from 'react';
 import {defineMessage, useIntl} from 'react-intl';
 import {connect, useSelector} from 'react-redux';
-import type {Dispatch} from 'redux';
 
 import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
-import type {Channel, ChannelJoinRequest, ChannelMembership} from '@mattermost/types/channels';
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {UserTypes} from 'mattermost-redux/action_types';
-import {fetchAllMyTeamsChannels, searchAllChannels, withdrawMyChannelJoinRequest} from 'mattermost-redux/actions/channels';
+import {fetchAllMyTeamsChannels, searchAllChannels} from 'mattermost-redux/actions/channels';
 import {logError} from 'mattermost-redux/actions/errors';
 import {Client4} from 'mattermost-redux/client';
 import {Preferences} from 'mattermost-redux/constants';
@@ -53,7 +52,6 @@ import {sortChannelsByTypeAndDisplayName, isChannelMuted} from 'mattermost-redux
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
-import {openModal} from 'actions/views/modals';
 import {getPostDraft} from 'selectors/rhs';
 import globalStore from 'stores/redux_store';
 
@@ -61,12 +59,11 @@ import ChannelTypeIcon from 'components/channel_type_icon';
 import usePrefixedIds, {joinIds} from 'components/common/hooks/usePrefixedIds';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import ProfilePicture from 'components/profile_picture';
-import RequestJoinChannelModal from 'components/request_join_channel_modal/request_join_channel_modal';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 
-import {Constants, ModalIdentifiers, StoragePrefixes} from 'utils/constants';
+import {Constants, StoragePrefixes} from 'utils/constants';
 import {getIntl} from 'utils/i18n';
 import * as Utils from 'utils/utils';
 
@@ -134,8 +131,6 @@ type Props = SuggestionProps<WrappedChannel> & {
     team?: Team;
     discoverableNonMember: boolean;
     hasPendingJoinRequest: boolean;
-    onRequestToJoin: (channel: Channel) => void;
-    onWithdrawRequest: (channelId: string) => Promise<ActionResult<ChannelJoinRequest>>;
 };
 
 export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
@@ -150,12 +145,9 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
     team,
     discoverableNonMember,
     hasPendingJoinRequest,
-    onRequestToJoin,
-    onWithdrawRequest,
     ...otherProps
 }, ref) => {
     const {formatMessage} = useIntl();
-    const [actionLoading, setActionLoading] = useState(false);
 
     const channel = item.channel;
     const channelIsArchived = channel.delete_at && channel.delete_at !== 0;
@@ -364,35 +356,19 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
 
     Reflect.deleteProperty(otherProps, 'dispatch');
 
-    const handleDiscoverableAction = useCallback(async (e: React.MouseEvent) => {
-        e.stopPropagation();
-        e.preventDefault();
-        if (!isRealChannel(channel)) {
-            return;
-        }
-        setActionLoading(true);
-        try {
-            if (hasPendingJoinRequest) {
-                await onWithdrawRequest(channel.id);
-            } else {
-                onRequestToJoin(channel);
-            }
-        } finally {
-            setActionLoading(false);
-        }
-    }, [channel, hasPendingJoinRequest, onRequestToJoin, onWithdrawRequest]);
-
     let discoverableAction = null;
     if (discoverableNonMember && isRealChannel(channel) && !channelIsArchived) {
+        // Visual affordance only. Selecting the row (click, or ENTER via the
+        // suggestion list) bubbles to QuickSwitchModal.handleSubmit, which is
+        // the single place that requests or withdraws, keeping mouse and
+        // keyboard behavior consistent.
         discoverableAction = (
             <div className='suggestion-list__discoverable-action'>
                 <Button
                     emphasis={hasPendingJoinRequest ? 'tertiary' : 'primary'}
                     size='sm'
-                    disabled={actionLoading}
                     tabIndex={-1}
-                    onClick={handleDiscoverableAction}
-                    aria-label={hasPendingJoinRequest ? formatMessage({id: 'more_channels.withdrawRequest', defaultMessage: 'Withdraw request'}) : formatMessage({id: 'more_channels.requestToJoin', defaultMessage: 'Request to join'})}
+                    aria-hidden={true}
                 >
                     {hasPendingJoinRequest ? formatMessage({id: 'more_channels.withdrawRequest', defaultMessage: 'Withdraw request'}) : formatMessage({id: 'more_channels.requestToJoin', defaultMessage: 'Request to join'})}
                 </Button>
@@ -502,22 +478,9 @@ function mapStateToPropsForSwitchChannelSuggestion(state: GlobalState, ownProps:
     };
 }
 
-function mapDispatchToPropsForSwitchChannelSuggestion(dispatch: Dispatch) {
-    return {
-        onRequestToJoin: (channel: Channel) => {
-            dispatch(openModal({
-                modalId: ModalIdentifiers.REQUEST_JOIN_CHANNEL,
-                dialogType: RequestJoinChannelModal,
-                dialogProps: {channel},
-            }));
-        },
-        onWithdrawRequest: (channelId: string) => dispatch(withdrawMyChannelJoinRequest(channelId)),
-    };
-}
-
 export const ConnectedSwitchChannelSuggestion = connect(
     mapStateToPropsForSwitchChannelSuggestion,
-    mapDispatchToPropsForSwitchChannelSuggestion,
+    null,
     null,
     {forwardRef: true},
 )(SwitchChannelSuggestion);
