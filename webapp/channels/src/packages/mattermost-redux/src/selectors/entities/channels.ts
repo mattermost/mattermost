@@ -41,6 +41,9 @@ import {
     isCollapsedThreadsEnabled,
 } from 'mattermost-redux/selectors/entities/preferences';
 import {
+    getMyPermissionsByChannel,
+    getMyPermissionsByTeam,
+    getMySystemPermissions,
     haveIChannelPermission,
     haveICurrentChannelPermission,
     haveITeamPermission,
@@ -960,11 +963,45 @@ export function canManageChannelJoinRequests(state: GlobalState, channel: Channe
 
     return haveIChannelPermission(
         state,
-        getCurrentTeamId(state),
+        channel.team_id,
         channel.id,
         Permissions.MANAGE_CHANNEL_JOIN_REQUESTS,
     );
 }
+
+// Memoized list of every discoverable private channel id the current user can
+// review join requests for. Kept in mattermost-redux with granular permission
+// inputs so it only recomputes when channels or permissions change, rather than
+// on every dispatched action.
+export const getManageableDiscoverableChannelIds: (state: GlobalState) => string[] = createIdsSelector(
+    'getManageableDiscoverableChannelIds',
+    isDiscoverableChannelsEnabled,
+    getMyChannels,
+    getMySystemPermissions,
+    getMyPermissionsByTeam,
+    getMyPermissionsByChannel,
+    (enabled, channels, systemPermissions, permissionsByTeam, permissionsByChannel): string[] => {
+        if (!enabled) {
+            return [];
+        }
+
+        if (systemPermissions.has(Permissions.MANAGE_CHANNEL_JOIN_REQUESTS)) {
+            return channels.
+                filter((channel) => channel.type === General.PRIVATE_CHANNEL && channel.discoverable === true).
+                map((channel) => channel.id);
+        }
+
+        return channels.
+            filter((channel) => {
+                if (channel.type !== General.PRIVATE_CHANNEL || channel.discoverable !== true) {
+                    return false;
+                }
+                return Boolean(channel.team_id && permissionsByTeam[channel.team_id]?.has(Permissions.MANAGE_CHANNEL_JOIN_REQUESTS)) ||
+                    Boolean(permissionsByChannel[channel.id]?.has(Permissions.MANAGE_CHANNEL_JOIN_REQUESTS));
+            }).
+            map((channel) => channel.id);
+    },
+);
 
 export const getAllDirectChannelIds: (state: GlobalState) => string[] = createIdsSelector(
     'getAllDirectChannelIds',
