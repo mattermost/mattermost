@@ -154,6 +154,17 @@ export default class ChannelsPage {
         await this.centerView.toBeVisible();
     }
 
+    async expectCanCreatePublicChannel(canCreate: boolean) {
+        const browseOrCreateButton = this.page.getByRole('button', {name: 'Browse or create channels', exact: true});
+        if (!canCreate) {
+            await expect(browseOrCreateButton).toHaveCount(0);
+            return;
+        }
+
+        await browseOrCreateButton.click();
+        await expect(this.page.getByRole('menuitem', {name: 'Create new channel', exact: true})).toBeVisible();
+    }
+
     /**
      * `toNotContainText` verifies if the page does not contain the specified text.
      * @param text Text to be verified not in the page

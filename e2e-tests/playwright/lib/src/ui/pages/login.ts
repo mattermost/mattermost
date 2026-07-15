@@ -60,10 +60,13 @@ export default class LoginPage {
 
     async goto() {
         await this.page.goto('/login');
+        await this.page.waitForLoadState('networkidle');
         const viewInBrowser = this.page.getByRole('link', {name: 'View in Browser'});
         if (await viewInBrowser.isVisible()) {
             await this.page.getByRole('checkbox', {name: 'Remember my preference'}).check();
             await viewInBrowser.click();
+            await this.page.waitForLoadState('networkidle');
+            await expect(this.title).toBeVisible({timeout: duration.half_min});
         }
     }
 
@@ -77,6 +80,10 @@ export default class LoginPage {
         await this.loginInput.fill(username);
         await this.passwordInput.fill(password);
         await this.signInButton.click();
+    }
+
+    async loginWithSaml(buttonText = 'SAML') {
+        await this.page.getByRole('link', {name: new RegExp(`${buttonText}$`)}).click();
     }
 
     async assertError(message: string) {

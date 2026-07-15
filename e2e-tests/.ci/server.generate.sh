@@ -320,6 +320,10 @@ $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
       PW_LDAP_PORT: 389
       PW_LDAP_URL: ldap://localhost:389
       PW_LDAP_BIND_PASSWORD: mostest
+      PW_KEYCLOAK_URL: http://localhost:8080
+      PW_KEYCLOAK_ADMIN_USERNAME: admin
+      PW_KEYCLOAK_ADMIN_PASSWORD: admin
+      PW_KEYCLOAK_REALM: mattermost
       PW_ENSURE_PLUGINS_INSTALLED: ""
       MM_TEST_DB_URL: "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
       PW_HA_CLUSTER_ENABLED: "false"

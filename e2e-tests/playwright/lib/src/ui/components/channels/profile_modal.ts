@@ -21,8 +21,8 @@ export default class ProfileModal {
     constructor(container: Locator) {
         this.container = container;
 
-        this.profileSettingsButton = container.locator('#profileButton');
-        this.securityButton = container.locator('#securityButton');
+        this.profileSettingsButton = container.getByRole('tab', {name: 'profile settings', exact: true});
+        this.securityButton = container.getByRole('tab', {name: 'security', exact: true});
 
         this.profileSettingsTab = new ProfileSettingsTab(container.getByRole('tabpanel', {name: 'Profile Settings'}));
         this.securityTab = new SecurityTab(container.getByRole('tabpanel', {name: 'Security'}));
@@ -53,6 +53,11 @@ export default class ProfileModal {
         await this.securityTab.toBeVisible();
 
         return this.securityTab;
+    }
+
+    async expectAccessHistoryEntry(action: string) {
+        const securityTab = await this.openSecurityTab();
+        await securityTab.expectAccessHistoryEntry(action);
     }
 
     async closeModal() {
@@ -101,5 +106,12 @@ class SecurityTab {
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
+    }
+
+    async expectAccessHistoryEntry(action: string) {
+        await this.container.getByRole('button', {name: 'View Access History', exact: true}).click();
+        const accessHistory = this.container.page().getByRole('dialog', {name: 'Access History', exact: true});
+        await expect(accessHistory).toBeVisible();
+        await expect(accessHistory.getByRole('cell', {name: action, exact: true}).first()).toBeVisible();
     }
 }

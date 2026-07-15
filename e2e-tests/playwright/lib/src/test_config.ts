@@ -15,6 +15,10 @@ export class TestConfig {
     ldapPort: number;
     ldapUrl: string;
     ldapBindPassword: string;
+    keycloakUrl: string;
+    keycloakAdminUsername: string;
+    keycloakAdminPassword: string;
+    keycloakRealm: string;
     ensurePluginsInstalled: string[];
     haClusterEnabled: boolean;
     haClusterNodeCount: number;
@@ -47,6 +51,10 @@ export class TestConfig {
         ldapUrl.port = this.ldapPort.toString();
         this.ldapUrl = ldapUrl.toString();
         this.ldapBindPassword = process.env.PW_LDAP_BIND_PASSWORD || 'mostest';
+        this.keycloakUrl = process.env.PW_KEYCLOAK_URL || process.env.PW_KEYCLOAK_BASE_URL || 'http://localhost:8080';
+        this.keycloakAdminUsername = process.env.PW_KEYCLOAK_ADMIN_USERNAME || 'admin';
+        this.keycloakAdminPassword = process.env.PW_KEYCLOAK_ADMIN_PASSWORD || 'admin';
+        this.keycloakRealm = process.env.PW_KEYCLOAK_REALM || 'mattermost';
         this.ensurePluginsInstalled =
             typeof process.env?.PW_ENSURE_PLUGINS_INSTALLED === 'string'
                 ? process.env.PW_ENSURE_PLUGINS_INSTALLED.split(',').filter((plugin) => Boolean(plugin))

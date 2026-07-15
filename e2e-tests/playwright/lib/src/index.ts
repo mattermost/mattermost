@@ -17,13 +17,16 @@ export {
     isWebhookTestServerReachable,
     setupWebhookTestServer,
     PlaywrightClient4,
+    configureSamlWithKeycloak,
+    KeycloakAdminClient,
     OpenLdapClient,
 } from './server';
-export type {LdapUser} from './server';
+export type {KeycloakUser, LdapUser} from './server';
 
 export {
     ChannelsPage,
     LandingLoginPage,
+    KeycloakLoginPage,
     LoginPage,
     RecapsPage,
     ResetPasswordPage,

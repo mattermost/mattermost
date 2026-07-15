@@ -20,7 +20,7 @@ export default class InvitePeopleModal {
         this.closeButton = container.getByRole('button', {name: 'Close'});
         this.inviteInput = container.getByRole('combobox', {name: 'Invite People'});
         this.inviteButton = container.getByRole('button', {name: 'Invite', exact: true});
-        this.copyInviteLinkButton = container.getByText('Copy invite link');
+        this.copyInviteLinkButton = container.getByRole('button', {name: /^team invite link /});
     }
 
     async toBeVisible() {
@@ -29,6 +29,13 @@ export default class InvitePeopleModal {
 
     async close() {
         await this.closeButton.click();
+    }
+
+    async copyInviteLink() {
+        await expect(this.copyInviteLinkButton).toBeVisible();
+        await this.copyInviteLinkButton.click();
+        await expect(this.copyInviteLinkButton).toHaveText('Copied');
+        return this.container.page().evaluate(() => navigator.clipboard.readText());
     }
 
     /**
