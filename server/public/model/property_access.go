@@ -47,18 +47,18 @@ const (
 // field carries one or more owners (in its Attrs blob under PropertyAttrsOwners)
 // the owners list governs the write-access decision for that field, superseding
 // the legacy protected / source_plugin_id gating and the sync-lock:
+//   - The owners list and each owner's Scopes are managed only by an
+//     administrator via the REST API. Machine callers (plugins/sync) may never
+//     add, change, or remove owners.
 //   - Value writes by a machine caller are allowed only if it is a listed owner
 //     (matching ID and Type) whose Scopes contain the caller's acting-as scope.
 //     An owner with an empty Scopes list is not scope-restricted and may write
 //     for any scope.
-//   - Field-definition edits (outside the owners list) and deletes by a machine
-//     caller require pre-existing listed-owner membership (matching ID and Type)
-//     whose Scopes contain the caller's acting-as scope: the owner and scope must
-//     already be present before the definition can be edited. Owners-list changes
-//     are self-managed: a plugin may add or change only its own entry, and adding
-//     or removing a scope on an existing field requires acting as that scope
-//     (initial owners declared when the field is created are exempt); a plugin
-//     may never touch another owner's entry.
+//   - Field-definition edits by a machine caller are allowed only if it is a
+//     listed owner (matching ID and Type) whose Scopes list is empty
+//     (scopeless ownership), via UpdatePropertyField. A scoped owner is
+//     values-only and cannot edit the definition. Deleting an owner-managed
+//     field is administrator-only.
 //   - Value writes by a human (session) caller are always rejected: an
 //     owner-managed field's values are authoritative to the owning
 //     integration, so no session user — including sysadmins — may overwrite
@@ -129,33 +129,6 @@ func GetPropertyFieldOwners(field *PropertyField) []PropertyOwner {
 // HasPropertyFieldOwners reports whether a field declares any owners.
 func HasPropertyFieldOwners(field *PropertyField) bool {
 	return len(GetPropertyFieldOwners(field)) > 0
-}
-
-// SetPropertyFieldOwners stores owners on the field's Attrs in the generic
-// ([]any of maps) shape so the value survives a plugin RPC (gob) boundary.
-// An empty slice removes the owners key. field must be non-nil.
-func SetPropertyFieldOwners(field *PropertyField, owners []PropertyOwner) error {
-	if field == nil {
-		return fmt.Errorf("field is nil")
-	}
-	if field.Attrs == nil {
-		field.Attrs = StringInterface{}
-	}
-	if len(owners) == 0 {
-		delete(field.Attrs, PropertyAttrsOwners)
-		return nil
-	}
-
-	data, err := json.Marshal(owners)
-	if err != nil {
-		return err
-	}
-	var generic []any
-	if err := json.Unmarshal(data, &generic); err != nil {
-		return err
-	}
-	field.Attrs[PropertyAttrsOwners] = generic
-	return nil
 }
 
 // IsKnownPropertyAccessMode checks if the given access mode is a recognized value

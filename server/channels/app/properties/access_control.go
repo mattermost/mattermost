@@ -118,8 +118,10 @@ func (h *AccessControlHook) PreCreatePropertyField(rctx request.CTX, field *mode
 		}
 	}
 
-	if err := h.enforceOwnerMutationRules(nil, field, callerID, h.extractActingAsScope(rctx)); err != nil {
-		return nil, err
+	// Owners are managed only by administrators via the REST API. Machine
+	// callers (plugins/sync) may not declare owners when creating a field.
+	if h.isMachineCaller(callerID) && model.HasPropertyFieldOwners(field) {
+		return nil, fmt.Errorf("owners can only be set by an administrator: %w", ErrAccessDenied)
 	}
 
 	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
@@ -196,27 +198,8 @@ func (h *AccessControlHook) PreUpdatePropertyField(rctx request.CTX, groupID str
 		return nil, err
 	}
 
-	scope := h.extractActingAsScope(rctx)
-
-	// A plugin may only change its own owners entry, and removing a scope
-	// requires acting as it.
-	if err := h.enforceOwnerMutationRules(existingField, field, callerID, scope); err != nil {
+	if err := h.enforceFieldUpdateAccess(existingField, field, callerID); err != nil {
 		return nil, err
-	}
-
-	// Edits outside the owners struct need write access, evaluated against the
-	// STORED owners: the caller must already be a listed owner acting as one of
-	// the field's scopes before it can edit the schema. Gaining ownership for a
-	// new scope is therefore a separate update from editing the definition.
-	// Legacy (non-owner-managed) fields keep their protected/source rules.
-	if !model.HasPropertyFieldOwners(existingField) {
-		if err := h.checkLegacyFieldWriteAccess(existingField, callerID); err != nil {
-			return nil, err
-		}
-	} else if definitionChangedIgnoringOwners(existingField, field) {
-		if err := h.checkOwnerFieldWriteAccess(field.ID, model.GetPropertyFieldOwners(existingField), callerID, scope); err != nil {
-			return nil, err
-		}
 	}
 
 	if err := h.ensureSourcePluginIDUnchanged(existingField, field); err != nil {
@@ -265,20 +248,8 @@ func (h *AccessControlHook) PreUpdatePropertyFields(rctx request.CTX, groupID st
 			return nil, fmt.Errorf("field %s: %w", field.ID, ErrFieldNotFound)
 		}
 
-		scope := h.extractActingAsScope(rctx)
-
-		if err := h.enforceOwnerMutationRules(existingField, field, callerID, scope); err != nil {
+		if err := h.enforceFieldUpdateAccess(existingField, field, callerID); err != nil {
 			return nil, fmt.Errorf("field %s: %w", field.ID, err)
-		}
-
-		if !model.HasPropertyFieldOwners(existingField) {
-			if err := h.checkLegacyFieldWriteAccess(existingField, callerID); err != nil {
-				return nil, fmt.Errorf("field %s: %w", field.ID, err)
-			}
-		} else if definitionChangedIgnoringOwners(existingField, field) {
-			if err := h.checkOwnerFieldWriteAccess(field.ID, model.GetPropertyFieldOwners(existingField), callerID, scope); err != nil {
-				return nil, fmt.Errorf("field %s: %w", field.ID, err)
-			}
 		}
 
 		if err := h.ensureSourcePluginIDUnchanged(existingField, field); err != nil {
@@ -316,7 +287,7 @@ func (h *AccessControlHook) PreDeletePropertyField(rctx request.CTX, groupID str
 		return err
 	}
 
-	return h.checkFieldDeleteAccess(existingField, callerID, h.extractActingAsScope(rctx))
+	return h.checkFieldDeleteAccess(existingField, callerID)
 }
 
 // PostUpdatePropertyFields is a no-op for access control; cleanup of dependent
@@ -741,140 +712,50 @@ func (h *AccessControlHook) checkOwnerValueWriteAccess(field *model.PropertyFiel
 	return fmt.Errorf("field %s is owner-managed and caller %q acting as scope %q is not an owner with a matching scope: %w", field.ID, callerID, effectiveScope, ErrAccessDenied)
 }
 
-// checkOwnerFieldWriteAccess enforces an owners list on a field-definition write
-// or delete. A machine caller is allowed only if it is a listed owner (matching
-// ID and type) whose scopes contain the caller's acting-as scope, so a caller
-// acting for one scope cannot alter the schema of a field owned for a different
-// scope. An owner with an empty scopes list is not scope-restricted. Human
-// callers pass through to be governed by the API-layer permission levels.
+// enforceFieldUpdateAccess gates a field-definition update.
 //
-// The owners passed in are the STORED owners, so the caller must already own the
-// field for the acting scope; claiming ownership for a new scope is a separate
-// update from editing the definition.
-func (h *AccessControlHook) checkOwnerFieldWriteAccess(fieldID string, owners []model.PropertyOwner, callerID, scope string) error {
+// For owner-managed fields:
+//   - The owners list may only be changed by human callers (sysadmins via REST).
+//   - A machine caller may edit the rest of the definition only if it is a
+//     listed scopeless owner (see checkOwnerFieldWriteAccess).
+//
+// For non-owner-managed fields, machine callers may not add owners, and legacy
+// protected / source_plugin_id rules continue to apply.
+func (h *AccessControlHook) enforceFieldUpdateAccess(existing, updated *model.PropertyField, callerID string) error {
+	existingOwners := model.GetPropertyFieldOwners(existing)
+	updatedOwners := model.GetPropertyFieldOwners(updated)
+
+	if model.HasPropertyFieldOwners(existing) {
+		if h.isMachineCaller(callerID) && !ownerSetsEqual(existingOwners, updatedOwners) {
+			return fmt.Errorf("owners can only be changed by an administrator: %w", ErrAccessDenied)
+		}
+		return h.checkOwnerFieldWriteAccess(existing.ID, existingOwners, callerID)
+	}
+
+	if h.isMachineCaller(callerID) && model.HasPropertyFieldOwners(updated) {
+		return fmt.Errorf("owners can only be set by an administrator: %w", ErrAccessDenied)
+	}
+	return h.checkLegacyFieldWriteAccess(existing, callerID)
+}
+
+// checkOwnerFieldWriteAccess enforces an owners list on a field-definition write.
+// A machine caller is allowed only if it is a listed owner (matching ID and type)
+// whose Scopes list is empty (scopeless ownership). Scoped owners cannot edit the
+// field definition without a scoped field plugin API; human callers pass through
+// to be governed by the API-layer permission levels.
+func (h *AccessControlHook) checkOwnerFieldWriteAccess(fieldID string, owners []model.PropertyOwner, callerID string) error {
 	if !h.isMachineCaller(callerID) {
 		return nil
 	}
 
-	ownerID, ownerType, effectiveScope := h.callerOwnerIdentity(callerID, scope)
+	ownerID, ownerType, _ := h.callerOwnerIdentity(callerID, "")
 	for _, owner := range owners {
-		if owner.Type == ownerType && owner.ID == ownerID &&
-			(len(owner.Scopes) == 0 || slices.Contains(owner.Scopes, effectiveScope)) {
+		if owner.Type == ownerType && owner.ID == ownerID && len(owner.Scopes) == 0 {
 			return nil
 		}
 	}
 
-	return fmt.Errorf("field %s is owner-managed and caller %q acting as scope %q is not an owner with a matching scope: %w", fieldID, callerID, effectiveScope, ErrAccessDenied)
-}
-
-// enforceOwnerMutationRules validates a change to attrs.owners. Owners are a
-// plugin-only, self-managed mechanism: a plugin may add, change, or remove only
-// its own entry (type=plugin, id == caller manifest id) and may never touch
-// another id's entry. Adding or removing a scope on an existing field
-// additionally requires the caller to be acting as that scope; initial owners
-// set when the field is created are exempt. Non-plugin callers may not change
-// owners at all. existing is the stored field (nil on create).
-func (h *AccessControlHook) enforceOwnerMutationRules(existing, updated *model.PropertyField, callerID, scope string) error {
-	existingOwners := model.GetPropertyFieldOwners(existing)
-	updatedOwners := model.GetPropertyFieldOwners(updated)
-
-	if ownerSetsEqual(existingOwners, updatedOwners) {
-		return nil
-	}
-
-	// Human callers (e.g. sysadmins) may manage the owners list freely; the
-	// field's pinned permission level gates them to sysadmin at the API layer.
-	if !h.isCallerPlugin(callerID) {
-		return nil
-	}
-
-	// A plugin may only add, change, or remove its OWN entry, and that entry
-	// must be a plugin-type owner. Entries for any other id must be unchanged.
-	for _, o := range updatedOwners {
-		if strings.TrimSpace(o.ID) == callerID && strings.TrimSpace(o.Type) != model.PropertyOwnerTypePlugin {
-			return fmt.Errorf("a plugin may only own via a plugin-type entry: %w", ErrAccessDenied)
-		}
-	}
-	if !othersUnchanged(existingOwners, updatedOwners, callerID) {
-		return fmt.Errorf("a plugin may only manage its own ownership (id %q), not another plugin's: %w", callerID, ErrAccessDenied)
-	}
-
-	// Every scope the caller adds to or removes from its own entry on an existing
-	// field must be the scope it is currently acting as, so a plugin only grants
-	// or drops ownership for the scope it is operating under. Initial owners
-	// declared when the field is created (existing == nil) are exempt: a plugin
-	// may define its new field's owners atomically, like any other create attr.
-	effectiveScope := strings.TrimSpace(scope)
-	existingScopes := callerOwnScopes(existingOwners, callerID)
-	updatedScopes := callerOwnScopes(updatedOwners, callerID)
-
-	for _, existingScope := range existingScopes {
-		if slices.Contains(updatedScopes, existingScope) {
-			continue
-		}
-		if existingScope != effectiveScope {
-			return fmt.Errorf("removing scope %q from owner %q requires acting as that scope: %w", existingScope, callerID, ErrAccessDenied)
-		}
-	}
-
-	if existing != nil {
-		for _, addedScope := range updatedScopes {
-			if slices.Contains(existingScopes, addedScope) {
-				continue
-			}
-			if addedScope != effectiveScope {
-				return fmt.Errorf("adding scope %q to owner %q requires acting as that scope: %w", addedScope, callerID, ErrAccessDenied)
-			}
-		}
-	}
-	return nil
-}
-
-// callerOwnScopes returns the normalized scopes of the caller's own plugin-type
-// owner entry, or nil if the caller is not a listed plugin owner.
-func callerOwnScopes(owners []model.PropertyOwner, callerID string) []string {
-	for _, owner := range owners {
-		if strings.TrimSpace(owner.ID) == callerID && strings.TrimSpace(owner.Type) == model.PropertyOwnerTypePlugin {
-			return normalizeOwnerScopes(owner.Scopes)
-		}
-	}
-	return nil
-}
-
-// definitionChangedIgnoringOwners reports whether the caller-editable field
-// definition (its name, type, or any attr other than owners) changed between
-// the stored field and the update. Owners are governed by
-// enforceOwnerMutationRules; every other definition change is subject to the
-// owner + scope write gate. New field metadata lives in the Attrs map, which is
-// compared generically, so this does not need updating when attrs are added.
-func definitionChangedIgnoringOwners(existing, updated *model.PropertyField) bool {
-	if existing == nil || updated == nil {
-		return true
-	}
-	if existing.Name != updated.Name || existing.Type != updated.Type {
-		return true
-	}
-	return !attrsEqualIgnoringOwners(existing.Attrs, updated.Attrs)
-}
-
-func attrsEqualIgnoringOwners(a, b model.StringInterface) bool {
-	aj, aErr := json.Marshal(attrsWithoutOwners(a))
-	bj, bErr := json.Marshal(attrsWithoutOwners(b))
-	if aErr != nil || bErr != nil {
-		return false
-	}
-	return bytes.Equal(aj, bj)
-}
-
-func attrsWithoutOwners(attrs model.StringInterface) map[string]any {
-	out := make(map[string]any, len(attrs))
-	for k, v := range attrs {
-		if k == model.PropertyAttrsOwners {
-			continue
-		}
-		out[k] = v
-	}
-	return out
+	return fmt.Errorf("field %s is owner-managed and caller %q is not a scopeless owner: %w", fieldID, callerID, ErrAccessDenied)
 }
 
 func ownerKey(owner model.PropertyOwner) string {
@@ -909,32 +790,6 @@ func ownerScopeSet(owners []model.PropertyOwner) map[string][]string {
 
 func ownerSetsEqual(a, b []model.PropertyOwner) bool {
 	return maps.EqualFunc(ownerScopeSet(a), ownerScopeSet(b), slices.Equal)
-}
-
-func othersUnchanged(existing, updated []model.PropertyOwner, callerID string) bool {
-	existingSet := ownerScopeSet(existing)
-	updatedSet := ownerScopeSet(updated)
-
-	for key, updatedScopes := range updatedSet {
-		_, id, ok := strings.Cut(key, "\x00")
-		if !ok || id == callerID {
-			continue
-		}
-		existingScopes, found := existingSet[key]
-		if !found || !slices.Equal(existingScopes, updatedScopes) {
-			return false
-		}
-	}
-	for key := range existingSet {
-		_, id, ok := strings.Cut(key, "\x00")
-		if !ok || id == callerID {
-			continue
-		}
-		if _, found := updatedSet[key]; !found {
-			return false
-		}
-	}
-	return true
 }
 
 // getSourcePluginID extracts the source_plugin_id from a PropertyField's attrs.
@@ -1029,10 +884,14 @@ func (h *AccessControlHook) checkLegacyFieldWriteAccess(field *model.PropertyFie
 
 // checkFieldDeleteAccess checks if the given caller can delete a PropertyField.
 // IMPORTANT: Always pass the existing field fetched from the database, not a field provided by the caller.
-func (h *AccessControlHook) checkFieldDeleteAccess(field *model.PropertyField, callerID, scope string) error {
-	// An owners list supersedes the legacy protected / source_plugin_id rules.
+func (h *AccessControlHook) checkFieldDeleteAccess(field *model.PropertyField, callerID string) error {
+	// Deleting an owner-managed field is administrator-only; machine callers
+	// (plugins/sync) are always denied.
 	if model.HasPropertyFieldOwners(field) {
-		return h.checkOwnerFieldWriteAccess(field.ID, model.GetPropertyFieldOwners(field), callerID, scope)
+		if h.isMachineCaller(callerID) {
+			return fmt.Errorf("field %s is owner-managed and can only be deleted by an administrator: %w", field.ID, ErrAccessDenied)
+		}
+		return nil
 	}
 
 	if !model.IsPropertyFieldProtected(field) {

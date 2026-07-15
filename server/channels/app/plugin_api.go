@@ -1842,11 +1842,3 @@ func (api *PluginAPI) DeletePropertyValuesForFieldWithOptions(groupID, fieldID s
 	}
 	return nil
 }
-
-func (api *PluginAPI) UpdatePropertyFieldWithOptions(groupID string, field *model.PropertyField, options model.PropertyRequestOptions) (*model.PropertyField, error) {
-	updatedField, _, appErr := api.app.UpdatePropertyField(api.psaPluginContextWithOptions(options), groupID, field, false, "")
-	if appErr != nil {
-		return nil, appErr
-	}
-	return updatedField, nil
-}

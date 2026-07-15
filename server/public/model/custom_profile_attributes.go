@@ -170,9 +170,8 @@ type CPAAttrs struct {
 	DisplayName    string                                                `json:"display_name,omitempty"` // omitempty applies only to direct JSON marshal of CPAAttrs; ToPropertyField always writes the key into the underlying StringInterface map.
 	// Owners, when set, declares the identities that own this field. A non-empty
 	// Owners list governs the field's write-access decision, superseding the
-	// legacy protected / SourcePluginID gating and the sync-lock. It does not
-	// change source_plugin_id immutability or read/masking (access_mode); see
-	// PropertyOwner for the full scope and the v12 deferral.
+	// legacy protected / SourcePluginID gating and the sync-lock. The list is
+	// managed only by an administrator via the REST API; see PropertyOwner.
 	Owners []PropertyOwner `json:"owners,omitempty"`
 }
 
