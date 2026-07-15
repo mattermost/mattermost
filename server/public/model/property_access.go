@@ -47,18 +47,15 @@ const (
 // field carries one or more owners (in its Attrs blob under PropertyAttrsOwners)
 // the owners list governs the write-access decision for that field, superseding
 // the legacy protected / source_plugin_id gating and the sync-lock:
-//   - The owners list and each owner's Scopes are managed only by an
-//     administrator via the REST API. Machine callers (plugins/sync) may never
-//     add, change, or remove owners.
+//   - A machine caller must be a listed owner to write values or edit/delete the
+//     field. A listed owner may edit the whole field definition including the
+//     owners list (no own-entry restriction). A non-owner machine caller cannot
+//     modify the field or add itself; the first owner is bootstrapped by a
+//     sysadmin via the REST API.
 //   - Value writes by a machine caller are allowed only if it is a listed owner
 //     (matching ID and Type) whose Scopes contain the caller's acting-as scope.
 //     An owner with an empty Scopes list is not scope-restricted and may write
 //     for any scope.
-//   - Field-definition edits by a machine caller are allowed only if it is a
-//     listed owner (matching ID and Type) whose Scopes list is empty
-//     (scopeless ownership), via UpdatePropertyField. A scoped owner is
-//     values-only and cannot edit the definition. Deleting an owner-managed
-//     field is administrator-only.
 //   - Value writes by a human (session) caller are always rejected: an
 //     owner-managed field's values are authoritative to the owning
 //     integration, so no session user — including sysadmins — may overwrite
