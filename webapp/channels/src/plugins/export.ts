@@ -90,6 +90,7 @@ interface WindowWithLibraries {
             canPopout: typeof canPopout;
             popoutRhsPlugin: typeof popoutRhsPlugin;
         };
+        editor: PublishedEditorUtils;
     };
     loadSharedDependency(request: string): unknown;
     openPricingModal: () => void;
@@ -121,7 +122,6 @@ interface WindowWithLibraries {
         getIsRhsOpen: typeof getIsRhsOpen;
     };
     DesktopApp: typeof DesktopApp;
-    Editor: PublishedEditorUtils;
 }
 declare let window: WindowWithLibraries;
 
@@ -177,6 +177,7 @@ window.WebappUtils = {
         canPopout,
         popoutRhsPlugin,
     },
+    editor: publishedEditorUtils,
 };
 window.loadSharedDependency = loadSharedDependency;
 
@@ -221,5 +222,3 @@ window.ProductApi = {
 // Desktop App module containing the app info and a series of helpers to work with legacy code
 window.DesktopApp = DesktopApp;
 
-// Core WYSIWYG editor and suggestion providers exposed to plugins via an allowlist.
-window.Editor = publishedEditorUtils;

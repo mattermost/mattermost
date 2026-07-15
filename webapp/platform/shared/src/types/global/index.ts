@@ -13,6 +13,6 @@ export * from './suggestions';
 export type WindowShared = {
     WebappUtils: {
         modals: PublishedModalUtils;
+        editor: PublishedEditorUtils;
     };
-    Editor: PublishedEditorUtils;
 };

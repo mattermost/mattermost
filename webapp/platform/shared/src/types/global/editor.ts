@@ -10,8 +10,9 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import type {ProviderResults, SuggestionResults} from './suggestions';
 
-// Plugin-facing contract for window.Editor. The web app asserts each shape stays
-// assignable to the real component/provider at build time in published_editor.ts.
+// Plugin-facing contract for window.WebappUtils.editor. The web app asserts each
+// shape stays assignable to the real component/provider at build time in
+// published_editor.ts.
 
 export type ActionResult<Data = unknown, Error = unknown> = {
     data?: Data;
