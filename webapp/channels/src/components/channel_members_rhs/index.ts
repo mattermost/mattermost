@@ -18,6 +18,7 @@ import {fetchRemoteClusterInfo} from 'mattermost-redux/actions/shared_channels';
 import {Permissions} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {
+    canManageChannelJoinRequests,
     getCurrentChannel,
     getCurrentChannelStats,
     getMembersInCurrentChannel,
@@ -25,7 +26,6 @@ import {
     getPendingChannelJoinRequests,
     isCurrentChannelArchived,
 } from 'mattermost-redux/selectors/entities/channels';
-import {isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getRemoteDisplayName} from 'mattermost-redux/selectors/entities/shared_channels';
@@ -157,17 +157,7 @@ function mapStateToProps(state: GlobalState) {
     const editing = getIsEditingMembers(state);
 
     const currentUserIsChannelAdmin = currentUser && currentUser.scheme_admin;
-    const discoverableFeatureEnabled = isDiscoverableChannelsEnabled(state);
-    const canManageJoinRequests = discoverableFeatureEnabled &&
-        channel.type === Constants.PRIVATE_CHANNEL &&
-        channel.discoverable === true &&
-        haveIChannelPermission(
-            state,
-            currentTeam?.id,
-            channel.id,
-            Permissions.MANAGE_CHANNEL_JOIN_REQUESTS,
-        ) &&
-        !isArchived;
+    const canManageJoinRequests = canManageChannelJoinRequests(state, channel) && !isArchived;
 
     return {
         channel,
@@ -179,7 +169,6 @@ function mapStateToProps(state: GlobalState) {
         canManageMembers,
         channelMembers,
         editing,
-        discoverableFeatureEnabled,
         canManageJoinRequests,
         pendingJoinRequests: canManageJoinRequests ? getPendingChannelJoinRequests(state, channel.id) : [],
     } as Props;

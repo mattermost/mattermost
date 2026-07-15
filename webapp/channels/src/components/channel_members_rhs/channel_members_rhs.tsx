@@ -48,7 +48,6 @@ export interface Props {
     editing: boolean;
 
     // Discoverable Private Channels — admin pending join requests queue
-    discoverableFeatureEnabled: boolean;
     canManageJoinRequests: boolean;
     pendingJoinRequests: ChannelJoinRequest[];
 
@@ -78,7 +77,6 @@ export default function ChannelMembersRHS({
     channelMembers,
     canManageMembers,
     editing = false,
-    discoverableFeatureEnabled,
     canManageJoinRequests,
     pendingJoinRequests,
     actions,
@@ -203,14 +201,11 @@ export default function ChannelMembersRHS({
         actions.loadProfilesAndReloadChannelMembers(0, USERS_PER_PAGE, channel.id, ProfilesInChannelSortBy.Admin, {}, true);
         actions.loadMyChannelMemberAndRole(channel.id);
 
-        if (discoverableFeatureEnabled &&
-            canManageJoinRequests &&
-            channel.type === Constants.PRIVATE_CHANNEL &&
-            channel.discoverable) {
+        if (canManageJoinRequests) {
             actions.getChannelJoinRequests(channel.id, {status: 'pending'});
             actions.countPendingChannelJoinRequests(channel.id);
         }
-    }, [channel.id, channel.type, channel.discoverable, discoverableFeatureEnabled, canManageJoinRequests]);
+    }, [channel.id, channel.type, canManageJoinRequests]);
 
     const setSearchTerms = async (terms: string) => {
         actions.setChannelMembersRhsSearchTerm(terms);
@@ -262,10 +257,7 @@ export default function ChannelMembersRHS({
     }, [actions.loadProfilesAndReloadChannelMembers, page, channel.id],
     );
 
-    const showPendingJoinRequests = discoverableFeatureEnabled &&
-        canManageJoinRequests &&
-        channel.type === Constants.PRIVATE_CHANNEL &&
-        channel.discoverable === true;
+    const showPendingJoinRequests = canManageJoinRequests;
 
     return (
         <div

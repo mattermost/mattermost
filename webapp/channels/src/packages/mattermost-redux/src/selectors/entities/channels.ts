@@ -35,7 +35,7 @@ import {
     getMyCurrentChannelMembership as getMyCurrentChannelMembershipInternal,
     getUsers,
 } from 'mattermost-redux/selectors/entities/common';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities/general';
 import {
     getTeammateNameDisplaySetting,
     isCollapsedThreadsEnabled,
@@ -944,6 +944,26 @@ export function canManageAnyChannelMembersInCurrentTeam(state: GlobalState): boo
     }
 
     return false;
+}
+
+// Whether the current user can review (approve/deny) join requests for the
+// given discoverable private channel. Shared across the channel header, members
+// RHS, and sidebar so the authorization rule stays in one place.
+export function canManageChannelJoinRequests(state: GlobalState, channel: Channel | null | undefined): boolean {
+    if (!channel || !isDiscoverableChannelsEnabled(state)) {
+        return false;
+    }
+
+    if (channel.type !== General.PRIVATE_CHANNEL || channel.discoverable !== true) {
+        return false;
+    }
+
+    return haveIChannelPermission(
+        state,
+        getCurrentTeamId(state),
+        channel.id,
+        Permissions.MANAGE_CHANNEL_JOIN_REQUESTS,
+    );
 }
 
 export const getAllDirectChannelIds: (state: GlobalState) => string[] = createIdsSelector(

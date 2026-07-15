@@ -11,8 +11,9 @@ import {
 } from 'mattermost-redux/actions/channels';
 import {getCustomEmojisInText} from 'mattermost-redux/actions/emojis';
 import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
-import {General, Permissions} from 'mattermost-redux/constants';
+import {General} from 'mattermost-redux/constants';
 import {
+    canManageChannelJoinRequests,
     getCurrentChannel,
     getMyCurrentChannelMembership,
     isCurrentChannelMuted,
@@ -20,8 +21,7 @@ import {
     isMyChannelAutotranslated,
     getPendingJoinRequestsCount,
 } from 'mattermost-redux/selectors/entities/channels';
-import {getConfig, isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities/general';
-import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getRemoteNamesForChannel} from 'mattermost-redux/selectors/entities/shared_channels';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {
@@ -85,16 +85,7 @@ function makeMapStateToProps() {
             timestampUnits = getLastActiveTimestampUnits(state, dmUser.id);
         }
 
-        const discoverableFeatureEnabled = isDiscoverableChannelsEnabled(state);
-        const canManageJoinRequests = discoverableFeatureEnabled &&
-            channel?.type === General.PRIVATE_CHANNEL &&
-            channel.discoverable === true &&
-            haveIChannelPermission(
-                state,
-                getCurrentTeam(state)?.id,
-                channel?.id || '',
-                Permissions.MANAGE_CHANNEL_JOIN_REQUESTS,
-            );
+        const canManageJoinRequests = canManageChannelJoinRequests(state, channel);
         const hasPendingJoinRequests = Boolean(
             canManageJoinRequests &&
             channel &&

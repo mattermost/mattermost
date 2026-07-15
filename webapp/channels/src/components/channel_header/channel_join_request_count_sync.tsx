@@ -5,13 +5,7 @@ import {useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {countPendingChannelJoinRequests} from 'mattermost-redux/actions/channels';
-import {Permissions} from 'mattermost-redux/constants';
-import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
-import {isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities/general';
-import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-
-import Constants from 'utils/constants';
+import {canManageChannelJoinRequests, getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 
 import type {GlobalState} from 'types/store';
 
@@ -20,22 +14,7 @@ import type {GlobalState} from 'types/store';
 export default function ChannelJoinRequestCountSync() {
     const dispatch = useDispatch();
     const channel = useSelector(getCurrentChannel);
-    const teamId = useSelector(getCurrentTeamId);
-    const discoverableFeatureEnabled = useSelector(isDiscoverableChannelsEnabled);
-    const canManageJoinRequests = useSelector((state: GlobalState) => {
-        if (!channel || !teamId || !discoverableFeatureEnabled) {
-            return false;
-        }
-        if (channel.type !== Constants.PRIVATE_CHANNEL || !channel.discoverable) {
-            return false;
-        }
-        return haveIChannelPermission(
-            state,
-            teamId,
-            channel.id,
-            Permissions.MANAGE_CHANNEL_JOIN_REQUESTS,
-        );
-    });
+    const canManageJoinRequests = useSelector((state: GlobalState) => canManageChannelJoinRequests(state, channel));
 
     useEffect(() => {
         if (canManageJoinRequests && channel) {
