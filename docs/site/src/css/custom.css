@@ -499,6 +499,23 @@ blockquote {
   -webkit-overflow-scrolling: touch;
 }
 
+.markdown table thead,
+.markdown table tbody {
+  display: table;
+  width: 100%;
+  table-layout: auto;
+}
+
+.markdown table tr {
+  display: table-row;
+}
+
+.markdown table th,
+.markdown table td {
+  display: table-cell;
+  overflow-wrap: anywhere;
+}
+
 /* === Mobile / responsive === */
 
 @media (max-width: 996px) {
