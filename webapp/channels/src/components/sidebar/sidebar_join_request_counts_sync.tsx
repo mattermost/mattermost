@@ -10,35 +10,42 @@ import {getMyChannels} from 'mattermost-redux/selectors/entities/channels';
 import {isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities/general';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {createIdsSelector} from 'mattermost-redux/utils/helpers';
 
 import Constants from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
-function selectManageableDiscoverableChannelIds(state: GlobalState): string[] {
-    if (!isDiscoverableChannelsEnabled(state)) {
-        return [];
-    }
+// createIdsSelector keeps the returned id array referentially stable while the
+// contents are unchanged, so useSelector does not warn or rerender needlessly.
+const selectManageableDiscoverableChannelIds = createIdsSelector(
+    'selectManageableDiscoverableChannelIds',
+    (state: GlobalState) => state,
+    (state: GlobalState): string[] => {
+        if (!isDiscoverableChannelsEnabled(state)) {
+            return [];
+        }
 
-    const teamId = getCurrentTeamId(state);
-    if (!teamId) {
-        return [];
-    }
+        const teamId = getCurrentTeamId(state);
+        if (!teamId) {
+            return [];
+        }
 
-    return getMyChannels(state).
-        filter(
-            (channel) =>
-                channel.type === Constants.PRIVATE_CHANNEL &&
-                channel.discoverable === true &&
-                haveIChannelPermission(
-                    state,
-                    teamId,
-                    channel.id,
-                    Permissions.MANAGE_CHANNEL_JOIN_REQUESTS,
-                ),
-        ).
-        map((channel) => channel.id);
-}
+        return getMyChannels(state).
+            filter(
+                (channel) =>
+                    channel.type === Constants.PRIVATE_CHANNEL &&
+                    channel.discoverable === true &&
+                    haveIChannelPermission(
+                        state,
+                        teamId,
+                        channel.id,
+                        Permissions.MANAGE_CHANNEL_JOIN_REQUESTS,
+                    ),
+            ).
+            map((channel) => channel.id);
+    },
+);
 
 // Prefetches pending join-request counts for every discoverable private channel
 // the current user can manage so LHS dots appear without opening each channel.
