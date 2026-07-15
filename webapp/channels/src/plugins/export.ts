@@ -3,7 +3,7 @@
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 
-import type {PublishedModalId, PublishedModalIdCandidate, PublishedModalProps, PublishedModalUtils} from '@mattermost/shared/types/global';
+import type {PublishedEditorUtils, PublishedModalId, PublishedModalIdCandidate, PublishedModalProps, PublishedModalUtils} from '@mattermost/shared/types/global';
 
 import {favoriteChannel, unfavoriteChannel} from 'mattermost-redux/actions/channels';
 import {isFavoriteChannel} from 'mattermost-redux/selectors/entities/channels';
@@ -39,6 +39,7 @@ import {useWebSocket, useWebSocketClient, WebSocketContext} from 'utils/use_webs
 import {imageURLForUser} from 'utils/utils';
 
 import {openInteractiveDialog} from './interactive_dialog'; // This import has intentional side effects. Do not remove without research.
+import {publishedEditorUtils} from './published_editor';
 import {canOpenPublishedModal, openPublishedModal} from './published_modals';
 import {loadSharedDependency} from './shared_dependencies';
 import Textbox from './textbox';
@@ -89,6 +90,7 @@ interface WindowWithLibraries {
             canPopout: typeof canPopout;
             popoutRhsPlugin: typeof popoutRhsPlugin;
         };
+        editor: PublishedEditorUtils;
     };
     loadSharedDependency(request: string): unknown;
     openPricingModal: () => void;
@@ -175,6 +177,7 @@ window.WebappUtils = {
         canPopout,
         popoutRhsPlugin,
     },
+    editor: publishedEditorUtils,
 };
 window.loadSharedDependency = loadSharedDependency;
 
@@ -218,3 +221,4 @@ window.ProductApi = {
 
 // Desktop App module containing the app info and a series of helpers to work with legacy code
 window.DesktopApp = DesktopApp;
+
