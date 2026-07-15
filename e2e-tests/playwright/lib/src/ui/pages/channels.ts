@@ -117,7 +117,11 @@ export default class ChannelsPage {
 
         // Menus
         // The channel header dropdown menu's accessible name is "<channel> Channel Menu".
-        this.channelMenu = new components.ChannelMenu(page.getByRole('menu', {name: /Channel Menu/i}));
+        const namedChannelMenu = page.getByRole('menu', {name: /Channel Menu/i});
+        const unnamedChannelMenu = page
+            .getByRole('menu')
+            .filter({has: page.getByRole('menuitem', {name: /^(View Info|Members)$/})});
+        this.channelMenu = new components.ChannelMenu(namedChannelMenu.or(unnamedChannelMenu));
         this.postDotMenu = new components.PostDotMenu(page.getByRole('menu', {name: 'Post extra options'}));
         this.postReminderMenu = new components.PostReminderMenu(page.getByRole('menu', {name: 'Set a reminder for:'}));
         this.userAccountMenu = new components.UserAccountMenu(page.locator('#userAccountMenu'));

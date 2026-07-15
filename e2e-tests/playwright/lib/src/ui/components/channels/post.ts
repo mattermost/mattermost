@@ -56,6 +56,26 @@ export default class ChannelsPost {
         await expect(this.container).toBeVisible();
     }
 
+    async notToBeVisible() {
+        await expect(this.container).not.toBeVisible();
+    }
+
+    getFileThumbnail(filename: string) {
+        return this.container.getByLabel(`file thumbnail ${filename}`);
+    }
+
+    async toHaveFile(filename: string) {
+        await expect(this.getFileThumbnail(filename)).toBeVisible();
+    }
+
+    async toHaveNoMessageText() {
+        await expect(this.messageText).toHaveCount(0);
+    }
+
+    async toBeEdited() {
+        await expect(this.editedIndicator).toBeVisible();
+    }
+
     /**
      * Hover over the post. Can be used for post menu to appear.
      */
@@ -66,8 +86,8 @@ export default class ChannelsPost {
     async getId() {
         const id = await this.container.getAttribute('id');
         expect(id, 'No post ID found.').toBeTruthy();
-        // Remove 'post_' prefix and any timestamp suffix (format: postId:timestamp for combined posts)
-        const postIdWithPossibleTimestamp = (id || '').substring('post_'.length);
+        // Remove the center/RHS prefix and any timestamp suffix (format: postId:timestamp for combined posts)
+        const postIdWithPossibleTimestamp = (id || '').replace(/^(?:post_|rhsPost_)/, '');
         // Return just the post ID (before any colon)
         return postIdWithPossibleTimestamp.split(':')[0];
     }
@@ -82,6 +102,15 @@ export default class ChannelsPost {
      */
     getLink(name: string): Locator {
         return this.container.getByRole('link', {name});
+    }
+
+    getReaction(name: string) {
+        const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        return this.container.getByRole('button', {name: new RegExp(`:${escapedName}:`)});
+    }
+
+    async toHaveReactionCount(name: string, count: number) {
+        await expect(this.getReaction(name)).toContainText(String(count));
     }
 
     async openAThread() {

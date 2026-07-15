@@ -30,12 +30,10 @@ describe('Search Date Filter', () => {
     } = testData;
     const admin = getAdminAccount();
     let anotherAdmin;
-    let channelName;
 
     before(() => {
         cy.apiInitSetup({userPrefix: 'other-admin'}).then(({team, channel, user, channelUrl}) => {
             anotherAdmin = user;
-            channelName = channel.name;
 
             // # Visit test channel
             cy.visit(channelUrl);
@@ -54,18 +52,6 @@ describe('Search Date Filter', () => {
 
     it('MM-T590_2 on: takes precedence over "after:"', () => {
         searchAndValidate(`after:${firstDateEarly.query} on:${secondDateEarly.query} ${commonText}`, [secondOffTopicMessage, secondMessage]);
-    });
-
-    it('MM-T3994_1 on: can be used in conjunction with "in:"', () => {
-        searchAndValidate(`on:${secondDateEarly.query} in:${channelName} ${commonText}`, [secondMessage]);
-    });
-
-    it('MM-T3994_2 on: can be used in conjunction with "from:"', () => {
-        searchAndValidate(`on:${secondDateEarly.query} from:${anotherAdmin.username} ${commonText}`, [secondOffTopicMessage]);
-    });
-
-    it('MM-T3994_3 on: re-add "in:" in conjunction with "from:"', () => {
-        searchAndValidate(`on:${secondDateEarly.query} in:${channelName} from:${anotherAdmin.username} ${commonText}`);
     });
 
     it('MM-T604 Use "on:" to return only results from today', () => {

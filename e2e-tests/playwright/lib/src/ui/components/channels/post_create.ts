@@ -19,6 +19,7 @@ export default class ChannelsPostCreate {
     readonly sendMessageButton;
     readonly scheduleMessageButton;
     readonly priorityButton;
+    readonly previewButton;
     readonly suggestionList;
     readonly suggestionOptions;
     readonly selectedSuggestion;
@@ -42,6 +43,7 @@ export default class ChannelsPostCreate {
         this.sendMessageButton = container.getByTestId('SendMessageButton');
         this.scheduleMessageButton = container.getByLabel('Schedule message');
         this.priorityButton = container.getByLabel('Message priority');
+        this.previewButton = container.getByRole('button', {name: 'preview'});
         this.suggestionList = container.getByRole('listbox', {name: 'Suggestions'});
         this.suggestionOptions = this.suggestionList.getByRole('option');
         this.selectedSuggestion = this.suggestionList.getByTestId('suggestion-selected');
@@ -117,7 +119,7 @@ export default class ChannelsPostCreate {
                           r.request().method() === 'POST' &&
                           r.status() >= 200 &&
                           r.status() < 300,
-                      {timeout: 60000},
+                      {timeout: duration.one_min},
                   )
                 : null;
 
@@ -141,6 +143,26 @@ export default class ChannelsPostCreate {
         if (uploadResponsePromise) {
             await uploadResponsePromise;
         }
+    }
+
+    async postAttachmentOnly(files: string[]) {
+        const page = this.container.page();
+        const uploadResponsePromise = page.waitForResponse(
+            (response) =>
+                response.url().includes('/api/v4/files') &&
+                response.request().method() === 'POST' &&
+                response.status() >= 200 &&
+                response.status() < 300,
+            {timeout: duration.one_min},
+        );
+        const filePaths = files.map((file) => path.join(assetPath, file));
+        const fileChooserPromise = page.waitForEvent('filechooser');
+        await this.attachmentButton.click();
+        await (await fileChooserPromise).setFiles(filePaths);
+        await this.waitUntilFilePreviewContains(files);
+        await uploadResponsePromise;
+        await expect(this.sendMessageButton).toBeEnabled();
+        await this.sendMessageButton.click();
     }
 
     /**

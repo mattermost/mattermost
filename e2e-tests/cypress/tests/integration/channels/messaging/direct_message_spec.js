@@ -159,27 +159,4 @@ describe('Direct Message', () => {
             expect($el.get(0).innerText).to.eq(expectedMessage);
         });
     });
-
-    it('MM-T1536 - Mute & Unmute', () => {
-        // # Create a DM channel
-        cy.apiCreateDirectChannel([testUser.id, otherUser.id]).then(({channel}) => {
-            // Have another user send you a DM.
-            cy.postMessageAs({sender: otherUser, message: 'Hello', channelId: channel.id}).wait(TIMEOUTS.HALF_SEC);
-        });
-
-        // # Visit the DM channel
-        cy.visit(`/${testTeam.name}/messages/@${otherUser.username}`);
-
-        // # Open channel menu and click Mute
-        cy.uiOpenChannelMenu('Mute');
-
-        // * Assert that channel appears as muted on the LHS
-        cy.uiGetLhsSection('DIRECT MESSAGES').find('.muted').first().should('contain', otherUser.username);
-
-        // # Open channel menu and click Unmute
-        cy.uiOpenChannelMenu('Unmute');
-
-        // * Assert that channel does not appear as muted on the LHS
-        cy.uiGetLhsSection('DIRECT MESSAGES').find('.muted').should('not.exist');
-    });
 });

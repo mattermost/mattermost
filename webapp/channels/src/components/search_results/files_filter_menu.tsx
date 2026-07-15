@@ -35,6 +35,7 @@ export default function FilesFilterMenu(props: Props): JSX.Element {
                         id='filesFilterButton'
                         className='action-icon dots-icon'
                         type='button'
+                        aria-label={intl.formatMessage({id: 'channel_info_rhs.menu.files.filter', defaultMessage: 'Filter'})}
                     >
                         {props.selectedFilter !== 'all' && <i className='icon-dot'/>}
                         <FilterVariantIcon

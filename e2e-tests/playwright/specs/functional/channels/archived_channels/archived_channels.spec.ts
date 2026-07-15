@@ -5,8 +5,10 @@ import {expect, test} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify the member list of an archived channel is viewable but read-only (no member management).
+ *
+ * MM-T1719 is an exact duplicate of MM-T1671 and is covered by this test.
  */
-test('MM-T1671 shows a read-only member list for an archived channel', {tag: '@channels'}, async ({pw}) => {
+test('MM-T1671 MM-T1719 shows a read-only member list for an archived channel', {tag: '@channels'}, async ({pw}) => {
     const {adminClient, adminUser, team, user} = await pw.initSetup();
     const channel = await adminClient.createPublicChannel(team.id, `Archive ${pw.random.id()}`);
     await adminClient.addToChannel(user.id, channel.id);
@@ -24,7 +26,7 @@ test('MM-T1671 shows a read-only member list for an archived channel', {tag: '@c
     await channelsPage.sidebarRight.toBeVisible();
 
     // * Verify the member list is shown with the channel members
-    await expect(channelsPage.sidebarRight.container.getByText(adminUser.username).first()).toBeVisible();
+    await channelsPage.sidebarRight.toContainText(adminUser.username);
 
     // * Verify member management controls are not available for the archived channel
     await expect(channelsPage.sidebarRight.manageMembersButton).not.toBeVisible();

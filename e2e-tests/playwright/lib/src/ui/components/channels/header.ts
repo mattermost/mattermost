@@ -11,6 +11,8 @@ export default class ChannelsHeader {
     readonly channelMenuDropdown;
     readonly callButton: Locator;
     readonly pinnedMessagesButton: Locator;
+    readonly unmuteButton: Locator;
+    readonly channelFilesButton: Locator;
 
     constructor(container: Locator) {
         this.container = container;
@@ -19,6 +21,8 @@ export default class ChannelsHeader {
         this.channelMenuDropdown = container.locator('#channelHeaderDropdownButton');
         this.callButton = container.getByRole('button', {name: /call/i}).first();
         this.pinnedMessagesButton = container.locator('#channelHeaderPinButton');
+        this.unmuteButton = container.getByRole('button', {name: 'Unmute', exact: true});
+        this.channelFilesButton = container.getByRole('button', {name: 'Channel files'});
     }
 
     async toBeVisible() {
@@ -42,5 +46,9 @@ export default class ChannelsHeader {
     async openPinnedMessages() {
         await expect(this.pinnedMessagesButton).toBeVisible();
         await this.pinnedMessagesButton.click();
+    }
+
+    async openChannelFiles() {
+        await this.channelFilesButton.click();
     }
 }
