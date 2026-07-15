@@ -59,9 +59,11 @@ const (
 //     or removing a scope on an existing field requires acting as that scope
 //     (initial owners declared when the field is created are exempt); a plugin
 //     may never touch another owner's entry.
-//   - The field's PermissionValues is pinned to sysadmin so human callers are
-//     gated to system admins, keeping users and owners from writing the same
-//     value from two directions.
+//   - Value writes by a human (session) caller are always rejected: an
+//     owner-managed field's values are authoritative to the owning
+//     integration, so no session user — including sysadmins — may overwrite
+//     them. This is enforced in the property-service hook, mirroring the
+//     ldap/saml sync lock; PermissionValues is left at the normal default.
 //
 // What it does NOT change: source_plugin_id immutability and the protected-flag
 // rules still apply as invariants on field-definition writes (a plugin-created

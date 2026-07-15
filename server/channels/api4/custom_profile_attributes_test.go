@@ -13,6 +13,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -1913,4 +1914,67 @@ func TestCPABackwardCompatAfterRefactor(t *testing.T) {
 		require.Error(t, err)
 		CheckErrorID(t, err, "app.property.sync_lock.app_error")
 	})
+}
+
+func TestOwnerManagedCPAFieldHumanValueWrites(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.CustomProfileAttributes = true
+	}).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	field := &model.PropertyField{
+		Name: celSafeName(),
+		Type: model.PropertyFieldTypeText,
+		Attrs: model.StringInterface{
+			model.PropertyAttrsOwners: []model.PropertyOwner{
+				{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra"}},
+			},
+		},
+	}
+
+	created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+	CheckCreatedStatus(t, resp)
+	require.NoError(t, err)
+	require.NotNil(t, created)
+	// Owner-managed fields are not specially pinned: PermissionValues uses the
+	// same default as any user-object field. Human writes are blocked in the
+	// property-service hook (like the ldap/saml sync lock), not via a pin.
+	require.NotNil(t, created.PermissionValues)
+	assert.Equal(t, model.PermissionLevelMember, *created.PermissionValues)
+	require.NotNil(t, created.PermissionField)
+	assert.Equal(t, model.PermissionLevelSysadmin, *created.PermissionField)
+
+	t.Run("member cannot write values on an owner-managed field", func(t *testing.T) {
+		_, resp, err := th.Client.PatchCPAValues(context.Background(), map[string]json.RawMessage{
+			created.ID: json.RawMessage(`"member write"`),
+		})
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "app.property.access_denied.app_error")
+	})
+
+	t.Run("system admin cannot write own values on an owner-managed field", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.PatchCPAValues(context.Background(), map[string]json.RawMessage{
+			created.ID: json.RawMessage(`"admin write"`),
+		})
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "app.property.access_denied.app_error")
+	})
+
+	t.Run("system admin cannot write values for another user on an owner-managed field", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, map[string]json.RawMessage{
+			created.ID: json.RawMessage(`"admin write for user"`),
+		})
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "app.property.access_denied.app_error")
+	})
+
+	// The machine-owner write path (a listed owner acting as a matching scope
+	// is allowed) is covered by the property-service tests in
+	// channels/app/properties, which can stub the plugin checker.
 }
