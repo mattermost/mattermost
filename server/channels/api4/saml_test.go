@@ -70,7 +70,8 @@ func TestSamlResetId(t *testing.T) {
 
 	_, resp, err := th.Client.ResetSamlAuthDataToEmail(context.Background(), false, false, nil)
 	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+	// UpdateUserAuth revoked all user's sessions, so this is now unauthorized
+	CheckUnauthorizedStatus(t, resp)
 
 	numAffected, resp, err := th.SystemAdminClient.ResetSamlAuthDataToEmail(context.Background(), false, false, nil)
 	require.NoError(t, err)

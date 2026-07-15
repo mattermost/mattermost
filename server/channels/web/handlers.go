@@ -48,9 +48,15 @@ func (w *Web) NewHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 }
 
 func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	// Determine the CSP SHA directive needed for subpath support, if any. This value is fixed
-	// on server start and intentionally requires a restart to take effect.
-	subpath, _ := utils.GetSubpathFromConfig(w.srv.Config())
+	// Determine the CSP SHA directives needed for the inline scripts injected into root.html.
+	// These values are fixed on server start and intentionally require a restart to take effect.
+	cfg := w.srv.Config()
+	subpath, _ := utils.GetSubpathFromConfig(cfg)
+
+	enableConcurrentReact := false
+	if cfg.FeatureFlags != nil {
+		enableConcurrentReact = cfg.FeatureFlags.EnableConcurrentReact
+	}
 
 	return &Handler{
 		Srv:            w.srv,
@@ -61,7 +67,7 @@ func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Reque
 		RequireMfa:     false,
 		IsStatic:       true,
 
-		cspShaDirective: utils.GetSubpathScriptHash(subpath),
+		cspShaDirective: utils.GetStaticScriptHashes(subpath, enableConcurrentReact),
 	}
 }
 

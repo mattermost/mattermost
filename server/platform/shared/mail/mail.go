@@ -12,10 +12,9 @@ import (
 	"net/mail"
 	"net/smtp"
 	"slices"
-	"strings"
 	"time"
 
-	"code.sajari.com/docconv/v2"
+	"github.com/jaytaylor/html2text"
 	"github.com/pkg/errors"
 	gomail "github.com/wneessen/go-mail"
 
@@ -310,7 +309,7 @@ func sendMail(c smtpClient, mail mailData, date time.Time, config *SMTPConfig) e
 	mlog.Info("sending mail", mlog.String("to", mail.smtpTo))
 
 	htmlMessage := mail.htmlBody
-	text, _, err := docconv.ConvertHTML(strings.NewReader(htmlMessage), true)
+	text, err := html2text.FromString(htmlMessage)
 	if err != nil {
 		mlog.Warn("Unable to convert html body to text", mlog.Err(err))
 		text = ""
