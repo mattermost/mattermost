@@ -719,10 +719,15 @@ func (h *AccessControlHook) effectiveOwners(field *model.PropertyField) []model.
 // A machine caller is allowed only if it is a listed owner (matching ID and
 // type) whose scopes contain the caller's acting-as scope. An owner with an
 // empty scopes list is not restricted by scope and may write for any scope.
-// Human callers pass through to be governed by the API-layer permission levels.
+//
+// Human callers are always rejected: an owner-managed field's values are
+// authoritative to the owning integration, so no session user — including
+// sysadmins — may overwrite them. This mirrors checkSyncLock for ldap/saml
+// fields and is the sole write authority for owner-managed fields (their
+// PermissionValues are left at the normal default and are not consulted here).
 func (h *AccessControlHook) checkOwnerValueWriteAccess(field *model.PropertyField, callerID, scope string) error {
 	if !h.isMachineCaller(callerID) {
-		return nil
+		return fmt.Errorf("field %s is owner-managed and cannot be modified by human caller %q: %w", field.ID, callerID, ErrAccessDenied)
 	}
 
 	ownerID, ownerType, effectiveScope := h.callerOwnerIdentity(callerID, scope)

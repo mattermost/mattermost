@@ -1515,12 +1515,27 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     (this.props.user.auth_service === Constants.SAML_SERVICE && attribute.attrs?.saml));
                 const isAdminManaged = attribute.attrs?.managed === 'admin';
 
+                // Owner-managed fields (e.g. SCIM-provisioned) are written only
+                // by the owning integration; the server rejects human value
+                // writes, so render them read-only just like synced fields.
+                const isOwnerManaged = Boolean(attribute.attrs?.owners?.length);
+                const isReadOnly = isSynced || isOwnerManaged || isAdminManaged || isProtected;
+
                 if (isSynced) {
                     extraInfo = (
                         <span>
                             <FormattedMessage
                                 id='user.settings.general.field_handled_externally'
                                 defaultMessage='This field is handled through your login provider. If you want to change it, you need to do so through your login provider.'
+                            />
+                        </span>
+                    );
+                } else if (isOwnerManaged) {
+                    extraInfo = (
+                        <span>
+                            <FormattedMessage
+                                id='user.settings.general.field_managed_externally'
+                                defaultMessage='This field is managed by an external integration and cannot be edited here.'
                             />
                         </span>
                     );
@@ -1546,8 +1561,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     );
                 }
 
-                // Only render inputs if the field is not synced, admin-managed, or protected
-                if (!isSynced && !isAdminManaged && !isProtected) {
+                // Only render inputs if the field is editable by the user
+                if (!isReadOnly) {
                     let attributeLabel: JSX.Element | string = (
                         getUserPropertyFieldLabel(attribute)
                     );
@@ -1610,7 +1625,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 }
 
                 // Only enable submit and show default extra info if field is editable
-                if (!isSynced && !isAdminManaged && !isProtected) {
+                if (!isReadOnly) {
                     extraInfo = (
                         <span>
                             <FormattedMessage

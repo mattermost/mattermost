@@ -84,13 +84,14 @@ func TestOwnerValueWriteAccessControl(t *testing.T) {
 		require.Error(t, upErr)
 	})
 
-	t.Run("allows a human caller through (governed by API permission levels, not owners)", func(t *testing.T) {
-		// A session user is not a machine caller, so the owner gate lets it
-		// pass; the API layer's pinned permission levels govern humans.
+	t.Run("denies a human caller (owner-managed values are authoritative to the owning integration)", func(t *testing.T) {
+		// A session user is not a machine caller. Unlike other fields, an
+		// owner-managed field rejects all human writes at the service hook —
+		// mirroring the ldap/saml sync lock — regardless of PermissionValues.
 		rctx := RequestContextWithCallerID(th.Context, model.NewId())
-		v, upErr := th.service.UpsertPropertyValue(rctx, newValue())
-		require.NoError(t, upErr)
-		assert.NotNil(t, v)
+		_, upErr := th.service.UpsertPropertyValue(rctx, newValue())
+		require.Error(t, upErr)
+		assert.ErrorIs(t, upErr, ErrAccessDenied)
 	})
 }
 
