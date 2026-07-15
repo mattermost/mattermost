@@ -568,6 +568,101 @@ blockquote {
   margin: 2.5rem 0 1.5rem;
 }
 
+/* === Mermaid Gantt charts (release policy timeline) === */
+
+.docusaurus-mermaid-container,
+.mermaid {
+  margin: 1.5rem 0;
+}
+
+[data-theme='light'] .docusaurus-mermaid-container,
+[data-theme='light'] .mermaid {
+  background: var(--mm-color-white);
+  border: 2px solid #0745a1;
+  border-radius: 4px;
+  padding: 0.5rem;
+}
+
+[data-theme='light'] .docusaurus-mermaid-container svg,
+[data-theme='light'] .mermaid svg {
+  background: var(--mm-color-white);
+}
+
+[data-theme='light'] .docusaurus-mermaid-container svg line,
+[data-theme='light'] .mermaid svg line {
+  stroke: #0745a1;
+}
+
+[data-theme='light'] .docusaurus-mermaid-container svg rect.task,
+[data-theme='light'] .mermaid svg rect.task {
+  fill: #0984e3 !important;
+  stroke: #2d3436 !important;
+  stroke-width: 2px !important;
+}
+
+[data-theme='light'] .docusaurus-mermaid-container svg rect[class*='crit'],
+[data-theme='light'] .mermaid svg rect[class*='crit'] {
+  fill: #d63031 !important;
+  stroke: #2d3436 !important;
+  stroke-width: 2px !important;
+}
+
+[data-theme='light'] .docusaurus-mermaid-container .taskText,
+[data-theme='light'] .docusaurus-mermaid-container .taskTextOutsideLeft,
+[data-theme='light'] .docusaurus-mermaid-container .taskTextOutsideRight,
+[data-theme='light'] .mermaid .taskText,
+[data-theme='light'] .mermaid .taskTextOutsideLeft,
+[data-theme='light'] .mermaid .taskTextOutsideRight {
+  fill: #ffffff !important;
+  font-weight: 700 !important;
+  font-size: 12px !important;
+}
+
+[data-theme='light'] .docusaurus-mermaid-container .sectionTitle,
+[data-theme='light'] .docusaurus-mermaid-container text[class*='tick'],
+[data-theme='light'] .docusaurus-mermaid-container text[class*='label'],
+[data-theme='light'] .mermaid .sectionTitle,
+[data-theme='light'] .mermaid text[class*='tick'],
+[data-theme='light'] .mermaid text[class*='label'] {
+  fill: #2d3436 !important;
+  font-weight: 700 !important;
+}
+
+[data-theme='dark'] .docusaurus-mermaid-container,
+[data-theme='dark'] .mermaid {
+  background: #1e1e1e;
+  border: 2px solid #555555;
+  border-radius: 4px;
+  padding: 0.5rem;
+}
+
+[data-theme='dark'] .docusaurus-mermaid-container svg rect.task,
+[data-theme='dark'] .mermaid svg rect.task {
+  fill: #0984e3 !important;
+  stroke: #ffffff !important;
+  stroke-width: 2px !important;
+}
+
+[data-theme='dark'] .docusaurus-mermaid-container svg rect[class*='crit'],
+[data-theme='dark'] .mermaid svg rect[class*='crit'] {
+  fill: #d63031 !important;
+  stroke: #ffffff !important;
+  stroke-width: 2px !important;
+}
+
+[data-theme='dark'] .docusaurus-mermaid-container text,
+[data-theme='dark'] .mermaid text {
+  fill: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+.docusaurus-mermaid-container > svg,
+.mermaid > svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
 /* (Marigold strip is now the navbar's own border-bottom.) */
 
 /* === Pages with a Hero hide breadcrumbs + prev/next pagination ===
