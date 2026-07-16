@@ -1033,6 +1033,24 @@ func (_m *API) DeletePropertyValue(groupID string, valueID string) error {
 	return r0
 }
 
+// DeletePropertyValueWithOptions provides a mock function with given fields: groupID, valueID, options
+func (_m *API) DeletePropertyValueWithOptions(groupID string, valueID string, options model.PropertyRequestOptions) error {
+	ret := _m.Called(groupID, valueID, options)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeletePropertyValueWithOptions")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, model.PropertyRequestOptions) error); ok {
+		r0 = rf(groupID, valueID, options)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DeletePropertyValuesForField provides a mock function with given fields: groupID, fieldID
 func (_m *API) DeletePropertyValuesForField(groupID string, fieldID string) error {
 	ret := _m.Called(groupID, fieldID)
@@ -1051,6 +1069,24 @@ func (_m *API) DeletePropertyValuesForField(groupID string, fieldID string) erro
 	return r0
 }
 
+// DeletePropertyValuesForFieldWithOptions provides a mock function with given fields: groupID, fieldID, options
+func (_m *API) DeletePropertyValuesForFieldWithOptions(groupID string, fieldID string, options model.PropertyRequestOptions) error {
+	ret := _m.Called(groupID, fieldID, options)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeletePropertyValuesForFieldWithOptions")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, model.PropertyRequestOptions) error); ok {
+		r0 = rf(groupID, fieldID, options)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DeletePropertyValuesForTarget provides a mock function with given fields: groupID, targetType, targetID
 func (_m *API) DeletePropertyValuesForTarget(groupID string, targetType string, targetID string) error {
 	ret := _m.Called(groupID, targetType, targetID)
@@ -1062,6 +1098,24 @@ func (_m *API) DeletePropertyValuesForTarget(groupID string, targetType string, 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
 		r0 = rf(groupID, targetType, targetID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeletePropertyValuesForTargetWithOptions provides a mock function with given fields: groupID, targetType, targetID, options
+func (_m *API) DeletePropertyValuesForTargetWithOptions(groupID string, targetType string, targetID string, options model.PropertyRequestOptions) error {
+	ret := _m.Called(groupID, targetType, targetID, options)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeletePropertyValuesForTargetWithOptions")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string, model.PropertyRequestOptions) error); ok {
+		r0 = rf(groupID, targetType, targetID, options)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -6523,6 +6577,36 @@ func (_m *API) UpsertPropertyValue(value *model.PropertyValue) (*model.PropertyV
 	return r0, r1
 }
 
+// UpsertPropertyValueWithOptions provides a mock function with given fields: value, options
+func (_m *API) UpsertPropertyValueWithOptions(value *model.PropertyValue, options model.PropertyRequestOptions) (*model.PropertyValue, error) {
+	ret := _m.Called(value, options)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpsertPropertyValueWithOptions")
+	}
+
+	var r0 *model.PropertyValue
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.PropertyValue, model.PropertyRequestOptions) (*model.PropertyValue, error)); ok {
+		return rf(value, options)
+	}
+	if rf, ok := ret.Get(0).(func(*model.PropertyValue, model.PropertyRequestOptions) *model.PropertyValue); ok {
+		r0 = rf(value, options)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PropertyValue)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.PropertyValue, model.PropertyRequestOptions) error); ok {
+		r1 = rf(value, options)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UpsertPropertyValues provides a mock function with given fields: values
 func (_m *API) UpsertPropertyValues(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
 	ret := _m.Called(values)
@@ -6546,6 +6630,36 @@ func (_m *API) UpsertPropertyValues(values []*model.PropertyValue) ([]*model.Pro
 
 	if rf, ok := ret.Get(1).(func([]*model.PropertyValue) error); ok {
 		r1 = rf(values)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpsertPropertyValuesWithOptions provides a mock function with given fields: values, options
+func (_m *API) UpsertPropertyValuesWithOptions(values []*model.PropertyValue, options model.PropertyRequestOptions) ([]*model.PropertyValue, error) {
+	ret := _m.Called(values, options)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpsertPropertyValuesWithOptions")
+	}
+
+	var r0 []*model.PropertyValue
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]*model.PropertyValue, model.PropertyRequestOptions) ([]*model.PropertyValue, error)); ok {
+		return rf(values, options)
+	}
+	if rf, ok := ret.Get(0).(func([]*model.PropertyValue, model.PropertyRequestOptions) []*model.PropertyValue); ok {
+		r0 = rf(values, options)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PropertyValue)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]*model.PropertyValue, model.PropertyRequestOptions) error); ok {
+		r1 = rf(values, options)
 	} else {
 		r1 = ret.Error(1)
 	}

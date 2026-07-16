@@ -426,6 +426,27 @@ describe('SystemUserDetail', () => {
             const labelEl = await screen.findByTestId('user-detail-custom-attribute-label-cpa-1');
             expect(labelEl).toHaveTextContent('department');
         });
+
+        test('should show owner management indicator for owner-managed CPA field', async () => {
+            const cpaField = buildCPAField({
+                owners: [{id: 'com.mattermost.scim', type: 'plugin', scopes: ['entra']}],
+            });
+            const props = {
+                ...defaultProps,
+                customProfileAttributeFields: [cpaField],
+                getCustomProfileAttributeFields: jest.fn().mockResolvedValue({data: [cpaField]}),
+            };
+
+            renderWithContext(<SystemUserDetail {...props}/>);
+
+            await waitForLoadingToFinish();
+
+            expect(screen.getByTestId('user-detail-cpa-field__owner-department-com.mattermost.scim')).toHaveTextContent('com.mattermost.scim: entra');
+            expect(screen.getByText('Synced with:')).toBeInTheDocument();
+
+            const input = screen.getByTestId('user-detail-custom-attribute-label-cpa-1').querySelector('input');
+            expect(input).toBeDisabled();
+        });
     });
 });
 

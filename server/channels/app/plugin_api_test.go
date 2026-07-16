@@ -3571,6 +3571,116 @@ func TestPluginAPICreatePropertyField(t *testing.T) {
 	})
 }
 
+func TestPluginAPIPropertyValueWithOptions(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	setup := func(t *testing.T) (*PluginAPI, *model.PropertyGroup, *model.PropertyField) {
+		th := Setup(t).InitBasic(t)
+		api := th.SetupPluginAPI()
+
+		group, err := api.RegisterPropertyGroup("optsgroup" + model.NewId())
+		require.NoError(t, err)
+
+		field, err := api.CreatePropertyField(&model.PropertyField{
+			GroupID: group.ID,
+			Name:    "opt_field",
+			Type:    model.PropertyFieldTypeText,
+		})
+		require.NoError(t, err)
+		return api, group, field
+	}
+
+	opts := model.PropertyRequestOptions{ActingAsScope: "entra"}
+
+	t.Run("UpsertPropertyValueWithOptions creates and reads back a value", func(t *testing.T) {
+		api, group, field := setup(t)
+
+		value := &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetType: "user",
+			TargetID:   model.NewId(),
+			Value:      json.RawMessage(`"hello"`),
+		}
+
+		upserted, err := api.UpsertPropertyValueWithOptions(value, opts)
+		require.NoError(t, err)
+		require.NotNil(t, upserted)
+
+		got, err := api.GetPropertyValue(group.ID, upserted.ID)
+		require.NoError(t, err)
+		assert.JSONEq(t, `"hello"`, string(got.Value))
+	})
+
+	t.Run("UpsertPropertyValuesWithOptions upserts multiple values", func(t *testing.T) {
+		api, group, field := setup(t)
+
+		targetID := model.NewId()
+		values := []*model.PropertyValue{
+			{GroupID: group.ID, FieldID: field.ID, TargetType: "user", TargetID: targetID, Value: json.RawMessage(`"a"`)},
+		}
+
+		upserted, err := api.UpsertPropertyValuesWithOptions(values, opts)
+		require.NoError(t, err)
+		require.Len(t, upserted, 1)
+	})
+
+	t.Run("DeletePropertyValueWithOptions deletes a value", func(t *testing.T) {
+		api, group, field := setup(t)
+
+		upserted, err := api.UpsertPropertyValueWithOptions(&model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetType: "user",
+			TargetID:   model.NewId(),
+			Value:      json.RawMessage(`"x"`),
+		}, opts)
+		require.NoError(t, err)
+
+		require.NoError(t, api.DeletePropertyValueWithOptions(group.ID, upserted.ID, opts))
+	})
+
+	t.Run("DeletePropertyValuesForTargetWithOptions deprovisions a target", func(t *testing.T) {
+		api, group, field := setup(t)
+
+		targetID := model.NewId()
+		_, err := api.UpsertPropertyValueWithOptions(&model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetType: "user",
+			TargetID:   targetID,
+			Value:      json.RawMessage(`"y"`),
+		}, opts)
+		require.NoError(t, err)
+
+		require.NoError(t, api.DeletePropertyValuesForTargetWithOptions(group.ID, "user", targetID, opts))
+
+		remaining, err := api.SearchPropertyValues(group.ID, model.PropertyValueSearchOpts{
+			GroupID:    group.ID,
+			TargetType: "user",
+			TargetIDs:  []string{targetID},
+			PerPage:    10,
+		})
+		require.NoError(t, err)
+		assert.Empty(t, remaining)
+	})
+
+	t.Run("DeletePropertyValuesForFieldWithOptions deletes all values for a field", func(t *testing.T) {
+		api, group, field := setup(t)
+
+		_, err := api.UpsertPropertyValueWithOptions(&model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetType: "user",
+			TargetID:   model.NewId(),
+			Value:      json.RawMessage(`"z"`),
+		}, opts)
+		require.NoError(t, err)
+
+		require.NoError(t, api.DeletePropertyValuesForFieldWithOptions(group.ID, field.ID, opts))
+	})
+}
+
 func TestPluginAPICountPropertyFields(t *testing.T) {
 	mainHelper.Parallel(t)
 

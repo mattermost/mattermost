@@ -1709,6 +1709,41 @@ func (api *apiTimerLayer) DeletePropertyValuesForField(groupID, fieldID string) 
 	return _returnsA
 }
 
+func (api *apiTimerLayer) UpsertPropertyValuesWithOptions(values []*model.PropertyValue, options model.PropertyRequestOptions) ([]*model.PropertyValue, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpsertPropertyValuesWithOptions(values, options)
+	api.recordTime(startTime, "UpsertPropertyValuesWithOptions", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) UpsertPropertyValueWithOptions(value *model.PropertyValue, options model.PropertyRequestOptions) (*model.PropertyValue, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpsertPropertyValueWithOptions(value, options)
+	api.recordTime(startTime, "UpsertPropertyValueWithOptions", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) DeletePropertyValueWithOptions(groupID, valueID string, options model.PropertyRequestOptions) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.DeletePropertyValueWithOptions(groupID, valueID, options)
+	api.recordTime(startTime, "DeletePropertyValueWithOptions", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) DeletePropertyValuesForTargetWithOptions(groupID, targetType, targetID string, options model.PropertyRequestOptions) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.DeletePropertyValuesForTargetWithOptions(groupID, targetType, targetID, options)
+	api.recordTime(startTime, "DeletePropertyValuesForTargetWithOptions", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) DeletePropertyValuesForFieldWithOptions(groupID, fieldID string, options model.PropertyRequestOptions) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.DeletePropertyValuesForFieldWithOptions(groupID, fieldID, options)
+	api.recordTime(startTime, "DeletePropertyValuesForFieldWithOptions", _returnsA == nil)
+	return _returnsA
+}
+
 func (api *apiTimerLayer) LogAuditRec(rec *model.AuditRecord) {
 	startTime := timePkg.Now()
 	api.apiImpl.LogAuditRec(rec)
