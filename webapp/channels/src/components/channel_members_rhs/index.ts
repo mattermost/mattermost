@@ -157,7 +157,7 @@ function mapStateToProps(state: GlobalState) {
     const editing = getIsEditingMembers(state);
 
     const currentUserIsChannelAdmin = currentUser && currentUser.scheme_admin;
-    const canManageJoinRequests = canManageChannelJoinRequests(state, channel) && !isArchived;
+    const canManageJoinRequests = canManageChannelJoinRequests(state, channel);
 
     return {
         channel,

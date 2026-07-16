@@ -957,7 +957,7 @@ export function canManageChannelJoinRequests(state: GlobalState, channel: Channe
         return false;
     }
 
-    if (channel.type !== General.PRIVATE_CHANNEL || channel.discoverable !== true) {
+    if (channel.type !== General.PRIVATE_CHANNEL || channel.discoverable !== true || channel.delete_at !== 0) {
         return false;
     }
 
@@ -989,15 +989,18 @@ export const getManageableDiscoverableChannelIds: (state: GlobalState) => string
             return [];
         }
 
+        const isDiscoverablePrivate = (channel: Channel) =>
+            channel.type === General.PRIVATE_CHANNEL && channel.discoverable === true && channel.delete_at === 0;
+
         if (systemPermissions.has(Permissions.MANAGE_CHANNEL_JOIN_REQUESTS)) {
             return channels.
-                filter((channel) => channel.type === General.PRIVATE_CHANNEL && channel.discoverable === true).
+                filter(isDiscoverablePrivate).
                 map((channel) => channel.id);
         }
 
         return channels.
             filter((channel) => {
-                if (channel.type !== General.PRIVATE_CHANNEL || channel.discoverable !== true) {
+                if (!isDiscoverablePrivate(channel)) {
                     return false;
                 }
                 return Boolean(channel.team_id && permissionsByTeam[channel.team_id]?.has(Permissions.MANAGE_CHANNEL_JOIN_REQUESTS)) ||
