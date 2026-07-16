@@ -744,12 +744,7 @@ func (api *PluginAPI) UpdateChannelMemberNotifications(channelID, userID string,
 }
 
 func (api *PluginAPI) PatchChannelMembersNotifications(members []*model.ChannelMemberIdentifier, notifications map[string]string) *model.AppError {
-	seen := make(map[string]bool, len(members))
 	for _, member := range members {
-		if seen[member.ChannelId] {
-			continue
-		}
-		seen[member.ChannelId] = true
 		if appErr := api.rejectSpaceChannel(member.ChannelId); appErr != nil {
 			return appErr
 		}
