@@ -362,7 +362,6 @@ func TestSendInviteEmails(t *testing.T) {
 		require.Equal(t, "Dave", linkData["first_name"])
 		require.Equal(t, "Roberts", linkData["last_name"])
 	})
-
 }
 
 // findSignupQueryFromEmail extracts the signup_user_complete query parameters from an invite email body.
