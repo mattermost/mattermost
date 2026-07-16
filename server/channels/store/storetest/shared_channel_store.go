@@ -99,6 +99,41 @@ func testSaveSharedChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.True(t, channelMod.IsShared())
 	})
 
+	t.Run("Save allows duplicate ShareName within a team", func(t *testing.T) {
+		// Regression: the SharedChannels table used to carry a UNIQUE(sharename, teamid)
+		// constraint. Because the table has no soft-delete and archiving a channel does
+		// not remove its SharedChannels row, that constraint permanently reserved a
+		// (name, team) pair and blocked re-sharing a new channel with the same name in
+		// the same team. The constraint has been dropped; two shared channels in the same
+		// team with the same ShareName must now both save.
+		teamID := model.NewId()
+
+		channel1, err := createTestChannel(ss, rctx, "test_dup_name_1")
+		require.NoError(t, err)
+		channel2, err := createTestChannel(ss, rctx, "test_dup_name_2")
+		require.NoError(t, err)
+
+		sc1 := &model.SharedChannel{
+			ChannelId: channel1.Id,
+			TeamId:    teamID,
+			CreatorId: model.NewId(),
+			ShareName: "duplicate-share-name",
+			Home:      true,
+		}
+		_, err = ss.SharedChannel().Save(sc1)
+		require.NoError(t, err, "couldn't save first shared channel")
+
+		sc2 := &model.SharedChannel{
+			ChannelId: channel2.Id,
+			TeamId:    teamID,
+			CreatorId: model.NewId(),
+			ShareName: "duplicate-share-name",
+			Home:      true,
+		}
+		_, err = ss.SharedChannel().Save(sc2)
+		require.NoError(t, err, "should allow a second shared channel with the same ShareName in the same team")
+	})
+
 	t.Run("Save invalid shared channel", func(t *testing.T) {
 		sc := &model.SharedChannel{
 			ChannelId: "",

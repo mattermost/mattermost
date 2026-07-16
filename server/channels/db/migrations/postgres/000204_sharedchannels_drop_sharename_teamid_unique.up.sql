@@ -1,0 +1,1 @@
+ALTER TABLE sharedchannels DROP CONSTRAINT IF EXISTS sharedchannels_sharename_teamid_key;
