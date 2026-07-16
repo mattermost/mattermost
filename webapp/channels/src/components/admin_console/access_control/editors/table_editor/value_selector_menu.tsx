@@ -12,6 +12,9 @@ import {isMultiValueOperator} from '../shared';
 
 export interface TableRow {
     attribute: string;
+
+    // 'user' | 'session'; drives the CEL namespace. Defaults to user.
+    attribute_object_type?: string;
     operator: string;
     values: string[];
     attribute_type: string;

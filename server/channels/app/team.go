@@ -1389,6 +1389,20 @@ func (a *App) LeaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 		}
 	}
 
+	// Space backing channels are excluded from GetChannels, so their membership rows survive a
+	// plain team leave and keep authorizing space-scoped WebSocket delivery to a former member.
+	// Remove them explicitly.
+	spaceChannels, sErr := a.Srv().Store().Channel().GetTeamSpaceChannelsForUser(team.Id, user.Id)
+	if sErr != nil {
+		return model.NewAppError("LeaveTeam", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(sErr)
+	}
+	for _, channel := range spaceChannels {
+		a.invalidateCacheForChannelMembers(channel.Id)
+		if appErr := a.removeChannelMembership(rctx, user.Id, channel.Id, "LeaveTeam"); appErr != nil {
+			return appErr
+		}
+	}
+
 	if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
 		channel, cErr := a.Srv().Store().Channel().GetByName(team.Id, model.DefaultChannelName, false)
 		if cErr != nil {
@@ -1921,6 +1935,18 @@ func (a *App) PermanentDeleteTeam(rctx request.CTX, team *model.Team) *model.App
 			if err := a.PermanentDeleteChannel(rctx, ch); err != nil {
 				rctx.Logger().Warn("Error permanently deleting channel during team deletion", mlog.String("channel_id", ch.Id), mlog.String("team_id", team.Id), mlog.Err(err))
 			}
+		}
+	}
+
+	// Space backing channels are excluded from GetTeamChannels, so tear them down explicitly to
+	// avoid leaving hidden channels, members, and posts behind with a dead TeamId.
+	spaceChannels, spaceErr := a.Srv().Store().Channel().GetTeamSpaceChannels(team.Id)
+	if spaceErr != nil {
+		return model.NewAppError("PermanentDeleteTeam", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(spaceErr)
+	}
+	for _, ch := range spaceChannels {
+		if err := a.PermanentDeleteChannel(rctx, ch); err != nil {
+			rctx.Logger().Warn("Error permanently deleting space channel during team deletion", mlog.String("channel_id", ch.Id), mlog.String("team_id", team.Id), mlog.Err(err))
 		}
 	}
 

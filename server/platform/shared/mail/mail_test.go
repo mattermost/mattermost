@@ -179,6 +179,20 @@ func TestSendMailPlainText(t *testing.T) {
 			emailBodyHTML:    "<p><strong>Strong</strong> and <a href='https://example.com'>link</a>",
 			expectedBodyText: "*Strong* and link ( https://example.com )",
 		},
+		{
+			// Regression for MM-69721: a link-only body previously yielded an
+			// empty text/plain part (docconv readability returned "MAIN: P is nil").
+			name:             "Link-only body",
+			emailBodyHTML:    "<a href='https://example.com/reset'>Reset your password</a>",
+			expectedBodyText: "Reset your password ( https://example.com/reset )",
+		},
+		{
+			// Regression for MM-69721: templated transactional emails previously
+			// yielded an empty text/plain part (docconv readability extracted no paragraphs).
+			name:             "Templated email",
+			emailBodyHTML:    "<h1>Reset Your Password</h1><p>Click the link below to reset your password.</p><p><a href='https://example.com/reset?token=abc'>Reset Password</a></p>",
+			expectedBodyText: "Reset Password ( https://example.com/reset?token=abc )",
+		},
 	}
 
 	for _, test := range tests {
@@ -204,6 +218,7 @@ func TestSendMailPlainText(t *testing.T) {
 				resultsEmail, err := GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
 				require.NoError(t, err, "Could not get message from mailbox")
 				require.Contains(t, test.emailBodyHTML, resultsEmail.Body.HTML, "Wrong received message %s", resultsEmail.Body.Text)
+				require.NotEmpty(t, resultsEmail.Body.Text, "text/plain part should not be empty (MM-69721)")
 				require.Contains(t, resultsEmail.Body.Text, test.expectedBodyText, "Wrong message plain text conversion %s", resultsEmail.Body.Text)
 			}
 		})

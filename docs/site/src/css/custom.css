@@ -487,16 +487,91 @@ blockquote {
   text-decoration: none;
 }
 
-/* Tables: scroll horizontally within themselves instead of overflowing the
- * viewport. Applied unconditionally (not just under the mobile breakpoint
- * below) since a wide table can force the same horizontal-overflow problem
- * at any viewport width — e.g. at higher browser zoom levels, where the
- * effective layout width shrinks but the media query doesn't re-trigger. */
+/* Tables: keep native table layout so header and body columns stay aligned.
+ * Wide tables (e.g. upgrade notes) use a dedicated wrapper class instead. */
 .markdown table {
-  display: block;
+  display: table;
   width: 100%;
+  table-layout: auto;
+  border-collapse: collapse;
+}
+
+.upgrade-notes-table-wrapper {
+  width: 100%;
+  max-width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+.markdown table.upgrade-notes-table {
+  display: table;
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+}
+
+.markdown table.upgrade-notes-table thead {
+  display: table-header-group;
+}
+
+.markdown table.upgrade-notes-table tbody {
+  display: table-row-group;
+}
+
+.markdown table.upgrade-notes-table thead th {
+  text-transform: none;
+  letter-spacing: normal;
+  font-family: var(--mm-font-sans);
+  font-weight: 700;
+  font-size: 0.85rem;
+  line-height: 1.35;
+  padding: 0.5rem 0.65rem;
+}
+
+.markdown table.upgrade-notes-table th,
+.markdown table.upgrade-notes-table td {
+  vertical-align: top;
+  padding: 0.5rem 0.65rem;
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.markdown table.upgrade-notes-table th:first-child,
+.markdown table.upgrade-notes-table td:first-child {
+  width: 25%;
+}
+
+.markdown table.upgrade-notes-table th:last-child,
+.markdown table.upgrade-notes-table td:last-child {
+  width: 75%;
+  max-width: 0;
+}
+
+.markdown table.upgrade-notes-table td:first-child:not(:last-child) {
+  white-space: nowrap;
+}
+
+.markdown table.upgrade-notes-table tbody tr:nth-child(even) {
+  background: transparent;
+}
+
+.markdown table.upgrade-notes-table tbody td {
+  border-bottom: 1px solid var(--mm-border-subtle);
+}
+
+.markdown table.upgrade-notes-table pre,
+.markdown table.upgrade-notes-table .sourceCode {
+  max-width: 100%;
+  margin: 0.5rem 0 0;
+  overflow-x: auto;
+}
+
+.markdown table.upgrade-notes-table pre,
+.markdown table.upgrade-notes-table pre code,
+.markdown table.upgrade-notes-table code {
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 /* === Mobile / responsive === */
@@ -549,6 +624,93 @@ blockquote {
   border-top: 2px solid var(--mm-color-marigold);
   width: 3rem;
   margin: 2.5rem 0 1.5rem;
+}
+
+/* === Release policy Gantt chart (scoped — no global mermaid overrides) === */
+
+.release-policy-gantt {
+  margin: 1.25rem 0;
+  /* On narrow viewports, scroll horizontally instead of shrinking the
+   * chart below a legible size. */
+  overflow-x: auto;
+}
+
+.release-policy-gantt .docusaurus-mermaid-container {
+  margin: 0;
+  background: var(--mm-color-white);
+  border: 2px solid #0745a1;
+  border-radius: 4px;
+  padding: 0.35rem 0.5rem 0.25rem;
+}
+
+[data-theme='dark'] .release-policy-gantt .docusaurus-mermaid-container {
+  background: #1e1e1e;
+  border-color: #555555;
+}
+
+/* Hide mermaid's semi-transparent gantt row backgrounds (pink tint in light mode) */
+.release-policy-gantt .docusaurus-mermaid-container svg rect.section,
+.release-policy-gantt .docusaurus-mermaid-container svg rect.grid-panel {
+  opacity: 0 !important;
+}
+
+.release-policy-gantt .docusaurus-mermaid-container svg {
+  background: transparent;
+}
+
+.release-policy-gantt .docusaurus-mermaid-container svg line {
+  stroke: #0745a1;
+}
+
+.release-policy-gantt .docusaurus-mermaid-container svg rect.task {
+  fill: #0984e3 !important;
+  stroke: #2d3436 !important;
+  stroke-width: 2px !important;
+}
+
+.release-policy-gantt .docusaurus-mermaid-container svg rect[class*='crit'] {
+  fill: #d63031 !important;
+  stroke: #2d3436 !important;
+  stroke-width: 2px !important;
+}
+
+.release-policy-gantt .docusaurus-mermaid-container .taskText {
+  fill: #ffffff !important;
+  font-weight: 700 !important;
+  font-size: 22px !important;
+}
+
+.release-policy-gantt .docusaurus-mermaid-container .taskTextOutsideLeft,
+.release-policy-gantt .docusaurus-mermaid-container .taskTextOutsideRight {
+  fill: #2d3436 !important;
+  font-weight: 700 !important;
+  font-size: 22px !important;
+}
+
+.release-policy-gantt .docusaurus-mermaid-container .sectionTitle,
+.release-policy-gantt .docusaurus-mermaid-container text[class*='tick'],
+.release-policy-gantt .docusaurus-mermaid-container text[class*='label'] {
+  fill: #2d3436 !important;
+  font-weight: 600 !important;
+  font-size: 22px !important;
+}
+
+[data-theme='dark'] .release-policy-gantt .docusaurus-mermaid-container svg rect.task {
+  stroke: #ffffff !important;
+}
+
+[data-theme='dark'] .release-policy-gantt .docusaurus-mermaid-container svg rect[class*='crit'] {
+  stroke: #ffffff !important;
+}
+
+[data-theme='dark'] .release-policy-gantt .docusaurus-mermaid-container text {
+  fill: #ffffff !important;
+}
+
+.release-policy-gantt .docusaurus-mermaid-container > svg {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 /* (Marigold strip is now the navbar's own border-bottom.) */

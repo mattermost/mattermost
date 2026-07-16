@@ -688,6 +688,10 @@
     "translation": "Cannot set members on this channel type."
   },
   {
+    "id": "api.channel.space_channel.app_error",
+    "translation": "Space channels cannot be accessed via /channels endpoints. Use the spaces API instead."
+  },
+  {
     "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
     "translation": "Channel banner can only be configured on Public and Private channels."
   },
@@ -5627,6 +5631,14 @@
     "translation": "Must specify the team ID to create a channel."
   },
   {
+    "id": "app.channel.create_channel.space_type.app_error",
+    "translation": "Space channels cannot be created via this endpoint."
+  },
+  {
+    "id": "app.channel.create_channel.spaces_not_enabled.app_error",
+    "translation": "The Docs feature is not enabled."
+  },
+  {
     "id": "app.channel.create_direct_channel.internal_error",
     "translation": "Unable to save direct channel."
   },
@@ -5835,6 +5847,10 @@
     "translation": "Unable to move a channel unless all its members are already members of the destination team."
   },
   {
+    "id": "app.channel.move_channel.space.app_error",
+    "translation": "Spaces cannot be moved through this endpoint."
+  },
+  {
     "id": "app.channel.patch_channel_members_notify_props.app_error",
     "translation": "Unable to update channel members' notify props."
   },
@@ -5945,6 +5961,10 @@
   {
     "id": "app.channel.update_channel.rejected_by_plugin",
     "translation": "Channel update rejected by plugin: {{.Reason}}"
+  },
+  {
+    "id": "app.channel.update_channel_privacy.space.app_error",
+    "translation": "Spaces cannot have their privacy changed through this endpoint."
   },
   {
     "id": "app.channel.update_last_viewed_at.app_error",
@@ -13421,6 +13441,10 @@
   {
     "id": "plugin_api.bot_cant_create_bot",
     "translation": "Bot user cannot create bot user."
+  },
+  {
+    "id": "plugin_api.channel.space_notify_props.app_error",
+    "translation": "Notify props cannot be set on space channels."
   },
   {
     "id": "plugin_api.get_file_link.disabled.app_error",
