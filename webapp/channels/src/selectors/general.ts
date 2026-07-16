@@ -49,3 +49,10 @@ export function isTeamMembershipAccessControlEnabled(state: GlobalState): boolea
     return accessControlSettings.EnableAttributeBasedAccessControl &&
         config?.FeatureFlagTeamMembershipAccessControl === 'true';
 }
+
+// Whether the channel access-control attribute indicators (the attribute
+// tags shown in the members RHS and invite modal banners) should be shown to
+// end users. Admins can disable these to avoid leaking policy details.
+export function areChannelAccessControlIndicatorsEnabled(state: GlobalState): boolean {
+    return getAccessControlSettings(state).EnableChannelPolicyIndicators;
+}

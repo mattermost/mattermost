@@ -18,14 +18,10 @@ import (
 // Masking is attribute-based, not permission-based: system admins who do not hold all values
 // in a policy must also receive redacted raw expressions.
 func shouldRedactExpressions(c *Context) bool {
-	return c.App.Config().FeatureFlags.AttributeBasedAccessControl &&
-		c.App.Config().FeatureFlags.AttributeValueMasking
+	return c.App.Config().FeatureFlags.AttributeValueMasking
 }
 
 func (api *API) InitAccessControlPolicy() {
-	if !api.srv.Config().FeatureFlags.AttributeBasedAccessControl {
-		return
-	}
 	api.BaseRoutes.AccessControlPolicies.Handle("", api.APISessionRequired(createAccessControlPolicy)).Methods(http.MethodPut)
 	api.BaseRoutes.AccessControlPolicies.Handle("/search", api.APISessionRequired(searchAccessControlPolicies)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/activate", api.APISessionRequired(setActiveStatus)).Methods(http.MethodPut)

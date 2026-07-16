@@ -15,6 +15,9 @@ export default class ChannelsPost {
 
     readonly body;
     readonly profileIcon;
+    readonly emoticon;
+    readonly messageText;
+    readonly editedIndicator;
 
     readonly removePostButton;
 
@@ -32,6 +35,9 @@ export default class ChannelsPost {
         this.body = container.getByTestId('post-body');
 
         this.profileIcon = container.getByTestId('profile-icon');
+        this.emoticon = container.locator('.emoticon');
+        this.messageText = container.locator('.post-message__text p');
+        this.editedIndicator = container.getByRole('button', {name: 'Edited'});
 
         this.removePostButton = container.getByTestId('post-remove-button');
 
@@ -70,6 +76,14 @@ export default class ChannelsPost {
         return this.profileIcon.getByAltText(`${username} profile image`);
     }
 
+    /**
+     * Locates a rendered link with the given accessible name inside the post body.
+     * @param name
+     */
+    getLink(name: string): Locator {
+        return this.container.getByRole('link', {name});
+    }
+
     async openAThread() {
         await this.container.hover();
         await this.postMenu.toBeVisible();
@@ -77,10 +91,26 @@ export default class ChannelsPost {
         await this.postMenu.replyButton.click();
     }
 
+    /**
+     * Clicks the "Edited" indicator to open the post's edit history in the right sidebar.
+     */
+    async openEditHistory() {
+        await this.editedIndicator.click();
+    }
+
     async reply() {
         await this.container.hover();
         await this.postMenu.toBeVisible();
         await this.postMenu.reply();
+    }
+
+    /**
+     * Hovers the post and opens the emoji reaction picker via the "add reaction" button.
+     */
+    async openReactionPicker() {
+        await this.container.hover();
+        await this.postMenu.toBeVisible();
+        await this.postMenu.addReactionButton.click();
     }
 
     /**

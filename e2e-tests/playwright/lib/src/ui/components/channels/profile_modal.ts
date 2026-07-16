@@ -16,6 +16,7 @@ export default class ProfileModal {
     readonly closeButton;
     readonly saveButton;
     readonly cancelButton;
+    readonly sectionHeadings;
 
     constructor(container: Locator) {
         this.container = container;
@@ -29,6 +30,7 @@ export default class ProfileModal {
         this.closeButton = container.getByRole('button', {name: 'Close'});
         this.saveButton = container.getByRole('button', {name: 'Save'});
         this.cancelButton = container.getByRole('button', {name: 'Cancel'});
+        this.sectionHeadings = this.profileSettingsTab.container.getByTestId('section-min').getByRole('heading');
     }
 
     async toBeVisible() {
@@ -56,6 +58,25 @@ export default class ProfileModal {
     async closeModal() {
         await this.closeButton.click();
         await expect(this.container).not.toBeVisible();
+    }
+
+    getAttributeSection(label: string) {
+        return this.profileSettingsTab.container.getByTestId('section-min').filter({hasText: label});
+    }
+
+    getAttributeValue(label: string, value: string) {
+        return this.getAttributeSection(label).getByText(value, {exact: true});
+    }
+
+    async editAttribute(label: string) {
+        await this.getAttributeSection(label)
+            .getByRole('button', {name: `${label} Edit`, exact: true})
+            .click();
+        await expect(this.getAttributeInput(label)).toBeVisible();
+    }
+
+    getAttributeInput(label: string) {
+        return this.profileSettingsTab.container.getByRole('textbox', {name: label, exact: true});
     }
 }
 

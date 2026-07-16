@@ -379,6 +379,7 @@ func TestGetClientConfig(t *testing.T) {
 				AccessControlSettings: model.AccessControlSettings{
 					EnableAttributeBasedAccessControl: new(true),
 					EnableUserManagedAttributes:       new(true),
+					EnableChannelPolicyIndicators:     new(true),
 				},
 			},
 			"",
@@ -386,6 +387,7 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"EnableAttributeBasedAccessControl": "true",
 				"EnableUserManagedAttributes":       "true",
+				"EnableChannelPolicyIndicators":     "true",
 			},
 			nil,
 		},
@@ -395,6 +397,7 @@ func TestGetClientConfig(t *testing.T) {
 				AccessControlSettings: model.AccessControlSettings{
 					EnableAttributeBasedAccessControl: new(false),
 					EnableUserManagedAttributes:       new(false),
+					EnableChannelPolicyIndicators:     new(false),
 				},
 			},
 			"",
@@ -402,6 +405,7 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"EnableAttributeBasedAccessControl": "false",
 				"EnableUserManagedAttributes":       "false",
+				"EnableChannelPolicyIndicators":     "false",
 			},
 			nil,
 		},
@@ -413,6 +417,7 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"EnableAttributeBasedAccessControl": "false",
 				"EnableUserManagedAttributes":       "false",
+				"EnableChannelPolicyIndicators":     "true",
 			},
 			nil,
 		},
@@ -727,6 +732,46 @@ func TestGetClientConfig(t *testing.T) {
 			},
 			map[string]string{},
 			[]string{"MobileEphemeralModeEnabled", "MobileEphemeralModeDisconnectionTimeoutSeconds", "MobileEphemeralModeOfflinePersistenceTimerHours", "MobileEphemeralModeAutoCacheCleanupDays"},
+		},
+		{
+			"notification metrics enabled follows the metrics setting",
+			&model.Config{
+				MetricsSettings: model.MetricsSettings{
+					Enable:                    new(true),
+					EnableNotificationMetrics: new(true),
+				},
+			},
+			"",
+			&model.License{
+				Features: &model.Features{
+					Cluster: new(true),
+				},
+			},
+			map[string]string{
+				"EnableMetrics":             "true",
+				"EnableNotificationMetrics": "true",
+			},
+			nil,
+		},
+		{
+			"notification metrics disabled follows the metrics setting",
+			&model.Config{
+				MetricsSettings: model.MetricsSettings{
+					Enable:                    new(true),
+					EnableNotificationMetrics: new(false),
+				},
+			},
+			"",
+			&model.License{
+				Features: &model.Features{
+					Cluster: new(true),
+				},
+			},
+			map[string]string{
+				"EnableMetrics":             "true",
+				"EnableNotificationMetrics": "false",
+			},
+			nil,
 		},
 	}
 

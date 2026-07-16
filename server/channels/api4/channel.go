@@ -3222,6 +3222,16 @@ func getChannelAccessControlAttributes(c *Context, w http.ResponseWriter, r *htt
 		return
 	}
 
+	// When channel policy indicators are disabled, the matching attribute
+	// values must not leak to end users — not through the UI nor this API.
+	// Return an empty set so callers simply render no indicators.
+	if !*c.App.Config().AccessControlSettings.EnableChannelPolicyIndicators {
+		if err := json.NewEncoder(w).Encode(map[string][]string{}); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
+		return
+	}
+
 	// Channel banners care about the membership rule — the attributes that
 	// determine who can be in the channel. Since the v0.3 migration stores the
 	// action as "membership" rather than "*", ask for it explicitly; the

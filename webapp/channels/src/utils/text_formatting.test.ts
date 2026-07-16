@@ -243,7 +243,7 @@ describe('highlightSearchTerms', () => {
 
         const output = highlightSearchTerms(text, tokens, searchPatterns);
         expect(output).toBe('$MM_SEARCHTERM1$');
-        expect(tokens.get('$MM_SEARCHTERM1$')!.value).toBe('<span class="search-highlight">$MM_HASHTAG0$</span>');
+        expect(tokens.get('$MM_SEARCHTERM1$')!.value).toBe('<span class="search-highlight" data-testid="search-highlight">$MM_HASHTAG0$</span>');
     });
 });
 

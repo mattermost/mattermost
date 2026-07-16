@@ -1,13 +1,15 @@
 ---
 title: "Invite people to your workspace"
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 Anyone can invite people to Mattermost teams and channels, unless your system admin has [disabled](/administration-guide/onboard/advanced-permissions) your ability to do so.
 
-<div class="tab">
-
-Web/Desktop
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
 1.  Select the team name at the top of the channel sidebar, and then select **Invite People**.
 
@@ -23,11 +25,8 @@ Web/Desktop
 >
 > ![You can invite users through the web or desktop app in a number of ways.](/images/web-desktop-invite-people-to-the-team.png)
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 1.  Tap the <img src="/img/ui/plus_F0415.svg" alt="The Plus icon provides access to channel and direct message functionality." className="theme-icon" /> icon in the top right corner of the screen and tap **Invite people to the team**.
 
@@ -43,7 +42,9 @@ Mobile
 >
 > ![You can invite users through the mobile app in a number of ways.](/images/mobile-send-invite-to.png)
 
-</div>
+</TabItem>
+</Tabs>
+
 
 <Note>
 

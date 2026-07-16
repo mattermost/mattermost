@@ -134,6 +134,7 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
             }}
             menu={{
                 id: 'channelHeaderDropdownMenu',
+                'aria-label': ariaLabel.toLowerCase(),
             }}
             transformOrigin={{
                 horizontal: 'left',

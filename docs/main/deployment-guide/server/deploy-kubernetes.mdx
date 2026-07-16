@@ -11,31 +11,20 @@ To learn how to safely upgrade your deployment in Kubernetes for High Availabili
 
 </Tip>
 
-## Platform
+## Choose an install method
 
-Choose your preferred platform below for specific deployment instructions:
-
-<div id="install-mattermost-operator">
-
-<div class="tab" parse-titles="">
-
-Mattermost Operator
-
-</div>
-
-</div>
-
-<div class="tab" parse-titles="">
-
-Azure
-
-</div>
-
-<div class="tab" parse-titles="">
-
-Oracle
-
-</div>
+<CardGrid columns={2} cards={[
+  {
+    title: 'Mattermost Operator',
+    description: 'Deploy using the Mattermost Kubernetes Operator with S3-compatible storage and a managed database service. Recommended for most Kubernetes and cloud-native production deployments.',
+    to: '/deployment-guide/server/kubernetes/deploy-k8s',
+  },
+  {
+    title: 'Oracle (OKE)',
+    description: 'Deploy Mattermost Enterprise Edition on Oracle Cloud Infrastructure using Oracle Kubernetes Engine (OKE) via the Oracle Cloud Marketplace listing.',
+    to: '/deployment-guide/server/kubernetes/deploy-k8s-oke',
+  },
+]} />
 
 ## Frequently Asked Questions
 

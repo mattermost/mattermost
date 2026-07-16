@@ -50,7 +50,15 @@ import {
 } from './test_action';
 import {pages} from './ui/pages';
 import {matchSnapshot} from './visual';
-import {stubNotification, waitForNotification} from './mock_browser_api';
+import {
+    clearCapturedNotifications,
+    clickNotification,
+    closeWebsockets,
+    connectWebsockets,
+    mockWebsockets,
+    stubNotification,
+    waitForNotification,
+} from './mock_browser_api';
 import {duration, getRandomId, newTestPassword, simpleEmailRe, wait} from './util';
 
 export {expect} from '@playwright/test';
@@ -119,7 +127,12 @@ export class PlaywrightExtended {
 
     // ./mock_browser_api
     readonly stubNotification;
+    readonly clearCapturedNotifications;
     readonly waitForNotification;
+    readonly clickNotification;
+    readonly mockWebsockets;
+    readonly connectWebsockets;
+    readonly closeWebsockets;
 
     // ./server
     readonly createNewUserProfile;
@@ -195,7 +208,12 @@ export class PlaywrightExtended {
 
         // ./mock_browser_api
         this.stubNotification = stubNotification;
+        this.clearCapturedNotifications = clearCapturedNotifications;
         this.waitForNotification = waitForNotification;
+        this.clickNotification = clickNotification;
+        this.mockWebsockets = mockWebsockets;
+        this.connectWebsockets = connectWebsockets;
+        this.closeWebsockets = closeWebsockets;
 
         // ./server
         this.createNewUserProfile = createNewUserProfile;

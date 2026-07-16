@@ -12,6 +12,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -23,8 +24,8 @@ import (
 
 // getSubpathScript renders the inline script that defines window.publicPath to change how webpack loads assets.
 func getSubpathScript(subpath string) string {
-	if subpath == "" {
-		subpath = "/"
+	if subpath == "" || subpath == "/" {
+		return ""
 	}
 
 	newPath := path.Join(subpath, "static") + "/"
@@ -32,21 +33,42 @@ func getSubpathScript(subpath string) string {
 	return fmt.Sprintf("window.publicPath='%s'", newPath)
 }
 
-// GetSubpathScriptHash computes the script-src addition required for the subpath script to bypass CSP protections.
-func GetSubpathScriptHash(subpath string) string {
-	// No hash is required for the default subpath.
-	if subpath == "" || subpath == "/" {
+// getConcurrentReactScript renders the inline script that defines window.enableConcurrentReact to change how React
+// initializes the web app.
+func getConcurrentReactScript(enableConcurrentReact bool) string {
+	if !enableConcurrentReact {
 		return ""
 	}
 
-	scriptHash := sha256.Sum256([]byte(getSubpathScript(subpath)))
+	return "window.enableConcurrentReact=true"
+}
+
+// GetScriptHash computes the script-src addition required for an inline script injected into the root.html.
+func GetScriptHash(script string) string {
+	// No hash is required when there's no script
+	if script == "" {
+		return ""
+	}
+
+	scriptHash := sha256.Sum256([]byte(script))
 
 	return fmt.Sprintf(" 'sha256-%s'", base64.StdEncoding.EncodeToString(scriptHash[:]))
 }
 
-// UpdateAssetsSubpathInDir rewrites assets in the given directory to assume the application is
-// hosted at the given subpath instead of at the root. No changes are written unless necessary.
-func UpdateAssetsSubpathInDir(subpath, directory string) error {
+// GetStaticScriptHashes computes the combined script-src additions required for the inline scripts injected
+// into root.html to bypass CSP protections.
+func GetStaticScriptHashes(subpath string, enableConcurrentReact bool) string {
+	return GetScriptHash(getSubpathScript(subpath)) + GetScriptHash(getConcurrentReactScript(enableConcurrentReact))
+}
+
+// UpdateAssetsSubpathInDir rewrites static assets in the given directory based on configuration options.
+// The following changes are made:
+//   - HTML and CSS files are rewritten to assume the application is hosted at the given subpath instead of at the root.
+//   - HTML is rewritten to add the enableConcurrentReact setting, needed while loading the web app. If omitted, the
+//     existing value is preserved.
+//
+// No changes are written unless necessary.
+func UpdateAssetsSubpathInDir(subpath, directory string, enableConcurrentReactPtr *bool) error {
 	if subpath == "" {
 		subpath = "/"
 	}
@@ -82,8 +104,21 @@ func UpdateAssetsSubpathInDir(subpath, directory string) error {
 	pathToReplace := path.Join(oldSubpath, "static") + "/"
 	newPath := path.Join(subpath, "static") + "/"
 
+	// Keep the previous value of enableConcurrentReact if it isn't provided
+	enableConcurrentReact := false
+	if enableConcurrentReactPtr == nil {
+		reConcurrentReactScript := regexp.MustCompile("window.enableConcurrentReact=(true|false)")
+		if matches := reConcurrentReactScript.FindSubmatch(oldRootHTML); matches != nil {
+			if value, convErr := strconv.ParseBool(string(matches[1])); convErr == nil {
+				enableConcurrentReact = value
+			}
+		}
+	} else {
+		enableConcurrentReact = *enableConcurrentReactPtr
+	}
+
 	// Update the root.html file
-	if err := updateRootFile(string(oldRootHTML), rootHTMLPath, alreadyRewritten, pathToReplace, newPath, subpath); err != nil {
+	if err := updateRootFile(string(oldRootHTML), rootHTMLPath, alreadyRewritten, pathToReplace, newPath, subpath, enableConcurrentReact); err != nil {
 		return fmt.Errorf("failed to update root.html: %w", err)
 	}
 
@@ -95,7 +130,7 @@ func UpdateAssetsSubpathInDir(subpath, directory string) error {
 	return nil
 }
 
-func updateRootFile(oldRootHTML string, rootHTMLPath string, alreadyRewritten bool, pathToReplace, newPath, subpath string) error {
+func updateRootFile(oldRootHTML string, rootHTMLPath string, alreadyRewritten bool, pathToReplace, newPath, subpath string, enableConcurrentReact bool) error {
 	newRootHTML := oldRootHTML
 
 	reCSP := regexp.MustCompile(`<meta http-equiv="Content-Security-Policy" content="script-src 'self'([^"]*)">`)
@@ -105,7 +140,7 @@ func updateRootFile(oldRootHTML string, rootHTMLPath string, alreadyRewritten bo
 
 	newRootHTML = reCSP.ReplaceAllLiteralString(newRootHTML, fmt.Sprintf(
 		`<meta http-equiv="Content-Security-Policy" content="script-src 'self'%s">`,
-		GetSubpathScriptHash(subpath),
+		GetStaticScriptHashes(subpath, enableConcurrentReact),
 	))
 
 	// Rewrite the root.html references to `/static/*` to include the given subpath.
@@ -114,7 +149,6 @@ func updateRootFile(oldRootHTML string, rootHTMLPath string, alreadyRewritten bo
 	newRootHTML = strings.Replace(newRootHTML, pathToReplace, newPath, -1)
 
 	publicPathInWindowsScriptRegex := regexp.MustCompile(`(?s)<script id="publicPathInWindowScript">(.*?)</script>`)
-
 	if alreadyRewritten && subpath == "/" {
 		// Remove window global publicPath definition if subpath is root
 		newRootHTML = publicPathInWindowsScriptRegex.ReplaceAllLiteralString(newRootHTML, "<script id=\"publicPathInWindowScript\"></script>")
@@ -123,6 +157,10 @@ func updateRootFile(oldRootHTML string, rootHTMLPath string, alreadyRewritten bo
 		subpathScript := getSubpathScript(subpath)
 		newRootHTML = publicPathInWindowsScriptRegex.ReplaceAllLiteralString(newRootHTML, fmt.Sprintf("<script id=\"publicPathInWindowScript\">%s</script>", subpathScript))
 	}
+
+	// Inject (or clear) the script defining `window.enableConcurrentReact` to match the feature flag.
+	concurrentReactScriptRegex := regexp.MustCompile(`(?s)<script id="enableConcurrentReactScript">(.*?)</script>`)
+	newRootHTML = concurrentReactScriptRegex.ReplaceAllLiteralString(newRootHTML, fmt.Sprintf("<script id=\"enableConcurrentReactScript\">%s</script>", getConcurrentReactScript(enableConcurrentReact)))
 
 	if newRootHTML == oldRootHTML {
 		mlog.Debug("No need to rewrite unmodified root.html", mlog.String("from_subpath", pathToReplace), mlog.String("to_subpath", newPath))
@@ -169,8 +207,8 @@ func updateManifestAndCSSFiles(staticDir, pathToReplace, newPath, subpath string
 
 // UpdateAssetsSubpath rewrites assets in the /client directory to assume the application is hosted
 // at the given subpath instead of at the root. No changes are written unless necessary.
-func UpdateAssetsSubpath(subpath string) error {
-	return UpdateAssetsSubpathInDir(subpath, model.ClientDir)
+func UpdateAssetsSubpath(subpath string, enableConcurrentReact *bool) error {
+	return UpdateAssetsSubpathInDir(subpath, model.ClientDir, enableConcurrentReact)
 }
 
 // UpdateAssetsSubpathFromConfig uses UpdateAssetsSubpath and any path defined in the SiteURL.
@@ -193,7 +231,12 @@ func UpdateAssetsSubpathFromConfig(config *model.Config) error {
 		return err
 	}
 
-	return UpdateAssetsSubpath(subpath)
+	enableConcurrentReact := false
+	if config != nil && config.FeatureFlags != nil {
+		enableConcurrentReact = config.FeatureFlags.EnableConcurrentReact
+	}
+
+	return UpdateAssetsSubpath(subpath, &enableConcurrentReact)
 }
 
 func GetSubpathFromConfig(config *model.Config) (string, error) {
