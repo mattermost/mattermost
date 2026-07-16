@@ -197,10 +197,7 @@ test('MM-T5802 team filter list updates when a team is left', async ({pw}) => {
     // # Close the menu, then switch to and leave one of the extra teams
     await teamSelector.close();
     const teamToLeave = teams[teams.length - 1];
-    await channelsPage.switchToTeam(teamToLeave.name);
-    await channelsPage.sidebarLeft.teamMenuButton.click();
-    await channelsPage.teamMenu.clickLeaveTeam();
-    await channelsPage.leaveTeamModal.confirm();
+    await channelsPage.leaveTeam(teamToLeave.name);
 
     // # Reopen search and the team selector
     await channelsPage.toBeVisible();
@@ -259,10 +256,7 @@ test('MM-T5803 search results narrow to the selected team and update after leavi
     await expect(channelsPage.searchResultsPanel.container).not.toContainText(messageInFirstTeam);
 
     // # Leave the second team and re-run the same search
-    await channelsPage.switchToTeam(secondTeam.name);
-    await channelsPage.sidebarLeft.teamMenuButton.click();
-    await channelsPage.teamMenu.clickLeaveTeam();
-    await channelsPage.leaveTeamModal.confirm();
+    await channelsPage.leaveTeam(secondTeam.name);
     await channelsPage.toBeVisible();
     await channelsPage.searchFor('pineapple');
 

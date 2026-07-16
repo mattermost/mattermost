@@ -91,9 +91,9 @@ export default class SearchTeamSelector {
     }
 
     /**
-     * Closes the dropdown by clicking outside of it, without changing the current selection.
+     * Closes the dropdown by pressing Escape, without changing the current selection.
      */
     async close() {
-        await this.container.page().click('body', {position: {x: 0, y: 0}});
+        await this.container.page().keyboard.press('Escape');
     }
 }
