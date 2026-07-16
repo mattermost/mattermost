@@ -393,16 +393,15 @@ func rankSortKey(rank *int) int {
 //     gated on PermissionManageSystem; callers without an identifiable
 //     caller ID (e.g. internal callers with no session on rctx) are
 //     treated as non-admin and rejected.
+//   - When the field is owner-managed, PermissionValues is pinned to sysadmin.
+//     Human value writes are already blocked authoritatively by
+//     checkOwnerValueWriteAccess in the property-service hook, but pinning
+//     sysadmin here is the safe fallback: if the owners list is ever dropped,
+//     the field defaults to admin-only rather than becoming writable by every
+//     member.
 //   - Otherwise, PermissionValues is left as-is when set, and default-filled
 //     by ObjectType when nil (member for user fields, sysadmin for system
 //     and template). Caller pins are never downgraded.
-//
-// Owner-managed fields are intentionally not special-cased here: their
-// PermissionValues use the same default as any other field. Human value
-// writes are blocked authoritatively by checkOwnerValueWriteAccess in the
-// property-service hook (the same layer as the ldap/saml sync lock), so no
-// PermissionValues pin is required and existing owner fields are covered
-// without a re-pin or migration.
 func (h *AccessControlAttributeValidationHook) enforceGroupPermissions(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
 	sysadmin := model.PermissionLevelSysadmin
 
@@ -417,6 +416,8 @@ func (h *AccessControlAttributeValidationHook) enforceGroupPermissions(rctx requ
 		if callerID == "" || !h.permissionChecker(callerID, model.PermissionManageSystem) {
 			return nil, fmt.Errorf("missing permission to set managed=admin: only system admins can set managed=admin: %w", ErrAdminRequired)
 		}
+		field.PermissionValues = &sysadmin
+	} else if model.HasPropertyFieldOwners(field) {
 		field.PermissionValues = &sysadmin
 	} else if field.PermissionValues == nil {
 		defaultLevel := defaultPermissionValuesForObjectType(field.ObjectType)
