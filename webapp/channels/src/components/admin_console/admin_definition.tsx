@@ -93,6 +93,7 @@ import AttributeBasedAccessControlFeatureDiscovery from './feature_discovery/fea
 import AutoTranslationFeatureDiscovery from './feature_discovery/features/auto_translation';
 import BurnOnReadSVG from './feature_discovery/features/images/burn_on_read_svg';
 import IntuneMAMSvg from './feature_discovery/features/images/intune_mam_svg';
+import SessionAttributesFeatureDiscovery from './feature_discovery/features/session_attributes';
 import UserAttributesFeatureDiscovery from './feature_discovery/features/user_attributes';
 import FeatureFlags, {messages as featureFlagsMessages} from './feature_flags';
 import GroupDetails from './group_settings/group_details';
@@ -120,6 +121,7 @@ import SecureConnections, {searchableStrings as secureConnectionsSearchableStrin
 import SecureConnectionDetail from './secure_connections/secure_connection_detail';
 import ServerLogs from './server_logs';
 import {searchableStrings as serverLogsSearchableStrings} from './server_logs/logs';
+import SessionAttributesPage, {searchableStrings as sessionAttributesSearchableStrings} from './session_attributes';
 import SessionLengthSettings, {searchableStrings as sessionLengthSearchableStrings} from './session_length_settings';
 import SystemProperties, {searchableStrings as systemPropertiesSearchableStrings} from './system_properties';
 import SystemRoles from './system_roles';
@@ -666,6 +668,44 @@ const AdminDefinition: AdminDefinitionType = {
                 },
                 restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.EnterpriseAdvanced),
             },
+            session_attributes: {
+                url: 'system_attributes/session_attributes',
+                title: defineMessage({id: 'admin.sidebar.sessionAttributes', defaultMessage: 'Session Attributes'}),
+                searchableStrings: sessionAttributesSearchableStrings,
+                isHidden: it.any(
+                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.configIsFalse('FeatureFlags', 'SessionAttributes'),
+                ),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                schema: {
+                    id: 'SessionAttributes',
+                    component: SessionAttributesPage,
+                },
+                restrictedIndicator: getRestrictedIndicator(false, LicenseSkus.EnterpriseAdvanced),
+            },
+            session_attributes_feature_discovery: {
+                url: 'system_attributes/session_attributes',
+                isDiscovery: true,
+                title: defineMessage({id: 'admin.sidebar.sessionAttributes', defaultMessage: 'Session Attributes'}),
+                isHidden: it.any(
+                    it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
+                    it.configIsFalse('FeatureFlags', 'SessionAttributes'),
+                ),
+                schema: {
+                    id: 'SessionAttributes',
+                    name: defineMessage({id: 'admin.session_attributes.title', defaultMessage: 'Session Attributes'}),
+                    settings: [
+                        {
+                            type: 'custom',
+                            component: SessionAttributesFeatureDiscovery,
+                            key: 'SessionAttributesFeatureDiscovery',
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
+                        },
+                    ],
+                },
+                restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.EnterpriseAdvanced),
+            },
             board_attributes: {
                 url: 'system_attributes/board_attributes',
                 title: defineMessage({id: 'admin.sidebar.board_attributes', defaultMessage: 'Board Attributes'}),
@@ -741,40 +781,6 @@ const AdminDefinition: AdminDefinitionType = {
                     ],
                 },
                 restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.EnterpriseAdvanced),
-            },
-            session_attributes: {
-                url: 'system_attributes/session_attributes',
-                title: defineMessage({id: 'admin.sidebar.sessionAttributes', defaultMessage: 'Session Attributes'}),
-                isHidden: it.any(
-                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
-                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
-                    it.configIsFalse('FeatureFlags', 'SessionAttributes'),
-                ),
-                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
-                schema: {
-                    id: 'SessionAttributes',
-                    name: defineMessage({id: 'admin.session_attributes.title', defaultMessage: 'Session Attributes'}),
-                    sections: [
-                        {
-                            key: 'admin.session_attributes.settings',
-                            settings: [
-                                {
-                                    type: 'bool',
-                                    key: 'AccessControlSettings.TrustProxyDeviceIdentityHeader',
-                                    label: defineMessage({id: 'admin.session_attributes.trustProxyDeviceIdentityHeaderTitle', defaultMessage: 'Trust proxy device identity header'}),
-                                    help_text: defineMessage({id: 'admin.session_attributes.trustProxyDeviceIdentityHeaderDesc', defaultMessage: 'When enabled, the server trusts the device identity provided by a reverse proxy in the request header. Only enable this when a trusted proxy sets the device identity header.'}),
-                                },
-                                {
-                                    type: 'bool',
-                                    key: 'AccessControlSettings.EnforceDeviceIDConsistency',
-                                    label: defineMessage({id: 'admin.session_attributes.enforceDeviceIDConsistencyTitle', defaultMessage: 'Enforce device ID consistency'}),
-                                    help_text: defineMessage({id: 'admin.session_attributes.enforceDeviceIDConsistencyDesc', defaultMessage: 'When enabled, the session is revoked if the device identity changes from the value previously recorded for that session.'}),
-                                },
-                            ],
-                        },
-                    ],
-                },
-                restrictedIndicator: getRestrictedIndicator(false, LicenseSkus.EnterpriseAdvanced),
             },
             membership_policy_details_edit: {
                 url: `system_attributes/membership_policies/edit_policy/:policy_id(${ID_PATH_PATTERN})`,

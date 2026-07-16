@@ -10,6 +10,8 @@ import {renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing
 
 import PolicyDetails from './policy_details';
 
+import TableEditor from '../editors/table_editor/table_editor';
+
 jest.mock('utils/browser_history', () => ({
     getHistory: () => ({
         push: jest.fn(),
@@ -42,6 +44,7 @@ jest.mock('hooks/useChannelAccessControlActions', () => ({
 }));
 
 const mockUseChannelAccessControlActions = useChannelAccessControlActions as jest.MockedFunction<typeof useChannelAccessControlActions>;
+const MockedTableEditor = TableEditor as jest.MockedFunction<typeof TableEditor>;
 
 describe('components/admin_console/access_control/policy_details/PolicyDetails', () => {
     const mockCreatePolicy = jest.fn();
@@ -220,6 +223,27 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         await waitFor(() => {
             expect(screen.queryByText('This policy contains restricted values')).not.toBeInTheDocument();
         });
+    });
+
+    test('excludes session attributes from the attributes passed to the editor', async () => {
+        MockedTableEditor.mockClear();
+        mockGetAccessControlFields.mockResolvedValue({
+            data: [
+                {id: 'u1', name: 'department', group_id: 'cpa9q4w7m2x5c8v1b6n3k0jr5h', object_type: 'user', attrs: {managed: 'admin'}},
+                {id: 's1', name: 'network_name', group_id: 'nkpkzni6yjrjt8uktpbwkagoth', object_type: 'session', target_type: 'system', attrs: {}},
+            ],
+        });
+
+        renderWithContext(<PolicyDetails {...defaultProps}/>);
+
+        await waitFor(() => {
+            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+        });
+
+        const lastCall = MockedTableEditor.mock.calls[MockedTableEditor.mock.calls.length - 1][0];
+        const passedNames = lastCall.userAttributes.map((attr) => attr.name);
+        expect(passedNames).toContain('department');
+        expect(passedNames).not.toContain('network_name');
     });
 
     test('hasMaskedRows derivation survives Simple → Advanced → Simple mode toggles', async () => {

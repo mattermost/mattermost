@@ -15,7 +15,7 @@ import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {hasUsableAttributes} from 'components/admin_console/access_control/editors/shared';
+import {excludeSessionAttributes, hasUsableAttributes} from 'components/admin_console/access_control/editors/shared';
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
 import ChannelList from 'components/admin_console/access_control/policy_details/channel_list';
 import ChannelSelectorModal from 'components/channel_selector_modal';
@@ -123,7 +123,7 @@ export default function TeamPolicyEditor({
     useEffect(() => {
         abacActions.getAccessControlFields('', 100).then((result) => {
             if (result.data) {
-                setAutocompleteResult(result.data);
+                setAutocompleteResult(excludeSessionAttributes(result.data));
             }
             setAttributesLoaded(true);
         }).catch(() => {
