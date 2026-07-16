@@ -221,4 +221,47 @@ export default class ChannelsPostCreate {
     async isBurnOnReadEnabled(): Promise<boolean> {
         return this.burnOnReadLabel.isVisible();
     }
+
+    /**
+     * Simulates pasting HTML (with a plain-text fallback) into the input, exercising Mattermost's
+     * own paste-formatting logic (e.g. an HTML table auto-converting to a markdown table) rather
+     * than just typing raw text.
+     *
+     * Dispatches a synthetic ClipboardEvent directly on the input: Playwright/CDP can't write
+     * arbitrary HTML to the real OS clipboard and have a genuinely OS-triggered paste read it back
+     * deterministically in CI, so this mirrors the technique this codebase's own unit tests use
+     * (`utils/paste.test.tsx`), just exercised through the real running app instead of a mock.
+     *
+     * When `withoutFormatting` is true, a Ctrl+Shift+V keydown is dispatched first to set the
+     * app's internal `isNonFormattedPaste` flag (see `advanced_text_editor/use_key_handler.tsx`),
+     * which makes the app's paste handler step aside instead of auto-converting the HTML.
+     */
+    async pasteHtml(html: string, plainText: string, {withoutFormatting = false}: {withoutFormatting?: boolean} = {}) {
+        await expect(this.input).toBeVisible();
+        await this.input.focus();
+
+        await this.input.evaluate(
+            (el, {html, plainText, withoutFormatting}) => {
+                if (withoutFormatting) {
+                    el.dispatchEvent(
+                        new KeyboardEvent('keydown', {
+                            key: 'v',
+                            ctrlKey: true,
+                            shiftKey: true,
+                            bubbles: true,
+                            cancelable: true,
+                        }),
+                    );
+                }
+
+                const dataTransfer = new DataTransfer();
+                dataTransfer.setData('text/html', html);
+                dataTransfer.setData('text/plain', plainText);
+                el.dispatchEvent(
+                    new ClipboardEvent('paste', {clipboardData: dataTransfer, bubbles: true, cancelable: true}),
+                );
+            },
+            {html, plainText, withoutFormatting},
+        );
+    }
 }
