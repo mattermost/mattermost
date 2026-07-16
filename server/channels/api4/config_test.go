@@ -605,6 +605,7 @@ func TestGetEnvironmentConfig(t *testing.T) {
 	// t.Setenv prevents t.Parallel — intentionally serial.
 	t.Setenv("MM_SERVICESETTINGS_SITEURL", "http://example.mattermost.com")
 	t.Setenv("MM_SERVICESETTINGS_ENABLECUSTOMEMOJI", "true")
+	t.Setenv("MM_LICENSE", "license-provided-through-the-environment")
 
 	th := Setup(t)
 
@@ -613,6 +614,10 @@ func TestGetEnvironmentConfig(t *testing.T) {
 
 		envConfig, _, err := SystemAdminClient.GetEnvironmentConfig(context.Background())
 		require.NoError(t, err)
+
+		license, ok := envConfig["License"]
+		require.True(t, ok, "should've returned the top-level License override")
+		require.Equal(t, true, license, "should've returned License as true")
 
 		serviceSettings, ok := envConfig["ServiceSettings"]
 		require.True(t, ok, "should've returned ServiceSettings")
