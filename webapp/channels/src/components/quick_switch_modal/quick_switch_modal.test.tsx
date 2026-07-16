@@ -205,7 +205,7 @@ describe('components/QuickSwitchModal', () => {
             expect(props.onExited).toHaveBeenCalled();
         });
 
-        it('should withdraw a pending request for a discoverable non-member channel (keyboard accessible)', () => {
+        it('should withdraw a pending request for a discoverable non-member channel (keyboard accessible)', async () => {
             const props = {...baseProps};
             const ref = React.createRef<QuickSwitchModalClass>();
             renderWithContext(
@@ -223,11 +223,40 @@ describe('components/QuickSwitchModal', () => {
                 hasPendingJoinRequest: true,
             };
 
-            instance.handleSubmit(selected);
+            await instance.handleSubmit(selected);
             expect(props.actions.withdrawJoinRequest).toHaveBeenCalledWith(channel.id);
             expect(props.actions.openRequestJoinModal).not.toHaveBeenCalled();
             expect(props.actions.switchToChannel).not.toHaveBeenCalled();
             expect(props.onExited).toHaveBeenCalled();
+        });
+
+        it('should keep the switcher open when a withdraw fails', async () => {
+            const props = {
+                ...baseProps,
+                actions: {
+                    ...baseProps.actions,
+                    withdrawJoinRequest: jest.fn().mockResolvedValue({error: {message: 'failed'}}),
+                },
+            };
+            const ref = React.createRef<QuickSwitchModalClass>();
+            renderWithContext(
+                <QuickSwitchModalWithRef
+                    {...props}
+                    ref={ref}
+                />,
+            );
+            const instance = ref.current!;
+
+            const channel = {id: 'channel_id', name: 'test', type: Constants.PRIVATE_CHANNEL};
+            const selected = {
+                channel,
+                discoverableNonMember: true,
+                hasPendingJoinRequest: true,
+            };
+
+            await instance.handleSubmit(selected);
+            expect(props.actions.withdrawJoinRequest).toHaveBeenCalledWith(channel.id);
+            expect(props.onExited).not.toHaveBeenCalled();
         });
     });
 

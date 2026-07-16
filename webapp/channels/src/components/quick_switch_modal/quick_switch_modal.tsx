@@ -132,12 +132,17 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
 
             if (selected.discoverableNonMember && selectedChannel?.id) {
                 // Centralized here so both mouse and keyboard (ENTER) selection
-                // request or withdraw consistently, then dismiss the switcher.
+                // request or withdraw consistently.
                 if (selected.hasPendingJoinRequest) {
-                    withdrawJoinRequest(selectedChannel.id);
-                } else {
-                    openRequestJoinModal(selectedChannel);
+                    // Keep the switcher open if the withdraw fails so the error
+                    // isn't silently dismissed and the user can retry.
+                    const result = await withdrawJoinRequest(selectedChannel.id);
+                    if (!('error' in result)) {
+                        this.hideOnSelect();
+                    }
+                    return;
                 }
+                openRequestJoinModal(selectedChannel);
                 this.hideOnSelect();
                 return;
             }
