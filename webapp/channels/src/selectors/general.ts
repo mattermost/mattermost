@@ -39,3 +39,10 @@ export function isChannelAccessControlEnabled(state: GlobalState): boolean {
     // Permission system (MANAGE_CHANNEL_ACCESS_RULES) handles granular access
     return accessControlSettings.EnableAttributeBasedAccessControl;
 }
+
+// Whether the channel access-control attribute indicators (the attribute
+// tags shown in the members RHS and invite modal banners) should be shown to
+// end users. Admins can disable these to avoid leaking policy details.
+export function areChannelAccessControlIndicatorsEnabled(state: GlobalState): boolean {
+    return getAccessControlSettings(state).EnableChannelPolicyIndicators;
+}

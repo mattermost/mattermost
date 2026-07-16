@@ -63,7 +63,8 @@ func (s *stubRemoteClusterService) ReceiveIncomingMsg(rc *model.RemoteCluster, m
 func (s *stubRemoteClusterService) ReceiveInviteConfirmation(invite model.RemoteClusterInvite) (*model.RemoteCluster, error) {
 	return nil, nil
 }
-func (s *stubRemoteClusterService) PingNow(rc *model.RemoteCluster) {}
+func (s *stubRemoteClusterService) PingNow(rc *model.RemoteCluster)  {}
+func (s *stubRemoteClusterService) NotifySyncFailed(remoteId string) {}
 
 var _ remotecluster.RemoteClusterServiceIFace = (*stubRemoteClusterService)(nil)
 
