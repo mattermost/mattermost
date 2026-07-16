@@ -4,13 +4,7 @@
 import type {Client4} from '@mattermost/client';
 import type {Team} from '@mattermost/types/teams';
 
-import {
-    ChannelsPage,
-    expect,
-    extractEmailLink,
-    getRecentEmail,
-    test,
-} from '@mattermost/playwright-lib';
+import {ChannelsPage, expect, extractEmailLink, getRecentEmail, test} from '@mattermost/playwright-lib';
 
 type LockSetting = 'none' | 'name_and_username' | 'all';
 
@@ -29,6 +23,7 @@ test(
     async ({pw, page}) => {
         test.setTimeout(90_000);
 
+        // # Invite and register a member with administrator-provided profile details.
         const {adminUser, adminClient, team} = await pw.initSetup();
         await setLockConfig(adminClient, 'name_and_username');
 
@@ -67,6 +62,7 @@ test(
         expect(createdUser.first_name).toBe('Jane');
         expect(createdUser.last_name).toBe('Doe');
 
+        // * The resulting member cannot edit the managed name or username fields.
         await adminClient.savePreferences(createdUser.id, [
             {user_id: createdUser.id, category: 'tutorial_step', name: createdUser.id, value: '999'},
             {
@@ -102,6 +98,7 @@ test(
     'allows a System Admin to edit locked first and last names from the user detail page',
     {tag: '@locked_profile_fields'},
     async ({pw}) => {
+        // # Edit the locked member's name from the System Console.
         const {user, adminUser, adminClient} = await pw.initSetup();
         await setLockConfig(adminClient, 'name_and_username');
         const newFirstName = `AdminFirst${pw.random.id(5)}`;
@@ -119,6 +116,7 @@ test(
         await userDetail.save();
         await userDetail.saveChangesModal.confirm();
 
+        // * The administrator's changes persist in the UI and API.
         await expect(userDetail.userCard.firstNameInput).toHaveValue(newFirstName);
         await expect(userDetail.userCard.lastNameInput).toHaveValue(newLastName);
         const updatedUser = await adminClient.getUser(user.id);
