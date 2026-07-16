@@ -977,9 +977,13 @@ export const getManageableDiscoverableChannelIds: (state: GlobalState) => string
     'getManageableDiscoverableChannelIds',
     isDiscoverableChannelsEnabled,
     getMyChannels,
-    getMySystemPermissions,
-    getMyPermissionsByTeam,
-    getMyPermissionsByChannel,
+
+    // Wrapped so the roles selectors resolve at call time; referencing them
+    // directly here breaks under the channels <-> roles circular import, where
+    // the imports are still undefined while this module initializes.
+    (state: GlobalState) => getMySystemPermissions(state),
+    (state: GlobalState) => getMyPermissionsByTeam(state),
+    (state: GlobalState) => getMyPermissionsByChannel(state),
     (enabled, channels, systemPermissions, permissionsByTeam, permissionsByChannel): string[] => {
         if (!enabled) {
             return [];
