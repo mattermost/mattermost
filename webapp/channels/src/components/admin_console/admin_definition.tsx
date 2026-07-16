@@ -710,6 +710,13 @@ const AdminDefinition: AdminDefinitionType = {
                                         ),
                                     },
                                 },
+                                {
+                                    type: 'bool',
+                                    key: 'AccessControlSettings.EnableChannelPolicyIndicators',
+                                    label: defineMessage({id: 'admin.accesscontrol.enableChannelPolicyIndicatorsTitle', defaultMessage: 'Show channel access indicators to end users'}),
+                                    help_text: defineMessage({id: 'admin.accesscontrol.enableChannelPolicyIndicatorsDesc', defaultMessage: 'When enabled, channels restricted by a membership access policy display the matching user attributes as tags in the channel members list and the invite dialog. Disable this to avoid revealing policy details to end users.'}),
+                                    isDisabled: it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
+                                },
                             ],
                         },
                     ],

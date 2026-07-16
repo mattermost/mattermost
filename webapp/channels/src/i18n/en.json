@@ -467,6 +467,8 @@
   "admin.access_control.table_editor.values.create_placeholder": "Type to create value",
   "admin.access_control.table_editor.values.select_values": "Select values...",
   "admin.access_control.testResults": "Access Rule Test Results",
+  "admin.accesscontrol.enableChannelPolicyIndicatorsDesc": "When enabled, channels restricted by a membership access policy display the matching user attributes as tags in the channel members list and the invite dialog. Disable this to avoid revealing policy details to end users.",
+  "admin.accesscontrol.enableChannelPolicyIndicatorsTitle": "Show channel access indicators to end users",
   "admin.accesscontrol.enableDesc": "Allow access restrictions based on user attributes using custom access policies. To effectively use this feature, you must define user attributes in the {userAttributes} section.",
   "admin.accesscontrol.enableTitle": "Allow attribute based access controls on this server",
   "admin.accesscontrol.title": "Attribute-Based Access",
