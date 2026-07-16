@@ -344,6 +344,12 @@ func NewServer(options ...Option) (*Server, error) {
 	attrValidationHook := properties.NewAccessControlAttributeValidationHook(s.propertyService, permChecker, cpaGroup.ID)
 	s.propertyService.AddHook(attrValidationHook)
 
+	// Generic property value audit hook — groups opt in with RegisterGroup.
+	// The CPA group registers a content-level audit sink here.
+	valueAuditHook := properties.NewPropertyValueAuditHook()
+	valueAuditHook.RegisterGroup(cpaGroup.ID, app.auditCPAValueChange)
+	s.propertyService.AddHook(valueAuditHook)
+
 	// Field limit hook — enforces per-object-type and global field limits.
 	// Only "user" has a per-type cap today; when channel/team/post CPA fields
 	// are added, set their per-type caps here. Until then

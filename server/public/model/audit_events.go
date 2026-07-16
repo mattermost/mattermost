@@ -152,6 +152,11 @@ const (
 	AuditEventDeleteCPAField = "deleteCPAField" // delete custom profile attribute
 	AuditEventPatchCPAField  = "patchCPAField"  // update custom profile attribute field
 	AuditEventPatchCPAValues = "patchCPAValues" // update custom profile attribute values
+	// AuditEventCPAValueChange is emitted from the common app-layer value write
+	// path for every effective CPA value change, regardless of caller (session,
+	// local admin, plugin owner, or LDAP/SAML sync). It is the single place all
+	// owners converge, capturing the caller ID and acting-as scope.
+	AuditEventCPAValueChange = "cpaValueChange"
 )
 
 // Property Fields
