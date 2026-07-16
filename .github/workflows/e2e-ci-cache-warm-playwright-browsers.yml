@@ -1,0 +1,56 @@
+# Warms the Playwright browsers cache (~/.cache/ms-playwright — the pinned
+# chromium build) from master, once per day.
+name: "E2E Cache Warm: Playwright browsers"
+
+on:
+  schedule:
+    - cron: "0 2 * * *" # Daily 2am UTC — 1 h after the webapp node_modules cache warms
+  workflow_dispatch:
+
+# Keep a manual and scheduled run from racing to save the same key.
+concurrency:
+  group: e2e-ci-cache-warm-playwright-browsers
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: write # required to save the Actions cache
+
+jobs:
+  warm:
+    name: Warm Playwright browsers cache
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - name: ci/restore-playwright-browsers
+        id: cache
+        uses: ./.github/actions/restore-playwright-browsers
+      # Provides the @mattermost/{client,types} targets the playwright install
+      # symlinks to, and the lib rollup.
+      - name: ci/setup-webapp-node-modules
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: ./.github/actions/webapp-setup
+        with:
+          read-only: "true"
+      # node_modules is needed to run `npx playwright install`; skip the browser
+      # download here since the next step fetches chromium.
+      - name: ci/install-playwright
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: e2e-tests/playwright
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+        run: npm ci
+      - name: ci/install-playwright-chromium
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: e2e-tests/playwright
+        run: npx playwright install chromium
+      - name: ci/save-playwright-browsers
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ steps.cache.outputs.key }}

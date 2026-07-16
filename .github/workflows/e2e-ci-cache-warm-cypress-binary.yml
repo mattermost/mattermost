@@ -1,0 +1,48 @@
+# Warms the Cypress binary cache (~/.cache/Cypress) from master, once per day.
+name: "E2E Cache Warm: Cypress binary"
+
+on:
+  schedule:
+    - cron: "0 2 * * *" # Daily 2am UTC — 1 h after the webapp node_modules cache warms
+  workflow_dispatch:
+
+# Keep a manual and scheduled run from racing to save the same key.
+concurrency:
+  group: e2e-ci-cache-warm-cypress-binary
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: write # required to save the Actions cache
+
+jobs:
+  warm:
+    name: Warm Cypress binary cache
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - name: ci/restore-cypress-binary
+        id: cache
+        uses: ./.github/actions/restore-cypress-binary
+      # Provides the @mattermost/{client,types} targets the cypress install
+      # symlinks to.
+      - name: ci/setup-webapp-node-modules
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: ./.github/actions/webapp-setup
+        with:
+          read-only: "true"
+      # npm ci downloads the Cypress binary via postinstall.
+      - name: ci/install-cypress
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: e2e-tests/cypress
+        run: npm ci
+      - name: ci/save-cypress-binary
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: ~/.cache/Cypress
+          key: ${{ steps.cache.outputs.key }}

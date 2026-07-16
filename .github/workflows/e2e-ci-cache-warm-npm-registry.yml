@@ -1,0 +1,61 @@
+# Warms the ~/.npm registry cache from master, once per day.
+#
+# node_modules is deliberately not warmed: it churns per-lockfile, so it's built
+# once per run and passed to workers as a run-scoped artifact instead.
+name: "E2E Cache Warm: npm registry"
+
+on:
+  schedule:
+    - cron: "0 2 * * *" # Daily 2am UTC — 1 h after the webapp node_modules cache warms
+  workflow_dispatch:
+
+# Keep a manual and scheduled run from racing to save the same key.
+concurrency:
+  group: e2e-ci-cache-warm-npm-registry
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: write # required to save the Actions cache
+
+jobs:
+  warm:
+    name: Warm npm registry cache
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - name: ci/restore-npm-cache
+        id: cache
+        uses: ./.github/actions/restore-e2e-npm-cache
+      # Provides the @mattermost/{client,types} targets the e2e installs
+      # symlink to, and the playwright lib rollup.
+      - name: ci/setup-webapp-node-modules
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: ./.github/actions/webapp-setup
+        with:
+          read-only: "true"
+      # ~/.npm is shared and content-addressable, so install every suite into it.
+      - name: ci/install-playwright
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: e2e-tests/playwright
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+        run: npm ci
+      - name: ci/install-cypress
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: e2e-tests/cypress
+        run: npm ci
+      - name: ci/install-api
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: api
+        run: npm ci
+      - name: ci/save-npm-cache
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: ~/.npm
+          key: ${{ steps.cache.outputs.key }}

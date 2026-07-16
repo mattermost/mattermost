@@ -1,0 +1,19 @@
+name: "Unpack Cypress deps artifact"
+description: >
+  Download and extract the run-scoped artifact from pack-cypress-deps, restoring
+  node_modules and the Cypress binary into place.
+
+runs:
+  using: "composite"
+  steps:
+    - name: ci/download-cypress-deps
+      uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+      with:
+        name: e2e-cypress-deps
+        path: ${{ runner.temp }}
+    - name: ci/unpack-cypress-deps
+      shell: bash
+      run: |
+        set -euo pipefail
+        tar -xzf "${RUNNER_TEMP}/cypress-node-modules.tgz" -C "${GITHUB_WORKSPACE}"
+        tar -xzf "${RUNNER_TEMP}/cypress-binary.tgz" -C "${HOME}"

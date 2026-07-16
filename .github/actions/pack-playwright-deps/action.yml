@@ -1,0 +1,23 @@
+name: "Pack Playwright deps artifact"
+description: >
+  Tar the Playwright node_modules + rolled-up lib/dist and the chromium build
+  into a run-scoped artifact.
+
+runs:
+  using: "composite"
+  steps:
+    - name: ci/pack-playwright-deps
+      shell: bash
+      run: |
+        set -euo pipefail
+        tar -czf "${RUNNER_TEMP}/playwright-node-modules.tgz" -C "${GITHUB_WORKSPACE}" e2e-tests/playwright/node_modules e2e-tests/playwright/lib/dist e2e-tests/playwright/lib/node_modules
+        tar -czf "${RUNNER_TEMP}/playwright-browsers.tgz" -C "${HOME}" .cache/ms-playwright
+    - name: ci/upload-playwright-deps
+      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+      with:
+        name: e2e-playwright-deps
+        path: |
+          ${{ runner.temp }}/playwright-node-modules.tgz
+          ${{ runner.temp }}/playwright-browsers.tgz
+        retention-days: 1
+        if-no-files-found: error

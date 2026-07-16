@@ -1,0 +1,22 @@
+name: "Pack Cypress deps artifact"
+description: >
+  Tar the Cypress node_modules and binary into a run-scoped artifact.
+
+runs:
+  using: "composite"
+  steps:
+    - name: ci/pack-cypress-deps
+      shell: bash
+      run: |
+        set -euo pipefail
+        tar -czf "${RUNNER_TEMP}/cypress-node-modules.tgz" -C "${GITHUB_WORKSPACE}" e2e-tests/cypress/node_modules
+        tar -czf "${RUNNER_TEMP}/cypress-binary.tgz" -C "${HOME}" .cache/Cypress
+    - name: ci/upload-cypress-deps
+      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+      with:
+        name: e2e-cypress-deps
+        path: |
+          ${{ runner.temp }}/cypress-node-modules.tgz
+          ${{ runner.temp }}/cypress-binary.tgz
+        retention-days: 1
+        if-no-files-found: error

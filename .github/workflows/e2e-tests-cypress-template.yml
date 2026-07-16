@@ -216,21 +216,20 @@ jobs:
           fetch-depth: 1
       - name: ci/setup-webapp-node-modules
         uses: ./.github/actions/webapp-setup
-      - name: ci/cache-cypress-deps
-        # node_modules + the cypress binary (downloaded to ~/.cache/Cypress by
-        # cypress's postinstall, not into node_modules). Both must be cached;
-        # otherwise workers see "cypress npm package installed but binary missing".
-        id: cache-cypress
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
-          path: |
-            e2e-tests/cypress/node_modules
-            ~/.cache/Cypress
-          key: e2e-cypress-deps-${{ runner.os }}-${{ hashFiles('e2e-tests/cypress/package-lock.json') }}
+          read-only: "true"
+      # Read-only restore of the registry and Cypress binary caches.
+      - name: ci/restore-npm-cache
+        uses: ./.github/actions/restore-e2e-npm-cache
+      - name: ci/restore-cypress-binary
+        uses: ./.github/actions/restore-cypress-binary
+      # Install once here; workers unpack the artifact below instead of each
+      # running npm ci.
       - name: ci/install-cypress-deps
-        if: steps.cache-cypress.outputs.cache-hit != 'true'
         working-directory: e2e-tests/cypress
         run: npm ci
+      - name: ci/pack-cypress-deps
+        uses: ./.github/actions/pack-cypress-deps
 
   # Register the Test System IO run AFTER prep-deps so workers reach
   # dispatch-run within Test System IO's inactivity window.
@@ -317,14 +316,9 @@ jobs:
         uses: ./.github/actions/webapp-setup
         with:
           read-only: "true"
-      - name: ci/restore-cypress-deps
-        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
-        with:
-          path: |
-            e2e-tests/cypress/node_modules
-            ~/.cache/Cypress
-          key: e2e-cypress-deps-${{ runner.os }}-${{ hashFiles('e2e-tests/cypress/package-lock.json') }}
-          fail-on-cache-miss: true
+      # Unpack the deps artifact instead of running npm ci.
+      - name: ci/reuse-cypress-deps
+        uses: ./.github/actions/unpack-cypress-deps
       - name: ci/cloud-init
         working-directory: e2e-tests
         run: make cloud-init
