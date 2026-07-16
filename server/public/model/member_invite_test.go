@@ -139,6 +139,7 @@ func TestMemberInviteIsValid(t *testing.T) {
 			if test.expectedErr == "" {
 				require.Nil(t, appErr)
 			} else {
+				require.NotNil(t, appErr)
 				require.Equal(t, test.expectedErr, appErr.Id)
 			}
 		})

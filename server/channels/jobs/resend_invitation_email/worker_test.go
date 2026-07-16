@@ -52,7 +52,7 @@ func newTestWorker(t *testing.T, app AppIface) *ResendInvitationEmailWorker {
 func TestResendEmailsCarriesProfilesForPendingUsers(t *testing.T) {
 	profiles := []*model.MemberInviteProfile{
 		{Email: "joined@example.com", Username: "joined.user"},
-		{Email: "waiting@example.com", Username: "waiting.user"},
+		{Email: "waiting@example.com", Username: "waiting.user", FirstName: "Waiting", LastName: "User"},
 	}
 	profilesJSON, err := json.Marshal(profiles)
 	require.NoError(t, err)
