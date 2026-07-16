@@ -1842,7 +1842,6 @@ func (a *App) DeleteChannel(rctx request.CTX, channel *model.Channel, userID str
 }
 
 func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
-	// Space backing channels carry real members; allow them through the channel-type guard.
 	if channel.Type != model.ChannelTypeOpen && channel.Type != model.ChannelTypePrivate && !channel.IsSpace() {
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
 	}

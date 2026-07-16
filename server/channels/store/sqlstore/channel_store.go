@@ -43,11 +43,12 @@ var messageChannelTypes = []model.ChannelType{
 	model.ChannelTypeGroup,
 }
 
-// nonMessageBackingChannelTypes is the deny-list applied to queries that cannot filter through
-// the messageChannelTypes allow-list. Adding a type here excludes it from every query that
-// references this var. It currently covers only space; board types are excluded on most surfaces
-// via the messageChannelTypes allow-list and are intentionally not added here, so they are not
-// excluded from these deny-list-only queries.
+// nonMessageBackingChannelTypes is the deny-list for queries that filter by channel ID or
+// team+user rather than by type, so the messageChannelTypes allow-list does not apply to them.
+// A backing channel type must be added here when it writes real posts to the backing channel;
+// otherwise TotalMsgCount grows and the channel generates unread badges and push notifications
+// in the chat UI. Backing channel types that never write posts are already invisible in these
+// queries without an explicit filter and do not need to be listed here.
 var nonMessageBackingChannelTypes = []model.ChannelType{
 	model.ChannelTypeSpace,
 }

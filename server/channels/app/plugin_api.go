@@ -476,7 +476,7 @@ func (api *PluginAPI) CreateChannel(channel *model.Channel) (*model.Channel, *mo
 }
 
 func (api *PluginAPI) DeleteChannel(channelID string) *model.AppError {
-	channel, err := api.getChannelWithSpaceFallback(channelID)
+	channel, err := api.resolveChannel(channelID)
 	if err != nil {
 		return err
 	}
@@ -484,7 +484,7 @@ func (api *PluginAPI) DeleteChannel(channelID string) *model.AppError {
 }
 
 func (api *PluginAPI) RestoreChannel(channelID string) *model.AppError {
-	channel, err := api.getChannelWithSpaceFallback(channelID)
+	channel, err := api.resolveChannel(channelID)
 	if err != nil {
 		return err
 	}
@@ -518,15 +518,13 @@ func (api *PluginAPI) GetChannelOfType(channelID string, channelType model.Chann
 	return api.app.GetChannelOfType(ctx, channelID, channelType)
 }
 
-// getChannelWithSpaceFallback resolves a channel by ID for the mutation methods. The generic
-// lookup excludes opaque space backing channels, so on 404 — and only on 404 — it retries the
-// same ID as a space backing channel, letting a plugin that holds its backing channel's ID
-// manage it through the standard API while reads stay opaque. The 404 retry resolves the space
-// from master (GetChannelOfType reads master for spaces), so the returned channel is already
-// lag-safe; callers that then perform a further read on it — e.g. AddChannelMember's membership
-// check — additionally re-derive a master context via channel.IsSpace().
-func (api *PluginAPI) getChannelWithSpaceFallback(channelID string) (*model.Channel, *model.AppError) {
-	return channelWithSpaceFallback(
+// resolveChannel fetches a channel by ID for plugin API mutation methods. Generic channel
+// lookups exclude opaque backing channel types (e.g. space); on 404 this retries the ID
+// against each known backing type so plugins can manage backing channels through the standard
+// API without a separate resolution step. The retry uses master context to avoid
+// read-after-write misses on lagging replicas.
+func (api *PluginAPI) resolveChannel(channelID string) (*model.Channel, *model.AppError) {
+	return resolveChannelByID(
 		api.ctx,
 		channelID,
 		api.app.GetChannel,
@@ -534,9 +532,9 @@ func (api *PluginAPI) getChannelWithSpaceFallback(channelID string) (*model.Chan
 	)
 }
 
-// channelWithSpaceFallback is the testable core of getChannelWithSpaceFallback.
+// resolveChannelByID is the testable core of resolveChannel.
 // It is a package-level function so tests can inject controlled fetch functions.
-func channelWithSpaceFallback(
+func resolveChannelByID(
 	rctx request.CTX,
 	channelID string,
 	getChannel func(request.CTX, string) (*model.Channel, *model.AppError),
@@ -549,16 +547,13 @@ func channelWithSpaceFallback(
 	if err.StatusCode != http.StatusNotFound {
 		return nil, err
 	}
-	// Plugins commonly create a space and immediately resolve it (add a member, delete, restore),
-	// so read from master to avoid a read-after-write miss against a lagging replica.
-	spaceChannel, spaceErr := getChannelOfType(RequestContextWithMaster(rctx), channelID, model.ChannelTypeSpace)
-	if spaceErr != nil {
-		if spaceErr.StatusCode != http.StatusNotFound {
-			return nil, spaceErr
-		}
-		return nil, err // neither a regular channel nor a space
+	// Generic lookup excludes backing channel types; retry as each known backing type.
+	if spaceChannel, spErr := getChannelOfType(RequestContextWithMaster(rctx), channelID, model.ChannelTypeSpace); spErr == nil {
+		return spaceChannel, nil
+	} else if spErr.StatusCode != http.StatusNotFound {
+		return nil, spErr
 	}
-	return spaceChannel, nil
+	return nil, err
 }
 
 func (api *PluginAPI) GetChannelByName(teamID, name string, includeDeleted bool) (*model.Channel, *model.AppError) {
@@ -688,7 +683,7 @@ func (api *PluginAPI) SearchPostsInTeamForUser(teamID string, userID string, sea
 }
 
 func (api *PluginAPI) AddChannelMember(channelID, userID string) (*model.ChannelMember, *model.AppError) {
-	channel, err := api.getChannelWithSpaceFallback(channelID)
+	channel, err := api.resolveChannel(channelID)
 	if err != nil {
 		return nil, err
 	}
@@ -705,7 +700,7 @@ func (api *PluginAPI) AddChannelMember(channelID, userID string) (*model.Channel
 }
 
 func (api *PluginAPI) AddUserToChannel(channelID, userID, asUserID string) (*model.ChannelMember, *model.AppError) {
-	channel, err := api.getChannelWithSpaceFallback(channelID)
+	channel, err := api.resolveChannel(channelID)
 	if err != nil {
 		return nil, err
 	}
@@ -779,7 +774,7 @@ func (api *PluginAPI) rejectSpaceChannel(channelID string) *model.AppError {
 }
 
 func (api *PluginAPI) DeleteChannelMember(channelID, userID string) *model.AppError {
-	channel, err := api.getChannelWithSpaceFallback(channelID)
+	channel, err := api.resolveChannel(channelID)
 	if err != nil {
 		return err
 	}

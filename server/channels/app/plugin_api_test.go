@@ -4091,8 +4091,8 @@ func TestPluginAPIResolveSpaceChannelNotFound(t *testing.T) {
 	require.Equal(t, http.StatusNotFound, appErr.StatusCode)
 }
 
-func TestChannelWithSpaceFallback(t *testing.T) {
-	// channelWithSpaceFallback has three branches that must be covered:
+func TestResolveChannelByID(t *testing.T) {
+	// resolveChannelByID has three branches that must be covered:
 	//  1. GetChannel succeeds → return that channel (no space lookup).
 	//  2. GetChannel returns 404 AND GetChannelOfType succeeds → return the space.
 	//  3. GetChannel returns a non-404 error → return that error immediately, skip the space lookup.
@@ -4116,7 +4116,7 @@ func TestChannelWithSpaceFallback(t *testing.T) {
 			return nil, model.NewAppError("store.GetChannelOfType", "not_found", nil, "", http.StatusNotFound)
 		}
 
-		got, appErr := channelWithSpaceFallback(ctx, model.NewId(), getChannel, getChannelOfType)
+		got, appErr := resolveChannelByID(ctx, model.NewId(), getChannel, getChannelOfType)
 		require.NotNil(t, appErr)
 		require.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
 		require.Nil(t, got)
@@ -4134,7 +4134,7 @@ func TestChannelWithSpaceFallback(t *testing.T) {
 			return nil, spaceErr
 		}
 
-		got, appErr := channelWithSpaceFallback(ctx, model.NewId(), getChannel, getChannelOfType)
+		got, appErr := resolveChannelByID(ctx, model.NewId(), getChannel, getChannelOfType)
 		require.NotNil(t, appErr)
 		require.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
 		require.Nil(t, got)
@@ -4151,7 +4151,7 @@ func TestChannelWithSpaceFallback(t *testing.T) {
 			return nil, spaceNotFoundErr
 		}
 
-		got, appErr := channelWithSpaceFallback(ctx, model.NewId(), getChannel, getChannelOfType)
+		got, appErr := resolveChannelByID(ctx, model.NewId(), getChannel, getChannelOfType)
 		require.NotNil(t, appErr)
 		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
 		require.Equal(t, notFoundErr, appErr, "should return the original GetChannel error, not the space error")
