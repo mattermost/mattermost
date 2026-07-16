@@ -29,6 +29,7 @@ test('MM-T1434 pasting with Ctrl/Cmd+Shift+V skips Mattermost paste formatting',
     await input.fill('');
     await postCreate.pasteHtml(html, plainText, {withoutFormatting: true});
 
-    // * Verify Mattermost's paste formatting was skipped this time (no markdown table inserted)
+    // * Verify the plain-text fallback was inserted without markdown table formatting
+    await expect(input).toHaveValue(plainText);
     await expect(input).not.toHaveValue(/\|/);
 });

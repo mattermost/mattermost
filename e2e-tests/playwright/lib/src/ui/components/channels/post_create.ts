@@ -235,6 +235,10 @@ export default class ChannelsPostCreate {
      * When `withoutFormatting` is true, a Ctrl+Shift+V keydown is dispatched first to set the
      * app's internal `isNonFormattedPaste` flag (see `advanced_text_editor/use_key_handler.tsx`),
      * which makes the app's paste handler step aside instead of auto-converting the HTML.
+     *
+     * A synthetic (untrusted) paste event never triggers the browser's own default paste, so when
+     * the app steps aside (doesn't call `preventDefault`) the plain-text fallback is inserted here
+     * to mirror what a real, OS-triggered paste would do.
      */
     async pasteHtml(html: string, plainText: string, {withoutFormatting = false}: {withoutFormatting?: boolean} = {}) {
         await expect(this.input).toBeVisible();
@@ -257,9 +261,13 @@ export default class ChannelsPostCreate {
                 const dataTransfer = new DataTransfer();
                 dataTransfer.setData('text/html', html);
                 dataTransfer.setData('text/plain', plainText);
-                el.dispatchEvent(
+                const notCancelled = el.dispatchEvent(
                     new ClipboardEvent('paste', {clipboardData: dataTransfer, bubbles: true, cancelable: true}),
                 );
+
+                if (notCancelled) {
+                    document.execCommand('insertText', false, plainText);
+                }
             },
             {html, plainText, withoutFormatting},
         );
