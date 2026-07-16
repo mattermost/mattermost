@@ -3,6 +3,12 @@ description: >
   Tar the Playwright node_modules + rolled-up lib/dist and the chromium build
   into a run-scoped artifact.
 
+inputs:
+  fips:
+    description: "Whether this is a FIPS-edition run. Scopes the artifact name so the FIPS and non-FIPS invocations in the same workflow run upload distinct artifacts. Must match the unpack step."
+    required: false
+    default: "false"
+
 runs:
   using: "composite"
   steps:
@@ -15,7 +21,7 @@ runs:
     - name: ci/upload-playwright-deps
       uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
       with:
-        name: e2e-playwright-deps
+        name: e2e-playwright-deps${{ inputs.fips == 'true' && '-fips' || '' }}
         path: |
           ${{ runner.temp }}/playwright-node-modules.tgz
           ${{ runner.temp }}/playwright-browsers.tgz

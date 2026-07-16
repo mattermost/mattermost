@@ -230,6 +230,8 @@ jobs:
         run: npm ci
       - name: ci/pack-cypress-deps
         uses: ./.github/actions/pack-cypress-deps
+        with:
+          fips: ${{ inputs.server_edition == 'fips' }}
 
   # Register the Test System IO run AFTER prep-deps so workers reach
   # dispatch-run within Test System IO's inactivity window.
@@ -319,6 +321,8 @@ jobs:
       # Unpack the deps artifact instead of running npm ci.
       - name: ci/reuse-cypress-deps
         uses: ./.github/actions/unpack-cypress-deps
+        with:
+          fips: ${{ inputs.server_edition == 'fips' }}
       - name: ci/cloud-init
         working-directory: e2e-tests
         run: make cloud-init

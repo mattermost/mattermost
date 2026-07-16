@@ -202,6 +202,8 @@ jobs:
         run: npx playwright install chromium
       - name: ci/pack-playwright-deps
         uses: ./.github/actions/pack-playwright-deps
+        with:
+          fips: ${{ inputs.server_edition == 'fips' }}
 
   # Register the Test System IO run AFTER prep-deps so workers reach
   # dispatch-run within Test System IO's inactivity window.
@@ -289,6 +291,8 @@ jobs:
       # Unpack the deps artifact instead of running npm ci.
       - name: ci/reuse-playwright-deps
         uses: ./.github/actions/unpack-playwright-deps
+        with:
+          fips: ${{ inputs.server_edition == 'fips' }}
       # Brings up the stack via Testcontainers in `testcontainers` mode (global setup). Also runs the
       # `setup` project so per-spec dispatches can pass --no-deps and skip plugin-load +
       # server-deployment checks. node_modules, lib/dist, and chromium all come from the artifact.
