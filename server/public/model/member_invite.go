@@ -6,7 +6,6 @@ package model
 import (
 	"encoding/json"
 	"net/http"
-	"strings"
 	"unicode/utf8"
 )
 
@@ -48,13 +47,14 @@ func (i *MemberInvite) IsValid() *AppError {
 		}
 	}
 
+	// Profiles must reference distinct invited emails and use unique usernames, case-insensitively.
 	invitedEmails := make(map[string]struct{}, len(i.Emails))
 	for _, email := range i.Emails {
 		invitedEmails[NormalizeEmail(email)] = struct{}{}
 	}
 
-	profileEmails := make(map[string]struct{}, len(i.Profiles))
-	usernames := make(map[string]struct{}, len(i.Profiles))
+	seenProfileEmails := make(map[string]struct{}, len(i.Profiles))
+	seenUsernames := make(map[string]struct{}, len(i.Profiles))
 	for _, profile := range i.Profiles {
 		if profile == nil {
 			return NewAppError("MemberInvite.IsValid", "model.member.is_valid.profile_nil.app_error", nil, "", http.StatusBadRequest)
@@ -64,29 +64,35 @@ func (i *MemberInvite) IsValid() *AppError {
 		if _, exists := invitedEmails[email]; !exists {
 			return NewAppError("MemberInvite.IsValid", "model.member.is_valid.profile_email.app_error", nil, "email="+profile.Email, http.StatusBadRequest)
 		}
-		if _, exists := profileEmails[email]; exists {
+		if _, exists := seenProfileEmails[email]; exists {
 			return NewAppError("MemberInvite.IsValid", "model.member.is_valid.profile_email_duplicate.app_error", nil, "email="+profile.Email, http.StatusBadRequest)
 		}
-		profileEmails[email] = struct{}{}
+		seenProfileEmails[email] = struct{}{}
 
-		username := strings.ToLower(profile.Username)
+		username := NormalizeUsername(profile.Username)
 		if !IsValidUsername(username) {
 			return NewAppError("MemberInvite.IsValid", "model.member.is_valid.profile_username.app_error", nil, "username="+profile.Username, http.StatusBadRequest)
 		}
-		if _, exists := usernames[username]; exists {
+		if _, exists := seenUsernames[username]; exists {
 			return NewAppError("MemberInvite.IsValid", "model.member.is_valid.profile_username_duplicate.app_error", nil, "username="+profile.Username, http.StatusBadRequest)
 		}
-		usernames[username] = struct{}{}
+		seenUsernames[username] = struct{}{}
 
-		if utf8.RuneCountInString(profile.FirstName) > UserFirstNameMaxRunes {
-			return NewAppError("MemberInvite.IsValid", "model.member.is_valid.profile_first_name.app_error", nil, "email="+profile.Email, http.StatusBadRequest)
-		}
-
-		if utf8.RuneCountInString(profile.LastName) > UserLastNameMaxRunes {
-			return NewAppError("MemberInvite.IsValid", "model.member.is_valid.profile_last_name.app_error", nil, "email="+profile.Email, http.StatusBadRequest)
+		if appErr := validateMemberInviteProfileNames(profile); appErr != nil {
+			return appErr
 		}
 	}
 
+	return nil
+}
+
+func validateMemberInviteProfileNames(profile *MemberInviteProfile) *AppError {
+	if utf8.RuneCountInString(profile.FirstName) > UserFirstNameMaxRunes {
+		return NewAppError("MemberInvite.IsValid", "model.member.is_valid.profile_first_name.app_error", nil, "email="+profile.Email, http.StatusBadRequest)
+	}
+	if utf8.RuneCountInString(profile.LastName) > UserLastNameMaxRunes {
+		return NewAppError("MemberInvite.IsValid", "model.member.is_valid.profile_last_name.app_error", nil, "email="+profile.Email, http.StatusBadRequest)
+	}
 	return nil
 }
 
