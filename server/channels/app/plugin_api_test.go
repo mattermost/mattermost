@@ -3799,6 +3799,45 @@ func TestPluginAPICreateChannelManagedCategory(t *testing.T) {
 	assert.Equal(t, categoryName, mappings[createdChannel.Id])
 }
 
+func TestPluginAPICreateSpaceRequiresEnableDocs(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	th.ConfigStore.SetReadOnlyFF(false)
+	t.Cleanup(func() { th.ConfigStore.SetReadOnlyFF(true) })
+	api := th.SetupPluginAPI()
+
+	newSpace := func() *model.Channel {
+		return &model.Channel{
+			TeamId:      th.BasicTeam.Id,
+			DisplayName: "Space",
+			Name:        "space-" + model.NewId(),
+			Type:        model.ChannelTypeSpace,
+			CreatorId:   th.BasicUser.Id,
+		}
+	}
+
+	t.Run("EnableDocs off: CreateChannel rejects space type", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableDocs = false })
+
+		_, appErr := api.CreateChannel(newSpace())
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+	})
+
+	t.Run("EnableDocs on: CreateChannel allows space type", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableDocs = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableDocs = false })
+
+		space, appErr := api.CreateChannel(newSpace())
+		require.Nil(t, appErr)
+		require.Equal(t, model.ChannelTypeSpace, space.Type)
+		t.Cleanup(func() {
+			require.NoError(t, th.App.Srv().Store().Channel().PermanentDelete(th.Context, space.Id))
+		})
+	})
+}
+
 func TestPluginAPICreateSpaceAndAddMember(t *testing.T) {
 	mainHelper.Parallel(t)
 

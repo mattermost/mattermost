@@ -333,6 +333,28 @@ func TestCreateChannel(t *testing.T) {
 	})
 }
 
+func TestCreateChannelRejectsSpaceType(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	for _, enableDocs := range []bool{false, true} {
+		t.Run(fmt.Sprintf("EnableDocs=%v", enableDocs), func(t *testing.T) {
+			th := SetupConfig(t, func(cfg *model.Config) {
+				cfg.FeatureFlags.EnableDocs = enableDocs
+			}).InitBasic(t)
+
+			space := &model.Channel{
+				DisplayName: "Space",
+				Name:        "space-" + model.NewId(),
+				Type:        model.ChannelTypeSpace,
+				TeamId:      th.BasicTeam.Id,
+			}
+			_, resp, err := th.Client.CreateChannel(context.Background(), space)
+			require.Error(t, err)
+			CheckBadRequestStatus(t, resp)
+		})
+	}
+}
+
 func TestCreateChannelManagedCategory(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
