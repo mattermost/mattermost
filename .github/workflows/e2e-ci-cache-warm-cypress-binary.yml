@@ -3,7 +3,7 @@ name: "E2E Cache Warm: Cypress binary"
 
 on:
   schedule:
-    - cron: "0 2 * * *" # Daily 2am UTC — 1 h after the webapp node_modules cache warms
+    - cron: "0 3 * * *" # Daily 3am UTC — after the webapp (1am) and npm registry (2am) caches warm
   workflow_dispatch:
 
 # Keep a manual and scheduled run from racing to save the same key.
