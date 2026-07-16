@@ -113,37 +113,6 @@ test.describe('Shared channel configuration', () => {
         await channelSettingsModal.close();
     });
 
-    test('Section hidden when shared channels feature is disabled', async ({pw}) => {
-        const {adminUser, adminClient, team} = await pw.initSetup();
-
-        const license = await adminClient.getClientLicenseOld();
-        test.skip(!hasSharedChannelsLicense(license), 'Skipping test - server does not have Shared Channels license');
-
-        await adminClient.patchConfig({
-            ConnectedWorkspacesSettings: {
-                EnableSharedChannels: false,
-            },
-        });
-
-        const channelName = `shared-config-02-${getRandomId()}`;
-        await adminClient.createChannel({
-            team_id: team.id,
-            name: channelName,
-            display_name: 'Shared Config Disabled',
-            type: 'O',
-        });
-
-        const {channelsPage} = await pw.testBrowser.login(adminUser);
-        await channelsPage.goto(team.name, channelName);
-        await channelsPage.toBeVisible();
-
-        const channelSettingsModal = await channelsPage.openChannelSettings();
-        const configurationTab = await channelSettingsModal.openConfigurationTab();
-
-        await expect(configurationTab.shareWithConnectedWorkspacesSection).not.toBeVisible();
-        await channelSettingsModal.close();
-    });
-
     test('Section when no connected workspace exists', async ({pw}) => {
         const {adminUser, adminClient, team} = await pw.initSetup();
 

@@ -17,6 +17,15 @@ cd webapp && make run
 cd server && make run-server
 ```
 
+Shared channel Playwright specs need the inter-cluster services started at **server boot** (patching config via the API later is not enough). Use an enterprise license with Shared Channels and start the server with:
+
+```bash
+export MM_CONNECTEDWORKSPACESSETTINGS_ENABLESHAREDCHANNELS=true
+export MM_CONNECTEDWORKSPACESSETTINGS_ENABLEREMOTECLUSTERSERVICE=true
+export MM_FEATUREFLAGS_ENABLEREMOTECLUSTERSERVICE=true
+cd server && make run-server
+```
+
 **Option 2: Run using Docker (recommended for testing)**
 
 ```bash
