@@ -526,7 +526,23 @@ func (api *PluginAPI) GetChannelOfType(channelID string, channelType model.Chann
 // lag-safe; callers that then perform a further read on it — e.g. AddChannelMember's membership
 // check — additionally re-derive a master context via channel.IsSpace().
 func (api *PluginAPI) getChannelWithSpaceFallback(channelID string) (*model.Channel, *model.AppError) {
-	channel, err := api.app.GetChannel(api.ctx, channelID)
+	return channelWithSpaceFallback(
+		api.ctx,
+		channelID,
+		api.app.GetChannel,
+		api.app.GetChannelOfType,
+	)
+}
+
+// channelWithSpaceFallback is the testable core of getChannelWithSpaceFallback.
+// It is a package-level function so tests can inject controlled fetch functions.
+func channelWithSpaceFallback(
+	rctx request.CTX,
+	channelID string,
+	getChannel func(request.CTX, string) (*model.Channel, *model.AppError),
+	getChannelOfType func(request.CTX, string, model.ChannelType) (*model.Channel, *model.AppError),
+) (*model.Channel, *model.AppError) {
+	channel, err := getChannel(rctx, channelID)
 	if err == nil {
 		return channel, nil
 	}
@@ -535,7 +551,7 @@ func (api *PluginAPI) getChannelWithSpaceFallback(channelID string) (*model.Chan
 	}
 	// Plugins commonly create a space and immediately resolve it (add a member, delete, restore),
 	// so read from master to avoid a read-after-write miss against a lagging replica.
-	spaceChannel, spaceErr := api.app.GetChannelOfType(RequestContextWithMaster(api.ctx), channelID, model.ChannelTypeSpace)
+	spaceChannel, spaceErr := getChannelOfType(RequestContextWithMaster(rctx), channelID, model.ChannelTypeSpace)
 	if spaceErr != nil {
 		if spaceErr.StatusCode != http.StatusNotFound {
 			return nil, spaceErr
