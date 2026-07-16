@@ -1809,10 +1809,10 @@ func TestAccessControlAttributeValidationHook_Owners(t *testing.T) {
 		require.True(t, model.HasPropertyFieldOwners(created))
 	})
 
-	t.Run("does not special-case permission_values for owner-managed fields", func(t *testing.T) {
-		// Owner-managed fields use the same PermissionValues default as any
-		// other field (member for user-object fields). Human value writes are
-		// blocked authoritatively by the property-service hook, not by a pin.
+	t.Run("pins permission_values to sysadmin for owner-managed fields", func(t *testing.T) {
+		// Owner-managed fields pin PermissionValues to sysadmin so that if the
+		// owners list is ever dropped, the field falls back to admin-only
+		// rather than becoming writable by every member.
 		field := &model.PropertyField{
 			GroupID:    group.ID,
 			Name:       "field_" + model.NewId(),
@@ -1826,7 +1826,7 @@ func TestAccessControlAttributeValidationHook_Owners(t *testing.T) {
 		created, createErr := th.service.CreatePropertyField(th.Context, field)
 		require.NoError(t, createErr)
 		require.NotNil(t, created.PermissionValues)
-		assert.Equal(t, model.PermissionLevelMember, *created.PermissionValues)
+		assert.Equal(t, model.PermissionLevelSysadmin, *created.PermissionValues)
 	})
 
 	t.Run("removes an empty owners list", func(t *testing.T) {

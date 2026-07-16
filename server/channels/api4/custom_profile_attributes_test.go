@@ -1939,21 +1939,24 @@ func TestOwnerManagedCPAFieldHumanValueWrites(t *testing.T) {
 	CheckCreatedStatus(t, resp)
 	require.NoError(t, err)
 	require.NotNil(t, created)
-	// Owner-managed fields are not specially pinned: PermissionValues uses the
-	// same default as any user-object field. Human writes are blocked in the
-	// property-service hook (like the ldap/saml sync lock), not via a pin.
+	// Owner-managed fields pin PermissionValues to sysadmin so that if the
+	// owners list is ever dropped, the field stays admin-only instead of
+	// becoming writable by every member. Human writes are additionally blocked
+	// in the property-service hook (like the ldap/saml sync lock).
 	require.NotNil(t, created.PermissionValues)
-	assert.Equal(t, model.PermissionLevelMember, *created.PermissionValues)
+	assert.Equal(t, model.PermissionLevelSysadmin, *created.PermissionValues)
 	require.NotNil(t, created.PermissionField)
 	assert.Equal(t, model.PermissionLevelSysadmin, *created.PermissionField)
 
 	t.Run("member cannot write values on an owner-managed field", func(t *testing.T) {
+		// The sysadmin PermissionValues pin denies the member at the API
+		// permission layer, before reaching the property-service hook.
 		_, resp, err := th.Client.PatchCPAValues(context.Background(), map[string]json.RawMessage{
 			created.ID: json.RawMessage(`"member write"`),
 		})
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "app.property.access_denied.app_error")
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 	})
 
 	t.Run("system admin cannot write own values on an owner-managed field", func(t *testing.T) {

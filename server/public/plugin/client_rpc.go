@@ -227,7 +227,6 @@ func init() {
 	gob.Register(&model.AutocompleteTextArg{})
 	gob.Register(&model.PreviewPost{})
 	gob.Register(model.PropertyOptions[*model.PluginPropertyOption]{})
-	gob.Register(model.PropertyOptions[*model.CustomProfileAttributesSelectOption]{})
 	gob.Register([]model.PropertyOwner{})
 }
 
