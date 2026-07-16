@@ -35,6 +35,11 @@ jobs:
         uses: ./.github/actions/webapp-setup
         with:
           read-only: "true"
+      # Read-only restore of the npm registry cache so the install below doesn't
+      # download every package cold on a binary-cache miss.
+      - name: ci/restore-npm-cache
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: ./.github/actions/restore-e2e-npm-cache
       # npm ci downloads the Cypress binary via postinstall.
       - name: ci/install-cypress
         if: steps.cache.outputs.cache-hit != 'true'
