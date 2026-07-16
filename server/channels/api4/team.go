@@ -1671,7 +1671,7 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
-	graceful, _ := strconv.ParseBool(r.URL.Query().Get("graceful"))
+	graceful := r.URL.Query().Get("graceful") != ""
 
 	c.RequireTeamId()
 	if c.Err != nil {

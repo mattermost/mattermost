@@ -1366,7 +1366,7 @@
             type: string
         - name: graceful
           in: query
-          description: If true, returns an array with both successful invites and errors instead of aborting on the first error. Required when using `profiles`.
+          description: When provided with a non-empty value, returns an array with both successful invites and errors instead of aborting on the first error. Required when using `profiles`.
           required: false
           schema:
             type: boolean
@@ -1398,7 +1398,7 @@
                     profiles:
                       type: array
                       description: |
-                        Profile fields to pre-set on the accounts created from these invitations. Each entry must reference an email present in `emails`. Requires `graceful=true`, an Enterprise license, and locked profile fields to be enabled.
+                        Profile fields to pre-set on the accounts created from these invitations. Each entry must reference an email present in `emails`. Requires a non-empty `graceful` query parameter, an Enterprise license, and locked profile fields to be enabled.
 
                         __Minimum server version__: 11.11
                       items:

@@ -4347,11 +4347,11 @@ func TestInviteUsersToTeamWithProfiles(t *testing.T) {
 		*cfg.TeamSettings.LockProfileFieldsForEmailUsers = model.TeamSettingsLockProfileFieldsNameAndUsername
 	})
 
-	t.Run("rejected when graceful is explicitly false", func(t *testing.T) {
+	t.Run("rejected without graceful mode", func(t *testing.T) {
 		invite := newInvite()
 		inviteJSON, err := json.Marshal(invite)
 		require.NoError(t, err)
-		resp, err := th.Client.DoAPIPost(context.Background(), "/teams/"+th.BasicTeam.Id+"/invite/email?graceful=false", string(inviteJSON))
+		resp, err := th.Client.DoAPIPost(context.Background(), "/teams/"+th.BasicTeam.Id+"/invite/email", string(inviteJSON))
 		require.Error(t, err)
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 		CheckErrorID(t, err, "api.team.invite_members.profiles_graceful.app_error")

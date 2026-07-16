@@ -1563,13 +1563,6 @@ func (a *App) InviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *mod
 }
 
 func (a *App) InviteNewUsersToTeamGracefullyForLocal(rctx request.CTX, memberInvite *model.MemberInvite, team *model.Team, channels []*model.Channel) ([]*model.EmailInviteWithError, *model.AppError) {
-	if !*a.Config().ServiceSettings.EnableEmailInvitations {
-		return nil, model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
-	}
-	if len(memberInvite.Emails) == 0 {
-		return nil, model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.no_one.app_error", nil, "", http.StatusBadRequest)
-	}
-
 	inviteData := email.InviteEmailData{
 		Team:             team,
 		Channels:         channels,
