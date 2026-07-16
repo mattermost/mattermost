@@ -64,28 +64,49 @@ describe('SystemUserDetail', () => {
         await waitFor(() => expect(screen.queryByText('No teams found')).toBeInTheDocument());
     };
 
+    test('should match default snapshot', async () => {
+        const props = defaultProps;
+        const {container} = renderWithContext(<SystemUserDetail {...props}/>);
+
+        await waitForLoadingToFinish();
+
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should match snapshot if MFA is enabled', async () => {
+        const props = {
+            ...defaultProps,
+            mfaEnabled: true,
+        };
+        const {container} = renderWithContext(<SystemUserDetail {...props}/>);
+
+        await waitForLoadingToFinish();
+
+        expect(container).toMatchSnapshot();
+    });
+
     test('should show manage user settings button as activated', async () => {
         const props = {
             ...defaultProps,
             showManageUserSettings: true,
         };
-        renderWithContext(<SystemUserDetail {...props}/>);
+        const {container} = renderWithContext(<SystemUserDetail {...props}/>);
 
         await waitForLoadingToFinish();
 
-        expect(screen.getByRole('button', {name: 'Manage User Settings'})).toBeEnabled();
+        expect(container).toMatchSnapshot();
     });
 
     test('should show manage user settings button as disabled when no license', async () => {
         const props = {
             ...defaultProps,
-            showLockedManageUserSettings: true,
+            showLockedManageUserSettings: false,
         };
-        renderWithContext(<SystemUserDetail {...props}/>);
+        const {container} = renderWithContext(<SystemUserDetail {...props}/>);
 
         await waitForLoadingToFinish();
 
-        expect(screen.getByRole('button', {name: 'Manage User Settings'})).toBeDisabled();
+        expect(container).toMatchSnapshot();
     });
 
     test('should show the activate user button as disabled when user is LDAP', async () => {
@@ -100,14 +121,20 @@ describe('SystemUserDetail', () => {
 
         const activateButton = container.querySelector('button[disabled]');
         expect(activateButton).toHaveTextContent('Deactivate (Managed By LDAP)');
+
+        expect(container).toMatchSnapshot();
     });
 
     test('should not show manage user settings button when user doesn\'t have permission', async () => {
-        renderWithContext(<SystemUserDetail {...defaultProps}/>);
+        const props = {
+            ...defaultProps,
+            showManageUserSettings: false,
+        };
+        const {container} = renderWithContext(<SystemUserDetail {...props}/>);
 
         await waitForLoadingToFinish();
 
-        expect(screen.queryByRole('button', {name: 'Manage User Settings'})).not.toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
     test('should not fetch CPA data if disabled', async () => {
@@ -120,12 +147,14 @@ describe('SystemUserDetail', () => {
             getCustomProfileAttributeFields,
             getCustomProfileAttributeValues,
         };
-        renderWithContext(<SystemUserDetail {...props}/>);
+        const {container} = renderWithContext(<SystemUserDetail {...props}/>);
 
         await waitForLoadingToFinish();
 
         expect(getCustomProfileAttributeFields).not.toHaveBeenCalled();
         expect(getCustomProfileAttributeValues).not.toHaveBeenCalled();
+
+        expect(container).toMatchSnapshot();
     });
 
     describe('change detection', () => {
@@ -151,6 +180,29 @@ describe('SystemUserDetail', () => {
             await userEventInstance.clear(usernameInput);
             await userEventInstance.type(usernameInput, 'newusername');
             expect(defaultProps.setNavigationBlocked).toHaveBeenCalledWith(true);
+        });
+
+        test.each([
+            ['first name', 'Enter first name'],
+            ['last name', 'Enter last name'],
+        ])('should detect %s changes and enable save', async (_fieldName, placeholder) => {
+            const userEventInstance = userEvent.setup();
+            const setNavigationBlocked = jest.fn();
+            renderWithContext(
+                <SystemUserDetail
+                    {...defaultProps}
+                    setNavigationBlocked={setNavigationBlocked}
+                />,
+            );
+
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+
+            const input = screen.getByPlaceholderText(placeholder);
+            await userEventInstance.clear(input);
+            await userEventInstance.type(input, 'New Name');
+
+            expect(screen.getByRole('button', {name: 'Save'})).toBeEnabled();
+            expect(setNavigationBlocked).toHaveBeenCalledWith(true);
         });
     });
 
@@ -220,22 +272,6 @@ describe('SystemUserDetail', () => {
             expect(firstNameInput).toHaveValue('Old First');
             expect(lastNameInput).toHaveValue('Old Last');
             expect(screen.getByRole('button', {name: 'Save'})).toBeDisabled();
-        });
-
-        test('should render provider-managed names as read-only', async () => {
-            renderWithContext(
-                <SystemUserDetail
-                    {...defaultProps}
-                    getUser={getLdapUserMock}
-                />,
-            );
-
-            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
-
-            expect(screen.getByLabelText('First Name')).toBeDisabled();
-            expect(screen.getByLabelText('First Name')).toHaveAttribute('readonly');
-            expect(screen.getByLabelText('Last Name')).toBeDisabled();
-            expect(screen.getByLabelText('Last Name')).toHaveAttribute('readonly');
         });
     });
 

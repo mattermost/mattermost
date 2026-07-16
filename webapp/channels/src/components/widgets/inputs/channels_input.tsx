@@ -14,8 +14,6 @@ import type {
     GroupBase,
     MultiValueRemoveProps,
     SelectComponentsConfig,
-    StylesConfig,
-    MenuProps,
 } from 'react-select';
 import AsyncSelect from 'react-select/async';
 
@@ -28,8 +26,6 @@ import PrivateChannelIcon from 'components/widgets/icons/lock_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {Constants} from 'utils/constants';
-
-import {REACT_SELECT_PORTAL_Z_INDEX, renderReactSelectMenu} from './react_select_utils';
 
 import './channels_input.scss';
 
@@ -45,10 +41,6 @@ type Props<T extends Channel> = {
     loadingMessage?: MessageDescriptor;
     noOptionsMessage?: MessageDescriptor;
     formatOptionLabel?: ComponentProps<typeof AsyncSelect<T>>['formatOptionLabel'];
-
-    // When true, render the autocomplete menu in a portal on document.body so
-    // it is not clipped by overflow parents (e.g. the invite modal body).
-    menuPortal?: boolean;
 };
 
 type State<T> = {
@@ -137,8 +129,6 @@ export default class ChannelsInput<T extends Channel> extends React.PureComponen
         );
     };
 
-    Menu = (props: MenuProps<T, true>) => renderReactSelectMenu(props, Boolean(this.props.menuPortal));
-
     formatOptionLabel = (channel: T) => {
         let icon = <PublicChannelIcon className='public-channel-icon'/>;
         if (channel.type === Constants.PRIVATE_CHANNEL) {
@@ -172,7 +162,6 @@ export default class ChannelsInput<T extends Channel> extends React.PureComponen
         NoOptionsMessage: this.NoOptionsMessage,
         MultiValueRemove: this.MultiValueRemove,
         IndicatorsContainer: () => null,
-        Menu: this.Menu,
     };
 
     onFocus = () => {
@@ -180,13 +169,6 @@ export default class ChannelsInput<T extends Channel> extends React.PureComponen
     };
 
     render() {
-        const styles = this.props.menuPortal ? {
-            menuPortal: (css) => ({
-                ...css,
-                zIndex: REACT_SELECT_PORTAL_Z_INDEX,
-            }),
-        } satisfies StylesConfig<T, true> : undefined;
-
         return (
             <AsyncSelect
                 ref={this.selectRef}
@@ -213,8 +195,6 @@ export default class ChannelsInput<T extends Channel> extends React.PureComponen
                 value={this.props.value}
                 aria-label={this.props.ariaLabel}
                 autoFocus={this.props.autoFocus}
-                styles={styles}
-                menuPortalTarget={this.props.menuPortal && typeof document !== 'undefined' ? document.body : null}
             />
         );
     }

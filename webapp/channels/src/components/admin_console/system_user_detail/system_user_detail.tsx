@@ -52,8 +52,6 @@ import {toTitleCase} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
-import UserNameFields from './user_name_fields';
-
 import type {PropsFromRedux} from './index';
 
 import './system_user_detail.scss';
@@ -586,15 +584,26 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         });
     };
 
-    handleNameChange = (field: 'firstNameField' | 'lastNameField', value: string) => {
-        if (!this.state.user || this.state.user.auth_service) {
+    handleFirstNameChange = (event: ChangeEvent<HTMLInputElement>) => {
+        if (!this.state.user) {
             return;
         }
 
         this.setState({
-            [field]: value,
+            firstNameField: event.target.value,
             error: null, // Clear any errors when user starts editing
-        } as Pick<State, 'firstNameField' | 'lastNameField' | 'error'>);
+        });
+    };
+
+    handleLastNameChange = (event: ChangeEvent<HTMLInputElement>) => {
+        if (!this.state.user) {
+            return;
+        }
+
+        this.setState({
+            lastNameField: event.target.value,
+            error: null, // Clear any errors when user starts editing
+        });
     };
 
     handleAuthDataChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -808,11 +817,12 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                         })}
                     >
                         <input
-                            className='form-control provider-managed-input'
+                            className='form-control'
                             type='text'
                             value={this.state.usernameField}
                             disabled={true}
                             readOnly={true}
+                            style={{cursor: 'not-allowed'}}
                             placeholder={this.props.intl.formatMessage({
                                 id: 'admin.userManagement.userDetail.username.input',
                                 defaultMessage: 'Enter username',
@@ -873,11 +883,12 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                         })}
                     >
                         <input
-                            className='form-control provider-managed-input'
+                            className='form-control'
                             type='text'
                             value={this.state.emailField}
                             disabled={true}
                             readOnly={true}
+                            style={{cursor: 'not-allowed'}}
                         />
                     </WithTooltip>
                 ) : (
@@ -908,6 +919,73 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 )}
             </label>,
         );
+
+        const nameField = (fieldKey: 'firstNameField' | 'lastNameField', label: React.ReactNode, onChange: (event: ChangeEvent<HTMLInputElement>) => void, placeholder: string, maxLength: number) => (
+            <label key={fieldKey}>
+                {label}
+                {this.state.user?.auth_service ? (
+                    <WithTooltip
+                        title={this.props.intl.formatMessage({
+                            id: 'admin.userManagement.userDetail.managedByProvider.title',
+                            defaultMessage: 'Managed by login provider',
+                        })}
+                        hint={this.props.intl.formatMessage({
+                            id: 'admin.userManagement.userDetail.managedByProvider.name',
+                            defaultMessage: 'This name is managed by the {authService} login provider and cannot be changed here.',
+                        }, {
+                            authService: this.state.user.auth_service.toUpperCase(),
+                        })}
+                    >
+                        <input
+                            className='form-control'
+                            type='text'
+                            value={this.state[fieldKey]}
+                            disabled={true}
+                            readOnly={true}
+                            placeholder={placeholder}
+                        />
+                    </WithTooltip>
+                ) : (
+                    <input
+                        className='form-control'
+                        type='text'
+                        value={this.state[fieldKey]}
+                        onChange={onChange}
+                        disabled={this.state.isSaving}
+                        maxLength={maxLength}
+                        placeholder={placeholder}
+                    />
+                )}
+            </label>
+        );
+
+        fields.push(nameField(
+            'firstNameField',
+            <FormattedMessage
+                id='admin.userManagement.userDetail.firstName'
+                defaultMessage='First Name'
+            />,
+            this.handleFirstNameChange,
+            this.props.intl.formatMessage({
+                id: 'admin.userManagement.userDetail.firstName.input',
+                defaultMessage: 'Enter first name',
+            }),
+            Constants.MAX_FIRSTNAME_LENGTH,
+        ));
+
+        fields.push(nameField(
+            'lastNameField',
+            <FormattedMessage
+                id='admin.userManagement.userDetail.lastName'
+                defaultMessage='Last Name'
+            />,
+            this.handleLastNameChange,
+            this.props.intl.formatMessage({
+                id: 'admin.userManagement.userDetail.lastName.input',
+                defaultMessage: 'Enter last name',
+            }),
+            Constants.MAX_LASTNAME_LENGTH,
+        ));
 
         fields.push(
             <label key='authMethod'>
@@ -1011,17 +1089,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 className='two-column-layout'
                 data-testid='twoColumnLayout'
             >
-                {renderFieldRows(fields.slice(0, 2), 'identity-field')}
-                <UserNameFields
-                    intl={this.props.intl}
-                    firstName={this.state.firstNameField}
-                    lastName={this.state.lastNameField}
-                    authService={this.state.user?.auth_service || ''}
-                    disabled={this.state.isSaving}
-                    onFirstNameChange={(value) => this.handleNameChange('firstNameField', value)}
-                    onLastNameChange={(value) => this.handleNameChange('lastNameField', value)}
-                />
-                {renderFieldRows(fields.slice(2), 'account-field')}
+                {renderFieldRows(fields, 'standard-field')}
                 {cpaFields.length > 0 && (
                     <>
                         <div className='cpa-section-divider'>
@@ -1707,9 +1775,9 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             <Button
                                 type='button'
                                 emphasis='tertiary'
-                                className='cancel-button'
                                 onClick={this.handleCancel}
                                 disabled={this.state.isSaving}
+                                style={{marginLeft: '12px'}}
                             >
                                 <FormattedMessage
                                     id='admin.user_item.cancel'

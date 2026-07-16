@@ -6,11 +6,11 @@
 
     &__location--center {
         display: flex;
-        height: 100%;
         align-items: center;
         justify-content: center;
-        padding-bottom: 24px;
+        height: 100%;
         margin-top: 0;
+        padding-bottom: 24px;
 
         .modal-content {
             flex: 1 1 auto;
@@ -19,45 +19,6 @@
 
     &__location--bottom {
         margin-top: calc(50vh + 240px);
-    }
-
-    &.GenericModal--contentSized {
-        pointer-events: none;
-
-        .modal-content {
-            display: flex;
-            overflow: hidden;
-            width: 100%;
-            min-width: 0;
-            max-width: 100%;
-            max-height: 90vh;
-            flex: 0 1 auto;
-            flex-direction: column;
-            align-self: center;
-            pointer-events: auto;
-        }
-
-        .GenericModal__wrapper {
-            display: flex;
-            overflow: hidden;
-            height: auto;
-            min-height: 0;
-            flex: 1 1 auto;
-            flex-direction: column;
-        }
-
-        .modal-header,
-        .modal-footer {
-            flex-shrink: 0;
-        }
-
-        .modal-body {
-            min-height: 0;
-            max-height: none;
-            flex: 1 1 auto;
-            overflow-x: hidden;
-            overflow-y: auto;
-        }
     }
 
     &.modal-overflow {
@@ -72,8 +33,8 @@
 
     .modal-header {
         .GenericModal__header__text_container {
-            width: 100%;
             margin-top: 8px;
+            width: 100%;
 
             .modal-subheading-container {
                 color: rgba(var(--center-channel-color-rgb), 0.75);
@@ -101,9 +62,9 @@
 
             &.form-control--lg {
                 height: 48px;
-                padding-right: 16px;
-                padding-left: 16px;
                 font-size: 16px;
+                padding-left: 16px;
+                padding-right: 16px;
 
                 & + .input-clear {
                     top: 17px;
@@ -174,12 +135,12 @@
                 display: flex;
                 box-sizing: border-box;
                 flex: 1;
+                margin: 0 32px;
                 padding: 14px 16px;
                 border: 1px solid rgba(var(--dnd-indicator-rgb), 0.16);
-                border-radius: var(--radius-s);
-                margin: 0 32px;
                 margin-bottom: 24px;
                 background: rgba(var(--dnd-indicator-rgb), 0.08);
+                border-radius: var(--radius-s);
 
                 span {
                     color: var(--center-channel-color);
@@ -198,16 +159,6 @@
                         margin: 0;
                     }
                 }
-            }
-        }
-    }
-
-    @media screen and (max-width: 768px) {
-        &.GenericModal--contentSized {
-            padding-bottom: 0;
-
-            .modal-content {
-                max-height: 100vh;
             }
         }
     }

@@ -4,8 +4,6 @@
 import {act, render, screen, waitFor} from '@testing-library/react';
 import React from 'react';
 
-import {Button} from '@mattermost/shared/components/button';
-
 import {GenericModal} from './generic_modal';
 
 import {wrapIntl} from '../testUtils';
@@ -38,32 +36,6 @@ describe('GenericModal', () => {
 
         expect(screen.getByText('Confirm')).toBeInTheDocument();
         expect(screen.getByText('Cancel')).toBeInTheDocument();
-    });
-
-    test('renders content-sized chrome with a scrollable body', () => {
-        render(
-            wrapIntl(
-                <GenericModal
-                    {...baseProps}
-                    contentSized={true}
-                    headerClassName='custom-header'
-                    footerClassName='custom-footer'
-                    footerContent={<Button>{'Footer action'}</Button>}
-                >
-                    <div>{'Body content'}</div>
-                </GenericModal>,
-            ),
-        );
-
-        const dialog = screen.getByRole('dialog');
-        expect(dialog.querySelector('.GenericModal')).toHaveClass('GenericModal--contentSized');
-        expect(dialog.querySelectorAll('.modal-header')).toHaveLength(1);
-        expect(dialog.querySelector('.modal-header')).toHaveClass('custom-header');
-        expect(dialog.querySelectorAll('.modal-body')).toHaveLength(1);
-        expect(dialog.querySelectorAll('.modal-footer')).toHaveLength(1);
-        expect(dialog.querySelector('.modal-footer')).toHaveClass('custom-footer');
-        expect(screen.getByText('Body content')).toBeVisible();
-        expect(screen.getByRole('button', {name: 'Footer action'})).toBeVisible();
     });
 
     test('calls onExited when modal exits', async () => {

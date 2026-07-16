@@ -363,57 +363,6 @@ func TestSendInviteEmails(t *testing.T) {
 		require.Equal(t, "Roberts", linkData["last_name"])
 	})
 
-	t.Run("SendInviteEmailsToTeamAndChannels with profiles should put profile fields into token extra and link data", func(t *testing.T) {
-		err := mail.DeleteMailBox(emailTo)
-		require.NoError(t, err, "Failed to delete mailbox")
-
-		profiles := map[string]*model.MemberInviteProfile{
-			emailTo: {
-				Email:     emailTo,
-				Username:  "sam.smith",
-				FirstName: "Sam",
-				LastName:  "Smith",
-			},
-		}
-
-		inviteData := newInviteData()
-		inviteData.Channels = []*model.Channel{th.BasicChannel}
-		inviteData.Profiles = profiles
-		_, err = th.service.SendInviteEmailsToTeamAndChannels(th.Context, inviteData)
-		require.NoError(t, err)
-
-		email := retrieveEmail(t)
-		token := findTokenFromEmail(t, th, email.Body.HTML)
-		tokenData := model.MapFromJSON(strings.NewReader(token.Extra))
-		require.Equal(t, "sam.smith", tokenData["username"])
-		require.Equal(t, "Sam", tokenData["first_name"])
-		require.Equal(t, "Smith", tokenData["last_name"])
-
-		linkData := findLinkDataFromEmail(t, email.Body.HTML)
-		require.Equal(t, "sam.smith", linkData["username"])
-		require.Equal(t, "Sam", linkData["first_name"])
-		require.Equal(t, "Smith", linkData["last_name"])
-	})
-
-	t.Run("SendInviteEmails without profiles should not add profile fields to token extra or link data", func(t *testing.T) {
-		err := mail.DeleteMailBox(emailTo)
-		require.NoError(t, err, "Failed to delete mailbox")
-
-		err = th.service.SendInviteEmails(th.Context, newInviteData())
-		require.NoError(t, err)
-
-		email := retrieveEmail(t)
-		token := findTokenFromEmail(t, th, email.Body.HTML)
-		tokenData := model.MapFromJSON(strings.NewReader(token.Extra))
-		require.NotContains(t, tokenData, "username")
-		require.NotContains(t, tokenData, "first_name")
-		require.NotContains(t, tokenData, "last_name")
-
-		linkData := findLinkDataFromEmail(t, email.Body.HTML)
-		require.NotContains(t, linkData, "username")
-		require.NotContains(t, linkData, "first_name")
-		require.NotContains(t, linkData, "last_name")
-	})
 }
 
 // findSignupQueryFromEmail extracts the signup_user_complete query parameters from an invite email body.

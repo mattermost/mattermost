@@ -1,19 +1,40 @@
-.app__body .modal .InvitationModal.GenericModal__location--center,
-.console__body .modal .InvitationModal.GenericModal__location--center {
-    @media screen and (min-width: 640px) {
-        width: 600px;
-    }
-
-    .InvitationModal__header {
-        align-items: center;
-        padding: 24px 64px 24px 32px;
-
-        .GenericModal__header__text_container {
-            margin-top: 0;
+.InvitationModal {
+    .modal-dialog {
+        @media screen and (min-width: 640px) {
+            position: absolute;
+            width: 600px;
         }
 
-        .modal-title {
-            margin: 0;
+        top: 50%;
+        left: 50%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        margin: auto;
+        transform: translate(-50%, -50%) !important;
+
+    }
+
+    .modal-content {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    &__header {
+        padding-left: 0 !important;
+    }
+
+    &__footer {
+        padding-right: 0 !important;
+    }
+
+    @media screen and (max-width: 768px) {
+        display: flex;
+        max-height: 100%;
+
+        .modal-body {
+            overflow-y: auto !important;
         }
     }
 }

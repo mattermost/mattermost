@@ -25,19 +25,12 @@ type AppIface interface {
 	InviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *model.MemberInvite, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError)
 }
 
-type jobServer interface {
-	Logger() mlog.LoggerIFace
-	HandleJobPanic(logger mlog.LoggerIFace, job *model.Job)
-	SetJobSuccess(job *model.Job) *model.AppError
-	SetJobError(job *model.Job, jobError *model.AppError) *model.AppError
-}
-
 type ResendInvitationEmailWorker struct {
 	name      string
 	stop      chan bool
 	stopped   chan bool
 	jobs      chan model.Job
-	jobServer jobServer
+	jobServer *jobs.JobServer
 	logger    mlog.LoggerIFace
 	app       AppIface
 	store     store.Store
@@ -98,7 +91,8 @@ func (rseworker *ResendInvitationEmailWorker) DoJob(job *model.Job) {
 
 	elapsedTimeSinceSchedule, DurationInMillis := rseworker.GetDurations(job)
 	if elapsedTimeSinceSchedule > DurationInMillis {
-		if !rseworker.ResendEmails(logger, job, "48") {
+		if appErr := rseworker.ResendEmails(logger, job, "48"); appErr != nil {
+			rseworker.setJobError(logger, job, appErr)
 			return
 		}
 		rseworker.TearDown(logger, job)
@@ -138,16 +132,6 @@ func (rseworker *ResendInvitationEmailWorker) cleanChannelsData(channelStringDat
 	}
 
 	return channels, nil
-}
-
-func (rseworker *ResendInvitationEmailWorker) cleanProfilesData(profileStringData string) ([]*model.MemberInviteProfile, error) {
-	profiles := []*model.MemberInviteProfile{}
-	err := json.Unmarshal([]byte(profileStringData), &profiles)
-	if err != nil {
-		return nil, err
-	}
-
-	return profiles, nil
 }
 
 func (rseworker *ResendInvitationEmailWorker) removeAlreadyJoined(teamID string, emailList []string) []string {
@@ -194,7 +178,7 @@ func (rseworker *ResendInvitationEmailWorker) TearDown(logger mlog.LoggerIFace, 
 	rseworker.setJobSuccess(logger, job)
 }
 
-func (rseworker *ResendInvitationEmailWorker) ResendEmails(logger mlog.LoggerIFace, job *model.Job, interval string) bool {
+func (rseworker *ResendInvitationEmailWorker) ResendEmails(logger mlog.LoggerIFace, job *model.Job, interval string) *model.AppError {
 	rctx := request.EmptyContext(logger)
 
 	teamID := job.Data["teamID"]
@@ -204,8 +188,7 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(logger mlog.LoggerIFa
 	if err != nil {
 		appErr := model.NewAppError("worker: "+rseworker.name, "job_id: "+job.Id, nil, "", http.StatusInternalServerError).Wrap(err)
 		logger.Error("Worker: Failed to clean emails string data", mlog.Err(appErr))
-		rseworker.setJobError(logger, job, appErr)
-		return false
+		return appErr
 	}
 
 	var channelList []string
@@ -214,14 +197,13 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(logger mlog.LoggerIFa
 		if err != nil {
 			appErr := model.NewAppError("worker: "+rseworker.name, "job_id: "+job.Id, nil, "", http.StatusInternalServerError).Wrap(err)
 			logger.Error("Worker: Failed to clean channel string data", mlog.Err(appErr))
-			rseworker.setJobError(logger, job, appErr)
-			return false
+			return appErr
 		}
 	}
 
 	emailList = rseworker.removeAlreadyJoined(teamID, emailList)
 	if len(emailList) == 0 {
-		return true
+		return nil
 	}
 
 	memberInvite := model.MemberInvite{
@@ -233,12 +215,11 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(logger mlog.LoggerIFa
 	}
 
 	if profileListData := job.Data["profilesList"]; profileListData != "" {
-		profiles, err := rseworker.cleanProfilesData(profileListData)
-		if err != nil {
+		var profiles []*model.MemberInviteProfile
+		if err := json.Unmarshal([]byte(profileListData), &profiles); err != nil {
 			appErr := model.NewAppError("worker: "+rseworker.name, "job_id: "+job.Id, nil, "", http.StatusInternalServerError).Wrap(err)
 			logger.Error("Worker: Failed to clean profiles string data", mlog.Err(appErr))
-			rseworker.setJobError(logger, job, appErr)
-			return false
+			return appErr
 		}
 
 		remainingEmails := make(map[string]struct{}, len(emailList))
@@ -259,15 +240,13 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(logger mlog.LoggerIFa
 	invitesWithErrors, appErr := rseworker.app.InviteNewUsersToTeamGracefully(rctx, &memberInvite, teamID, job.Data["senderID"], interval)
 	if appErr != nil {
 		logger.Error("Worker: Failed to send emails", mlog.Err(appErr))
-		rseworker.setJobError(logger, job, appErr)
-		return false
+		return appErr
 	}
 	for _, invite := range invitesWithErrors {
 		if invite != nil && invite.Error != nil {
 			logger.Error("Worker: Failed to resend invitation", mlog.String("email", invite.Email), mlog.Err(invite.Error))
-			rseworker.setJobError(logger, job, invite.Error)
-			return false
+			return invite.Error
 		}
 	}
-	return true
+	return nil
 }

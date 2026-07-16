@@ -8,6 +8,9 @@
 }
 
 .MemberProfileInputs {
+    max-height: 40vh;
+    overflow-y: auto;
+
     &__help {
         margin-bottom: 12px;
         color: rgba(var(--center-channel-color-rgb), 0.75);

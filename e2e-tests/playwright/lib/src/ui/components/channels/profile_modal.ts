@@ -4,7 +4,7 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export type ProfileSection = 'name' | 'nickname' | 'username' | 'position' | 'email' | 'picture';
+export type ProfileSection = 'name' | 'username';
 
 export default class ProfileModal {
     readonly container: Locator;
@@ -22,14 +22,7 @@ export default class ProfileModal {
 
     readonly firstNameInput;
     readonly lastNameInput;
-    readonly nicknameInput;
     readonly usernameInput;
-    readonly positionInput;
-    readonly newEmailInput;
-    readonly confirmEmailInput;
-    readonly currentPasswordInput;
-    readonly pictureSelectButton;
-    readonly pictureSaveButton;
     readonly sectionHeadings;
 
     constructor(container: Locator) {
@@ -50,14 +43,7 @@ export default class ProfileModal {
 
         this.firstNameInput = container.getByRole('textbox', {name: 'First Name'});
         this.lastNameInput = container.getByRole('textbox', {name: 'Last Name'});
-        this.nicknameInput = container.getByRole('textbox', {name: 'Nickname'});
         this.usernameInput = container.getByRole('textbox', {name: 'Username'});
-        this.positionInput = container.getByRole('textbox', {name: 'Position'});
-        this.newEmailInput = container.getByRole('textbox', {name: 'New Email'});
-        this.confirmEmailInput = container.getByRole('textbox', {name: 'Confirm Email'});
-        this.currentPasswordInput = container.locator('#currentPassword');
-        this.pictureSelectButton = container.getByTestId('inputSettingPictureButton');
-        this.pictureSaveButton = container.getByTestId('saveSettingPicture');
         this.sectionHeadings = this.profileSettingsTab.container.getByTestId('section-min').getByRole('heading');
     }
 

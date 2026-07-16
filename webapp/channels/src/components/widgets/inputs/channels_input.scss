@@ -76,101 +76,12 @@
         height: inherit;
     }
 
-    .show {
-        display: block;
-    }
-
-    .channels-input__multi-value {
-        align-items: center;
-        padding: 4px;
-        border-radius: 16px;
-        margin: 4px 12px 4px -4px;
-        background: rgba(var(--center-channel-color-rgb), 0.08);
+    .channels-input__menu {
+        margin-top: 0;
+        background: var(--center-channel-bg);
+        box-shadow: 0 0 0 0 hsla(0, 0%, 0%, 0.1), 0 4px 11px hsla(0, 0%, 0%, 0.1);
         color: var(--center-channel-color);
     }
-
-    .channels-input__multi-value__label {
-        display: flex;
-        align-items: center;
-        padding: 0;
-        color: var(--center-channel-color);
-        font-size: 1.2rem;
-
-        .public-channel-icon,
-        .private-channel-icon {
-            display: flex;
-            width: 24px;
-            height: 24px;
-            padding: 4px;
-            border-radius: 16px;
-            margin-right: 4px;
-            background: rgba(var(--center-channel-color-rgb), 0.75);
-        }
-
-        .public-channel-icon {
-            svg {
-                width: 16px;
-                height: 16px;
-                fill: rgba(var(--button-color-rgb), 0.8);
-            }
-        }
-
-        .private-channel-icon {
-            svg {
-                width: 14px;
-                height: 14px;
-                margin: 0 1px;
-                fill: rgba(var(--button-color-rgb), 0.8);
-            }
-        }
-
-        .channel-name {
-            display: none;
-        }
-
-        .selected-hidden {
-            display: none;
-        }
-    }
-
-    .channels-input__multi-value__remove {
-        display: flex;
-        height: 20px;
-        align-items: center;
-        padding: 0px 4px 2px 6px;
-        cursor: pointer;
-
-        span {
-            display: flex;
-            width: 14px;
-            height: 14px;
-        }
-
-        &:hover {
-            background: none;
-        }
-
-        svg {
-            width: 16px;
-            height: 16px;
-            fill: rgba(var(--center-channel-color-rgb), 0.75);
-            opacity: 0.73;
-
-            &:hover {
-                fill: rgba(var(--center-channel-color-rgb), 1);
-            }
-        }
-    }
-}
-
-// Menu is portaled to document.body so these selectors must live outside
-// .ChannelsInput. Nest under __menu for enough specificity to beat
-// react-select's emotion styles (same as the old .ChannelsInput nesting).
-.channels-input__menu {
-    margin-top: 0;
-    background: var(--center-channel-bg);
-    box-shadow: 0 0 0 0 hsla(0, 0%, 0%, 0.1), 0 4px 11px hsla(0, 0%, 0%, 0.1);
-    color: var(--center-channel-color);
 
     .channels-input__menu-list {
         padding: 8px 0;
@@ -253,6 +164,92 @@
 
             &::after {
                 content: ")";
+            }
+        }
+    }
+
+    .show {
+        display: block;
+    }
+
+    .channels-input__multi-value {
+        align-items: center;
+        padding: 4px;
+        border-radius: 16px;
+        margin: 4px 12px 4px -4px;
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: var(--center-channel-color);
+    }
+
+    .channels-input__multi-value__label {
+        display: flex;
+        align-items: center;
+        padding: 0;
+        color: var(--center-channel-color);
+        font-size: 1.2rem;
+
+        .public-channel-icon,
+        .private-channel-icon {
+            display: flex;
+            width: 24px;
+            height: 24px;
+            padding: 4px;
+            border-radius: 16px;
+            margin-right: 4px;
+            background: rgba(var(--center-channel-color-rgb), 0.75);
+        }
+
+        .public-channel-icon {
+            svg {
+                width: 16px;
+                height: 16px;
+                fill: rgba(var(--button-color-rgb), 0.8);
+            }
+        }
+
+        .private-channel-icon {
+            svg {
+                width: 14px;
+                height: 14px;
+                margin: 0 1px;
+                fill: rgba(var(--button-color-rgb), 0.8);
+            }
+        }
+
+        .channel-name {
+            display: none;
+        }
+
+        .selected-hidden {
+            display: none;
+        }
+    }
+
+    .channels-input__multi-value__remove {
+        display: flex;
+        height: 20px;
+        align-items: center;
+        padding: 0px 4px 2px 6px;
+        cursor: pointer;
+
+        span {
+            display: flex;
+            width: 14px;
+            height: 14px;
+        }
+
+        &:hover {
+            background: none;
+        }
+
+        svg {
+            width: 16px;
+            height: 16px;
+            fill: rgba(var(--center-channel-color-rgb), 0.75);
+            opacity: 0.73;
+
+            &:hover {
+                fill: rgba(var(--center-channel-color-rgb), 1);
             }
         }
     }

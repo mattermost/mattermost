@@ -368,6 +368,12 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         }
     }, [emailError, nameError, passwordError, submitClicked]);
 
+    useEffect(() => {
+        if (parsedEmail && parsedUsername) {
+            passwordInput.current?.focus();
+        }
+    }, [parsedEmail, parsedUsername]);
+
     if (loading) {
         return (<LoadingScreen/>);
     }
@@ -776,7 +782,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         onChange={handlePasswordInputOnChange}
                                         disabled={isWaiting}
                                         createMode={true}
-                                        autoFocus={Boolean(parsedEmail && parsedUsername)}
                                         info={passwordInfo as string}
                                         error={passwordError}
                                     />

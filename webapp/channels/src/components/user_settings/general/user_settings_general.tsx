@@ -35,9 +35,6 @@ import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
-import FieldManagedByAdmin from './field_managed_by_admin';
-import {createProfileFieldLockPolicy, type ProfileFieldLockPolicy} from './profile_field_lock_policy';
-
 import SettingDesktopHeader from '../headers/setting_desktop_header';
 import SettingMobileHeader from '../headers/setting_mobile_header';
 
@@ -942,7 +939,30 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         );
     }
 
-    createNameSection = (lockPolicy: ProfileFieldLockPolicy) => {
+    isFieldLockedByAdmin = (field: 'name' | 'username' | 'nickname' | 'position' | 'picture'): boolean => {
+        if (this.props.user.auth_service !== '' || this.props.canEditOtherUsers) {
+            return false;
+        }
+
+        const setting = this.props.lockProfileFieldsForEmailUsers;
+        if (setting === Constants.LOCK_PROFILE_FIELDS.NAME_AND_USERNAME) {
+            return field === 'name' || field === 'username';
+        }
+        return setting === Constants.LOCK_PROFILE_FIELDS.ALL;
+    };
+
+    createFieldManagedByAdminMessage = () => {
+        return (
+            <span>
+                <FormattedMessage
+                    id='user.settings.general.field_locked_by_admin'
+                    defaultMessage='This field is managed by your System Admin. Contact them to request a change.'
+                />
+            </span>
+        );
+    };
+
+    createNameSection = () => {
         const user = this.props.user;
         const {formatMessage} = this.props.intl;
 
@@ -953,6 +973,9 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
             let extraInfo;
             let submit = null;
+            const lockNameFields = this.isFieldLockedByAdmin('name');
+            const firstNameLocked = lockNameFields && user.first_name !== '';
+            const lastNameLocked = lockNameFields && user.last_name !== '';
             if (
                 (this.props.user.auth_service === Constants.LDAP_SERVICE &&
                     (this.props.ldapFirstNameAttributeSet || this.props.ldapLastNameAttributeSet)) ||
@@ -968,8 +991,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         />
                     </span>
                 );
-            } else if (lockPolicy.allNameFieldsLocked) {
-                extraInfo = <FieldManagedByAdmin/>;
+            } else if (firstNameLocked && lastNameLocked) {
+                extraInfo = this.createFieldManagedByAdminMessage();
             } else {
                 inputs.push(
                     <div
@@ -992,7 +1015,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                                 autoFocus={true}
                                 type='text'
                                 onChange={this.updateFirstName}
-                                disabled={lockPolicy.isLocked('firstName')}
+                                disabled={firstNameLocked}
                                 maxLength={Constants.MAX_FIRSTNAME_LENGTH}
                                 value={this.state.firstName}
                                 onFocus={Utils.moveCursorToEnd}
@@ -1022,7 +1045,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                                 name='lastName'
                                 type='text'
                                 onChange={this.updateLastName}
-                                disabled={lockPolicy.isLocked('lastName')}
+                                disabled={lastNameLocked}
                                 maxLength={Constants.MAX_LASTNAME_LENGTH}
                                 value={this.state.lastName}
                                 aria-label={formatMessage({id: 'user.settings.general.lastName', defaultMessage: 'Last Name'})}
@@ -1049,7 +1072,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     </a>
                 );
 
-                extraInfo = lockPolicy.hasLockedNameField ? <FieldManagedByAdmin/> : (
+                // Each empty name may be filled once even when the other name is already locked.
+                extraInfo = firstNameLocked || lastNameLocked ? this.createFieldManagedByAdminMessage() : (
                     <span>
                         <FormattedMessage
                             id='user.settings.general.notificationsExtra'
@@ -1115,7 +1139,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         );
     };
 
-    createNicknameSection = (lockPolicy: ProfileFieldLockPolicy) => {
+    createNicknameSection = () => {
         const user = this.props.user;
         const {formatMessage} = this.props.intl;
 
@@ -1135,8 +1159,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         />
                     </span>
                 );
-            } else if (lockPolicy.isLocked('nickname')) {
-                extraInfo = <FieldManagedByAdmin/>;
+            } else if (this.isFieldLockedByAdmin('nickname')) {
+                extraInfo = this.createFieldManagedByAdminMessage();
             } else {
                 let nicknameLabel: JSX.Element | string = (
                     <FormattedMessage
@@ -1228,7 +1252,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         );
     };
 
-    createUsernameSection = (lockPolicy: ProfileFieldLockPolicy) => {
+    createUsernameSection = () => {
         const {formatMessage} = this.props.intl;
 
         const active = this.props.activeSection === 'username';
@@ -1238,8 +1262,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
             let extraInfo;
             let submit = null;
-            if (lockPolicy.isLocked('username')) {
-                extraInfo = <FieldManagedByAdmin/>;
+            if (this.isFieldLockedByAdmin('username')) {
+                extraInfo = this.createFieldManagedByAdminMessage();
             } else if (this.props.user.auth_service === '') {
                 let usernameLabel: JSX.Element | string = (
                     <FormattedMessage
@@ -1337,7 +1361,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         );
     };
 
-    createPositionSection = (lockPolicy: ProfileFieldLockPolicy) => {
+    createPositionSection = () => {
         const user = this.props.user;
         const {formatMessage} = this.props.intl;
 
@@ -1357,8 +1381,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         />
                     </span>
                 );
-            } else if (lockPolicy.isLocked('position')) {
-                extraInfo = <FieldManagedByAdmin/>;
+            } else if (this.isFieldLockedByAdmin('position')) {
+                extraInfo = this.createFieldManagedByAdminMessage();
             } else {
                 let positionLabel: JSX.Element | string = (
                     <FormattedMessage
@@ -1701,7 +1725,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         return <>{attributeSections}</>;
     };
 
-    createPictureSection = (lockPolicy: ProfileFieldLockPolicy) => {
+    createPictureSection = () => {
         const user = this.props.user;
         const {formatMessage} = this.props.intl;
 
@@ -1723,8 +1747,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         />
                     </span>
                 );
-            } else if (lockPolicy.isLocked('picture')) {
-                helpText = <FieldManagedByAdmin/>;
+            } else if (this.isFieldLockedByAdmin('picture')) {
+                helpText = this.createFieldManagedByAdminMessage();
             } else {
                 submit = this.submitPicture;
                 setDefault = user.last_picture_update > 0 ? this.setDefaultProfilePicture : null;
@@ -1830,14 +1854,13 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
     };
 
     render() {
-        const lockPolicy = createProfileFieldLockPolicy(this.props);
-        const nameSection = this.createNameSection(lockPolicy);
-        const nicknameSection = this.createNicknameSection(lockPolicy);
-        const usernameSection = this.createUsernameSection(lockPolicy);
-        const positionSection = this.createPositionSection(lockPolicy);
+        const nameSection = this.createNameSection();
+        const nicknameSection = this.createNicknameSection();
+        const usernameSection = this.createUsernameSection();
+        const positionSection = this.createPositionSection();
         const emailSection = this.createEmailSection();
         const customAttributeSection = this.createCustomAttributeSection();
-        const pictureSection = this.createPictureSection(lockPolicy);
+        const pictureSection = this.createPictureSection();
 
         return (
             <div

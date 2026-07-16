@@ -14,14 +14,18 @@ import {TestHelper as TH} from 'utils/test_helper';
 import {generateId} from 'utils/utils';
 
 import {InviteType} from './invite_as';
-import InviteView, {InviteViewFooter} from './invite_view';
+import InviteView from './invite_view';
 import type {Props} from './invite_view';
 
 const defaultProps: Props = deepFreeze({
     setInviteAs: jest.fn(),
     inviteType: InviteType.MEMBER,
+    titleClass: 'title',
+
+    invite: jest.fn(),
     onChannelsChange: jest.fn(),
     onChannelsInputChange: jest.fn(),
+    onClose: jest.fn(),
     currentTeam: {} as Team,
     currentChannel: {
         display_name: 'some_channel',
@@ -36,6 +40,8 @@ const defaultProps: Props = deepFreeze({
     isCloud: false,
     emailInvitationsEnabled: true,
     onUsersInputChange: jest.fn(),
+    headerClass: '',
+    footerClass: '',
     canInviteGuests: true,
     canAddUsers: true,
 
@@ -58,24 +64,6 @@ const defaultProps: Props = deepFreeze({
     profiles: {},
     onProfileChange: jest.fn(),
 });
-
-function InviteViewWithFooter({invite = jest.fn(), ...props}: Props & {invite?: () => void}) {
-    return (
-        <>
-            <InviteView {...props}/>
-            <InviteViewFooter
-                currentTeam={props.currentTeam}
-                emailInvitationsEnabled={props.emailInvitationsEnabled}
-                inviteChannels={props.inviteChannels}
-                inviteType={props.inviteType}
-                lockProfileFieldsForEmailUsers={props.lockProfileFieldsForEmailUsers}
-                profiles={props.profiles}
-                usersEmails={props.usersEmails}
-                invite={invite}
-            />
-        </>
-    );
-}
 
 let props = defaultProps;
 
@@ -155,7 +143,7 @@ describe('InviteView', () => {
             const [usersEmailsSearch, setUsersEmailsSearch] = React.useState('');
 
             return (
-                <InviteViewWithFooter
+                <InviteView
                     {...defaultProps}
                     {...overrideProps}
                     usersLoader={usersLoader}
@@ -371,7 +359,7 @@ describe('InviteView', () => {
 
         it('shows the profile inputs when the lock setting is enabled', () => {
             renderWithContext(
-                <InviteViewWithFooter
+                <InviteView
                     {...defaultProps}
                     lockProfileFieldsForEmailUsers='name_and_username'
                     usersEmails={['one@example.com']}
@@ -383,7 +371,7 @@ describe('InviteView', () => {
 
         it('hides the profile inputs when inviting guests', () => {
             renderWithContext(
-                <InviteViewWithFooter
+                <InviteView
                     {...defaultProps}
                     lockProfileFieldsForEmailUsers='name_and_username'
                     inviteType={InviteType.GUEST}
@@ -409,7 +397,7 @@ describe('InviteView', () => {
 
         it('disables invite when a pre-set profile has an invalid username', () => {
             renderWithContext(
-                <InviteViewWithFooter
+                <InviteView
                     {...defaultProps}
                     lockProfileFieldsForEmailUsers='name_and_username'
                     usersEmails={['one@example.com']}
@@ -429,7 +417,7 @@ describe('InviteView', () => {
 
         it('keeps invite enabled when pre-set profiles are empty or valid', () => {
             renderWithContext(
-                <InviteViewWithFooter
+                <InviteView
                     {...defaultProps}
                     lockProfileFieldsForEmailUsers='name_and_username'
                     usersEmails={['one@example.com', 'two@example.com']}

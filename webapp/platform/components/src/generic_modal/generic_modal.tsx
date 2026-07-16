@@ -53,17 +53,10 @@ export type Props = {
     bodyOverflowVisible?: boolean;
     footerContent?: React.ReactNode;
     footerDivider?: boolean;
-    headerClassName?: string;
-    footerClassName?: string;
     appendedContent?: React.ReactNode;
     headerButton?: React.ReactNode;
     showCloseButton?: boolean;
     showHeader?: boolean;
-
-    /**
-     * Caps the content-sized card and scrolls only its body.
-     */
-    contentSized?: boolean;
 
     /**
      * Whether this modal is stacked on top of another modal.
@@ -139,14 +132,11 @@ export const GenericModal: React.FC<Props> = ({
     bodyOverflowVisible,
     footerContent,
     footerDivider,
-    headerClassName,
-    footerClassName,
     appendedContent,
     headerButton,
     dataTestId,
     delayFocusTrap,
     isStacked = false,
-    contentSized = false,
 }) => {
     const intl = useIntl();
 
@@ -300,7 +290,6 @@ export const GenericModal: React.FC<Props> = ({
                 'a11y__modal GenericModal',
                 {
                     GenericModal__compassDesign: compassDesign,
-                    'GenericModal--contentSized': contentSized,
                     'modal--overflow': bodyOverflowVisible,
                 },
                 className,
@@ -325,10 +314,7 @@ export const GenericModal: React.FC<Props> = ({
                 className='GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher'
             >
                 {showHeader && (
-                    <Modal.Header
-                        className={headerClassName}
-                        closeButton={false}
-                    >
+                    <Modal.Header closeButton={false}>
                         <div className='GenericModal__header__text_container'>
                             {compassDesign && (
                                 <>
@@ -375,7 +361,7 @@ export const GenericModal: React.FC<Props> = ({
                     </div>
                 </Modal.Body>
                 {(cancelButtonElement || confirmButtonElement || footerContent) && (
-                    <Modal.Footer className={classNames(footerClassName, {divider: footerDivider})}>
+                    <Modal.Footer className={classNames({divider: footerDivider})}>
                         {(cancelButtonElement || confirmButtonElement) ? (
                             <>
                                 {cancelButtonElement}

@@ -45,158 +45,104 @@ func TestMemberInviteUnmarshalJSON(t *testing.T) {
 }
 
 func TestMemberInviteIsValid(t *testing.T) {
-	validProfile := func() *MemberInviteProfile {
-		return &MemberInviteProfile{
-			Email:     "user1@example.com",
-			Username:  "user.one",
-			FirstName: "User",
-			LastName:  "One",
-		}
-	}
 	validInvite := func() *MemberInvite {
 		return &MemberInvite{
-			Emails:   []string{"user1@example.com"},
-			Profiles: []*MemberInviteProfile{validProfile()},
+			Emails: []string{"user1@example.com"},
+			Profiles: []*MemberInviteProfile{{
+				Email:     "user1@example.com",
+				Username:  "user.one",
+				FirstName: "User",
+				LastName:  "One",
+			}},
 		}
 	}
 
-	t.Run("valid without profiles", func(t *testing.T) {
-		invite := &MemberInvite{Emails: []string{"user1@example.com"}}
-		require.Nil(t, invite.IsValid())
-	})
-
-	t.Run("valid with profiles", func(t *testing.T) {
-		require.Nil(t, validInvite().IsValid())
-	})
-
-	t.Run("no emails", func(t *testing.T) {
-		invite := &MemberInvite{}
-		appErr := invite.IsValid()
-		require.NotNil(t, appErr)
-		require.Equal(t, "model.member.is_valid.emails.app_error", appErr.Id)
-	})
-
-	t.Run("invalid channel id", func(t *testing.T) {
-		invite := &MemberInvite{Emails: []string{"user1@example.com"}, ChannelIds: []string{"junk"}}
-		appErr := invite.IsValid()
-		require.NotNil(t, appErr)
-		require.Equal(t, "model.member.is_valid.channel.app_error", appErr.Id)
-	})
-
-	for name, testCase := range map[string]struct {
-		invite      *MemberInvite
+	tests := []struct {
+		name        string
+		mutate      func(*MemberInvite)
 		expectedErr string
 	}{
-		"case-insensitive matching profile email": {
-			invite: &MemberInvite{
-				Emails: []string{"USER1@EXAMPLE.COM"},
-				Profiles: []*MemberInviteProfile{
-					{Email: "user1@example.com", Username: "user.one"},
-				},
-			},
+		{
+			name:   "valid without profiles",
+			mutate: func(invite *MemberInvite) { invite.Profiles = nil },
 		},
-		"profile email not invited": {
-			invite: &MemberInvite{
-				Emails: []string{"user1@example.com"},
-				Profiles: []*MemberInviteProfile{
-					{Email: "other@example.com", Username: "user.one"},
-				},
-			},
+		{name: "valid with profiles"},
+		{
+			name:        "no emails",
+			mutate:      func(invite *MemberInvite) { invite.Emails = nil },
+			expectedErr: "model.member.is_valid.emails.app_error",
+		},
+		{
+			name:        "invalid channel",
+			mutate:      func(invite *MemberInvite) { invite.ChannelIds = []string{"junk"} },
+			expectedErr: "model.member.is_valid.channel.app_error",
+		},
+		{
+			name:   "case-insensitive profile email",
+			mutate: func(invite *MemberInvite) { invite.Emails[0] = "USER1@EXAMPLE.COM" },
+		},
+		{
+			name:        "profile email not invited",
+			mutate:      func(invite *MemberInvite) { invite.Profiles[0].Email = "other@example.com" },
 			expectedErr: "model.member.is_valid.profile_email.app_error",
 		},
-		"duplicate profile email": {
-			invite: &MemberInvite{
-				Emails: []string{"user1@example.com"},
-				Profiles: []*MemberInviteProfile{
-					{Email: "user1@example.com", Username: "user.one"},
-					{Email: "user1@example.com", Username: "user.two"},
-				},
+		{
+			name: "duplicate profile email",
+			mutate: func(invite *MemberInvite) {
+				invite.Profiles = append(invite.Profiles, &MemberInviteProfile{Email: "USER1@EXAMPLE.COM", Username: "user.two"})
 			},
 			expectedErr: "model.member.is_valid.profile_email_duplicate.app_error",
 		},
-		"case-insensitive duplicate profile email": {
-			invite: &MemberInvite{
-				Emails: []string{"user1@example.com"},
-				Profiles: []*MemberInviteProfile{
-					{Email: "user1@example.com", Username: "user.one"},
-					{Email: "USER1@EXAMPLE.COM", Username: "user.two"},
-				},
-			},
-			expectedErr: "model.member.is_valid.profile_email_duplicate.app_error",
-		},
-		"nil profile": {
-			invite: &MemberInvite{
-				Emails:   []string{"user1@example.com"},
-				Profiles: []*MemberInviteProfile{nil},
-			},
+		{
+			name:        "nil profile",
+			mutate:      func(invite *MemberInvite) { invite.Profiles = []*MemberInviteProfile{nil} },
 			expectedErr: "model.member.is_valid.profile_nil.app_error",
 		},
-		"duplicate usernames": {
-			invite: &MemberInvite{
-				Emails: []string{"user1@example.com", "user2@example.com"},
-				Profiles: []*MemberInviteProfile{
-					{Email: "user1@example.com", Username: "duplicate.user"},
-					{Email: "user2@example.com", Username: "DUPLICATE.USER"},
-				},
+		{
+			name: "duplicate usernames",
+			mutate: func(invite *MemberInvite) {
+				invite.Emails = append(invite.Emails, "user2@example.com")
+				invite.Profiles = append(invite.Profiles, &MemberInviteProfile{Email: "user2@example.com", Username: "USER.ONE"})
 			},
 			expectedErr: "model.member.is_valid.profile_username_duplicate.app_error",
 		},
-	} {
-		t.Run(name, func(t *testing.T) {
-			appErr := testCase.invite.IsValid()
-			if testCase.expectedErr == "" {
-				require.Nil(t, appErr)
-				return
-			}
-			require.NotNil(t, appErr)
-			require.Equal(t, testCase.expectedErr, appErr.Id)
-		})
+		{
+			name:        "invalid username",
+			mutate:      func(invite *MemberInvite) { invite.Profiles[0].Username = "inv@lid" },
+			expectedErr: "model.member.is_valid.profile_username.app_error",
+		},
+		{
+			name:   "uppercase username",
+			mutate: func(invite *MemberInvite) { invite.Profiles[0].Username = "User.One" },
+		},
+		{
+			name: "first name too long",
+			mutate: func(invite *MemberInvite) {
+				invite.Profiles[0].FirstName = strings.Repeat("a", UserFirstNameMaxRunes+1)
+			},
+			expectedErr: "model.member.is_valid.profile_first_name.app_error",
+		},
+		{
+			name:        "last name too long",
+			mutate:      func(invite *MemberInvite) { invite.Profiles[0].LastName = strings.Repeat("a", UserLastNameMaxRunes+1) },
+			expectedErr: "model.member.is_valid.profile_last_name.app_error",
+		},
 	}
 
-	t.Run("invalid username", func(t *testing.T) {
-		invite := validInvite()
-		invite.Profiles[0].Username = "inv@lid"
-		appErr := invite.IsValid()
-		require.NotNil(t, appErr)
-		require.Equal(t, "model.member.is_valid.profile_username.app_error", appErr.Id)
-	})
-
-	t.Run("empty username", func(t *testing.T) {
-		invite := validInvite()
-		invite.Profiles[0].Username = ""
-		appErr := invite.IsValid()
-		require.NotNil(t, appErr)
-		require.Equal(t, "model.member.is_valid.profile_username.app_error", appErr.Id)
-	})
-
-	t.Run("uppercase username is valid after lowercasing", func(t *testing.T) {
-		invite := validInvite()
-		invite.Profiles[0].Username = "User.One"
-		require.Nil(t, invite.IsValid())
-	})
-
-	t.Run("first name too long", func(t *testing.T) {
-		invite := validInvite()
-		invite.Profiles[0].FirstName = strings.Repeat("a", UserFirstNameMaxRunes+1)
-		appErr := invite.IsValid()
-		require.NotNil(t, appErr)
-		require.Equal(t, "model.member.is_valid.profile_first_name.app_error", appErr.Id)
-	})
-
-	t.Run("last name too long", func(t *testing.T) {
-		invite := validInvite()
-		invite.Profiles[0].LastName = strings.Repeat("a", UserLastNameMaxRunes+1)
-		appErr := invite.IsValid()
-		require.NotNil(t, appErr)
-		require.Equal(t, "model.member.is_valid.profile_last_name.app_error", appErr.Id)
-	})
-
-	t.Run("empty names are allowed", func(t *testing.T) {
-		invite := validInvite()
-		invite.Profiles[0].FirstName = ""
-		invite.Profiles[0].LastName = ""
-		require.Nil(t, invite.IsValid())
-	})
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			invite := validInvite()
+			if test.mutate != nil {
+				test.mutate(invite)
+			}
+			appErr := invite.IsValid()
+			if test.expectedErr == "" {
+				require.Nil(t, appErr)
+			} else {
+				require.Equal(t, test.expectedErr, appErr.Id)
+			}
+		})
+	}
 }
 
 func TestMemberInviteAuditable(t *testing.T) {

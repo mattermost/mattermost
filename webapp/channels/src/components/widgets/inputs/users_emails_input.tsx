@@ -7,7 +7,7 @@ import type {RefObject} from 'react';
 import type {MessageDescriptor, IntlShape} from 'react-intl';
 import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
 import {components} from 'react-select';
-import type {FormatOptionLabelMeta, InputActionMeta, InputProps, Options, StylesConfig, SelectInstance, MultiValue, SingleValue, OptionsOrGroups, GroupBase, MultiValueRemoveProps, MenuProps} from 'react-select';
+import type {FormatOptionLabelMeta, InputActionMeta, InputProps, Options, StylesConfig, SelectInstance, MultiValue, SingleValue, OptionsOrGroups, GroupBase, MultiValueRemoveProps} from 'react-select';
 import AsyncCreatable from 'react-select/async-creatable';
 
 import type {UserProfile} from '@mattermost/types/users';
@@ -26,8 +26,6 @@ import GuestTag from 'components/widgets/tag/guest_tag';
 import Avatar from 'components/widgets/users/avatar';
 
 import {getDisplayName, getLongDisplayNameParts, imageURLForUser} from 'utils/utils';
-
-import {REACT_SELECT_PORTAL_Z_INDEX, renderReactSelectMenu} from './react_select_utils';
 
 import './users_emails_input.scss';
 
@@ -51,10 +49,6 @@ type Props = {
     autoFocus?: boolean;
     suppressNoOptionsMessage?: boolean;
     onPaste?: (e: ClipboardEvent) => void;
-
-    // When true, render the autocomplete menu in a portal on document.body so
-    // it is not clipped by overflow parents (e.g. the invite modal body).
-    menuPortal?: boolean;
     intl: IntlShape;
 };
 
@@ -304,8 +298,6 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
         );
     };
 
-    Menu = (props: MenuProps<UserProfile | EmailInvite, true>) => renderReactSelectMenu(props, Boolean(this.props.menuPortal));
-
     private renderAriaLabel = (option: UserProfile | EmailInvite): string => {
         if (!option) {
             return '';
@@ -350,7 +342,6 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
         MultiValueRemove: this.MultiValueRemove,
         IndicatorsContainer: () => null,
         Input: this.Input,
-        Menu: this.Menu,
     };
 
     handleInputChange = async (inputValue: string, action: InputActionMeta) => {
@@ -602,12 +593,6 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
                 ...css,
                 gridTemplateColumns: 'minmax(0, 1fr)',
             }),
-            ...(this.props.menuPortal ? {
-                menuPortal: (css) => ({
-                    ...css,
-                    zIndex: REACT_SELECT_PORTAL_Z_INDEX,
-                }),
-            } : {}),
         } satisfies StylesConfig<UserProfile | EmailInvite, true >;
 
         return (
@@ -643,7 +628,6 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
                     aria-label={this.props.ariaLabel}
                     autoFocus={this.props.autoFocus}
                     styles={styles}
-                    menuPortalTarget={this.props.menuPortal && typeof document !== 'undefined' ? document.body : null}
                 />
                 {this.props.showError && (
                     <div className='InputErrorBox'>

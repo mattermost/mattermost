@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useEffect, useMemo} from 'react';
+import {Modal} from 'react-bootstrap';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
@@ -16,7 +18,7 @@ import useCopyText from 'components/common/hooks/useCopyText';
 import UsersEmailsInput from 'components/widgets/inputs/users_emails_input';
 
 import {Constants} from 'utils/constants';
-import {canPresetMemberInviteProfiles, getEmailsToPreset, getProfileForEmail, profileHasInput} from 'utils/member_invite_profiles';
+import {getEmailsToPreset, getProfileForEmail, profileHasInput} from 'utils/member_invite_profiles';
 import {getSiteURL} from 'utils/url';
 import {isValidUsername} from 'utils/utils';
 
@@ -52,8 +54,10 @@ export type InviteState = {
 
 export type Props = InviteState & {
     setInviteAs: (inviteType: InviteType) => void;
+    invite: () => void;
     onChannelsChange: (channels: Channel[]) => void;
     onChannelsInputChange: (channelsInputValue: string) => void;
+    onClose: () => void;
     currentTeam: Team;
     currentChannel?: Channel;
     setCustomMessage: (message: string) => void;
@@ -66,6 +70,8 @@ export type Props = InviteState & {
     isCloud: boolean;
     emailInvitationsEnabled: boolean;
     onUsersInputChange: (usersEmailsSearch: string) => void;
+    headerClass: string;
+    footerClass: string;
     canInviteGuests: boolean;
     canAddUsers: boolean;
     townSquareDisplayName: string;
@@ -77,115 +83,6 @@ export type Props = InviteState & {
     onProfileChange: (profile: MemberInviteProfile) => void;
 };
 
-type InviteViewFooterProps = Pick<Props,
-    'currentTeam' |
-    'emailInvitationsEnabled' |
-    'inviteChannels' |
-    'inviteType' |
-    'lockProfileFieldsForEmailUsers' |
-    'profiles' |
-    'usersEmails'
-> & {
-    invite: () => void;
-};
-
-export function InviteViewTitle({currentTeam, inviteType}: Pick<Props, 'currentTeam' | 'inviteType'>) {
-    const {formatMessage} = useIntl();
-    const inviteTypeText = inviteType === InviteType.MEMBER ? formatMessage({
-        id: 'invite_modal.people',
-        defaultMessage: 'people',
-    }) : formatMessage({
-        id: 'invite_modal.guests',
-        defaultMessage: 'guests',
-    });
-
-    return (
-        <FormattedMessage
-            id='invite_modal.title'
-            defaultMessage={'Invite {inviteType} to {team_name}'}
-            values={{
-                inviteType: inviteTypeText,
-                team_name: currentTeam.display_name,
-            }}
-        />
-    );
-}
-
-export function InviteViewFooter(props: InviteViewFooterProps) {
-    const {formatMessage} = useIntl();
-    const inviteURL = useMemo(() => {
-        return `${getSiteURL()}/signup_user_complete/?id=${props.currentTeam.invite_id}`;
-    }, [props.currentTeam.invite_id]);
-    const copyText = useCopyText({text: inviteURL});
-    const showMemberProfileInputs = props.inviteType === InviteType.MEMBER &&
-        canPresetMemberInviteProfiles(props.emailInvitationsEnabled, props.lockProfileFieldsForEmailUsers);
-    const arePresetProfilesValid = useMemo(() => {
-        if (!showMemberProfileInputs) {
-            return true;
-        }
-
-        return getEmailsToPreset(props.usersEmails).every((email) => {
-            const profile = getProfileForEmail(props.profiles, email);
-            if (!profile || !profileHasInput(profile)) {
-                return true;
-            }
-            return isValidUsername(profile.username.toLowerCase()) === undefined;
-        });
-    }, [showMemberProfileInputs, props.usersEmails, props.profiles]);
-    const isInviteValid = props.inviteType === InviteType.GUEST ?
-        props.inviteChannels.channels.length > 0 && props.usersEmails.length > 0 :
-        props.usersEmails.length > 0 && arePresetProfilesValid;
-
-    return (
-        <>
-            {props.inviteType === InviteType.MEMBER && (
-                <Button
-                    onClick={copyText.onClick}
-                    data-testid='InviteView__copyInviteLink'
-                    aria-label={
-                        formatMessage({
-                            id: 'invite_modal.copy_link.url_aria',
-                            defaultMessage: 'team invite link {inviteURL}',
-                        }, {inviteURL})
-                    }
-                    emphasis='secondary'
-                    aria-live='polite'
-                >
-                    {!copyText.copiedRecently && (
-                        <>
-                            <i className='icon icon-link-variant'/>
-                            <FormattedMessage
-                                id='invite_modal.copy_link'
-                                defaultMessage='Copy invite link'
-                            />
-                        </>
-                    )}
-                    {copyText.copiedRecently && (
-                        <>
-                            <i className='icon icon-check'/>
-                            <FormattedMessage
-                                id='invite_modal.copied'
-                                defaultMessage='Copied'
-                            />
-                        </>
-                    )}
-                </Button>
-            )}
-            <Button
-                disabled={!isInviteValid}
-                onClick={props.invite}
-                emphasis='primary'
-                data-testid='inviteButton'
-            >
-                <FormattedMessage
-                    id='invite_modal.invite'
-                    defaultMessage='Invite'
-                />
-            </Button>
-        </>
-    );
-}
-
 export default function InviteView(props: Props) {
     useEffect(() => {
         if (!props.currentTeam.invite_id) {
@@ -194,6 +91,48 @@ export default function InviteView(props: Props) {
     }, [props.currentTeam.id, props.currentTeam.invite_id, props.regenerateTeamInviteId]);
 
     const {formatMessage} = useIntl();
+
+    const inviteURL = useMemo(() => {
+        return `${getSiteURL()}/signup_user_complete/?id=${props.currentTeam.invite_id}`;
+    }, [props.currentTeam.invite_id]);
+
+    const copyText = useCopyText({
+        text: inviteURL,
+    });
+
+    const copyButton = (
+        <Button
+            onClick={copyText.onClick}
+            data-testid='InviteView__copyInviteLink'
+            aria-label={
+                formatMessage({
+                    id: 'invite_modal.copy_link.url_aria',
+                    defaultMessage: 'team invite link {inviteURL}',
+                }, {inviteURL})
+            }
+            emphasis='secondary'
+            aria-live='polite'
+        >
+            {!copyText.copiedRecently && (
+                <>
+                    <i className='icon icon-link-variant'/>
+                    <FormattedMessage
+                        id='invite_modal.copy_link'
+                        defaultMessage='Copy invite link'
+                    />
+                </>
+            )}
+            {copyText.copiedRecently && (
+                <>
+                    <i className='icon icon-check'/>
+                    <FormattedMessage
+                        id='invite_modal.copied'
+                        defaultMessage='Copied'
+                    />
+                </>
+            )}
+        </Button>
+    );
 
     const errorProperties = {
         showError: false,
@@ -231,85 +170,158 @@ export default function InviteView(props: Props) {
     }
 
     const showMemberProfileInputs = props.inviteType === InviteType.MEMBER &&
-        canPresetMemberInviteProfiles(props.emailInvitationsEnabled, props.lockProfileFieldsForEmailUsers);
+        props.emailInvitationsEnabled &&
+        props.lockProfileFieldsForEmailUsers !== Constants.LOCK_PROFILE_FIELDS.NONE;
+
+    const arePresetProfilesValid = useMemo(() => {
+        if (!showMemberProfileInputs) {
+            return true;
+        }
+
+        // A row may be left fully empty, but any pre-set fields need a valid username to
+        // pass server-side invite validation.
+        return getEmailsToPreset(props.usersEmails).every((email) => {
+            const profile = getProfileForEmail(props.profiles, email);
+            if (!profile || !profileHasInput(profile)) {
+                return true;
+            }
+            return isValidUsername(profile.username.toLowerCase()) === undefined;
+        });
+    }, [showMemberProfileInputs, props.usersEmails, props.profiles]);
+
+    const isInviteValid = useMemo(() => {
+        if (props.inviteType === InviteType.GUEST) {
+            return props.inviteChannels.channels.length > 0 && props.usersEmails.length > 0;
+        }
+        return props.usersEmails.length > 0 && arePresetProfilesValid;
+    }, [props.inviteType, props.inviteChannels.channels, props.usersEmails, arePresetProfilesValid]);
+
+    const inviteModalPeople = formatMessage({
+        id: 'invite_modal.people',
+        defaultMessage: 'people',
+    });
+
+    const inviteModalGuest = formatMessage({
+        id: 'invite_modal.guests',
+        defaultMessage: 'guests',
+    });
 
     return (
         <>
-            <div className='InviteView__sectionTitle InviteView__sectionTitle--first'>
-                <FormattedMessage
-                    id='invite_modal.to'
-                    defaultMessage='To:'
+            <Modal.Header className={props.headerClass}>
+                <h1
+                    id='invitation_modal_title'
+                    className='modal-title'
+                >
+                    <FormattedMessage
+                        id='invite_modal.title'
+                        defaultMessage={'Invite {inviteType} to {team_name}'}
+                        values={{
+                            inviteType: (
+                                props.inviteType === InviteType.MEMBER ? inviteModalPeople : inviteModalGuest
+                            ),
+                            team_name: props.currentTeam.display_name,
+                        }}
+                    />
+                </h1>
+                <button
+                    id='closeIcon'
+                    className='icon icon-close close'
+                    aria-label='Close'
+                    title='Close'
+                    onClick={props.onClose}
                 />
-            </div>
-            <UsersEmailsInput
-                {...errorProperties}
-                usersLoader={props.usersLoader}
-                placeholder={placeholder}
-                ariaLabel={formatMessage({
-                    id: 'invitation_modal.members.search_and_add.title',
-                    defaultMessage: 'Invite People',
-                })}
-                onChange={(usersEmails: Array<UserProfile | string>) => {
-                    props.onChangeUsersEmails(usersEmails);
-                }}
-                value={props.usersEmails}
-                validAddressMessage={validAddressMessage}
-                noMatchMessage={noMatchMessage}
-                onInputChange={props.onUsersInputChange}
-                inputValue={props.usersEmailsSearch}
-                emailInvitationsEnabled={props.emailInvitationsEnabled}
-                autoFocus={true}
-                onPaste={props.onPaste}
-                menuPortal={true}
-            />
-            {props.canInviteGuests && props.canAddUsers &&
+            </Modal.Header>
+            <Modal.Body className='overflow-visible'>
+                <div className='InviteView__sectionTitle InviteView__sectionTitle--first'>
+                    <FormattedMessage
+                        id='invite_modal.to'
+                        defaultMessage='To:'
+                    />
+                </div>
+                <UsersEmailsInput
+                    {...errorProperties}
+                    usersLoader={props.usersLoader}
+                    placeholder={placeholder}
+                    ariaLabel={formatMessage({
+                        id: 'invitation_modal.members.search_and_add.title',
+                        defaultMessage: 'Invite People',
+                    })}
+                    onChange={(usersEmails: Array<UserProfile | string>) => {
+                        props.onChangeUsersEmails(usersEmails);
+                    }}
+                    value={props.usersEmails}
+                    validAddressMessage={validAddressMessage}
+                    noMatchMessage={noMatchMessage}
+                    onInputChange={props.onUsersInputChange}
+                    inputValue={props.usersEmailsSearch}
+                    emailInvitationsEnabled={props.emailInvitationsEnabled}
+                    autoFocus={true}
+                    onPaste={props.onPaste}
+                />
+                {props.canInviteGuests && props.canAddUsers &&
                 <InviteAs
                     inviteType={props.inviteType}
                     setInviteAs={props.setInviteAs}
                     titleClass='InviteView__sectionTitle'
                     canInviteGuests={props.canInviteGuests}
                 />
-            }
-            {showMemberProfileInputs && (
-                <MemberProfileInputs
-                    usersEmails={props.usersEmails}
-                    profiles={props.profiles}
-                    onProfileChange={props.onProfileChange}
-                />
-            )}
-            {(props.inviteType === InviteType.GUEST || (props.inviteType === InviteType.MEMBER && props.channelToInvite)) && (
-                <AddToChannels
-                    setCustomMessage={props.setCustomMessage}
-                    toggleCustomMessage={props.toggleCustomMessage}
-                    customMessage={props.customMessage}
-                    onChannelsChange={props.onChannelsChange}
-                    onChannelsInputChange={props.onChannelsInputChange}
-                    inviteChannels={props.inviteChannels}
-                    channelsLoader={props.channelsLoader}
-                    currentChannel={props.currentChannel}
-                    townSquareDisplayName={props.townSquareDisplayName}
-                    titleClass='InviteView__sectionTitle'
-                    channelToInvite={props.channelToInvite}
-                    inviteType={props.inviteType}
-                />
-            )}
-            {props.inviteType === InviteType.GUEST && props.canInviteGuestsWithMagicLink && (
-                <div className='InviteView__guestMagicLinkSection'>
-                    <label className='InviteView__guestMagicLinkCheckbox'>
-                        <input
-                            type='checkbox'
-                            checked={props.useGuestMagicLink}
-                            onChange={props.toggleGuestMagicLink}
-                            data-testid='InviteView__guestMagicLinkCheckbox'
-                        />
-                        <FormattedMessage
-                            id='invite_modal.guest_magic_link'
-                            defaultMessage='Allow invited guests to log in with a magic link (without password)'
-                        />
-                    </label>
-                </div>
-            )}
-            <OverageUsersBannerNotice/>
+                }
+                {showMemberProfileInputs && (
+                    <MemberProfileInputs
+                        usersEmails={props.usersEmails}
+                        profiles={props.profiles}
+                        onProfileChange={props.onProfileChange}
+                    />
+                )}
+                {(props.inviteType === InviteType.GUEST || (props.inviteType === InviteType.MEMBER && props.channelToInvite)) && (
+                    <AddToChannels
+                        setCustomMessage={props.setCustomMessage}
+                        toggleCustomMessage={props.toggleCustomMessage}
+                        customMessage={props.customMessage}
+                        onChannelsChange={props.onChannelsChange}
+                        onChannelsInputChange={props.onChannelsInputChange}
+                        inviteChannels={props.inviteChannels}
+                        channelsLoader={props.channelsLoader}
+                        currentChannel={props.currentChannel}
+                        townSquareDisplayName={props.townSquareDisplayName}
+                        titleClass='InviteView__sectionTitle'
+                        channelToInvite={props.channelToInvite}
+                        inviteType={props.inviteType}
+                    />
+                )}
+                {props.inviteType === InviteType.GUEST && props.canInviteGuestsWithMagicLink && (
+                    <div className='InviteView__guestMagicLinkSection'>
+                        <label className='InviteView__guestMagicLinkCheckbox'>
+                            <input
+                                type='checkbox'
+                                checked={props.useGuestMagicLink}
+                                onChange={props.toggleGuestMagicLink}
+                                data-testid='InviteView__guestMagicLinkCheckbox'
+                            />
+                            <FormattedMessage
+                                id='invite_modal.guest_magic_link'
+                                defaultMessage='Allow invited guests to log in with a magic link (without password)'
+                            />
+                        </label>
+                    </div>
+                )}
+                <OverageUsersBannerNotice/>
+            </Modal.Body>
+            <Modal.Footer className={classNames('InviteView__footer', props.footerClass, {'InviteView__footer-guest': props.inviteType === InviteType.GUEST})}>
+                {props.inviteType === InviteType.MEMBER && copyButton}
+                <Button
+                    disabled={!isInviteValid}
+                    onClick={props.invite}
+                    emphasis='primary'
+                    data-testid={'inviteButton'}
+                >
+                    <FormattedMessage
+                        id='invite_modal.invite'
+                        defaultMessage='Invite'
+                    />
+                </Button>
+            </Modal.Footer>
         </>
     );
 }

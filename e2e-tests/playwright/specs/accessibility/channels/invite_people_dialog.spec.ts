@@ -43,7 +43,7 @@ test(
         await expect(modalTitle).toContainText('Invite people to');
 
         // # Get the close button and verify accessibility
-        const closeButton = inviteModal.getByRole('button', {name: 'Close'});
+        const closeButton = inviteModal.locator('button.icon-close');
         await expect(closeButton).toHaveAttribute('aria-label', 'Close');
 
         // # Focus on close button and verify tab navigation works
@@ -67,8 +67,7 @@ test(
         await pw.skipIfNoLicense();
 
         // # Initialize setup
-        const {team, user, adminClient} = await pw.initSetup();
-        const inviteCandidate = await adminClient.createUser(await pw.random.user(), '', '');
+        const {team, user} = await pw.initSetup();
 
         // # Log in as user
         const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -87,22 +86,20 @@ test(
         // * Verify the Invite People modal is visible
         const inviteModal = page.getByTestId('invitationModal');
         await expect(inviteModal).toBeVisible();
-        const inviteInput = inviteModal.getByRole('combobox', {name: 'Invite People'});
-        await inviteInput.pressSequentially(inviteCandidate.username);
-        const listbox = page.getByRole('listbox');
-        await expect(listbox).toBeVisible();
-        await expect(listbox.getByRole('option', {name: new RegExp(inviteCandidate.username)})).toBeVisible();
+        await pw.wait(pw.duration.one_sec);
 
-        // * Verify aria snapshot of Invite People dialog (key structural elements only).
+        // * Verify aria snapshot of Invite People dialog (key structural elements only)
         await expect(inviteModal).toMatchAriaSnapshot(`
-            - dialog /Invite people to .+/:
+            - dialog:
               - document:
-                - heading /Invite people to .+/ [level=1]
-                - button "Close"
+                - heading [level=1]
+                - button
                 - text: "To:"
-                - log: /1 result available for search term .+/
-                - combobox "Invite People" [expanded]: /.+/
-                - button /team invite link .+/
+                - log
+                - text: Add members
+                - combobox "Invite People"
+                - listbox
+                - button
                 - button "Invite" [disabled]
         `);
 
@@ -110,7 +107,6 @@ test(
         const accessibilityScanResults = await axe
             .builder(page, {disableColorContrast: true})
             .include('[data-testid="invitationModal"]')
-            .include('.users-emails-input__menu-portal')
             .analyze();
 
         // * Should have no violations

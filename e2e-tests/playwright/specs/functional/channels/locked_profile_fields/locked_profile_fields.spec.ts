@@ -2,9 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Client4} from '@mattermost/client';
-import type {ServerError} from '@mattermost/types/errors';
 import type {Team} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
 
 import {
     ChannelsPage,
@@ -12,7 +10,6 @@ import {
     extractEmailLink,
     getRecentEmail,
     test,
-    type SystemConsolePage,
 } from '@mattermost/playwright-lib';
 
 type LockSetting = 'none' | 'name_and_username' | 'all';
@@ -23,44 +20,7 @@ test.beforeEach(async ({pw}) => {
 });
 
 /**
- * @objective Verify an email invite with a pre-set username that is already taken fails
- * gracefully in the invite results instead of dead-ending the invitee at signup.
- * @precondition An Enterprise license and email invitations are enabled.
- */
-test(
-    'reports a taken pre-set username in the invite results without sending the invite',
-    {tag: '@locked_profile_fields'},
-    async ({pw}) => {
-        const {user, adminClient, team} = await pw.initSetup();
-        await setLockConfig(adminClient, 'name_and_username');
-
-        // # Create a user that already owns the username about to be pre-set.
-        const existingUser = await adminClient.createUser(await pw.random.user('existing'), '', '');
-
-        // # Invite a new email address and pre-set the taken username.
-        const {channelsPage} = await pw.testBrowser.login(user);
-        const inviteModal = await openInviteModal(channelsPage, team);
-        const invitedEmail = `taken.username@${pw.random.id()}.example.com`;
-        await inviteModal.addEmail(invitedEmail);
-        const profile = inviteModal.getProfileRow(invitedEmail);
-        await profile.usernameInput.fill(existingUser.username);
-        await inviteModal.submitInvites();
-
-        // * The result view lists the email as not sent with the username-conflict reason.
-        const resultModal = await channelsPage.getMembersInvitedModal(team.display_name);
-        await resultModal.toBeVisible();
-        await expect(resultModal.notSentSection).toBeVisible();
-        await expect(resultModal.notSentSection.getByText(invitedEmail)).toBeVisible();
-        await expect(resultModal.notSentSection.getByTestId('invitation-result-reason')).toHaveText(
-            `The username ${existingUser.username} is already taken.`,
-        );
-        await expect(resultModal.sentSection).not.toBeVisible();
-    },
-);
-
-/**
- * @objective Verify an admin-provisioned email invite controls signup data and locks the
- * resulting member profile.
+ * @objective Verify pre-set invite profile data survives email signup and is locked for the new member.
  * @precondition An Enterprise license, Inbucket, and email invitations are available.
  */
 test(
@@ -75,9 +35,7 @@ test(
         const uniqueId = pw.random.id(6);
         const invitedEmail = `new.user@${uniqueId}.example.com`;
         const invitedUsername = `jane.doe.${uniqueId}`;
-        const password = pw.newTestPassword();
 
-        // # Invite a new member through the modal and set the authoritative profile details.
         const {channelsPage: adminChannelsPage} = await pw.testBrowser.login(adminUser);
         const inviteModal = await openInviteModal(adminChannelsPage, team);
         await inviteModal.addEmail(invitedEmail);
@@ -87,35 +45,28 @@ test(
         await profile.usernameInput.fill(invitedUsername);
         const invitationStarted = new Date(Date.now() - 5_000);
         await inviteModal.submitInvites();
-        const resultModal = await adminChannelsPage.getMembersInvitedModal(team.display_name);
-        await resultModal.toBeVisible();
+        await (await adminChannelsPage.getMembersInvitedModal(team.display_name)).toBeVisible();
 
-        // # Retrieve the real invitation from Inbucket and open its signup link logged out.
         const invitationEmail = await getRecentEmail(invitedEmail, {receivedAfter: invitationStarted});
         const signupLink = extractEmailLink(invitationEmail, '/signup_user_complete/');
         await pw.hasSeenLandingPage();
         await pw.signupPage.goto(signupLink);
         await pw.signupPage.toBeVisible();
 
-        // * Signup displays the authoritative username and full name supplied by the admin.
         await expect(pw.signupPage.usernameInput).toHaveValue(invitedUsername);
         await expect(pw.signupPage.usernameInput).toBeDisabled();
         await expect(pw.signupPage.adminChosenUsernameMessage).toBeVisible();
         await expect(pw.signupPage.presetName).toHaveText("You'll join as Jane Doe.");
 
-        // # Complete signup with a password.
-        await pw.signupPage.createInvitedUser(password);
+        await pw.signupPage.createInvitedUser(pw.newTestPassword());
         const channelsPage = new ChannelsPage(page);
         await channelsPage.toBeVisible();
 
-        // * The new member carries the profile values from the invitation.
-        await expect(page).toHaveURL(new RegExp(`/${team.name}/channels/town-square`));
         const createdUser = await adminClient.getUserByEmail(invitedEmail);
         expect(createdUser.username).toBe(invitedUsername);
         expect(createdUser.first_name).toBe('Jane');
         expect(createdUser.last_name).toBe('Doe');
 
-        // # Dismiss first-login guidance so Profile settings can be exercised without an overlay.
         await adminClient.savePreferences(createdUser.id, [
             {user_id: createdUser.id, category: 'tutorial_step', name: createdUser.id, value: '999'},
             {
@@ -128,174 +79,23 @@ test(
         await page.reload();
         await channelsPage.toBeVisible();
 
-        // # Open the new member's profile settings and inspect each protected row.
         const profileModal = await channelsPage.openProfileModal();
         await profileModal.openSection('name');
-
-        // * First and last name are replaced by the admin-managed message and cannot be edited.
         await expect(profileModal.managedByAdminMessage).toBeVisible();
         await expect(profileModal.firstNameInput).not.toBeVisible();
         await expect(profileModal.lastNameInput).not.toBeVisible();
         await expect(profileModal.saveButton).not.toBeVisible();
         await profileModal.closeSection();
 
-        // # Open the username row.
         await profileModal.openSection('username');
-
-        // * Username is also managed by the System Admin with no edit input.
         await expect(profileModal.managedByAdminMessage).toBeVisible();
         await expect(profileModal.usernameInput).not.toBeVisible();
         await expect(profileModal.saveButton).not.toBeVisible();
-        await profileModal.closeSection();
-
-        // # Open the email row.
-        await profileModal.openSection('email');
-
-        // * Email remains editable even while name and username are locked.
-        await expect(profileModal.newEmailInput).toBeVisible();
-        await expect(profileModal.confirmEmailInput).toBeVisible();
-        await expect(profileModal.currentPasswordInput).toBeVisible();
-        await profileModal.closeSection();
-
-        // # Attempt to bypass the UI by changing the member's first name through the API.
-        const {client: invitedUserClient} = await pw.makeClient({username: invitedUsername, password});
-        let updateError: ServerError | undefined;
-        try {
-            await invitedUserClient.patchMe({first_name: 'Changed'});
-        } catch (error) {
-            updateError = error as ServerError;
-        }
-
-        // * The server rejects the protected profile update with HTTP 409.
-        expect(updateError?.status_code).toBe(409);
-        expect((await adminClient.getUser(createdUser.id)).first_name).toBe('Jane');
     },
 );
 
 /**
- * @objective Verify empty first and last names can each be filled once, locking per field as
- * they gain a value and locking the whole section once both are set.
- * @precondition An Enterprise license is available.
- */
-test('locks first and last names per field as each is filled once', {tag: '@locked_profile_fields'}, async ({pw}) => {
-    const {user, adminClient, team} = await pw.initSetup();
-    await adminClient.patchUser({id: user.id, first_name: '', last_name: ''});
-    await setLockConfig(adminClient, 'name_and_username');
-
-    // # Log in as the email user and open the empty Full Name row.
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
-    const profileModal = await channelsPage.openProfileModal();
-    await profileModal.openSection('name');
-
-    // * Both empty names remain fully editable for their first value.
-    await expect(profileModal.firstNameInput).toBeEnabled();
-    await expect(profileModal.lastNameInput).toBeEnabled();
-    await expect(profileModal.managedByAdminMessage).not.toBeVisible();
-
-    // # Fill only the first name and save.
-    await profileModal.firstNameInput.fill('First');
-    await profileModal.saveButton.click();
-    await expect(profileModal.getSectionEditButton('name')).toBeVisible();
-    await expect
-        .poll(async () => {
-            const updatedUser = await adminClient.getUser(user.id);
-            return `${updatedUser.first_name}|${updatedUser.last_name}`;
-        })
-        .toBe('First|');
-
-    // # Reopen the Full Name row now that exactly one name is set.
-    await profileModal.openSection('name');
-
-    // * The saved first name is disabled with the admin-managed explanation while the
-    // * still-empty last name stays editable.
-    await expect(profileModal.firstNameInput).toBeVisible();
-    await expect(profileModal.firstNameInput).toBeDisabled();
-    await expect(profileModal.lastNameInput).toBeEnabled();
-    await expect(profileModal.managedByAdminMessage).toBeVisible();
-
-    // # Fill the remaining last name and save.
-    await profileModal.lastNameInput.fill('Last');
-    await profileModal.saveButton.click();
-    await expect(profileModal.getSectionEditButton('name')).toBeVisible();
-    await expect
-        .poll(async () => {
-            const updatedUser = await adminClient.getUser(user.id);
-            return `${updatedUser.first_name} ${updatedUser.last_name}`;
-        })
-        .toBe('First Last');
-
-    // # Reload and reopen the Full Name row with both names populated.
-    await channelsPage.page.reload();
-    await channelsPage.toBeVisible();
-    const lockedProfileModal = await channelsPage.openProfileModal();
-    await lockedProfileModal.openSection('name');
-
-    // * The fully populated names are now managed by the System Admin with no inputs at all.
-    await expect(lockedProfileModal.managedByAdminMessage).toBeVisible();
-    await expect(lockedProfileModal.firstNameInput).not.toBeVisible();
-    await expect(lockedProfileModal.lastNameInput).not.toBeVisible();
-    await expect(lockedProfileModal.saveButton).not.toBeVisible();
-});
-
-/**
- * @objective Verify the all setting locks nickname and position while leaving email editable.
- * @precondition An Enterprise license is available.
- */
-test(
-    'locks nickname and position with the all setting while keeping email editable',
-    {tag: '@locked_profile_fields'},
-    async ({pw}) => {
-        const {user, adminClient, team} = await pw.initSetup();
-        await adminClient.patchUser({id: user.id, position: 'Engineer'});
-        await setLockConfig(adminClient, 'all');
-
-        // # Log in as the email user and open Profile settings.
-        const {channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
-        const profileModal = await channelsPage.openProfileModal();
-
-        // # Open the populated Nickname row.
-        await profileModal.openSection('nickname');
-
-        // * Nickname shows the admin-managed message without an edit input.
-        await expect(profileModal.managedByAdminMessage).toBeVisible();
-        await expect(profileModal.nicknameInput).not.toBeVisible();
-        await expect(profileModal.saveButton).not.toBeVisible();
-        await profileModal.closeSection();
-
-        // # Open the populated Position row.
-        await profileModal.openSection('position');
-
-        // * Position shows the admin-managed message without an edit input.
-        await expect(profileModal.managedByAdminMessage).toBeVisible();
-        await expect(profileModal.positionInput).not.toBeVisible();
-        await expect(profileModal.saveButton).not.toBeVisible();
-        await profileModal.closeSection();
-
-        // # Open the Email row under the same all setting.
-        await profileModal.openSection('email');
-
-        // * Email retains its normal editing fields.
-        await expect(profileModal.newEmailInput).toBeVisible();
-        await expect(profileModal.confirmEmailInput).toBeVisible();
-        await expect(profileModal.currentPasswordInput).toBeVisible();
-        await profileModal.closeSection();
-
-        // # Open the Profile Picture row.
-        await profileModal.openSection('picture');
-
-        // * The picture shows the admin-managed message without upload or save controls.
-        await expect(profileModal.managedByAdminMessage).toBeVisible();
-        await expect(profileModal.pictureSelectButton).not.toBeVisible();
-        await expect(profileModal.pictureSaveButton).not.toBeVisible();
-    },
-);
-
-/**
- * @objective Verify a System Admin can edit an email user's first and last name while profile locking is enabled.
+ * @objective Verify a System Admin can edit an email user's locked first and last names.
  * @precondition An Enterprise license is available.
  */
 test(
@@ -307,22 +107,18 @@ test(
         const newFirstName = `AdminFirst${pw.random.id(5)}`;
         const newLastName = `AdminLast${pw.random.id(5)}`;
 
-        // # Open the locked email user's System Console detail page as System Admin.
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        await navigateToUserDetail(systemConsolePage, user);
+        await systemConsolePage.page.goto(`/admin_console/user_management/user/${user.id}`);
         const {userDetail} = systemConsolePage.users;
+        await userDetail.toBeVisible();
 
-        // * First and last name remain editable for the exempt System Admin.
         await expect(userDetail.userCard.firstNameInput).toBeEnabled();
         await expect(userDetail.userCard.lastNameInput).toBeEnabled();
-
-        // # Change both names and confirm the save.
         await userDetail.userCard.firstNameInput.fill(newFirstName);
         await userDetail.userCard.lastNameInput.fill(newLastName);
         await userDetail.save();
         await userDetail.saveChangesModal.confirm();
 
-        // * The edited names persist in both the UI and server API.
         await expect(userDetail.userCard.firstNameInput).toHaveValue(newFirstName);
         await expect(userDetail.userCard.lastNameInput).toHaveValue(newLastName);
         const updatedUser = await adminClient.getUser(user.id);
@@ -333,8 +129,6 @@ test(
 
 async function setLockConfig(adminClient: Client4, lockSetting: LockSetting) {
     await adminClient.patchConfig({
-        // Product notices are fetched from an external server and pop up over the
-        // channels view on first login, blocking clicks on the team menu.
         AnnouncementSettings: {AdminNoticesEnabled: false, UserNoticesEnabled: false},
         ServiceSettings: {EnableEmailInvitations: true},
         TeamSettings: {LockProfileFieldsForEmailUsers: lockSetting},
@@ -359,15 +153,4 @@ async function openInviteModal(channelsPage: ChannelsPage, team: Team) {
     const inviteModal = await channelsPage.getInvitePeopleModal(team.display_name);
     await inviteModal.toBeVisible();
     return inviteModal;
-}
-
-async function navigateToUserDetail(systemConsolePage: SystemConsolePage, user: UserProfile) {
-    await systemConsolePage.goto();
-    await systemConsolePage.sidebar.users.click();
-    await systemConsolePage.users.toBeVisible();
-    await systemConsolePage.users.searchUsers(user.email);
-    const userRow = systemConsolePage.users.usersTable.getRowByIndex(0);
-    await expect(userRow.container.getByText(user.email)).toBeVisible();
-    await userRow.container.getByText(user.email).click();
-    await systemConsolePage.users.userDetail.toBeVisible();
 }
