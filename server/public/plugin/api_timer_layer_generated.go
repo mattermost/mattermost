@@ -497,6 +497,20 @@ func (api *apiTimerLayer) DeleteChannel(channelId string) *model.AppError {
 	return _returnsA
 }
 
+func (api *apiTimerLayer) RestoreChannel(channelId string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RestoreChannel(channelId)
+	api.recordTime(startTime, "RestoreChannel", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) GetChannelOfType(channelId string, channelType model.ChannelType) (*model.Channel, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetChannelOfType(channelId, channelType)
+	api.recordTime(startTime, "GetChannelOfType", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) GetPublicChannelsForTeam(teamID string, page, perPage int) ([]*model.Channel, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetPublicChannelsForTeam(teamID, page, perPage)

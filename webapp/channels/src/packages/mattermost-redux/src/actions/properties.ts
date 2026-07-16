@@ -51,7 +51,43 @@ export function fetchPropertyFields(
             data: {fields},
         });
 
+        // Fields are stored keyed by their real group UUID, so expose the
+        // name -> group mapping that consumers use to resolve that id.
+        if (fields.length > 0) {
+            dispatch({
+                type: PropertyTypes.RECEIVED_PROPERTY_GROUP,
+                data: {id: fields[0].group_id, name: groupName},
+            });
+        }
+
         return {data: fields};
+    };
+}
+
+/**
+ * Patches a single property field's attrs and, on success, reconciles the
+ * returned field into the Redux property fields state via an upsert.
+ */
+export function patchPropertyField(
+    groupName: string,
+    objectType: string,
+    fieldId: string,
+    patch: Partial<PropertyField> & Record<string, unknown>,
+): ActionFuncAsync<PropertyField> {
+    return async (dispatch) => {
+        let field: PropertyField;
+        try {
+            field = await Client4.patchPropertyField(groupName, objectType, fieldId, patch);
+        } catch (error) {
+            return {error};
+        }
+
+        dispatch({
+            type: PropertyTypes.RECEIVED_PROPERTY_FIELDS,
+            data: {fields: [field]},
+        });
+
+        return {data: field};
     };
 }
 

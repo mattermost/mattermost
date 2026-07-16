@@ -1563,6 +1563,38 @@ func (_m *API) GetChannelMembersForUser(teamID string, userID string, page int, 
 	return r0, r1
 }
 
+// GetChannelOfType provides a mock function with given fields: channelId, channelType
+func (_m *API) GetChannelOfType(channelId string, channelType model.ChannelType) (*model.Channel, *model.AppError) {
+	ret := _m.Called(channelId, channelType)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetChannelOfType")
+	}
+
+	var r0 *model.Channel
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, model.ChannelType) (*model.Channel, *model.AppError)); ok {
+		return rf(channelId, channelType)
+	}
+	if rf, ok := ret.Get(0).(func(string, model.ChannelType) *model.Channel); ok {
+		r0 = rf(channelId, channelType)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Channel)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, model.ChannelType) *model.AppError); ok {
+		r1 = rf(channelId, channelType)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetChannelSidebarCategories provides a mock function with given fields: userID, teamID
 func (_m *API) GetChannelSidebarCategories(userID string, teamID string) (*model.OrderedSidebarCategories, *model.AppError) {
 	ret := _m.Called(userID, teamID)
@@ -4878,6 +4910,26 @@ func (_m *API) RequestTrialLicense(requesterID string, users int, termsAccepted 
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(string, int, bool, bool) *model.AppError); ok {
 		r0 = rf(requesterID, users, termsAccepted, receiveEmailsAccepted)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// RestoreChannel provides a mock function with given fields: channelId
+func (_m *API) RestoreChannel(channelId string) *model.AppError {
+	ret := _m.Called(channelId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RestoreChannel")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(channelId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)

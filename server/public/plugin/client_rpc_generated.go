@@ -4194,6 +4194,64 @@ func (s *apiRPCServer) DeleteChannel(args *Z_DeleteChannelArgs, returns *Z_Delet
 	return nil
 }
 
+type Z_RestoreChannelArgs struct {
+	A string
+}
+
+type Z_RestoreChannelReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) RestoreChannel(channelId string) *model.AppError {
+	_args := &Z_RestoreChannelArgs{channelId}
+	_returns := &Z_RestoreChannelReturns{}
+	if err := g.client.Call("Plugin.RestoreChannel", _args, _returns); err != nil {
+		log.Printf("RPC call to RestoreChannel API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) RestoreChannel(args *Z_RestoreChannelArgs, returns *Z_RestoreChannelReturns) error {
+	if hook, ok := s.impl.(interface {
+		RestoreChannel(channelId string) *model.AppError
+	}); ok {
+		returns.A = hook.RestoreChannel(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API RestoreChannel called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetChannelOfTypeArgs struct {
+	A string
+	B model.ChannelType
+}
+
+type Z_GetChannelOfTypeReturns struct {
+	A *model.Channel
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetChannelOfType(channelId string, channelType model.ChannelType) (*model.Channel, *model.AppError) {
+	_args := &Z_GetChannelOfTypeArgs{channelId, channelType}
+	_returns := &Z_GetChannelOfTypeReturns{}
+	if err := g.client.Call("Plugin.GetChannelOfType", _args, _returns); err != nil {
+		log.Printf("RPC call to GetChannelOfType API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetChannelOfType(args *Z_GetChannelOfTypeArgs, returns *Z_GetChannelOfTypeReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetChannelOfType(channelId string, channelType model.ChannelType) (*model.Channel, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetChannelOfType(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API GetChannelOfType called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetPublicChannelsForTeamArgs struct {
 	A string
 	B int

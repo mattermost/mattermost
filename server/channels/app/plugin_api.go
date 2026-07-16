@@ -467,7 +467,8 @@ func (api *PluginAPI) GetLDAPUserAttributes(userID string, attributes []string) 
 
 func (api *PluginAPI) CreateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
 	UseAnonymousURLs := model.SafeDereference(api.app.Config().PrivacySettings.UseAnonymousURLs) && model.MinimumEnterpriseAdvancedLicense(api.app.License())
-	if !channel.IsGroupOrDirect() && UseAnonymousURLs {
+	// Space backing channels have system-assigned names, not user-visible URLs — anonymous-URL scrambling does not apply.
+	if !channel.IsGroupOrDirect() && !channel.IsSpace() && UseAnonymousURLs {
 		channel.Name = model.NewId()
 	}
 
@@ -475,11 +476,20 @@ func (api *PluginAPI) CreateChannel(channel *model.Channel) (*model.Channel, *mo
 }
 
 func (api *PluginAPI) DeleteChannel(channelID string) *model.AppError {
-	channel, err := api.app.GetChannel(api.ctx, channelID)
+	channel, err := api.resolveChannel(channelID)
 	if err != nil {
 		return err
 	}
 	return api.app.DeleteChannel(api.ctx, channel, "")
+}
+
+func (api *PluginAPI) RestoreChannel(channelID string) *model.AppError {
+	channel, err := api.resolveChannel(channelID)
+	if err != nil {
+		return err
+	}
+	_, err = api.app.RestoreChannel(api.ctx, channel, "")
+	return err
 }
 
 func (api *PluginAPI) GetPublicChannelsForTeam(teamID string, page, perPage int) ([]*model.Channel, *model.AppError) {
@@ -492,6 +502,58 @@ func (api *PluginAPI) GetPublicChannelsForTeam(teamID string, page, perPage int)
 
 func (api *PluginAPI) GetChannel(channelID string) (*model.Channel, *model.AppError) {
 	return api.app.GetChannel(api.ctx, channelID)
+}
+
+// GetChannelOfType resolves a channel by ID, requiring it to be of the given type. Generic
+// GetChannel excludes opaque backing channel types (e.g. space); plugins that manage such a
+// channel resolve it by its exact type here.
+func (api *PluginAPI) GetChannelOfType(channelID string, channelType model.ChannelType) (*model.Channel, *model.AppError) {
+	ctx := api.ctx
+	// Opaque backing types (e.g. space) are uncached and created without waiting for replica
+	// replication, so a plugin resolving one immediately after creating it could miss it on a
+	// lagging replica; read those from master. Cached message-bearing types stay on the replica.
+	if channelType == model.ChannelTypeSpace {
+		ctx = RequestContextWithMaster(api.ctx)
+	}
+	return api.app.GetChannelOfType(ctx, channelID, channelType)
+}
+
+// resolveChannel fetches a channel by ID for plugin API mutation methods. Generic channel
+// lookups exclude opaque backing channel types (e.g. space); on 404 this retries the ID
+// against each known backing type so plugins can manage backing channels through the standard
+// API without a separate resolution step. The retry uses master context to avoid
+// read-after-write misses on lagging replicas.
+func (api *PluginAPI) resolveChannel(channelID string) (*model.Channel, *model.AppError) {
+	return resolveChannelByID(
+		api.ctx,
+		channelID,
+		api.app.GetChannel,
+		api.app.GetChannelOfType,
+	)
+}
+
+// resolveChannelByID is the testable core of resolveChannel.
+// It is a package-level function so tests can inject controlled fetch functions.
+func resolveChannelByID(
+	rctx request.CTX,
+	channelID string,
+	getChannel func(request.CTX, string) (*model.Channel, *model.AppError),
+	getChannelOfType func(request.CTX, string, model.ChannelType) (*model.Channel, *model.AppError),
+) (*model.Channel, *model.AppError) {
+	channel, err := getChannel(rctx, channelID)
+	if err == nil {
+		return channel, nil
+	}
+	if err.StatusCode != http.StatusNotFound {
+		return nil, err
+	}
+	// Generic lookup excludes backing channel types; retry as each known backing type.
+	if spaceChannel, spErr := getChannelOfType(RequestContextWithMaster(rctx), channelID, model.ChannelTypeSpace); spErr == nil {
+		return spaceChannel, nil
+	} else if spErr.StatusCode != http.StatusNotFound {
+		return nil, spErr
+	}
+	return nil, err
 }
 
 func (api *PluginAPI) GetChannelByName(teamID, name string, includeDeleted bool) (*model.Channel, *model.AppError) {
@@ -621,12 +683,16 @@ func (api *PluginAPI) SearchPostsInTeamForUser(teamID string, userID string, sea
 }
 
 func (api *PluginAPI) AddChannelMember(channelID, userID string) (*model.ChannelMember, *model.AppError) {
-	channel, err := api.GetChannel(channelID)
+	channel, err := api.resolveChannel(channelID)
 	if err != nil {
 		return nil, err
 	}
+	ctx := api.ctx
+	if channel.IsSpace() {
+		ctx = RequestContextWithMaster(api.ctx)
+	}
 
-	return api.app.AddChannelMember(api.ctx, userID, channel, ChannelMemberOpts{
+	return api.app.AddChannelMember(ctx, userID, channel, ChannelMemberOpts{
 		// For now, don't allow overriding these via the plugin API.
 		UserRequestorID: "",
 		PostRootID:      "",
@@ -634,12 +700,16 @@ func (api *PluginAPI) AddChannelMember(channelID, userID string) (*model.Channel
 }
 
 func (api *PluginAPI) AddUserToChannel(channelID, userID, asUserID string) (*model.ChannelMember, *model.AppError) {
-	channel, err := api.GetChannel(channelID)
+	channel, err := api.resolveChannel(channelID)
 	if err != nil {
 		return nil, err
 	}
+	ctx := api.ctx
+	if channel.IsSpace() {
+		ctx = RequestContextWithMaster(api.ctx)
+	}
 
-	return api.app.AddChannelMember(api.ctx, userID, channel, ChannelMemberOpts{
+	return api.app.AddChannelMember(ctx, userID, channel, ChannelMemberOpts{
 		UserRequestorID: asUserID,
 	})
 }
@@ -667,15 +737,46 @@ func (api *PluginAPI) UpdateChannelMemberRoles(channelID, userID, newRoles strin
 }
 
 func (api *PluginAPI) UpdateChannelMemberNotifications(channelID, userID string, notifications map[string]string) (*model.ChannelMember, *model.AppError) {
+	if appErr := api.rejectSpaceChannel(channelID); appErr != nil {
+		return nil, appErr
+	}
 	return api.app.UpdateChannelMemberNotifyProps(api.ctx, notifications, channelID, userID)
 }
 
 func (api *PluginAPI) PatchChannelMembersNotifications(members []*model.ChannelMemberIdentifier, notifications map[string]string) *model.AppError {
+	for _, member := range members {
+		if appErr := api.rejectSpaceChannel(member.ChannelId); appErr != nil {
+			return appErr
+		}
+	}
 	_, err := api.app.PatchChannelMembersNotifyProps(api.ctx, members, notifications)
 	return err
 }
 
+// rejectSpaceChannel returns a bad-request AppError when channelID is a space backing channel.
+// Notify-prop mutations carry chat semantics (they emit a channel_member_updated event) that do
+// not belong on an internal space backing channel, so they are rejected here. It fails closed by
+// propagating any error other than not-found, so a lookup failure cannot let a space through.
+func (api *PluginAPI) rejectSpaceChannel(channelID string) *model.AppError {
+	_, err := api.app.GetChannelOfType(RequestContextWithMaster(api.ctx), channelID, model.ChannelTypeSpace)
+	if err == nil {
+		return model.NewAppError("PluginAPI.rejectSpaceChannel", "plugin_api.channel.space_notify_props.app_error", nil, "", http.StatusBadRequest)
+	}
+	if err.StatusCode != http.StatusNotFound {
+		return err
+	}
+	return nil
+}
+
 func (api *PluginAPI) DeleteChannelMember(channelID, userID string) *model.AppError {
+	channel, err := api.resolveChannel(channelID)
+	if err != nil {
+		return err
+	}
+	if channel.IsSpace() {
+		// Space backing channels resolve outside LeaveChannel's generic GetChannel; remove directly.
+		return api.app.RemoveUserFromChannel(RequestContextWithMaster(api.ctx), userID, userID, channel)
+	}
 	return api.app.LeaveChannel(api.ctx, channelID, userID)
 }
 

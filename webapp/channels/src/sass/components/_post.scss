@@ -178,62 +178,6 @@
         outline: none;
         text-align: center;
     }
-
-    .new-messages__button {
-        position: absolute;
-        z-index: 3;
-        bottom: 0;
-        left: 50%;
-        margin: 5px auto;
-        font-size: 13.5px;
-        opacity: 0;
-        text-align: center;
-        transform: translateX(-50%);
-        visibility: hidden;
-
-        .fa {
-            position: relative;
-            top: 1px;
-            margin-right: 0.5rem;
-            font-size: 1.2em;
-            font-weight: bold;
-        }
-
-        .icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-left: 5px;
-        }
-
-        div {
-            display: flex;
-            height: 28px;
-            align-items: center;
-            padding: 0 20px;
-            border-radius: 50px;
-            cursor: pointer;
-        }
-
-        body.enable-animations & {
-            transition-delay: 0s;
-            transition-duration: variables.$transition-quick;
-            transition-property: opacity, visibility;
-            transition-timing-function: ease-in, step-end;
-        }
-
-        &.visible {
-            opacity: 1;
-            visibility: visible;
-
-            body.enable-animations & {
-                transition-delay: 0s;
-                transition-duration: variables.$transition-quick;
-                transition-property: opacity, visibility;
-                transition-timing-function: ease-out, step-start;
-            }
-        }
-    }
 }
 
 .post-list__timestamp {
@@ -2252,6 +2196,7 @@
     animation-duration: 2s;
     animation-fill-mode: forwards;
     animation-name: postHighlight;
+    background: rgba(var(--mention-highlight-bg-rgb), 0.5);
 }
 
 .post--pinned-or-flagged {
