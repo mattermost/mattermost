@@ -1941,6 +1941,66 @@ func TestApplyPostWillBeConsumedHook(t *testing.T) {
 		th.App.applyPostWillBeConsumedHook(th.Context, &post)
 		assert.Equal(t, "message", post.Message)
 	})
+
+	t.Run("post list skips burn-on-read posts", func(t *testing.T) {
+		regularPostID := model.NewId()
+		burnOnReadPostID := model.NewId()
+		posts := map[string]*model.Post{
+			regularPostID: {
+				Id:      regularPostID,
+				Message: "message",
+			},
+			burnOnReadPostID: {
+				Id:      burnOnReadPostID,
+				Message: "burn-on-read message",
+				Type:    model.PostTypeBurnOnRead,
+			},
+		}
+
+		th.App.applyPostsWillBeConsumedHook(th.Context, posts)
+
+		assert.Equal(t, "mwbc_plugin:message", posts[regularPostID].Message)
+		assert.Equal(t, "burn-on-read message", posts[burnOnReadPostID].Message)
+	})
+}
+
+func TestApplyPostWillBeConsumedHookIgnoresReplacementWithDifferentID(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+
+	var mockAPI plugintest.API
+	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+	mockAPI.On("LogDebug", mock.Anything).Return(nil)
+
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessagesWillBeConsumed(posts []*model.Post) []*model.Post {
+			return []*model.Post{{
+				Id: model.NewId(),
+				Message: "unexpected replacement",
+			}}
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+	t.Cleanup(tearDown)
+
+	post := &model.Post{Id: model.NewId(), Message: "message"}
+	th.App.applyPostWillBeConsumedHook(th.Context, &post)
+	require.Equal(t, "message", post.Message)
 }
 
 func TestHookMessagesWillBeConsumedWithContext(t *testing.T) {
@@ -2089,6 +2149,282 @@ drainLoop:
 			require.Fail(t, "timed out waiting for post_edited websocket event")
 		}
 	}
+}
+
+func TestUpdatePostConsumeHooksWithOpenGraphMetadata(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	ogServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		_, _ = io.WriteString(w, `<html><head><meta property="og:title" content="OG Title"><meta property="og:description" content="OG Description"></head><body>ok</body></html>`)
+	}))
+	t.Cleanup(ogServer.Close)
+
+	testCases := []struct {
+		name            string
+		hookImpl        string
+		expectedMessage string
+	}{
+		{
+			name: "MessagesWillBeConsumed",
+			hookImpl: `
+		func (p *MyPlugin) MessagesWillBeConsumed(posts []*model.Post) []*model.Post {
+			for _, post := range posts {
+				if post.Metadata != nil {
+					post.Message = "metadata_leaked:" + post.Message
+					continue
+				}
+				post.Message = "mwbc_plugin:" + post.Message
+			}
+			return posts
+		}
+`,
+			expectedMessage: "mwbc_plugin:",
+		},
+		{
+			name: "MessagesWillBeConsumedWithContext",
+			hookImpl: `
+		func (p *MyPlugin) MessagesWillBeConsumedWithContext(c *plugin.Context, posts []*model.Post) []*model.Post {
+			for _, post := range posts {
+				if post.Metadata != nil {
+					post.Message = "metadata_leaked:" + post.Message
+					continue
+				}
+				post.Message = "mwbcwc_plugin:" + post.Message
+			}
+			return posts
+		}
+`,
+			expectedMessage: "mwbcwc_plugin:",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			th := SetupConfig(t, func(cfg *model.Config) {
+				*cfg.ServiceSettings.EnableLinkPreviews = true
+				*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+			}).InitBasic(t)
+
+			var mockAPI plugintest.API
+			mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+			mockAPI.On("LogDebug", mock.Anything).Return(nil)
+
+			tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+` + tc.hookImpl + `
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+			t.Cleanup(tearDown)
+
+			basePost, _, err := th.App.CreatePost(th.Context, &model.Post{
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "original body",
+			}, th.BasicChannel, model.CreatePostFlags{SetOnline: false})
+			require.Nil(t, err)
+
+			editedMessage := ogServer.URL + " edited body"
+			patchedPost, _, err := th.App.PatchPost(th.Context, basePost.Id, &model.PostPatch{
+				Message: &editedMessage,
+			}, nil)
+			require.Nil(t, err)
+
+			require.NotNil(t, patchedPost.Metadata)
+			require.NotEmpty(t, patchedPost.Metadata.Embeds)
+			require.Equal(t, tc.expectedMessage+editedMessage, patchedPost.Message)
+		})
+	}
+
+	t.Run("MessagesWillBeConsumed replacement is passed to MessagesWillBeConsumedWithContext", func(t *testing.T) {
+		th := SetupConfig(t, func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableLinkPreviews = true
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+		}).InitBasic(t)
+
+		var mockAPI plugintest.API
+		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+		mockAPI.On("LogDebug", mock.Anything).Return(nil)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessagesWillBeConsumed(posts []*model.Post) []*model.Post {
+			for _, post := range posts {
+				if post.Metadata != nil {
+					post.Message = "metadata_leaked:" + post.Message
+					continue
+				}
+				post.Message = "mwbc_plugin:" + post.Message
+			}
+			return posts
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`, `
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessagesWillBeConsumedWithContext(c *plugin.Context, posts []*model.Post) []*model.Post {
+			for _, post := range posts {
+				if post.Metadata != nil {
+					post.Message = "metadata_leaked:" + post.Message
+					continue
+				}
+				post.Message = "mwbcwc_plugin:" + post.Message
+			}
+			return posts
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+		t.Cleanup(tearDown)
+
+		basePost, _, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original body",
+		}, th.BasicChannel, model.CreatePostFlags{SetOnline: false})
+		require.Nil(t, err)
+
+		editedMessage := ogServer.URL + " edited body"
+		patchedPost, _, err := th.App.PatchPost(th.Context, basePost.Id, &model.PostPatch{
+			Message: &editedMessage,
+		}, nil)
+		require.Nil(t, err)
+
+		require.NotNil(t, patchedPost.Metadata)
+		require.NotEmpty(t, patchedPost.Metadata.Embeds)
+		require.Equal(t, "mwbcwc_plugin:mwbc_plugin:"+editedMessage, patchedPost.Message)
+	})
+}
+
+func TestApplyPostsWillBeConsumedHookPreservesMetadataAndChainsReplacements(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+
+	var mockAPI plugintest.API
+	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+	mockAPI.On("LogDebug", mock.Anything).Return(nil)
+
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessagesWillBeConsumed(posts []*model.Post) []*model.Post {
+			replacements := make([]*model.Post, 0, len(posts))
+			for _, post := range posts {
+				replacement := post.Clone()
+				if replacement.Metadata != nil {
+					replacement.Message = "metadata_leaked:" + replacement.Message
+				} else {
+					replacement.Message = "mwbc_plugin:" + replacement.Message
+				}
+				replacements = append(replacements, replacement)
+			}
+			replacements = append(replacements, &model.Post{Id: model.NewId(), Message: "unexpected replacement"})
+			return replacements
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`, `
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessagesWillBeConsumedWithContext(c *plugin.Context, posts []*model.Post) []*model.Post {
+			replacements := make([]*model.Post, 0, len(posts))
+			for _, post := range posts {
+				replacement := post.Clone()
+				if replacement.Metadata != nil {
+					replacement.Message = "metadata_leaked:" + replacement.Message
+				} else {
+					replacement.Message = "mwbcwc_plugin:" + replacement.Message
+				}
+				replacements = append(replacements, replacement)
+			}
+			return replacements
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+	t.Cleanup(tearDown)
+
+	priority := model.PostPriorityUrgent
+	requestedAck := true
+	postID := model.NewId()
+	metadata := &model.PostMetadata{
+		Embeds:     []*model.PostEmbed{{Type: model.PostEmbedImage, URL: "http://example.com/image.png"}},
+		Priority:   &model.PostPriority{Priority: &priority, RequestedAck: &requestedAck},
+		ExpireAt:   12345,
+		Recipients: []string{model.NewId()},
+	}
+	posts := map[string]*model.Post{
+		postID: {
+			Id:       postID,
+			Message:  "message",
+			Metadata: metadata,
+		},
+	}
+
+	th.App.applyPostsWillBeConsumedHook(th.Context, posts)
+
+	require.Equal(t, "mwbcwc_plugin:mwbc_plugin:message", posts[postID].Message)
+	require.Equal(t, metadata, posts[postID].Metadata)
+	require.Len(t, posts, 1)
 }
 
 func TestUpdatePostNoOpWhenNoPlugin(t *testing.T) {

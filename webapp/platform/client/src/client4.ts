@@ -1406,6 +1406,13 @@ export default class Client4 {
         );
     };
 
+    updateTeamPrivacy = (teamId: string, privacy: string) => {
+        return this.doFetch<Team>(
+            `${this.getTeamRoute(teamId)}/privacy`,
+            {method: 'put', body: JSON.stringify({privacy})},
+        );
+    };
+
     regenerateTeamInviteId = (teamId: string) => {
         return this.doFetch<Team>(
             `${this.getTeamRoute(teamId)}/regenerate_invite_id`,
@@ -3495,10 +3502,13 @@ export default class Client4 {
         );
     };
 
-    getJobsByType = (type: string, page = 0, perPage = PER_PAGE_DEFAULT, teamId?: string) => {
+    getJobsByType = (type: string, page = 0, perPage = PER_PAGE_DEFAULT, teamId?: string, policyId?: string) => {
         const params: Record<string, any> = {page, per_page: perPage};
         if (teamId) {
             params.team_id = teamId;
+        }
+        if (policyId) {
+            params.policy_id = policyId;
         }
         return this.doFetch<Job[]>(
             `${this.getJobsRoute()}/type/${type}${buildQueryString(params)}`,
@@ -4998,6 +5008,13 @@ export default class Client4 {
         );
     };
 
+    getTeamAccessControlAttributes = (teamId: string) => {
+        return this.doFetch<AccessControlAttributes>(
+            `${this.getTeamRoute(teamId)}/access_control/attributes`,
+            {method: 'get'},
+        );
+    };
+
     // getProfilesMatchingTeamPolicy returns only users who satisfy the team's
     // ABAC membership policy and are not yet members, for the policy-filtered
     // invite candidate list.
@@ -5020,6 +5037,14 @@ export default class Client4 {
     createAccessControlSyncJob = (jobData: {[key: string]: string}) => {
         const job = {
             type: 'access_control_sync' as JobType,
+            data: jobData,
+        };
+        return this.createJob(job);
+    };
+
+    createAccessControlTeamSyncJob = (jobData: {[key: string]: string}) => {
+        const job = {
+            type: 'access_control_team_sync' as JobType,
             data: jobData,
         };
         return this.createJob(job);

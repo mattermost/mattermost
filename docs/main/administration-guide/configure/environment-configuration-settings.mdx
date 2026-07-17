@@ -2776,32 +2776,17 @@ Enable debug logs by changing the [file log level](#file-log-level) to `DEBUG` t
 </colgroup>
 <tbody>
 <tr>
-<td><p>Whether or not general diagnostics and error reports are sent to Mattermost, Inc.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> Send diagnostics and error reports.</li><li><strong>false</strong>: Diagnostics and error reports aren't sent.</li></ul></td>
-<td><ul><li>System Config path: <strong>Environment &gt; Logging</strong></li><li><code>config.json</code> setting: <code>LogSettings</code> &gt; <code>EnableDiagnostics</code> &gt; <code>""</code></li><li>Environment variable: <code>MM_LOGSETTINGS_ENABLEDIAGNOSTICS</code></li></ul></td>
+<td><p>Controls whether server errors and crashes are reported to Mattermost via Sentry.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> Error and crash reports are sent to Mattermost's Sentry endpoint.</li><li><strong>false</strong>: No error or crash data is sent.</li></ul></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Logging</strong></li><li><code>config.json</code> setting: <code>LogSettings</code> &gt; <code>EnableDiagnostics</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_LOGSETTINGS_ENABLEDIAGNOSTICS</code></li></ul></td>
 </tr>
 </tbody>
 </table>
 
 <Note>
 
-See the [telemetry](/administration-guide/manage/telemetry#error-and-diagnostics-reporting-feature) docummentation for details on the information Mattermost collects.
+See the [telemetry](/administration-guide/manage/telemetry#error-and-diagnostics-reporting-feature) documentation for details on the information Mattermost collects.
 
 </Note>
-
-#### Enable verbose diagnostics
-
-<table>
-<colgroup>
-<col style={{width: '36%'}} />
-<col style={{width: '63%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td><p>Whether or not verbose general diagnostics information is sent.</p><ul><li><strong>true</strong>: Send verbose diagnostics information.</li><li><strong>false</strong>: <strong>(Default)</strong> Verbose diagnostics information isn't sent.</li></ul></td>
-<td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>LogSettings</code> &gt; <code>VerboseDiagnostics</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_LOGSETTINGS_VERBOSEDIAGNOSTICS</code></li></ul></td>
-</tr>
-</tbody>
-</table>
 
 #### Enable Sentry reporting
 
@@ -3023,84 +3008,9 @@ When `FileEnabled` is set to **true**, then the [audit file name](#audit-file-na
 
 <Note>
 
-The file name must be set to [enable](#output-audit-logs-to-file) audit logging.
+When [output audit logs to file](#output-audit-logs-to-file) is enabled, the file name must be set. To configure file rotation and advanced audit log output, use the [AdvancedLoggingJSON](#output-audit-logs-to-multiple-targets) setting.
 
 </Note>
-
-#### Maximum file size
-
-<table>
-<colgroup>
-<col style={{width: '36%'}} />
-<col style={{width: '63%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td><p>The maximum size in megabytes for audit log files before they are rotated.</p><p>Numerical input. Default is <strong>100</strong> MB.</p></td>
-<td><ul><li>System Config path: <strong>Compliance &gt; Audit Logging</strong></li><li><code>config.json</code> setting: <code>ExperimentalAuditSettings</code> &gt; <code>FileMaxSizeMB</code> &gt; <code>100</code></li><li>Environment variable: <code>MM_EXPERIMENTALAUDITSETTINGS_FILEMAXSIZEMB</code></li></ul></td>
-</tr>
-</tbody>
-</table>
-
-#### Maximum file age
-
-<table>
-<colgroup>
-<col style={{width: '36%'}} />
-<col style={{width: '63%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td><p>The maximum age in days for audit log files before they are deleted.</p><p>Numerical input. Default is <strong>0</strong> (no limit).</p></td>
-<td><ul><li>System Config path: <strong>Compliance &gt; Audit Logging</strong></li><li><code>config.json</code> setting: <code>ExperimentalAuditSettings</code> &gt; <code>FileMaxAgeDays</code> &gt; <code>0</code></li><li>Environment variable: <code>MM_EXPERIMENTALAUDITSETTINGS_FILEMAXAGEDAYS</code></li></ul></td>
-</tr>
-</tbody>
-</table>
-
-#### Maximum file backups
-
-<table>
-<colgroup>
-<col style={{width: '36%'}} />
-<col style={{width: '63%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td><p>The maximum number of audit log file backups to retain.</p><p>Numerical input. Default is <strong>0</strong> (no limit).</p></td>
-<td><ul><li>System Config path: <strong>Compliance &gt; Audit Logging</strong></li><li><code>config.json</code> setting: <code>ExperimentalAuditSettings</code> &gt; <code>FileMaxBackups</code> &gt; <code>0</code></li><li>Environment variable: <code>MM_EXPERIMENTALAUDITSETTINGS_FILEMAXBACKUPS</code></li></ul></td>
-</tr>
-</tbody>
-</table>
-
-#### Compress audit log files
-
-<table>
-<colgroup>
-<col style={{width: '35%'}} />
-<col style={{width: '64%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td><p>Whether to compress rotated audit log files.</p><ul><li><strong>true</strong>: Rotated audit log files are compressed.</li><li><strong>false</strong>: <strong>(Default)</strong> Rotated audit log files aren't compressed.</li></ul></td>
-<td><ul><li>System Config path: <strong>Compliance &gt; Audit Logging</strong></li><li><code>config.json</code> setting: <code>ExperimentalAuditSettings</code> &gt; <code>FileCompress</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_EXPERIMENTALAUDITSETTINGS_FILECOMPRESS</code></li></ul></td>
-</tr>
-</tbody>
-</table>
-
-#### Audit log queue size
-
-<table>
-<colgroup>
-<col style={{width: '35%'}} />
-<col style={{width: '64%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td><p>The maximum number of audit log entries that can be queued.</p><p>Numerical input. Default is <strong>1000</strong>.</p></td>
-<td><ul><li>System Config path: <strong>Compliance &gt; Audit Logging</strong></li><li><code>config.json</code> setting: <code>ExperimentalAuditSettings</code> &gt; <code>FileMaxQueueSize</code> &gt; <code>1000</code></li><li>Environment variable: <code>MM_EXPERIMENTALAUDITSETTINGS_FILEMAXQUEUESIZE</code></li></ul></td>
-</tr>
-</tbody>
-</table>
 
 #### Audit log certificate
 
@@ -3603,6 +3513,76 @@ From Mattermost v10.7 and mobile app v2.27, you can configure biometric authenti
 Changing this configuration setting takes effect when mobile users restart their Mattermost mobile app or log out and log back in.
 
 </Note>
+
+### Mobile ephemeral mode
+
+<PlanAvailability slug="ent-adv" />
+
+See [mobile security features](/deployment-guide/mobile/mobile-security-features) for a full description of how the timers and operations interact.
+
+These settings apply globally to all mobile users. Changes are delivered to connected devices in real time; offline devices continue operating under their last-known configuration until they reconnect. Timer state persists across app and device restarts.
+
+When a timer expires, active cached content such as posts and file previews is purged, and the app notifies the user that data was removed due to policy enforcement. After a purge, users re-sync from the server on reconnection — server URLs are recoverable from keychain entries so server access is not lost.
+
+#### Enable Mobile Ephemeral Mode
+
+<table>
+<colgroup>
+<col style={{width: '50%'}} />
+<col style={{width: '49%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Controls whether mobile clients enforce the server-configured ephemeral data policies.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> Ephemeral data policies are enforced.</li><li><strong>false</strong>: Ephemeral data policies are not enforced on mobile clients.</li></ul></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Mobile Security</strong></li><li><code>config.json</code> setting: <code>NativeAppSettings</code> &gt; <code>MobileEnableEphemeralMode</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_NATIVEAPPSETTINGS_MOBILEENABLEEPHEMERALMODE</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+#### Disconnection timeout
+
+<table>
+<colgroup>
+<col style={{width: '50%'}} />
+<col style={{width: '49%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Grace period in seconds after the WebSocket drops before the device is considered offline. Once elapsed, the Offline Persistence Timer begins counting down.</p><p>Numerical input in seconds. Default is <strong>60</strong>. Values below 5 are not recommended.</p></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Mobile Security</strong></li><li><code>config.json</code> setting: <code>NativeAppSettings</code> &gt; <code>MobileDisconnectionTimeoutSeconds</code> &gt; <code>60</code></li><li>Environment variable: <code>MM_NATIVEAPPSETTINGS_MOBILEDISCONNECTIONTIMEOUTSECONDS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+#### Offline persistence timer
+
+<table>
+<colgroup>
+<col style={{width: '50%'}} />
+<col style={{width: '49%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>How long cached content is retained after the device is considered offline, in hours.</p><p>Numerical input in hours. Default is <strong>2</strong>. Set to <strong>0</strong> for immediate purge on disconnect.</p></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Mobile Security</strong></li><li><code>config.json</code> setting: <code>NativeAppSettings</code> &gt; <code>MobileOfflinePersistenceTimerHours</code> &gt; <code>2</code></li><li>Environment variable: <code>MM_NATIVEAPPSETTINGS_MOBILEOFFLINEPERSISTENCETIMERHOURS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+#### Auto cache cleanup
+
+<table>
+<colgroup>
+<col style={{width: '50%'}} />
+<col style={{width: '49%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Maximum age in days for content cached on the device, regardless of connection status.</p><p>Numerical input in days. Default is <strong>7</strong>. Set to <strong>0</strong> for zero-persistence mode.</p></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Mobile Security</strong></li><li><code>config.json</code> setting: <code>NativeAppSettings</code> &gt; <code>MobileAutoCacheCleanupDays</code> &gt; <code>7</code></li><li>Environment variable: <code>MM_NATIVEAPPSETTINGS_MOBILEAUTOCACHECLEANUPDAYS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
 
 ### Enable secure file preview on mobile
 

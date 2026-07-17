@@ -285,7 +285,7 @@ func TestGetUsersNotInTeamAbacMatchOnly(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		// BasicUser/BasicUser2 are team members, so they must not appear.
-		require.NotContains(t, userIDs(users), th.BasicUser.Id)
+		require.NotContains(t, pluckIDs(users, func(u *model.User) string { return u.Id }), th.BasicUser.Id)
 	})
 
 	t.Run("abac_match_only=true routes to the policy-matched candidates", func(t *testing.T) {
@@ -303,7 +303,7 @@ func TestGetUsersNotInTeamAbacMatchOnly(t *testing.T) {
 
 		var users []*model.User
 		require.NoError(t, json.NewDecoder(resp.Body).Decode(&users))
-		require.Equal(t, []string{qualifying.Id}, userIDs(users))
+		require.Equal(t, []string{qualifying.Id}, pluckIDs(users, func(u *model.User) string { return u.Id }))
 		m.AssertExpectations(t)
 	})
 
@@ -314,14 +314,6 @@ func TestGetUsersNotInTeamAbacMatchOnly(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
-}
-
-func userIDs(users []*model.User) []string {
-	ids := make([]string, 0, len(users))
-	for _, u := range users {
-		ids = append(ids, u.Id)
-	}
-	return ids
 }
 
 // TestAddTeamMembersGracefulABACError pins P1-21: a per-user ABAC denial in the

@@ -2794,6 +2794,38 @@ func TestUserAllowsEmail(t *testing.T) {
 	})
 }
 
+func TestUserAllowsEmailAccessControlTeamMembership(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	props := model.StringMap{
+		model.EmailNotifyProp:      model.ChannelNotifyDefault,
+		model.MarkUnreadNotifyProp: model.ChannelMarkUnreadAll,
+	}
+
+	t.Run("removal DM does not email", func(t *testing.T) {
+		user := th.CreateUser(t)
+		th.App.SetStatusOffline(user.Id, true, false)
+
+		assert.False(t, th.App.userAllowsEmail(th.Context, user, props, &model.Post{Type: model.PostTypeAccessControlTeamRemoval}))
+	})
+
+	t.Run("addition DM does not email", func(t *testing.T) {
+		user := th.CreateUser(t)
+		th.App.SetStatusOffline(user.Id, true, false)
+
+		assert.False(t, th.App.userAllowsEmail(th.Context, user, props, &model.Post{Type: model.PostTypeAccessControlTeamAddition}))
+	})
+
+	// Scoped to the two ABAC types: another system DM still emails.
+	t.Run("other system DM still emails", func(t *testing.T) {
+		user := th.CreateUser(t)
+		th.App.SetStatusOffline(user.Id, true, false)
+
+		assert.True(t, th.App.userAllowsEmail(th.Context, user, props, &model.Post{Type: model.PostTypeAddToTeam}))
+	})
+}
+
 func TestInsertGroupMentions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

@@ -21,6 +21,7 @@ describe('TeamAccessPoliciesTab', () => {
         accessControlSettings: {
             EnableAttributeBasedAccessControl: true,
             EnableUserManagedAttributes: false,
+            EnableChannelPolicyIndicators: true,
             TrustProxyDeviceIdentityHeader: false,
             EnforceDeviceIDConsistency: false,
         },

@@ -484,6 +484,7 @@ export const ModalIdentifiers = {
     SHARED_CHANNEL_REMOTE_UNINVITE: 'shared_channel_remote_uninvite',
     CONFIRM_RESET_FAILED_ATTEMPTS_MODAL: 'confirm_reset_failed_attempts_modal',
     USER_PROPERTY_FIELD_DELETE: 'user_property_field_delete',
+    SESSION_ATTRIBUTE_DISABLE: 'session_attribute_disable',
     BOARD_ATTRIBUTE_FIELD_DELETE: 'board_attribute_field_delete',
     ATTRIBUTE_MODAL_LDAP: 'attribute_modal_ldap',
     ATTRIBUTE_MODAL_SAML: 'attribute_modal_saml',
@@ -736,6 +737,8 @@ export const PostTypes = {
     LEAVE_TEAM: 'system_leave_team',
     ADD_TO_TEAM: 'system_add_to_team',
     REMOVE_FROM_TEAM: 'system_remove_from_team',
+    ACCESS_CONTROL_TEAM_REMOVAL: 'system_team_abac_removal',
+    ACCESS_CONTROL_TEAM_ADDITION: 'system_team_abac_addition',
     HEADER_CHANGE: 'system_header_change',
     DISPLAYNAME_CHANGE: 'system_displayname_change',
     CONVERT_CHANNEL: 'system_convert_channel',
@@ -848,6 +851,7 @@ export const JobTypes = {
     LDAP_SYNC: 'ldap_sync',
     MESSAGE_EXPORT: 'message_export',
     ACCESS_CONTROL_SYNC: 'access_control_sync',
+    ACCESS_CONTROL_TEAM_SYNC: 'access_control_team_sync',
 } as const;
 
 export const JobStatuses = {

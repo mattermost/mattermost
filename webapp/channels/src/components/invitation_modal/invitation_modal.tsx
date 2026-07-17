@@ -10,9 +10,11 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {debounce} from 'mattermost-redux/actions/helpers';
+import {Client4} from 'mattermost-redux/client';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 import {isEmail} from 'mattermost-redux/utils/helpers';
+import {filterProfilesStartingWithTerm} from 'mattermost-redux/utils/user_utils';
 
 import {focusElement} from 'utils/a11y_utils';
 import {isMembershipPolicyEnforced} from 'utils/channel_utils';
@@ -100,6 +102,11 @@ type State = {
     termWithoutResults: string | null;
     show: boolean;
     useGuestMagicLink: boolean;
+
+    // Policy-matching invite candidates for a private team governed by a
+    // membership policy. Loaded once from the server so non-qualifying users
+    // never appear in the picker; the term search runs locally over this set.
+    abacCandidates: UserProfile[];
 };
 
 export default class InvitationModal extends React.PureComponent<Props, State> {
@@ -110,6 +117,7 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
         result: defaultResultState,
         show: true,
         useGuestMagicLink: false,
+        abacCandidates: [],
     });
     constructor(props: Props) {
         super(props);
@@ -128,6 +136,81 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
             },
         };
     }
+
+    componentDidMount() {
+        // A private team governed by a membership policy is a hard gate: only
+        // policy-matching users may be invited. Preload that set so the picker
+        // never surfaces a non-qualifying user. Public governed teams are
+        // advisory — the normal search is left untouched.
+        if (this.isStrictlyFilteredTeam()) {
+            this.loadAbacCandidates();
+        }
+    }
+
+    componentDidUpdate(prevProps: Props) {
+        // The team prop may arrive after mount (e.g. read-replica lag means
+        // policy_enforced=false at mount, then the Redux store catches up).
+        // Trigger a fresh candidate load whenever the team transitions from
+        // ungoverned/advisory to strictly filtered and the buffer is still empty.
+        if (!this.isStrictlyFilteredProp(prevProps) && this.isStrictlyFilteredTeam() && this.state.abacCandidates.length === 0) {
+            this.loadAbacCandidates();
+        }
+    }
+
+    isTeamMembershipGoverned = (): boolean => {
+        return Boolean(this.props.currentTeam?.policy_enforced);
+    };
+
+    // Public team (open invite) governance is advisory; everything else is
+    // strict. Mirrors the server's privacy test, which keys on allow_open_invite
+    // alone (master's open-directory model).
+    isStrictlyFilteredTeam = (): boolean => {
+        return this.isStrictlyFilteredProp(this.props);
+    };
+
+    isStrictlyFilteredProp = (props: Props): boolean => {
+        const team = props.currentTeam;
+        if (!team?.policy_enforced) {
+            return false;
+        }
+        return !team.allow_open_invite;
+    };
+
+    loadAbacCandidates = async () => {
+        if (!this.props.currentTeam) {
+            return;
+        }
+        const teamId = this.props.currentTeam.id;
+        const perPage = 100;
+        const hardCap = 1000;
+        const collected: UserProfile[] = [];
+        const seen = new Set<string>();
+        let cursorId = '';
+        try {
+            // eslint-disable-next-line no-constant-condition
+            while (true) {
+                // eslint-disable-next-line no-await-in-loop
+                const profiles = await Client4.getProfilesMatchingTeamPolicy(teamId, perPage, cursorId);
+                if (!profiles || profiles.length === 0) {
+                    break;
+                }
+                for (const profile of profiles) {
+                    if (!seen.has(profile.id)) {
+                        seen.add(profile.id);
+                        collected.push(profile);
+                    }
+                }
+                if (profiles.length < perPage || collected.length >= hardCap) {
+                    break;
+                }
+                cursorId = profiles[profiles.length - 1].id;
+            }
+        } catch {
+            // Leave the buffer empty; the strict picker then shows no candidates
+            // rather than risk surfacing a non-qualifying user.
+        }
+        this.setState({abacCandidates: collected});
+    };
 
     handleHide = () => {
         this.setState({show: false});
@@ -348,6 +431,15 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
     }, 150);
 
     usersLoader = (term: string, callback: (users: UserProfile[]) => void): Promise<UserProfile[]> | undefined => {
+        // Strict (private + policy) teams: invite only from the server-matched
+        // candidate set, filtered locally by the typed term. Never falls back to
+        // the unfiltered profile search.
+        if (this.isStrictlyFilteredTeam()) {
+            const matches = term ? filterProfilesStartingWithTerm(this.state.abacCandidates, term) : this.state.abacCandidates;
+            callback(matches.slice(0, 20));
+            return;
+        }
+
         if (
             this.state.termWithoutResults &&
             term.startsWith(this.state.termWithoutResults)
@@ -423,6 +515,7 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
                 townSquareDisplayName={this.props.townSquareDisplayName}
                 isAdmin={this.props.isAdmin}
                 usersLoader={this.usersLoader}
+                membershipPolicyEnforced={this.isTeamMembershipGoverned()}
                 emailInvitationsEnabled={this.props.emailInvitationsEnabled}
                 onChangeUsersEmails={this.onChangeUsersEmails}
                 onUsersInputChange={this.onUsersInputChange}

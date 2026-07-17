@@ -5,11 +5,13 @@ import React from 'react';
 import type {IntlShape} from 'react-intl';
 
 import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
+import {Client4} from 'mattermost-redux/client';
 import {General} from 'mattermost-redux/constants';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
-import {renderWithContext, screen, act} from 'tests/react_testing_utils';
+import {renderWithContext, screen, act, waitFor} from 'tests/react_testing_utils';
 import {SelfHostedProducts} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 import {generateId} from 'utils/utils';
@@ -287,5 +289,70 @@ describe('InvitationModal', () => {
             expect.arrayContaining(['regular-channel', 'permission-only-channel']),
         );
         expect(guestChannels.length).toBe(2);
+    });
+
+    it('loads only policy-matching candidates for a private governed team and filters them by term', async () => {
+        const matching = [
+            TestHelper.getUserMock({id: 'u_eng', username: 'engineer'}),
+            TestHelper.getUserMock({id: 'u_mkt', username: 'marketer'}),
+        ];
+        const spy = jest.spyOn(Client4, 'getProfilesMatchingTeamPolicy').mockResolvedValue(matching);
+
+        const localProps = {
+            ...props,
+            currentTeam: {id: 'team1', display_name: 'Team One', policy_enforced: true, allow_open_invite: false, type: 'I'} as Team,
+        };
+        const ref = React.createRef<InvitationModal>();
+        renderWithContext(
+            <InvitationModal
+                {...localProps}
+                ref={ref}
+            />,
+            state,
+        );
+
+        await waitFor(() => expect(spy).toHaveBeenCalledWith('team1', expect.any(Number), ''));
+
+        const instance = ref.current!;
+        await waitFor(() => expect(instance.state.abacCandidates).toHaveLength(2));
+
+        const results: UserProfile[] = await new Promise((resolve) => {
+            instance.usersLoader('engineer', resolve);
+        });
+        expect(results.map((u) => u.id)).toEqual(['u_eng']);
+
+        spy.mockRestore();
+    });
+
+    it('does not hard-filter candidates for a non-governed team', () => {
+        const spy = jest.spyOn(Client4, 'getProfilesMatchingTeamPolicy');
+
+        const localProps = {
+            ...props,
+            currentTeam: {id: 'team1', display_name: 'Team One'} as Team,
+        };
+        renderWithContext(
+            <InvitationModal {...localProps}/>,
+            state,
+        );
+
+        expect(spy).not.toHaveBeenCalled();
+        spy.mockRestore();
+    });
+
+    it('does not hard-filter candidates for a public governed team (advisory)', () => {
+        const spy = jest.spyOn(Client4, 'getProfilesMatchingTeamPolicy');
+
+        const localProps = {
+            ...props,
+            currentTeam: {id: 'team1', display_name: 'Team One', policy_enforced: true, allow_open_invite: true, type: 'O'} as Team,
+        };
+        renderWithContext(
+            <InvitationModal {...localProps}/>,
+            state,
+        );
+
+        expect(spy).not.toHaveBeenCalled();
+        spy.mockRestore();
     });
 });

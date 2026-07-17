@@ -17,6 +17,8 @@ export default class ChannelMenu {
     readonly notificationPreferences: Locator;
     readonly channelSettings: Locator;
     readonly bookmarksBar: Locator;
+    readonly addBookmarkLink: Locator;
+    readonly addBookmarkFile: Locator;
     readonly members: Locator;
     readonly moveTo: Locator;
     readonly leaveChannel: Locator;
@@ -32,6 +34,10 @@ export default class ChannelMenu {
         this.notificationPreferences = this.item('Notification Preferences');
         this.channelSettings = this.item('Channel Settings');
         this.bookmarksBar = this.item('Bookmarks Bar');
+
+        // The Bookmarks Bar submenu items render in a portal outside this menu's container.
+        this.addBookmarkLink = container.page().getByRole('menuitem', {name: 'Add a link'});
+        this.addBookmarkFile = container.page().getByRole('menuitem', {name: 'Attach a file'});
         this.members = this.item('Members');
         this.moveTo = this.item('Move to...');
         this.leaveChannel = this.item('Leave Channel');
@@ -48,5 +54,13 @@ export default class ChannelMenu {
      */
     item(name: string | RegExp): Locator {
         return this.container.getByRole('menuitem', {name});
+    }
+
+    /**
+     * Opens the "Bookmarks Bar" submenu by hovering its parent item.
+     */
+    async openBookmarksSubmenu() {
+        await this.bookmarksBar.hover();
+        await expect(this.addBookmarkLink).toBeVisible();
     }
 }

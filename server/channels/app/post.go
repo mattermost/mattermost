@@ -2972,56 +2972,62 @@ func (a *App) applyPostsWillBeConsumedHook(rctx request.CTX, posts map[string]*m
 		return
 	}
 
+	metadataByPostID := make(map[string]*model.PostMetadata, len(posts))
 	postsSlice := make([]*model.Post, 0, len(posts))
-
-	for _, post := range posts {
-		postsSlice = append(postsSlice, post.ForPlugin())
+	rebuildPostsSlice := func() {
+		postsSlice = postsSlice[:0]
+		for postID, post := range posts {
+			if _, ok := metadataByPostID[postID]; !ok {
+				continue
+			}
+			postsSlice = append(postsSlice, post.ForPlugin())
+		}
 	}
-	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-		postReplacements := hooks.MessagesWillBeConsumed(postsSlice)
+	for postID, post := range posts {
+		if post.Type == model.PostTypeBurnOnRead {
+			continue
+		}
+		metadataByPostID[postID] = post.Metadata
+	}
+	if len(metadataByPostID) == 0 {
+		return
+	}
+	rebuildPostsSlice()
+
+	applyReplacements := func(postReplacements []*model.Post) {
 		for _, postReplacement := range postReplacements {
+			if postReplacement == nil {
+				continue
+			}
+			// if the plugin returned a post with a new id, ignore it.
+			metadata, ok := metadataByPostID[postReplacement.Id]
+			if !ok {
+				continue
+			}
+			postReplacement.Metadata = metadata
 			posts[postReplacement.Id] = postReplacement
 		}
+		rebuildPostsSlice()
+	}
+
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+		postReplacements := hooks.MessagesWillBeConsumed(postsSlice)
+		applyReplacements(postReplacements)
 		return true
 	}, plugin.MessagesWillBeConsumedID)
 
 	pluginContext := pluginContext(rctx)
 	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 		postReplacements := hooks.MessagesWillBeConsumedWithContext(pluginContext, postsSlice)
-		for _, postReplacement := range postReplacements {
-			posts[postReplacement.Id] = postReplacement
-		}
+		applyReplacements(postReplacements)
 		return true
 	}, plugin.MessagesWillBeConsumedWithContextID)
 }
 
 func (a *App) applyPostWillBeConsumedHook(rctx request.CTX, post **model.Post) {
-	if (*post).Type == model.PostTypeBurnOnRead {
-		return
-	}
-
-	env := a.GetPluginsEnvironment()
-	if env == nil || (!env.HasPluginImplementing(plugin.MessagesWillBeConsumedID) && !env.HasPluginImplementing(plugin.MessagesWillBeConsumedWithContextID)) {
-		return
-	}
-
-	ps := []*model.Post{*post}
-	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-		rp := hooks.MessagesWillBeConsumed(ps)
-		if len(rp) > 0 {
-			(*post) = rp[0]
-		}
-		return true
-	}, plugin.MessagesWillBeConsumedID)
-
-	pluginContext := pluginContext(rctx)
-	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-		rp := hooks.MessagesWillBeConsumedWithContext(pluginContext, ps)
-		if len(rp) > 0 {
-			(*post) = rp[0]
-		}
-		return true
-	}, plugin.MessagesWillBeConsumedWithContextID)
+	posts := map[string]*model.Post{(*post).Id: *post}
+	a.applyPostsWillBeConsumedHook(rctx, posts)
+	*post = posts[(*post).Id]
 }
 
 func makePostLink(siteURL, teamName, postID string) string {

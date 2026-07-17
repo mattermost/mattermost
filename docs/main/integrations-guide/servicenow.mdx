@@ -45,7 +45,7 @@ Once the update set is uploaded, it creates a new role called `x_830655_mm_std.u
 ### Update the API secret on the change of ServiceNow Webhook Secret
 
 1.  In Mattermost, copy the **Webhook Secret** from your Mattermost instance by going to **System Console \> Plugins \> ServiceNow**.
-2.  In your ServiceNow instance, go to **All \> x_830655_mm_std_servicenow_for_mattermost_notifications_auth.list**. (**Note**: You must enter the complete name and search.)
+2.  In your ServiceNow instance, open the auth table's list view by navigating directly to `https://<your-instance>.service-now.com/x_830655_mm_std_servicenow_for_mattermost_notifications_auth_list.do`, replacing `<your-instance>` with your ServiceNow instance subdomain.
 3.  On the page, select the row containing your Mattermost Server URL. If that row doesn't exist, create it manually by selecting **New** located in the top-right corner, and adding your Mattermost Server URL.
 4.  Update the **API Secret** in the ServiceNow instance with the **Webhook Secret** from Mattermost, and select **Update**.
 
