@@ -974,4 +974,50 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await expect(management).toBeVisible({timeout: 10000});
         await expect(management).toHaveText('Attribute Based');
     });
+
+    /**
+     * @objective Opening a linked policy in the editor from the team page and navigating
+     * back does not raise a spurious "Discard Changes?" prompt for the team page's leftover
+     * unsaved state — the editor clears the stale navigation-block flag on entry.
+     */
+    test('MM-68846-T19 - opening a policy in the editor does not carry over a false discard prompt', async ({pw}) => {
+        test.setTimeout(120000);
+        await pw.skipIfNoLicense();
+
+        const {adminUser, adminClient, team} = await pw.initSetup();
+        cleanupClient = adminClient;
+        await enableTeamMembershipPolicies(adminClient);
+
+        const policyName = `Editor Nav Policy ${pw.random.id()}`;
+        const policy = await createTeamMembershipParentPolicy(adminClient, policyName, 'true');
+        createdPolicyIds.push(policy.id);
+        await assignTeamsToPolicy(adminClient, policy.id, [team.id]);
+
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        const {page} = systemConsolePage;
+        const policyFetchDoneT19 = page
+            .waitForResponse((resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`), {timeout: 20000})
+            .catch(() => {});
+        await openTeamConfig(page, team.display_name);
+        await policyFetchDoneT19;
+
+        const policyPanel = page.locator('#team_access_control_with_policy');
+        await expect(policyPanel.locator('.policy-name').filter({hasText: policyName})).toBeVisible({timeout: 15000});
+
+        // # Stage a team-page edit so the navigation-block flag is set, then open the
+        // # linked policy in the editor (a plain link that never resets that flag).
+        await policyPanel.locator('.team-policy-list__auto-add-checkbox').first().check();
+        await policyPanel.getByLabel('Go to the policy').click();
+
+        // * The policy editor loads
+        await expect(page).toHaveURL(/membership_policies\/edit_policy\//, {timeout: 15000});
+        await expect(page.getByText('Edit Membership Policy')).toBeVisible({timeout: 10000});
+
+        // # Navigate back via the editor's back arrow
+        await page.locator('.fa.fa-angle-left.back').click();
+
+        // * No spurious discard prompt, and we land on the Membership Policies list
+        await expect(page.getByText('Discard Changes?')).toHaveCount(0);
+        await expect(page).toHaveURL(/membership_policies$/, {timeout: 10000});
+    });
 });
