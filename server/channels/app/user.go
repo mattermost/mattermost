@@ -34,6 +34,12 @@ import (
 
 const (
 	ImageProfilePixelDimension = 128
+
+	lockedProfileFieldUsername  = "username"
+	lockedProfileFieldFirstName = "first name"
+	lockedProfileFieldLastName  = "last name"
+	lockedProfileFieldNickname  = "nickname"
+	lockedProfileFieldPosition  = "position"
 )
 
 func (a *App) CreateUserWithToken(rctx request.CTX, user *model.User, token *model.Token) (*model.User, *model.AppError) {
@@ -1421,24 +1427,24 @@ func (a *App) CheckLockedProfileFields(session model.Session, user *model.User, 
 	}
 
 	if tryingToChange(&user.Username, patch.Username) {
-		return "username"
+		return lockedProfileFieldUsername
 	}
 
 	// Empty first/last names may be filled in once, so users who signed up without
 	// pre-provisioned names (e.g. via a team invite link) aren't stuck nameless.
 	if user.FirstName != "" && tryingToChange(&user.FirstName, patch.FirstName) {
-		return "first name"
+		return lockedProfileFieldFirstName
 	}
 	if user.LastName != "" && tryingToChange(&user.LastName, patch.LastName) {
-		return "last name"
+		return lockedProfileFieldLastName
 	}
 
 	if setting == model.TeamSettingsLockProfileFieldsAll {
 		if tryingToChange(&user.Nickname, patch.Nickname) {
-			return "nickname"
+			return lockedProfileFieldNickname
 		}
 		if tryingToChange(&user.Position, patch.Position) {
-			return "position"
+			return lockedProfileFieldPosition
 		}
 	}
 

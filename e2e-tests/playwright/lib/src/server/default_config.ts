@@ -855,6 +855,7 @@ const defaultServerConfig: AdminConfig = {
     AccessControlSettings: {
         EnableAttributeBasedAccessControl: false,
         EnableUserManagedAttributes: false,
+        EnableChannelPolicyIndicators: true,
         TrustProxyDeviceIdentityHeader: false,
         EnforceDeviceIDConsistency: false,
     },

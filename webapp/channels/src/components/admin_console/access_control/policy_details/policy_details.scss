@@ -49,4 +49,17 @@
     .EditPolicy__delete-masked-values-warning {
         margin: 28px 28px 0;
     }
+
+    .EditPolicy__delete-linked-teams-warning {
+        margin: 28px 28px 0;
+    }
+
+    .EditPolicy__delete-linked-teams-list {
+        padding-left: 20px;
+        margin: 8px 0 0;
+
+        li {
+            margin-bottom: 4px;
+        }
+    }
 }

@@ -7,7 +7,7 @@ import classNames from 'classnames';
 import React, {PureComponent} from 'react';
 import type {ChangeEvent, KeyboardEvent, MouseEvent} from 'react';
 import type {IntlShape, WrappedComponentProps} from 'react-intl';
-import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
+import {FormattedList, FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 import type {RouteComponentProps} from 'react-router-dom';
 import ReactSelect from 'react-select';
@@ -186,6 +186,109 @@ type PluginDisplayNameProps = {
 const PluginDisplayName: React.FC<PluginDisplayNameProps> = ({pluginId}) => {
     const displayName = useSelector((state: GlobalState) => getPluginDisplayName(state, pluginId));
     return <>{displayName}</>;
+};
+
+type CpaFieldManagementIndicatorProps = {
+    field: UserPropertyField;
+};
+
+const CpaFieldManagementIndicator: React.FC<CpaFieldManagementIndicatorProps> = ({field}) => {
+    const pluginsById = useSelector((state: GlobalState) => state.plugins?.plugins ?? {});
+    const owners = field.attrs?.owners ?? [];
+    const hasSyncedSources = Boolean(field.attrs?.ldap || field.attrs?.saml || owners.length > 0);
+    const isProtected = Boolean(field.attrs?.protected);
+
+    if (hasSyncedSources) {
+        const ownerPills = owners.map((owner, idx) => {
+            const provenance = owner.type === 'plugin' ? (pluginsById[owner.id]?.name || owner.id) : owner.id;
+            const key = `${field.name}-owner-${owner.type}-${owner.id}-${idx}`;
+
+            let content: React.ReactNode;
+            if (owner.scopes?.length) {
+                content = (
+                    <FormattedMessage
+                        id='admin.system_properties.user_properties.table.values.owner.scoped'
+                        defaultMessage='{provenance}: {scopes}'
+                        values={{provenance, scopes: owner.scopes.join(', ')}}
+                    />
+                );
+            } else {
+                content = provenance;
+            }
+
+            return (
+                <span
+                    className='user-detail-cpa-field__chip'
+                    key={key}
+                    data-testid={`user-detail-cpa-field__owner-${field.name}-${owner.id}`}
+                >
+                    {content}
+                </span>
+            );
+        });
+
+        const syncedProperties = [
+            field.attrs?.ldap && (
+                <span
+                    className='user-detail-cpa-field__chip'
+                    key={`${field.name}-ldap`}
+                    data-testid={`user-detail-cpa-field__ldap-${field.name}`}
+                >
+                    <FormattedMessage
+                        id='admin.userManagement.userDetail.ldap'
+                        defaultMessage='AD/LDAP: {propertyName}'
+                        values={{propertyName: field.attrs.ldap}}
+                    />
+                </span>
+            ),
+            field.attrs?.saml && (
+                <span
+                    className='user-detail-cpa-field__chip'
+                    key={`${field.name}-saml`}
+                    data-testid={`user-detail-cpa-field__saml-${field.name}`}
+                >
+                    <FormattedMessage
+                        id='admin.userManagement.userDetail.saml'
+                        defaultMessage='SAML: {propertyName}'
+                        values={{propertyName: field.attrs.saml}}
+                    />
+                </span>
+            ),
+            ...ownerPills,
+        ].filter(Boolean);
+
+        return (
+            <div className='user-property-field-values__sync-indicator'>
+                <SyncIcon size={18}/>
+                <span>
+                    <FormattedMessage
+                        id='admin.system_properties.user_properties.table.values.synced_with'
+                        defaultMessage='Synced with: {syncedProperties}'
+                        values={{syncedProperties: <FormattedList value={syncedProperties}/>}}
+                    />
+                </span>
+            </div>
+        );
+    }
+
+    if (isProtected) {
+        return (
+            <div className='user-property-field-values__sync-indicator'>
+                <PowerPlugOutlineIcon size={18}/>
+                <span>
+                    <FormattedMessage
+                        id='admin.userManagement.userDetail.managedByPlugin'
+                        defaultMessage='Managed by plugin: {pluginId}'
+                        values={{
+                            pluginId: <PluginDisplayName pluginId={field.attrs?.source_plugin_id}/>,
+                        }}
+                    />
+                </span>
+            </div>
+        );
+    }
+
+    return null;
 };
 
 export type Params = {
@@ -391,10 +494,17 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         return currentValue !== originalValue;
     };
 
+    private formatEmptyValue = (): string => {
+        return this.props.intl.formatMessage({
+            id: 'admin.userDetail.saveChangesModal.empty',
+            defaultMessage: '(empty)',
+        });
+    };
+
     // Resolves option IDs to display names for select/multiselect/rank CPA fields.
     private resolveOptionNames = (field: UserPropertyField, value: string | string[] | undefined): string => {
         if (!value) {
-            return '(empty)';
+            return this.formatEmptyValue();
         }
 
         const options = field.attrs?.options || [];
@@ -407,7 +517,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
             // Multiselect: resolve each ID to its name
             if (value.length === 0) {
-                return '(empty)';
+                return this.formatEmptyValue();
             }
 
             const names = value.map((id) => {
@@ -644,35 +754,10 @@ export class SystemUserDetail extends PureComponent<Props, State> {
     renderCpaField = (field: UserPropertyField, error: string | undefined) => {
         const value = this.state.customProfileAttributeValues[field.id] || '';
         const isSynced = Boolean(field.attrs?.ldap || field.attrs?.saml);
+        const isOwnerManaged = Boolean(field.attrs?.owners?.length);
         const isProtected = Boolean(field.attrs?.protected);
-        const isLockedFromEditing = isSynced || isProtected;
+        const isLockedFromEditing = isSynced || isProtected || isOwnerManaged;
         const isDisabled = this.state.isSaving || this.state.isLoading || isLockedFromEditing;
-
-        // Render indicator if field is synced or protected
-        const syncIndicator = isLockedFromEditing ? (
-            <div className='user-property-field-values__sync-indicator'>
-                {isSynced ? <SyncIcon size={18}/> : <PowerPlugOutlineIcon size={18}/>}
-                <span>
-                    {isSynced ? (
-                        <FormattedMessage
-                            id='admin.userManagement.userDetail.syncedWith'
-                            defaultMessage='Synced with: {source}'
-                            values={{
-                                source: field.attrs?.ldap ? this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.ldap', defaultMessage: 'AD/LDAP: {propertyName}'}, {propertyName: field.attrs.ldap}) : this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.saml', defaultMessage: 'SAML: {propertyName}'}, {propertyName: field.attrs?.saml}),
-                            }}
-                        />
-                    ) : (
-                        <FormattedMessage
-                            id='admin.userManagement.userDetail.managedByPlugin'
-                            defaultMessage='Managed by plugin: {pluginId}'
-                            values={{
-                                pluginId: <PluginDisplayName pluginId={field.attrs?.source_plugin_id}/>,
-                            }}
-                        />
-                    )}
-                </span>
-            </div>
-        ) : null;
 
         const fieldContent = (() => {
             switch (field.type) {
@@ -787,7 +872,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     values={{fieldName: getUserPropertyFieldLabel(field)}}
                 />
                 {fieldContent}
-                {syncIndicator}
+                <CpaFieldManagementIndicator field={field}/>
             </label>
         );
     };
@@ -1158,8 +1243,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     id='admin.userDetail.saveChangesModal.firstNameChange'
                     defaultMessage='First Name: {oldFirstName} → {newFirstName}'
                     values={{
-                        oldFirstName: this.state.user.first_name || '(empty)',
-                        newFirstName: this.state.firstNameField || '(empty)',
+                        oldFirstName: this.state.user.first_name || this.formatEmptyValue(),
+                        newFirstName: this.state.firstNameField || this.formatEmptyValue(),
                     }}
                 />,
             );
@@ -1171,8 +1256,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     id='admin.userDetail.saveChangesModal.lastNameChange'
                     defaultMessage='Last Name: {oldLastName} → {newLastName}'
                     values={{
-                        oldLastName: this.state.user.last_name || '(empty)',
-                        newLastName: this.state.lastNameField || '(empty)',
+                        oldLastName: this.state.user.last_name || this.formatEmptyValue(),
+                        newLastName: this.state.lastNameField || this.formatEmptyValue(),
                     }}
                 />,
             );
@@ -1184,8 +1269,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     id='admin.userDetail.saveChangesModal.authDataChange'
                     defaultMessage='Auth Data: {oldAuthData} → {newAuthData}'
                     values={{
-                        oldAuthData: this.state.user.auth_data || '(empty)',
-                        newAuthData: this.state.authDataField || '(empty)',
+                        oldAuthData: this.state.user.auth_data || this.formatEmptyValue(),
+                        newAuthData: this.state.authDataField || this.formatEmptyValue(),
                     }}
                 />,
             );

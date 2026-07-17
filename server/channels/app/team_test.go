@@ -803,6 +803,75 @@ func TestPermanentDeleteTeam(t *testing.T) {
 	}
 }
 
+func TestPermanentDeleteTeamRemovesSpaceChannels(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	team := th.CreateTeam(t)
+
+	// Space backing channels are excluded from GetTeamChannels, so team teardown must clean them
+	// up through the dedicated path or they orphan with a dead TeamId.
+	space, nErr := th.App.Srv().Store().Channel().Save(th.Context, &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "Space",
+		Name:        "space-" + model.NewId(),
+		Type:        model.ChannelTypeSpace,
+	}, -1)
+	require.NoError(t, nErr)
+
+	_, nErr = th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
+		ChannelId:   space.Id,
+		UserId:      th.BasicUser.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		SchemeUser:  true,
+	})
+	require.NoError(t, nErr)
+
+	// Sanity: the space backing channel resolves through the typed getter before deletion.
+	_, appErr := th.App.GetChannelOfType(th.Context, space.Id, model.ChannelTypeSpace)
+	require.Nil(t, appErr)
+
+	appErr = th.App.PermanentDeleteTeam(th.Context, team)
+	require.Nil(t, appErr)
+
+	// Assert through the typed getter: generic Get already excludes spaces, so it returns
+	// not-found whether or not the row was deleted and would pass vacuously.
+	_, getErr := th.App.GetChannelOfType(th.Context, space.Id, model.ChannelTypeSpace)
+	require.NotNil(t, getErr, "space backing channel should be permanently deleted with its team")
+
+	_, memErr := th.App.Srv().Store().Channel().GetMember(th.Context, space.Id, th.BasicUser.Id)
+	require.Error(t, memErr, "space channel membership should be removed with its team")
+}
+
+func TestLeaveTeamRemovesSpaceMemberships(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// Space backing channels are excluded from GetChannels, so a plain team leave leaves their
+	// membership rows behind unless LeaveTeam removes them explicitly.
+	space, nErr := th.App.Srv().Store().Channel().Save(th.Context, &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		DisplayName: "Space",
+		Name:        "space-" + model.NewId(),
+		Type:        model.ChannelTypeSpace,
+	}, -1)
+	require.NoError(t, nErr)
+
+	_, nErr = th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
+		ChannelId:   space.Id,
+		UserId:      th.BasicUser.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		SchemeUser:  true,
+	})
+	require.NoError(t, nErr)
+
+	appErr := th.App.LeaveTeam(th.Context, th.BasicTeam, th.BasicUser, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	_, memErr := th.App.Srv().Store().Channel().GetMember(th.Context, space.Id, th.BasicUser.Id)
+	require.Error(t, memErr, "space channel membership should be removed when the user leaves the team")
+}
+
 func TestSanitizeTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
@@ -1152,6 +1221,7 @@ func TestLeaveTeamPanic(t *testing.T) {
 		},
 	}, nil)
 	mockChannelStore.On("GetChannels", "myteam", "userID", mock.Anything).Return(model.ChannelList{}, nil)
+	mockChannelStore.On("GetTeamSpaceChannelsForUser", "myteam", "userID").Return(model.ChannelList{}, nil)
 
 	var err error
 	th.App.ch.srv.userService, err = users.New(users.ServiceConfig{

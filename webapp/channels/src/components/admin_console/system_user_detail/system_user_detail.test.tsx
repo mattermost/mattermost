@@ -249,6 +249,30 @@ describe('SystemUserDetail', () => {
             });
         });
 
+        test('should translate empty values in the name change summary', async () => {
+            const userEventInstance = userEvent.setup();
+            const getNameUser = jest.fn().mockResolvedValue({data: nameUser, error: null});
+            renderWithContext(
+                <SystemUserDetail
+                    {...defaultProps}
+                    getUser={getNameUser}
+                />,
+                {},
+                {
+                    intlMessages: {
+                        'admin.userDetail.saveChangesModal.empty': '(translated empty)',
+                    },
+                },
+            );
+
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+
+            await userEventInstance.clear(screen.getByPlaceholderText('Enter first name'));
+            await userEventInstance.click(screen.getByRole('button', {name: 'Save'}));
+
+            expect(await screen.findByTestId('changesList')).toHaveTextContent('First Name: Old First → (translated empty)');
+        });
+
         test('should reset first and last names on cancel', async () => {
             const userEventInstance = userEvent.setup();
             const getNameUser = jest.fn().mockResolvedValue({data: nameUser, error: null});
@@ -517,6 +541,27 @@ describe('SystemUserDetail', () => {
 
             const labelEl = await screen.findByTestId('user-detail-custom-attribute-label-cpa-1');
             expect(labelEl).toHaveTextContent('department');
+        });
+
+        test('should show owner management indicator for owner-managed CPA field', async () => {
+            const cpaField = buildCPAField({
+                owners: [{id: 'com.mattermost.scim', type: 'plugin', scopes: ['entra']}],
+            });
+            const props = {
+                ...defaultProps,
+                customProfileAttributeFields: [cpaField],
+                getCustomProfileAttributeFields: jest.fn().mockResolvedValue({data: [cpaField]}),
+            };
+
+            renderWithContext(<SystemUserDetail {...props}/>);
+
+            await waitForLoadingToFinish();
+
+            expect(screen.getByTestId('user-detail-cpa-field__owner-department-com.mattermost.scim')).toHaveTextContent('com.mattermost.scim: entra');
+            expect(screen.getByText('Synced with:')).toBeInTheDocument();
+
+            const input = screen.getByTestId('user-detail-custom-attribute-label-cpa-1').querySelector('input');
+            expect(input).toBeDisabled();
         });
     });
 });

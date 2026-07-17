@@ -4,16 +4,25 @@
 import React from 'react';
 
 import type {AccessControlSettings} from '@mattermost/types/config';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {useEnabledSessionAttributeFields} from 'hooks/useEnabledSessionAttributeFields';
+import {renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
 
 import PermissionPolicyDetails from './permission_policy_details';
+
+import CELEditor from '../../access_control/editors/cel_editor/editor';
+import TableEditor from '../../access_control/editors/table_editor/table_editor';
 
 jest.mock('utils/browser_history', () => ({
     getHistory: () => ({
         push: jest.fn(),
     }),
+}));
+
+jest.mock('hooks/useEnabledSessionAttributeFields', () => ({
+    useEnabledSessionAttributeFields: jest.fn(() => []),
 }));
 
 // Render the editors as identifiable stand-ins. The real CELEditor boots
@@ -36,6 +45,32 @@ jest.mock('hooks/useChannelAccessControlActions', () => ({
 }));
 
 const mockUseChannelAccessControlActions = useChannelAccessControlActions as jest.MockedFunction<typeof useChannelAccessControlActions>;
+const mockUseEnabledSessionAttributeFields = useEnabledSessionAttributeFields as jest.MockedFunction<typeof useEnabledSessionAttributeFields>;
+const MockedTableEditor = TableEditor as jest.MockedFunction<typeof TableEditor>;
+const MockedCELEditor = CELEditor as jest.MockedFunction<typeof CELEditor>;
+
+const SESSION_GROUP_UUID = 'session_attributes';
+
+const makeSessionField = (id: string, name: string): UserPropertyField => ({
+    id,
+    name,
+    type: 'text',
+    group_id: SESSION_GROUP_UUID,
+    target_id: '',
+    target_type: 'system',
+    object_type: 'session',
+    attrs: {
+        sort_order: 0,
+        visibility: 'always',
+        value_type: '',
+        enabled: true,
+    } as UserPropertyField['attrs'],
+    create_at: 0,
+    update_at: 0,
+    delete_at: 0,
+    created_by: '',
+    updated_by: '',
+});
 
 describe('components/admin_console/permission_policies/policy_details/PermissionPolicyDetails', () => {
     const mockFetchPolicy = jest.fn();
@@ -44,6 +79,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
     const accessControlSettings: AccessControlSettings = {
         EnableAttributeBasedAccessControl: true,
         EnableUserManagedAttributes: false,
+        EnableChannelPolicyIndicators: true,
         TrustProxyDeviceIdentityHeader: false,
         EnforceDeviceIDConsistency: false,
     };
@@ -51,7 +87,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
     const baseProps = {
         policyId: 'policy1',
         accessControlSettings,
-        sessionAttributesEnabled: false,
+        sessionAttributesEnabled: true,
         actions: {
             fetchPolicy: mockFetchPolicy,
             createPolicy: jest.fn(),
@@ -76,6 +112,16 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         mockFetchPolicy.mockReset();
         mockGetAccessControlFields.mockReset();
 
+        mockFetchPolicy.mockResolvedValue({
+            data: {
+                id: 'policy1',
+                name: 'Policy 1',
+                roles: ['system_user'],
+                rules: [],
+            },
+        });
+
+        mockUseEnabledSessionAttributeFields.mockReturnValue([makeSessionField('s1', 'network_name')]);
         mockUseChannelAccessControlActions.mockReturnValue({
             getAccessControlFields: mockGetAccessControlFields,
             getVisualAST: jest.fn(),
@@ -94,7 +140,71 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         // One LDAP-synced attribute keeps the editor usable so the mode toggle
         // is enabled and reflects the loaded expression rather than the
         // no-attributes gate.
-        mockGetAccessControlFields.mockResolvedValue({data: [{name: 'teams', attrs: {ldap: true}}]});
+        mockGetAccessControlFields.mockResolvedValue({
+            data: [
+                {id: 'u1', name: 'teams', attrs: {ldap: true}},
+                {id: 'u2', name: 'department', group_id: 'custom_profile_attributes', object_type: 'user', attrs: {managed: 'admin'}},
+            ],
+        });
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test('merges the fetched enabled session attributes into the table-mode picker', async () => {
+        renderWithContext(<PermissionPolicyDetails {...baseProps}/>);
+
+        await waitFor(() => {
+            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+        });
+
+        expect(mockUseEnabledSessionAttributeFields).toHaveBeenCalledWith(true);
+
+        const lastCall = MockedTableEditor.mock.calls[MockedTableEditor.mock.calls.length - 1][0];
+        const passedNames = lastCall.userAttributes.map((attr) => attr.name);
+        expect(passedNames).toContain('department');
+        expect(passedNames).toContain('network_name');
+    });
+
+    test('includes session attributes in CEL mode even when user-managed attributes are disabled, carrying the object type', async () => {
+        renderWithContext(<PermissionPolicyDetails {...baseProps}/>);
+
+        await waitFor(() => {
+            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+        });
+
+        await userEvent.click(screen.getByText('Switch to Advanced Mode'));
+
+        await waitFor(() => {
+            expect(screen.getByTestId('cel-editor')).toBeInTheDocument();
+        });
+
+        const lastCall = MockedCELEditor.mock.calls[MockedCELEditor.mock.calls.length - 1][0];
+        const sessionEntry = lastCall.userAttributes.find((attr) => attr.attribute === 'network_name');
+        expect(sessionEntry).toBeDefined();
+        expect(sessionEntry?.objectType).toBe('session');
+    });
+
+    test('shows no session attributes when SessionAttributes is off', async () => {
+        mockUseEnabledSessionAttributeFields.mockReturnValue([]);
+
+        renderWithContext(
+            <PermissionPolicyDetails
+                {...baseProps}
+                sessionAttributesEnabled={false}
+            />,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+        });
+
+        expect(mockUseEnabledSessionAttributeFields).toHaveBeenCalledWith(false);
+
+        const lastCall = MockedTableEditor.mock.calls[MockedTableEditor.mock.calls.length - 1][0];
+        const passedNames = lastCall.userAttributes.map((attr) => attr.name);
+        expect(passedNames).toEqual(['teams', 'department']);
     });
 
     // MM-69527: editing an existing rule must default to Simple (table) mode
