@@ -55,7 +55,7 @@ test('MM-69802 Thread footer avatar with broken image URL renders with equal wid
     await expect(avatarImages.first()).toBeVisible();
 
     const count = await avatarImages.count();
-    expect(count).toBe(2)
+    expect(count).toBe(2);
 
     // * Verify each avatar has equal width and height
     for (let i = 0; i < count; i++) {
