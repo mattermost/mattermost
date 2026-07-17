@@ -30,8 +30,6 @@ type FeatureFlags struct {
 	// Enable WYSIWYG text editor
 	WysiwygEditor bool
 
-	OnboardingTourTips bool
-
 	EnableExportDirectDownload bool
 
 	MoveThreadsEnabled bool
@@ -102,6 +100,10 @@ type FeatureFlags struct {
 	// Enable the Integrated Boards feature within Mattermost channels
 	IntegratedBoards bool
 
+	// FEATURE_FLAG_REMOVAL: EnableDocs - Remove this when GA is released
+	// Enable the Docs (spaces and pages) feature within Mattermost channels
+	EnableDocs bool
+
 	// Enable LIKE-based CJK (Chinese, Japanese, Korean) search for PostgreSQL
 	CJKSearch bool
 
@@ -140,6 +142,9 @@ type FeatureFlags struct {
 	ClusterGracefulDrain bool
 
 	ChannelBookmarks bool
+
+	// Enable React concurrent rendering
+	EnableConcurrentReact bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -151,7 +156,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AppsEnabled = false
 	f.NormalizeLdapDNs = false
 	f.WysiwygEditor = false
-	f.OnboardingTourTips = true
 	f.EnableExportDirectDownload = false
 	f.MoveThreadsEnabled = false
 	f.CloudDedicatedExportUI = false
@@ -182,6 +186,8 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.IntegratedBoards = false
 
+	f.EnableDocs = false
+
 	f.CJKSearch = true
 
 	f.AggregatePluginMetrics = false
@@ -199,6 +205,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.MmBlocksEnabled = true
 
 	f.ChannelBookmarks = true
+
+	f.EnableConcurrentReact = false
 }
 
 // IsChannelPermissionPoliciesEnabled reports whether channel-scope

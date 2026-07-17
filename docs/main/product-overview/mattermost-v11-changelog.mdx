@@ -14,8 +14,405 @@ Platform and OS scope reflects reported and tested environments and may not repr
 
 </Note>
 
+## Release v11.8 - [Feature Release](https://docs.mattermost.com/product-overview/release-policy.html#release-types) \{#release-v11-8-feature-release}
+
+- **11.8.3, released 2026-07-08**
+  - Mattermost v11.8.3 contains a medium severity level security fix. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Avoided saving stale configurations from the System Console by refreshing a system admin's snapshot of the configuration whenever it changed.
+  - Fixed an issue where the **Bot Accounts** page loaded at most 200 bots, hiding newer bots from the list and search on servers with more than 200 bot accounts.
+  - Tightened validation when updating channel member roles via the API.
+  - Mattermost v11.8.3 contains no database or functional changes.
+- **11.8.2, released 2026-06-26**
+  - Mattermost v11.8.2 contains a medium severity level security fix. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Pre-packaged Agents plugin version [v2.0.5](https://github.com/mattermost/mattermost-plugin-agents/releases/tag/v2.0.5).
+  - Fixed custom emoji upload size and GIF frame limits.
+  - User Attributes can now be synced with AD/LDAP or SAML whether they are user-editable or admin-managed. When an attribute is synced, the "Editable by users" toggle is disabled; remove the link to change it again.
+  - Modified the ``SendBestEffort`` cluster messages logic to fall back to using TCP when their length is larger than a UDP datagram.
+  - Added a new ``ClusterReliableFallbackLength`` metric with the total length in bytes of the ``SendBestEffort`` calls (UDP) that had to fallback to TCP because of the message length.
+  - Mattermost v11.8.2 contains no database or functional changes.
+- **11.8.1, released 2026-06-17**
+  - Mattermost v11.8.1 contains medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Fixed file moves and copies on S3 file stores failing for files larger than 5GiB (for example, finalizing an mmctl import upload of an import archive over 5GiB), by using a server-side multipart copy.
+  - Preserved unknown permissions during migrations on downgrade.
+  - Added a pre-migration setup to fix the incorrect database migration numbers that prevented upgrading Mattermost from v10.11 to v11.7.
+  - Mattermost v11.8.1 contains the following functional changes:
+     - Added a new ``FileSettings.ExtractContentTimeout`` setting (default 10 seconds) that limits how long a single uploaded document's content extraction occupies a worker, and moved document content extraction to a dedicated, non-blocking worker pool so it no longer delays file uploads for other users. Added ``FileSettings.ExtractContentTimeout`` configuration setting.
+- **11.8.0, released 2026-06-16**
+  - Original 11.8.0 release.
+
+<Important>
+
+**Breaking Changes**
+ - The Custom Profile Attributes property group is renamed from ``custom_profile_attributes`` to ``access_control``, and CPA fields and values are migrated from the legacy property model to the v2 model. The functionality of the CPA feature is unchanged. Plugin developers that use CPA will need to register against the new group name.
+
+</Important>
+
+### Upgrade Impact
+
+#### Database Schema Changes
+ - The following schema changes are included in the v11.8 release. No database downtime is expected for this upgrade. See the [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html) for more details.
+   - Added a ``Version`` column (default 1) to the ``PropertyGroups`` table to differentiate PSAv1 legacy groups from PSAv2 groups, with no downtime or table rewrite required.
+   - Increased the PostgreSQL statistics-sampling target for ``posts.rootid`` and ``posts.channelid`` to 5000 and refreshes planner statistics, improving query plan accuracy for queries that filter or join on those columns with no table rewrite or downtime required.
+   - Added two new values, ``'BO'`` and ``'BP'``, to the ``channel_type`` enum with no table rewrite or downtime required.
+   - Added a ``LinkedFieldID`` column and index to ``PropertyFields``, renamed the CPA property group to ``access_control``, and narrowed the ``AttributeView`` materialized view to user-scoped attributes, with no large-table impact or downtime required.
+   - Added a ``ViewedAt`` column and ``idx_recaps_user_id_viewed_at`` index to ``Recaps`` via metadata-only ``ADD COLUMN`` and ``CREATE INDEX CONCURRENTLY``, with no table locks or downtime required.
+   - Added a ``Discoverable`` column to ``Channels``, a new ``ChannelJoinRequests`` table, and four concurrent partial/composite indexes to support channel join request workflows, with no downtime required.
+   - Extended the ``permission_level`` enum to add an ``admin`` value via a non-blocking catalog-only change, with no table locks, no data migration, and no downtime required.
+
+#### config.json
+New setting options were added to ``config.json``. Below is a list of the additions and their default values on install. The settings can be modified in ``config.json``, or the System Console when available.
+ - **Changes to Enterprise Advanced plan:**
+   - Under ``MobileEphemeralMode`` in ``config.json``, added a [Mobile Ephemeral Mode](https://docs.mattermost.com/security-guide/mobile-security.html#app-sandboxing-and-secure-data-storage) configuration section under **System Console > Environment > Mobile Security**, allowing admins to configure data persistence and cache management policies for mobile devices. Requires Enterprise Advanced license and ``MobileEphemeralMode`` feature flag.
+ - **Changes to Enterprise plans:**
+   - Under ``ElasticsearchSettings`` in ``config.json``, added ``EnableSearchPublicChannelsWithoutMembership`` configuration setting to allow searching in public channels the user isn't a member of.
+   - Under ``TeamSettings`` in ``config.json``, added ``EnableChannelCategorySorting`` configuration setting to add, edit, and remove managed categories.
+
+### Improvements
+
+See [this blog post](https://mattermost.com/blog/mattermost-v11-8-0-is-now-available/) on the highlights in our latest release.
+
+#### User Interface
+ - Pre-packaged MS Calendar plugin version [v1.6.1](https://github.com/mattermost/mattermost-plugin-mscalendar/releases/tag/v1.6.1).
+ - Pre-packaged GitLab plugin version [v1.12.2](https://github.com/mattermost/mattermost-plugin-gitlab/releases/tag/v1.12.2).
+ - Pre-packaged GitHub plugin version [v2.7.1](https://github.com/mattermost/mattermost-plugin-github/releases/tag/v2.7.1).
+ - Pre-packaged Playbooks plugin version [v2.9.1](https://github.com/mattermost/mattermost-plugin-playbooks/releases/tag/v2.9.1).
+ - Pre-packaged Agents plugin version [v2.0.4](https://github.com/mattermost/mattermost-plugin-agents/releases/tag/v2.0.4).
+ - Pre-packaged Jira plugin version [v4.7.0](https://github.com/mattermost/mattermost-plugin-jira/releases/tag/v4.7.0).
+ - Pre-packaged Calls plugin version [v1.11.5](https://github.com/mattermost/mattermost-plugin-calls/releases/tag/v1.11.5).
+ - Pre-packaged Boards plugin version [v9.2.4](https://github.com/mattermost/mattermost-plugin-boards/releases/tag/v9.2.4).
+ - Added a new keyboard shortcut, ``Shift`` + ``ESC``, that marks all channels, threads, and direct messages as read for a team on webapp / desktop app.
+ - Added an overflow menu for channel bookmarks when the bookmark bar runs out of space. Bookmarks can be reordered via drag-and-drop between the bar and the overflow menu, or via keyboard (Space to select, arrow keys to move) on webapp. Replaced ``react-beautiful-dnd`` with ``@atlaskit/pragmatic-drag-and-drop``.
+ - Added an unread badge to Recaps.
+ - Added managed [channel categories](https://docs.mattermost.com/end-user-guide/preferences/customize-your-channel-sidebar.html) for **Channel Admins** to enforce sidebar organization across teams.
+ - Added per-channel classification assignment and banner integration for webapp/desktop app.
+ - Added [support](https://docs.mattermost.com/administration-guide/manage/admin/user-attributes.html) for **CPA Display Name** for user-facing labels of user attributes.
+ - Changed the **Invite People** modal to allow pasting any text, not only valid email formats.
+ - Standardized many buttons throughout the app, which may result in minor UX changes.
+ - Updated the **Enable Testing Commands** user interface to explicitly warn that ``EnableTesting`` must never be used in production.
+ - Changed the mobile view search box to only autofocus when the search button is pressed (reported on mobile browser).
+ - Improved the **Default "Report a Problem"** [behavior](https://docs.mattermost.com/administration-guide/configure/site-configuration-settings.html) to open a support ticket via email with metadata for licensed servers, and redirect to the Mattermost forums for free edition in webapp / desktop apps.
+ - Added support for system-scoped properties — property fields and values that attach to the Mattermost instance itself.
+ - Added the ability to define a property attribute once and reuse it across different object types (e.g., users, channels).
+ - Exposed the [``DefaultCategoryName``](https://docs.mattermost.com/administration-guide/configure/site-configuration-settings.html) to the user interface so admins can add, edit, and remove it easily.
+ - Moved interactive dialog date/datetime properties into ``datetime_config``.
+ - When a channel is shared or unshared with a remote, a system message will now be shown.
+ - On new installations using Elasticsearch or OpenSearch, search now includes public channels the user is not a member of by default.
+ - Added support for incoming webhooks to define a ``root_id`` to create posts in a thread.
+ - Updated membership policy user interface copy in the System Console and public channel settings to clarify qualifying-user requirements and auto-add behavior.
+ - Hid redundant "Download Apps" links and onboarding download reminders when Mattermost runs inside the Desktop app.
+
+#### Plugins/Integrations
+ - Added [plugin metrics collection](https://docs.mattermost.com/administration-guide/scale/performance-monitoring-metrics.html), namespacing, and serving on the standard ``/metrics`` endpoint.
+ - Added support for plugins using the Shared Channels APIs to register multiple remote connections by calling ``RegisterPluginForSharedChannels`` with different ``SiteURL`` values, enabling use cases such as multiple outbound transports or bridging to multiple external servers. A new ``UnregisterPluginRemoteForSharedChannels`` method allows removing a single remote without affecting others. Existing single-remote plugins continue to work without changes.
+ - Added ``client.Audit`` on ``pluginapi.Client`` for plugins to emit audit records via the server audit pipeline (server 10.10+) on Linux, macOS and Windows.
+ - Introduced a new ``Edit Attachments`` [permission](https://docs.mattermost.com/administration-guide/onboard/advanced-permissions.html#restrict-who-can-edit-post-attachments) for controlling who can edit post attachments when editing a post. By default, the permission is granted to users who have the edit post permission.
+ - Added new CEL functions ``inCIDR`` and ``versionGT``/``versionGTE``/``versionLT``/``versionLTE``/``versionEQ`` for use in access control policies.
+ - Included the connection ID in the plugin context.
+
+#### Administration
+ - Added support for [classification markings](https://docs.mattermost.com/end-user-guide/collaborate/display-channel-banners.html#classification-markings) for system-wide and channel banners. Enterprise Advanced license is required.
+ - Removed remaining support for Internet Explorer and pre-Chromium versions of Edge on webapp.
+ - Added ``server.process_id`` to support packet diagnostics to help correlate support data with OS-level logs and process monitoring tools such as ``ps``, ``top``, and systemd journal.
+ - Added ``go_version`` to support packet diagnostics, showing the Go runtime version the server binary was compiled with on Linux.
+ - Added ``open_file_descriptors`` and ``max_file_descriptors`` fields to the ``server`` section of the support packet ``diagnostics.yaml`` to help diagnose file descriptor exhaustion on Linux and macOS.
+ - Added ``container_cpu_limit`` and ``container_memory_limit_mb`` fields to support packet diagnostics to report cgroup v2 CPU and memory limits on Linux. Fields are omitted for non-containerized or non-Linux deployments.
+ - Added SMTP and push proxy connectivity probe results to ``diagnostics.yaml`` in the support packet under ``notifications.email`` and ``notifications.push`` for mobile app.
+ - Added ``started_at`` and ``host_started_at`` fields to the support packet diagnostics to help diagnose server restart loops and container reboots.
+ - Added [a simplified option](https://docs.mattermost.com/deployment-guide/mobile/mobile-troubleshooting.html) allowing users to enable attaching logs to support packets on mobile apps.
+ - Added [Membership Policies](https://docs.mattermost.com/administration-guide/manage/admin/abac-channel-access-rules.html) (formerly Access Control Policies) support for public channels with advisory semantics: matching users are auto-added when enabled and surfaced in a new "Recommended" filter in Browse Channels and as a "Recommended" tag in the channel invite modal; non-matching members are never removed. Private channels retain the existing strict gate. The admin UI has been renamed throughout from "Access Control" to "Membership Policy". Requires Enterprise Advanced license.
+ - Added a [new feature](https://docs.mattermost.com/administration-guide/manage/admin/content-flagging.html) allowing content reviewers to generate a downloadable report for a post quarantined for review as part of Data Spillage handling.
+ - Tightened session invalidation on the global session revocation path.
+ - Downgraded Hungarian translations from Beta to Alpha.
+ - Clarified error messages on potential permission migrations.
+ - Added support for permission-action rules (file upload, file download) on channel-scope access control policies, with a new "Simulate access" modal in System Console and Channel Settings that previews per-user, per-action decisions before saving. Gated by the existing ``PermissionPolicies`` feature flag and the Enterprise Advanced license.
+ - Added support for request-provided session attributes (IP address, user agent details) in ABAC permission policy expressions via ``user.session``.
+ - Added a user setting to experimentally enable concurrent React.
+ - Added debug logging when a user has experimental support for concurrent React enabled.
+
+#### Performance
+ - Benchmarking test results showed no significant difference: a +5.30% increase in the number of supported users for the new release, which lies within the ``[-5%, +5%]`` prediction interval. View the full raw data and methodology in our [Performance Reports repository](https://github.com/mattermost/performance-reports/tree/main/performance-comparisons/v11.8).
+ - Improved memory usage and performance when processing images (resizing, thumbnails, and orientation correction).
+ - Improved authorization checks for post info lookups.
+ - Increased the PostgreSQL column statistics target on ``Posts.rootid`` and ``Posts.channelid`` to 5000, preventing query planner to choose the wrong index, which could cause full-table scans during bulk imports and other thread-heavy operations on large Posts tables.
+
+### Bug Fixes
+ - Fixed an issue where read recaps no longer showed the "Mark all channels as read" menu action.
+ - Fixed an issue where the user profile popover closed automatically when opened for the first time from the channel member list in the RHS.
+ - Fixed an issue where the sidebar channel icon did not update when a channel's privacy was changed via ``mmctl`` or the API. The ``channel_converted`` WebSocket event now includes the channel type.
+ - Fixed a webapp issue where clicking composer formatting controls could jump a long scrolled draft back to the top (reported on webapp and desktop app / Chrome).
+ - Fixed an issue where ``LoadPluginConfiguration`` did not apply default values for plugin settings declared inside sections in the plugin manifest.
+ - Fixed an issue where clicking a custom user group mention would sometimes fail to load the group members list in the popover.
+ - Fixed an issue where the reminder confirmation did not appear when setting a reminder on a reply from the thread view.
+ - Fixed a panic in the ``mmctl`` websocket command when the WebSocket connection failed on startup.
+ - Fixed [an issue](https://docs.mattermost.com/administration-guide/manage/statistics.html) with the System Console Reporting sidebar label for the system analytics page so it now consistently reads "System Statistics".
+ - Fixed an issue with the invite modal text input clipping and modal width overflow when typing long text in the "To" field.
+ - Fixed an issue where the post autocomplete menu could be clipped when the right-hand sidebar was open.
+ - Fixed an issue with the themed text colors in the Invite Guest modal channel picker so the "Add to channels" section, the typed input text, and the channel suggestion rows follow the active theme.
+ - Fixed an issue in the Find Channels modal where long channel names could overlap and obscure the team name on the same row.
+ - Fixed issues with channel bookmarks drag-and-drop edge cases: reordering is now disabled when a bar has only one bookmark, and the trailing add-bookmark button no longer auto-opens the menu when dragging over it without any items in overflow.
+ - Fixed an issue where the search results "Messages" tab counter was inflated by one for each date group, causing a single matching post to be shown as "2".
+ - Fixed an issue where consecutive bot replies in the RHS thread view displayed with the message header incorrectly floating inline with the message body when using compact display mode.
+ - Fixed an issue where the Reviewer field pill on the Data Spillage review card rendered with a white background in dark themes.
+ - Fixed an issue with the group channels in the Direct Messages modal sometimes displaying incorrectly.
+ - Fixed a spurious "prop must be a valid URL" warning that was logged when handling slash command responses that had no icon URL configured.
+ - Fixed a bot import panic when user exists without bot record.
+ - Fixed an issue where file attachments synced over a shared channel through a plugin (using the ``OnSharedChannelsAttachmentSyncMsg`` / ``ReceiveSharedChannelAttachmentSyncMsg`` plugin API pair) were stored on the receiving server but did not appear in the corresponding post, because the saved FileInfo was given a new ID instead of preserving the sender's file ID referenced by the post.
+ - Fixed a regression saving various [masked fields](https://docs.mattermost.com/administration-guide/manage/admin/generating-support-packet.html) from the System Console.
+ - Prevented non-interactive team icons from showing click highlight feedback.
+ - Fixed an issue with a missing spacing in data spillage report card user interface when opened in the **Threads** view.
+ - Fixed an issue with misleading cursor and dropdown indicator affordances in data spillage report previews.
+ - Fixed an issue with the data spillage report right-hand side action buttons overflowing the panel instead of wrapping.
+ - Fixed an issue with clipped tooltips in the advanced data masking policy expression editor.
+ - Fixed an issue where retained flagged posts did not re-appear in the channel for other members until they refreshed the browser or clicked the hidden-post banner.
+ - Fixed an issue where the **Save** button could disappear in **Channel Settings** after switching **Classification Markings** off and back on.
+ - Guest magic-link ``REST`` login now applies the same authentication criteria checks as the web one-time-link handler and password login.
+ - Hardened the OAuth server provider's handling of deactivated users.
+ - Fixed an issue that caused a flagged post to continue being visible for content reviewers until a refresh after deletion.
+ - Fixed an issue where public channel mention links were shown as an unresolved channel slug instead of the channel name (and were not clickable) for users who were not members of the referenced channel when **Compliance Monitoring** was enabled.
+ - Fixed an issue where a channel could appear in two sidebar categories when a default category was assigned.
+
+### API Changes
+ - Added a new ``GET /api/v4/content_flagging/post/<post_id>/report`` endpoint for generating and downloading a content flagging report for a flagged post.
+ - Added ``GET /api/v4/teams/{team_id}/channels/recommended`` endpoint and an ``abac_match_only`` query parameter on ``GET /api/v4/users`` to support Membership Policy advisory semantics for public channels.
+ - Updated ``POST /api/v4/users/{user_id}/demote`` to return ``400`` when ``user_id`` is a bot account; bot accounts cannot be converted to guests.
+ - Added a new endpoint to fetch users by their auth_data GET ``/api/v4/users/auth_data?value={auth_data}``. Only available to sysadmins.
+ - Added ``POST /cel/simulate_users`` (``simulatePolicyForUsers``) API endpoint.
+
+### WebSocket Event Changes
+ - The ``channel_converted`` WebSocket event now includes the channel type, enabling clients to update the sidebar channel icon when a channel's privacy changes.
+
+### Audit Log Event Changes
+ - Added a new audit log ``AuditEventGenerateFlaggedPostReport`` for generating and downloading content flagging report for a flagged post.
+ - Added a new audit log ``AuditEventMarkRecapsAsViewed`` for adding an unread badge to Recaps.
+ - Added new audit logs ``AuditEventMarkMessagesRead and AuditEventMarkTeamRead`` for adding a new shortcut to mark all channels as read.
+ - Added a new audit log ``AuditEventCreateBoard`` for integrated boards.
+ - ``AuditEventCreateChannelJoinRequest``, ``AuditEventUpdateChannelJoinRequest`` and ``AuditEventWithdrawChannelJoinRequest`` for discoverable private channels.
+
+### Go Version
+ - v11.8 is built with Go ``v1.26.3``.
+
+### Open Source Components
+ - Added ``x/text``, ``@atlaskit/pragmatic-drag-and-drop``, ``@atlaskit/pragmatic-drag-and-drop-hitbox``, ``@atlaskit/pragmatic-drag-and-drop-react-drop-indicator``, ``prometheus/common``, ``Azure/azure-sdk-for-go``, ``boxes-ltd/imaging`` and ``google/uuid``, and removed ``anthonynsimon/bild`` from https://github.com/mattermost/mattermost/.
+
+## Release v11.7 - [Extended Support Release](https://docs.mattermost.com/product-overview/release-policy.html#release-types) \{#release-v11-7-extended-support-release}
+
+- **11.7.6, released 2026-06-26**
+  - Mattermost v11.7.6 contains low severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Pre-packaged GitLab plugin version [v1.12.3](https://github.com/mattermost/mattermost-plugin-gitlab/releases/tag/v1.12.3).
+  - User Attributes can now be synced with AD/LDAP or SAML whether they are user-editable or admin-managed. When an attribute is synced, the "Editable by users" toggle is disabled; remove the link to change it again.
+  - Modified the ``SendBestEffort`` cluster messages logic to fall back to using TCP when their length is larger than a UDP datagram.
+  - Added a new ``ClusterReliableFallbackLength`` metric with the total length in bytes of the ``SendBestEffort`` calls (UDP) that had to fallback to TCP because of the message length.
+  - Mattermost v11.7.6 contains the following database changes:
+     - Removed orphaned ``threadmemberships`` rows where the user is no longer a channel member; irreversible data-only migration that may run slowly on large instances.
+- **11.7.5, released 2026-06-18**
+  - Mattermost v11.7.5 contains a medium severity level security fix. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Fixed custom emoji upload size and GIF frame limits.
+  - Mattermost v11.7.5 contains no database or functional changes.
+- **11.7.4, released 2026-06-17**
+  - Mattermost v11.7.4 contains medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Fixed file moves and copies on S3 file stores failing for files larger than 5GiB (for example, finalizing an mmctl import upload of an import archive over 5GiB), by using a server-side multipart copy.
+  - Mattermost v11.7.4 contains the following functional changes:
+     - Added a new ``FileSettings.ExtractContentTimeout`` setting (default 10 seconds) that limits how long a single uploaded document's content extraction occupies a worker, and moved document content extraction to a dedicated, non-blocking worker pool so it no longer delays file uploads for other users. Added ``FileSettings.ExtractContentTimeout`` configuration setting.
+- **11.7.3, released 2026-06-12**
+  - Mattermost v11.7.3 contains low to medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Pre-packaged Playbooks plugin version [v2.9.1](https://github.com/mattermost/mattermost-plugin-playbooks/releases/tag/v2.9.1).
+  - Pre-packaged Agents plugin version [v2.0.4](https://github.com/mattermost/mattermost-plugin-agents/releases/tag/v2.0.4).
+  - Added a pre-migration setup to fix the incorrect database migration numbers that prevented upgrading Mattermost from v10.11 to v11.7.
+  - Hardened the OAuth server provider's handling of deactivated users.
+  - Guest magic-link ``REST`` login now applies the same authentication criteria checks as the web one-time-link handler and password login.
+  - Fixed an issue that caused a flagged post to continue being visible for content reviewers until a refresh after deletion.
+  - Fixed an issue where public channel mention links were shown as an unresolved channel slug instead of the channel name (and were not clickable) for users who were not members of the referenced channel when Compliance Monitoring was enabled.
+  - Preserved unknown permissions during migrations on downgrade.
+  - Mattermost v11.7.3 contains no database or functional changes.
+- **11.7.2, released 2026-05-27**
+  - Mattermost v11.7.2 contains medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Pre-packaged Playbooks plugin version [v2.9.0](https://github.com/mattermost/mattermost-plugin-playbooks/releases/tag/v2.9.0).
+  - Updated Go to v1.25.10.
+  - Fixed a regression saving various masked fields from the System Console.
+  - Introduced a new permission ``Edit Attachments`` for controlling who can edit post attachments when editing a post. By default the permission is granted to whoever has edit post permission.
+  - Mattermost v11.7.2 contains no database or functional changes.
+- **11.7.1, released 2026-05-21**
+  - Mattermost v11.7.1 contains low to medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Pre-packaged GitLab plugin version [v1.12.2](https://github.com/mattermost/mattermost-plugin-gitlab/releases/tag/v1.12.2).
+  - Pre-packaged Jira plugin version [v4.7.0](https://github.com/mattermost/mattermost-plugin-jira/releases/tag/v4.7.0).
+  - Tightened session invalidation on the global session revocation path.
+  - POST ``/api/v4/users/{user_id}/demote`` now returns 400 when ``user_id`` is a bot account; bot accounts cannot be converted to guests.
+  - Improved memory usage and performance when processing images (resizing, thumbnails, and orientation correction).
+  - Plugins using the Shared Channels APIs can now register multiple remote connections by calling ``RegisterPluginForSharedChannels`` with different ``SiteURL`` values, enabling use cases like multiple outbound transports or bridging to multiple external servers. A new ``UnregisterPluginRemoteForSharedChannels`` method allows removing a single remote without affecting others. Existing single-remote plugins continue to work without changes.
+  - Fixed an issue where file attachments synced over a shared channel through a plugin (using the ``OnSharedChannelsAttachmentSyncMsg`` / ``ReceiveSharedChannelAttachmentSyncMsg`` plugin API pair) were stored on the receiving server but did not appear in the corresponding post, because the saved FileInfo was given a new ID instead of preserving the sender's file ID referenced by the post.
+  - Plugin API's for Shared Channel sync (``ReceiveSharedChannelSyncMsg`` and ``ReceiveSharedChannelAttachmentSyncMsg``) are now order-tolerant and idempotent: plugin remotes can now deliver a post and its file attachments in either order or concurrently, and at-least-once redeliveries no longer produce duplicate FileInfo rows.
+  - Mattermost v11.7.1 contains no database or functional changes.
+- **11.7.0, released 2026-05-15**
+  - Original 11.7.0 release.
+
+<Important>
+
+**Breaking Changes**
+ - FIPS builds require a minimum of 14 characters for passwords, atmos/camo proxy configuration, and shared channel secrets. Shorter passwords for existing users will no longer be valid and require a password reset. Non-FIPS builds are unaffected.
+ - v11.7 includes Agents plugin v2. Please see [this guide](https://github.com/mattermost/mattermost-plugin-agents/blob/master/docs/upgrading_to_2.0.md) on how to upgrade the Mattermost Agents plugin from a v1.x release to v2.0.0. It covers the supported version path, the migrations that run automatically on first start of v2.0.0, the breaking changes and default-behavior flips that admins should know about before the upgrade window, and the verification steps to confirm the upgrade succeeded.
+
+</Important>
+
+#### Database Schema Changes
+ - The following schema changes are included in the v11.7 release. No database downtime is expected for this upgrade. See the [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html) for more details.
+   - Added a new partial unique index (``idx_accesscontrolpolicies_name_type``) to the ``AccessControlPolicies`` table on (Name, Type) filtered to ``WHERE Type = 'parent'``.
+   - The ``PropertyFields`` and ``PropertyValues`` tables were modified, and a new ``Views`` table was created.
+   - Scoped the ``role_updated`` WebSocket events to the affected team/channel instead of broadcasting globally.
+
+#### config.json
+New setting options were added to ``config.json``. Below is a list of the additions and their default values on install. The settings can be modified in ``config.json``, or the System Console when available.
+ - **Changes to Enterprise Advanced plan:**
+   - Under ``ExperimentalSetting`` in ``config.json``, added ``EnableWatermark`` configuration setting to add watermarking toggle in the server.
+ - **Changes to Enterprise plans:**
+   - Under ``PasswordSettings`` in ``config.json``, added ``PasswordFIPSMinimumLength`` configuration setting to require a minimum of 14 characters for passwords and for atmos/camo proxy and shared channel secrets.
+ - **Changes to all plans:**
+   - Under ``DatabaseSettings`` in ``config.json``, added ``AnalyticsQueryTimeout`` configuration [setting](https://docs.mattermost.com/administration-guide/configure/environment-configuration-settings.html#query-timeout) for use when running long analytics queries in the background.
+
+### Compatibility
+ - Updated minimum Edge and Chrome versions to 146+.
+
+<Important>
+
+If you upgrade from a release earlier than v11.6, please read the other [Important Upgrade Notes](https://docs.mattermost.com/administration-guide/upgrade/important-upgrade-notes.html). In case of an upgrade failure, please check the [Downgrade Guide](https://docs.mattermost.com/administration-guide/upgrade/downgrading-mattermost-server.html) and the [Recovery Guide](https://docs.mattermost.com/deployment-guide/backup-disaster-recovery.html) for rollback steps and interim mitigation strategy.
+
+</Important>
+
+### Improvements
+
+See [this blog post](https://mattermost.com/blog/mattermost-v11-7-is-now-available/) on the highlights in our latest release.
+
+#### User Interface (UI)
+ - Pre-packaged Boards plugin version [v9.2.4](https://github.com/mattermost/mattermost-plugin-boards/releases/tag/v9.2.4).
+ - Pre-packaged GitHub plugin version [v2.7.0](https://github.com/mattermost/mattermost-plugin-github/releases/tag/v2.7.0).
+ - Pre-packaged Jira plugin version [v4.6.0](https://github.com/mattermost/mattermost-plugin-jira/releases/tag/v4.6.0).
+ - Pre-packaged Zoom plugin version [v1.13.0](https://github.com/mattermost/mattermost-plugin-zoom/releases/tag/v1.13.0).
+ - Pre-packaged [Agents](https://docs.mattermost.com/end-user-guide/agents.html) plugin version [v2.0.3](https://github.com/mattermost/mattermost-plugin-agents/releases/tag/v2.0.3).
+ - Pre-packaged Playbooks plugin version [v2.8.1](https://github.com/mattermost/mattermost-plugin-playbooks/releases/tag/v2.8.1).
+ - Message attachment footers now support full Markdown rendering, including bold, italic, links, and emoji.
+ - Changed the **Browse Channels** modal and ``~channel`` autocomplete to prioritize channels with a matching display name.
+ - Added an "Open in new tab" button to the **Product Switcher** menu.
+ - Substring matching is now allowed when searching channel members in the member sub-panel in a channel.
+ - Improved accessibility of thread list menus.
+ - Channel banners are now shown in thread views.
+ - Improved autocomplete while typing in Korean and using Firefox (reported on Desktop App and web browser).
+ - Updated license renewal and expiry notification emails with refreshed branding, copy, and layout.
+ - Added the ability to open channels in a separate popout window, with full channel and right-hand side functionality.
+ - Dropped support for JS features required by browsers over three years old (reported on webapp and Safari browser).
+ - Renamed user-visible references from "Custom Profile Attributes" to ["User Attributes"](https://docs.mattermost.com/administration-guide/manage/admin/user-attributes.html) across the admin console, error messages, and server translations.
+ - Added the [ability to handle](https://docs.mattermost.com/administration-guide/onboard/connected-workspaces.html) from which remotes a channel is shared from the channel settings user interface.
+
+#### Administration
+ - Updated dependency versions for server and public services.
+ - Migrated access control policies from v0.2 to v0.3, replacing the wildcard action with explicit action types to support multi-action policies.
+ - Added [team-level](https://docs.mattermost.com/administration-guide/manage/admin/attribute-based-access-control.html) ABAC membership policies, allowing Team Admins to create and manage attribute-based access policies for private channels within their team directly from a new Membership Policies tab in the Team Settings Modal.
+ - Added [permission policies](https://docs.mattermost.com/administration-guide/manage/admin/attribute-based-access-control.html) to manage file attachment download/upload actions.
+ - Policy editor is improved for "Multi Select" attribute types to use more intuitive operators.
+ - Added support for [Elasticsearch v9](https://docs.mattermost.com/administration-guide/scale/enterprise-search.html#elasticsearch) alongside v8. Elasticsearch v7 is no longer supported.
+ - Fail-fast requests are now done to the Elasticsearch/Opensearch cluster when it is down.
+ - Added a new ``mattermost_search_engine_status`` metric that reports whether the Elasticsearch/Opensearch cluster is healthy (value = 1) or not (value = 0). If the cluster is not enabled, its value is reported as 1.
+ - Added [logic](https://docs.mattermost.com/administration-guide/scale/common-configure-mattermost-for-enterprise-search.html) to monitor the health of Elasticsearch/Opensearch clusters to implement a retry mechanism.
+ - Updated URL validation in integration actions to make them more secure.
+ - Added a new built-in delegated administration role: Shared Channel Manager. This role allows System Admins to delegate Connected Workspaces management to specific users without granting full system administration access.
+ - Shared Channels related errors now appear in the main log file by default.
+ - Added a new Integrated Boards feature flag.
+ - Added protected fields and field specific permissions to the property fields.
+ - Added a ``--workers`` flag to the [mmctl import process](https://docs.mattermost.com/administration-guide/manage/mmctl-command-line-tool.html) to control concurrency.
+ - Added support for listing user roles through mmctl.
+ - In the access control table editor, multi-select user attributes can now only use the "in" operator; changing the attribute on a row no longer resets the operator when both attributes are non-multi-select.
+ - Tightened authorization on the group syncable link and patch endpoints.
+ - Added new permissions to back Self Service Agent Creation in Mattermost Agents:
+    - ``manage_own_agent``: Allows users to create and manage their own agents.
+    - ``manage_others_agent``: Allows users to create and manage agents they didn't create, even if that user isn't one of the administrator users assigned to the agent by the creator.
+
+#### Performance
+ - Benchmarking test results showed no significant difference: a -0.90% decrease in the number of supported users for the new release, which lies within the ``[-5%, +5%]`` prediction interval. View the full raw data and methodology in our [Performance Reports repository](https://github.com/mattermost/performance-reports/tree/main/performance-comparisons/v11.7).
+
+#### Plugins
+ - Added a pluggable [AI Actions Menu](https://docs.mattermost.com/end-user-guide/collaborate/send-messages.html) to the text editor formatting bar with cascading submenus. Plugins can register custom action items via ``registerAIActionMenuItemComponent``. The existing Rewrite feature is now accessed through this menu.
+ - Improved response handling for outgoing webhook requests.
+
+### Bug Fixes
+ - Fixed a crash when native app download links were malformed (reported on web browser).
+ - Fixed an issue where premade themes were hidden when custom themes were disabled.
+ - Fixed an issue where importing files with Japanese dakuten/handakuten characters (e.g., ガ, パ, べ) failed on macOS due to Unicode normalization mismatch (NFC/NFD).
+ - Fixed an issue that caused profile pictures to be incorrectly rotated on upload, as their EXIF rotation tag was ignored (reported on iOS).
+ - Fixed a nil pointer dereference in ``UpdateUser`` when the user update operation returned an unexpected nil result (Sentry VF, 14 events).
+ - Fixed an issue with the date picker not being able to overflow interactive dialogs properly.
+ - Fixed an issue where fetching a newly created channel could fail with "channel not found" on deployments with database read replicas.
+ - Fixed visual glitches with misaligned text and icon in image attachments in compact mode.
+ - Fixed an issue where shared channels would intermittently display "Shared with trusted organizations" instead of showing the actual connection name.
+ - Fixed an issue where attachment-only posts would get sent on **enter** even when set to only send on **ctrl/cmd + enter**.
+ - Fixed styling issues in the **Browse Channels** modal when there were long channel purpose values present.
+ - Fixed an issue where shared channel invites were silently dropped in High Availability clusters when the API request landed on a non-leader node.
+ - Fixed an issue where message attachment titles would render encoded special characters as-is.
+ - Fixed an issue with the **Invite to Team** modal ignoring the most recent key pressed when suggesting users (reported on Desktop App and web browser).
+ - Fixed an issue where a "Don't have an account" link showed up on the login page even when signups were disabled.
+ - Fixed issues with interactive dialogs - dynamic select lookups, radio values, and field refresh.
+ - Fixed an issue where desktop notifications still triggered for a channel or thread that was focused in a popout window (reported on Desktop App).
+ - Fixed an issue where the ``remote_id`` field on user objects could be set via the user patch API.
+ - Fixed an issue where keyboard navigation didn't work in the channel header and sidebar channel menus.
+ - Fixed an issue where the Workspace Optimization page appeared in the System Console on Mattermost Cloud workspaces.
+ - Fixed an issue where in compact mode, file attachment's name didn't display correctly when editing a post with attachments.
+ - Fixed an issue where the textbox would appear focused but not accept keyboard shortcuts after editing a post.
+ - Fixed an issue where SAML login failed for users mapped via objectGUID when the IdP sent the value as a UUID string instead of base64-encoded raw bytes (affecting Keycloak 26.6.0 and later with user-attribute-ldap-mapper).
+ - Fixed an issue with clipped emoticons and letters in channel banners.
+ - Fixed an issue where removing a remote could leave channels in a "shared" state, even if not shared with any remote.
+ - Fixed an issue where OpenSearch/Elasticsearch reindex jobs could report success even when bulk writes were silently rejected by the search backend, causing silent data loss in the search index.
+
+### API Changes
+ - Added a new API endpoint ``GET /api/v4/channels/{channel_id}/views/{view_id}/posts`` to retrieve paginated posts for a specific view. Card posts are temporarily excluded from search results. Card posts now use collaborative permissions — any channel member can edit or delete any card without needing ``edit_others_posts/delete_others_posts`` permissions.
+ - Added new API endpoints for the Property System Architecture v2.
+ - Plugin API: Added new pre-hooks for channel membership, team membership, and channel archiving. Plugins can now intercept operations before they are persisted using three new hooks: ``ChannelMemberWillBeAdded`` (modify or reject a channel member addition), ``TeamMemberWillBeAdded`` (modify or reject a team member addition), and ``ChannelWillBeArchived`` (reject a channel archive).
+ - Added new API endpoints ``PUT /api/v4/system/e2e/ai_bridge``, ``GET /api/v4/system/e2e/ai_bridge``, and ``DELETE /api/v4/system/e2e/ai_bridge`` for E2E testing of AI features. These endpoints are only accessible when ``EnableTesting`` is true. Refactored internal AI-related logic to use a new ``AgentsBridge`` interface for improved testability. Added new DTOs in ``server/public/model`` for AI bridge information and test helpers.
+ - Added a new API endpoint ``PUT /api/v4/channels/{channel_id}/members`` that sets the complete membership of a channel in a single call. The endpoint accepts [a JSON object](https://docs.mattermost.com/administration-guide/comply/embedded-json-audit-log-schema.html) with ``members`` (desired user IDs) and an optional ``channel_admins`` (user IDs to designate as channel admins). The server computes the diff against current membership, adds or removes users as needed, and reconciles admin roles. Results are streamed back as NDJSON for progress tracking. Requires system admin permissions.
+ - Added three new plugin APIs for shared channel sync: ``ReceiveSharedChannelSyncMsg``, ``ReceiveSharedChannelAttachmentSyncMsg``, and ``ReceiveSharedChannelProfileImageSyncMsg``. These allow plugins acting as shared channel remotes to sync posts, reactions, users, file attachments, and profile images into Mattermost, complementing the existing outbound ``OnSharedChannels`` hooks.
+
+### Websocket Event Changes
+ - Added websocket events for Property System Architecture v2.
+
+### Audit Log Event Changes
+ - Added new audit logs ``AuditEventCreateView``, ``AuditEventGetView``, ``AuditEventUpdateView``, ``AuditEventDeleteView``, ``AuditEventListViewsForChannel``, ``AuditEventUpdateViewSortOrder``, ``AuditEventGetPostsForView``, ``AuditEventCreatePropertyField``, ``AuditEventDeletePropertyField``, ``AuditEventGetPropertyFields``, ``AuditEventPatchPropertyField``, ``AuditEventGetPropertyValues``, and ``AuditEventPatchPropertyValues`` for Integrated Boards.
+ - Added a new audit log ``AuditEventSetChannelMembers`` for channel memberships.
+ - Added new audit logs ``AuditEventCreateTeamAccessPolicy``, ``AuditEventUpdateTeamAccessPolicy``, ``AuditEventDeleteTeamAccessPolicy``, ``AuditEventAssignTeamAccessPolicy``, ``AuditEventUnassignTeamAccessPolicy``, and ``AuditEventTriggerTeamPolicySync`` for team-level ABAC membership policies.
+
+### Go Version
+ - v11.7 is built with Go ``v1.25.9``.
+
+### Contributors
+ - [abhijit-singh](https://github.com/abhijit-singh), [agarciamontoro](https://github.com/agarciamontoro), [amyblais](https://github.com/amyblais), [andrleite](https://github.com/andrleite), [angeloskyratzakos](https://github.com/angeloskyratzakos), [Aryakoste](https://github.com/Aryakoste), [asaadmahmood](https://github.com/asaadmahmood), [avasconcelos114](https://github.com/avasconcelos114), [axilleas](https://github.com/axilleas), [BenCookie95](https://github.com/BenCookie95), [bgardner8008](https://github.com/bgardner8008), [Br1an67](https://github.com/Br1an67), [calebroseland](https://github.com/calebroseland), [carlisgg](https://github.com/carlisgg), [Combs7th](https://github.com/Combs7th), [cpoile](https://github.com/cpoile), [crspeller](https://github.com/crspeller), [ctlaltdieliet](https://github.com/ctlaltdieliet), [DannyDaemonic](https://github.com/DannyDaemonic), [davidkrauser](https://github.com/davidkrauser), [devinbinnie](https://github.com/devinbinnie), [DHaussermann](https://github.com/DHaussermann), [edgarbellot](https://github.com/edgarbellot), [enahum](https://github.com/enahum), [esarafianou](https://github.com/esarafianou), [esethna](https://github.com/esethna), [ewwollesen](https://github.com/ewwollesen), [fmartingr](https://github.com/fmartingr), [frankps](https://translate.mattermost.com/user/frankps), [ggrossetie](https://github.com/ggrossetie), [grubbins](https://github.com/grubbins), [hanzei](https://github.com/hanzei), [harshilsharma63](https://github.com/harshilsharma63), [hmhealey](https://github.com/hmhealey), [isacikgoz](https://github.com/isacikgoz), [jgheithcock](https://github.com/jgheithcock), [jprusch](https://translate.mattermost.com/user/jprusch), [kayazeren](https://translate.mattermost.com/user/kayazeren), [krotesk](https://translate.mattermost.com/user/krotesk), [KuSh](https://github.com/KuSh), [larkox](https://github.com/larkox), [lieut-data](https://github.com/lieut-data), [M-ZubairAhmed](https://github.com/M-ZubairAhmed), [marianunez](https://github.com/marianunez), [maruTA-bis5](https://translate.mattermost.com/user/maruTA-bis5), [master7](https://translate.mattermost.com/user/master7), [matthewbirtch](https://github.com/matthewbirtch), [Maty556677](https://translate.mattermost.com/user/Maty556677), [mgdelacroix](https://github.com/mgdelacroix), [NAM-MAN](https://github.com/NAM-MAN), [nang2049](https://github.com/nang2049), [NARSimoes](https://github.com/NARSimoes), [nickmisasi](https://github.com/nickmisasi), [pavelzeman](https://github.com/pavelzeman), [pvev](https://github.com/pvev), [Rajat-Dabade](https://github.com/Rajat-Dabade), [Reinkard](https://translate.mattermost.com/user/Reinkard), [Ricky-Tigg](https://translate.mattermost.com/user/Ricky-Tigg), [RinSkywarp](https://translate.mattermost.com/user/RinSkywarp), [sadohert](https://github.com/sadohert), [saturninoabril](https://github.com/saturninoabril), [sbishel](https://github.com/sbishel), [Sharuru](https://translate.mattermost.com/user/Sharuru), [svelle](https://github.com/svelle), [ThrRip](https://translate.mattermost.com/user/ThrRip), [tnir](https://translate.mattermost.com/user/tnir), [Umeaboy](https://translate.mattermost.com/user/Umeaboy), [Victor-Nyagudi](https://github.com/Victor-Nyagudi), [wiersgallak](https://github.com/wiersgallak), [wiggin77](https://github.com/wiggin77), [Willyfrog](https://github.com/Willyfrog), [yasserfaraazkhan](https://github.com/yasserfaraazkhan)
+
 ## Release v11.6 - [Feature Release](https://docs.mattermost.com/product-overview/release-policy.html#release-types) \{#release-v11-6-feature-release}
 
+- **11.6.6, released 2026-06-26**
+  - Mattermost v11.6.6 contains medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Fixed custom emoji upload size and GIF frame limits.
+  - Mattermost v11.6.6 contains the following functional changes:
+    - Added a new ``FileSettings.ExtractContentTimeout`` setting (default 10 seconds) that limits how long a single uploaded document's content extraction occupies a worker, and moved document content extraction to a dedicated, non-blocking worker pool so it no longer delays file uploads for other users. Added ``FileSettings.ExtractContentTimeout`` configuration setting.
+- **11.6.5, released 2026-06-12**
+  - Mattermost v11.6.5 contains medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Pre-packaged Playbooks plugin version [v2.9.0](https://github.com/mattermost/mattermost-plugin-playbooks/releases/tag/v2.9.0).
+  - Added a pre-migration setup to fix the incorrect database migration numbers that prevented upgrading Mattermost from v10.11 to v11.7.
+  - Hardened the OAuth server provider's handling of deactivated users.
+  - Guest magic-link ``REST`` login now applies the same authentication criteria checks as the web one-time-link handler and password login.
+  - Mattermost v11.6.5 contains no database or functional changes.
+- **11.6.4, released 2026-05-27**
+  - Mattermost v11.6.4 contains medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Pre-packaged Agents plugin version [v1.14.2](https://github.com/mattermost/mattermost-plugin-agents/releases/tag/v1.14.2).
+  - Introduced a new permission ``Edit Attachments`` for controlling who can edit post attachments when editing a post. By default the permission is granted to whoever has edit post permission.
+  - Mattermost v11.6.4 contains no database or functional changes.
+- **11.6.3, released 2026-05-21**
+  - Mattermost v11.6.3 contains a medium severity level security fix. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Pre-packaged GitLab plugin version [v1.12.2](https://github.com/mattermost/mattermost-plugin-gitlab/releases/tag/v1.12.2).
+  - Pre-packaged Jira plugin version [v4.7.0](https://github.com/mattermost/mattermost-plugin-jira/releases/tag/v4.7.0).
+  - Fixed a regression with saving various masked fields from the System Console.
+  - Tightened session invalidation on the global session revocation path.
+  - Mattermost v11.6.3 contains no database or functional changes.
+- **11.6.2, released 2026-05-13**
+  - Mattermost v11.6.2 contains medium to high severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Pre-packaged Playbooks plugin version [v2.8.1](https://github.com/mattermost/mattermost-plugin-playbooks/releases/tag/v2.8.1).
+  - Tightened authorization on the group syncable link and patch endpoints.
+  - Mattermost v11.6.2 contains the following database changes:
+    - Scoped the ``role_updated`` WebSocket events to the affected team/channel instead of broadcasting globally. No database downtime is expected for this upgrade. See the [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html) for more details.
 - **11.6.1, released 2026-04-22**
   - Mattermost v11.6.1 contains medium to high severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
   - Pre-packaged Zoom plugin version [v1.13.0](https://github.com/mattermost/mattermost-plugin-zoom/releases/tag/v1.13.0).
@@ -151,6 +548,24 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-6-is-now-availab
 
 ## Release v11.5 - [Feature Release](https://docs.mattermost.com/product-overview/release-policy.html#release-types) \{#release-v11-5-feature-release}
 
+- **11.5.7, released 2026-05-27**
+  - Mattermost v11.5.7 contains medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Pre-packaged Agents plugin version [v1.14.2](https://github.com/mattermost/mattermost-plugin-agents/releases/tag/v1.14.2).
+  - Introduced a new permission ``Edit Attachments`` for controlling who can edit post attachments when editing a post. By default the permission is granted to whoever has edit post permission.
+  - Mattermost v11.5.7 contains no database or functional changes.
+- **11.5.6, released 2026-05-21**
+  - Mattermost v11.5.6 contains a medium severity level security fix. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Pre-packaged GitLab plugin version [v1.12.2](https://github.com/mattermost/mattermost-plugin-gitlab/releases/tag/v1.12.2).
+  - Pre-packaged Jira plugin version [v4.7.0](https://github.com/mattermost/mattermost-plugin-jira/releases/tag/v4.7.0).
+  - Fixed a regression with saving various masked fields from the System Console.
+  - Tightened session invalidation on the global session revocation path.
+  - Mattermost v11.5.6 contains no database or functional changes.
+- **11.5.5, released 2026-05-13**
+  - Mattermost v11.5.5 contains medium to high severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Pre-packaged Playbooks plugin version [v2.8.1](https://github.com/mattermost/mattermost-plugin-playbooks/releases/tag/v2.8.1).
+  - Tightened authorization on the group syncable link and patch endpoints.
+  - Mattermost v11.5.5 contains the following database changes:
+    - Scoped the ``role_updated`` WebSocket events to the affected team/channel instead of broadcasting globally. No database downtime is expected for this upgrade. See the [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html) for more details.
 - **11.5.4, released 2026-04-22**
   - Mattermost v11.5.4 contains medium to high severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
   - Pre-packaged Zoom plugin version [v1.13.0](https://github.com/mattermost/mattermost-plugin-zoom/releases/tag/v1.13.0).

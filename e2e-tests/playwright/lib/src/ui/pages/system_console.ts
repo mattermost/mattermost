@@ -17,6 +17,7 @@ import Notifications from '@/ui/components/system_console/sections/site_configur
 import UsersAndTeams from '@/ui/components/system_console/sections/site_configuration/users_and_teams';
 import BoardAttributes from '@/ui/components/system_console/sections/system_attributes/board_attributes';
 import SystemProperties from '@/ui/components/system_console/sections/system_attributes/system_properties';
+import SessionAttributes from '@/ui/components/system_console/sections/system_attributes/session_attributes';
 import FeatureDiscovery from '@/ui/components/system_console/sections/system_users/feature_discovery';
 import Ldap from '@/ui/components/system_console/sections/authentication/ldap';
 import GuestAccess from '@/ui/components/system_console/sections/authentication/guest_access';
@@ -25,6 +26,7 @@ import ManagementLists from '@/ui/components/system_console/sections/user_manage
 import TeamConfiguration from '@/ui/components/system_console/sections/user_management/team_configuration';
 import ChannelConfiguration from '@/ui/components/system_console/sections/user_management/channel_configuration';
 import GroupConfiguration from '@/ui/components/system_console/sections/user_management/group_configuration';
+import PluginManagement from '@/ui/components/system_console/sections/plugins/plugin_management';
 
 export default class SystemConsolePage {
     readonly page: Page;
@@ -64,10 +66,14 @@ export default class SystemConsolePage {
 
     // System Attributes
     readonly systemProperties: SystemProperties;
+    readonly sessionAttributes: SessionAttributes;
     readonly boardAttributes: BoardAttributes;
 
     // Feature Discovery (license-gated features)
     readonly featureDiscovery: FeatureDiscovery;
+
+    // Plugins
+    readonly pluginManagement: PluginManagement;
 
     constructor(page: Page) {
         this.page = page;
@@ -109,10 +115,14 @@ export default class SystemConsolePage {
 
         // System Attributes
         this.systemProperties = new SystemProperties(adminConsoleWrapper);
+        this.sessionAttributes = new SessionAttributes(adminConsoleWrapper);
         this.boardAttributes = new BoardAttributes(adminConsoleWrapper);
 
         // Feature Discovery
         this.featureDiscovery = new FeatureDiscovery(adminConsoleWrapper);
+
+        // Plugins
+        this.pluginManagement = new PluginManagement(adminConsoleWrapper);
     }
 
     async toBeVisible() {
@@ -128,6 +138,11 @@ export default class SystemConsolePage {
     /** Notifications settings URL is environment/notifications (sidebar groups under Site Configuration). */
     async gotoNotificationsSettings() {
         await this.page.goto('/admin_console/environment/notifications');
+        await this.page.waitForLoadState('networkidle');
+    }
+
+    async gotoPluginManagement() {
+        await this.page.goto('/admin_console/plugins/plugin_management');
         await this.page.waitForLoadState('networkidle');
     }
 }

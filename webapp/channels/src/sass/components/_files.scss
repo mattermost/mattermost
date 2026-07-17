@@ -647,7 +647,10 @@
             transition: opacity 0.15s ease;
 
             &:hover {
+                border-color: var(--button-bg);
+                background: var(--button-bg);
                 opacity: 1;
+                stroke: var(--button-color);
             }
         }
 
