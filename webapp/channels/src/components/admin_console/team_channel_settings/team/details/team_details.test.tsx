@@ -475,7 +475,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         expect(screen.getByTestId('team-level-access-rules')).toBeInTheDocument();
     });
 
-    test('removing the policy and disabling the toggle unassigns it on save', async () => {
+    test('removing the last policy unassigns it and auto-disables enforcement without a manual toggle-off', async () => {
         const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
             data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: []}, enforced: true},
         });
@@ -502,11 +502,17 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         });
 
         await userEvent.click(screen.getByLabelText('Remove policy'));
-
         await userEvent.click(document.getElementById('confirmModalButton')!);
-        await userEvent.click(screen.getByTestId('policy-enforce-toggle-button'));
+
+        // Removing the last policy drops the enforce toggle on its own.
+        await waitFor(() => {
+            expect(screen.getByTestId('policy-enforce-toggle-button')).toHaveAttribute('aria-pressed', 'false');
+        });
+
+        // Save goes straight through — no spurious "Apply membership policy" modal.
         await userEvent.click(screen.getByText('Save'));
 
+        expect(screen.queryByText('Apply membership policy')).not.toBeInTheDocument();
         await waitFor(() => {
             expect(unassignTeamsFromAccessControlPolicy).toHaveBeenCalledWith('parent1', ['123']);
         });
@@ -544,7 +550,6 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         // Confirm the disconnect dialog. The trash icon shares the "Remove policy"
         // accessible name, so target the ConfirmModal button by id.
         await userEvent.click(document.getElementById('confirmModalButton')!);
-        await userEvent.click(screen.getByTestId('policy-enforce-toggle-button'));
         await userEvent.click(screen.getByText('Save'));
 
         await waitFor(() => {
@@ -585,7 +590,6 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         // Confirm the disconnect dialog. The trash icon shares the "Remove policy"
         // accessible name, so target the ConfirmModal button by id.
         await userEvent.click(document.getElementById('confirmModalButton')!);
-        await userEvent.click(screen.getByTestId('policy-enforce-toggle-button'));
         await userEvent.click(screen.getByText('Save'));
 
         await waitFor(() => {

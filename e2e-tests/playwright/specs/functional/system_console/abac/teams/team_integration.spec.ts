@@ -193,9 +193,10 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await disconnectModal.getByRole('button', {name: 'Remove policy'}).click();
         await expect(disconnectModal).not.toBeVisible({timeout: 5000});
 
-        // Once the last policy is removed the toggle unlocks; disable it before saving.
-        await setToggle(page, false);
+        // Removing the last policy auto-disables enforcement: Save goes straight through
+        // with no "Apply membership policy" modal and no manual toggle-off.
         await page.getByRole('button', {name: 'Save'}).click();
+        await expect(page.locator('.ConfirmModal').filter({hasText: 'Apply membership policy'})).toHaveCount(0);
         await page.waitForLoadState('networkidle');
 
         await expect

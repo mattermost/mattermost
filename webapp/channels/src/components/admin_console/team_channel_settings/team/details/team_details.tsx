@@ -347,10 +347,15 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
 
     onPolicyRemove = (policyId: string) => {
         const {accessControlPolicies, accessControlPoliciesToRemove} = this.state;
+        const remaining = accessControlPolicies.filter((policy) => policy.id !== policyId);
         this.setState({
             accessControlPoliciesToRemove: [...accessControlPoliciesToRemove, policyId],
-            accessControlPolicies: accessControlPolicies.filter((policy) => policy.id !== policyId),
+            accessControlPolicies: remaining,
             saveNeeded: true,
+            // Removing the last policy with no custom rules leaves nothing to enforce;
+            // drop enforcement so the save cleanly disables ABAC instead of failing the
+            // "must select a policy or define rules" guard (which forced a manual toggle-off).
+            policyEnforced: this.abacRemainsEnforced(remaining),
         });
         this.props.actions.setNavigationBlocked(true);
     };
@@ -361,8 +366,16 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             accessControlPoliciesToRemove: [...accessControlPoliciesToRemove, ...accessControlPolicies.map((p) => p.id)],
             accessControlPolicies: [],
             saveNeeded: true,
+            policyEnforced: this.abacRemainsEnforced([]),
         });
         this.props.actions.setNavigationBlocked(true);
+    };
+
+    // Enforcement holds as long as something still governs membership: a linked
+    // parent policy or the team's own custom rules.
+    private abacRemainsEnforced = (remainingPolicies: AccessControlPolicy[]): boolean => {
+        const hasTeamRules = Boolean(this.state.teamRulesExpression && this.state.teamRulesExpression.trim());
+        return remainingPolicies.length > 0 || hasTeamRules;
     };
 
     handleNameChange = (name: string) => {
@@ -826,9 +839,12 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             return;
         }
 
+        // Only applying new criteria (a newly linked policy or changed custom rules)
+        // can drop current members, so only that warrants the affected-count confirm.
+        // Removing a policy retains members (confirmed at the trash click) and must
+        // save straight through, not reopen the apply-membership modal.
         const hasAbacChanges = this.props.abacSupported && this.state.policyEnforced && (
             this.state.accessControlPolicies.some((p) => !this.state.originalPolicyIds.includes(p.id)) ||
-            this.state.accessControlPoliciesToRemove.length > 0 ||
             this.state.teamRulesHaveChanges
         );
 
