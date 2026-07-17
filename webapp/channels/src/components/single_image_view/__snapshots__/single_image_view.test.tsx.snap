@@ -254,7 +254,7 @@ exports[`components/SingleImageView should match snapshot 2`] = `
           >
             <div
               class="file-preview__button"
-              style="display: inline-block;"
+              style="display: block;"
             >
               <figure
                 class="image-loaded-container"
@@ -375,7 +375,6 @@ exports[`components/SingleImageView should match snapshot, SVG image 1`] = `
                   aria-label="file thumbnail name_svg"
                   class=""
                   src="/api/v4/files/svg_file_info_id/preview"
-                  style="width: 350px; height: auto;"
                   tabindex="0"
                 />
                 <span
@@ -448,7 +447,7 @@ exports[`components/SingleImageView should match snapshot, SVG image 2`] = `
           >
             <div
               class="file-preview__button"
-              style="display: inline-block;"
+              style="display: block;"
             >
               <figure
                 class="image-loaded-container"
@@ -457,7 +456,6 @@ exports[`components/SingleImageView should match snapshot, SVG image 2`] = `
                   aria-label="file thumbnail name_svg"
                   class=""
                   src="/api/v4/files/svg_file_info_id/preview"
-                  style="width: 350px; height: auto;"
                   tabindex="0"
                 />
                 <span
@@ -529,7 +527,7 @@ exports[`components/SingleImageView should set loaded state on callback of onIma
           >
             <div
               class="file-preview__button"
-              style="display: inline-block;"
+              style="display: block;"
             >
               <figure
                 class="image-loaded-container"

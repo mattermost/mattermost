@@ -19,8 +19,7 @@ import {getFileMiniPreviewUrl} from 'mattermost-redux/utils/file_utils';
 
 import LoadingImagePreview from 'components/loading_image_preview';
 
-import {FileTypes} from 'utils/constants';
-import {copyToClipboard, getFileType} from 'utils/utils';
+import {copyToClipboard} from 'utils/utils';
 
 const MIN_IMAGE_SIZE = 48;
 const MIN_IMAGE_SIZE_FOR_INTERNAL_BUTTONS = 100;
@@ -209,7 +208,6 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
     renderImageWithContainerIfNeeded = () => {
         const {
             fileInfo,
-            dimensions,
             src,
             fileURL,
             enablePublicLink,
@@ -235,21 +233,6 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             ariaLabelImage += ` ${fileInfo.name}`.toLowerCase();
         }
 
-        const fileType = getFileType(fileInfo?.extension ?? '');
-
-        let conditionalSVGStyleAttribute: CSSProperties | undefined;
-        if (fileType === FileTypes.SVG) {
-            conditionalSVGStyleAttribute = {
-                width: dimensions?.width || MIN_IMAGE_SIZE,
-                height: 'auto',
-            };
-        }
-
-        let mergedImgStyle: CSSProperties | undefined = this.props.style;
-        if (conditionalSVGStyleAttribute) {
-            mergedImgStyle = {...conditionalSVGStyleAttribute, ...this.props.style};
-        }
-
         const image = (
             <img
                 {...props}
@@ -264,7 +247,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                 src={src}
                 onError={this.handleError}
                 onLoad={this.handleLoad}
-                style={mergedImgStyle}
+                style={this.props.style}
             />
         );
 
@@ -475,7 +458,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                 {!renderPlaceholderOnly && (
                     <div
                         className='file-preview__button'
-                        style={{display: shouldShowImg ? 'inline-block' : 'none'}}
+                        style={{display: shouldShowImg ? 'block' : 'none'}}
                     >
                         {this.renderImageWithContainerIfNeeded()}
                     </div>

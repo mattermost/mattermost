@@ -270,8 +270,8 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                 };
             } else {
                 imageContainerStyle = {
-                    height: 350,
-                    maxWidth: '100%',
+                    height: 'auto',
+                    width: '100%',
                 };
             }
         }

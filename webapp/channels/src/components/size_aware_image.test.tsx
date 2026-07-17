@@ -125,7 +125,7 @@ describe('components/SizeAwareImage', () => {
         simulateImageLoad(img, 300, 200);
 
         const filePreviewButton = container.querySelector('.file-preview__button') as HTMLElement;
-        expect(filePreviewButton.style.display).toEqual('inline-block');
+        expect(filePreviewButton.style.display).toEqual('block');
     });
 
     test('should render the actual image when first mounted without dimensions', () => {
@@ -150,7 +150,7 @@ describe('components/SizeAwareImage', () => {
 
         // Verify loaded state through DOM: file-preview__button should be visible
         const filePreviewButton = container.querySelector('.file-preview__button') as HTMLElement;
-        expect(filePreviewButton.style.display).toEqual('inline-block');
+        expect(filePreviewButton.style.display).toEqual('block');
         expect(baseProps.onImageLoaded).toHaveBeenCalledWith({height, width});
     });
 

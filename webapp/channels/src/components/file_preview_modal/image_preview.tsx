@@ -8,9 +8,6 @@ import type {FileInfo} from '@mattermost/types/files';
 
 import {getFilePreviewUrl, getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
-import {FileTypes} from 'utils/constants';
-import {getFileType} from 'utils/utils';
-
 import './image_preview.scss';
 
 interface Props {
@@ -98,12 +95,6 @@ export default function ImagePreview({fileInfo, canDownloadFiles, scale, transla
         );
     }
 
-    const finalImgStyle: React.CSSProperties = {...imgStyle};
-    if (getFileType(fileInfo.extension) === FileTypes.SVG) {
-        finalImgStyle.width = fileInfo.width;
-        finalImgStyle.height = 'auto';
-    }
-
     const preventLinkNav = (e: React.SyntheticEvent) => e.preventDefault();
 
     return (
@@ -121,7 +112,7 @@ export default function ImagePreview({fileInfo, canDownloadFiles, scale, transla
                 data-testid='imagePreview'
                 alt={'preview url image'}
                 src={previewUrl}
-                style={finalImgStyle}
+                style={imgStyle}
                 draggable={false}
             />
         </a>

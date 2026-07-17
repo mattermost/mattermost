@@ -84,3 +84,95 @@ func TestParseProcInstOnlySVGData(t *testing.T) {
 	require.Equal(t, 0, svgInfo.Width)
 	require.Equal(t, 0, svgInfo.Height)
 }
+
+func TestParseSVGDimensionSources(t *testing.T) {
+	testCases := []struct {
+		name           string
+		svg            string
+		expectErr      bool
+		expectedWidth  int
+		expectedHeight int
+	}{
+		{
+			name:           "viewBox only",
+			svg:            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 256"></svg>`,
+			expectedWidth:  512,
+			expectedHeight: 256,
+		},
+		{
+			name:           "absolute width and height in pixels without viewBox",
+			svg:            `<svg xmlns="http://www.w3.org/2000/svg" width="640px" height="480px"></svg>`,
+			expectedWidth:  640,
+			expectedHeight: 480,
+		},
+		{
+			name:      "mixed percentage and absolute dimensions without viewBox is not usable",
+			svg:       `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="480"></svg>`,
+			expectErr: true,
+		},
+		{
+			name:      "degenerate viewBox falls back and fails when no usable dimensions remain",
+			svg:       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0"></svg>`,
+			expectErr: true,
+		},
+		{
+			name:           "degenerate viewBox falls back to absolute width and height",
+			svg:            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="640px" height="480px"></svg>`,
+			expectedWidth:  640,
+			expectedHeight: 480,
+		},
+		{
+			name:           "comma separated viewBox without spaces",
+			svg:            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0,0,800,600"></svg>`,
+			expectedWidth:  800,
+			expectedHeight: 600,
+		},
+		{
+			name:           "viewBox preferred over percentage width and height",
+			svg:            `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 640 480"></svg>`,
+			expectedWidth:  640,
+			expectedHeight: 480,
+		},
+		{
+			name:      "percentage width and height without viewBox is not usable",
+			svg:       `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"></svg>`,
+			expectErr: true,
+		},
+		{
+			name:      "dimensions in style attribute only are not usable",
+			svg:       `<svg xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;"></svg>`,
+			expectErr: true,
+		},
+		{
+			name:           "float viewBox is rounded",
+			svg:            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100.6 200.4"></svg>`,
+			expectedWidth:  101,
+			expectedHeight: 200,
+		},
+		{
+			name:      "non-finite viewBox dimensions are rejected",
+			svg:       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 NaN Inf"></svg>`,
+			expectErr: true,
+		},
+		{
+			name:      "non-finite width and height are rejected",
+			svg:       `<svg xmlns="http://www.w3.org/2000/svg" width="Inf" height="NaN"></svg>`,
+			expectErr: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			svgInfo, err := ParseSVG(strings.NewReader(tc.svg))
+			if tc.expectErr {
+				require.Error(t, err)
+				require.Equal(t, 0, svgInfo.Width)
+				require.Equal(t, 0, svgInfo.Height)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, tc.expectedWidth, svgInfo.Width)
+			require.Equal(t, tc.expectedHeight, svgInfo.Height)
+		})
+	}
+}

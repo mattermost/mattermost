@@ -5,9 +5,11 @@ package imaging
 
 import (
 	"encoding/xml"
-	"fmt"
 	"io"
+	"math"
+	"strconv"
 	"strings"
+	"unicode"
 
 	"github.com/pkg/errors"
 )
@@ -18,12 +20,9 @@ type SVGInfo struct {
 	Height int
 }
 
-// ParseSVG returns information for the given SVG input data.
+// ParseSVG returns dimensions from viewBox or absolute width/height attributes.
 func ParseSVG(svgReader io.Reader) (SVGInfo, error) {
-	svgInfo := SVGInfo{
-		Width:  0,
-		Height: 0,
-	}
+	svgInfo := SVGInfo{}
 
 	decoder := xml.NewDecoder(svgReader)
 
@@ -32,55 +31,91 @@ func ParseSVG(svgReader io.Reader) (SVGInfo, error) {
 		if err != nil {
 			return svgInfo, err
 		}
-		switch t := token.(type) {
-		case xml.StartElement:
-			for _, attr := range t.Attr {
-				if attr.Name.Local == "viewBox" {
-					values := strings.Fields(attr.Value)
-					if len(values) == 4 {
-						width := 0
-						_, widthErr := fmt.Sscan(values[2], &width)
 
-						height := 0
-						_, heightErr := fmt.Sscan(values[3], &height)
+		start, ok := token.(xml.StartElement)
+		if !ok {
+			continue
+		}
 
-						if widthErr != nil || heightErr != nil {
-							return svgInfo, err
-						}
+		var (
+			viewBoxWidth, viewBoxHeight int
+			hasViewBox                  bool
+			attrWidth, attrHeight       int
+			hasWidth, hasHeight         bool
+		)
 
-						svgInfo.Width = width
-						svgInfo.Height = height
-
-						return svgInfo, nil
-					}
+		for _, attr := range start.Attr {
+			switch attr.Name.Local {
+			case "viewBox":
+				if w, h, valid := parseViewBox(attr.Value); valid {
+					viewBoxWidth, viewBoxHeight, hasViewBox = w, h, true
 				}
-				if attr.Name.Local == "width" {
-					width := 0
-					_, err := fmt.Sscan(attr.Value, &width)
-
-					if err != nil {
-						return svgInfo, err
-					}
-
-					svgInfo.Width = width
+			case "width":
+				if v, valid := parseAbsoluteLength(attr.Value); valid {
+					attrWidth, hasWidth = v, true
 				}
-				if attr.Name.Local == "height" {
-					height := 0
-					_, err := fmt.Sscan(attr.Value, &height)
-
-					if err != nil {
-						return svgInfo, err
-					}
-
-					svgInfo.Height = height
+			case "height":
+				if v, valid := parseAbsoluteLength(attr.Value); valid {
+					attrHeight, hasHeight = v, true
 				}
 			}
+		}
 
-			if svgInfo.Width == 0 || svgInfo.Height == 0 {
-				return svgInfo, errors.New("unable to extract SVG dimensions")
-			}
-
+		if hasViewBox {
+			svgInfo.Width = viewBoxWidth
+			svgInfo.Height = viewBoxHeight
 			return svgInfo, nil
 		}
+
+		if hasWidth && hasHeight {
+			svgInfo.Width = attrWidth
+			svgInfo.Height = attrHeight
+			return svgInfo, nil
+		}
+
+		return svgInfo, errors.New("unable to extract SVG dimensions")
 	}
+}
+
+// parseViewBox returns dimensions from a valid viewBox attribute.
+func parseViewBox(value string) (int, int, bool) {
+	fields := strings.FieldsFunc(value, func(r rune) bool {
+		return r == ',' || unicode.IsSpace(r)
+	})
+	if len(fields) != 4 {
+		return 0, 0, false
+	}
+
+	width, widthOK := parseDimension(fields[2])
+	height, heightOK := parseDimension(fields[3])
+	if !widthOK || !heightOK || width <= 0 || height <= 0 {
+		return 0, 0, false
+	}
+
+	return width, height, true
+}
+
+// parseAbsoluteLength returns a positive unitless or pixel SVG length.
+func parseAbsoluteLength(value string) (int, bool) {
+	value = strings.TrimSpace(value)
+	if value == "" || strings.HasSuffix(value, "%") {
+		return 0, false
+	}
+
+	length, ok := parseDimension(strings.TrimSuffix(value, "px"))
+	if !ok || length <= 0 {
+		return 0, false
+	}
+
+	return length, true
+}
+
+// parseDimension rounds a numeric SVG dimension to the nearest integer.
+func parseDimension(value string) (int, bool) {
+	parsed, err := strconv.ParseFloat(strings.TrimSpace(value), 64)
+	if err != nil || math.IsNaN(parsed) || math.IsInf(parsed, 0) {
+		return 0, false
+	}
+
+	return int(math.Round(parsed)), true
 }
