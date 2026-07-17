@@ -147,7 +147,7 @@ func (a *App) BulkExport(rctx request.CTX, writer io.Writer, outPath string, job
 	}
 
 	rctx.Logger().Info("Bulk export: exporting teams")
-	teamNames, appErr := a.exportAllTeams(rctx, job, writer)
+	teamNames, appErr := a.exportAllTeams(rctx, job, writer, opts.TeamName)
 	if appErr != nil {
 		return appErr
 	}
@@ -399,10 +399,27 @@ func (a *App) exportSchemes(rctx request.CTX, job *model.Job, writer io.Writer, 
 	}
 }
 
-func (a *App) exportAllTeams(rctx request.CTX, job *model.Job, writer io.Writer) (map[string]bool, *model.AppError) {
+func (a *App) exportAllTeams(rctx request.CTX, job *model.Job, writer io.Writer, teamNameFilter string) (map[string]bool, *model.AppError) {
 	afterId := strings.Repeat("0", 26)
 	teamNames := make(map[string]bool)
 	cnt := 0
+
+	if teamNameFilter != "" {
+		team, err := a.Srv().Store().Team().GetByName(teamNameFilter)
+		if err != nil {
+			return nil, model.NewAppError("exportAllTeams", "app.team.get_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		if team.DeleteAt != 0 {
+			return nil, model.NewAppError("exportAllTeams", "app.team.get_by_name.app_error", nil, "team is deleted", http.StatusBadRequest)
+		}
+		teamNames[team.Name] = true
+		// SchemeName is not populated here; teams with a custom permission scheme will have it omitted from the export.
+		if appErr := a.exportWriteLine(writer, importLineFromTeam(&model.TeamForExport{Team: *team})); appErr != nil {
+			return nil, appErr
+		}
+		return teamNames, nil
+	}
+
 	for {
 		teams, err := a.Srv().Store().Team().GetAllForExportAfter(1000, afterId)
 		if err != nil {
@@ -412,6 +429,7 @@ func (a *App) exportAllTeams(rctx request.CTX, job *model.Job, writer io.Writer)
 		if len(teams) == 0 {
 			break
 		}
+
 		cnt += len(teams)
 		updateJobProgress(rctx.Logger(), a.Srv().Store(), job, "teams_exported", cnt)
 
