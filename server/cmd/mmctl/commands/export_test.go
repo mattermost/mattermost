@@ -87,7 +87,61 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 		s.Empty(printer.GetErrorLines())
 		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
 	})
+
+	s.Run("create export with team filter", func() {
+		printer.Clean()
+		mockJob := &model.Job{
+			Type: model.JobTypeExportProcess,
+			Data: map[string]string{
+				"include_attachments":       "true",
+				"include_roles_and_schemes": "true",
+				"team_name":                 "myteam",
+			},
+		}
+
+		s.client.
+			EXPECT().
+			CreateJob(context.TODO(), mockJob).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("team", "myteam", "")
+
+		err := exportCreateCmdF(s.client, cmd, nil)
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Empty(printer.GetErrorLines())
+		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
+	})
+
+	s.Run("create export without team filter omits team_name key", func() {
+		printer.Clean()
+		mockJob := &model.Job{
+			Type: model.JobTypeExportProcess,
+			Data: map[string]string{
+				"include_attachments":       "true",
+				"include_roles_and_schemes": "true",
+			},
+		}
+
+		s.client.
+			EXPECT().
+			CreateJob(context.TODO(), mockJob).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("team", "", "")
+
+		err := exportCreateCmdF(s.client, cmd, nil)
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Empty(printer.GetErrorLines())
+		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
+	})
 }
+
 func (s *MmctlUnitTestSuite) TestExportDeleteCmdF() {
 	printer.Clean()
 

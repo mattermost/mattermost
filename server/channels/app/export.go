@@ -163,6 +163,8 @@ func (a *App) BulkExport(rctx request.CTX, writer io.Writer, outPath string, job
 		return appErr
 	}
 
+	// Bots are exported for both full and single-team exports because bots can
+	// author posts in team channels; omitting them would leave post authors unresolvable on import.
 	rctx.Logger().Info("Bulk export: exporting bots")
 	botPPs, appErr := a.exportAllBots(rctx, job, writer, opts.IncludeProfilePictures)
 	if appErr != nil {
@@ -182,15 +184,19 @@ func (a *App) BulkExport(rctx request.CTX, writer io.Writer, outPath string, job
 		return appErr
 	}
 
-	rctx.Logger().Info("Bulk export: exporting direct channels")
-	if appErr = a.exportAllDirectChannels(rctx, job, writer, opts.IncludeArchivedChannels); appErr != nil {
-		return appErr
-	}
+	// Direct channels and posts have no team affiliation; skip when exporting a single team.
+	var directAttachments []imports.AttachmentImportData
+	if opts.TeamName == "" {
+		rctx.Logger().Info("Bulk export: exporting direct channels")
+		if appErr = a.exportAllDirectChannels(rctx, job, writer, opts.IncludeArchivedChannels); appErr != nil {
+			return appErr
+		}
 
-	rctx.Logger().Info("Bulk export: exporting direct posts")
-	directAttachments, appErr := a.exportAllDirectPosts(rctx, job, writer, opts.IncludeAttachments, opts.IncludeArchivedChannels)
-	if appErr != nil {
-		return appErr
+		rctx.Logger().Info("Bulk export: exporting direct posts")
+		directAttachments, appErr = a.exportAllDirectPosts(rctx, job, writer, opts.IncludeAttachments, opts.IncludeArchivedChannels)
+		if appErr != nil {
+			return appErr
+		}
 	}
 
 	if opts.IncludeAttachments {
@@ -493,6 +499,21 @@ func (a *App) exportAllUsers(rctx request.CTX, job *model.Job, writer io.Writer,
 	afterId := strings.Repeat("0", 26)
 	cnt := 0
 	profilePictures := []string{}
+
+	// Pre-load users who authored posts in the team but may no longer be members
+	// (e.g. removed from team after posting). Their records must still be exported
+	// so the importer can resolve post authorship.
+	postAuthorIDs := make(map[string]bool)
+	if teamNameFilter != "" {
+		ids, err := a.Srv().Store().Post().GetPostAuthorIDsForTeam(teamNameFilter)
+		if err != nil {
+			return profilePictures, model.NewAppError("exportAllUsers", "app.post.get_author_ids_for_team.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		for _, id := range ids {
+			postAuthorIDs[id] = true
+		}
+	}
+
 	for {
 		users, err := a.Srv().Store().User().GetAllAfter(1000, afterId)
 		if err != nil {
@@ -579,8 +600,10 @@ func (a *App) exportAllUsers(rctx request.CTX, job *model.Job, writer io.Writer,
 				return profilePictures, err
 			}
 
-			// Skip users with no membership in the target team.
-			if teamNameFilter != "" && len(*members) == 0 {
+			// Skip users with no membership in the target team and no posts there.
+			// Users who were removed from the team after posting are still included
+			// so their post authorship can be resolved on import.
+			if teamNameFilter != "" && len(*members) == 0 && !postAuthorIDs[user.Id] {
 				continue
 			}
 

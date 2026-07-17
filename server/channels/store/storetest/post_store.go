@@ -4727,7 +4727,7 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, rctx request.CTX, ss st
 	require.NoError(t, nErr)
 
 	t.Run("without archived channels", func(t *testing.T) {
-		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), false)
+		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), false, "")
 		assert.NoError(t, err)
 
 		found := false
@@ -4750,7 +4750,7 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, rctx request.CTX, ss st
 	})
 
 	t.Run("with archived channels", func(t *testing.T) {
-		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), true)
+		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), true, "")
 		assert.NoError(t, err)
 
 		found := false
@@ -4778,7 +4778,7 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, rctx request.CTX, ss st
 		}))
 		require.NoError(t, err)
 
-		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), false)
+		posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26), false, "")
 		assert.NoError(t, err)
 
 		for _, p := range posts {

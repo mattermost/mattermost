@@ -1728,3 +1728,191 @@ func TestExportDeactivatedUserDMs(t *testing.T) {
 	require.True(t, foundThreadedReplyInImport,
 		"Threaded reply from deactivated user should be imported")
 }
+
+// parseExportLines reads a BulkExport output and returns all JSON lines grouped by type.
+func parseExportLines(t *testing.T, b *bytes.Buffer) map[string][]map[string]any {
+	t.Helper()
+	result := make(map[string][]map[string]any)
+	scanner := bufio.NewScanner(b)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if line == "" {
+			continue
+		}
+		var obj map[string]any
+		require.NoError(t, json.Unmarshal([]byte(line), &obj))
+		lineType, _ := obj["type"].(string)
+		result[lineType] = append(result[lineType], obj)
+	}
+	require.NoError(t, scanner.Err())
+	return result
+}
+
+func TestBulkExportSingleTeam(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("exports only the specified team", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		// Create a second team with its own user, channel, and post.
+		otherTeam := th.CreateTeam(t)
+		otherUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, otherUser, otherTeam)
+		otherChannel := th.CreateChannel(t, otherTeam)
+		otherPost := &model.Post{ChannelId: otherChannel.Id, Message: "other-team-post", UserId: otherUser.Id}
+		_, _, appErr := th.App.CreatePost(th.Context, otherPost, otherChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		// Export only the basic team.
+		var b bytes.Buffer
+		appErr = th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{
+			TeamName: th.BasicTeam.Name,
+		})
+		require.Nil(t, appErr)
+
+		lines := parseExportLines(t, &b)
+
+		// Exactly one team should appear and it must be the target.
+		require.Len(t, lines["team"], 1)
+		teamData := lines["team"][0]["team"].(map[string]any)
+		assert.Equal(t, th.BasicTeam.Name, teamData["name"])
+
+		// No channels from the other team should appear.
+		for _, cl := range lines["channel"] {
+			ch := cl["channel"].(map[string]any)
+			assert.Equal(t, th.BasicTeam.Name, ch["team"], "channel belongs to wrong team")
+		}
+
+		// No posts from the other team should appear.
+		for _, pl := range lines["post"] {
+			post := pl["post"].(map[string]any)
+			assert.Equal(t, th.BasicTeam.Name, post["team"], "post belongs to wrong team")
+		}
+	})
+
+	t.Run("excludes users not in the target team", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		// Create a user that belongs only to a second team, not the basic team.
+		otherTeam := th.CreateTeam(t)
+		outsideUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, outsideUser, otherTeam)
+
+		var b bytes.Buffer
+		appErr := th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{
+			TeamName: th.BasicTeam.Name,
+		})
+		require.Nil(t, appErr)
+
+		lines := parseExportLines(t, &b)
+
+		exportedUsernames := make(map[string]bool)
+		for _, ul := range lines["user"] {
+			u := ul["user"].(map[string]any)
+			exportedUsernames[u["username"].(string)] = true
+		}
+
+		assert.False(t, exportedUsernames[outsideUser.Username],
+			"user from another team should not appear in export")
+		assert.True(t, exportedUsernames[th.BasicUser.Username],
+			"basic user should appear in export")
+	})
+
+	t.Run("user in multiple teams is exported with only target team membership", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		// Link the basic user to a second team as well.
+		otherTeam := th.CreateTeam(t)
+		th.LinkUserToTeam(t, th.BasicUser, otherTeam)
+
+		var b bytes.Buffer
+		appErr := th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{
+			TeamName: th.BasicTeam.Name,
+		})
+		require.Nil(t, appErr)
+
+		lines := parseExportLines(t, &b)
+
+		var basicUserLine map[string]any
+		for _, ul := range lines["user"] {
+			u := ul["user"].(map[string]any)
+			if u["username"].(string) == th.BasicUser.Username {
+				basicUserLine = u
+				break
+			}
+		}
+		require.NotNil(t, basicUserLine, "basic user should be present in export")
+
+		teams, ok := basicUserLine["teams"].([]any)
+		require.True(t, ok, "user should have teams field")
+		require.Len(t, teams, 1, "user should only have one team membership in export")
+
+		membership := teams[0].(map[string]any)
+		assert.Equal(t, th.BasicTeam.Name, membership["name"],
+			"exported membership should be for the target team only")
+	})
+
+	t.Run("direct messages are excluded", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		th.CreateDmChannel(t, th.BasicUser2)
+
+		var b bytes.Buffer
+		appErr := th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{
+			TeamName: th.BasicTeam.Name,
+		})
+		require.Nil(t, appErr)
+
+		lines := parseExportLines(t, &b)
+		assert.Empty(t, lines["direct_channel"], "direct channels should be excluded in single-team export")
+		assert.Empty(t, lines["direct_post"], "direct posts should be excluded in single-team export")
+	})
+
+	t.Run("bots are excluded", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		_, appErr := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    "testbot_" + model.NewId()[:8],
+			DisplayName: "Test Bot",
+			OwnerId:     th.BasicUser.Id,
+		})
+		require.Nil(t, appErr)
+
+		var b bytes.Buffer
+		appErr = th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{
+			TeamName: th.BasicTeam.Name,
+		})
+		require.Nil(t, appErr)
+
+		lines := parseExportLines(t, &b)
+		assert.Empty(t, lines["bot"], "bots should be excluded in single-team export")
+	})
+
+	t.Run("returns error for nonexistent team", func(t *testing.T) {
+		th := Setup(t)
+
+		var b bytes.Buffer
+		appErr := th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{
+			TeamName: "this-team-does-not-exist",
+		})
+		require.NotNil(t, appErr, "should return an error for a nonexistent team")
+	})
+
+	t.Run("full export still includes all teams", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		otherTeam := th.CreateTeam(t)
+
+		var b bytes.Buffer
+		appErr := th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{})
+		require.Nil(t, appErr)
+
+		lines := parseExportLines(t, &b)
+
+		exportedTeams := make(map[string]bool)
+		for _, tl := range lines["team"] {
+			team := tl["team"].(map[string]any)
+			exportedTeams[team["name"].(string)] = true
+		}
+
+		assert.True(t, exportedTeams[th.BasicTeam.Name], "basic team should appear in full export")
+		assert.True(t, exportedTeams[otherTeam.Name], "other team should appear in full export")
+	})
+}

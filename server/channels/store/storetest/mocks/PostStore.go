@@ -475,6 +475,36 @@ func (_m *PostStore) GetOldestEntityCreationTime() (int64, error) {
 	return r0, r1
 }
 
+// GetPostAuthorIDsForTeam provides a mock function with given fields: teamName
+func (_m *PostStore) GetPostAuthorIDsForTeam(teamName string) ([]string, error) {
+	ret := _m.Called(teamName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPostAuthorIDsForTeam")
+	}
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) ([]string, error)); ok {
+		return rf(teamName)
+	}
+	if rf, ok := ret.Get(0).(func(string) []string); ok {
+		r0 = rf(teamName)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(teamName)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetParentsForExportAfter provides a mock function with given fields: limit, afterID, includeArchivedChannels, teamName
 func (_m *PostStore) GetParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool, teamName string) ([]*model.PostForExport, error) {
 	ret := _m.Called(limit, afterID, includeArchivedChannels, teamName)

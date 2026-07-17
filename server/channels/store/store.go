@@ -426,6 +426,7 @@ type PostStore interface {
 	GetOldest() (*model.Post, error)
 	GetMaxPostSize() int
 	GetParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool, teamName string) ([]*model.PostForExport, error)
+	GetPostAuthorIDsForTeam(teamName string) ([]string, error)
 	GetRepliesForExport(parentID string) ([]*model.ReplyForExport, error)
 	GetDirectPostParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.DirectPostForExport, error)
 	SearchPostsForUser(rctx request.CTX, paramsList []*model.SearchParams, userID, teamID string, page, perPage int) (*model.PostSearchResults, error)
