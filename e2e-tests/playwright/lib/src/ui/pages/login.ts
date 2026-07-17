@@ -79,7 +79,7 @@ export default class LoginPage {
         await this.signInButton.click();
     }
 
-    async assertError(message: string) {
+    async toHaveError(message: string) {
         await expect(this.page.getByText(message, {exact: true})).toBeVisible({timeout: duration.half_min});
     }
 }
