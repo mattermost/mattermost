@@ -900,7 +900,7 @@ func TestDifferentClientCannotRedeemCode(t *testing.T) {
 	require.NotEmpty(t, code)
 
 	// Try to redeem appA's code with appB's credentials
-	_, appErr = th.App.GetOAuthAccessTokenForCodeFlow(th.Context, appB.Id, model.AccessTokenGrantType, appA.CallbackUrls[0], code, appB.ClientSecret, "")
+	_, appErr = th.App.GetOAuthAccessTokenForCodeFlow(th.Context, appB.Id, model.AccessTokenGrantType, appA.CallbackUrls[0], code, appB.ClientSecret, "", "")
 	require.NotNil(t, appErr)
 	require.Contains(t, appErr.Id, "client_id_mismatch")
 	require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
@@ -945,12 +945,12 @@ func TestDifferentClientCannotUseRefreshToken(t *testing.T) {
 	code := uri.Query().Get("code")
 	require.NotEmpty(t, code)
 
-	tokenResp, appErr := th.App.GetOAuthAccessTokenForCodeFlow(th.Context, appA.Id, model.AccessTokenGrantType, appA.CallbackUrls[0], code, appA.ClientSecret, "")
+	tokenResp, appErr := th.App.GetOAuthAccessTokenForCodeFlow(th.Context, appA.Id, model.AccessTokenGrantType, appA.CallbackUrls[0], code, appA.ClientSecret, "", "")
 	require.Nil(t, appErr)
 	require.NotEmpty(t, tokenResp.RefreshToken)
 
 	// Try to use appA's refresh token with appB's credentials
-	_, appErr = th.App.GetOAuthAccessTokenForCodeFlow(th.Context, appB.Id, model.RefreshTokenGrantType, appB.CallbackUrls[0], "", appB.ClientSecret, tokenResp.RefreshToken)
+	_, appErr = th.App.GetOAuthAccessTokenForCodeFlow(th.Context, appB.Id, model.RefreshTokenGrantType, appB.CallbackUrls[0], "", appB.ClientSecret, tokenResp.RefreshToken, "")
 	require.NotNil(t, appErr)
 	require.Contains(t, appErr.Id, "client_id_mismatch")
 	require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
@@ -999,6 +999,7 @@ func TestOAuthRefreshTokenGrantRejectsDeactivatedUser(t *testing.T) {
 		code,
 		oapp.ClientSecret,
 		"",
+		"",
 	)
 	require.Nil(t, appErr)
 	require.NotEmpty(t, tokenResp.AccessToken)
@@ -1017,6 +1018,7 @@ func TestOAuthRefreshTokenGrantRejectsDeactivatedUser(t *testing.T) {
 		"",
 		oapp.ClientSecret,
 		tokenResp.RefreshToken,
+		"",
 	)
 	require.NotNil(t, appErr, "refresh token grant must fail for an inactive user")
 	require.Nil(t, refreshResp)

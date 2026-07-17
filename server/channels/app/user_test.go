@@ -464,6 +464,7 @@ func TestUserDeactivationRevokesOAuthAccessTokens(t *testing.T) {
 		code,
 		oapp.ClientSecret,
 		"",
+		"",
 	)
 	require.Nil(t, appErr)
 	require.NotEmpty(t, tokenResp.AccessToken)

@@ -745,6 +745,16 @@ func (c *Client4) DoAPIPost(ctx context.Context, url string, data string) (*http
 	return c.DoAPIRequest(ctx, http.MethodPost, c.APIURL+url, data, "")
 }
 
+// DoAPIPostJSON marshals the provided data to JSON and makes a POST request to the specified URL.
+// Returns the HTTP response or any error that occurred during marshaling or request.
+func (c *Client4) DoAPIPostJSON(ctx context.Context, url string, data any) (*http.Response, error) {
+	buf, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+	return c.DoAPIRequestBytes(ctx, http.MethodPost, c.APIURL+url, buf, "")
+}
+
 func (c *Client4) DoAPIDeleteBytes(ctx context.Context, url string, data []byte) (*http.Response, error) {
 	return c.DoAPIRequestBytes(ctx, http.MethodDelete, c.APIURL+url, data, "")
 }
