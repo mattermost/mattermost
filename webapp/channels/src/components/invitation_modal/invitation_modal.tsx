@@ -266,8 +266,6 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
         }));
     };
 
-    debouncedSearchChannels = debounce((term) => this.props.currentTeam && this.props.actions.searchChannels(this.props.currentTeam.id, term), 150);
-
     // Filter channels based on the current invite type and search term
     filterChannels = (channels: Channel[], isGuestInvite: boolean, searchTerm: string = '') => {
         return channels.filter((channel) => {
@@ -293,9 +291,11 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
     channelsLoader = async (value: string) => {
         const isGuestInvite = this.state.invite.inviteType === InviteType.GUEST;
 
-        // If there's a search term, search the channels from the server
-        if (value) {
-            this.debouncedSearchChannels(value);
+        if (value && this.props.currentTeam) {
+            const result = await this.props.actions.searchChannels(this.props.currentTeam.id, value);
+            if (result?.data) {
+                return this.filterChannels(result.data, isGuestInvite);
+            }
         }
 
         // Apply filtering to the channels
