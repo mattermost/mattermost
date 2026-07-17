@@ -934,4 +934,44 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
             )
             .toBe(true);
     });
+
+    /**
+     * @objective The System Console Teams list distinguishes a policy-governed team from a
+     * plain invite-only team: its Management column reads "Attribute Based", not "Invite Only".
+     */
+    test('MM-68846-T18 - Teams list shows an Attribute Based indicator for a policy-governed team', async ({pw}) => {
+        test.setTimeout(120000);
+        await pw.skipIfNoLicense();
+
+        const {adminUser, adminClient} = await pw.getAdminClient();
+        if (!adminUser) {
+            throw new Error('Admin user not found');
+        }
+        const suffix = pw.random.id();
+        cleanupClient = adminClient;
+        await enableTeamMembershipPolicies(adminClient);
+
+        // # A private team governed by a membership policy
+        const team = await createPrivateTeam(adminClient, suffix);
+        createdTeamIds.push(team.id);
+        const policyName = `Indicator Policy ${suffix}`;
+        const policy = await createTeamMembershipParentPolicy(adminClient, policyName, 'true');
+        createdPolicyIds.push(policy.id);
+        await assignTeamsToPolicy(adminClient, policy.id, [team.id]);
+
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        const {page} = systemConsolePage;
+
+        await page.goto('/admin_console/user_management/teams');
+        await page.waitForLoadState('networkidle');
+
+        const search = page.locator('input[placeholder*="Search" i]').first();
+        await search.fill(team.display_name);
+        await page.waitForTimeout(1000);
+
+        // * The governed team's Management cell reads "Attribute Based", not "Invite Only"
+        const management = page.locator(`[data-testid="${team.name}Management"]`);
+        await expect(management).toBeVisible({timeout: 10000});
+        await expect(management).toHaveText('Attribute Based');
+    });
 });

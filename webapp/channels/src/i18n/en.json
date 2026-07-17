@@ -3689,6 +3689,7 @@
   "admin.team_settings.team_row.archived": "(Archived)",
   "admin.team_settings.team_row.configure": "Edit",
   "admin.team_settings.team_row.managementMethod.anyoneCanJoin": "Anyone Can Join",
+  "admin.team_settings.team_row.managementMethod.attribute_based": "Attribute Based",
   "admin.team_settings.team_row.managementMethod.groupSync": "Group Sync",
   "admin.team_settings.team_row.managementMethod.inviteOnly": "Invite Only",
   "admin.team_settings.title": "Teams",
