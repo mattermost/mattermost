@@ -628,6 +628,9 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await expect(confirmModal.getByText(/1 member does not currently meet the criteria/i)).toBeVisible();
         await expect(confirmModal.getByText(/2 members do not currently meet the criteria/i)).toHaveCount(0);
 
+        // * The qualifying member is counted, so the empty-team warning must NOT appear.
+        await expect(confirmModal.getByText(/No current members meet the criteria/i)).toHaveCount(0);
+
         await confirmModal.getByRole('button', {name: 'Cancel'}).click();
         await expect(confirmModal).not.toBeVisible();
     });
@@ -966,9 +969,13 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await page.goto('/admin_console/user_management/teams');
         await page.waitForLoadState('networkidle');
 
+        // Wait on the debounced server-side search rather than a fixed sleep.
+        const searchDone = page
+            .waitForResponse((resp) => resp.url().includes('/teams/search'), {timeout: 15000})
+            .catch(() => {});
         const search = page.locator('input[placeholder*="Search" i]').first();
         await search.fill(team.display_name);
-        await page.waitForTimeout(1000);
+        await searchDone;
 
         // * The governed team's Management cell reads "Attribute Based", not "Invite Only"
         const management = page.locator(`[data-testid="${team.name}Management"]`);

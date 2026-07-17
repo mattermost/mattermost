@@ -107,6 +107,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             updateAccessControlPoliciesActive: jest.fn().mockResolvedValue({data: {}}),
             createAccessControlTeamSyncJob: jest.fn().mockResolvedValue({data: {}}),
             getTeamStats: jest.fn().mockResolvedValue({data: {total_member_count: 5}}),
+            getTeamMembers: jest.fn().mockResolvedValue({data: []}),
             saveTeamAccessPolicy: jest.fn().mockResolvedValue({data: {}}),
             getAccessControlFields: jest.fn().mockResolvedValue({data: []}),
             searchUsersForExpression: jest.fn().mockResolvedValue({data: {users: [], total: 0}}),
@@ -694,6 +695,59 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         await waitFor(() => {
             expect(screen.getByText(/Saving may result in an empty private team/)).toBeInTheDocument();
         });
+    });
+
+    test('counts qualifying members against the parent policy expression instead of reporting an empty team', async () => {
+        // Regression for the confirm modal reporting "no one meets the criteria" while
+        // qualifying members exist. The expression endpoint neither resolves imports nor
+        // scopes to a team, so the count must match all users then intersect with current
+        // members — here 2 of 3 members qualify, so exactly 1 is affected.
+        const getTeamAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {policy: {id: '123', type: 'team', imports: ['parent1'], rules: [], active: false}, enforced: true},
+        });
+        const getAccessControlPolicy = jest.fn().mockResolvedValue({
+            data: {
+                id: 'parent1',
+                name: 'Engineering Policy',
+                type: 'parent',
+                rules: [{expression: 'user.attributes.Department == "Engineering"', actions: ['membership']}],
+            },
+        });
+        const searchUsersForExpression = jest.fn().mockResolvedValue({data: {users: [{id: 'u1'}, {id: 'u2'}]}});
+        const getTeamMembers = jest.fn().mockResolvedValue({
+            data: [{user_id: 'u1'}, {user_id: 'u2'}, {user_id: 'u3'}],
+        });
+        const props = {
+            ...baseProps,
+            abacSupported: true,
+            team: {...baseProps.team, policy_enforced: true, allow_open_invite: false},
+            actions: {
+                ...baseProps.actions,
+                getTeamAccessControlPolicy,
+                getAccessControlPolicy,
+                searchUsersForExpression,
+                getTeamMembers,
+            },
+        };
+        renderWithContext(<TeamDetails {...props}/>);
+
+        await waitFor(() => {
+            expect(screen.getByTestId('auto-add-members-checkbox')).toBeInTheDocument();
+        });
+
+        await userEvent.click(screen.getByTestId('auto-add-members-checkbox'));
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => {
+            expect(screen.getByText('Apply membership policy')).toBeInTheDocument();
+        });
+
+        // The match query runs unscoped (no team id) so members are counted correctly.
+        expect(searchUsersForExpression).toHaveBeenCalledWith(
+            'user.attributes.Department == "Engineering"', '', '', 1000,
+        );
+        expect(screen.getByText(/1 member does not currently meet the criteria/)).toBeInTheDocument();
+        expect(screen.queryByText(/No current members meet the criteria/)).not.toBeInTheDocument();
     });
 
     test('persists auto-add flag and triggers team sync job on confirmation', async () => {

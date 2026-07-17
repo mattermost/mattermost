@@ -152,11 +152,9 @@ function PolicyDetails({
         loadPage();
     }, [policyId]);
 
-    // Clear any navigation-block flag inherited from the page that linked here
-    // (e.g. the per-team System Console page, whose staged edits set it and which
-    // reaches this editor through a plain link that never resets it). This editor
-    // tracks its own unsaved changes and re-arms the guard on edit, so a stale flag
-    // would otherwise raise a spurious "Discard changes?" prompt on exit.
+    // Clear any navigation-block flag inherited from the linking page (e.g. the
+    // per-team System Console page). This editor tracks its own unsaved changes,
+    // so a stale flag would raise a spurious "Discard changes?" prompt on exit.
     useEffect(() => {
         actions.setNavigationBlocked(false);
         // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -66,6 +66,7 @@ export type Props = {
         updateAccessControlPoliciesActive: (states: Array<{id: string; active: boolean}>) => Promise<ActionResult>;
         createAccessControlTeamSyncJob: (data: {policy_id?: string}) => Promise<ActionResult>;
         getTeamStats: (teamId: string) => Promise<ActionResult>;
+        getTeamMembers: (teamId: string, page?: number, perPage?: number) => Promise<ActionResult>;
         saveTeamAccessPolicy: (policy: AccessControlPolicy) => Promise<ActionResult>;
         getAccessControlFields: (after: string, limit: number) => Promise<ActionResult>;
         searchUsersForExpression: (expression: string, term: string, after: string, limit: number, channelId?: string, teamId?: string) => Promise<ActionResult>;
@@ -352,6 +353,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             accessControlPoliciesToRemove: [...accessControlPoliciesToRemove, policyId],
             accessControlPolicies: remaining,
             saveNeeded: true,
+
             // Removing the last policy with no custom rules leaves nothing to enforce;
             // drop enforcement so the save cleanly disables ABAC instead of failing the
             // "must select a policy or define rules" guard (which forced a manual toggle-off).
@@ -852,23 +854,26 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             let affectedCount: number | null = null;
             let qualifyingCount: number | null = null;
             try {
-                const statsResult = await this.props.actions.getTeamStats(this.props.teamID);
-                const totalMembers = (statsResult?.data as {total_member_count?: number} | null)?.total_member_count ?? null;
                 const effectiveExpression = this.combineTeamAndPolicyExpressions(this.state.teamRulesExpression ?? '');
-                if (totalMembers !== null && effectiveExpression.trim()) {
-                    const exprResult = await this.props.actions.searchUsersForExpression(
-                        effectiveExpression,
-                        '',
-                        '',
-                        1,
-                        undefined,
-                        this.props.teamID,
+                if (effectiveExpression.trim()) {
+                    // The expression endpoint neither resolves policy imports nor scopes
+                    // to a team, so match against all users and intersect with the team's
+                    // current members. Counting matches within the team directly (a
+                    // team-scoped .total) undercounts qualifying members to zero.
+                    const [matchResult, membersResult] = await Promise.all([
+                        this.props.actions.searchUsersForExpression(effectiveExpression, '', '', 1000),
+                        this.props.actions.getTeamMembers(this.props.teamID, 0, 200),
+                    ]);
+                    const matchingUserIds = new Set(
+                        ((matchResult?.data as {users?: Array<{id: string}>} | null)?.users ?? []).map((u) => u.id),
                     );
-                    const qualifying = (exprResult?.data as {total?: number} | null)?.total ?? null;
-                    qualifyingCount = qualifying;
-                    affectedCount = qualifying === null ? totalMembers : totalMembers - qualifying;
+                    const currentMemberIds = ((membersResult?.data as Array<{user_id: string}> | null) ?? []).
+                        map((m) => m.user_id);
+                    qualifyingCount = currentMemberIds.filter((id) => matchingUserIds.has(id)).length;
+                    affectedCount = currentMemberIds.length - qualifyingCount;
                 } else {
-                    affectedCount = totalMembers;
+                    const statsResult = await this.props.actions.getTeamStats(this.props.teamID);
+                    affectedCount = (statsResult?.data as {total_member_count?: number} | null)?.total_member_count ?? null;
                 }
             } catch {
                 affectedCount = null;
