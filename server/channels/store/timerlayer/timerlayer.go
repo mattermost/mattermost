@@ -7109,6 +7109,22 @@ func (s *TimerLayerPostStore) GetOldestEntityCreationTime() (int64, error) {
 	return result, err
 }
 
+func (s *TimerLayerPostStore) GetPostAuthorIDsForTeam(teamName string) ([]string, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.GetPostAuthorIDsForTeam(teamName)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostAuthorIDsForTeam", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostStore) GetParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool, teamName string) ([]*model.PostForExport, error) {
 	start := time.Now()
 

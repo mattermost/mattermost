@@ -2751,6 +2751,24 @@ func (s *SqlPostStore) GetMaxPostSize() int {
 	return s.maxPostSizeCached
 }
 
+func (s *SqlPostStore) GetPostAuthorIDsForTeam(teamName string) ([]string, error) {
+	userIDs := []string{}
+	err := s.GetReplica().Select(&userIDs,
+		`SELECT DISTINCT Posts.UserId
+		FROM Posts
+		INNER JOIN Channels ON Posts.ChannelId = Channels.Id
+		INNER JOIN Teams ON Channels.TeamId = Teams.Id
+		WHERE Teams.Name = ?
+		  AND Posts.DeleteAt = 0
+		  AND Channels.DeleteAt = 0
+		  AND Teams.DeleteAt = 0`,
+		teamName)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get post author IDs for team")
+	}
+	return userIDs, nil
+}
+
 func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string, includeArchivedChannel bool, teamNameFilter string) ([]*model.PostForExport, error) {
 	for {
 		rootIds := []string{}
