@@ -2751,7 +2751,7 @@ func (s *SqlPostStore) GetMaxPostSize() int {
 	return s.maxPostSizeCached
 }
 
-func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string, includeArchivedChannel bool) ([]*model.PostForExport, error) {
+func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string, includeArchivedChannel bool, teamNameFilter string) ([]*model.PostForExport, error) {
 	for {
 		rootIds := []string{}
 		err := s.GetReplica().Select(&rootIds,
@@ -2780,6 +2780,10 @@ func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string, inclu
 		}
 		if !includeArchivedChannel {
 			excludeDeletedCond = append(excludeDeletedCond, sq.Eq{"Channels.DeleteAt": 0})
+		}
+
+		if teamNameFilter != "" {
+			excludeDeletedCond = append(excludeDeletedCond, sq.Eq{"Teams.Name": teamNameFilter})
 		}
 
 		aggFn := "COALESCE(json_agg(u1.username) FILTER (WHERE u1.username IS NOT NULL), '[]')"
