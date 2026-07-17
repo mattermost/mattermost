@@ -3767,6 +3767,14 @@
     "translation": "Updating viewed notices failed"
   },
   {
+    "id": "api.team.access_control.added.system_message",
+    "translation": "You have been added to the team **{{.TeamName}}** because you now meet its membership requirements."
+  },
+  {
+    "id": "api.team.access_control.removed.system_message",
+    "translation": "You have been removed from the team **{{.TeamName}}** because you no longer meet its membership requirements."
+  },
+  {
     "id": "api.team.add_members.error",
     "translation": "Error adding team member(s)."
   },

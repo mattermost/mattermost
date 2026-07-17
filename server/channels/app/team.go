@@ -785,11 +785,11 @@ func (a *App) AddUserToTeamByInviteId(rctx request.CTX, inviteId string, userID 
 
 func (a *App) JoinUserToTeam(rctx request.CTX, team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError) {
 	preSaveHook := func(tm *model.TeamMember) (*model.TeamMember, error) {
-		// ABAC membership enforcement is mode-dependent: on a public team the policy
-		// is advisory and join always proceeds without consulting the PDP. Only
-		// non-public teams gate strictly. The public test mirrors isPublicTeam in
-		// the API layer, so any half-configured team falls through to strict.
-		if !(team.AllowOpenInvite && team.Type == model.TeamOpen) {
+		// On public teams the ABAC policy is advisory: join proceeds without the PDP.
+		// Only private teams gate strictly. Key on AllowOpenInvite alone (not
+		// team.Type): the privacy update path flips AllowOpenInvite without syncing
+		// team.Type, so Type can't be trusted as a privacy signal here.
+		if !team.AllowOpenInvite {
 			// Strict mode. ABAC enforcement runs before the plugin hook so a denied
 			// join never reaches plugin code, and fails closed on every error path.
 			if ok, appErr := a.TeamAccessControlled(rctx, team.Id); appErr != nil {
@@ -1380,11 +1380,31 @@ func (a *App) LeaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 		}
 	}
 
+	// A policy-driven removal (the membership sync calls in with an empty
+	// requestorId on an ABAC-governed team) cascades to channel membership.
+	// Group-sync removal also passes "", but group-constrained teams cannot be
+	// ABAC-governed, so PolicyEnforced disambiguates. Emit a removal record plus
+	// a per-channel cascade record referencing it; an ordinary or non-policy
+	// leave records nothing here.
+	policyDriven := team.PolicyEnforced && requestorId == ""
+	var cascadeParentEventID string
+	if policyDriven {
+		cascadeParentEventID = model.NewId()
+	}
+
 	for _, channel := range channelList {
 		if !channel.IsGroupOrDirect() {
 			a.invalidateCacheForChannelMembers(channel.Id)
 			if appErr := a.removeChannelMembership(rctx, user.Id, channel.Id, "LeaveTeam"); appErr != nil {
 				return appErr
+			}
+			if policyDriven {
+				rec := a.MakeAuditRecord(rctx, model.AuditEventTeamCascadedChannelRemoval, model.AuditStatusSuccess)
+				model.AddEventParameterToAuditRec(rec, "user_id", user.Id)
+				model.AddEventParameterToAuditRec(rec, "team_id", team.Id)
+				model.AddEventParameterToAuditRec(rec, "channel_id", channel.Id)
+				model.AddEventParameterToAuditRec(rec, "parent_event_id", cascadeParentEventID)
+				a.LogAuditRec(rctx, rec, nil)
 			}
 		}
 	}
@@ -1412,8 +1432,20 @@ func (a *App) LeaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 		}
 	}
 
-	if err := a.ch.srv.teamService.RemoveTeamMember(rctx, teamMember); err != nil {
-		return model.NewAppError("RemoveTeamMemberFromTeam", "app.team.save_member.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	removeErr := a.ch.srv.teamService.RemoveTeamMember(rctx, teamMember)
+	if policyDriven {
+		auditStatus := model.AuditStatusSuccess
+		if removeErr != nil {
+			auditStatus = model.AuditStatusFail
+		}
+		rec := a.MakeAuditRecord(rctx, model.AuditEventTeamMembershipRemoved, auditStatus)
+		model.AddEventParameterToAuditRec(rec, "event_id", cascadeParentEventID)
+		model.AddEventParameterToAuditRec(rec, "user_id", user.Id)
+		model.AddEventParameterToAuditRec(rec, "team_id", team.Id)
+		a.LogAuditRec(rctx, rec, nil)
+	}
+	if removeErr != nil {
+		return model.NewAppError("RemoveTeamMemberFromTeam", "app.team.save_member.save.app_error", nil, "", http.StatusInternalServerError).Wrap(removeErr)
 	}
 
 	if err := a.postProcessTeamMemberLeave(rctx, teamMember, requestorId); err != nil {

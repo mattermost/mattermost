@@ -684,6 +684,17 @@ func testTeamStoreSearchPrivate(t *testing.T, rctx request.CTX, ss store.Store) 
 	_, err = ss.Team().Save(&q)
 	require.NoError(t, err)
 
+	// Invite-only team must also count as private.
+	pi := model.Team{}
+	pi.DisplayName = "ADisplayName" + NewTestID()
+	pi.Name = NewTestID()
+	pi.Email = MakeEmail()
+	pi.Type = model.TeamInvite
+	pi.AllowOpenInvite = false
+
+	_, err = ss.Team().Save(&pi)
+	require.NoError(t, err)
+
 	testCases := []struct {
 		Name            string
 		Term            string
@@ -731,6 +742,18 @@ func testTeamStoreSearchPrivate(t *testing.T, rctx request.CTX, ss store.Store) 
 			p.DisplayName,
 			1,
 			p.Id,
+		},
+		{
+			"Search for invite-only (Type I) private team by name",
+			pi.Name,
+			1,
+			pi.Id,
+		},
+		{
+			"Search for invite-only (Type I) private team by displayName",
+			pi.DisplayName,
+			1,
+			pi.Id,
 		},
 		{
 			"Search for private team without results",

@@ -21,6 +21,8 @@ import GuestTag from 'components/widgets/tag/guest_tag';
 
 import {displayEntireNameForUser} from 'utils/utils';
 
+import './add_users_to_team_modal.scss';
+
 const USERS_PER_PAGE = 50;
 const MAX_SELECTABLE_VALUES = 20;
 
@@ -51,7 +53,13 @@ type State = {
     addError: null;
     loading: boolean;
     filterOptions: {[key: string]: any};
+
+    // IDs of users who satisfy the team's membership policy. Only consulted on a
+    // private governed team, where non-matching users cannot be added.
+    abacMatchingIds: Set<string>;
 };
+
+const ABAC_MATCH_HARD_CAP = 1000;
 
 export class AddUsersToTeamModal extends React.PureComponent<Props, State> {
     selectedItemRef: React.RefObject<HTMLDivElement>;
@@ -73,13 +81,58 @@ export class AddUsersToTeamModal extends React.PureComponent<Props, State> {
             addError: null,
             loading: true,
             filterOptions,
+            abacMatchingIds: new Set(),
         };
 
         this.selectedItemRef = React.createRef();
     }
     public componentDidMount = async () => {
         await this.props.actions.getProfilesNotInTeam(this.props.team.id, false, 0, USERS_PER_PAGE * 2);
+
+        // On a private governed team, load the policy-matching set up front so
+        // every row can be marked qualifying or not before the admin interacts.
+        if (this.isStrictlyFilteredTeam()) {
+            await this.loadAbacMatchingIds();
+        }
         this.setUsersLoadingState(false);
+    };
+
+    // Public team (open invite) governance is advisory — adds are not blocked.
+    // Everything else with a policy is strict. Mirrors the server privacy test,
+    // which keys on allow_open_invite alone (master's open-directory model).
+    private isStrictlyFilteredTeam = (): boolean => {
+        const team = this.props.team;
+        if (!team.policy_enforced) {
+            return false;
+        }
+        return !team.allow_open_invite;
+    };
+
+    private loadAbacMatchingIds = async () => {
+        const teamId = this.props.team.id;
+        const ids = new Set<string>();
+        let cursorId = '';
+        try {
+            // eslint-disable-next-line no-constant-condition
+            while (true) {
+                // eslint-disable-next-line no-await-in-loop
+                const profiles = await Client4.getProfilesMatchingTeamPolicy(teamId, USERS_PER_PAGE, cursorId);
+                if (!profiles || profiles.length === 0) {
+                    break;
+                }
+                for (const profile of profiles) {
+                    ids.add(profile.id);
+                }
+                if (profiles.length < USERS_PER_PAGE || ids.size >= ABAC_MATCH_HARD_CAP) {
+                    break;
+                }
+                cursorId = profiles[profiles.length - 1].id;
+            }
+        } catch {
+            // Leave the set empty; every candidate then reads as non-qualifying
+            // and is blocked, which is the safe direction for a strict team.
+        }
+        this.setState({abacMatchingIds: ids});
     };
 
     private setUsersLoadingState = (loading: boolean) => {
@@ -115,12 +168,18 @@ export class AddUsersToTeamModal extends React.PureComponent<Props, State> {
             rowSelected = 'more-modal__row--selected';
         }
 
+        // Strict team: a candidate who doesn't satisfy the policy cannot be
+        // added. The row stays visible with a textual reason (not colour alone)
+        // and its add affordance is inert.
+        const blocked = this.isStrictlyFilteredTeam() && !this.state.abacMatchingIds.has(option.id);
+
         return (
             <div
                 key={option.id}
                 ref={isSelected ? this.selectedItemRef : option.id}
-                className={'more-modal__row clickable ' + rowSelected}
-                onClick={() => onAdd(option)}
+                className={'more-modal__row ' + (blocked ? 'more-modal__row--disabled' : 'clickable ') + rowSelected}
+                aria-disabled={blocked}
+                onClick={blocked ? undefined : () => onAdd(option)}
                 onMouseMove={() => onMouseMove(option)}
             >
                 <ProfilePicture
@@ -133,17 +192,30 @@ export class AddUsersToTeamModal extends React.PureComponent<Props, State> {
                         {option.is_bot && <BotTag/>}
                         {isGuest(option.roles) && <GuestTag className='popoverlist'/>}
                     </div>
+                    {blocked && (
+                        <div
+                            className='more-modal__error'
+                            aria-live='polite'
+                        >
+                            <FormattedMessage
+                                id='add_users_to_team.policy_denied'
+                                defaultMessage='Does not meet membership requirements'
+                            />
+                        </div>
+                    )}
                 </div>
-                <div className='more-modal__actions'>
-                    <button
-                        className='more-modal__actions--round'
-                        aria-label='Add users to team'
-                    >
-                        <i
-                            className='icon icon-plus'
-                        />
-                    </button>
-                </div>
+                {!blocked && (
+                    <div className='more-modal__actions'>
+                        <button
+                            className='more-modal__actions--round'
+                            aria-label='Add users to team'
+                        >
+                            <i
+                                className='icon icon-plus'
+                            />
+                        </button>
+                    </div>
+                )}
             </div>
         );
     };
@@ -157,6 +229,11 @@ export class AddUsersToTeamModal extends React.PureComponent<Props, State> {
     };
 
     private handleAdd = (value: UserProfileValue) => {
+        // Guard the keyboard-selection path too: a non-qualifying candidate on a
+        // strict team must never enter the selection, even via Enter.
+        if (this.isStrictlyFilteredTeam() && !this.state.abacMatchingIds.has(value.id)) {
+            return;
+        }
         const values: UserProfileValue[] = [...this.state.values];
         if (!values.includes(value)) {
             values.push(value);
