@@ -157,7 +157,7 @@ func (a *App) BulkExport(rctx request.CTX, writer io.Writer, outPath string, job
 	}
 
 	rctx.Logger().Info("Bulk export: exporting users")
-	profilePictures, appErr := a.exportAllUsers(rctx, job, writer, opts.IncludeArchivedChannels, opts.IncludeProfilePictures)
+	profilePictures, appErr := a.exportAllUsers(rctx, job, writer, opts.IncludeArchivedChannels, opts.IncludeProfilePictures, opts.TeamName)
 	if appErr != nil {
 		return appErr
 	}
@@ -170,7 +170,7 @@ func (a *App) BulkExport(rctx request.CTX, writer io.Writer, outPath string, job
 	profilePictures = append(profilePictures, botPPs...)
 
 	rctx.Logger().Info("Bulk export: exporting posts")
-	attachments, appErr := a.exportAllPosts(rctx, job, writer, opts.IncludeAttachments, opts.IncludeArchivedChannels)
+	attachments, appErr := a.exportAllPosts(rctx, job, writer, opts.IncludeAttachments, opts.IncludeArchivedChannels, opts.TeamName)
 	if appErr != nil {
 		return appErr
 	}
@@ -488,7 +488,7 @@ func (a *App) exportAllChannels(rctx request.CTX, job *model.Job, writer io.Writ
 	return nil
 }
 
-func (a *App) exportAllUsers(rctx request.CTX, job *model.Job, writer io.Writer, includeArchivedChannels, includeProfilePictures bool) ([]string, *model.AppError) {
+func (a *App) exportAllUsers(rctx request.CTX, job *model.Job, writer io.Writer, includeArchivedChannels, includeProfilePictures bool, teamNameFilter string) ([]string, *model.AppError) {
 	afterId := strings.Repeat("0", 26)
 	cnt := 0
 	profilePictures := []string{}
@@ -572,9 +572,15 @@ func (a *App) exportAllUsers(rctx request.CTX, job *model.Job, writer io.Writer,
 			}
 
 			// Do the Team Memberships.
-			members, err := a.buildUserTeamAndChannelMemberships(rctx, user.Id, includeArchivedChannels)
+			// Pass teamNameFilter so memberships in other teams are excluded.
+			members, err := a.buildUserTeamAndChannelMemberships(rctx, user.Id, includeArchivedChannels, teamNameFilter)
 			if err != nil {
 				return profilePictures, err
+			}
+
+			// Skip users with no membership in the target team.
+			if teamNameFilter != "" && len(*members) == 0 {
+				continue
 			}
 
 			userLine.User.Teams = members
@@ -646,7 +652,7 @@ func (a *App) exportAllBots(rctx request.CTX, job *model.Job, writer io.Writer, 
 	return profilePictures, nil
 }
 
-func (a *App) buildUserTeamAndChannelMemberships(rctx request.CTX, userID string, includeArchivedChannels bool) (*[]imports.UserTeamImportData, *model.AppError) {
+func (a *App) buildUserTeamAndChannelMemberships(rctx request.CTX, userID string, includeArchivedChannels bool, teamNameFilter string) (*[]imports.UserTeamImportData, *model.AppError) {
 	var memberships []imports.UserTeamImportData
 
 	members, err := a.Srv().Store().Team().GetTeamMembersForExport(userID)
@@ -658,6 +664,14 @@ func (a *App) buildUserTeamAndChannelMemberships(rctx request.CTX, userID string
 		// Skip deleted.
 		if member.DeleteAt != 0 {
 			continue
+		}
+
+		if teamNameFilter != "" {
+			// If a team name is set and this member is not part of the single team we want
+			if member.TeamName != teamNameFilter {
+				// Skip the member
+				continue
+			}
 		}
 
 		memberData := importUserTeamDataFromTeamMember(member)
@@ -721,7 +735,7 @@ func (a *App) buildUserNotifyProps(notifyProps model.StringMap) *imports.UserNot
 	}
 }
 
-func (a *App) exportAllPosts(rctx request.CTX, job *model.Job, writer io.Writer, withAttachments bool, includeArchivedChannels bool) ([]imports.AttachmentImportData, *model.AppError) {
+func (a *App) exportAllPosts(rctx request.CTX, job *model.Job, writer io.Writer, withAttachments bool, includeArchivedChannels bool, teamNameFilter string) ([]imports.AttachmentImportData, *model.AppError) {
 	var attachments []imports.AttachmentImportData
 	afterId := strings.Repeat("0", 26)
 	var postProcessCount uint64
@@ -734,7 +748,7 @@ func (a *App) exportAllPosts(rctx request.CTX, job *model.Job, writer io.Writer,
 			logCheckpoint = time.Now()
 		}
 
-		posts, nErr := a.Srv().Store().Post().GetParentsForExportAfter(1000, afterId, includeArchivedChannels)
+		posts, nErr := a.Srv().Store().Post().GetParentsForExportAfter(1000, afterId, includeArchivedChannels, teamNameFilter)
 		if nErr != nil {
 			return nil, model.NewAppError("exportAllPosts", "app.post.get_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
