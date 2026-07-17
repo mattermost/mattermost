@@ -4,6 +4,8 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {duration} from '@/util';
+
 export default class InvitePeopleModal {
     readonly container: Locator;
 
@@ -45,6 +47,14 @@ export default class InvitePeopleModal {
         await this.inviteInput.press('Enter');
 
         await expect(this.inviteButton).toBeEnabled();
+        await this.inviteButton.click();
+    }
+
+    async inviteByUsername(username: string) {
+        await this.inviteInput.fill(username);
+        const option = this.container.getByRole('option', {name: new RegExp(`@${username}`)});
+        await expect(option).toBeVisible({timeout: duration.half_min});
+        await option.click();
         await this.inviteButton.click();
     }
 }

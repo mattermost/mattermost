@@ -71,6 +71,12 @@ export default class ChannelsPostCreate {
         await this.input.fill(message);
     }
 
+    async toHaveGroupMentionSuggested(groupName: string) {
+        await expect(this.suggestionList).toBeVisible({timeout: duration.ten_sec});
+        await expect(this.suggestionList.getByText('Group Mentions', {exact: true})).toBeVisible();
+        await expect(this.suggestionList.getByText(`@${groupName}`, {exact: true})).toBeVisible();
+    }
+
     /**
      * Returns the value of the message input
      */

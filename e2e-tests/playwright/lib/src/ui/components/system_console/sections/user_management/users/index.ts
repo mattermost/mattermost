@@ -11,6 +11,7 @@ import {ManageRolesModal, ResetPasswordModal, UpdateEmailModal} from './modals';
 import {UsersTable, waitForUsersReportResponse} from './users_table';
 
 import {ConfirmModal} from '@/ui/components/system_console/base_modal';
+import {duration} from '@/util';
 
 // Re-export sub-components for external use
 export {ColumnToggleMenu, DateRangeMenu, FilterMenu, FilterPopover} from './menus';
@@ -105,6 +106,20 @@ export default class Users {
     async toBeVisible() {
         await expect(this.container).toBeVisible();
         await expect(this.header).toBeVisible();
+    }
+
+    async goto() {
+        await this.page.goto('/admin_console/user_management/users');
+        await expect(this.header).toBeVisible({timeout: duration.half_min});
+    }
+
+    async expectAuthenticationMethod(username: string, expectedMethod: string) {
+        await this.searchUsers(username);
+        const result = this.usersTable.bodyRows.filter({hasText: username});
+        await expect(result).toHaveCount(1, {timeout: duration.half_min});
+        await result.click();
+        await expect(this.userDetail.userCard.authenticationMethod).toContainText(expectedMethod);
+        await this.userDetail.goBack();
     }
 
     /**

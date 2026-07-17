@@ -4,6 +4,14 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {duration} from '@/util';
+
+export type GroupMentionPermissionId =
+    | 'all_users-posts-use_group_mentions-checkbox'
+    | 'channel_admin-posts-use_group_mentions-checkbox'
+    | 'team_admin-posts-use_group_mentions-checkbox'
+    | 'guests-guest_use_group_mentions-checkbox';
+
 /**
  * System Console -> User Management -> Permissions -> System Scheme (Edit Scheme).
  * Used to assert permission toggles (e.g. Manage Channel Auto Translation) per role section.
@@ -27,6 +35,56 @@ export default class PermissionsSystemScheme {
 
     async toBeVisible() {
         await expect(this.systemSchemeHeader).toBeVisible();
+    }
+
+    async goto() {
+        await this.container.page().goto('/admin_console/user_management/permissions/system_scheme');
+        await expect(this.container.getByRole('heading', {name: 'All Members', exact: true})).toBeVisible({
+            timeout: duration.half_min,
+        });
+    }
+
+    async save() {
+        const saveButton = this.container.getByRole('button', {name: 'Save', exact: true});
+        await saveButton.click();
+        await expect(saveButton).toBeDisabled({timeout: duration.half_min});
+    }
+
+    async reset() {
+        await this.container.getByRole('button', {name: 'Reset to Defaults', exact: true}).click();
+        await this.container.page().getByRole('dialog').getByRole('button', {name: 'Yes, Reset', exact: true}).click();
+        await this.save();
+    }
+
+    async disableGroupMentions() {
+        const checkbox = this.container.getByTestId('all_users-posts-use_group_mentions-checkbox');
+        if ((await checkbox.getByTestId('permissionCheckbox-checked').count()) > 0) {
+            await checkbox.click();
+            await this.save();
+        }
+    }
+
+    async setGroupMentionPermissions(permissions: Array<{id: GroupMentionPermissionId; enabled: boolean}>) {
+        for (const permission of permissions) {
+            const checkbox = this.container.getByTestId(permission.id);
+            const isEnabled = (await checkbox.getByTestId('permissionCheckbox-checked').count()) > 0;
+            if (isEnabled !== permission.enabled) {
+                await checkbox.click();
+            }
+        }
+        await this.save();
+    }
+
+    async expectGroupMentionPermissionsDisabled(
+        ...permissionIds: Array<
+            'all_users-posts-use_group_mentions-checkbox' | 'guests-guest_use_group_mentions-checkbox'
+        >
+    ) {
+        for (const permissionId of permissionIds) {
+            await expect(
+                this.container.getByTestId(permissionId).getByTestId('permissionCheckbox-checked'),
+            ).toHaveCount(0);
+        }
     }
 
     /**

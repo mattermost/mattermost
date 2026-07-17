@@ -17,7 +17,9 @@ export {
     isWebhookTestServerReachable,
     setupWebhookTestServer,
     PlaywrightClient4,
+    OpenLdapClient,
 } from './server';
+export type {LdapUser} from './server';
 
 export {
     ChannelsPage,

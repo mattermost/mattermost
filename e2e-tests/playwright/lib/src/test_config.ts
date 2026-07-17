@@ -11,6 +11,10 @@ export class TestConfig {
     adminUsername: string;
     adminPassword: string;
     adminEmail: string;
+    ldapServer: string;
+    ldapPort: number;
+    ldapUrl: string;
+    ldapBindPassword: string;
     ensurePluginsInstalled: string[];
     haClusterEnabled: boolean;
     haClusterNodeCount: number;
@@ -33,6 +37,16 @@ export class TestConfig {
         this.adminUsername = process.env.PW_ADMIN_USERNAME || 'sysadmin';
         this.adminPassword = process.env.PW_ADMIN_PASSWORD || 'Sys@dmin-sample1';
         this.adminEmail = process.env.PW_ADMIN_EMAIL || 'sysadmin@sample.mattermost.com';
+        const ldapUrl = new URL(process.env.PW_LDAP_URL || 'ldap://localhost:389');
+        this.ldapServer = process.env.PW_LDAP_SERVER || ldapUrl.hostname;
+        this.ldapPort = parseNumber(
+            process.env.PW_LDAP_PORT,
+            parseNumber(ldapUrl.port, ldapUrl.protocol === 'ldaps:' ? 636 : 389),
+        );
+        ldapUrl.hostname = this.ldapServer;
+        ldapUrl.port = this.ldapPort.toString();
+        this.ldapUrl = ldapUrl.toString();
+        this.ldapBindPassword = process.env.PW_LDAP_BIND_PASSWORD || 'mostest';
         this.ensurePluginsInstalled =
             typeof process.env?.PW_ENSURE_PLUGINS_INSTALLED === 'string'
                 ? process.env.PW_ENSURE_PLUGINS_INSTALLED.split(',').filter((plugin) => Boolean(plugin))

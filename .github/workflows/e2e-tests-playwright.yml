@@ -178,7 +178,7 @@ jobs:
     uses: ./.github/workflows/e2e-tests-playwright-template.yml
     with:
       workers: 15
-      enabled_docker_services: "postgres inbucket"
+      enabled_docker_services: "postgres inbucket openldap"
       commit_sha: ${{ inputs.commit_sha }}
       branch: ${{ needs.generate-build-variables.outputs.branch }}
       build_id: ${{ needs.generate-build-variables.outputs.build_id }}
