@@ -61,6 +61,7 @@ export default [
             '@typescript-eslint/no-var-requires': 'off',
             '@typescript-eslint/no-require-imports': 'off',
             'no-console': 'error',
+            'no-empty-pattern': ['error', {allowObjectPatternsAsParameters: true}],
             'header/header': [
                 'error',
                 'line',
