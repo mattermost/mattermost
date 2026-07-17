@@ -397,6 +397,16 @@ export default class ChannelsPage {
     }
 
     /**
+     * Switches to the given team and leaves it via the team menu, confirming the modal.
+     */
+    async leaveTeam(teamName: string) {
+        await this.switchToTeam(teamName);
+        await this.sidebarLeft.teamMenuButton.click();
+        await this.teamMenu.clickLeaveTeam();
+        await this.leaveTeamModal.confirm();
+    }
+
+    /**
      * Logs the current user out via the user account menu.
      */
     async logout() {
