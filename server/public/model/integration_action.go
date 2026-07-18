@@ -1243,6 +1243,31 @@ func pathHasTraversalSegment(path string) bool {
 		path == "/.." || strings.HasPrefix(path, "/..")
 }
 
+// RestoreActionIntegrations re-attaches the Integration field of actions that are
+// missing it, using the matching action (by id) from oldPost. Clients only ever
+// receive attachments with Integration stripped (see StripActionIntegrations), so
+// when they echo those attachments back on a post edit, the integration data must
+// be restored from the previous version of the post or button callbacks break.
+func (o *Post) RestoreActionIntegrations(oldPost *Post) {
+	if o.GetProp(PostPropsAttachments) != nil {
+		o.AddProp(PostPropsAttachments, o.Attachments())
+	}
+	attachments, ok := o.GetProp(PostPropsAttachments).([]*MessageAttachment)
+	if !ok {
+		return
+	}
+	for _, attachment := range attachments {
+		for _, action := range attachment.Actions {
+			if action == nil || action.Integration != nil {
+				continue
+			}
+			if oldAction := oldPost.GetAction(action.Id); oldAction != nil {
+				action.Integration = oldAction.Integration
+			}
+		}
+	}
+}
+
 func (o *Post) GenerateActionIds() {
 	if o.GetProp(PostPropsAttachments) != nil {
 		o.AddProp(PostPropsAttachments, o.Attachments())

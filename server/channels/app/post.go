@@ -921,7 +921,12 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 	if !updatePostOptions.SafeUpdate {
 		newPost.IsPinned = receivedUpdatedPost.IsPinned
 		newPost.HasReactions = receivedUpdatedPost.HasReactions
-		newPost.SetProps(receivedUpdatedPost.GetProps())
+
+		if receivedUpdatedPost.GetProps() != nil {
+			newPost.SetProps(receivedUpdatedPost.GetProps())
+		} else {
+			newPost.SetProps(oldPost.GetProps())
+		}
 		newPost.PreserveIdentityPropsFrom(oldPost)
 
 		// mm_blocks_actions can only be modified by trusted paths that have
@@ -939,12 +944,26 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 			}
 		}
 
-		var fileIds []string
-		fileIds, appErr = a.processPostFileChanges(rctx, receivedUpdatedPost, oldPost, updatePostOptions)
-		if appErr != nil {
-			return nil, false, appErr
+		if newPost.GetProp(model.PostPropsAttachments) == nil {
+			if oldAttachments := oldPost.GetProp(model.PostPropsAttachments); oldAttachments != nil {
+				newPost.AddProp(model.PostPropsAttachments, oldAttachments)
+			}
+		} else {
+			// Clients only ever see attachments with action Integration stripped
+			// (see Post.StripActionIntegrations), so an edit that echoes those
+			// attachments back needs the integration data restored or interactive
+			// buttons stop working after the post is edited.
+			newPost.RestoreActionIntegrations(oldPost)
 		}
-		newPost.FileIds = fileIds
+
+		if receivedUpdatedPost.FileIds != nil {
+			var fileIds []string
+			fileIds, appErr = a.processPostFileChanges(rctx, receivedUpdatedPost, oldPost, updatePostOptions)
+			if appErr != nil {
+				return nil, false, appErr
+			}
+			newPost.FileIds = fileIds
+		}
 	}
 
 	// Avoid deep-equal checks if EditAt was already modified through message change

@@ -2769,3 +2769,77 @@ func TestDialogElementIsValid_ActionButton(t *testing.T) {
 		assert.Contains(t, err.Error(), "invalid action_button URL")
 	})
 }
+
+func TestPostRestoreActionIntegrations(t *testing.T) {
+	newAttachmentPost := func(actions []*PostAction) *Post {
+		return &Post{
+			Props: StringInterface{
+				PostPropsAttachments: []*MessageAttachment{
+					{Text: "Click me", Actions: actions},
+				},
+			},
+		}
+	}
+
+	t.Run("restores integration missing on the matching action id", func(t *testing.T) {
+		oldPost := newAttachmentPost([]*PostAction{
+			{Id: "action1", Name: "Button", Integration: &PostActionIntegration{URL: "http://example.com/action"}},
+		})
+
+		// Mirrors what the webapp echoes back on edit: attachments are present,
+		// but Integration was stripped before the client ever saw them.
+		newPost := newAttachmentPost([]*PostAction{
+			{Id: "action1", Name: "Button"},
+		})
+
+		newPost.RestoreActionIntegrations(oldPost)
+
+		action := newPost.GetAction("action1")
+		require.NotNil(t, action)
+		require.NotNil(t, action.Integration)
+		assert.Equal(t, "http://example.com/action", action.Integration.URL)
+	})
+
+	t.Run("does not override an integration the client did provide", func(t *testing.T) {
+		oldPost := newAttachmentPost([]*PostAction{
+			{Id: "action1", Name: "Button", Integration: &PostActionIntegration{URL: "http://example.com/old"}},
+		})
+		newPost := newAttachmentPost([]*PostAction{
+			{Id: "action1", Name: "Button", Integration: &PostActionIntegration{URL: "http://example.com/new"}},
+		})
+
+		newPost.RestoreActionIntegrations(oldPost)
+
+		action := newPost.GetAction("action1")
+		require.NotNil(t, action)
+		require.NotNil(t, action.Integration)
+		assert.Equal(t, "http://example.com/new", action.Integration.URL)
+	})
+
+	t.Run("no-op when there are no attachments", func(t *testing.T) {
+		oldPost := newAttachmentPost([]*PostAction{
+			{Id: "action1", Integration: &PostActionIntegration{URL: "http://example.com/action"}},
+		})
+		newPost := &Post{}
+
+		require.NotPanics(t, func() {
+			newPost.RestoreActionIntegrations(oldPost)
+		})
+		assert.Nil(t, newPost.GetProp(PostPropsAttachments))
+	})
+
+	t.Run("leaves action without a matching old action untouched", func(t *testing.T) {
+		oldPost := newAttachmentPost([]*PostAction{
+			{Id: "action1", Integration: &PostActionIntegration{URL: "http://example.com/action"}},
+		})
+		newPost := newAttachmentPost([]*PostAction{
+			{Id: "action2", Name: "Other button"},
+		})
+
+		newPost.RestoreActionIntegrations(oldPost)
+
+		action := newPost.GetAction("action2")
+		require.NotNil(t, action)
+		assert.Nil(t, action.Integration)
+	})
+}
