@@ -9,7 +9,7 @@ import PluginState from 'mattermost-redux/constants/plugins';
 import {PluginManagement} from 'components/admin_console/plugin_management/plugin_management';
 
 import {defaultIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 describe('components/PluginManagement', () => {
     const defaultProps = {
@@ -575,5 +575,88 @@ describe('components/PluginManagement', () => {
             ref.current!.setState({loading: false} as any);
         });
         expect(container).toMatchSnapshot();
+    });
+
+    test('uploads the selected plugin bundle immediately', async () => {
+        const uploadPlugin = jest.fn().mockResolvedValue({data: {}});
+        const getPlugins = jest.fn().mockResolvedValue({data: {}});
+        const props = {
+            ...defaultProps,
+            actions: {
+                ...defaultProps.actions,
+                uploadPlugin,
+                getPlugins,
+            },
+        };
+        const {container} = renderWithContext(<PluginManagement {...props}/>);
+
+        const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+        const file = new File(['plugin'], 'sample-plugin.tar.gz', {type: 'application/gzip'});
+        await userEvent.upload(input, file);
+
+        await waitFor(() => {
+            expect(uploadPlugin).toHaveBeenCalledWith(file, false);
+            expect(getPlugins).toHaveBeenCalled();
+        });
+    });
+
+    test('shows upload progress while the selected bundle is uploading', async () => {
+        let resolveUpload: (value: {data: Record<string, never>}) => void = () => {};
+        const uploadPlugin = jest.fn().mockImplementation(() => new Promise((resolve) => {
+            resolveUpload = resolve;
+        }));
+        const props = {
+            ...defaultProps,
+            actions: {
+                ...defaultProps.actions,
+                uploadPlugin,
+            },
+        };
+        const {container} = renderWithContext(<PluginManagement {...props}/>);
+
+        const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+        const file = new File(['plugin'], 'sample-plugin.tar.gz', {type: 'application/gzip'});
+        await userEvent.upload(input, file);
+
+        expect(screen.getByRole('progressbar', {name: 'Plugin upload progress'})).toBeInTheDocument();
+
+        resolveUpload({data: {}});
+        await waitFor(() => {
+            expect(screen.queryByRole('progressbar', {name: 'Plugin upload progress'})).not.toBeInTheDocument();
+        });
+    });
+
+    test('explains why direct upload is disabled when plugin signatures are required', () => {
+        const props = {
+            ...defaultProps,
+            config: {
+                ...defaultProps.config,
+                PluginSettings: {
+                    ...defaultProps.config.PluginSettings,
+                    RequirePluginSignature: true,
+                },
+            },
+        };
+        renderWithContext(<PluginManagement {...props}/>);
+
+        expect(screen.getByRole('button', {name: /Drop plugin bundle here or click to upload/})).toBeDisabled();
+        expect(screen.getByText('Direct uploads are disabled while plugin signatures are required. Install plugins through Marketplace instead.')).toBeInTheDocument();
+    });
+
+    test('explains why direct upload is disabled when plugin uploads are disabled', () => {
+        const props = {
+            ...defaultProps,
+            config: {
+                ...defaultProps.config,
+                PluginSettings: {
+                    ...defaultProps.config.PluginSettings,
+                    EnableUploads: false,
+                },
+            },
+        };
+        renderWithContext(<PluginManagement {...props}/>);
+
+        expect(screen.getByRole('button', {name: /Drop plugin bundle here or click to upload/})).toBeDisabled();
+        expect(screen.getByText('Plugin uploads are disabled. Enable plugin uploads in config.json before uploading a plugin.')).toBeInTheDocument();
     });
 });

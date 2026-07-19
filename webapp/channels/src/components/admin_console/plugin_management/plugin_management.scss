@@ -1,0 +1,74 @@
+.PluginManagement {
+    &__uploadDropzone {
+        display: flex;
+        width: 100%;
+        min-height: 116px;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        border: 1px dashed rgba(var(--center-channel-color-rgb), 0.24);
+        border-radius: 4px;
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+        color: var(--center-channel-color);
+        gap: 4px;
+        text-align: center;
+
+        &:hover:not(:disabled),
+        &--active {
+            border-color: var(--button-bg);
+            background: rgba(var(--button-bg-rgb), 0.08);
+        }
+
+        &:disabled {
+            border-color: rgba(var(--center-channel-color-rgb), 0.16);
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+            cursor: not-allowed;
+        }
+    }
+
+    &__uploadDropzoneTitle {
+        font-weight: 600;
+    }
+
+    &__uploadDropzoneDescription,
+    &__fileName {
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 12px;
+        font-weight: 400;
+    }
+
+    &__fileInput {
+        display: none;
+    }
+
+    &__fileName {
+        margin-top: 8px;
+    }
+
+    &__uploadProgress {
+        overflow: hidden;
+        height: 4px;
+        border-radius: 2px;
+        margin-top: 12px;
+        background: rgba(var(--center-channel-color-rgb), 0.12);
+    }
+
+    &__uploadProgressBar {
+        width: 40%;
+        height: 100%;
+        animation: PluginManagement-upload-progress 1.2s ease-in-out infinite;
+        background: var(--button-bg);
+    }
+}
+
+@keyframes PluginManagement-upload-progress {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(250%);
+    }
+}

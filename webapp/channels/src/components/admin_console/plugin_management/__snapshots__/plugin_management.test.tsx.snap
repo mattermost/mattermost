@@ -16,7 +16,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
         Plugin Management
       </div>
       <div
-        class="admin-console__wrapper"
+        class="admin-console__wrapper PluginManagement"
       >
         <div
           class="admin-console__content"
@@ -194,29 +194,27 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                 <div
                   class="col-sm-8"
                 >
-                  <div
-                    class="file__upload"
-                  >
-                    <button
-                      class="btn btn-tertiary"
-                      type="button"
-                    >
-                      Choose File
-                    </button>
-                    <input
-                      accept=".gz"
-                      type="file"
-                    />
-                  </div>
                   <button
-                    class="btn btn-primary"
-                    disabled=""
-                    id="uploadPlugin"
+                    aria-describedby="plugin-upload-description"
+                    class="btn btn-tertiary PluginManagement__uploadDropzone"
+                    type="button"
                   >
-                    Upload
+                    <span
+                      class="PluginManagement__uploadDropzoneTitle"
+                    >
+                      Drop plugin bundle here or click to upload
+                    </span>
+                    <span
+                      class="PluginManagement__uploadDropzoneDescription"
+                      id="plugin-upload-description"
+                    >
+                      Selecting a .tar.gz plugin starts the upload automatically.
+                    </span>
                   </button>
-                  <div
-                    class="help-text m-0"
+                  <input
+                    accept=".tar.gz,.gz"
+                    class="PluginManagement__fileInput"
+                    type="file"
                   />
                   <div
                     class="help-text"
@@ -430,7 +428,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
         Plugin Management
       </div>
       <div
-        class="admin-console__wrapper"
+        class="admin-console__wrapper PluginManagement"
       >
         <div
           class="admin-console__content"
@@ -608,29 +606,27 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
                 <div
                   class="col-sm-8"
                 >
-                  <div
-                    class="file__upload"
-                  >
-                    <button
-                      class="btn btn-tertiary"
-                      type="button"
-                    >
-                      Choose File
-                    </button>
-                    <input
-                      accept=".gz"
-                      type="file"
-                    />
-                  </div>
                   <button
-                    class="btn btn-primary"
-                    disabled=""
-                    id="uploadPlugin"
+                    aria-describedby="plugin-upload-description"
+                    class="btn btn-tertiary PluginManagement__uploadDropzone"
+                    type="button"
                   >
-                    Upload
+                    <span
+                      class="PluginManagement__uploadDropzoneTitle"
+                    >
+                      Drop plugin bundle here or click to upload
+                    </span>
+                    <span
+                      class="PluginManagement__uploadDropzoneDescription"
+                      id="plugin-upload-description"
+                    >
+                      Selecting a .tar.gz plugin starts the upload automatically.
+                    </span>
                   </button>
-                  <div
-                    class="help-text m-0"
+                  <input
+                    accept=".tar.gz,.gz"
+                    class="PluginManagement__fileInput"
+                    type="file"
                   />
                   <div
                     class="help-text"
@@ -847,7 +843,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Plugins
         Plugin Management
       </div>
       <div
-        class="admin-console__wrapper"
+        class="admin-console__wrapper PluginManagement"
       >
         <div
           class="admin-console__content"
@@ -920,7 +916,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
         Plugin Management
       </div>
       <div
-        class="admin-console__wrapper"
+        class="admin-console__wrapper PluginManagement"
       >
         <div
           class="admin-console__content"
@@ -1098,29 +1094,27 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
                 <div
                   class="col-sm-8"
                 >
-                  <div
-                    class="file__upload"
-                  >
-                    <button
-                      class="btn btn-tertiary"
-                      type="button"
-                    >
-                      Choose File
-                    </button>
-                    <input
-                      accept=".gz"
-                      type="file"
-                    />
-                  </div>
                   <button
-                    class="btn btn-primary"
-                    disabled=""
-                    id="uploadPlugin"
+                    aria-describedby="plugin-upload-description"
+                    class="btn btn-tertiary PluginManagement__uploadDropzone"
+                    type="button"
                   >
-                    Upload
+                    <span
+                      class="PluginManagement__uploadDropzoneTitle"
+                    >
+                      Drop plugin bundle here or click to upload
+                    </span>
+                    <span
+                      class="PluginManagement__uploadDropzoneDescription"
+                      id="plugin-upload-description"
+                    >
+                      Selecting a .tar.gz plugin starts the upload automatically.
+                    </span>
                   </button>
-                  <div
-                    class="help-text m-0"
+                  <input
+                    accept=".tar.gz,.gz"
+                    class="PluginManagement__fileInput"
+                    type="file"
                   />
                   <div
                     class="help-text"
@@ -1335,7 +1329,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
         Plugin Management
       </div>
       <div
-        class="admin-console__wrapper"
+        class="admin-console__wrapper PluginManagement"
       >
         <div
           class="admin-console__content"
@@ -1513,31 +1507,29 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
                 <div
                   class="col-sm-8"
                 >
-                  <div
-                    class="file__upload"
-                  >
-                    <button
-                      class="btn btn-tertiary"
-                      disabled=""
-                      type="button"
-                    >
-                      Choose File
-                    </button>
-                    <input
-                      accept=".gz"
-                      disabled=""
-                      type="file"
-                    />
-                  </div>
                   <button
-                    class="btn btn-primary"
+                    aria-describedby="plugin-upload-description"
+                    class="btn btn-tertiary PluginManagement__uploadDropzone"
                     disabled=""
-                    id="uploadPlugin"
+                    type="button"
                   >
-                    Upload
+                    <span
+                      class="PluginManagement__uploadDropzoneTitle"
+                    >
+                      Drop plugin bundle here or click to upload
+                    </span>
+                    <span
+                      class="PluginManagement__uploadDropzoneDescription"
+                      id="plugin-upload-description"
+                    >
+                      Direct uploads are disabled while plugin signatures are required. Install plugins through Marketplace instead.
+                    </span>
                   </button>
-                  <div
-                    class="help-text m-0"
+                  <input
+                    accept=".tar.gz,.gz"
+                    class="PluginManagement__fileInput"
+                    disabled=""
+                    type="file"
                   />
                   <div
                     class="help-text"
@@ -1751,7 +1743,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
         Plugin Management
       </div>
       <div
-        class="admin-console__wrapper"
+        class="admin-console__wrapper PluginManagement"
       >
         <div
           class="admin-console__content"
@@ -1929,29 +1921,27 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
                 <div
                   class="col-sm-8"
                 >
-                  <div
-                    class="file__upload"
-                  >
-                    <button
-                      class="btn btn-tertiary"
-                      type="button"
-                    >
-                      Choose File
-                    </button>
-                    <input
-                      accept=".gz"
-                      type="file"
-                    />
-                  </div>
                   <button
-                    class="btn btn-primary"
-                    disabled=""
-                    id="uploadPlugin"
+                    aria-describedby="plugin-upload-description"
+                    class="btn btn-tertiary PluginManagement__uploadDropzone"
+                    type="button"
                   >
-                    Upload
+                    <span
+                      class="PluginManagement__uploadDropzoneTitle"
+                    >
+                      Drop plugin bundle here or click to upload
+                    </span>
+                    <span
+                      class="PluginManagement__uploadDropzoneDescription"
+                      id="plugin-upload-description"
+                    >
+                      Selecting a .tar.gz plugin starts the upload automatically.
+                    </span>
                   </button>
-                  <div
-                    class="help-text m-0"
+                  <input
+                    accept=".tar.gz,.gz"
+                    class="PluginManagement__fileInput"
+                    type="file"
                   />
                   <div
                     class="help-text"
@@ -2166,7 +2156,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
         Plugin Management
       </div>
       <div
-        class="admin-console__wrapper"
+        class="admin-console__wrapper PluginManagement"
       >
         <div
           class="admin-console__content"
@@ -2344,29 +2334,27 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
                 <div
                   class="col-sm-8"
                 >
-                  <div
-                    class="file__upload"
-                  >
-                    <button
-                      class="btn btn-tertiary"
-                      type="button"
-                    >
-                      Choose File
-                    </button>
-                    <input
-                      accept=".gz"
-                      type="file"
-                    />
-                  </div>
                   <button
-                    class="btn btn-primary"
-                    disabled=""
-                    id="uploadPlugin"
+                    aria-describedby="plugin-upload-description"
+                    class="btn btn-tertiary PluginManagement__uploadDropzone"
+                    type="button"
                   >
-                    Upload
+                    <span
+                      class="PluginManagement__uploadDropzoneTitle"
+                    >
+                      Drop plugin bundle here or click to upload
+                    </span>
+                    <span
+                      class="PluginManagement__uploadDropzoneDescription"
+                      id="plugin-upload-description"
+                    >
+                      Selecting a .tar.gz plugin starts the upload automatically.
+                    </span>
                   </button>
-                  <div
-                    class="help-text m-0"
+                  <input
+                    accept=".tar.gz,.gz"
+                    class="PluginManagement__fileInput"
+                    type="file"
                   />
                   <div
                     class="help-text"
@@ -2580,7 +2568,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
         Plugin Management
       </div>
       <div
-        class="admin-console__wrapper"
+        class="admin-console__wrapper PluginManagement"
       >
         <div
           class="admin-console__content"
@@ -2762,31 +2750,29 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
                 <div
                   class="col-sm-8"
                 >
-                  <div
-                    class="file__upload"
-                  >
-                    <button
-                      class="btn btn-tertiary"
-                      disabled=""
-                      type="button"
-                    >
-                      Choose File
-                    </button>
-                    <input
-                      accept=".gz"
-                      disabled=""
-                      type="file"
-                    />
-                  </div>
                   <button
-                    class="btn btn-primary"
+                    aria-describedby="plugin-upload-description"
+                    class="btn btn-tertiary PluginManagement__uploadDropzone"
                     disabled=""
-                    id="uploadPlugin"
+                    type="button"
                   >
-                    Upload
+                    <span
+                      class="PluginManagement__uploadDropzoneTitle"
+                    >
+                      Drop plugin bundle here or click to upload
+                    </span>
+                    <span
+                      class="PluginManagement__uploadDropzoneDescription"
+                      id="plugin-upload-description"
+                    >
+                      Enable plugins before uploading a plugin.
+                    </span>
                   </button>
-                  <div
-                    class="help-text m-0"
+                  <input
+                    accept=".tar.gz,.gz"
+                    class="PluginManagement__fileInput"
+                    disabled=""
+                    type="file"
                   />
                   <div
                     class="help-text"
@@ -2990,7 +2976,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
         Plugin Management
       </div>
       <div
-        class="admin-console__wrapper"
+        class="admin-console__wrapper PluginManagement"
       >
         <div
           class="admin-console__content"
@@ -3168,29 +3154,27 @@ exports[`components/PluginManagement should match snapshot, text entered into th
                 <div
                   class="col-sm-8"
                 >
-                  <div
-                    class="file__upload"
-                  >
-                    <button
-                      class="btn btn-tertiary"
-                      type="button"
-                    >
-                      Choose File
-                    </button>
-                    <input
-                      accept=".gz"
-                      type="file"
-                    />
-                  </div>
                   <button
-                    class="btn btn-primary"
-                    disabled=""
-                    id="uploadPlugin"
+                    aria-describedby="plugin-upload-description"
+                    class="btn btn-tertiary PluginManagement__uploadDropzone"
+                    type="button"
                   >
-                    Upload
+                    <span
+                      class="PluginManagement__uploadDropzoneTitle"
+                    >
+                      Drop plugin bundle here or click to upload
+                    </span>
+                    <span
+                      class="PluginManagement__uploadDropzoneDescription"
+                      id="plugin-upload-description"
+                    >
+                      Selecting a .tar.gz plugin starts the upload automatically.
+                    </span>
                   </button>
-                  <div
-                    class="help-text m-0"
+                  <input
+                    accept=".tar.gz,.gz"
+                    class="PluginManagement__fileInput"
+                    type="file"
                   />
                   <div
                     class="help-text"
@@ -3404,7 +3388,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
         Plugin Management
       </div>
       <div
-        class="admin-console__wrapper"
+        class="admin-console__wrapper PluginManagement"
       >
         <div
           class="admin-console__content"
@@ -3582,31 +3566,29 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
                 <div
                   class="col-sm-8"
                 >
-                  <div
-                    class="file__upload"
-                  >
-                    <button
-                      class="btn btn-tertiary"
-                      disabled=""
-                      type="button"
-                    >
-                      Choose File
-                    </button>
-                    <input
-                      accept=".gz"
-                      disabled=""
-                      type="file"
-                    />
-                  </div>
                   <button
-                    class="btn btn-primary"
+                    aria-describedby="plugin-upload-description"
+                    class="btn btn-tertiary PluginManagement__uploadDropzone"
                     disabled=""
-                    id="uploadPlugin"
+                    type="button"
                   >
-                    Upload
+                    <span
+                      class="PluginManagement__uploadDropzoneTitle"
+                    >
+                      Drop plugin bundle here or click to upload
+                    </span>
+                    <span
+                      class="PluginManagement__uploadDropzoneDescription"
+                      id="plugin-upload-description"
+                    >
+                      Plugin uploads are disabled. Enable plugin uploads in config.json before uploading a plugin.
+                    </span>
                   </button>
-                  <div
-                    class="help-text m-0"
+                  <input
+                    accept=".tar.gz,.gz"
+                    class="PluginManagement__fileInput"
+                    disabled=""
+                    type="file"
                   />
                   <div
                     class="help-text"
@@ -3832,7 +3814,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         Plugin Management
       </div>
       <div
-        class="admin-console__wrapper"
+        class="admin-console__wrapper PluginManagement"
       >
         <div
           class="admin-console__content"
@@ -4010,29 +3992,27 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 <div
                   class="col-sm-8"
                 >
-                  <div
-                    class="file__upload"
-                  >
-                    <button
-                      class="btn btn-tertiary"
-                      type="button"
-                    >
-                      Choose File
-                    </button>
-                    <input
-                      accept=".gz"
-                      type="file"
-                    />
-                  </div>
                   <button
-                    class="btn btn-primary"
-                    disabled=""
-                    id="uploadPlugin"
+                    aria-describedby="plugin-upload-description"
+                    class="btn btn-tertiary PluginManagement__uploadDropzone"
+                    type="button"
                   >
-                    Upload
+                    <span
+                      class="PluginManagement__uploadDropzoneTitle"
+                    >
+                      Drop plugin bundle here or click to upload
+                    </span>
+                    <span
+                      class="PluginManagement__uploadDropzoneDescription"
+                      id="plugin-upload-description"
+                    >
+                      Selecting a .tar.gz plugin starts the upload automatically.
+                    </span>
                   </button>
-                  <div
-                    class="help-text m-0"
+                  <input
+                    accept=".tar.gz,.gz"
+                    class="PluginManagement__fileInput"
+                    type="file"
                   />
                   <div
                     class="help-text"
@@ -4529,7 +4509,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         Plugin Management
       </div>
       <div
-        class="admin-console__wrapper"
+        class="admin-console__wrapper PluginManagement"
       >
         <div
           class="admin-console__content"
@@ -4707,29 +4687,27 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 <div
                   class="col-sm-8"
                 >
-                  <div
-                    class="file__upload"
-                  >
-                    <button
-                      class="btn btn-tertiary"
-                      type="button"
-                    >
-                      Choose File
-                    </button>
-                    <input
-                      accept=".gz"
-                      type="file"
-                    />
-                  </div>
                   <button
-                    class="btn btn-primary"
-                    disabled=""
-                    id="uploadPlugin"
+                    aria-describedby="plugin-upload-description"
+                    class="btn btn-tertiary PluginManagement__uploadDropzone"
+                    type="button"
                   >
-                    Upload
+                    <span
+                      class="PluginManagement__uploadDropzoneTitle"
+                    >
+                      Drop plugin bundle here or click to upload
+                    </span>
+                    <span
+                      class="PluginManagement__uploadDropzoneDescription"
+                      id="plugin-upload-description"
+                    >
+                      Selecting a .tar.gz plugin starts the upload automatically.
+                    </span>
                   </button>
-                  <div
-                    class="help-text m-0"
+                  <input
+                    accept=".tar.gz,.gz"
+                    class="PluginManagement__fileInput"
+                    type="file"
                   />
                   <div
                     class="help-text"
@@ -5024,7 +5002,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         Plugin Management
       </div>
       <div
-        class="admin-console__wrapper"
+        class="admin-console__wrapper PluginManagement"
       >
         <div
           class="admin-console__content"
@@ -5202,29 +5180,27 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 <div
                   class="col-sm-8"
                 >
-                  <div
-                    class="file__upload"
-                  >
-                    <button
-                      class="btn btn-tertiary"
-                      type="button"
-                    >
-                      Choose File
-                    </button>
-                    <input
-                      accept=".gz"
-                      type="file"
-                    />
-                  </div>
                   <button
-                    class="btn btn-primary"
-                    disabled=""
-                    id="uploadPlugin"
+                    aria-describedby="plugin-upload-description"
+                    class="btn btn-tertiary PluginManagement__uploadDropzone"
+                    type="button"
                   >
-                    Upload
+                    <span
+                      class="PluginManagement__uploadDropzoneTitle"
+                    >
+                      Drop plugin bundle here or click to upload
+                    </span>
+                    <span
+                      class="PluginManagement__uploadDropzoneDescription"
+                      id="plugin-upload-description"
+                    >
+                      Selecting a .tar.gz plugin starts the upload automatically.
+                    </span>
                   </button>
-                  <div
-                    class="help-text m-0"
+                  <input
+                    accept=".tar.gz,.gz"
+                    class="PluginManagement__fileInput"
+                    type="file"
                   />
                   <div
                     class="help-text"
@@ -5519,7 +5495,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         Plugin Management
       </div>
       <div
-        class="admin-console__wrapper"
+        class="admin-console__wrapper PluginManagement"
       >
         <div
           class="admin-console__content"
@@ -5697,29 +5673,27 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 <div
                   class="col-sm-8"
                 >
-                  <div
-                    class="file__upload"
-                  >
-                    <button
-                      class="btn btn-tertiary"
-                      type="button"
-                    >
-                      Choose File
-                    </button>
-                    <input
-                      accept=".gz"
-                      type="file"
-                    />
-                  </div>
                   <button
-                    class="btn btn-primary"
-                    disabled=""
-                    id="uploadPlugin"
+                    aria-describedby="plugin-upload-description"
+                    class="btn btn-tertiary PluginManagement__uploadDropzone"
+                    type="button"
                   >
-                    Upload
+                    <span
+                      class="PluginManagement__uploadDropzoneTitle"
+                    >
+                      Drop plugin bundle here or click to upload
+                    </span>
+                    <span
+                      class="PluginManagement__uploadDropzoneDescription"
+                      id="plugin-upload-description"
+                    >
+                      Selecting a .tar.gz plugin starts the upload automatically.
+                    </span>
                   </button>
-                  <div
-                    class="help-text m-0"
+                  <input
+                    accept=".tar.gz,.gz"
+                    class="PluginManagement__fileInput"
+                    type="file"
                   />
                   <div
                     class="help-text"
@@ -6014,7 +5988,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
         Plugin Management
       </div>
       <div
-        class="admin-console__wrapper"
+        class="admin-console__wrapper PluginManagement"
       >
         <div
           class="admin-console__content"
@@ -6192,29 +6166,27 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 <div
                   class="col-sm-8"
                 >
-                  <div
-                    class="file__upload"
-                  >
-                    <button
-                      class="btn btn-tertiary"
-                      type="button"
-                    >
-                      Choose File
-                    </button>
-                    <input
-                      accept=".gz"
-                      type="file"
-                    />
-                  </div>
                   <button
-                    class="btn btn-primary"
-                    disabled=""
-                    id="uploadPlugin"
+                    aria-describedby="plugin-upload-description"
+                    class="btn btn-tertiary PluginManagement__uploadDropzone"
+                    type="button"
                   >
-                    Upload
+                    <span
+                      class="PluginManagement__uploadDropzoneTitle"
+                    >
+                      Drop plugin bundle here or click to upload
+                    </span>
+                    <span
+                      class="PluginManagement__uploadDropzoneDescription"
+                      id="plugin-upload-description"
+                    >
+                      Selecting a .tar.gz plugin starts the upload automatically.
+                    </span>
                   </button>
-                  <div
-                    class="help-text m-0"
+                  <input
+                    accept=".tar.gz,.gz"
+                    class="PluginManagement__fileInput"
+                    type="file"
                   />
                   <div
                     class="help-text"
