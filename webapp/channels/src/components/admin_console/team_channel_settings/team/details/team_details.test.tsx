@@ -647,12 +647,13 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         const getAccessControlPolicy = jest.fn().mockResolvedValue({
             data: {id: 'parent1', name: 'Engineering Policy', type: 'parent', rules: []},
         });
-        const getTeamStats = jest.fn().mockResolvedValue({data: {total_member_count: 8}});
+        const searchUsersForExpression = jest.fn().mockResolvedValue({data: {users: []}});
+        const getTeamMembers = jest.fn().mockResolvedValue({data: []});
         const props = {
             ...baseProps,
             abacSupported: true,
             team: {...baseProps.team, policy_enforced: true},
-            actions: {...baseProps.actions, getTeamAccessControlPolicy, getAccessControlPolicy, getTeamStats},
+            actions: {...baseProps.actions, getTeamAccessControlPolicy, getAccessControlPolicy, searchUsersForExpression, getTeamMembers},
         };
         renderWithContext(<TeamDetails {...props}/>);
 
@@ -666,7 +667,9 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         await waitFor(() => {
             expect(screen.getByText('Apply membership policy')).toBeInTheDocument();
         });
-        expect(getTeamStats).toHaveBeenCalledWith('123');
+
+        // Staging a team rule routes the count through the unscoped match query, not team stats.
+        expect(searchUsersForExpression).toHaveBeenCalledWith(expect.any(String), '', '', 1000);
     });
 
     test('shows empty-team warning in save confirmation when all members would be removed', async () => {
@@ -742,9 +745,10 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             expect(screen.getByText('Apply membership policy')).toBeInTheDocument();
         });
 
-        // The match query runs unscoped (no team id) so members are counted correctly.
+        // The match query runs unscoped (exactly four args, no team id) so members
+        // are counted correctly; the expression combines the team and parent rules.
         expect(searchUsersForExpression).toHaveBeenCalledWith(
-            'user.attributes.Department == "Engineering"', '', '', 1000,
+            expect.stringContaining('user.attributes.Department == "Engineering"'), '', '', 1000,
         );
         expect(screen.getByText(/1 member does not currently meet the criteria/)).toBeInTheDocument();
         expect(screen.queryByText(/No current members meet the criteria/)).not.toBeInTheDocument();
