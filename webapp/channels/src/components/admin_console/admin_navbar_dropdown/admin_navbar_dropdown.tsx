@@ -25,7 +25,7 @@ import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
 
 import type {GlobalState} from 'types/store';
 
-const AdminNavbarDropdown = () => {
+const AdminNavbarDropdown = ({...firstMenuItemProps}: Menu.FirstMenuItemProps) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
@@ -90,6 +90,7 @@ const AdminNavbarDropdown = () => {
                         defaultMessage='Switch teams'
                     />
                 }
+                {...firstMenuItemProps}
             />
         );
     } else if (sortedTeams.length > 1) {
@@ -105,6 +106,7 @@ const AdminNavbarDropdown = () => {
                 trailingElements={<ChevronRightIcon size={16}/>}
                 menuId='adminConsoleSwitchTeamsMenu'
                 menuAriaLabel={formatMessage({id: 'admin.nav.switchTeams', defaultMessage: 'Switch teams'})}
+                {...firstMenuItemProps}
             >
                 {sortedTeams.map((team) => (
                     <Menu.LinkItem
@@ -131,6 +133,7 @@ const AdminNavbarDropdown = () => {
                         defaultMessage="Administrator's Guide"
                     />
                 }
+                {...(switchTeamsMenuItem ? {} : firstMenuItemProps)}
             />
             <Menu.Item
                 id='adminConsoleTroubleshootingForum'

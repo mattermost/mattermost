@@ -740,8 +740,8 @@
     .sidebar-category {
         & + .sidebar-category {
             position: relative;
-            margin-top: 8px;
             padding-top: 12px;
+            margin-top: 8px;
 
             &::before {
                 position: absolute;
