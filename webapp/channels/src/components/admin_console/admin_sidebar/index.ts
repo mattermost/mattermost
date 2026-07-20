@@ -10,7 +10,7 @@ import {getPlugins} from 'mattermost-redux/actions/admin';
 import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
-import {isFirstAdmin, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
+import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {getAdminDefinition, getConsoleAccess} from 'selectors/admin_console';
 import {getNavigationBlocked} from 'selectors/views/admin';
@@ -47,7 +47,6 @@ function mapStateToProps(state: GlobalState) {
         cloud: state.entities.cloud,
         showTaskList,
         subscriptionProduct,
-        isCurrentUserSystemAdmin: isCurrentUserSystemAdmin(state),
     };
 }
 

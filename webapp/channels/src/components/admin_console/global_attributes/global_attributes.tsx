@@ -8,16 +8,13 @@ import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 const messages = defineMessages({
     title: {id: 'admin.global_attributes.title', defaultMessage: 'Manage Attributes'},
+    placeholder: {id: 'admin.global_attributes.placeholder', defaultMessage: 'Global attributes will be here.'},
 });
 
 export const searchableStrings = [
     messages.title,
 ];
 
-// Empty shell for MM-69845 (Global Attributes access gate). The isHidden
-// predicate in admin_definition.tsx is UI-only visibility, not
-// authorization: whichever future story adds real content/an API here
-// must carry its own PermissionManageSystem check independently.
 const GlobalAttributes: React.FC = () => {
     return (
         <div className='wrapper--fixed'>
@@ -25,7 +22,9 @@ const GlobalAttributes: React.FC = () => {
                 <FormattedMessage {...messages.title}/>
             </AdminHeader>
             <div className='admin-console__wrapper'>
-                <div className='admin-console__content'/>
+                <div className='admin-console__content'>
+                    <FormattedMessage {...messages.placeholder}/>
+                </div>
             </div>
         </div>
     );

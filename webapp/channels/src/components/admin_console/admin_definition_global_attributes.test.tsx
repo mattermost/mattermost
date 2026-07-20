@@ -32,30 +32,37 @@ const professionalLicense = {
 
 const consoleAccess = {read: {}, write: {}} as ConsoleAccess;
 
-function isHidden(config: Partial<AdminConfig>, license: ClientLicense, isSystemAdmin: boolean) {
+function isHidden(config: Partial<AdminConfig>, license: ClientLicense) {
     const subsection = AdminDefinition.system_attributes.subsections.global_attributes;
     const check = subsection.isHidden as Extract<Check, (...args: any[]) => boolean>;
-    return check(config, {}, license, true, consoleAccess, undefined, isSystemAdmin);
+    return check(config, {}, license, true, consoleAccess);
+}
+
+function isDisabled(isSystemAdmin: boolean) {
+    const subsection = AdminDefinition.system_attributes.subsections.global_attributes;
+    const check = subsection.isDisabled as Extract<Check, (...args: any[]) => boolean>;
+    return check(flagOn, {}, enterpriseLicense, true, consoleAccess, undefined, isSystemAdmin);
 }
 
 describe('AdminDefinition - Global Attributes access gate', () => {
-    test('is hidden by default: flag off, license below Enterprise, non-sysadmin', () => {
-        expect(isHidden(flagOff, professionalLicense, false)).toBe(true);
+    test('is hidden by default: flag off, license below Enterprise', () => {
+        expect(isHidden(flagOff, professionalLicense)).toBe(true);
     });
 
-    test('stays hidden when license is below Enterprise, even with flag on and sysadmin', () => {
-        expect(isHidden(flagOn, professionalLicense, true)).toBe(true);
+    test('stays hidden when license is below Enterprise, even with flag on', () => {
+        expect(isHidden(flagOn, professionalLicense)).toBe(true);
     });
 
-    test('stays hidden for a non-sysadmin, even with flag on and Enterprise license', () => {
-        expect(isHidden(flagOn, enterpriseLicense, false)).toBe(true);
+    test('stays hidden when the flag is off, even with Enterprise license', () => {
+        expect(isHidden(flagOff, enterpriseLicense)).toBe(true);
     });
 
-    test('stays hidden when the flag is off, even with Enterprise license and sysadmin', () => {
-        expect(isHidden(flagOff, enterpriseLicense, true)).toBe(true);
+    test('is visible when flag is on and license is Enterprise+', () => {
+        expect(isHidden(flagOn, enterpriseLicense)).toBe(false);
     });
 
-    test('is visible only when flag is on, license is Enterprise+, and viewer is a sysadmin', () => {
-        expect(isHidden(flagOn, enterpriseLicense, true)).toBe(false);
+    test('disables the page for non-sysadmins', () => {
+        expect(isDisabled(true)).toBe(false);
+        expect(isDisabled(false)).toBe(true);
     });
 });

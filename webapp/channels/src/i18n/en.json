@@ -1430,6 +1430,7 @@
   "admin.gitlab.siteUrlExample": "E.g.: https://",
   "admin.gitlab.tokenTitle": "Token Endpoint:",
   "admin.gitlab.userTitle": "User API Endpoint:",
+  "admin.global_attributes.placeholder": "Global attributes will be here.",
   "admin.global_attributes.title": "Manage Attributes",
   "admin.google.authTitle": "Auth Endpoint:",
   "admin.google.clientIdDescription": "The Client ID you received when registering your application with Google.",

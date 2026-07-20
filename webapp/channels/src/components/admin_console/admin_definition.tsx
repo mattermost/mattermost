@@ -727,8 +727,8 @@ const AdminDefinition: AdminDefinitionType = {
                 isHidden: it.not(it.all(
                     it.minLicenseTier(LicenseSkus.Enterprise),
                     it.configIsTrue('FeatureFlags', 'GlobalAttributes'),
-                    it.isSystemAdmin,
                 )),
+                isDisabled: it.not(it.isSystemAdmin),
                 schema: {
                     id: 'GlobalAttributes',
                     component: GlobalAttributes,
