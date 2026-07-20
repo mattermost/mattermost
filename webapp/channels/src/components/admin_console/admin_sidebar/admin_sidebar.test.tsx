@@ -94,6 +94,7 @@ describe('components/AdminSidebar', () => {
             errors: {},
         },
         showTaskList: false,
+        isCurrentUserSystemAdmin: true,
     };
 
     Object.keys(RESOURCE_KEYS).forEach((key) => {
@@ -190,6 +191,7 @@ describe('components/AdminSidebar', () => {
             consoleAccess: {...defaultProps.consoleAccess},
             cloud: {...defaultProps.cloud},
             showTaskList: false,
+            isCurrentUserSystemAdmin: true,
         };
 
         const {container} = renderWithContext(<AdminSidebar {...props}/>);
@@ -236,6 +238,7 @@ describe('components/AdminSidebar', () => {
             consoleAccess: {...defaultProps.consoleAccess},
             cloud: {...defaultProps.cloud},
             showTaskList: false,
+            isCurrentUserSystemAdmin: true,
         };
 
         const {container} = renderWithContext(<AdminSidebar {...props}/>);
@@ -284,6 +287,7 @@ describe('components/AdminSidebar', () => {
             consoleAccess: {...defaultProps.consoleAccess},
             cloud: {...defaultProps.cloud},
             showTaskList: false,
+            isCurrentUserSystemAdmin: true,
         };
 
         const {container} = renderWithContext(<AdminSidebar {...props}/>);
@@ -360,6 +364,7 @@ describe('components/AdminSidebar', () => {
             consoleAccess: {...defaultProps.consoleAccess},
             cloud: {...defaultProps.cloud},
             showTaskList: false,
+            isCurrentUserSystemAdmin: true,
         };
 
         const {container} = renderWithContext(<AdminSidebar {...props}/>);
@@ -429,6 +434,7 @@ describe('components/AdminSidebar', () => {
             consoleAccess: {...defaultProps.consoleAccess},
             cloud: {...defaultProps.cloud},
             showTaskList: false,
+            isCurrentUserSystemAdmin: true,
         };
 
         const {container} = renderWithContext(<AdminSidebar {...props}/>);
@@ -493,6 +499,7 @@ describe('components/AdminSidebar', () => {
             consoleAccess: {...defaultProps.consoleAccess},
             cloud: {...defaultProps.cloud},
             showTaskList: false,
+            isCurrentUserSystemAdmin: true,
         };
 
         const {container} = renderWithContext(<AdminSidebar {...props}/>);
@@ -562,6 +569,7 @@ describe('components/AdminSidebar', () => {
             consoleAccess: {...defaultProps.consoleAccess},
             cloud: {...defaultProps.cloud},
             showTaskList: false,
+            isCurrentUserSystemAdmin: true,
         };
 
         const {container} = renderWithContext(<AdminSidebar {...props}/>);
@@ -596,6 +604,7 @@ describe('components/AdminSidebar', () => {
             consoleAccess: {...defaultProps.consoleAccess},
             cloud: {...defaultProps.cloud},
             showTaskList: false,
+            isCurrentUserSystemAdmin: true,
         };
 
         beforeEach(() => {
@@ -741,6 +750,7 @@ describe('components/AdminSidebar', () => {
             },
             cloud: {...defaultProps.cloud},
             showTaskList: false,
+            isCurrentUserSystemAdmin: true,
         };
 
         test('should match snapshot', () => {
@@ -759,6 +769,67 @@ describe('components/AdminSidebar', () => {
             await userEvent.type(filterInput, 'autolink');
 
             expect(container).toMatchSnapshot();
+        });
+    });
+
+    describe('Global Attributes access gate', () => {
+        const enterpriseLicensedProps: Props = {
+            ...defaultProps,
+            license: {
+                IsLicensed: 'true',
+                SkuShortName: 'enterprise',
+            },
+            buildEnterpriseReady: true,
+            config: {
+                ...defaultProps.config,
+                FeatureFlags: {
+                    GlobalAttributes: true,
+                },
+            },
+        };
+
+        test('shows Manage Attributes when flag is on, license is Enterprise, and viewer is a sysadmin', () => {
+            renderWithContext(<AdminSidebar {...enterpriseLicensedProps}/>);
+
+            expect(screen.getByText('Manage Attributes')).toBeInTheDocument();
+        });
+
+        test('hides Manage Attributes for a non-sysadmin, even with flag on and Enterprise license', () => {
+            renderWithContext(
+                <AdminSidebar
+                    {...enterpriseLicensedProps}
+                    isCurrentUserSystemAdmin={false}
+                />,
+            );
+
+            expect(screen.queryByText('Manage Attributes')).not.toBeInTheDocument();
+        });
+
+        test('hides Manage Attributes when the flag is off, even with Enterprise license and sysadmin', () => {
+            renderWithContext(
+                <AdminSidebar
+                    {...enterpriseLicensedProps}
+                    config={{
+                        ...enterpriseLicensedProps.config,
+                        FeatureFlags: {
+                            GlobalAttributes: false,
+                        },
+                    }}
+                />,
+            );
+
+            expect(screen.queryByText('Manage Attributes')).not.toBeInTheDocument();
+        });
+
+        test('hides Manage Attributes when license is below Enterprise, even with flag on and sysadmin', () => {
+            renderWithContext(
+                <AdminSidebar
+                    {...enterpriseLicensedProps}
+                    license={{IsLicensed: 'true', SkuShortName: 'professional'}}
+                />,
+            );
+
+            expect(screen.queryByText('Manage Attributes')).not.toBeInTheDocument();
         });
     });
 });
