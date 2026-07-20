@@ -401,3 +401,5 @@ channels/db/migrations/postgres/000202_create_property_values_groupid_updateat_i
 channels/db/migrations/postgres/000202_create_property_values_groupid_updateat_id_index.up.sql
 channels/db/migrations/postgres/000203_add_lastnotifiedat_to_user_access_tokens.down.sql
 channels/db/migrations/postgres/000203_add_lastnotifiedat_to_user_access_tokens.up.sql
+channels/db/migrations/postgres/000204_add_channel_type_space_enum.down.sql
+channels/db/migrations/postgres/000204_add_channel_type_space_enum.up.sql

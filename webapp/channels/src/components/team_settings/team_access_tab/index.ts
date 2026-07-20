@@ -8,7 +8,16 @@ import type {Dispatch} from 'redux';
 
 import type {Team} from '@mattermost/types/teams';
 
-import {patchTeam, regenerateTeamInviteId} from 'mattermost-redux/actions/teams';
+import {
+    createAccessControlTeamSyncJob,
+    getTeamAccessControlPolicy,
+    searchUsersForExpression,
+} from 'mattermost-redux/actions/access_control';
+import {patchTeam, regenerateTeamInviteId, getTeamStats} from 'mattermost-redux/actions/teams';
+
+import {isTeamMembershipAccessControlEnabled} from 'selectors/general';
+
+import type {GlobalState} from 'types/store';
 
 import TeamAccessTab from './team_access_tab';
 
@@ -20,16 +29,26 @@ export type OwnProps = {
     setShowTabSwitchError: (error: boolean) => void;
 };
 
+function mapStateToProps(state: GlobalState) {
+    return {
+        teamMembershipAccessControlEnabled: isTeamMembershipAccessControlEnabled(state),
+    };
+}
+
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             patchTeam,
             regenerateTeamInviteId,
+            getTeamStats,
+            getTeamAccessControlPolicy,
+            searchUsersForExpression,
+            createAccessControlTeamSyncJob,
         }, dispatch),
     };
 }
 
-const connector = connect(null, mapDispatchToProps);
+const connector = connect(mapStateToProps, mapDispatchToProps);
 
 export type PropsFromRedux = ConnectedProps<typeof connector>;
 

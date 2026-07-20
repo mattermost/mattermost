@@ -137,11 +137,20 @@ const DotMenu = ({
     };
 
     const isSynced = Boolean(field.attrs.ldap || field.attrs.saml);
-    const isEditableByUsers = !isSynced && field.attrs.managed !== 'admin';
+
+    // Owner-managed fields (e.g. SCIM-provisioned) are read-only in this
+    // screen: ownership and values are governed by the owning integration, so
+    // they behave like synced fields for the "Editable by users" toggle and
+    // expose no link/unlink action here.
+    const isOwnerManaged = Boolean(field.attrs.owners?.length);
+    const isManagedExternally = isSynced || isOwnerManaged;
+    const isEditableByUsers = !isManagedExternally && field.attrs.managed !== 'admin';
 
     const handleDuplicate = () => {
         const name = `${slugifyForCEL(field.name)}_copy`;
-        createField({...field, attrs: {...field.attrs}, name});
+        const attrs = {...field.attrs};
+        delete attrs.owners;
+        createField({...field, attrs, name});
     };
 
     const handleDelete = () => {
@@ -158,7 +167,7 @@ const DotMenu = ({
     };
 
     const handleEditableByUsersToggle = () => {
-        if (isSynced) {
+        if (isManagedExternally) {
             return;
         }
 
@@ -315,11 +324,11 @@ const DotMenu = ({
             <Menu.Item
                 id={`${menuId}_editable-by-users`}
                 role='menuitemcheckbox'
-                disabled={isSynced}
+                disabled={isManagedExternally}
                 aria-checked={isEditableByUsers}
                 onClick={handleEditableByUsersToggle}
                 leadingElement={<PencilOutlineIcon size={18}/>}
-                labels={isSynced ? (
+                labels={isManagedExternally ? (
                     <>
                         <span>
                             <FormattedMessage
@@ -328,10 +337,30 @@ const DotMenu = ({
                             />
                         </span>
                         <span>
-                            <FormattedMessage
-                                id='admin.system_properties.user_properties.dotmenu.editable_by_users.synced_help'
-                                defaultMessage='Synced attributes are managed by AD/LDAP or SAML'
-                            />
+                            {(() => {
+                                if (isOwnerManaged && isSynced) {
+                                    return (
+                                        <FormattedMessage
+                                            id='admin.system_properties.user_properties.dotmenu.editable_by_users.owner_managed_synced_help'
+                                            defaultMessage='Managed by an integration and synced via AD/LDAP or SAML'
+                                        />
+                                    );
+                                }
+                                if (isOwnerManaged) {
+                                    return (
+                                        <FormattedMessage
+                                            id='admin.system_properties.user_properties.dotmenu.editable_by_users.owner_managed_help'
+                                            defaultMessage='This attribute is managed by an integration'
+                                        />
+                                    );
+                                }
+                                return (
+                                    <FormattedMessage
+                                        id='admin.system_properties.user_properties.dotmenu.editable_by_users.synced_help'
+                                        defaultMessage='Synced attributes are managed by AD/LDAP or SAML'
+                                    />
+                                );
+                            })()}
                         </span>
                     </>
                 ) : (
@@ -343,7 +372,7 @@ const DotMenu = ({
                 trailingElements={(
                     <Toggle
                         size='btn-sm'
-                        disabled={isSynced}
+                        disabled={isManagedExternally}
                         onToggle={handleEditableByUsersToggle}
                         toggled={isEditableByUsers}
                         toggleClassName='btn-toggle-primary'

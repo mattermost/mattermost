@@ -28,6 +28,24 @@ func rejectBoardChannelByID(c *Context, channelId string) bool {
 	return false
 }
 
+// rejectSpaceChannelByID returns true and sets c.Err if the channel ID belongs
+// to a space channel. Space channels must use the spaces API, not /channels.
+// Use this on write endpoints to give a clear error instead of a 404.
+// It reads from the primary so a freshly created space cannot slip through on
+// replica lag, and fails closed by rejecting on any error other than not-found.
+func rejectSpaceChannelByID(c *Context, channelId string) bool {
+	_, err := c.App.GetChannelOfType(c.AppContext.With(app.RequestContextWithMaster), channelId, model.ChannelTypeSpace)
+	if err == nil {
+		c.Err = model.NewAppError("", "api.channel.space_channel.app_error", nil, "space channels cannot be accessed via /channels endpoints", http.StatusBadRequest)
+		return true
+	}
+	if err.StatusCode != http.StatusNotFound {
+		c.Err = err
+		return true
+	}
+	return false
+}
+
 func (api *API) InitChannel() {
 	api.BaseRoutes.Channels.Handle("", api.APISessionRequired(getAllChannels)).Methods(http.MethodGet)
 	api.BaseRoutes.Channels.Handle("", api.APISessionRequired(createChannel)).Methods(http.MethodPost)
@@ -114,6 +132,11 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if channel.IsBoard() {
 		c.SetInvalidParamWithDetails("type", "cannot create board channels via /channels endpoint")
+		return
+	}
+
+	if channel.IsSpace() {
+		c.SetInvalidParamWithDetails("type", "cannot create space channels via /channels endpoint")
 		return
 	}
 
@@ -2121,6 +2144,10 @@ func updateChannelMemberRoles(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
+		return
+	}
+
 	props := model.MapFromJSON(r.Body)
 
 	newRoles := props["roles"]
@@ -2159,6 +2186,10 @@ func updateChannelMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
+	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
+		return
+	}
+
 	var schemeRoles model.SchemeRoles
 	if jsonErr := json.NewDecoder(r.Body).Decode(&schemeRoles); jsonErr != nil {
 		c.SetInvalidParamWithErr("scheme_roles", jsonErr)
@@ -2192,6 +2223,10 @@ func updateChannelMemberNotifyProps(c *Context, w http.ResponseWriter, r *http.R
 	}
 
 	if rejectBoardChannelByID(c, c.Params.ChannelId) {
+		return
+	}
+
+	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
 		return
 	}
 
@@ -2238,6 +2273,10 @@ func updateChannelMemberAutotranslation(c *Context, w http.ResponseWriter, r *ht
 	}
 
 	if rejectBoardChannelByID(c, c.Params.ChannelId) {
+		return
+	}
+
+	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
 		return
 	}
 
@@ -2840,6 +2879,10 @@ func channelMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.
 		return
 	}
 
+	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
+		return
+	}
+
 	groupIDsParam := groupIDsQueryParamRegex.ReplaceAllString(c.Params.GroupIDs, "")
 
 	if len(groupIDsParam) < 26 {
@@ -3142,6 +3185,10 @@ func convertGroupMessageToChannel(c *Context, w http.ResponseWriter, r *http.Req
 	}
 
 	if rejectBoardChannelByID(c, c.Params.ChannelId) {
+		return
+	}
+
+	if rejectSpaceChannelByID(c, c.Params.ChannelId) {
 		return
 	}
 

@@ -6,6 +6,16 @@
     gap: 4px;
 }
 
+.user-property-field-values__chip {
+    padding: 4px 12px;
+    border-radius: 12px;
+    background: rgba(var(--center-channel-color-rgb), 0.08);
+    color: var(--center-channel-color);
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 600;
+}
+
 .user-property-field-values__chip-link {
     padding: 4px 12px;
     border-radius: 12px;

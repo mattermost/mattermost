@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -81,6 +82,9 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Cleanup(func() { cleanupChannelStoreData(t, s) })
 
 	t.Run("Save", func(t *testing.T) { testChannelStoreSave(t, rctx, ss) })
+	t.Run("SpaceExclusion", func(t *testing.T) { testChannelStoreSpaceExclusion(t, rctx, ss) })
+	t.Run("GetTeamSpaceChannels", func(t *testing.T) { testChannelStoreGetTeamSpaceChannels(t, rctx, ss) })
+	t.Run("GetTeamSpaceChannelsForUser", func(t *testing.T) { testChannelStoreGetTeamSpaceChannelsForUser(t, rctx, ss) })
 	t.Run("SaveDirectChannel", func(t *testing.T) { testChannelStoreSaveDirectChannel(t, rctx, ss, s) })
 	t.Run("CreateDirectChannel", func(t *testing.T) { testChannelStoreCreateDirectChannel(t, rctx, ss) })
 	t.Run("GetMembersWithCursorPagination", func(t *testing.T) { testChannelStoreGetMembersWithCursorPagination(t, rctx, ss) })
@@ -9593,4 +9597,263 @@ func testGetTeamChannelsWithUnreadAndMentions(t *testing.T, rctx request.CTX, ss
 		require.Equal(t, o3.LastPostAt, times[o3.Id])
 		require.Equal(t, o4.LastPostAt, times[o4.Id])
 	})
+}
+
+// testChannelStoreSpaceExclusion verifies the ChannelTypeSpace ("S") backing-channel contract:
+//   - opaque to the generic by-id reads (Get/GetMany); docs/spaces code resolves it only through
+//     GetChannelOfType with the space type;
+//   - resolvable in the per-user authorization membership map (GetAllChannelMembersForUser) so a
+//     space member is authorized for the backing channel;
+//   - excluded from aggregate/analytics and client-facing member listings so it never leaks into
+//     chat surfaces.
+func testChannelStoreSpaceExclusion(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+
+	open := &model.Channel{TeamId: teamID, DisplayName: "Open", Name: "open-" + model.NewId(), Type: model.ChannelTypeOpen}
+	_, err := ss.Channel().Save(rctx, open, -1)
+	require.NoError(t, err)
+
+	space := &model.Channel{TeamId: teamID, DisplayName: "Space", Name: "space-" + model.NewId(), Type: model.ChannelTypeSpace}
+	_, err = ss.Channel().Save(rctx, space, -1)
+	require.NoError(t, err)
+
+	// Space backing channels are opaque to the generic by-id reads and resolve only through
+	// GetChannelOfType with the space type.
+	_, err = ss.Channel().Get(space.Id, false)
+	var nfErr *store.ErrNotFound
+	require.True(t, errors.As(err, &nfErr), "Get must exclude space channels")
+
+	got, err := ss.Channel().GetChannelOfType(rctx, space.Id, model.ChannelTypeSpace)
+	require.NoError(t, err)
+	require.Equal(t, model.ChannelTypeSpace, got.Type)
+
+	many, err := ss.Channel().GetMany([]string{open.Id, space.Id}, false)
+	require.NoError(t, err)
+	require.Len(t, many, 1, "GetMany must exclude space channels")
+	require.Equal(t, open.Id, many[0].Id)
+
+	// GetChannelsByIds is restricted to message-bearing types, so it excludes space channels.
+	byIds, err := ss.Channel().GetChannelsByIds([]string{open.Id, space.Id}, false)
+	require.NoError(t, err)
+	require.Len(t, byIds, 1, "GetChannelsByIds must exclude space channels")
+	require.Equal(t, open.Id, byIds[0].Id)
+
+	// Aggregate reads exclude space backing channels.
+	counts, err := ss.Channel().AnalyticsCountAll(teamID)
+	require.NoError(t, err)
+	require.Zero(t, counts[model.ChannelTypeSpace], "space backing channels must be excluded from analytics counts")
+	require.EqualValues(t, 1, counts[model.ChannelTypeOpen])
+
+	// A user who is a member of both channels.
+	userID := model.NewId()
+	_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: open.Id, UserId: userID, NotifyProps: model.GetDefaultChannelNotifyProps()})
+	require.NoError(t, err)
+	_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: space.Id, UserId: userID, NotifyProps: model.GetDefaultChannelNotifyProps()})
+	require.NoError(t, err)
+
+	// The authorization membership map MUST resolve the space channel so its members are
+	// authorized for the backing channel (same as board channels).
+	authMembers, err := ss.Channel().GetAllChannelMembersForUser(rctx, userID, false, false)
+	require.NoError(t, err)
+	require.Contains(t, authMembers, open.Id)
+	require.Contains(t, authMembers, space.Id, "space backing channels must resolve in the authorization membership map")
+
+	// Client-facing member listings exclude space backing channels.
+	hasChannel := func(channelID string) func(m model.ChannelMemberWithTeamData) bool {
+		return func(m model.ChannelMemberWithTeamData) bool { return m.ChannelId == channelID }
+	}
+
+	paged, err := ss.Channel().GetMembersForUserWithPagination(userID, 0, 100)
+	require.NoError(t, err)
+	require.False(t, slices.ContainsFunc(paged, hasChannel(space.Id)), "GetMembersForUserWithPagination must exclude space channels")
+	require.True(t, slices.ContainsFunc(paged, hasChannel(open.Id)))
+
+	cursored, err := ss.Channel().GetMembersForUserWithCursorPagination(userID, 100, "")
+	require.NoError(t, err)
+	require.False(t, slices.ContainsFunc(cursored, hasChannel(space.Id)), "GetMembersForUserWithCursorPagination must exclude space channels")
+	require.True(t, slices.ContainsFunc(cursored, hasChannel(open.Id)))
+
+	exported, err := ss.Channel().GetChannelMembersForExport(userID, teamID, false)
+	require.NoError(t, err)
+	var exportedSpace, exportedOpen bool
+	for _, m := range exported {
+		switch m.ChannelId {
+		case space.Id:
+			exportedSpace = true
+		case open.Id:
+			exportedOpen = true
+		}
+	}
+	require.False(t, exportedSpace, "GetChannelMembersForExport must exclude space channels")
+	require.True(t, exportedOpen)
+
+	// The team-scoped membership listing excludes space backing channels.
+	teamMembers, err := ss.Channel().GetMembersForUser(teamID, userID)
+	require.NoError(t, err)
+	require.False(t, slices.ContainsFunc(teamMembers, func(m model.ChannelMember) bool { return m.ChannelId == space.Id }), "GetMembersForUser must exclude space channels")
+	require.True(t, slices.ContainsFunc(teamMembers, func(m model.ChannelMember) bool { return m.ChannelId == open.Id }))
+
+	// Scheme-scoped listing excludes space backing channels even when a space shares a scheme.
+	scheme := &model.Scheme{DisplayName: model.NewId(), Name: model.NewId(), Description: model.NewId(), Scope: model.SchemeScopeChannel}
+	scheme, err = ss.Scheme().Save(scheme)
+	require.NoError(t, err)
+	schemedOpen := &model.Channel{TeamId: teamID, DisplayName: "SchemedOpen", Name: "schemed-open-" + model.NewId(), Type: model.ChannelTypeOpen, SchemeId: &scheme.Id}
+	_, err = ss.Channel().Save(rctx, schemedOpen, -1)
+	require.NoError(t, err)
+	schemedSpace := &model.Channel{TeamId: teamID, DisplayName: "SchemedSpace", Name: "schemed-space-" + model.NewId(), Type: model.ChannelTypeSpace, SchemeId: &scheme.Id}
+	_, err = ss.Channel().Save(rctx, schemedSpace, -1)
+	require.NoError(t, err)
+	byScheme, err := ss.Channel().GetChannelsByScheme(scheme.Id, 0, 100)
+	require.NoError(t, err)
+	require.Len(t, byScheme, 1, "GetChannelsByScheme must exclude the space backing channel")
+	require.Equal(t, schemedOpen.Id, byScheme[0].Id)
+
+	// Unread-aggregate queries exclude space backing channels even when the member has unreads
+	// (TotalMsgCount ahead of the member's MsgCount).
+	unreadTeamID := model.NewId()
+	unreadUserID := model.NewId()
+	unreadOpen := &model.Channel{TeamId: unreadTeamID, DisplayName: "UnreadOpen", Name: "unread-open-" + model.NewId(), Type: model.ChannelTypeOpen, TotalMsgCount: 25, LastPostAt: 12345, LastRootPostAt: 12345}
+	_, err = ss.Channel().Save(rctx, unreadOpen, -1)
+	require.NoError(t, err)
+	unreadSpace := &model.Channel{TeamId: unreadTeamID, DisplayName: "UnreadSpace", Name: "unread-space-" + model.NewId(), Type: model.ChannelTypeSpace, TotalMsgCount: 25, LastPostAt: 12345, LastRootPostAt: 12345}
+	_, err = ss.Channel().Save(rctx, unreadSpace, -1)
+	require.NoError(t, err)
+	for _, ch := range []*model.Channel{unreadOpen, unreadSpace} {
+		_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: ch.Id, UserId: unreadUserID, NotifyProps: model.GetDefaultChannelNotifyProps()})
+		require.NoError(t, err)
+	}
+	notifyProps := model.GetDefaultChannelNotifyProps()
+
+	unreadIDs, _, _, err := ss.Channel().GetChannelsWithUnreadsAndWithMentions(rctx, []string{unreadOpen.Id, unreadSpace.Id}, unreadUserID, notifyProps)
+	require.NoError(t, err)
+	require.Contains(t, unreadIDs, unreadOpen.Id)
+	require.NotContains(t, unreadIDs, unreadSpace.Id, "GetChannelsWithUnreadsAndWithMentions must exclude space channels")
+
+	teamUnreadIDs, _, _, err := ss.Channel().GetTeamChannelsWithUnreadAndMentions(rctx, unreadTeamID, unreadUserID, notifyProps)
+	require.NoError(t, err)
+	require.Contains(t, teamUnreadIDs, unreadOpen.Id)
+	require.NotContains(t, teamUnreadIDs, unreadSpace.Id, "GetTeamChannelsWithUnreadAndMentions must exclude space channels")
+
+	// Space channels are exempt from the per-team channel limit (like direct/group channels): a
+	// team already at its limit can still create a space backing channel.
+	limitedTeamID := model.NewId()
+	atLimit := &model.Channel{TeamId: limitedTeamID, DisplayName: "AtLimit", Name: "atlimit-" + model.NewId(), Type: model.ChannelTypeOpen}
+	_, err = ss.Channel().Save(rctx, atLimit, 1)
+	require.NoError(t, err)
+
+	overLimit := &model.Channel{TeamId: limitedTeamID, DisplayName: "OverLimit", Name: "overlimit-" + model.NewId(), Type: model.ChannelTypeOpen}
+	_, err = ss.Channel().Save(rctx, overLimit, 1)
+	require.Error(t, err, "a non-space channel beyond the team limit must be rejected")
+
+	limitedSpace := &model.Channel{TeamId: limitedTeamID, DisplayName: "LimitedSpace", Name: "limitedspace-" + model.NewId(), Type: model.ChannelTypeSpace}
+	_, err = ss.Channel().Save(rctx, limitedSpace, 1)
+	require.NoError(t, err, "space backing channels must be exempt from the per-team channel limit")
+}
+
+func testChannelStoreGetTeamSpaceChannels(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+	otherTeamID := model.NewId()
+
+	space1 := &model.Channel{TeamId: teamID, DisplayName: "Space1", Name: "space1-" + model.NewId(), Type: model.ChannelTypeSpace}
+	_, err := ss.Channel().Save(rctx, space1, -1)
+	require.NoError(t, err)
+
+	space2 := &model.Channel{TeamId: teamID, DisplayName: "Space2", Name: "space2-" + model.NewId(), Type: model.ChannelTypeSpace}
+	_, err = ss.Channel().Save(rctx, space2, -1)
+	require.NoError(t, err)
+
+	open := &model.Channel{TeamId: teamID, DisplayName: "Open", Name: "open-" + model.NewId(), Type: model.ChannelTypeOpen}
+	_, err = ss.Channel().Save(rctx, open, -1)
+	require.NoError(t, err)
+
+	otherTeamSpace := &model.Channel{TeamId: otherTeamID, DisplayName: "OtherSpace", Name: "other-space-" + model.NewId(), Type: model.ChannelTypeSpace}
+	_, err = ss.Channel().Save(rctx, otherTeamSpace, -1)
+	require.NoError(t, err)
+
+	channelIDs := func(list model.ChannelList) []string {
+		ids := make([]string, len(list))
+		for i, ch := range list {
+			ids[i] = ch.Id
+		}
+		return ids
+	}
+
+	// Returns all space channels for the team, excluding non-space and other-team channels.
+	channels, err := ss.Channel().GetTeamSpaceChannels(teamID)
+	require.NoError(t, err)
+	ids := channelIDs(channels)
+	require.Contains(t, ids, space1.Id)
+	require.Contains(t, ids, space2.Id)
+	require.NotContains(t, ids, open.Id, "must not include non-space channels")
+	require.NotContains(t, ids, otherTeamSpace.Id, "must not include spaces from other teams")
+
+	// Archived spaces are included so team teardown can remove them.
+	err = ss.Channel().Delete(space1.Id, model.GetMillis())
+	require.NoError(t, err)
+	channels, err = ss.Channel().GetTeamSpaceChannels(teamID)
+	require.NoError(t, err)
+	require.Contains(t, channelIDs(channels), space1.Id, "archived space channels must be included")
+
+	// Team with no spaces returns an empty list, not an error.
+	empty, err := ss.Channel().GetTeamSpaceChannels(model.NewId())
+	require.NoError(t, err)
+	require.Empty(t, empty)
+}
+
+func testChannelStoreGetTeamSpaceChannelsForUser(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+	otherTeamID := model.NewId()
+	userID := model.NewId()
+	otherUserID := model.NewId()
+
+	space1 := &model.Channel{TeamId: teamID, DisplayName: "Space1", Name: "space1-" + model.NewId(), Type: model.ChannelTypeSpace}
+	_, err := ss.Channel().Save(rctx, space1, -1)
+	require.NoError(t, err)
+
+	space2 := &model.Channel{TeamId: teamID, DisplayName: "Space2", Name: "space2-" + model.NewId(), Type: model.ChannelTypeSpace}
+	_, err = ss.Channel().Save(rctx, space2, -1)
+	require.NoError(t, err)
+
+	open := &model.Channel{TeamId: teamID, DisplayName: "Open", Name: "open-" + model.NewId(), Type: model.ChannelTypeOpen}
+	_, err = ss.Channel().Save(rctx, open, -1)
+	require.NoError(t, err)
+
+	otherTeamSpace := &model.Channel{TeamId: otherTeamID, DisplayName: "OtherSpace", Name: "other-space-" + model.NewId(), Type: model.ChannelTypeSpace}
+	_, err = ss.Channel().Save(rctx, otherTeamSpace, -1)
+	require.NoError(t, err)
+
+	for _, channelID := range []string{space1.Id, open.Id, otherTeamSpace.Id} {
+		_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+			ChannelId:   channelID,
+			UserId:      userID,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, err)
+	}
+	_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+		ChannelId:   space2.Id,
+		UserId:      otherUserID,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.NoError(t, err)
+
+	// Returns only the team's spaces the user is a member of: not space2 (other user's
+	// membership), not the open channel, not the other team's space.
+	channels, err := ss.Channel().GetTeamSpaceChannelsForUser(teamID, userID)
+	require.NoError(t, err)
+	require.Len(t, channels, 1)
+	require.Equal(t, space1.Id, channels[0].Id)
+
+	// Archived spaces are included so membership cleanup can still find them.
+	err = ss.Channel().Delete(space1.Id, model.GetMillis())
+	require.NoError(t, err)
+	channels, err = ss.Channel().GetTeamSpaceChannelsForUser(teamID, userID)
+	require.NoError(t, err)
+	require.Len(t, channels, 1)
+	require.Equal(t, space1.Id, channels[0].Id)
+
+	// User with no space memberships in the team returns an empty list, not an error.
+	empty, err := ss.Channel().GetTeamSpaceChannelsForUser(teamID, model.NewId())
+	require.NoError(t, err)
+	require.Empty(t, empty)
 }
