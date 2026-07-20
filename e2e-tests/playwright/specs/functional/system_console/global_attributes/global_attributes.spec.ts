@@ -58,7 +58,9 @@ test.describe('System Console - Global Attributes access gate', {tag: '@system_c
         // * User is redirected away from the hidden route (no Route registered)
         await expect(systemConsolePage.page).not.toHaveURL(/manage_attributes/);
         // * Manage Attributes menu entry is not shown in the sidebar
-        await expect(systemConsolePage.page.locator('.admin-sidebar').getByText('Manage Attributes')).not.toBeVisible();
+        await expect(
+            systemConsolePage.page.getByTestId('admin-sidebar').getByText('Manage Attributes'),
+        ).not.toBeVisible();
     });
 
     /**
@@ -94,8 +96,14 @@ test.describe('System Console - Global Attributes access gate', {tag: '@system_c
 
         // * URL stays on the Manage Attributes section
         await expect(systemConsolePage.page).toHaveURL(/manage_attributes/);
-        // * Page title and placeholder content are visible
-        await expect(systemConsolePage.page.getByText('Manage Attributes').first()).toBeVisible();
+        // * Sidebar menu entry and page heading are both visible ("Manage Attributes"
+        // renders in both places, so each is asserted within its own scope)
+        await expect(
+            systemConsolePage.page.getByTestId('admin-sidebar').getByText('Manage Attributes'),
+        ).toBeVisible();
+        await expect(
+            systemConsolePage.page.getByTestId('admin-console-header').getByText('Manage Attributes'),
+        ).toBeVisible();
         await expect(systemConsolePage.page.getByText('Global attributes will be here.')).toBeVisible();
     });
 });
