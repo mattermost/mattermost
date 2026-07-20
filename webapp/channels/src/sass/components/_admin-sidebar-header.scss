@@ -15,7 +15,9 @@
 
         > img {
             width: 36px;
+            min-width: 36px;
             height: 36px;
+            flex-shrink: 0;
             border-radius: 36px;
             margin-left: -4px;
         }
@@ -42,7 +44,7 @@
             }
 
             .user__name {
-                color: rgba(var(--sys-sidebar-text-rgb), 0.64);
+                color: rgba(var(--sys-sidebar-text-rgb), 0.75);
                 font-weight: 400;
                 line-height: 16px;
             }

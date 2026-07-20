@@ -439,6 +439,12 @@
         letter-spacing: -0.01em;
         line-height: 32px;
 
+        .Avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 36px;
+        }
+        
         button,
         select {
             font-family: "Open Sans", sans-serif;
@@ -630,7 +636,7 @@
         position: relative;
         z-index: 1;
         padding: 8px 12px 0px 12px;
-        box-shadow: 0px 8px 8px 0px rgba(var(--sys-sidebar-bg-rgb), 0.64);
+        box-shadow: 0px 8px 8px 0px rgba(var(--sys-sidebar-bg-rgb), 0.75);
 
         .search__icon {
             position: absolute;
@@ -716,17 +722,14 @@
     }
 
     .nav-pills__container {
-        @include mixins.font-smoothing(initial);
-
         position: relative;
         height: calc(100% - 68px);
+        padding-top: 16px;
         padding-bottom: 20px;
-        margin-top: 1px;
         overflow-x: hidden;
 
         ul {
             padding-bottom: 20px;
-            margin-top: 1px;
 
             &.nav-stacked.task-list-shown {
                 padding-bottom: 72px;
@@ -735,9 +738,27 @@
     }
 
     .sidebar-category {
+        & + .sidebar-category {
+            position: relative;
+            margin-top: 8px;
+            padding-top: 12px;
+
+            &::before {
+                position: absolute;
+                top: 0;
+                right: 12px;
+                left: 12px;
+                border-top: 1px solid rgba(var(--sys-sidebar-text-rgb), 0.08);
+                content: "";
+            }
+
+            .category-title {
+                margin-top: 0;
+            }
+        }
+
         .category-title {
             padding: 4px 12px 4px 20px;
-            margin-top: 24px;
             color: rgba(var(--sys-sidebar-text-rgb), 1);
             font-size: 12px;
             font-weight: 600;
@@ -806,7 +827,7 @@
         padding: 0 4px 0 4px;
         border-radius: 4px;
         margin-left: 8px;
-        background-color: rgba(255, 255, 255, 0.64);
+        background-color: rgba(255, 255, 255, 0.75);
         color: rgba(61, 60, 64, 1);
         font-size: 10px;
         font-weight: 600;
@@ -842,7 +863,7 @@
         position: relative;
         display: block;
         padding: 6px 32px 6px 20px;
-        color: rgba(var(--sys-sidebar-text-rgb), 0.64);
+        color: rgba(var(--sys-sidebar-text-rgb), 0.75);
         letter-spacing: 0.01em;
 
         &:focus {
@@ -858,7 +879,6 @@
         &--active {
             background: rgba(var(--sys-sidebar-text-rgb), 0.08);
             color: var(--sys-sidebar-text);
-            font-weight: 600;
 
             i {
                 color: var(--sys-sidebar-text);
