@@ -1,18 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import {CheckIcon, ChevronDownIcon} from '@mattermost/compass-icons/components';
 import type {AccessControlVisualAST} from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {CHANNEL_ATTRIBUTES_OBJECT_TYPE, SESSION_ATTRIBUTES_OBJECT_TYPE, isSessionAttributeField} from '@mattermost/types/properties_user';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
-
-import * as Menu from 'components/menu';
 
 import {CPA_FIELD_NAME_PATTERN} from 'utils/properties';
 
@@ -319,65 +315,6 @@ export const parseExpression = (visualAST: AccessControlVisualAST): TableRow[] =
     return tableRows;
 };
 
-// Right-hand-side kind toggle: compare the user attribute against a literal
-// value or against the accessed channel's attribute. Shown only when a
-// comparable channel attribute exists for the row.
-const RhsKindMenu = ({isAttribute, disabled, buttonId, menuId, onSelectValue, onSelectAttribute}: {
-    isAttribute: boolean;
-    disabled: boolean;
-    buttonId: string;
-    menuId: string;
-    onSelectValue: () => void;
-    onSelectAttribute: () => void;
-}) => {
-    const {formatMessage} = useIntl();
-    const valueLabel = formatMessage({id: 'admin.access_control.table_editor.rhs.value', defaultMessage: 'Value'});
-    const attributeLabel = formatMessage({id: 'admin.access_control.table_editor.rhs.channel_attribute', defaultMessage: 'Channel attribute'});
-
-    return (
-        <Menu.Container
-            menuButton={{
-                id: buttonId,
-                class: classNames('btn btn-transparent field-selector-menu-button table-editor__rhs-kind-button', {disabled}),
-                children: (
-                    <>
-                        {isAttribute ? attributeLabel : valueLabel}
-                        <ChevronDownIcon
-                            size={16}
-                            color='rgba(var(--center-channel-color-rgb), 0.5)'
-                        />
-                    </>
-                ),
-                dataTestId: 'rhsKindMenuButton',
-                disabled,
-            }}
-            menu={{
-                id: menuId,
-                'aria-label': formatMessage({id: 'admin.access_control.table_editor.rhs.aria', defaultMessage: 'Select comparison target kind'}),
-            }}
-        >
-            <Menu.Item
-                id={`${menuId}-value`}
-                role='menuitemradio'
-                forceCloseOnSelect={true}
-                aria-checked={!isAttribute}
-                onClick={onSelectValue}
-                labels={<span>{valueLabel}</span>}
-                trailingElements={!isAttribute && <CheckIcon/>}
-            />
-            <Menu.Item
-                id={`${menuId}-attribute`}
-                role='menuitemradio'
-                forceCloseOnSelect={true}
-                aria-checked={isAttribute}
-                onClick={onSelectAttribute}
-                labels={<span>{attributeLabel}</span>}
-                trailingElements={isAttribute && <CheckIcon/>}
-            />
-        </Menu.Container>
-    );
-};
-
 // TableEditor provides a user-friendly table interface for constructing and editing
 // CEL (Common Expression Language) expressions based on user attributes.
 // It parses incoming CEL expressions into rows and reconstructs the expression upon changes.
@@ -677,7 +614,11 @@ function TableEditor({
     const updateRowValues = useCallback((index: number, values: string[]) => {
         setRows((currentRows) => {
             const newRows = [...currentRows];
-            newRows[index] = {...newRows[index], values};
+
+            // Literal value(s) and a channel-attribute target are mutually
+            // exclusive: picking a value in the consolidated dropdown drops any
+            // target the row was comparing against.
+            newRows[index] = {...newRows[index], values, targetAttribute: undefined};
             updateExpression(newRows);
             return newRows;
         });
@@ -690,16 +631,6 @@ function TableEditor({
         setRows((currentRows) => {
             const newRows = [...currentRows];
             newRows[index] = {...newRows[index], targetAttribute, values: []};
-            updateExpression(newRows);
-            return newRows;
-        });
-    }, [updateExpression]);
-
-    // Switch the row's right-hand side back to literal value(s).
-    const clearRowTarget = useCallback((index: number) => {
-        setRows((currentRows) => {
-            const newRows = [...currentRows];
-            newRows[index] = {...newRows[index], targetAttribute: undefined};
             updateExpression(newRows);
             return newRows;
         });
@@ -769,10 +700,9 @@ function TableEditor({
                             const youngerThanInvalid = isYoungerThan && youngerThanValue.trim() !== '' && !isValidYoungerThanDaysValue(youngerThanValue);
 
                             // Channel attributes this row's user attribute may be
-                            // compared against, and whether the RHS is currently a
-                            // resource target rather than literal value(s).
+                            // compared against (offered as the right-hand side
+                            // alongside literal values).
                             const targets = comparableChannelFields(field);
-                            const isTargetMode = Boolean(row.targetAttribute);
 
                             // Comparison operators target any comparable channel
                             // field; the multiselect list operators (has any of /
@@ -817,45 +747,22 @@ function TableEditor({
                                     </td>
                                     <td className='table-editor__cell'>
                                         <div className='table-editor__value-cell'>
-                                            {supportsTarget && (
-                                                <RhsKindMenu
-                                                    isAttribute={isTargetMode}
-                                                    disabled={cellDisabled}
-                                                    buttonId={`rhs-kind-button-${index}`}
-                                                    menuId={`rhs-kind-menu-${index}`}
-                                                    onSelectValue={() => clearRowTarget(index)}
-                                                    onSelectAttribute={() => updateRowTarget(index, row.targetAttribute || targets[0].name)}
-                                                />
-                                            )}
-                                            {isTargetMode ? (
-                                                <AttributeSelectorMenu
-                                                    currentAttribute={row.targetAttribute || ''}
-                                                    currentAttributeObjectType={CHANNEL_ATTRIBUTES_OBJECT_TYPE}
-                                                    availableAttributes={targets}
-                                                    disabled={cellDisabled}
-                                                    onChange={(attributeId) => updateRowTarget(index, targets.find((t) => t.id === attributeId)?.name || '')}
-                                                    menuId={`target-selector-menu-${index}`}
-                                                    buttonId={`target-selector-button-${index}`}
-                                                    enableUserManagedAttributes={true}
-                                                />
-                                            ) : (
-                                                <>
-                                                    <ValueSelectorMenu
-                                                        row={row}
-                                                        disabled={cellDisabled}
-                                                        updateValues={(values: string[]) => updateRowValues(index, values)}
-                                                        options={row.attribute ? field?.attrs?.options || [] : []}
-                                                        placeholder={isYoungerThan ? formatMessage({id: 'admin.access_control.table_editor.value.days_placeholder', defaultMessage: 'Number of days'}) : undefined}
+                                            <ValueSelectorMenu
+                                                row={row}
+                                                disabled={cellDisabled}
+                                                updateValues={(values: string[]) => updateRowValues(index, values)}
+                                                options={row.attribute ? field?.attrs?.options || [] : []}
+                                                placeholder={isYoungerThan ? formatMessage({id: 'admin.access_control.table_editor.value.days_placeholder', defaultMessage: 'Number of days'}) : undefined}
+                                                channelFields={supportsTarget ? targets : undefined}
+                                                onSelectTarget={(name: string) => updateRowTarget(index, name)}
+                                            />
+                                            {youngerThanInvalid && (
+                                                <div className='table-editor__value-error'>
+                                                    <FormattedMessage
+                                                        id='admin.access_control.table_editor.value.days_invalid'
+                                                        defaultMessage='Enter a whole number of days (e.g. 30).'
                                                     />
-                                                    {youngerThanInvalid && (
-                                                        <div className='table-editor__value-error'>
-                                                            <FormattedMessage
-                                                                id='admin.access_control.table_editor.value.days_invalid'
-                                                                defaultMessage='Enter a whole number of days (e.g. 30).'
-                                                            />
-                                                        </div>
-                                                    )}
-                                                </>
+                                                </div>
                                             )}
                                         </div>
                                     </td>

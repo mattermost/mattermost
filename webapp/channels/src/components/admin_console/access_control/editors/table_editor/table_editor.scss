@@ -77,24 +77,15 @@
     // vs. channel attribute) next to the value/attribute selector.
     &__value-cell {
         display: flex;
-        align-items: center;
+        flex-direction: column;
+        align-items: stretch;
         gap: 4px;
 
-        // The selector fills the remaining width and must be allowed to shrink:
-        // its field defaults to width:100%, which overflows the cell once the
-        // RHS-kind toggle shares the row. min-width:0 overrides the flex
-        // min-content floor so a long value collapses instead of pushing out.
+        // The selector fills the width and must be allowed to shrink: its field
+        // defaults to width:100%, which overflows the cell's flex min-content
+        // floor. min-width:0 lets a long value collapse instead of pushing out.
         > * {
             min-width: 0;
-            flex: 1 1 auto;
-        }
-
-        // The literal-vs-channel-attribute toggle keeps its natural content
-        // width (field-selector-menu-button otherwise stretches it to 100%).
-        > .table-editor__rhs-kind-button {
-            width: auto;
-            flex: none;
-            white-space: nowrap;
         }
     }
 }

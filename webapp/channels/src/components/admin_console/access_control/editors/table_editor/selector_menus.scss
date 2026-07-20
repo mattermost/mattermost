@@ -47,6 +47,16 @@
         align-items: center;
         justify-content: space-between;
     }
+
+    // Icon + label shown in the button when the RHS compares against a channel
+    // attribute (target mode).
+    &__target-label {
+        display: flex;
+        overflow: hidden;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+    }
 }
 
 .attribute-selector-label {

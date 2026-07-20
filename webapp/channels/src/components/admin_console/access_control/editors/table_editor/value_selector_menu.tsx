@@ -4,6 +4,7 @@
 import React from 'react';
 
 import type {PropertyFieldOption} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import MultiValueSelector from './multi_value_selector_menu';
 import SingleValueSelector from './single_value_selector_menu';
@@ -40,6 +41,13 @@ export interface ValueSelectorMenuProps {
     options?: PropertyFieldOption[];
     allowCreateValue?: boolean;
     placeholder?: string;
+
+    // Comparable channel attributes offered as the right-hand side alongside
+    // literal values (the consolidated VALUES + CHANNEL ATTRIBUTES dropdown).
+    // Empty/undefined when the operator or attribute type has no target. When
+    // one is picked, the row switches to a resource.attributes.<name> target.
+    channelFields?: UserPropertyField[];
+    onSelectTarget?: (name: string) => void;
 }
 
 const ValueSelectorMenu = ({
@@ -49,6 +57,8 @@ const ValueSelectorMenu = ({
     options = [],
     allowCreateValue = false,
     placeholder,
+    channelFields = [],
+    onSelectTarget,
 }: ValueSelectorMenuProps) => {
     const isMultiOperator = isMultiValueOperator(row.operator);
 
@@ -62,6 +72,9 @@ const ValueSelectorMenu = ({
                 allowCreateValue={allowCreateValue}
                 placeholder={placeholder}
                 hasMaskedValues={row.hasMaskedValues}
+                channelFields={channelFields}
+                targetAttribute={row.targetAttribute}
+                onSelectTarget={onSelectTarget}
             />
         );
     }
@@ -75,6 +88,9 @@ const ValueSelectorMenu = ({
             allowCreateValue={allowCreateValue}
             placeholder={placeholder}
             hasMaskedValues={row.hasMaskedValues}
+            channelFields={channelFields}
+            targetAttribute={row.targetAttribute}
+            onSelectTarget={onSelectTarget}
         />
     );
 };
