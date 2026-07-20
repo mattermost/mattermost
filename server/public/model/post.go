@@ -96,19 +96,15 @@ const (
 	PostPropsMentionHighlightDisabled = "mentionHighlightDisabled"
 	PostPropsGroupHighlightDisabled   = "disable_group_highlight"
 	PostPropsPreviewedPost            = "previewed_post"
-	// PostPropsPreviewedIn is the reverse of PostPropsPreviewedPost: on a post A that is
-	// permalink-previewed elsewhere, it holds the list of post IDs (as []any of strings)
-	// that currently preview A. Server-managed only; stripped from client input.
-	PostPropsPreviewedIn           = "previewed_in"
-	PostPropsForceNotification     = "force_notification"
-	PostPropsSilentNotification    = "silent_notification"
-	PostPropsChannelMentions       = "channel_mentions"
-	PostPropsCurrentTeamId         = "current_team_id"
-	PostPropsUnsafeLinks           = "unsafe_links"
-	PostPropsAIGeneratedByUserID   = "ai_generated_by"
-	PostPropsAIGeneratedByUsername = "ai_generated_by_username"
-	PostPropsExpireAt              = "expire_at"
-	PostPropsReadDurationSeconds   = "read_duration"
+	PostPropsForceNotification        = "force_notification"
+	PostPropsSilentNotification       = "silent_notification"
+	PostPropsChannelMentions          = "channel_mentions"
+	PostPropsCurrentTeamId            = "current_team_id"
+	PostPropsUnsafeLinks              = "unsafe_links"
+	PostPropsAIGeneratedByUserID      = "ai_generated_by"
+	PostPropsAIGeneratedByUsername    = "ai_generated_by_username"
+	PostPropsExpireAt                 = "expire_at"
+	PostPropsReadDurationSeconds      = "read_duration"
 	// Shared-channel state posts (PostTypeSharedChannelState): props for client-side i18n.
 	PostPropsSharedChannelState         = "shared_channel_state"
 	PostPropsSharedChannelWorkspaceName = "workspace_name"
@@ -597,8 +593,6 @@ func (o *Post) SanitizeProps() {
 	}
 	membersToSanitize := []string{
 		PropsAddChannelMember,
-		// previewed_in is a server-maintained reverse index; never accept it from a client.
-		PostPropsPreviewedIn,
 	}
 
 	// Notification-policy markers (silent_notification, force_notification) are
@@ -1373,24 +1367,6 @@ func (o *Post) GetPreviewedPostProp() string {
 		return val
 	}
 	return ""
-}
-
-// GetPreviewedInProp returns the list of post IDs that currently preview this post
-// (the reverse of the previewed_post prop). It is tolerant of a missing or malformed
-// prop, returning nil in those cases. The prop is stored as a JSON array, so after a
-// round-trip through the store it is a []any of strings.
-func (o *Post) GetPreviewedInProp() []string {
-	raw, ok := o.GetProp(PostPropsPreviewedIn).([]any)
-	if !ok {
-		return nil
-	}
-	ids := make([]string, 0, len(raw))
-	for _, v := range raw {
-		if id, ok := v.(string); ok {
-			ids = append(ids, id)
-		}
-	}
-	return ids
 }
 
 func (o *Post) GetPriority() *PostPriority {

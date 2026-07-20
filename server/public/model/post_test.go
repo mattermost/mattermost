@@ -1599,25 +1599,3 @@ func TestPost_PropsIsValid(t *testing.T) {
 		})
 	}
 }
-
-func TestGetPreviewedInProp(t *testing.T) {
-	t.Run("returns nil when the prop is absent", func(t *testing.T) {
-		require.Nil(t, (&Post{}).GetPreviewedInProp())
-	})
-
-	t.Run("returns the post IDs from a JSON array", func(t *testing.T) {
-		// After a DB/JSON round-trip the array is decoded as []any of strings.
-		p := &Post{Props: StringInterface{PostPropsPreviewedIn: []any{"post1", "post2"}}}
-		require.Equal(t, []string{"post1", "post2"}, p.GetPreviewedInProp())
-	})
-
-	t.Run("skips non-string entries", func(t *testing.T) {
-		p := &Post{Props: StringInterface{PostPropsPreviewedIn: []any{"post1", 42, "post2"}}}
-		require.Equal(t, []string{"post1", "post2"}, p.GetPreviewedInProp())
-	})
-
-	t.Run("returns nil for a non-array value", func(t *testing.T) {
-		p := &Post{Props: StringInterface{PostPropsPreviewedIn: "not-an-array"}}
-		require.Nil(t, p.GetPreviewedInProp())
-	})
-}

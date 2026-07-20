@@ -389,10 +389,8 @@ type PostStore interface {
 	SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*model.Post, int, error)
 	Save(rctx request.CTX, post *model.Post) (*model.Post, error)
 	Update(rctx request.CTX, newPost *model.Post, oldPost *model.Post) (*model.Post, error)
-	// AddPostPreviewReference records that referencingPostID permalink-previews
-	// previewedPostID, by appending referencingPostID to the previewed post's
-	// previewed_in prop. Idempotent and safe under concurrent writers.
 	AddPostPreviewReference(rctx request.CTX, previewedPostID, referencingPostID string) error
+	GetPostPreviews(rctx request.CTX, postID string) ([]string, error)
 	Get(rctx request.CTX, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error)
 	GetSingle(rctx request.CTX, id string, inclDeleted bool) (*model.Post, error)
 	Delete(rctx request.CTX, postID string, timestamp int64, deleteByID string) error

@@ -1274,7 +1274,7 @@ func TestCreatePost(t *testing.T) {
 		assert.Equal(t, previewPost.GetProps(), model.StringInterface{"previewed_post": referencedPost.Id})
 	})
 
-	t.Run("Maintains previewed_in on the previewed post as posts permalink-preview it", func(t *testing.T) {
+	t.Run("Records previewing posts on the previewed post as posts permalink-preview it", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
@@ -1294,10 +1294,9 @@ func TestCreatePost(t *testing.T) {
 		channelForPreview := th.CreateChannel(t, th.BasicTeam)
 
 		previewedIn := func() []string {
-			// Read the persisted post directly to avoid any per-viewer prop sanitization.
-			got, nErr := th.App.Srv().Store().Post().GetSingle(th.Context, referencedPost.Id, false)
+			ids, nErr := th.App.Srv().Store().Post().GetPostPreviews(th.Context, referencedPost.Id)
 			require.NoError(t, nErr)
-			return got.GetPreviewedInProp()
+			return ids
 		}
 
 		previewPost1, _, err := th.App.CreatePost(th.Context, &model.Post{

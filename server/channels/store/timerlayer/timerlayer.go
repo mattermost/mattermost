@@ -7167,6 +7167,22 @@ func (s *TimerLayerPostStore) GetPostIdBeforeTime(channelID string, timestamp in
 	return result, err
 }
 
+func (s *TimerLayerPostStore) GetPostPreviews(rctx request.CTX, postID string) ([]string, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.GetPostPreviews(rctx, postID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostPreviews", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostStore) GetPostReminderMetadata(postID string) (*store.PostReminderMetadata, error) {
 	start := time.Now()
 

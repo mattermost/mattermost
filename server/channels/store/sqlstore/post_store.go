@@ -454,27 +454,31 @@ func (s *SqlPostStore) Update(rctx request.CTX, newPost *model.Post, oldPost *mo
 	return newPost, nil
 }
 
-// AddPostPreviewReference appends referencingPostID to the previewed post's
-// previewed_in prop (the reverse of previewed_post). It is a single atomic UPDATE:
-// the row lock on the previewed post serialises concurrent appenders, and the
-// containment guard makes it idempotent (an already-present id is a no-op, so no
-// duplicate and no wasted write). A missing previewed post matches 0 rows and is
-// not an error. The whole jsonb value is built in-DB, so no binary-param handling
-// is needed. Uses the jsonb @> containment operator rather than the ? key operator,
-// which would collide with the placeholder rebinder.
 func (s *SqlPostStore) AddPostPreviewReference(rctx request.CTX, previewedPostID, referencingPostID string) error {
-	if _, err := s.GetMaster().Exec(`UPDATE Posts
-		SET Props = jsonb_set(
-			COALESCE(Props, '{}'::jsonb),
-			'{previewed_in}',
-			COALESCE(Props->'previewed_in', '[]'::jsonb) || to_jsonb(?::text),
-			true)
-		WHERE Id = ?
-			AND NOT (COALESCE(Props->'previewed_in', '[]'::jsonb) @> to_jsonb(?::text))`,
-		referencingPostID, previewedPostID, referencingPostID); err != nil {
+	query := s.getQueryBuilder().
+		Insert("PostPreviews").
+		Columns("PostId", "PreviewedInPostId").
+		Values(previewedPostID, referencingPostID).
+		Suffix("ON CONFLICT (PostId, PreviewedInPostId) DO NOTHING")
+
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
 		return errors.Wrapf(err, "failed to add preview reference from post=%s to previewed post=%s", referencingPostID, previewedPostID)
 	}
 	return nil
+}
+
+func (s *SqlPostStore) GetPostPreviews(rctx request.CTX, postID string) ([]string, error) {
+	query := s.getQueryBuilder().
+		Select("PreviewedInPostId").
+		From("PostPreviews").
+		Where(sq.Eq{"PostId": postID}).
+		OrderBy("PreviewedInPostId")
+
+	ids := []string{}
+	if err := s.GetReplica().SelectBuilder(&ids, query); err != nil {
+		return nil, errors.Wrapf(err, "failed to get post previews for post=%s", postID)
+	}
+	return ids, nil
 }
 
 func (s *SqlPostStore) OverwriteMultiple(rctx request.CTX, posts []*model.Post) (_ []*model.Post, _ int, err error) {
@@ -1113,6 +1117,10 @@ func (s *SqlPostStore) permanentDeleteAssociatedData(transaction *sqlxTxWrapper,
 	}
 
 	if err = s.permanentDeleteReadReceipts(transaction, postIds); err != nil {
+		return err
+	}
+
+	if err = s.permanentDeletePostPreviews(transaction, postIds); err != nil {
 		return err
 	}
 
@@ -3035,6 +3043,19 @@ func (s *SqlPostStore) permanentDeleteReadReceipts(transaction *sqlxTxWrapper, p
 		)
 	if _, err := transaction.ExecBuilder(query); err != nil {
 		return errors.Wrap(err, "failed to delete ReadReceipts")
+	}
+	return nil
+}
+
+func (s *SqlPostStore) permanentDeletePostPreviews(transaction *sqlxTxWrapper, postIds []string) error {
+	query := s.getQueryBuilder().
+		Delete("PostPreviews").
+		Where(sq.Or{
+			sq.Eq{"PostId": postIds},
+			sq.Eq{"PreviewedInPostId": postIds},
+		})
+	if _, err := transaction.ExecBuilder(query); err != nil {
+		return errors.Wrap(err, "failed to delete PostPreviews")
 	}
 	return nil
 }

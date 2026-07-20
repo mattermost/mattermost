@@ -609,6 +609,36 @@ func (_m *PostStore) GetPostIdBeforeTime(channelID string, timestamp int64, coll
 	return r0, r1
 }
 
+// GetPostPreviews provides a mock function with given fields: rctx, postID
+func (_m *PostStore) GetPostPreviews(rctx request.CTX, postID string) ([]string, error) {
+	ret := _m.Called(rctx, postID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPostPreviews")
+	}
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string) ([]string, error)); ok {
+		return rf(rctx, postID)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string) []string); ok {
+		r0 = rf(rctx, postID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
+		r1 = rf(rctx, postID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetPostReminderMetadata provides a mock function with given fields: postID
 func (_m *PostStore) GetPostReminderMetadata(postID string) (*store.PostReminderMetadata, error) {
 	ret := _m.Called(postID)

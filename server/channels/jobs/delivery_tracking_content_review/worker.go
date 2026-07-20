@@ -131,17 +131,13 @@ func (worker *Worker) DoJob(job *model.Job) {
 		return
 	}
 
-	// Discover the posts to copy: the reviewed post plus every post that currently
-	// previews it (A.props.previewed_in). A viewer of a previewing post saw the reviewed
-	// post's content through the embed, so their deliveries belong in the receipt. Read
-	// at run time so previews added between trigger and execution are included.
-	reviewedPost, postErr := worker.store.Post().GetSingle(request.EmptyContext(worker.logger), postID, true)
-	if postErr != nil {
-		logger.Error("Worker: failed to load reviewed post", mlog.Err(postErr))
-		worker.setJobError(logger, job, model.NewAppError("DeliveryTrackingContentReviewWorker", "app.job.error", nil, "", http.StatusInternalServerError).Wrap(postErr))
+	previewIDs, previewErr := worker.store.Post().GetPostPreviews(request.EmptyContext(worker.logger), postID)
+	if previewErr != nil {
+		logger.Error("Worker: failed to load previewing posts", mlog.Err(previewErr))
+		worker.setJobError(logger, job, model.NewAppError("DeliveryTrackingContentReviewWorker", "app.job.error", nil, "", http.StatusInternalServerError).Wrap(previewErr))
 		return
 	}
-	postIDs := append([]string{postID}, reviewedPost.GetPreviewedInProp()...)
+	postIDs := append([]string{postID}, previewIDs...)
 
 	batchSize := defaultBatchSize
 	configuredBatchSize := model.SafeDereference(worker.jobServer.Config().DeliveryTrackingSettings.ContentReviewDeliveryReceiptCopyBatchSize)

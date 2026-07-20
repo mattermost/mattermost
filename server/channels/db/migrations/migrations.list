@@ -407,5 +407,7 @@ channels/db/migrations/postgres/000205_create_user_post_delivery.down.sql
 channels/db/migrations/postgres/000205_create_user_post_delivery.up.sql
 channels/db/migrations/postgres/000206_create_user_post_delivery_content_review.down.sql
 channels/db/migrations/postgres/000206_create_user_post_delivery_content_review.up.sql
+channels/db/migrations/postgres/000207_create_post_previews.down.sql
+channels/db/migrations/postgres/000207_create_post_previews.up.sql
 channels/db/migrations/postgres_user_post_delivery/000001_create_user_post_delivery.down.sql
 channels/db/migrations/postgres_user_post_delivery/000001_create_user_post_delivery.up.sql
