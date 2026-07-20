@@ -13,16 +13,20 @@ Install Mattermost Server on any 64-bit Linux distribution directly from the rel
 - Custom paths, users, or systemd unit configurations
 - Environments where you control every version pin and don't want a package manager auto-upgrade
 
-:::tip Use a packaged install if it fits
-If you're on **Ubuntu / Debian**, use the [APT-based install](./deploy-ubuntu) for automatic security updates. If you're on **RHEL / Rocky / Alma / Oracle**, use the [RHEL install](./deploy-rhel) — it covers SELinux, firewalld, and fapolicyd configuration too.
-:::
+<Tip title="Use a packaged install if it fits">
 
-:::info Minimum requirements
+If you're on **Ubuntu / Debian**, use the [APT-based install](./deploy-ubuntu) for automatic security updates. If you're on **RHEL / Rocky / Alma / Oracle**, use the [RHEL install](./deploy-rhel) — it covers SELinux, firewalld, and fapolicyd configuration too.
+
+</Tip>
+
+<Note title="Minimum requirements">
+
 - **Operating system**: any 64-bit Linux distribution with `systemd` (or a comparable service manager).
 - **Hardware**: 1 vCPU and 2 GB RAM (supports up to ~1,000 users).
 - **Database**: [PostgreSQL 14+](/deployment-guide/postgres-migration).
 - **Network**: TCP 80/443 inbound (TLS), 8065 inbound (System Console), 10025 outbound (SMTP relay if used).
-:::
+
+</Note>
 
 ## Step 1: Get a PostgreSQL database
 
@@ -62,9 +66,11 @@ Enterprise and Team Edition releases are listed in the [version archive](/produc
 </TabItem>
 </Tabs>
 
-:::note Air-gapped installs
+<Note title="Air-gapped installs">
+
 In an air-gapped environment, stage the tarball on your operator workstation, verify the SHA-256 and PGP signature, then transfer it across the boundary. See [Air-Gapped Operations → Quick-Start Runbook](/deployment-guide/air-gapped-operations/quick-start-runbook) for the full procedure.
-:::
+
+</Note>
 
 ## Step 4: Install Mattermost Server
 
@@ -79,9 +85,11 @@ sudo chown -R mattermost:mattermost /opt/mattermost
 sudo chmod -R g+w /opt/mattermost
 ```
 
-:::note Custom paths and users
+<Note title="Custom paths and users">
+
 If you use a path other than `/opt/mattermost` or a user/group name other than `mattermost`, use that name in every step that follows.
-:::
+
+</Note>
 
 Create the systemd unit file at `/lib/systemd/system/mattermost.service`:
 
@@ -106,14 +114,16 @@ LimitNOFILE=49152
 WantedBy=multi-user.target
 ```
 
-:::note Local database
+<Note title="Local database">
+
 If PostgreSQL is on the same host, add to the `[Unit]` section so Mattermost won't start before the database is ready:
 
 ```ini
 After=postgresql.service
 BindsTo=postgresql.service
 ```
-:::
+
+</Note>
 
 Reload systemd:
 
@@ -171,9 +181,11 @@ sudo rm /lib/systemd/system/mattermost.service
 sudo userdel mattermost
 ```
 
-:::important Back up before removing
+<Important title="Back up before removing">
+
 `/opt/mattermost` contains `config/`, `logs/`, `plugins/`, `client/plugins/`, and `data/`. Back these up before running `rm -rf` if you may need to restore.
-:::
+
+</Important>
 
 ## Next steps
 

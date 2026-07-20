@@ -2727,6 +2727,19 @@ func (c *Client4) InviteUsersToTeamAndChannelsGracefully(ctx context.Context, te
 	return DecodeJSONFromResponse[[]*EmailInviteWithError](r)
 }
 
+// InviteMembersToTeamGracefully invite users by email to the team, optionally carrying
+// per-email profile fields to pre-set on the accounts created from the invitations.
+func (c *Client4) InviteMembersToTeamGracefully(ctx context.Context, teamId string, memberInvite *MemberInvite) ([]*EmailInviteWithError, *Response, error) {
+	values := url.Values{}
+	values.Set("graceful", c.boolString(true))
+	r, err := c.doAPIPostJSONWithQuery(ctx, c.teamRoute(teamId).Join("invite", "email"), values, memberInvite)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*EmailInviteWithError](r)
+}
+
 // InviteGuestsToTeam invite guest by email to some channels in a team.
 func (c *Client4) InviteGuestsToTeamGracefully(ctx context.Context, teamId string, userEmails []string, channels []string, message string) ([]*EmailInviteWithError, *Response, error) {
 	guestsInvite := GuestsInvite{

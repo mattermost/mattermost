@@ -8,12 +8,14 @@ sidebar_label: "Red Hat (RHEL)"
 
 Install Mattermost Server on Red Hat Enterprise Linux (RHEL), Rocky Linux, AlmaLinux, Oracle Linux 7+, or CentOS Stream. RHEL doesn't have a signed APT-style repository, so this guide installs from the release tarball with manual systemd setup, then walks through the security configuration RHEL deployments typically need (SELinux contexts, firewalld rules, fapolicyd allow rules).
 
-:::info Minimum requirements
+<Note title="Minimum requirements">
+
 - **Operating system**: RHEL 7+, Rocky / Alma 8+, Oracle Linux 7+, CentOS Stream 8+.
 - **Hardware**: 1 vCPU and 2 GB RAM (supports up to ~1,000 users).
 - **Database**: [PostgreSQL 14+](/deployment-guide/postgres-migration).
 - **Network**: TCP 80/443 inbound (TLS), 8065 inbound (System Console), 10025 outbound (SMTP relay if used).
-:::
+
+</Note>
 
 ## Step 1: Get a PostgreSQL database
 
@@ -73,9 +75,11 @@ sudo chown -R mattermost:mattermost /opt/mattermost
 sudo chmod -R g+w /opt/mattermost
 ```
 
-:::note Custom paths and users
+<Note title="Custom paths and users">
+
 If you use a path other than `/opt/mattermost` or a user/group name other than `mattermost`, use that name in every step that follows.
-:::
+
+</Note>
 
 Create the systemd unit file at `/lib/systemd/system/mattermost.service`:
 
@@ -197,9 +201,11 @@ sudo semodule -i mattermost_policy.pp
 sudo systemctl restart mattermost
 ```
 
-:::tip Testing-only fallback
+<Tip title="Testing-only fallback">
+
 For debugging, you can temporarily switch SELinux to permissive mode with `sudo setenforce 0`. Re-enable enforcement with `sudo setenforce 1` once contexts are correct. Don't ship a production deployment in permissive mode.
-:::
+
+</Tip>
 
 **References**
 
@@ -310,9 +316,11 @@ allow perm=execute exe=/usr/lib/systemd/systemd trust=1 : dir=/opt/rtcd/ all tru
 
 Then reload fapolicyd as above. See [RTCD setup and configuration](/administration-guide/configure/calls-deployment-guide) for the full rtcd install path.
 
-:::note Rule numbering
+<Note title="Rule numbering">
+
 fapolicyd rules are evaluated in order. Your allow rules must be numbered lower than the deny rule that's blocking Mattermost — `80-` is usually safe with a stock configuration. If denials persist, re-check the rule number from `fapolicyd --debug` and renumber accordingly.
-:::
+
+</Note>
 
 **Reference**: [Mattermost and fapolicyd](https://support.mattermost.com/hc/en-us/articles/12167526545172-Mattermost-and-fapolicyd) support article.
 
@@ -330,9 +338,11 @@ sudo rm /lib/systemd/system/mattermost.service
 sudo userdel mattermost
 ```
 
-:::important Back up before removing
+<Important title="Back up before removing">
+
 `/opt/mattermost` contains `config/`, `logs/`, `plugins/`, `client/plugins/`, and `data/`. Back these up before running `rm -rf` if you may need to restore.
-:::
+
+</Important>
 
 ## Next steps
 

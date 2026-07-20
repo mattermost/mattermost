@@ -619,9 +619,8 @@ func (s SqlTeamStore) SearchOpen(opts *model.TeamSearch) ([]*model.Team, error) 
 }
 
 // SearchPrivate returns from the database a list of private teams that match the Name or DisplayName
-// passed as the term search parameter.
+// passed as the term search parameter. Privacy is keyed on AllowOpenInvite, not Type, so invite-only teams are included too.
 func (s SqlTeamStore) SearchPrivate(opts *model.TeamSearch) ([]*model.Team, error) {
-	opts.TeamType = new("O")
 	opts.AllowOpenInvite = new(false)
 	return s.SearchAll(opts)
 }
@@ -1227,7 +1226,9 @@ func (s SqlTeamStore) GetChannelUnreadsForAllTeams(excludeTeamId, userId string)
 		From("Channels").
 		Join("ChannelMembers ON Id = ChannelId").
 		Where(sq.Eq{"UserId": userId, "DeleteAt": 0}).
-		Where(sq.NotEq{"TeamId": excludeTeamId}).ToSql()
+		Where(sq.NotEq{"TeamId": excludeTeamId}).
+		// Space backing channels are internal and carry no chat read-state.
+		Where(sq.NotEq{"Channels.Type": nonMessageBackingChannelTypes}).ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "team_tosql")
 	}
@@ -1246,7 +1247,9 @@ func (s SqlTeamStore) GetChannelUnreadsForTeam(teamId, userId string) ([]*model.
 		Select("Channels.TeamId TeamId", "Channels.Id ChannelId", "(Channels.TotalMsgCount - ChannelMembers.MsgCount) MsgCount", "(Channels.TotalMsgCountRoot - ChannelMembers.MsgCountRoot) MsgCountRoot", "ChannelMembers.MentionCount MentionCount", "ChannelMembers.MentionCountRoot MentionCountRoot", "ChannelMembers.NotifyProps NotifyProps").
 		From("Channels").
 		Join("ChannelMembers ON Id = ChannelId").
-		Where(sq.Eq{"UserId": userId, "TeamId": teamId, "DeleteAt": 0}).ToSql()
+		Where(sq.Eq{"UserId": userId, "TeamId": teamId, "DeleteAt": 0}).
+		// Space backing channels are internal and carry no chat read-state.
+		Where(sq.NotEq{"Channels.Type": nonMessageBackingChannelTypes}).ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "team_tosql")
 	}
