@@ -3634,9 +3634,8 @@ type PluginState struct {
 // PluginAccessControl configures per-plugin UI/API allow-lists.
 // When Enable is false or unset, the plugin is visible to everyone.
 type PluginAccessControl struct {
-	Enable          *bool
-	AllowedUserIds  []string
-	AllowedGroupIds []string // Enterprise; reserved for a later phase
+	Enable         *bool
+	AllowedUserIds []string
 }
 
 type PluginSettings struct {

@@ -201,7 +201,6 @@ type PluginItemProps = {
 const emptyAccessControl = (): PluginAccessControl => ({
     Enable: false,
     AllowedUserIds: [],
-    AllowedGroupIds: [],
 });
 
 const PluginAccessControlSettings = ({
@@ -277,7 +276,7 @@ const PluginAccessControlSettings = ({
             />
             {acl.Enable && (
                 <div className='pt-2'>
-                    <label>
+                    <label htmlFor={`plugin_access_control_users_${pluginId}_input`}>
                         <FormattedMessage
                             id='admin.plugin.accessControl.allowedUsers'
                             defaultMessage='Allowed users'
@@ -661,7 +660,6 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                 accessControl[pluginId] = {
                     Enable: Boolean(acl.Enable),
                     AllowedUserIds: acl.AllowedUserIds || [],
-                    AllowedGroupIds: acl.AllowedGroupIds || [],
                 };
             });
             config.PluginSettings.PluginAccessControl = accessControl;
