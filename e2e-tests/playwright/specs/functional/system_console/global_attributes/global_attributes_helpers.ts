@@ -17,3 +17,20 @@ export async function setGlobalAttributesFeatureFlag(adminClient: Client4, enabl
         },
     } as any);
 }
+
+/**
+ * True when the effective GlobalAttributes value can't be trusted as the persisted
+ * config value: either an env var (e.g. MM_FEATUREFLAGS_GLOBALATTRIBUTES) overrides it
+ * (per getEnvironmentConfig()), or ServiceSettings.SplitKey is configured, meaning flags
+ * are synced live from an external service rather than read from local config at all.
+ * Callers should skip restoring/mutating the flag when this returns true, since
+ * getConfig() would reflect the override, not what is actually persisted underneath it.
+ */
+export async function isGlobalAttributesFlagOverridden(adminClient: Client4): Promise<boolean> {
+    const config = await adminClient.getConfig();
+    if (config.ServiceSettings?.SplitKey) {
+        return true;
+    }
+    const environmentConfig = await adminClient.getEnvironmentConfig();
+    return Boolean((environmentConfig as any)?.FeatureFlags?.GlobalAttributes);
+}

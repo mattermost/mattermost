@@ -13,20 +13,37 @@
 
 import {expect, test, getAdminClient, licenseTier} from '@mattermost/playwright-lib';
 
-import {GLOBAL_ATTRIBUTES_ADMIN_PATH, setGlobalAttributesFeatureFlag} from './global_attributes_helpers';
+import {
+    GLOBAL_ATTRIBUTES_ADMIN_PATH,
+    isGlobalAttributesFlagOverridden,
+    setGlobalAttributesFeatureFlag,
+} from './global_attributes_helpers';
 
 test.describe('System Console - Global Attributes access gate', {tag: '@system_console'}, () => {
     test.describe.configure({mode: 'serial'});
 
     let originalFlagValue: boolean | undefined;
+    let skipCleanup = false;
 
     test.beforeAll(async () => {
         const {adminClient} = await getAdminClient();
+
+        // If an env var or SplitKey controls the effective value, getConfig() would
+        // reflect that override rather than what's actually persisted — capturing it
+        // here and writing it back in afterAll would corrupt the persisted config.
+        skipCleanup = await isGlobalAttributesFlagOverridden(adminClient);
+        if (skipCleanup) {
+            return;
+        }
+
         const {FeatureFlags} = await adminClient.getConfig();
         originalFlagValue = FeatureFlags.GlobalAttributes === true;
     });
 
     test.afterAll(async () => {
+        if (skipCleanup) {
+            return;
+        }
         const {adminClient} = await getAdminClient();
         if (adminClient && originalFlagValue !== undefined) {
             await setGlobalAttributesFeatureFlag(adminClient, originalFlagValue);
