@@ -146,6 +146,10 @@ const (
 	TeamSettingsDefaultCustomDescriptionText = ""
 	TeamSettingsDefaultUserStatusAwayTimeout = 300
 
+	TeamSettingsLockProfileFieldsNone            = "none"
+	TeamSettingsLockProfileFieldsNameAndUsername = "name_and_username"
+	TeamSettingsLockProfileFieldsAll             = "all"
+
 	SqlSettingsDefaultDataSource = "postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
 
 	FileSettingsDefaultDirectory                   = "./data/"
@@ -2559,6 +2563,7 @@ type TeamSettings struct {
 	ExperimentalViewArchivedChannels   *bool    `access:"experimental_features,site_users_and_teams"`
 	ExperimentalEnableAutomaticReplies *bool    `access:"experimental_features"`
 	LockTeammateNameDisplay            *bool    `access:"site_users_and_teams"`
+	LockProfileFieldsForEmailUsers     *string  `access:"site_users_and_teams"`
 	ExperimentalPrimaryTeam            *string  `access:"experimental_features"`
 	ExperimentalDefaultChannels        []string `access:"experimental_features"`
 }
@@ -2658,6 +2663,10 @@ func (s *TeamSettings) SetDefaults() {
 
 	if s.LockTeammateNameDisplay == nil {
 		s.LockTeammateNameDisplay = new(false)
+	}
+
+	if s.LockProfileFieldsForEmailUsers == nil {
+		s.LockProfileFieldsForEmailUsers = new(TeamSettingsLockProfileFieldsNone)
 	}
 }
 
@@ -4544,6 +4553,10 @@ func (s *TeamSettings) isValid() *AppError {
 
 	if !*s.ExperimentalViewArchivedChannels {
 		return NewAppError("Config.IsValid", "model.config.is_valid.experimental_view_archived_channels.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if !(*s.LockProfileFieldsForEmailUsers == TeamSettingsLockProfileFieldsNone || *s.LockProfileFieldsForEmailUsers == TeamSettingsLockProfileFieldsNameAndUsername || *s.LockProfileFieldsForEmailUsers == TeamSettingsLockProfileFieldsAll) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.lock_profile_fields.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

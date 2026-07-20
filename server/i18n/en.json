@@ -3907,12 +3907,28 @@
     "translation": "No one to invite."
   },
   {
+    "id": "api.team.invite_members.profiles_disabled.app_error",
+    "translation": "Pre-setting profile fields on invitations requires locked profile fields to be enabled."
+  },
+  {
+    "id": "api.team.invite_members.profiles_graceful.app_error",
+    "translation": "Pre-setting profile fields on invitations requires graceful mode."
+  },
+  {
+    "id": "api.team.invite_members.profiles_license.app_error",
+    "translation": "Pre-setting profile fields on invitations requires an Enterprise license."
+  },
+  {
     "id": "api.team.invite_members.unable_to_send_email.app_error",
     "translation": "Error while sending the email"
   },
   {
     "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
     "translation": "SMTP is not configured in System Console"
+  },
+  {
+    "id": "api.team.invite_members.username_taken.app_error",
+    "translation": "The username {{.Username}} is already taken."
   },
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
@@ -5047,6 +5063,10 @@
     "translation": "Field '{{.Field}}' must be set through user's login provider."
   },
   {
+    "id": "api.user.patch_user.profile_field_locked.app_error",
+    "translation": "The {{.Field}} field is managed by your System Admin and cannot be changed."
+  },
+  {
     "id": "api.user.promote_guest_to_user.magic_link_enabled.app_error",
     "translation": "Unable to convert the guest to regular user because the guest uses magic link authentication."
   },
@@ -5199,6 +5219,10 @@
     "translation": "Field '{{.Field}}' must be set through user's login provider."
   },
   {
+    "id": "api.user.update_user.profile_field_locked.app_error",
+    "translation": "The {{.Field}} field is managed by your System Admin and cannot be changed."
+  },
+  {
     "id": "api.user.update_user_auth.invalid_request",
     "translation": "Request is missing either AuthData or AuthService parameter."
   },
@@ -5237,6 +5261,10 @@
   {
     "id": "api.user.upload_profile_user.parse.app_error",
     "translation": "Could not parse multipart form."
+  },
+  {
+    "id": "api.user.upload_profile_user.profile_field_locked.app_error",
+    "translation": "The profile picture is managed by your System Admin and cannot be changed."
   },
   {
     "id": "api.user.upload_profile_user.storage.app_error",
@@ -11991,6 +12019,10 @@
     "translation": "Available Languages must contain Default Client Language."
   },
   {
+    "id": "model.config.is_valid.lock_profile_fields.app_error",
+    "translation": "Invalid lock profile fields setting. Must be 'none', 'name_and_username' or 'all'."
+  },
+  {
     "id": "model.config.is_valid.log.advanced_logging.json",
     "translation": "Failed to parse JSON: {{.Error}}"
   },
@@ -12605,6 +12637,34 @@
   {
     "id": "model.member.is_valid.emails.app_error",
     "translation": "Email list is empty"
+  },
+  {
+    "id": "model.member.is_valid.profile_email.app_error",
+    "translation": "Profile email is not in the invited email list"
+  },
+  {
+    "id": "model.member.is_valid.profile_email_duplicate.app_error",
+    "translation": "Invitation profiles must have unique emails"
+  },
+  {
+    "id": "model.member.is_valid.profile_first_name.app_error",
+    "translation": "Invalid first name in invitation profile"
+  },
+  {
+    "id": "model.member.is_valid.profile_last_name.app_error",
+    "translation": "Invalid last name in invitation profile"
+  },
+  {
+    "id": "model.member.is_valid.profile_nil.app_error",
+    "translation": "Invitation profile cannot be null"
+  },
+  {
+    "id": "model.member.is_valid.profile_username.app_error",
+    "translation": "Invalid username in invitation profile"
+  },
+  {
+    "id": "model.member.is_valid.profile_username_duplicate.app_error",
+    "translation": "Invitation profiles must have unique usernames"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",

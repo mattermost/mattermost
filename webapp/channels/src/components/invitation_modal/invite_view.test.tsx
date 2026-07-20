@@ -73,6 +73,9 @@ const defaultProps: Props = deepFreeze({
     canInviteGuestsWithMagicLink: false,
     useGuestMagicLink: false,
     toggleGuestMagicLink: jest.fn(),
+    lockProfileFieldsForEmailUsers: 'none',
+    profiles: {},
+    onProfileChange: jest.fn(),
 });
 
 let props = defaultProps;
@@ -353,6 +356,97 @@ describe('InviteView', () => {
         expect(onUsersInputChange).toHaveBeenCalledWith('one@example.com');
         expect(input).toHaveValue('one@example.com');
         expect(screen.getByTestId('inviteButton')).toBeDisabled();
+    });
+
+    describe('pre-set member profiles', () => {
+        it('hides the profile inputs when the lock setting is none', () => {
+            renderWithContext(
+                <InviteView
+                    {...defaultProps}
+                    usersEmails={['one@example.com']}
+                />,
+                state,
+            );
+            expect(screen.queryByTestId('MemberProfileInputs')).not.toBeInTheDocument();
+        });
+
+        it('shows the profile inputs when the lock setting is enabled', () => {
+            renderWithContext(
+                <InviteView
+                    {...defaultProps}
+                    lockProfileFieldsForEmailUsers='name_and_username'
+                    usersEmails={['one@example.com']}
+                />,
+                state,
+            );
+            expect(screen.getByTestId('MemberProfileInputs')).toBeInTheDocument();
+        });
+
+        it('hides the profile inputs when inviting guests', () => {
+            renderWithContext(
+                <InviteView
+                    {...defaultProps}
+                    lockProfileFieldsForEmailUsers='name_and_username'
+                    inviteType={InviteType.GUEST}
+                    usersEmails={['one@example.com']}
+                />,
+                state,
+            );
+            expect(screen.queryByTestId('MemberProfileInputs')).not.toBeInTheDocument();
+        });
+
+        it('hides the profile inputs when email invitations are disabled', () => {
+            renderWithContext(
+                <InviteView
+                    {...defaultProps}
+                    lockProfileFieldsForEmailUsers='name_and_username'
+                    emailInvitationsEnabled={false}
+                    usersEmails={['one@example.com']}
+                />,
+                state,
+            );
+            expect(screen.queryByTestId('MemberProfileInputs')).not.toBeInTheDocument();
+        });
+
+        it('disables invite when a pre-set profile has an invalid username', () => {
+            renderWithContext(
+                <InviteView
+                    {...defaultProps}
+                    lockProfileFieldsForEmailUsers='name_and_username'
+                    usersEmails={['one@example.com']}
+                    profiles={{
+                        'one@example.com': {
+                            email: 'one@example.com',
+                            username: 'inv@lid',
+                            first_name: 'One',
+                            last_name: 'Example',
+                        },
+                    }}
+                />,
+                state,
+            );
+            expect(screen.getByTestId('inviteButton')).toBeDisabled();
+        });
+
+        it('keeps invite enabled when pre-set profiles are empty or valid', () => {
+            renderWithContext(
+                <InviteView
+                    {...defaultProps}
+                    lockProfileFieldsForEmailUsers='name_and_username'
+                    usersEmails={['one@example.com', 'two@example.com']}
+                    profiles={{
+                        'one@example.com': {
+                            email: 'one@example.com',
+                            username: 'one.example',
+                            first_name: 'One',
+                            last_name: 'Example',
+                        },
+                    }}
+                />,
+                state,
+            );
+            expect(screen.getByTestId('inviteButton')).toBeEnabled();
+        });
     });
 
     it('shows the membership-policy notice, attribute tags, and invite-link warning on a governed team', () => {

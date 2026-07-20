@@ -127,6 +127,7 @@ import type {CompleteOnboardingRequest} from '@mattermost/types/setup';
 import type {RemoteClusterInfo, SharedChannelRemote} from '@mattermost/types/shared_channels';
 import type {
     GetTeamMembersOpts,
+    MemberInviteProfile,
     Team,
     TeamInviteWithError,
     TeamMembership,
@@ -1642,10 +1643,12 @@ export default class Client4 {
         );
     };
 
-    sendEmailInvitesToTeamGracefully = (teamId: string, emails: string[]) => {
+    sendEmailInvitesToTeamGracefully = (teamId: string, emails: string[], profiles?: MemberInviteProfile[]) => {
+        // Keep the historical raw-array body unless profiles are provided.
+        const body = profiles?.length ? JSON.stringify({emails, profiles}) : JSON.stringify(emails);
         return this.doFetch<TeamInviteWithError[]>(
             `${this.getTeamRoute(teamId)}/invite/email?graceful=true`,
-            {method: 'post', body: JSON.stringify(emails)},
+            {method: 'post', body},
         );
     };
 
@@ -1654,10 +1657,11 @@ export default class Client4 {
         channelIds: string[],
         emails: string[],
         message: string,
+        profiles?: MemberInviteProfile[],
     ) => {
         return this.doFetch<TeamInviteWithError[]>(
             `${this.getTeamRoute(teamId)}/invite/email?graceful=true`,
-            {method: 'post', body: JSON.stringify({emails, channelIds, message})},
+            {method: 'post', body: JSON.stringify({emails, channelIds, message, profiles: profiles?.length ? profiles : undefined})},
         );
     };
 

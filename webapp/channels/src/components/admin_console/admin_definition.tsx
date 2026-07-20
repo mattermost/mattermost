@@ -3222,6 +3222,28 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                         },
                         {
+                            type: 'dropdown',
+                            key: 'TeamSettings.LockProfileFieldsForEmailUsers',
+                            label: defineMessage({id: 'admin.team.lockProfileFieldsForEmailUsers', defaultMessage: 'Lock Profile Fields for Email Users:'}),
+                            help_text: defineMessage({id: 'admin.team.lockProfileFieldsForEmailUsersDesc', defaultMessage: 'Applies only to accounts that sign in with email and password; System Admins are always exempt. When enabled, users cannot change the locked fields themselves, empty first and last names can be filled in once by the user, and anyone with the "Invite Users" permission can pre-set names and usernames when sending email invites. Consider restricting that permission via permission schemes to people trusted to enter this information correctly.'}),
+                            options: [
+                                {
+                                    value: Constants.LOCK_PROFILE_FIELDS.NONE,
+                                    display_name: defineMessage({id: 'admin.team.lockProfileFields.none', defaultMessage: "Don't lock profile fields (default)"}),
+                                },
+                                {
+                                    value: Constants.LOCK_PROFILE_FIELDS.NAME_AND_USERNAME,
+                                    display_name: defineMessage({id: 'admin.team.lockProfileFields.nameAndUsername', defaultMessage: 'Lock name and username'}),
+                                },
+                                {
+                                    value: Constants.LOCK_PROFILE_FIELDS.ALL,
+                                    display_name: defineMessage({id: 'admin.team.lockProfileFields.all', defaultMessage: 'Lock entire profile'}),
+                                },
+                            ],
+                            isHidden: it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
+                        },
+                        {
                             type: 'bool',
                             key: 'PrivacySettings.ShowEmailAddress',
                             label: defineMessage({id: 'admin.privacy.showEmailTitle', defaultMessage: 'Show Email Address:'}),

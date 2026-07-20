@@ -9,6 +9,7 @@ import githubCSS from 'highlight.js/styles/github.css';
 import monokaiCSS from 'highlight.js/styles/monokai.css';
 import {defineMessage, defineMessages} from 'react-intl';
 
+import type {LockProfileFieldsSetting} from '@mattermost/types/config';
 import {CustomStatusDuration} from '@mattermost/types/users';
 
 import {Preferences as ReduxPreferences} from 'mattermost-redux/constants';
@@ -56,6 +57,19 @@ export const InviteTypes = {
     INVITE_MEMBER: 'member',
     INVITE_GUEST: 'guest',
 };
+
+export const LOCK_PROFILE_FIELDS = {
+    NONE: 'none',
+    NAME_AND_USERNAME: 'name_and_username',
+    ALL: 'all',
+} as const satisfies Record<string, LockProfileFieldsSetting>;
+
+export function normalizeLockProfileFieldsSetting(value: unknown): LockProfileFieldsSetting {
+    if (value === LOCK_PROFILE_FIELDS.NAME_AND_USERNAME || value === LOCK_PROFILE_FIELDS.ALL) {
+        return value;
+    }
+    return LOCK_PROFILE_FIELDS.NONE;
+}
 
 export const PreviousViewedTypes = {
     CHANNELS: 'channels',
@@ -2063,6 +2077,7 @@ export const Constants = {
         SHOW_NICKNAME_FULLNAME: 'nickname_full_name',
         SHOW_FULLNAME: 'full_name',
     },
+    LOCK_PROFILE_FIELDS,
     SEARCH_POST: 'searchpost',
     CHANNEL_ID_LENGTH: 26,
     TRANSPARENT_PIXEL: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
