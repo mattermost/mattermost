@@ -30,6 +30,10 @@ const professionalLicense = {
     SkuShortName: LicenseSkus.Professional,
 } as ClientLicense;
 
+const unlicensed = {
+    IsLicensed: 'false',
+} as ClientLicense;
+
 const consoleAccess = {read: {}, write: {}} as ConsoleAccess;
 
 function isHidden(config: Partial<AdminConfig>, license: ClientLicense) {
@@ -51,6 +55,10 @@ describe('AdminDefinition - Global Attributes access gate', () => {
 
     test('stays hidden when license is below Enterprise, even with flag on', () => {
         expect(isHidden(flagOn, professionalLicense)).toBe(true);
+    });
+
+    test('stays hidden when unlicensed, even with flag on', () => {
+        expect(isHidden(flagOn, unlicensed)).toBe(true);
     });
 
     test('stays hidden when the flag is off, even with Enterprise license', () => {

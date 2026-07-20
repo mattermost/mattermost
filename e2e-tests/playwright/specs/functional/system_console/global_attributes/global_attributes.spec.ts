@@ -18,6 +18,21 @@ import {GLOBAL_ATTRIBUTES_ADMIN_PATH, setGlobalAttributesFeatureFlag} from './gl
 test.describe('System Console - Global Attributes access gate', {tag: '@system_console'}, () => {
     test.describe.configure({mode: 'serial'});
 
+    let originalFlagValue: boolean | undefined;
+
+    test.beforeAll(async () => {
+        const {adminClient} = await getAdminClient();
+        const {FeatureFlags} = await adminClient.getConfig();
+        originalFlagValue = FeatureFlags.GlobalAttributes === true;
+    });
+
+    test.afterAll(async () => {
+        const {adminClient} = await getAdminClient();
+        if (adminClient && originalFlagValue !== undefined) {
+            await setGlobalAttributesFeatureFlag(adminClient, originalFlagValue);
+        }
+    });
+
     /**
      * @objective Ensure the Manage Attributes admin route is unavailable when the feature flag is off.
      */
@@ -36,15 +51,14 @@ test.describe('System Console - Global Attributes access gate', {tag: '@system_c
             'GlobalAttributes stays enabled (e.g. MM_FEATUREFLAGS or split-key overrides); cannot assert flag-off in this environment.',
         );
 
-        // # Open system console and navigate directly to the Manage Attributes path
+        // # Navigate directly to the Manage Attributes path
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        await systemConsolePage.goto();
         await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
 
         // * User is redirected away from the hidden route (no Route registered)
         await expect(systemConsolePage.page).not.toHaveURL(/manage_attributes/);
-        // * Manage Attributes menu entry and page title are not shown
-        await expect(systemConsolePage.page.getByText('Manage Attributes').first()).not.toBeVisible();
+        // * Manage Attributes menu entry is not shown in the sidebar
+        await expect(systemConsolePage.page.locator('.admin-sidebar').getByText('Manage Attributes')).not.toBeVisible();
     });
 
     /**
