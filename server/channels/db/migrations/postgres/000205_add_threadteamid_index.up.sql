@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_threads_threadteamid ON threads(threadteamid);

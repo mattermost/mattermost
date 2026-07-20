@@ -403,3 +403,5 @@ channels/db/migrations/postgres/000203_add_lastnotifiedat_to_user_access_tokens.
 channels/db/migrations/postgres/000203_add_lastnotifiedat_to_user_access_tokens.up.sql
 channels/db/migrations/postgres/000204_add_channel_type_space_enum.down.sql
 channels/db/migrations/postgres/000204_add_channel_type_space_enum.up.sql
+channels/db/migrations/postgres/000205_add_threadteamid_index.down.sql
+channels/db/migrations/postgres/000205_add_threadteamid_index.up.sql
