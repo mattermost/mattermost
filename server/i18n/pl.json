@@ -12798,5 +12798,85 @@
   {
     "id": "api.post.do_action.query.app_error",
     "translation": "Nieprawidłowe zapytanie dotyczące akcji."
+  },
+  {
+    "id": "api.property.session_attributes.license.app_error",
+    "translation": "Atrybuty sesji wymagają licencji Enterprise Advanced."
+  },
+  {
+    "id": "api.property_field.get.invalid_opts.app_error",
+    "translation": "Nieprawidłowe opcje wyszukiwania pola właściwości."
+  },
+  {
+    "id": "api.property_field.get.scope_conflict.app_error",
+    "translation": "Nie można łączyć channel_id/team_id z target_type/target_id."
+  },
+  {
+    "id": "api.property_field.get.scope_required.app_error",
+    "translation": "Wymagany jest parametr zakresu (channel_id, team_id lub target_type)."
+  },
+  {
+    "id": "api.property_field.get.target_type_required.app_error",
+    "translation": "Jeśli podasz target_id, musisz też podać target_type."
+  },
+  {
+    "id": "api.property_value.get.invalid_opts.app_error",
+    "translation": "Opcje wyszukiwania, które nie znajdują się w bazie danych."
+  },
+  {
+    "id": "api.property_value.patch.field_not_found.app_error",
+    "translation": "Pole właściwości {{.FieldID}} nie zostało znalezione w tej grupie."
+  },
+  {
+    "id": "api.property_value.system_use_dedicated_route.app_error",
+    "translation": "Wartości systemowe muszą korzystać z dedykowanego punktu końcowego dla wartości systemowych."
+  },
+  {
+    "id": "api.team.add_user.to.team.abac_subject_build_failed.app_error",
+    "translation": "Nie udało się zbudować podmiotu kontroli dostępu dla użytkownika."
+  },
+  {
+    "id": "api.team.add_user.to.team.rejected",
+    "translation": "Użytkownik nie posiada wymaganych atrybutów, aby dołączyć do Kanału."
+  },
+  {
+    "id": "api.team.update.group_constrained.policy_exists",
+    "translation": "Nie da się włączyć synchronizacji grupowej w zespole, do którego zastosowano politykę członkostwa."
+  },
+  {
+    "id": "api.user.attach_device_id.invalid_device_id.app_error",
+    "translation": "Nieprawidłowy identyfikator urządzenia."
+  },
+  {
+    "id": "api.user.attach_device_id.invalid_voip_device_id.app_error",
+    "translation": "Nieprawidłowy identyfikator urządzenia VoIP."
+  },
+  {
+    "id": "api.user.demote_user_to_guest.bot_not_allowed.app_error",
+    "translation": "Kont botów nie da się przekształcić w konta gości."
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_team.access_control_unavailable.app_error",
+    "translation": "Usługa kontroli dostępu jest niedostępna. Nie można filtrować użytkowników w zespole z włączonym systemem ABAC."
+  },
+  {
+    "id": "api.user.session_attributes.disabled.app_error",
+    "translation": "Atrybuty sesji nie są włączone."
+  },
+  {
+    "id": "api.webhook.incoming.user_membership.app_error",
+    "translation": "Użytkownik webhooka musi być członkiem docelowego zespołu lub kanału."
+  },
+  {
+    "id": "api.webhook.incoming.user_role.app_error",
+    "translation": "Nie możesz przypisać webhooka użytkownikowi z wyższymi uprawnieniami niż Twoje własne."
+  },
+  {
+    "id": "app.access_control.get_channel_role.app_error",
+    "translation": "Nie można pobrać roli kanału dla użytkownika. Spróbuj ponownie."
+  },
+  {
+    "id": "app.access_control.get_session_attributes.app_error",
+    "translation": "Nie udało się pobrać atrybutów sesji."
   }
 ]
